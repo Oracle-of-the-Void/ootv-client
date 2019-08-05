@@ -1,0 +1,426 @@
+body {
+  background: #dadada;
+  background-image:url('res/background-oracle.jpg'); 
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  background-position: left top; 
+  background-size: cover;
+  font-size: 11pt;
+}
+
+div.logo {
+    float: left; 
+    padding: 2px;
+}
+
+ul { text-align: left; }
+
+a.printinglink {  text-decoration: none; }
+
+a.ex { float: right; font-size: large;}
+span.headsetrar { float: right; padding-right: 2px; }
+
+div.searchinput, div.searchchecklist { float: left; padding: 2px; }
+div.searchinput input[type=text] { 
+  width: 105px;
+}
+div.searchinput select { 
+  width: 110px;
+}
+div.helloplace { text-align: center; max-width: 750px; display: inline-block;}
+div.infoplace {  max-width: 750px; display: inline-block; text-align: left;}
+
+div.error, div.more, div.moreloading, div.numresults, div.searchinput {
+  font-family: "L5R Title","Times New Roman",Georgia,Serif;
+  text-align: center;
+  font-size: 16pt;
+/*   color: red; */
+  display: inline-block;
+  background-color: rgb(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 4px;
+
+  -moz-border-radius: 7px;
+  -webkit-border-radius: 7px;
+  -khtml-border-radius: 7px;
+  border-radius: 7px;
+}
+
+div.menubar {
+  -moz-border-radius-bottomleft: 20px;
+  -webkit-border-bottom-left-radius: 20px;
+  -khtml-border-bottom-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+
+  -moz-border-radius-bottomright: 20px;
+  -webkit-border-bottom-right-radius: 20px;
+  -khtml-border-bottom-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+
+  background-color: rgb(192, 192, 192);
+  background-color: rgba(192, 192, 192, 0.9);
+  float: left; 
+  padding: 10px;
+/*  height: 23px; */
+  display: inline-block;
+}
+div#logarea { 
+  display: inline-block !important;
+ }
+
+div.randarea {
+  font-family: "Times New Roman",Georgia,Serif;
+
+  display: inline-block;
+  background-color: rgb(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 4px;
+
+  -moz-border-radius: 7px;
+  -webkit-border-radius: 7px;
+  -khtml-border-radius: 7px;
+  border-radius: 7px;
+
+  text-align: center;
+}
+
+div.listitem, div.listitemplain {
+  width: 100%;
+  display: table-row;
+  font-family: "Times New Roman",Georgia,Serif;
+}
+
+div.listimage {
+/*  float: left; */
+  padding: 4px;
+  display: table-cell;
+  vertical-align: top;
+}
+
+div.listbody, div.listbodyplain, div.listheadplain {
+/*  padding-left: 20px; */
+/*  float: left; */
+/*  max-width: 400px; */
+  padding: 4px;
+  width: 100%;
+  display: table-cell;
+  vertical-align: top;
+}
+
+div.listitem:nth-child(odd)>div { 
+  background-color: rgb(218, 218, 218);
+  background-color: rgba(218, 218, 218, 0.9);
+}
+div.listitem:nth-child(even)>div, div.listitemplain>div {
+  background-color: rgb(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+div.listitemplain:first-child>div {
+	     /* round right corners */
+  -moz-border-radius-topright: 7px;  -webkit-border-top-right-radius: 7px;  -khtml-border-top-right-radius: 7px;  border-top-right-radius: 7px;
+}
+div.listitemplain:last-child>div {
+  -moz-border-radius-bottomright: 7px;  -webkit-border-bottom-right-radius: 7px;  -khtml-border-bottom-right-radius: 7px;  border-bottom-right-radius: 7px;
+}
+
+div.listimage {
+	      /* round left corners */
+  -moz-border-radius-topleft: 7px;  -webkit-border-top-left-radius: 7px;  -khtml-border-top-left-radius: 7px;  border-top-left-radius: 7px;
+  -moz-border-radius-bottomleft: 7px;  -webkit-border-bottom-left-radius: 7px;  -khtml-border-bottom-left-radius: 7px;  border-bottom-left-radius: 7px;
+}
+
+div.listbody {
+	     /* round right corners */
+  -moz-border-radius-topright: 7px;  -webkit-border-top-right-radius: 7px;  -khtml-border-top-right-radius: 7px;  border-top-right-radius: 7px;
+  -moz-border-radius-bottomright: 7px;  -webkit-border-bottom-right-radius: 7px;  -khtml-border-bottom-right-radius: 7px;  border-bottom-right-radius: 7px;
+}
+
+/*
+.listing>tbody>tr.sectionspacer:nth-child(n)>td, .listing>tbody>tr.pageheader>td , .LO_card_format_1>tbody>tr:last-child { background-color: transparent; background-color: rgba (0,0,0,0); color: white; )}
+*/
+div.listhead, div.listheadxl, div.listheadplain, div.upperhead{
+    background: #6e6e6e;
+	background: -webkit-gradient(linear, left top, left bottom, from(#888), to(#575757));
+	background: -moz-linear-gradient(top,  #888,  #575757);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#888888', endColorstr='#575757');
+  /*   background-color: rgb(39, 39, 39);
+  background-color: rgba(39, 39, 39, 0.9);  */
+  font-size: large;
+  border-top: none;
+  font-family: "L5R Title";
+  padding: 2px;
+
+  -moz-border-radius-topright: 7px;  -webkit-border-top-right-radius: 7px;  -khtml-border-top-right-radius: 7px;  border-top-right-radius: 7px;
+}
+
+div.upperhead {
+  -moz-border-radius-topleft: 7px;  -webkit-border-top-left-radius: 7px;  -khtml-border-top-left-radius: 7px;  border-top-left-radius: 7px;
+}
+
+div.listheadxl {
+    font-size: x-large;
+}
+div.listhead, div.listheadxl, div.listhead a:visited, div.listhead a:link, div.listhead a:hover, div.listhead a:active, div.listheadplain, div.upperhead{
+    color:  /* #ffd73a; */  #FFFFFF;
+    text-decoration: none;
+}
+
+
+/***********************    DL for label: stuff  ****************/
+/* DL lists to have left label align with right text */
+/* slight problem: if left label is BIGGER than right side, wierd stuff happens */
+dl {
+    padding: 0.5em;
+}
+dt {
+    float: left;
+    clear: left;
+    width: 90px;
+    text-align: right;
+    font-weight: bold;
+/*    color: green; */
+}
+dt:not(:empty)::after {
+    content: ":";
+}
+dd {
+    margin: 0 0 0 100px;
+    padding: 0 0 0.25em 0;
+    font-size: 14pt;
+  text-align: left;
+}
+/******************   end DL   ***************/
+
+
+/*********************** ICON SECTION   ***********************/
+/* Iconic and smiconic are for inline icons - some of them seem a little high on the line centerline */
+.iconic { 
+  width: 30px;
+  height: 27px;
+  background-repeat: no-repeat;
+  background-position: center;
+  text-align: center;
+  border: none;
+  padding: 2px 6px 2px 6px;
+ }
+
+.smiconic { 
+  width: 22px;
+  height: 20px;
+  line-height: 1.4em;
+  background-repeat: no-repeat;
+  background-position: center;
+  text-align: center;
+  border: none;
+  padding: 2px 6px 2px 6px;
+  font-family: "L5R Title";
+}
+
+table.smiconic { float: left; display: inline;}
+tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
+/* br + table.smiconic > tbody > tr > td.smgc {   width: 66px; } */
+
+.hr {  background-image: url('res/icon-cards/ee_honor_requirement.png'); }
+.gc {  background-image: url('res/icon-cards/ee_cost_gold.png'); }
+.ph {  background-image: url('res/icon-cards/ee_personal_honor.png'); }
+.fo {  background-image: url('res/icon-cards/ee_focus.png');  color: white; }
+.force {  background-image: url('res/icon-cards/ee_f_unaligned.png');  color: white;  width: 46px;}
+.chi {  background-image: url('res/icon-cards/ee_c_unaligned.png');  color: white;  width: 45px;}
+
+.smhr {   background-image: url('res/icon-cards-small/ee_honor_requirement.png'); }
+.smgc {   background-image: url('res/icon-cards-small/ee_cost_gold.png'); }
+.smph {   background-image: url('res/icon-cards-small/ee_personal_honor.png'); }
+.smfo {   background-image: url('res/icon-cards-small/ee_focus.png');  color: white;/*  width: 66px; */ }
+.smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
+.smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
+
+.iiconic { font-family: 'iconicfill'; }
+.inegative { color: #ee2222; }
+.ipositive { color: #0a8913; }
+.iyellow { color: yellow; }
+.iblue { color: #2222ee; }
+.iblack { color: black; }
+.iyin { font-size: 15pt; }
+
+.curses { cursor: pointer; }
+
+/* function makeicon($icon,$etc='',$extraclass='') {
+  $iconbase = array("check"=>array('iiconic ipositive','&#10004;'),
+                    "bolt"=>array('iiconic iyellow','&#9889;'),
+                    "cam"=>array('iiconic iyellow','&#57356;'),
+                    "x"=>array('iiconic inegative','&#10008;'),
+                    "left"=>array('iiconic iblue','&#8592;'),
+                    "up"=>array('iiconic iblue','&#8593;'),
+                    "right"=>array('iiconic iblue','&#8594;'),
+                    "down"=>array('iiconic iblue','&#8595;'),
+                    "pen"=>array('iiconic iblue','&#57349;'),
+                    "minus"=>array('iiconic inegative','&#57353;'),
+                    "plus"=>array('iiconic ipositive','&#57352;'),
+                    "equals"=>array('iblue','&#=;'),
+                    "yinyang"=>array('iblack iyin','&#9775;'),
+                    "3x"=>array('ipositive','3x'),
+                    "ksan"=>array('','','ksan.png'),
+                    "kup"=>array('','','kup.png'),
+                    "kdown"=>array('','','kdown.png'));
+  $iconout = $iconbase[$icon][1]?'<span class="':'<img class="inlinebutton ';
+  $iconout .= $iconbase[$icon][0].($extraclass?' '.$extraclass:'').
+     '" '.($iconbase[$icon][1]?'':'src="/oracle/resources/icon-buttons/'.$iconbase[$icon][2].'" ').$etc.'>';
+  if($iconbase[$icon][1]) {
+    $iconout .=  $iconbase[$icon][1].'</span>';
+  }
+*/
+
+/************    end ICONS   ****************/
+
+
+/************** FONT DEFINES *****************/
+.l5rfont { font-family: "L5R Title"; }
+.l5rsym { font-family: "L5R Symbol"; font-size: 120%; }
+
+@font-face {
+    font-family: "L5R Title";
+    src: url('res/fonts/l5rtitle_new-webfont.eot');
+    src: url('res/fonts/l5rtitle_new-webfont.eot?#iefix') format('embedded-opentype'),
+         url('res/fonts/l5rtitle_new-webfont.woff') format('woff'),
+         url('res/fonts/l5rtitle_new-webfont.ttf') format('truetype'),
+         url('res/fonts/l5rtitle_new-webfont.svg#iconicfill') format('svg');
+}
+@font-face {
+    font-family: "L5R Symbol";
+    src: url('res/fonts/l5r_textsymbols.eot');
+    src: url('res/fonts/l5r_textsymbols.eot?#iefix') format('embedded-opentype'),
+         url('res/fonts/l5r_textsymbols.woff') format('woff'),
+         url('res/fonts/l5r_textsymbols.ttf') format('truetype'),
+         url('res/fonts/l5r_textsymbols.svg#iconicfill') format('svg');
+font-weight: normal;
+font-style: normal;
+}
+@font-face {
+    font-family: 'iconicfill';
+    src: url('res/fonts/iconic_fill-webfont.eot');
+    src: url('res/fonts/iconic_fill-webfont.eot?#iefix') format('embedded-opentype'),
+         url('res/fonts/iconic_fill-webfont.woff') format('woff'),
+         url('res/fonts/iconic_fill-webfont.ttf') format('truetype'),
+         url('res/fonts/iconic_fill-webfont.svg#iconicfill') format('svg');
+}
+
+/********************   END FONTS   *******************/
+
+/***************** button stuff   ************/
+img.inlinesymbol {   border: none;   vertical-align: middle; }
+.button {
+	display: inline-block;
+	zoom: 1; /* zoom and *display = ie7 hack for display:inline-block */
+	*display: inline;
+	vertical-align: middle; 
+	outline: none;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	text-shadow: 0 1px 1px rgba(0,0,0,.3);
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	-moz-box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	box-shadow: 0 1px 2px rgba(0,0,0,.2);
+
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -khtml-border-radius: 5px;
+  border-radius: 5px;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+
+}
+.button:hover {
+	text-decoration: none;
+}
+.button:active {
+	position: relative;
+	top: 1px;
+}
+.buttonsmall { 
+  font-size: 11pt;
+}
+.nocolor { 
+  color: #ffd73a;
+ }
+
+/*   gray   -   good examples at http://webdesignerwall.com/tutorials/css3-gradient-buttons */
+.gray {
+/*	color: #e9e9e9; */
+  color: #ffd73a;
+	border: solid 1px #555;
+	background: #6e6e6e;
+	background: -webkit-gradient(linear, left top, left bottom, from(#888), to(#575757));
+	background: -moz-linear-gradient(top,  #888,  #575757);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#888888', endColorstr='#575757');
+}
+.gray:hover {
+	background: #616161;
+	background: -webkit-gradient(linear, left top, left bottom, from(#757575), to(#4b4b4b));
+	background: -moz-linear-gradient(top,  #757575,  #4b4b4b);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#757575', endColorstr='#4b4b4b');
+}
+.gray:active {
+/*	color: #afafaf; */
+	background: -webkit-gradient(linear, left top, left bottom, from(#575757), to(#888));
+	background: -moz-linear-gradient(top,  #575757,  #888);
+	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#575757', endColorstr='#888888');
+}
+/*   led on off */
+span.noimage { 
+display:none;
+}
+.buttonimage {
+float: right;
+width: 12px;
+padding: 0px;
+background: right center no-repeat;
+}
+.buttonimagegreenledon {
+background-image: url("/oracle/resources/icon-buttons/led_green_on.png");
+}
+.buttonimagegreenledoff {
+background-image: url("/oracle/resources/icon-buttons/led_green_off.png");
+}
+.buttonimageredledon {
+background-image: url("/oracle/resources/icon-buttons/led_red_on.png");
+}
+.buttonimageredledoff {
+background-image: url("/oracle/resources/icon-buttons/led_red_off.png");
+}
+.buttonimageadmin { 
+  color: red;
+}
+/* ********************   end buttons ******************** */
+
+
+/* jquery layout */
+.ui-layout-pane {
+    background-color: rgba(0,0,0,0) !important;
+    opacity:1 !important;
+  border: none !important;
+  padding: 2px !important;
+}
+.ui-layout-pane-north { 
+padding-top: 0px !important;
+ }
+.ui-layout-resizer { 
+background: none !important;
+ }
+.ui-layout-resizer-west-open, .ui-layout-resizer-north-open { 
+  display: none !important;
+}
+/* .ui-layout-resizer-west, .ui-layout-resizer-east { width: 5px !important; }
+.ui-layout-resizer-north, .ui-layout-resizer-south { height: 5px !important; } */
+.ui-layout-toggler-east-closed ,
+.ui-layout-toggler-west-open    { background: url(res/toggle-lt.gif) no-repeat center right !important; }
+.ui-layout-toggler-west-closed ,
+.ui-layout-toggler-east-open    { background: url(res/toggle-rt.gif) no-repeat center left !important; }
+
+.ui-layout-toggler-north-closed ,
+.ui-layout-toggler-south-open    { background: url(res/toggle-dn.gif) no-repeat center right !important; }
+.ui-layout-toggler-south-closed ,
+.ui-layout-toggler-north-open    { background: url(res/toggle-up.gif) no-repeat center left !important; }

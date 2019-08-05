@@ -1,0 +1,44 @@
+<!-- TODO:    searching with set selected but no rarity breaks image output - took out rarity.. now if there were two cards from a set it will break - need to fix, not as crit
+  TODO: better way to get image info... related to previous TODO
+  TODO: pass onclick info into here from oracle.js to make this pure display logic
+ -->
+<div class="listitem">
+  <div class="listimage">
+       <a href="" onclick="docardid({{:cardid}},null,'{{addslashes:~qs}}'); return false;"><img src="https://s3.us-east-2.amazonaws.com/oracle-l5r/{{if ~datarequest.field_printing_set}}{{imagehashfromset ~datarequest.field_printing_set printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_set printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
+  </div>
+  <div class="listbody">
+  <div class="listhead"><a href="" onclick="docardid({{:cardid}},null,'{{addslashes:~qs}}'); return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "set" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
+       {{for printing}}
+          {{:set}} ({{:rarity}}){{if #index+1 < #get("array").data.length}} &#9679; {{/if}}
+	  {{/for}}
+
+     <br />
+     {{:type}}<br />
+     {{if force || chi}}
+       <span class="smiconic smforce">{{:force}}</span> <span class="smiconic smchi">{{:chi}}</span><br />
+     {{/if}}
+     {{if hr || personalhonor}}
+       <span class="smiconic smhr">{{:honor}}</span> <span class="smiconic smgc">{{:cost}}</span> <span class="smiconic smph">{{:personalhonor}}</span><br />
+     {{else}}
+        {{if cost}}
+          <span class="smiconic smgc">{{:cost}}</span><br />
+	{{/if}}
+     {{/if}}
+     {{if strength || startinghonor}}
+       <span class="smiconic smforce">{{:strength}}</span> <span class="smiconic smgc">{{:production}}</span> <span class="smiconic smhr">{{:startinghonor}}</span><br />
+     {{else}}
+       {{if production}}
+         <span class="smiconic smgc">+{{:production}}</span><br />
+       {{/if}}
+     {{/if}}
+     {{if keywords}}
+       {{:keywords.join(" &#9679; ")}}<br />
+     {{/if}}
+     {{if text}}
+       {{:text}}<br />
+     {{/if}}
+     {{if focus}}
+       <span class="smiconic smfo">{{:focus}}</span><br />
+     {{/if}}
+  </div>
+</div>

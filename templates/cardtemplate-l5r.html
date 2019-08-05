@@ -1,0 +1,63 @@
+<div class="listitem">
+  <div class="listimage">
+       {{for printing ~shorts=#data}}
+          <div class="printing" data-printingid="{{:printingid}}">
+            {{for printimagehash ~pid=printingid}}
+               <img src="https://s3.us-east-2.amazonaws.com/oracle-l5r/{{:}}/printing_{{:~shorts.cardid}}_{{:~pid}}_details.jpg" /><br />
+            {{/for}}
+	  </div>
+       {{/for}}
+  </div>
+  <div class="listbody">
+  <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
+    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
+</div>
+    <dl>
+<!--      <dt>Index</dt><dd><a href="" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a> <a href="" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a> </dd> -->
+
+    <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
+    {{if type}}       <dt>{{:~labels.shorttype}}</dt><dd>{{:type}}</dd>  {{/if}}
+     {{if force || chi}}
+       <dt>{{:~labels.shortforce}}/{{:~labels.shortchi}}</dt><dd><span class="iconic force">{{:force}}</span> <span class="iconic chi">{{:chi}}</span></dd>
+     {{/if}}
+
+     {{if hr || personalhonor}}
+       <dt>{{:~labels.shorthr}}/{{:~labels.shortcost}}/{{:~labels.shortpersonalhonor}}</dt><dd><span class="smiconic smhr">{{:honor}}</span> <span class="smiconic smgc">{{:cost}}</span> <span class="smiconic smph">{{:personalhonor}}</span></dd>
+     {{else}}
+        {{if cost}}
+          <dt>{{:~labels.shortcost}}</dt><dd><span class="smiconic smgc">{{:cost}}</span></dd>
+	{{/if}}
+     {{/if}}
+     {{if strength || startinghonor}}
+       <dt>{{:~labels.shortstrength}}/{{:~labels.shortproduction}}/{{:~labels.shortstartinghonor}}</dt><dd><span class="smiconic smforce">{{:strength}}</span> <span class="smiconic smgc">{{:production}}</span> <span class="smiconic smhr">{{:startinghonor}}</span></dd>
+     {{else}}
+       {{if production}}
+         <dt>{{:~labels.shortproduction}}</dt><dd><span class="smiconic smgc">+{{:production}}</span></dd>
+       {{/if}}
+     {{/if}}
+
+    {{if clan}}       <dt>{{:~labels.shortclan}}</dt><dd>{{:clan}}</dd>  {{/if}}
+    {{if keywords}}       <dt>{{:~labels.shortkeywords}}</dt><dd>{{:keywords.join(" &#149; ")}}</dd>  {{/if}}
+    {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
+    {{if focus}}       <dt>{{:~labels.shortfocus}}</dt><dd>{{:focus}}</dd>  {{/if}}
+    {{if legality}}       <dt>{{:~labels.shortlegality}}</dt><dd>{{:legality.join(" &#149; ")}}</dd>  {{/if}}
+    {{if legaldate}}       <dt>{{:~labels.shortlegaldate}}</dt><dd>{{:legaldate}}</dd>  {{/if}}
+    {{if deck}}       <dt>{{:~labels.shortdeck}}</dt><dd>{{:deck}}</dd>  {{/if}}
+    {{if notes}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
+    <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="" onclick="changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); return false;">({{:printingid}}) - {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>    {{for printing}}
+      <div class="printing" data-printingid="{{:printingid}}">
+        <hr>
+        {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
+        {{if rarity}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
+        {{if flavor}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
+        {{if story}}       <dt>{{:~labels.shortstory}}</dt><dd>{{:story}}</dd>  {{/if}}
+        {{if artist}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
+        {{if number}}       <dt>{{:~labels.shortnumber}}</dt><dd>{{:number}}</dd>  {{/if}}
+        <hr>
+      </div>
+    {{/for}}
+    </dl>
+  </div>
+</div>
+<br clear="all" />
+

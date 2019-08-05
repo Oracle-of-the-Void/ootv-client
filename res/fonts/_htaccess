@@ -1,0 +1,6 @@
+#Header set Cache-Control "max-age=290304000, public"
+#Header set Pragma "public"
+<IfModule mod_expires.c>
+   ExpiresActive on
+   ExpiresDefault "access plus 1 month"
+</IfModule>
