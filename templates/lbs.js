@@ -1,5 +1,11 @@
 // advanced/basic switch  (tri-level)?
 // hide search switch
+dbinfo['lbs'] = {
+    'name': "Legend of the Burning Sands",
+    'nameshort':"LBS",
+    'logo': 'lbs.png',
+    'description':''
+};
 databasesort['lbs'] = {
     deck: function (a,b) {
 	if (a.deck.join() == "Pre-Game" && b.deck.join() != "Pre-Game") return -1;

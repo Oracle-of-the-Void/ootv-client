@@ -28,11 +28,12 @@
   <nav role="navigation">
     <ul>
       <li><img src="res/hamburger-25.png">
-	<ul class="dropdown">
-	  <li><a href=".">Legend of the Five Rings</a></li>
-	  <li><a href="lbs.html">Legend of the Burning Sands</a></li>
+	<ul class="dropdown" id="gamelist">
+<!--	  <li><a href="." onclick="cache_session('database','l5r');">Legend of the Five Rings</a></li>
+	  <li><a href="." onclick="cache_session('database','lbs');">Legend of the Burning Sands</a></li> -->
 	</ul>
       </li>
+      <li>Oracle of the Void: <span class="gameinfo-game"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown">
 	  <li id="userinfo-drop">...</li>
@@ -66,6 +67,7 @@
 <div id="searchmiddle"></div>
 </dl>
 <div id="searchbottom">
+<span class="gameinfo-gameshort"></span> <span class="gameinfo-gamelogo15"></span><br />
 <span class="button gray" onclick="dosearch();">Search <span class="iiconic iyellow">&#9889;</span></span>
 </div></div>
 </form>
@@ -124,6 +126,7 @@
     <li><a href="#" name="resultcard">Cards</a></li>
     <li><a href="#" name="resultdir">Directory</a></li>
     <li><a href="#" name="resultlist">Lists</a></li>
+    <li><a href="#" name="resulthelp">Help</a></li>
     <li class="r"><span class="numresults"></span></li>
   </ul>
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet</div></div>
@@ -171,7 +174,11 @@ Consider donating to the Oracle's Patreon to support the effort:<br>
 <img src="res/social-patreon.png" width="300px"> </a>
 <br><br>
 </div>
-<br />
+</div> 
+</div><!-- resultabout   -->
+
+<div class="resulthelp" id="resulthelp">
+<div class="randarea">
 <div class="infoplace">
 <ul>
 <li>Not everything is completely set yet, so if you have feedback let me know.
@@ -258,8 +265,9 @@ printingprimary
      printingtype
  </pre>
 </div>
+</div>
 
-</div><!-- randarea -->
+</div><!-- resulthelp -->
 </div><!-- ui-content-center -->
 
 <div id="all_template">

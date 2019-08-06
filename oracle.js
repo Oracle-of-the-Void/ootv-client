@@ -91,6 +91,9 @@ if(found = window.location.href.match(/(\w+)\.html/)) {
 	console.log("database: "+database);
     }
 }
+if(cache_session("database")) {
+    database = cache_session("database");
+}
 var labels = {};
 var populatecallback = [];
 var auth;
@@ -98,6 +101,7 @@ var authinfo;
 var databasesort = {};
 var headerize = {};
 var refreshauthvar;
+var dbinfo = {};
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
@@ -191,7 +195,7 @@ function userinfocallback() {
 //    $('#userinfo-lists').html(info.oracle[0].deckcount);
     hellotemplate = $.templates("#template-hello");
     $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
-    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
+//    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
 }
@@ -635,29 +639,7 @@ $(document).ready(function(){
     (function ($){
 	$.fn.selector = { split: function() { return ""; }};
     })(jQuery);
-/*    oraclelayout = $('body').layout({ 
-//	applyDefaultStyles: true,
-	defaults: {
-	    padding: 0,
-	    spacing_open: 5,
-	    spacing_closed: 24,
-	    resizable: false
-	},
-	west: {
-	    size: 240,
-	    slidable:              true,
-	    slideTrigger_open:  "mouseover",
-	    border: false,
-	    togglerAlign_closed: "top"
-	},
-	north: {
-	    size: 30,
-	    showOverflowOnHover: true,
-	    border: false,
-	    slidable: false
-	}
-    });
-*/
+
     $(".ui-layout-center div[id^=result]").hide(); // Hide all content
     $("#tabs li:first").attr("id","current"); // Activate the first tab
     $("#resultabout").fadeIn(); // Show first tab's content
@@ -673,14 +655,6 @@ $(document).ready(function(){
             $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
         }
     });
-    /*                var westSelector = "body > .ui-layout-west"; // outer-west pane
-                var eastSelector = "body > .ui-layout-east"; // outer-east pane
-                // CREATE SPANs for close-buttons - using unique IDs as identifiers
-                $("<span></span>").attr("id", "west-closer" ).prependTo( westSelector );
-                $("<span></span>").attr("id", "east-closer").prependTo( eastSelector );
-                // BIND layout events to close-buttons to make them functional
-                outerLayout.addCloseBtn("#west-closer", "west");
-                outerLayout.addCloseBtn("#east-closer", "east"); */
     
     //TODO:  put some stuff in here into functions.   make sure order optimized.  
     searchcache[database] = {
@@ -757,9 +731,20 @@ $(document).ready(function(){
     $(".ui-layout-center").scroll(scrollcheck);
 //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
 
+    $('.gameinfo-game').html(dbinfo[database].name);
+    $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
+    $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
+    
     urlparser();
-
+    for (var k in dbinfo) {
+	addgametolist(k);
+    }
 });
+
+function addgametolist(db) {
+    $('#gamelist').append('<li><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
+}
+
 
 // This handles history back changes/etc
 //TODO:  will need to do lists here too
@@ -1067,6 +1052,30 @@ function cache_thing(thing,sel,selval=null) {
 		delete nolocalstore[database+"_"+thing+"_"+sel]
 	    } else {
 		nolocalstore[database+"_"+thing+"_"+sel] = selval;
+	    }
+	}
+    }
+}
+function cache_session(thing,selval=null) {
+    if(selval === null) {
+	if (typeof(Storage) !== "undefined") {
+	    return JSON.parse(window.localStorage.getItem("session_"+thing));
+	} else {
+	    return nolocalstore["session_"+thing];
+	}
+    } else {
+	// set
+	if (typeof(Storage) !== "undefined") {
+	    if(selval === undefined) {
+		window.localStorage.removeItem("session_"+thing);
+	    } else {
+		window.localStorage.setItem("session_"+thing,JSON.stringify(selval));
+	    }
+	} else {
+	    if(selval === undefined) {
+		delete nolocalstore["session_"+thing]
+	    } else {
+		nolocalstore["session_"+thing] = selval;
 	    }
 	}
     }

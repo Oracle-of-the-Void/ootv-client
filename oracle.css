@@ -22,7 +22,7 @@ a.ex { float: right; font-size: large;}
 span.headsetrar { float: right; padding-right: 2px; }
 
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
-div.searchinput dl { margin-block-start: 0; }
+div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
 div.searchinput input[type=text] { 
   width: 105px;
 }
@@ -129,7 +129,7 @@ div.listitem:nth-child(even)>div, div.listitemplain>div {
   background-color: rgb(255, 255, 255);
   background-color: rgba(255, 255, 255, 0.9);
 }
-div.listitem:first-child>div, div.resultabout div.randarea:first-child, div.resultlist div.randarea:first-child, div.resultcard div.randarea:first-child, div.resultsearch div.randarea:first-child, div.resultdir div.randarea:first-child { 
+div.listitem:first-child>div, div[class^=result] div.randarea:first-child { 
    -moz-border-radius-topleft: 0px;  -webkit-border-top-left-radius: 0px;  -khtml-border-top-left-radius: 0px;  border-top-left-radius: 0px;
  
  }
@@ -543,7 +543,7 @@ div#maincontent {
   z-index: 3;
 }
 
-div.resultcard .randarea, div.resultlist .randarea, div.resultsearch .randarea, div.resultabout .randarea, div.resultdir .randarea { 
+div[class^=result] .randarea { 
   min-width: 750px;
   width: 100%;
   min-height: 200px;
