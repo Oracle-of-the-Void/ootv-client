@@ -80,6 +80,7 @@ span#loginfo:not(:empty)::after {
     content: url("res/menu-tinydown.png");
     margin-left: .2em;
 }
+.loginfo {display:none;}
 
 div.randarea {
   font-family: "Times New Roman",Georgia,Serif;
@@ -564,6 +565,12 @@ nav li {
   font-size: large;
   font-family: "L5R Title";
 }
+nav li dl {
+    font-family: "Times New Roman","Georgia","Serif";
+}
+nav li.right {
+    float: right;
+}
 nav>ul>li { 
   padding-top: 5px;
   padding-bottom: 1rem;
@@ -577,7 +584,6 @@ nav li:hover {
   cursor: pointer;
 /*  background-color: rgb(128, 128, 128); */
 }
-
 nav ul li ul {
   visibility: hidden;
   opacity: 0;
@@ -587,6 +593,10 @@ nav ul li ul {
   left: 0;
   display: none;
   top: 31px;
+}
+nav ul li.right ul {
+    left: auto;
+    right: 0;
 }
 
 nav ul li:hover > ul,

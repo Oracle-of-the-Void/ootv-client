@@ -33,14 +33,13 @@
 	  <li><a href="lbs.html">Legend of the Burning Sands</a></li>
 	</ul>
       </li>
-      <li style="float: right;"><span id="loginfo"></span>
+      <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown">
-	  <li>...</li>
-	  <li>...</li>
+	  <li id="userinfo-drop">...</li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
       </li>
-      <li style="float: right;"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>
+      <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>
     </ul>
   </nav>
 <div id="logarea"></div>
@@ -267,7 +266,7 @@ printingprimary
 
 <script id="template-hello" type="text/x-jsrender">
 <div class="helloplace">
-  <div class="upperhead">Welcome: {{:cognito.name}}</div>
+<!--  <div class="upperhead">Welcome: {{:cognito.name}}</div> -->
   <strong>Profile Information</strong>
   <dl>
     <dt>Joined</dt><dd>{{formatDate:oracle.insert_date}}</dd>

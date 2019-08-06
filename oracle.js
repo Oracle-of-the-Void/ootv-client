@@ -111,16 +111,15 @@ function dologout() {
 function logoutcallback() {
     console.log("Not logged in");
     $('#loginfo').html("");
+    $('.loginfo').hide()
     $('#loginbutton').show();
-    $('#logoutbutton').hide();
 }
 function logincallback(session) {
     if (session) {
 	authinfo = auth.getCachedSession().idToken.payload;
         console.log("Logged in");
-        $('#loginfo').html(authinfo.name+"&nbsp;("+authinfo.email+")");
+	$('.loginfo').css({display:'block'});
  	$('#loginbutton').hide();
- 	$('#logoutbutton').show();
     }
     if(window.location.href.includes("#access_token") || window.location.href.includes("?code=")) {
 	window.location = location.protocol + '//' + location.host + location.pathname;
@@ -184,8 +183,15 @@ function userinfo() {
   });
 }
 function userinfocallback() {
+    var info = cache_thing("user","data");
+    $('#loginfo').html(info.cognito.name);
+//    $('#userinfo-id').html("Uid: "+info.oracle[0].uid);
+//    $('#userinfo-email').html(info.oracle[0].emails.join("<br />"));
+//    $('#userinfo-joined').html(info.oracle[0].insert_date);
+//    $('#userinfo-lists').html(info.oracle[0].deckcount);
     hellotemplate = $.templates("#template-hello");
-    $(".helloplace").replaceWith(hellotemplate.render({cognito: cache_thing("user","data").cognito, oracle: cache_thing("user","data").oracle[0]}));
+    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
+    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
 }
