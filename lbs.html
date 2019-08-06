@@ -4,14 +4,13 @@
 <head>
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery.ui.layout@1.0.0/jquery.layout.min.js"></script>
+<!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
+<!--  <script src="https://cdn.jsdelivr.net/npm/jquery.ui.layout@1.0.0/jquery.layout.min.js"></script> -->
 <!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/draggable/1.0.0-beta.8/draggable.min.js"></script>  -->
   <script src="https://www.jsviews.com/download/jsviews.min.js"></script>
   <script src="amazon-cognito-auth.min.js"></script>
-  <script src="aws-cognito-sdk.min.js"></script>
+<!--  <script src="aws-cognito-sdk.min.js"></script> -->
   <script src="oracle.js"></script>
-
   <!-- TODO:  dynamic this: -->
   <script src="templates/l5r.js"></script>
   <script src="templates/lbs.js"></script>
@@ -23,32 +22,52 @@
   </style>
 </head>
 <body>
-<div class="ui-layout-north">
-<div class="logo"> <img width="75" height="58" src="res/logo.png"> </div>
+<!-- <div class="ui-layout-north"> -->
 <div class="menubar" style="position: relative">
-<nobr>
-<div id="logarea"><span id="loginfo">&nbsp;</span> <span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span><span class="button gray" id="logoutbutton" onclick="dologout();" style="display: none;">Log&nbsp;Out</span></div>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img style="position: absolute; bottom: 3px; right: 11px;" src="res/icon-collapse-up-22x22.png" width="22px" height="12px" onclick="oraclelayout.toggle('north');" />
-</nobr>
+  <!-- <img src="res/logo-inline.png"> -->
+  <nav role="navigation">
+    <ul>
+      <li><img src="res/hamburger-25.png">
+	<ul class="dropdown">
+	  <li><a href=".">Legend of the Five Rings</a></li>
+	  <li><a href="lbs.html">Legend of the Burning Sands</a></li>
+	</ul>
+      </li>
+      <li style="float: right;"><span id="loginfo"></span>
+	<ul class="dropdown">
+	  <li>...</li>
+	  <li>...</li>
+	  <li onclick="dologout();">Log Out</li>
+	</ul>
+      </li>
+      <li style="float: right;"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>
+    </ul>
+  </nav>
+<div id="logarea"></div>
+<!-- <img style="position: absolute; bottom: 3px; right: 11px;" src="res/icon-collapse-up-22x22.png" width="22px" height="12px" onclick="oraclelayout.toggle('north');" /> -->
 </div>
-</div>
+<!-- </div>  -->
 
 <!--   search area -->
-<div class="ui-layout-west">
+<div id="sidebaropener" onclick="sidebaropener();"><img src="res/a-tabright.png"></div>
+<div class="ui-layout-west" id="sidebar">
 <div class="searchinput" id="searchinput">
-<!-- <br clear="all" />  -->
+<img id="sidebarcloser" src="res/a-tableft.png" width="21px" height="40px" onclick="sidebarcloser();" />
+<div class="logo"> <img width="75" height="58" src="res/logo.png"> </div>
 <input type="hidden" id="lastsearch" />
 <input type="hidden" id="lastsearchquery" />
 <input type="hidden" id="lastsearchsort" />
 <form id="searchform" method="POST" onsubmit="dosearch(); return false;" action="">
 <dl>
+<dt class="notadvanced"></dt><dd class="searchbutton notadvanced"><span class="button gray" id="advancedbutton" onclick="$('dt.advanced').show(); $('dd.advanced').show(); $('dt.notadvanced').hide(); $('dd.notadvanced').hide();">Advanced</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton advanced"><span class="button gray" id="basicbutton" onclick="$('dt.advanced').hide(); $('dd.advanced').hide(); $('dt.notadvanced').show(); $('dd.notadvanced').show();">Basic</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton"><span class="button gray" id="resetbutton" onclick="$('#searchform')[0].reset();">Reset</span></dd>
+
 <div id="searchtop"><dt>All</dt><dd><input type="text" name="querystring" id="qs" autofocus /></dd></div>
 <div id="searchmiddle"></div>
 </dl>
 <div id="searchbottom">
 <span class="button gray" onclick="dosearch();">Search <span class="iiconic iyellow">&#9889;</span></span>
-<img src="res/icon-collapse-left-22x22.png" width="12px" height="22px" onclick="oraclelayout.toggle('west');" style="float: right;" />
 </div></div>
 </form>
 
@@ -99,7 +118,7 @@
 </div>
 <!-- end search area -->
 <!-- <br clear="all" /> -->
-<div class="ui-layout-center"> <!-- main content area -->
+<div class="ui-layout-center" id="maincontent"> <!-- main content area -->
   <ul id="tabs">
     <li><a href="#" name="resultabout">About</a></li>
     <li><a href="#" name="resultsearch">Searches</a></li>
@@ -138,19 +157,19 @@ After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Do
 
 If you like the Oracle of the Void, please Like our Facebook page: <br>
 <a href="https://www.facebook.com/pg/oracleofthevoid" target="_new">
-<img src="/res/social-facebook.png" width="300px"> </a>
+<img src="res/social-facebook.png" width="300px"> </a>
 <br>
 <br>
 <br>
 Join us on Discord to discuss future plans, or just hang out: <br>
 <a href="https://discord.gg/3ahYmwn" target="_new">
-<img src="/res/social-discord.png" width="300px"> </a>
+<img src="res/social-discord.png" width="300px"> </a>
 <br>
 <br>
 <br>
 Consider donating to the Oracle's Patreon to support the effort:<br>
 <a href="https://www.patreon.com/oracleofthevoid" target="_new">
-<img src="/res/social-patreon.png" width="300px"> </a>
+<img src="res/social-patreon.png" width="300px"> </a>
 <br><br>
 </div>
 <br />

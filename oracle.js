@@ -85,6 +85,12 @@ var updatecallback = {};
 var cardtemplate = [];
 var listtemplate = [];
 var database = 'l5r';
+if(found = window.location.href.match(/(\w+)\.html/)) {
+    if(found && found[1] != 'index') {
+	database = found[1];
+	console.log("database: "+database);
+    }
+}
 var labels = {};
 var populatecallback = [];
 var auth;

@@ -65,7 +65,7 @@ div.menubar {
   background-color: rgb(255, 255, 255);
   background-color: rgba(255, 255, 255, 0.9);
   width: 100%;
-  height: 30px; 
+  height: 31px; 
   display: inline-block;
 }
 div#logarea { 
@@ -329,7 +329,10 @@ font-style: normal;
 /***************** button stuff   ************/
 img.inlinesymbol {   border: none;   vertical-align: middle; }
 .button {
-	display: inline-block;
+  font-size: large;
+  font-family: "L5R Title";
+
+  display: inline-block;
 	zoom: 1; /* zoom and *display = ie7 hack for display:inline-block */
 	*display: inline;
 	vertical-align: middle; 
@@ -471,11 +474,11 @@ div#maincontent {
 #tabs {
   font-size: large;
   font-family: "L5R Title";
-      overflow: hidden;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      list-style: none;
+  overflow: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 #tabs li {
@@ -543,4 +546,77 @@ div.resultcard .randarea, div.resultlist .randarea, div.resultsearch .randarea, 
   min-width: 750px;
   width: 100%;
   min-height: 200px;
+}
+
+nav ul {
+  margin: 0;
+  padding-left: 0;
+}
+nav li {
+  display: block;
+  transition-duration: 0.5s;
+  float: left;
+  text-decoration: none;
+  padding-right: 1rem;
+  padding-left: 1rem;
+/*  background: rgb(196,196,196); */
+  position: relative;
+  font-size: large;
+  font-family: "L5R Title";
+}
+nav>ul>li { 
+  padding-top: 5px;
+  padding-bottom: 1rem;
+}
+nav li a:link, nav li a:hover, nav li a:active, nav li a:visited {
+  text-decoration: none;
+  color: black;
+}
+
+nav li:hover {
+  cursor: pointer;
+/*  background-color: rgb(128, 128, 128); */
+}
+
+nav ul li ul {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  transition: all 0.5s ease;
+/*  margin-top: .5rem; */
+  left: 0;
+  display: none;
+  top: 31px;
+}
+
+nav ul li:hover > ul,
+ul li:focus-within > ul,
+nav ul li ul:hover {
+  visibility: visible;
+  opacity: 1;
+  display: block;
+  z-index: 2;
+/*  background: rgb(255,255,255); */
+}
+
+nav ul li ul li {
+  clear: both;
+  width: 100%;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  background: rgb(255,255,255);
+}
+
+nav ul li ul li:focus-within,
+nav ul li ul li:focus,
+nav ul li ul li:hover {
+  background-color: rgb(128, 128, 128); 
+}
+
+nav ul li ul li {
+  border-right: solid black 1px;
+  border-left: solid black 1px;
+}
+nav ul li ul li:last-child {
+  border-bottom: solid black 1px;
 }

@@ -1,5 +1,3 @@
-/* TODO */
-database='lbs';
 // advanced/basic switch  (tri-level)?
 // hide search switch
 databasesort['lbs'] = {
@@ -105,7 +103,9 @@ templateload['lbs'] = {
 };
 
 $(document).ready(function(){
-    $('body').css("background-image","url('res/background-lbs.jpg')"); 
+    if(database == 'lbs') {
+	$('body').css("background-image","url('res/background-lbs.jpg')");
+    }
 });
 
 /* callbacks after lookups happen - parameterized initial version, leaving hooks in case they are needed for special things */

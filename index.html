@@ -11,9 +11,9 @@
   <script src="amazon-cognito-auth.min.js"></script>
 <!--  <script src="aws-cognito-sdk.min.js"></script> -->
   <script src="oracle.js"></script>
-
   <!-- TODO:  dynamic this: -->
   <script src="templates/l5r.js"></script>
+  <script src="templates/lbs.js"></script>
   
 <!--  <link href="https://www.jsviews.com/samples/samples.css" rel="stylesheet" /> -->
   <LINK href="oracle.css" rel="stylesheet" type="text/css" />
@@ -24,8 +24,26 @@
 <body>
 <!-- <div class="ui-layout-north"> -->
 <div class="menubar" style="position: relative">
-<!-- <img src="res/logo-inline.png"> -->
-<div id="logarea"><span id="loginfo">&nbsp;</span> <span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span><span class="button gray" id="logoutbutton" onclick="dologout();" style="display: none;">Log&nbsp;Out</span></div>
+  <!-- <img src="res/logo-inline.png"> -->
+  <nav role="navigation">
+    <ul>
+      <li><img src="res/hamburger-25.png">
+	<ul class="dropdown">
+	  <li><a href=".">Legend of the Five Rings</a></li>
+	  <li><a href="lbs.html">Legend of the Burning Sands</a></li>
+	</ul>
+      </li>
+      <li style="float: right;"><span id="loginfo"></span>
+	<ul class="dropdown">
+	  <li>...</li>
+	  <li>...</li>
+	  <li onclick="dologout();">Log Out</li>
+	</ul>
+      </li>
+      <li style="float: right;"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>
+    </ul>
+  </nav>
+<div id="logarea"></div>
 <!-- <img style="position: absolute; bottom: 3px; right: 11px;" src="res/icon-collapse-up-22x22.png" width="22px" height="12px" onclick="oraclelayout.toggle('north');" /> -->
 </div>
 <!-- </div>  -->
