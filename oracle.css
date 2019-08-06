@@ -75,7 +75,11 @@ div#logarea {
   padding-top: 3px;
   padding-bottom: 3px;
   float: right;
- }
+}
+span#loginfo:not(:empty)::after {
+    content: url("res/menu-tinydown.png");
+    margin-left: .2em;
+}
 
 div.randarea {
   font-family: "Times New Roman",Georgia,Serif;

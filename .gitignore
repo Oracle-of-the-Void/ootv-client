@@ -4,3 +4,5 @@
 \#*#
 .*.sw[a-z]
 .un~
+.DS_Store
+._.DS_Store

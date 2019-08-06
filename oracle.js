@@ -104,7 +104,7 @@ function dologout() {
 }
 function logoutcallback() {
     console.log("Not logged in");
-    $('#loginfo').html("Not&nbsp;logged&nbsp;in");
+    $('#loginfo').html("");
     $('#loginbutton').show();
     $('#logoutbutton').hide();
 }
