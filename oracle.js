@@ -742,7 +742,7 @@ $(document).ready(function(){
 });
 
 function addgametolist(db) {
-    $('#gamelist').append('<li><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
+    $('.gamelist').append('<li><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
 }
 
 
