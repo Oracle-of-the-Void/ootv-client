@@ -3,7 +3,7 @@
        {{for printing ~shorts=#data}}
           <div class="printing" data-printingid="{{:printingid}}">
             {{for printimagehash ~pid=printingid}}
-               <img src="https://s3.us-east-2.amazonaws.com/oracle-l5r/{{:}}/printing_{{:~shorts.cardid}}_{{:~pid}}_details.jpg" /><br />
+               <img src="https://images.oracleofthevoid.com/lbs/{{:}}/printing_{{:~shorts.cardid+1}}_{{:~pid}}_details.jpg" /><br />
             {{/for}}
 	  </div>
        {{/for}}
@@ -22,7 +22,7 @@
      {{/if}}
 
      {{if influence}}
-       <dt>{{:~labels.shortwater}}/{{:~labels.shortcopper}}/{{:~labels.shortinfluence}}</dt><dd><span class="smiconic smwater">{{:water}}</span> <span class="smiconic smcopper">{{:copper}}</span> <span class="smiconic smph">{{:influence}}</span></dd>
+       <dt>{{:~labels.shortwater}}/{{:~labels.shortcopper}}/{{:~labels.shortinfluence}}</dt><dd><span class="smiconic smwater">{{:water}}</span> <span class="smiconic smcopper">{{:copper}}</span> <span class="smiconic sminf">{{:influence}}</span></dd>
      {{else}}
         {{if copper}}
           <dt>{{:~labels.shortcopper}}</dt><dd><span class="smiconic smcopper">{{:copper}}</span></dd>

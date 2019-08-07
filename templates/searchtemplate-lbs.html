@@ -4,7 +4,7 @@
  -->
 <div class="listitem">
   <div class="listimage">
-{{!--<!--       <a href="" onclick="docardid({{:cardid}},null,'{{:~qs}}'); return false;"><img src="https://s3.us-east-2.amazonaws.com/oracle-l5r/{{if ~datarequest.field_printing_edition}}{{imagehashfromedition ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromedition ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br /> --> --}}
+       <a href="" onclick="docardid({{:cardid}},null,'{{:~qs}}'); return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_edition}}{{imagehashfromedition ~datarequest.field_printing_edition printing /}}/printing_{{:cardid+1}}_{{printingidfromedition ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid+1}}__icon.jpg{{/if}}" /></a><br />
   </div>
   <div class="listbody">
   <div class="listhead"><a href="" onclick="docardid({{:cardid}},null,'{{addslashes:~qs}}'); return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "edition" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
@@ -15,7 +15,7 @@
      <br />
      {{:type}}<br />
      {{if strength || ka}}
-       <span class="smiconic smstrength">{{:strength}}</span> <span class="smiconic smchi">{{:chi}}</span><br />
+       <span class="smiconic smstrength">{{:strength}}</span> <span class="smiconic smka">{{:chi}}</span><br />
      {{/if}}
      {{if water || influence}}
        <span class="smiconic smwater">{{:water}}</span> <span class="smiconic smcopper">{{:copper}}</span> <span class="smiconic sminfluence">{{:influence}}</span><br />
