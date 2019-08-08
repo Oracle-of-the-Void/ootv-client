@@ -35,7 +35,7 @@
 	  <li><a href="." onclick="cache_session('database','lbs');">Legend of the Burning Sands</a></li> -->
 	</ul>
       </li>
-      <li class="gamechooser">Oracle of the Void: <span class="gameinfo-game"></span>
+      <li class="gamechooser pullmenu">Oracle of the Void: <span class="gameinfo-game"></span>
 	<ul class="dropdown gamelist">
 	</ul>
       </li>
@@ -44,6 +44,11 @@
 	  <li id="userinfo-drop">...</li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
+      </li>
+      <li class="pullmenu">Search Format
+      <ul class="dropdown">
+      <li onclick="searchtemplate['lbs'] = $.templates('#template-visualspoiler-lbs');">Visual</li>  <!-- TODO: populate this better.   status at top.   refresh current listing.  -->
+      </ul>
       </li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>
     </ul>

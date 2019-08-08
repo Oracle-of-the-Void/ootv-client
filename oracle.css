@@ -76,7 +76,7 @@ div#logarea {
   padding-bottom: 3px;
   float: right;
 }
-span#loginfo:not(:empty)::after, .gamechooser::after {
+span#loginfo:not(:empty)::after, .pullmenu::after {
     content: url("res/menu-tinydown.png");
     margin-left: .2em;
 }
