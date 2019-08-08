@@ -15,17 +15,17 @@
      <br />
      {{:type}}<br />
      {{if strength || ka}}
-       <span class="smiconic smstrength">{{:strength}}</span> <span class="smiconic smka">{{:chi}}</span><br />
+       <span class="iconic smstrength">{{:strength}}{{:~labels.shortstrength}}</span> <span class="iconic smka">{{:ka}}{{:~labels.shortka}}</span><br />
      {{/if}}
-     {{if water || influence}}
-       <span class="smiconic smwater">{{:water}}</span> <span class="smiconic smcopper">{{:copper}}</span> <span class="smiconic sminfluence">{{:influence}}</span><br />
+     {{if influence}}
+       <span class="iconic smwater">{{:water}}{{:~labels.shortwater}}</span> <span class="iconic smcopper">{{:copper}}{{:~labels.shortcopper}}</span> <span class="iconic sminfluence">{{:influence}}{{:~labels.shortinfluence}}</span><br />
      {{else}}
         {{if copper}}
-          <span class="smiconic smcopper">{{:copper}}</span><br />
+          <span class="iconic smwater">{{:water}}{{:~labels.shortwater}}</span> <span class="iconic smcopper">{{:copper}}{{:~labels.shortcopper}}</span><br />
 	{{/if}}
      {{/if}}
      {{if city}}
-       <span class="smiconic smcity">{{:city}}</span> <br />
+       <span class="iconic smcity">{{:city}}{{:~labels.shortcity}}</span> <br />
      {{/if}}
 <!--     {{if keywords}}
        {{:keywords.join(" &#9679; ")}}<br />
@@ -34,7 +34,7 @@
        {{:text}}<br />
      {{/if}}
      {{if fate}}
-       <span class="smiconic smfate">{{:fate}}</span><br />
+       <span class="iconic smfate">{{:fate}}{{:~labels.shortfate}}</span><br />
      {{/if}}
   </div>
 </div>
