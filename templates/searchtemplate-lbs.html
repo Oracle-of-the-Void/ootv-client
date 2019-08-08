@@ -4,7 +4,7 @@
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="" onclick="docardid({{:cardid}},null,'{{:~qs}}'); return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_edition}}{{imagehashfromedition ~datarequest.field_printing_edition printing /}}/printing_{{:cardid+1}}_{{printingidfromedition ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid+1}}__icon.jpg{{/if}}" /></a><br />
+       <a href="" onclick="docardid({{:cardid}},null,'{{:~qs}}'); return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_edition}}{{imagehashfromedition ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromedition ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
   </div>
   <div class="listbody">
   <div class="listhead"><a href="" onclick="docardid({{:cardid}},null,'{{addslashes:~qs}}'); return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "edition" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
