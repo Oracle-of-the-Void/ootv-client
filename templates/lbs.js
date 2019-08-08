@@ -88,7 +88,7 @@ labels['lbs'] = {
     "tagwater":	"Water",           "shortwater": "W",
     "tagcopper":	"Copper",                   "shortcopper": "C",
     "taginfluence":	"Influence",              "shortinfluence":  "I",
-    "tagcity":	"City Points",   "shortcity": "City",
+    "tagcity":	"City Points",   "shortcity": "CP",
     "tagfate":	"Fate",     "shortfate": "F",
     "tagtext":		"Card Text",           "shorttext": "Text",
     "tagedition":		"Edition",                 "shortedition": "Edition",
