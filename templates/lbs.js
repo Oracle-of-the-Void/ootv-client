@@ -107,6 +107,36 @@ templateload['lbs'] = {
     'card': {'cardtemplate': "Details"},
     'list': {'listtemplate': "List" }
 };
+// Will have template-database- prepended
+//       if generic, will use a generic template-   TODO
+templates['lbs'] = {
+    'search': { 'longname': 'Detailed Search',
+		'shortname': 'Detail',
+		'places': [ 'search','list' ],
+		'default': [ 'search' ]
+	      },
+    'visual': { 'longname': 'Visual Spoiler',
+		'shortname': 'Visual',
+		'places': [ 'search','list' ]
+//		'generic': true
+	      },
+    'visual-premium': { 'longname': 'Visual Spoiler - Premium',
+			'shortname': 'Visual(P)',
+			'places': [ 'search','list' ],
+			'premium': true
+//			'generic':true
+		      },
+    'card':  { 'longname': 'Card Details',
+	       'shortname': 'Card',
+	       'places': [ 'card' ]
+	     },
+    'list': { 'longname': 'Simple List',
+	      'shortname': 'List',
+	      'places': [ 'search','list'],
+	      'default': [ 'list' ]
+	    }
+};
+		
 
 $(document).ready(function(){
     if(database == 'lbs') {

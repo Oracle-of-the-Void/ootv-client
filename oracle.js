@@ -79,6 +79,7 @@ var searchables = {};
 var searchselectload = {};
 var searchtemplate = [];
 var templateload = {};
+var templates = {'loaded':{}};
 var templateactive = {};
 var updates = {};
 var updatecallback = {};
@@ -620,6 +621,13 @@ function templateprintingfromid(id,hashes,data) {
     return ret;
 }
 
+function activatetemplate(type,template) {
+    // templates
+    //    templateload
+    // kill listtemplate,cardtemplate,searchtemplate
+    
+}
+
 
 // ********************** STARTUP ************************8
 $(document).ready(function(){
@@ -662,6 +670,24 @@ $(document).ready(function(){
     };
     templateactive[database] = {};
 
+    $.each(templates[database],function(key,val) {
+	console.log("initiating template load: "+key);
+	$.ajax({
+	    url: "templates/template-"+(val.generic?'':(database+"-"))+key+".html",
+	    type: "GET",
+	    datatype: 'text',
+	    cache: true,
+	    success: function(contents) {
+		$("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>'); 
+/*		if(Object.keys(templateload[database]['search'])[0] == key) {
+		    searchtemplate[database] = $.templates(["#template",key,database].join("-"));
+		    templateactive[database]['search'] = key;
+		}  */
+	    }
+	});
+    });
+	    
+    
     // Load templates
     $.each(templateload[database]['search'],function(key,val) {
 	$.ajax({
