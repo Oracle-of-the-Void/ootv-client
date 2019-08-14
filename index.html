@@ -47,7 +47,14 @@
       </li>
       <li class="pullmenu">Search Format
       <ul class="dropdown" id="searchtemplatedropdown">
-      <li onclick="activatetemplate('search','visual'); dosearch(0,$('#lastsearchsort').val());">Test new code</li>  <!-- TODO: populate this better.   status at top.   refresh current listing.  -->
+      </ul>
+      </li>
+      <li class="pullmenu">Card Format
+      <ul class="dropdown" id="cardtemplatedropdown">
+      </ul>
+      </li>
+      <li class="pullmenu">List Format
+      <ul class="dropdown" id="listtemplatedropdown">
       </ul>
       </li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>
@@ -67,6 +74,9 @@
 <input type="hidden" id="lastsearch" />
 <input type="hidden" id="lastsearchquery" />
 <input type="hidden" id="lastsearchsort" />
+<input type="hidden" id="lastlistid" />
+<input type="hidden" id="lastcardid" />
+<input type="hidden" id="lastprintid" />
 <form id="searchform" method="POST" onsubmit="dosearch(); return false;" action="">
 <dl>
 <dt class="notadvanced"></dt><dd class="searchbutton notadvanced"><span class="button gray" id="advancedbutton" onclick="$('dt.advanced').show(); $('dd.advanced').show(); $('dt.notadvanced').hide(); $('dd.notadvanced').hide();">Advanced</span></dd>

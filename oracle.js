@@ -216,6 +216,7 @@ function listinfo(listid=null,switchview=true,sort='deck') {
 	    console.log(data);
 	  if(listid) {
 	      cache_thing("list",listid,data);
+	      $("#lastlistid").val(listid);
 	      renderlist(data.list.Items[0],switchview,sort);
 	  } else {
 	      cache_thing("list","data",data);
@@ -490,8 +491,12 @@ function refreshlist(listdata=[],listlist=[],sort='deck') {
 		  });   
 
     // TODO: other rendering schemes
-    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{}});
-
+    // TODO:   next thing:   headerize only if deck list....   
+    if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
+	var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{}});
+    } else {
+	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{}});
+    }
     $("#resultlist").html(html);
 }
 function dolist(listdata=[],listlist=[],sort='deck') {
@@ -517,6 +522,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	console.log("templates not loaded yet");
 	return;
     }
+    $("#lastcardid").val(carddata.cardid);
     var html = getactivetemplate('card').render(carddata,{"labels": labels[database], "qs": qs});
     $("#resultcard").html(html);
     updates[database]('#resultcard');
@@ -621,7 +627,19 @@ function templateprintingfromid(id,hashes,data) {
 function activatetemplate(type,template) {
     templates[database]['active'][type] = template;
     if(type == 'search') {
-	dosearch(0,$('#lastsearchsort').val());
+	if( $('#lastsearchquery').val() ) {
+	    dosearch(0,$('#lastsearchsort').val());
+	}
+    }
+    if(type == 'list') {
+	if( $('#lastlistid').val() ) {
+	    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0]);
+	}
+    }
+    if(type == 'card') {
+	if( $("#lastcardid").val() ) {
+	    docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	}
     }
     updatetemplatedropdown(type);
 }

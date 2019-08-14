@@ -137,10 +137,16 @@ templates['lbs'] = {
 	    'shortname': 'Card',
 	    'places': [ 'card' ]
 	},
+	'card-premium':  { 
+	    'longname': 'Card Large',
+	    'shortname': 'Card(L)',
+	    'places': [ 'card' ]
+	},
 	'list': {
 	    'longname': 'Simple List',
 	    'shortname': 'List',
-	    'places': [ 'search','list']
+	    'places': [ 'search','list'],
+	    'headerizable': true
 	}
     },
     'default': { 
