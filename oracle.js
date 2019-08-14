@@ -77,14 +77,10 @@ var oraclelayout;
 var nolocalstore = {};
 var searchables = {};
 var searchselectload = {};
-var searchtemplate = [];
-var templateload = {};
 var templates = {'loaded':{}};
 var templateactive = {};
 var updates = {};
 var updatecallback = {};
-var cardtemplate = [];
-var listtemplate = [];
 var database = 'l5r';
 if(found = window.location.href.match(/(\w+)\.html/)) {
     if(found && found[1] != 'index') {
@@ -365,7 +361,7 @@ function renderlist(list,switchview=true,sort='deck') {
 //   TODO: why did i blow past waiting on templates... is that right?   i think i messed this up
 // from is for continuing and getting more entries from a query
 function dosearch(from=0,sort='',forcedata=false) {
-    if((searchtemplate[database] === undefined) && !forcedata) {
+    if((getactivetemplate('search') === undefined) && !forcedata) {
 	console.log("templates not loaded yet");
 	return;
     }
@@ -465,7 +461,7 @@ function docardid(id,prid=null,qs=null,pop=false) {
 }
 function refreshlist(listdata=[],listlist=[],sort='deck') {
     console.log("rendering list: "+sort);
-    if(cardtemplate[database] === undefined) {
+    if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
 	return;
     }
@@ -494,7 +490,7 @@ function refreshlist(listdata=[],listlist=[],sort='deck') {
 		  });   
 
     // TODO: other rendering schemes
-    var html = listtemplate[database].render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{}});
+    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{}});
 
     $("#resultlist").html(html);
 }
@@ -517,11 +513,11 @@ function dolist(listdata=[],listlist=[],sort='deck') {
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
 function docard(carddata,prid=null,qs=null,pop=false) {
     console.log("rendering: "+carddata['cardid']);
-    if(cardtemplate[database] === undefined) {
+    if(getactivetemplate('card') === undefined) {
 	console.log("templates not loaded yet");
 	return;
     }
-    var html = cardtemplate[database].render(carddata,{"labels": labels[database], "qs": qs});
+    var html = getactivetemplate('card').render(carddata,{"labels": labels[database], "qs": qs});
     $("#resultcard").html(html);
     updates[database]('#resultcard');
     var primary = $("#printingprimary").val();
@@ -553,7 +549,8 @@ function populate(frm, data) {
 }
 
 function rendercards(data,request,querystring) {
-    return searchtemplate[database].render(data,{"labels": labels[database], "datarequest": request, "qs": querystring});
+//    return searchtemplate[database].render(data,{"labels": labels[database], "datarequest": request, "qs": querystring});
+    return getactivetemplate('search').render(data,{"labels": labels[database], "datarequest": request, "qs": querystring});
 }
 
 
@@ -622,12 +619,24 @@ function templateprintingfromid(id,hashes,data) {
 }
 
 function activatetemplate(type,template) {
-    // templates
-    //    templateload
-    // kill listtemplate,cardtemplate,searchtemplate
-    
+    templates[database]['active'][type] = template;
+    if(type == 'search') {
+	dosearch(0,$('#lastsearchsort').val());
+    }
+    updatetemplatedropdown(type);
 }
-
+function getactivetemplate(type) {
+    return templates[database]['compiled'][templates[database]['active'][type]];
+}
+function updatetemplatedropdown(type) {
+    var pulldown = "";
+    for ( key in templates[database].available ) {
+	if(templates[database]['available'][key].places.includes(type)) {
+	    pulldown += "<li "+(templates[database]['active'][type] == key?'class="menuactive" ':'')+"onclick=\"activatetemplate('"+type+"','"+key+"');\">"+templates[database]['available'][key]['longname']+"</li>";
+	}
+    }
+    $("#"+type+"templatedropdown").html(pulldown);
+}
 
 // ********************** STARTUP ************************8
 $(document).ready(function(){
@@ -670,7 +679,8 @@ $(document).ready(function(){
     };
     templateactive[database] = {};
 
-    $.each(templates[database],function(key,val) {
+    // TODO: check for premium 
+    $.each(templates[database]['available'],function(key,val) {
 	console.log("initiating template load: "+key);
 	$.ajax({
 	    url: "templates/template-"+(val.generic?'':(database+"-"))+key+".html",
@@ -679,6 +689,16 @@ $(document).ready(function(){
 	    cache: true,
 	    success: function(contents) {
 		$("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>'); 
+		templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
+		for (k of ['search','card','list']) {
+		    if(key == templates[database]['default'][k]) {
+			templates[database]['active'][k] = key;
+		    }
+		}
+		for (type of templates[database]['available'][key].places) {
+		    updatetemplatedropdown(type);
+		}
+		// reference like:   templates[database]['compiled'][templates[database].active.search]
 /*		if(Object.keys(templateload[database]['search'])[0] == key) {
 		    searchtemplate[database] = $.templates(["#template",key,database].join("-"));
 		    templateactive[database]['search'] = key;
@@ -688,52 +708,52 @@ $(document).ready(function(){
     });
 	    
     
-    // Load templates
-    $.each(templateload[database]['search'],function(key,val) {
-	$.ajax({
-	    url: "templates/"+key+"-"+database+".html",
-	    type: "GET",
-	    datatype: 'text',
-	    cache: true,
-	    success: function(contents) {
-		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
-		if(Object.keys(templateload[database]['search'])[0] == key) {
-		    searchtemplate[database] = $.templates(["#template",key,database].join("-"));
-		    templateactive[database]['search'] = key;
-		}
-	    }
-	});
-    });
-    $.each(templateload[database]['list'],function(key,val) {
-	$.ajax({
-	    url: "templates/"+key+"-"+database+".html",
-	    type: "GET",
-	    datatype: 'text',
-	    cache: true,
-	    success: function(contents) {
-		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
-		if(listtemplate[database] === undefined) {
-		    listtemplate[database] = $.templates(["#template",key,database].join("-"));
-		    templateactive[database]['list'] = key;
-		}
-	    }
-	});
-    });
-    $.each(templateload[database]['card'],function(key,val) {
-	$.ajax({
-	    url: "templates/"+key+"-"+database+".html",
-	    type: "GET",
-	    datatype: 'text',
-	    cache: true,
-	    success: function(contents) {
-		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
-		if(cardtemplate[database] === undefined) {
-		    cardtemplate[database] = $.templates(["#template",key,database].join("-"));
-		    templateactive[database]['card'] = key;
-		}
-	    }
-	});
-    });
+    // // Load templates
+    // $.each(templateload[database]['search'],function(key,val) {
+    // 	$.ajax({
+    // 	    url: "templates/"+key+"-"+database+".html",
+    // 	    type: "GET",
+    // 	    datatype: 'text',
+    // 	    cache: true,
+    // 	    success: function(contents) {
+    // 		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
+    // 		if(Object.keys(templateload[database]['search'])[0] == key) {
+    // 		    searchtemplate[database] = $.templates(["#template",key,database].join("-"));
+    // 		    templateactive[database]['search'] = key;
+    // 		}
+    // 	    }
+    // 	});
+    // });
+    // $.each(templateload[database]['list'],function(key,val) {
+    // 	$.ajax({
+    // 	    url: "templates/"+key+"-"+database+".html",
+    // 	    type: "GET",
+    // 	    datatype: 'text',
+    // 	    cache: true,
+    // 	    success: function(contents) {
+    // 		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
+    // 		if(listtemplate[database] === undefined) {
+    // 		    listtemplate[database] = $.templates(["#template",key,database].join("-"));
+    // 		    templateactive[database]['list'] = key;
+    // 		}
+    // 	    }
+    // 	});
+    // });
+    // $.each(templateload[database]['card'],function(key,val) {
+    // 	$.ajax({
+    // 	    url: "templates/"+key+"-"+database+".html",
+    // 	    type: "GET",
+    // 	    datatype: 'text',
+    // 	    cache: true,
+    // 	    success: function(contents) {
+    // 		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
+    // 		if(cardtemplate[database] === undefined) {
+    // 		    cardtemplate[database] = $.templates(["#template",key,database].join("-"));
+    // 		    templateactive[database]['card'] = key;
+    // 		}
+    // 	    }
+    // 	});
+    // });
 
     // Load selects
     $('#searchmiddle').html(searcherror['searchmiddle']);

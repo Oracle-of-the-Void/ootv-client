@@ -46,8 +46,8 @@
 	</ul>
       </li>
       <li class="pullmenu">Search Format
-      <ul class="dropdown">
-      <li onclick="searchtemplate[database] = $.templates('#template-visualspoiler-'+database);">Visual</li>  <!-- TODO: populate this better.   status at top.   refresh current listing.  -->
+      <ul class="dropdown" id="searchtemplatedropdown">
+      <li onclick="activatetemplate('search','visual'); dosearch(0,$('#lastsearchsort').val());">Test new code</li>  <!-- TODO: populate this better.   status at top.   refresh current listing.  -->
       </ul>
       </li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In</span></li>

@@ -143,6 +143,7 @@ labels['l5r'] = {
     "tagnotes":		"Notes",               "shortnotes": "Notes"
 };
 
+/*
 templateload['l5r'] = {
     'search': { 'searchtemplate': "Details",
 		'visualspoiler': "Visual Spoiler",
@@ -150,6 +151,47 @@ templateload['l5r'] = {
     'card': {'cardtemplate': "Details"},
     'list': {'listtemplate': "List" }
 };
+*/
+templates['l5r'] = {
+    'available': {
+	'search': { 
+	    'longname': 'Detailed Search',
+	    'shortname': 'Detail',
+	    'places': [ 'search','list' ]
+	},
+	'visual': { 
+	    'longname': 'Visual Spoiler',
+	    'shortname': 'Visual',
+	    'places': [ 'search','list' ]
+	    //		'generic': true
+	},
+	'visual-premium': { 
+	    'longname': 'Visual Spoiler - Large',
+	    'shortname': 'Visual(L)',
+	    'places': [ 'search','list' ],
+	    'premium': true
+	    //			'generic':true
+	},
+	'card':  { 
+	    'longname': 'Card Details',
+	    'shortname': 'Card',
+	    'places': [ 'card' ]
+	},
+	'list': {
+	    'longname': 'Simple List',
+	    'shortname': 'List',
+	    'places': [ 'search','list']
+	}
+    },
+    'default': { 
+	'search': 'search',
+	'card': 'card',
+	'list': 'list' 
+    },
+    'compiled': {},
+    'active': {}
+};
+
 
 $(document).ready(function(){
 });

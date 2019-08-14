@@ -1,5 +1,6 @@
 // advanced/basic switch  (tri-level)?
 // hide search switch
+console.log('Loading lbs');
 dbinfo['lbs'] = {
     'name': "Legend of the Burning Sands",
     'nameshort':"LBS",
@@ -100,6 +101,7 @@ labels['lbs'] = {
     "tagnotes":		"Notes",               "shortnotes": "Notes"
 };
 
+/*
 templateload['lbs'] = {
     'search': { 'searchtemplate': "Details",
 		'visualspoiler': "Visual Spoiler",
@@ -107,34 +109,47 @@ templateload['lbs'] = {
     'card': {'cardtemplate': "Details"},
     'list': {'listtemplate': "List" }
 };
+*/
 // Will have template-database- prepended
 //       if generic, will use a generic template-   TODO
 templates['lbs'] = {
-    'search': { 'longname': 'Detailed Search',
-		'shortname': 'Detail',
-		'places': [ 'search','list' ],
-		'default': [ 'search' ]
-	      },
-    'visual': { 'longname': 'Visual Spoiler',
-		'shortname': 'Visual',
-		'places': [ 'search','list' ]
-//		'generic': true
-	      },
-    'visual-premium': { 'longname': 'Visual Spoiler - Premium',
-			'shortname': 'Visual(P)',
-			'places': [ 'search','list' ],
-			'premium': true
-//			'generic':true
-		      },
-    'card':  { 'longname': 'Card Details',
-	       'shortname': 'Card',
-	       'places': [ 'card' ]
-	     },
-    'list': { 'longname': 'Simple List',
-	      'shortname': 'List',
-	      'places': [ 'search','list'],
-	      'default': [ 'list' ]
-	    }
+    'available': {
+	'search': { 
+	    'longname': 'Detailed Search',
+	    'shortname': 'Detail',
+	    'places': [ 'search','list' ]
+	},
+	'visual': { 
+	    'longname': 'Visual Spoiler',
+	    'shortname': 'Visual',
+	    'places': [ 'search','list' ]
+	    //		'generic': true
+	},
+	'visual-premium': { 
+	    'longname': 'Visual Spoiler - Large',
+	    'shortname': 'Visual(L)',
+	    'places': [ 'search','list' ],
+	    'premium': true
+	    //			'generic':true
+	},
+	'card':  { 
+	    'longname': 'Card Details',
+	    'shortname': 'Card',
+	    'places': [ 'card' ]
+	},
+	'list': {
+	    'longname': 'Simple List',
+	    'shortname': 'List',
+	    'places': [ 'search','list']
+	}
+    },
+    'default': { 
+	'search': 'search',
+	'card': 'card',
+	'list': 'list' 
+    },
+    'compiled': {},
+    'active': {}
 };
 		
 
