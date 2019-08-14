@@ -67,7 +67,7 @@ var searchcache = {};
 // potential for language stuff:
 const searcherror = {'empty': '<div class="error"><img src="res/splatout-150.png"><br>No cards found.</div>',
 		     'error': '<div class="error"><img src="res/splatout-150.png"><br>Something went wrong with the search.</div>',
-		     'more': '<div class="more">More Results</div>',
+		     'more': '<div class="more">More Results (Click to load)</div>',
 		     'moreloading': '<div class="moreloading">Loading <img width=20 src="res/shuriken-150x150.png-animated.gif" /></div>',
 		     'loading': '<img src="res/shuriken-150x150.png-animated.gif" />',
 		     'numresults': 'XXX cards found',
@@ -565,7 +565,7 @@ function rendercards(data,request,querystring) {
 function dosearchpostcallback(qs) {
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchcache[database]['querytotal'][qs]) {
-	    $("#resultsearch").append(searcherror['more']);
+	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
 	}
 	//	if(!$('.numresults').length) {
 	$(".numresults").html(searcherror['numresults'].replace('XXX',searchcache[database]['querytotal'][qs]));
@@ -1028,14 +1028,18 @@ function scrollcheck() {
     // window for no jquery layout containers
     //    if($(window).scrollTop() > $(document).height() - $(window).height() - 100) {
     if($('.ui-layout-center').scrollTop() > $('.ui-layout-center')[0].scrollHeight - $('.ui-layout-center').height() - 200) {
-        // ajax call get data from server and append to the div
-	if($('.more').length) {
-	    $('.more').remove();
-	    dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length,$('#lastsearchsort').val());
-	    $("#resultsearch").append(searcherror['moreloading']);
-	    // if we want transitions
-	    // new_element.hide().appendTo('.your_div').fadeIn(); $(window).scrollTop($(window).scrollTop()-1);
-	}
+	scrollforceload();
+    }
+}
+
+function scrollforceload() {
+    // ajax call get data from server and append to the div
+    if($('.more').length) {
+	$('.more').remove();
+	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length,$('#lastsearchsort').val());
+	$("#resultsearch").append(searcherror['moreloading']);
+	// if we want transitions
+	// new_element.hide().appendTo('.your_div').fadeIn(); $(window).scrollTop($(window).scrollTop()-1);
     }
 }
 
