@@ -614,13 +614,16 @@ function templateimagehashfromset(set,hashes) {
     });
     return ret;
 }
-function templateprintingfromid(id,hashes,data) {
+function templateprintingfromid(id,hashes,data,noarray=true) {
     var ret = '';
     hashes.forEach(function(e) {
 	if(e.printingid == id) {
 	    ret=e[data];
 	}
     });
+    if(noarray && Array.isArray(ret)) {
+	ret = ret[0];
+    }
     return ret;
 }
 
