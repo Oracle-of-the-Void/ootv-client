@@ -1,0 +1,31 @@
+	  general stuff: { "sort": [ "random", "_script", { "default": "cardtitle" } ],
+	                   "size": int,
+                           "table": gametablestub }
+
+    keyword for text field, not for int
+var sort = [
+	{   'cost.keyword': {"order" : "asc"} }
+    ];
+datarequest['sort'] = JSON.stringify(sort);
+
+Default is title.keyword
+
+field_field_name -> input
+type_field_name -> hidden as below
+
+quick: passed as querystring, no type needed   -> query_string/query (lucene)
+text: [ ... ],         -> match (fulltext keywords) - Operator: AND
+
+regexp: [ ... ],    -> regexp
+wildcard
+match_and
+match_or
+match_phrase
+
+select: [ ... ],       -> term  (case sensitive)
+keyword: [ ... ]       -> match_phrase or match  (case insensitive)
+
+numeric    ->   two fields lower and upper bounds
+
+need to be more specific:  what's int vs. text  for (range) and (sort)
+

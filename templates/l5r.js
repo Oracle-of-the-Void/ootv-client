@@ -90,7 +90,7 @@ searchables['l5r'] = {
 	       "advanced": true },
     "notes": { "type": "text",
 	       "advanced": true },
-    "number": { "type": "text" ,
+    "number": { "type": "numeric" ,
 	       "advanced": true},
     "legaldate": { "type": "text",
 	       "advanced": true }
@@ -195,7 +195,8 @@ templates['l5r'] = {
 	'list': 'list' 
     },
     'compiled': {},
-    'active': {}
+    'active': {},
+    'sort': {'search':''}
 };
 
 

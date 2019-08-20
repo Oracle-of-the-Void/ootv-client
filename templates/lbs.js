@@ -155,7 +155,8 @@ templates['lbs'] = {
 	'list': 'list' 
     },
     'compiled': {},
-    'active': {}
+    'active': {},
+    'sort': {'search':''}
 };
 		
 

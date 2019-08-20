@@ -1,41 +1,10 @@
 //TODO
-// TODO:  allow for multiple display formats... a way to select another format
 // TODO: selectable change operations on text:   regexp/match/etc
 // TODO: loading symbol on fetchcard (since it's ajax)
 // TODO: active card name in dipslay ( like results returned) 
 // TODO: # cards in list in display (like numresults)
 
-	/*
-	  general stuff: { "sort": [ "random", "_script", { "default": "cardtitle" } ],
-	                   "size": int,
-                           "table": gametablestub }
-
-    keyword for text field, not for int
-var sort = [
-	{   'cost.keyword': {"order" : "asc"} }
-    ];
-datarequest['sort'] = JSON.stringify(sort);
-
-field_field_name -> input
-type_field_name -> hidden as below
-
-quick: passed as querystring, no type needed   -> query_string/query (lucene)
-text: [ ... ],         -> match (fulltext keywords) - Operator: AND
-
-regexp: [ ... ],    -> regexp
-wildcard
-match_and
-match_or
-match_phrase
-
-select: [ ... ],       -> term  (case sensitive)
-keyword: [ ... ]       -> match_phrase or match  (case insensitive)
-
-numeric    ->   two fields lower and upper bounds
-
-need to be more specific:  what's int vs. text  for (range) and (sort)
-
-	*/
+//  See:  oracle.api for api documentation currently
 
 $.views.settings.allowCode(true);
 $.views.tags("printingidfromset",templateprintingidfromset);
@@ -94,18 +63,23 @@ if(cache_session("database")) {
 var labels = {};
 var populatecallback = [];
 var auth;
-var authinfo;
 var databasesort = {};
 var headerize = {};
 var refreshauthvar;
 var dbinfo = {};
+var searchsorts = { 
+    '': { 
+	'': 'Title',
+	'random': 'Random' 
+    }
+};
+searchsorts[database] = searchsorts[''];
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
     auth.getSession();
 }
 function dologout() {
-    authinfo = '';
     auth.signOut();
     localStorage.clear();
 }
@@ -117,7 +91,6 @@ function logoutcallback() {
 }
 function logincallback(session) {
     if (session) {
-	authinfo = auth.getCachedSession().idToken.payload;
         console.log("Logged in");
 	$('.loginfo').css({display:'block'});
  	$('#loginbutton').hide();
@@ -361,7 +334,7 @@ function renderlist(list,switchview=true,sort='deck') {
 //   also doesn't need forms to be loaded
 //   TODO: why did i blow past waiting on templates... is that right?   i think i messed this up
 // from is for continuing and getting more entries from a query
-function dosearch(from=0,sort='',forcedata=false) {
+function dosearch(from=0,forcedata=false) {
     if((getactivetemplate('search') === undefined) && !forcedata) {
 	console.log("templates not loaded yet");
 	return;
@@ -370,7 +343,7 @@ function dosearch(from=0,sort='',forcedata=false) {
     var datarequest = {}; 
     $.each($('#searchform').serializeArray(), function (i, field) { datarequest[field.name] = field.value || ""; });
     datarequest['table'] = database;
-    datarequest['sort'] = sort;
+    datarequest['sort'] = templates[database]['sort']['search'];
     if(forcedata!== false) {
 	datarequest = forcedata;
     }
@@ -386,7 +359,6 @@ function dosearch(from=0,sort='',forcedata=false) {
     datarequest['size'] = 50;
     datarequest['from'] = from;
     $('#lastsearchquery').val(qs);
-    $('#lastsearchsort').val(sort);
 
     // Cache lookup
     if(searchcache[database]['querydata'][qs] !== undefined && searchcache[database]['querydata'][qs].length > from) {
@@ -631,7 +603,7 @@ function activatetemplate(type,template) {
     templates[database]['active'][type] = template;
     if(type == 'search') {
 	if( $('#lastsearchquery').val() ) {
-	    dosearch(0,$('#lastsearchsort').val());
+	    dosearch(0);
 	}
     }
     if(type == 'list') {
@@ -656,8 +628,30 @@ function updatetemplatedropdown(type) {
 	    pulldown += "<li "+(templates[database]['active'][type] == key?'class="menuactive" ':'')+"onclick=\"activatetemplate('"+type+"','"+key+"');\">"+templates[database]['available'][key]['longname']+"</li>";
 	}
     }
+    if(type == 'search') {
+	pulldown += updatesortdropdown(type);
+    }
     $("#"+type+"templatedropdown").html(pulldown);
 }
+function updatesortdropdown(type) {
+    var sortdown = '<li class="menunone pullmenuright">Sort<ul>';
+    for (key in searchsorts[database]) {
+	sortdown += '<li '+(templates[database]['sort'][type] == key?'class="menuactive" ':'')+"onclick=\"changesort('"+type+"','"+key+"');\">"+searchsorts[database][key]+'</li>';
+    }
+    return sortdown+'</ul></li>';
+}
+function changesort(type,key,rerender=true) {
+    // TODO
+    // need to change the actual sort value
+    templates[database]['sort'][type] = key;
+    // need to update menus
+    updatetemplatedropdown(type);
+    // need to re-render
+    if(rerender) {
+	dosearch(0);
+    }
+}
+
 
 // ********************** STARTUP ************************8
 $(document).ready(function(){
@@ -883,7 +877,17 @@ function urlparser() {
 	console.log("detected search in URL");
 	console.log(uri2json(decodeURIComponent(matchstruct['search'])));
 	populatecallback.push(function() {populate($("#searchform"),uri2json(decodeURIComponent(matchstruct['search'])));});
-	dosearch(0,'',uri2json(decodeURIComponent(matchstruct['search'])));
+	fdata = uri2json(decodeURIComponent(matchstruct['search']));
+	for( param in fdata ) {
+	    if(param.match(/^(field_|querystring)/)) {
+		$('input[name="'+param+'"]').val(fdata[param]);
+	    }
+	    if(param == 'sort') {
+		changesort('search',fdata[param],false);
+	    }
+	}
+	dosearch(0,fdata);
+	// TODO this needs to update search and the form.
     } else {
 /*	$(window).on('beforeunload', function(e){ 
 	    return 'Are you sure you want to leave?';
@@ -1036,7 +1040,7 @@ function scrollforceload() {
     // ajax call get data from server and append to the div
     if($('.more').length) {
 	$('.more').remove();
-	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length,$('#lastsearchsort').val());
+	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length);
 	$("#resultsearch").append(searcherror['moreloading']);
 	// if we want transitions
 	// new_element.hide().appendTo('.your_div').fadeIn(); $(window).scrollTop($(window).scrollTop()-1);
@@ -1062,7 +1066,7 @@ function cardprev(id,qs) {
 function cardnext(id,qs) {
     var index = searchcache[database]['querydata'][qs].indexOf(id);
     if((index >= searchcache[database]['querydata'][qs].length - 5) && (searchcache[database]['querydata'][qs].length < searchcache[database]['querytotal'][qs])) {
-	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length,$('#lastsearchsort').val());
+	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length);
     }
     if(index < searchcache[database]['querydata'][qs].length - 1) {
 	docardid(searchcache[database]['querydata'][qs][searchcache[database]['querydata'][qs].indexOf(id)+1],null,qs);

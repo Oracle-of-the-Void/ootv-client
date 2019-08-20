@@ -81,6 +81,10 @@ span#loginfo:not(:empty)::after, .pullmenu::after {
     margin-left: .2em;
 }
 .loginfo {display:none;}
+.pullmenuright::after { 
+    content: url("res/menu-tinyright.png");
+    margin-left: .2em;
+}
 
 div.randarea {
   font-family: "Times New Roman",Georgia,Serif;
@@ -631,7 +635,7 @@ nav ul li ul li.menuactive::before {
     content: url('res/icon-buttons/led_green_on.png');
     margin-right: .4em;
 }
-nav ul li ul li:not(.menuactive)::before {
+nav ul li ul li:not(.menuactive):not(.menunone)::before {
     content: url('res/icon-buttons/led_green_off.png');
     margin-right: .4em;
 }
