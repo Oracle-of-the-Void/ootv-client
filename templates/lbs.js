@@ -73,7 +73,7 @@ searchables['lbs'] = {
 	       "advanced": true},
     "copper": { "type": "numeric",
 	       "advanced": true},
-    "influnce": { "type": "numeric",
+    "influence": { "type": "numeric",
 	       "advanced": true},
     "city": { "type": "numeric",
 	       "advanced": true},

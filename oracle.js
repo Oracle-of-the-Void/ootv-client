@@ -28,6 +28,9 @@ function addslashes(str) {
 	return str;
     }
 }
+function escapequotes(str) {
+    return str.replace('"','&quot;');
+}
 $.views.converters("addslashes",addslashes);
     
 var apiuri = "https://api.oracleofthevoid.com";
@@ -69,8 +72,8 @@ var refreshauthvar;
 var dbinfo = {};
 var searchsorts = { 
     '': { 
-	'': 'Title',
-	'random': 'Random' 
+	'': 'Title'
+//	'random': 'Random' 
     }
 };
 searchsorts[database] = searchsorts[''];
@@ -636,14 +639,14 @@ function updatetemplatedropdown(type) {
 function updatesortdropdown(type) {
     var sortdown = '<li class="menunone pullmenuright">Sort<ul>';
     for (key in searchsorts[database]) {
-	sortdown += '<li '+(templates[database]['sort'][type] == key?'class="menuactive" ':'')+"onclick=\"changesort('"+type+"','"+key+"');\">"+searchsorts[database][key]+'</li>';
+	sortdown += '<li '+(templates[database]['sort'][type] == key?'class="menuactive" ':'')+"onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
     }
     return sortdown+'</ul></li>';
 }
 function changesort(type,key,rerender=true) {
     // TODO
     // need to change the actual sort value
-    templates[database]['sort'][type] = key;
+    templates[database]['sort'][type] = decodeURI(key);
     // need to update menus
     updatetemplatedropdown(type);
     // need to re-render
@@ -694,6 +697,22 @@ $(document).ready(function(){
     };
     templateactive[database] = {};
 
+    for(field in searchables[database]) {
+	if(typeof searchables[database][field] === "object") {
+	    if(searchables[database][field].type == "select") {
+		var sort = [{}];
+		// TODO:   printing.  doesn't work right
+		sort[0][field.replace("printing.","printing")+'.keyword'] = {"order": "asc"};
+		searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
+	    }
+	    if(searchables[database][field].type == "numeric") {
+		var sort = [{}];
+		sort[0][field] = {"order": "asc"};
+		searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
+	    }
+	}
+    }
+
     // TODO: check for premium 
     $.each(templates[database]['available'],function(key,val) {
 	console.log("initiating template load: "+key);
@@ -721,54 +740,7 @@ $(document).ready(function(){
 	    }
 	});
     });
-	    
     
-    // // Load templates
-    // $.each(templateload[database]['search'],function(key,val) {
-    // 	$.ajax({
-    // 	    url: "templates/"+key+"-"+database+".html",
-    // 	    type: "GET",
-    // 	    datatype: 'text',
-    // 	    cache: true,
-    // 	    success: function(contents) {
-    // 		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
-    // 		if(Object.keys(templateload[database]['search'])[0] == key) {
-    // 		    searchtemplate[database] = $.templates(["#template",key,database].join("-"));
-    // 		    templateactive[database]['search'] = key;
-    // 		}
-    // 	    }
-    // 	});
-    // });
-    // $.each(templateload[database]['list'],function(key,val) {
-    // 	$.ajax({
-    // 	    url: "templates/"+key+"-"+database+".html",
-    // 	    type: "GET",
-    // 	    datatype: 'text',
-    // 	    cache: true,
-    // 	    success: function(contents) {
-    // 		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
-    // 		if(listtemplate[database] === undefined) {
-    // 		    listtemplate[database] = $.templates(["#template",key,database].join("-"));
-    // 		    templateactive[database]['list'] = key;
-    // 		}
-    // 	    }
-    // 	});
-    // });
-    // $.each(templateload[database]['card'],function(key,val) {
-    // 	$.ajax({
-    // 	    url: "templates/"+key+"-"+database+".html",
-    // 	    type: "GET",
-    // 	    datatype: 'text',
-    // 	    cache: true,
-    // 	    success: function(contents) {
-    // 		$("#all_template").append('<script id="template-'+key+'-'+database+'" type="text/x-jsrender">'+contents+'</script>'); 
-    // 		if(cardtemplate[database] === undefined) {
-    // 		    cardtemplate[database] = $.templates(["#template",key,database].join("-"));
-    // 		    templateactive[database]['card'] = key;
-    // 		}
-    // 	    }
-    // 	});
-    // });
 
     // Load selects
     $('#searchmiddle').html(searcherror['searchmiddle']);
