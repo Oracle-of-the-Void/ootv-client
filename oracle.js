@@ -701,7 +701,8 @@ $(document).ready(function(){
 	if(typeof searchables[database][field] === "object") {
 	    if(searchables[database][field].type == "select") {
 		var sort = [{}];
-		// TODO:   printing.  doesn't work right
+		// TODO:   ASC / DESC - if selected when selected, just replace asc with desc... maybe do it inside dosearch on demand if desc is set?   
+		// TODO: up/down arrow on ASC / DESC
 		sort[0][field.replace("printing.","printing")+'.keyword'] = {"order": "asc"};
 		searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
 	    }
