@@ -492,7 +492,7 @@ function dolist(listdata=[],listlist=[],sort='deck') {
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
 function docard(carddata,prid=null,qs=null,pop=false) {
-    console.log("rendering: "+carddata['cardid']);
+    console.log("rendering: "+carddata['cardid']+(prid?'/'+prid:''));
     if(getactivetemplate('card') === undefined) {
 	console.log("templates not loaded yet");
 	return;
