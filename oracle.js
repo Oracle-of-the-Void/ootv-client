@@ -70,12 +70,9 @@ var databasesort = {};
 var headerize = {};
 var refreshauthvar;
 var dbinfo = {};
-var searchsorts = { 
-    '': { 
-	'': 'Title'
+var searchsorts = {'':{}};
+searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random' 
-    }
-};
 searchsorts[database] = searchsorts[''];
 
 // *************************     AUTHENTICATION   *******************************
@@ -347,6 +344,9 @@ function dosearch(from=0,forcedata=false) {
     $.each($('#searchform').serializeArray(), function (i, field) { datarequest[field.name] = field.value || ""; });
     datarequest['table'] = database;
     datarequest['sort'] = templates[database]['sort']['search'];
+    if(templates[database]['sortdir']['search'] == 'desc') {
+	datarequest['sort'] = datarequest['sort'].replace(/"asc"/,'"desc"');
+    }
     if(forcedata!== false) {
 	datarequest = forcedata;
     }
@@ -637,16 +637,25 @@ function updatetemplatedropdown(type) {
     $("#"+type+"templatedropdown").html(pulldown);
 }
 function updatesortdropdown(type) {
-    var sortdown = '<li class="menunone pullmenuright">Sort<ul>';
+    var sortdown = '<li class="menunone pullmenuright menusort">Sort<ul>';
     for (key in searchsorts[database]) {
-	sortdown += '<li '+(templates[database]['sort'][type] == key?'class="menuactive" ':'')+"onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
+	sortdown += '<li'+(templates[database]['sort'][type] == key?' class="menuactive'+(templates[database]['sortdir'][type]&&templates[database]['sortdir'][type]=='desc'?' searchdesc"':'"'):'')+" onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
     }
     return sortdown+'</ul></li>';
 }
 function changesort(type,key,rerender=true) {
-    // TODO
     // need to change the actual sort value
-    templates[database]['sort'][type] = decodeURI(key);
+    if(templates[database]['sort'][type] == decodeURI(key)) {
+	// TODO: flip asc/desc here
+	if(templates[database]['sortdir']['search'] == 'asc') {
+	    templates[database]['sortdir']['search'] = 'desc';
+	} else {
+	    templates[database]['sortdir']['search'] = 'asc';
+	}
+    } else {
+	templates[database]['sort'][type] = decodeURI(key);
+	templates[database]['sortdir']['search'] = 'asc';
+    }
     // need to update menus
     updatetemplatedropdown(type);
     // need to re-render
@@ -697,6 +706,8 @@ $(document).ready(function(){
     };
     templateactive[database] = {};
 
+    templates[database]['sort']['search'] = Object.keys(searchsorts[database])[0];
+    templates[database]['sortdir'] = {'search': 'asc'};
     for(field in searchables[database]) {
 	if(typeof searchables[database][field] === "object") {
 	    if(searchables[database][field].type == "select") {

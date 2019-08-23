@@ -639,7 +639,14 @@ nav ul li ul li:not(.menuactive):not(.menunone)::before {
     content: url('res/icon-buttons/led_green_off.png');
     margin-right: .4em;
 }
-
+li.menusort ul li.menuactive::after { 
+  content: url("res/menu-tinyarrowdown.png");
+  float: right;
+  margin-left: .2em;
+}
+li.menusort ul li.searchdesc::after { 
+  content: url("res/menu-tinyarrowup.png");
+}
 nav ul li ul li {
   border-right: solid black 1px;
   border-left: solid black 1px;
