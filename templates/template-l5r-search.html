@@ -4,10 +4,10 @@
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="https://s3.us-east-2.amazonaws.com/oracle-l5r/{{if ~datarequest.field_printing_set}}{{imagehashfromset ~datarequest.field_printing_set printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_set printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
+       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="https://s3.us-east-2.amazonaws.com/oracle-l5r/{{if ~datarequest.field_printing_set}}{{imagehashfromset ~datarequest.field_printing_set printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_set printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
   </div>
   <div class="listbody">
-  <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "set" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
+  <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "set" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
        {{for printing}}
           {{:set}} ({{:rarity}}){{if #index+1 < #get("array").data.length}} &#9679; {{/if}}
 	  {{/for}}

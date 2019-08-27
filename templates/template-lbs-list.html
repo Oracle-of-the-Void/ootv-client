@@ -9,7 +9,7 @@
     </div>
     {{else}}
     <div class="listbodyplain">
-      {{if listquantity}}{{:listquantity}}x{{/if}} <a href="#cardid={{:cardid}}" onclick="if(event.metaKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> 
+      {{if listquantity}}{{:listquantity}}x{{/if}} <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> 
       {{if listprinting}}[{{printingfromid listprinting printing "set" /}} &#149; {{printingfromid listprinting printing "rarity" /}}]{{/if}}
       {{!-- ({{:type}}) --}}
     </div>
