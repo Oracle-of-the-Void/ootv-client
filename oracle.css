@@ -260,6 +260,9 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
 
 .iiconic { font-family: 'iconicfill'; }
+.iiconic {
+    margin-left: .4em;
+}
 .inegative { color: #ee2222; }
 .ipositive { color: #0a8913; }
 .iyellow { color: yellow; }

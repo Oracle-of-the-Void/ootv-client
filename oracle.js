@@ -74,6 +74,7 @@ var searchsorts = {'':{}};
 searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random' 
 searchsorts[database] = searchsorts[''];
+var activedecks = {};
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
