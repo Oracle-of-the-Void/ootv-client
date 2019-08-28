@@ -61,6 +61,7 @@ searchables['l5r'] = {
     "printing.rarity": { "type": "select" },
     "type": { "type": "select" },
     "keywords": { "type": "keyword" },
+    "text": { "type": "text" },
     "clan": { "type": "select" },
     "legality": { "type": "select" },
     "deck": { "type": "select" },

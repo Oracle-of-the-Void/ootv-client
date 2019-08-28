@@ -206,6 +206,21 @@ function listinfocallback() {
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
 }
 
+// ***********************  list edits **************
+function activatelist(listid) {
+    alert('TODO');
+}
+function editlistinfo(listid) {
+    // maybe click on the part to edit and just direct instead of new screen? TODO
+    alert('TODO');
+}
+function outputlist(listid) {
+    alert('TODO');
+}
+function importlist(listid=null) {
+    alert('TODO');
+}
+
 
 //   *********************************   fetching / querying the api ******************8
 // TODO: sometimes this fails if I do a card not primed from c/p

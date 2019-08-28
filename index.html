@@ -317,10 +317,10 @@ printingprimary
   <div class="listmiddle">{{formatDate:modified}}</div>
   <div class="listmiddle">{{if public}}Public{{/if}}</div><!-- TODO  fix this -->
   <div class="listmiddle">{{:notes}}</div>
-  <div class="listmiddle"><span class="button gray" onclick="alert('TODO');">Activate<span class="iiconic iyellow">&#9889;</span></span></div>
-  <div class="listmiddle"><span class="button gray" onclick="alert('TODO');">Edit<span class="iiconic iblue">&#57349;</span></span></div>
-  <div class="listmiddle"><span class="button gray" onclick="alert('TODO');">Output/Print<span class="iiconic iyellow">&#57356;</span></span></div>
-  <div class="listmiddle"><span class="button gray" onclick="alert('TODO');">Import<span class="iiconic iblue">&#8593;</span></span></div>
+  <div class="listmiddle"><span class="button gray" onclick="activatelist('{{:listid}}');">Activate<span class="iiconic iyellow">&#9889;</span></span></div>
+  <div class="listmiddle"><span class="button gray" onclick="editlistinfo('{{:listid}}');">Edit<span class="iiconic iblue">&#57349;</span></span></div>
+  <div class="listmiddle"><span class="button gray" onclick="outputlist('{{:listid}}');">Output/Print<span class="iiconic iyellow">&#57356;</span></span></div>
+  <div class="listmiddle"><span class="button gray" onclick="importlist('{{:listid}}');">Import<span class="iiconic iblue">&#8593;</span></span></div>
 </div>
 </script>
 
