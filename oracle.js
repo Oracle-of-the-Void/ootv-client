@@ -205,6 +205,28 @@ function listinfo(listid=null,switchview=true,sort='deck') {
 function listinfocallback() {
     listertemplate = $.templates("#template-lists");
     $("#resultdir .out").replaceWith(listertemplate.render(cache_thing("list","data").lists.Items));
+    //acknowledgement message
+    var message_status = $(".numresults");
+    $(".listitem div[contenteditable=true]").blur(function(){
+        var field_userid = $(this).attr("id").split(/:/) ;
+        var value = $(this).text() ;
+	//TODO:   update value
+	console.log(field_userid);
+        $.ajax({
+	    type: "GET",
+	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+field_userid[1]+"&updatefield="+field_userid[0].replace('list_','')+"&updatevalue="+encodeURI(value),
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	    responseType: 'application/json',
+	    success: function(status) {
+                message_status.show();
+                message_status.text(data);
+                //hide the message
+                setTimeout(function(){message_status.hide()},3000);
+	    }
+        });
+    });
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
 }
 
