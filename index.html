@@ -90,7 +90,7 @@
 <span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow">&#9889;</span></span>
 </div></div>
 </form>
-<br />
+<br clear="all" />
 <br />
 <div id="deckarea">
 </div>
@@ -309,6 +309,15 @@ printingprimary
 </div>
 </script>
 
+<script id="template-listedit" type="text/x-jsrender">
+<div class="listblock">
+  <div><a href="#" onclick="listinfo('{{:listid}}',true,'{{:type}}'); return false;">{{:name}}</a> ({{:type}})
+      <span class="iiconic inegative" onclick="deactivatelist('{{:listid}}'); return false;">&#10008;</span>
+  </div>
+  <div>{{if listdata}}({{:listdata.list.Items[0].list.length}} cards){{/if}}</div>
+</div>
+</script>
+
 <script id="template-lists" type="text/x-jsrender">
 <div class="listitem">
   <div class="listimage" onclick="listinfo('{{:listid}}',true,'{{:type}}')"; return false;><a href="#" onclick="return false;">{{:name}}</a></div>
@@ -317,7 +326,7 @@ printingprimary
   <div class="listmiddle">{{formatDate:modified}}</div>
   <div class="listmiddle">{{if public}}Public{{/if}}</div><!-- TODO  fix this -->
   <div class="listmiddle">{{:notes}}</div>
-  <div class="listmiddle"><span class="button gray" onclick="activatelist('{{:listid}}');">Activate<span class="iiconic iyellow">&#9889;</span></span></div>
+  <div class="listmiddle"><span class="button gray" onclick="activatelist('{{:listid}}','{{:type}}');">Activate<span class="iiconic iyellow">&#9889;</span></span></div>
   <div class="listmiddle"><span class="button gray" onclick="editlistinfo('{{:listid}}');">Edit<span class="iiconic iblue">&#57349;</span></span></div>
   <div class="listmiddle"><span class="button gray" onclick="outputlist('{{:listid}}');">Output/Print<span class="iiconic iyellow">&#57356;</span></span></div>
   <div class="listmiddle"><span class="button gray" onclick="importlist('{{:listid}}');">Import<span class="iiconic iblue">&#8593;</span></span></div>

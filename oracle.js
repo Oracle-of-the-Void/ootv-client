@@ -74,7 +74,7 @@ var searchsorts = {'':{}};
 searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random' 
 searchsorts[database] = searchsorts[''];
-var activedecks = {};
+var activelists = [];
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
@@ -192,8 +192,10 @@ function listinfo(listid=null,switchview=true,sort='deck') {
 	      cache_thing("list",listid,data);
 	      $("#lastlistid").val(listid);
 	      renderlist(data.list.Items[0],switchview,sort);
+	      renderlisteditarea(); // update card counts
 	  } else {
 	      cache_thing("list","data",data);
+	      cache_thing("list","datareverse",data.lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
 	      listinfocallback();
 	  }
 	},
@@ -207,8 +209,39 @@ function listinfocallback() {
 }
 
 // ***********************  list edits **************
-function activatelist(listid) {
-    alert('TODO');
+function renderlisteditarea() {
+    if(activelists.length < 1) {
+	$("#deckarea").html('');
+    } else {
+	listedittemplate = $.templates("#template-listedit");
+	$("#deckarea").html(
+	    '<div class="randarea">Active Lists:<br />'+
+		listedittemplate.render(activelists.map(function(listid) { 
+		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+		    if(cache_thing("list",listid)) {
+			list.listdata = cache_thing("list",listid);
+		    }
+		    return list;
+		}))+
+		'</div>'
+	);
+    }
+}
+function activatelist(listid,type) {
+    listinfo(listid,false,type);
+    var index = activelists.indexOf(listid);
+    if (index > -1) {
+       activelists.splice(index, 1);
+    }
+    activelists.unshift(listid);
+    renderlisteditarea();
+}
+function deactivatelist(listid) {
+    var index = activelists.indexOf(listid);
+    if (index > -1) {
+       activelists.splice(index, 1);
+    }
+    renderlisteditarea();
 }
 function editlistinfo(listid) {
     // maybe click on the part to edit and just direct instead of new screen? TODO
