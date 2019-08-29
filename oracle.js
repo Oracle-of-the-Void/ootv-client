@@ -223,7 +223,7 @@ function renderlisteditarea() {
 		    }
 		    return list;
 		}))+
-		'</div>'
+		'</div><br /><br />'
 	);
     }
 }
