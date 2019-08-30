@@ -102,6 +102,17 @@ div.randarea {
   text-align: center;
 }
 
+select.listselect { 
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none; 
+  border: none;
+  /* needed for Firefox: */
+  overflow:hidden;
+  width: 120%;
+  background: transparent;
+}
+
 div.listitem, div.listitemplain {
   width: 100%;
   display: table-row;

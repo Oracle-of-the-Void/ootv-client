@@ -17,6 +17,18 @@ $.views.converters("formatDate", function(val) {
 	year:  'numeric'
     });
 });
+var listtypes = {'deck':'Deck',
+		 'collection':'Collection',
+		 'have':'Have',
+		 'want':'Want',
+		 'other':'Other'};
+$.views.converters("listTypeSelect",function(type) {
+    var sel='';
+    for (ltype in listtypes) {
+	sel += '<option value="'+ltype+'"'+(ltype==type?' selected':'')+'>'+listtypes[ltype]+'</option>';
+    }
+    return sel;
+});
 function addslashes(str) {
     if(str) {
 	if(Array.isArray(str)) {
@@ -202,11 +214,34 @@ function listinfo(listid=null,switchview=true,sort='deck') {
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
     });
 }
+function listinfoupdate(listid,field,value) {
+    var message_status = $('#list_modified\\:'+listid);
+    var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURI(value);
+    console.log(url);
+    $.ajax({
+	type: "GET",
+	url: url,
+	contentType: 'application/json',
+	dataType: 'json',
+	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	responseType: 'application/json',
+	success: function(status) {
+            //message_status.show();
+            message_status.text("List Updated");
+            //hide the message
+            setTimeout(function(){message_status.text("Just now")},3000);
+	    //            setTimeout(function(){message_status.hide()},3000);
+	    $("#list_prev_"+field).text(value);
+	},
+	error: function(status) {
+	    console.log(status);
+	}
+    });
+}    
 function listinfocallback() {
     listertemplate = $.templates("#template-lists");
     $("#resultdir .out").replaceWith(listertemplate.render(cache_thing("list","data").lists.Items));
     //acknowledgement message
-    var message_status = $(".numresults");
     $(".listitem div[contenteditable=true]").blur(function(){
         var field_userid = $(this).attr("id").split(/:/) ;
         var value = $(this).text() ;
@@ -214,24 +249,7 @@ function listinfocallback() {
 	if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
 	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
 	    console.log(field_userid);
-            $.ajax({
-		type: "GET",
-		url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+field_userid[1]+"&updatefield="+field_userid[0].replace('list_','')+"&updatevalue="+encodeURI(value),
-		contentType: 'application/json',
-		dataType: 'json',
-		beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-		responseType: 'application/json',
-		success: function(status) {
-                    message_status.show();
-                    message_status.text("Deck Updated");
-                    //hide the message
-                    setTimeout(function(){message_status.hide()},3000);
-		    $("#list_prev_"+field_userid[0].replace('list_','')).text(value);
-		},
-		error: function(status) {
-		    console.log(status);
-		}
-            });
+	    listinfoupdate(field_userid[1],field_userid[0].replace('list_',''),value);
 	}
     });
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
