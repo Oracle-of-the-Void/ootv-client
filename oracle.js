@@ -211,21 +211,28 @@ function listinfocallback() {
         var field_userid = $(this).attr("id").split(/:/) ;
         var value = $(this).text() ;
 	//TODO:   update value
-	console.log(field_userid);
-        $.ajax({
-	    type: "GET",
-	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+field_userid[1]+"&updatefield="+field_userid[0].replace('list_','')+"&updatevalue="+encodeURI(value),
-	    contentType: 'application/json',
-	    dataType: 'json',
-	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-	    responseType: 'application/json',
-	    success: function(status) {
-                message_status.show();
-                message_status.text(data);
-                //hide the message
-                setTimeout(function(){message_status.hide()},3000);
-	    }
-        });
+	if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
+	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
+	    console.log(field_userid);
+            $.ajax({
+		type: "GET",
+		url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+field_userid[1]+"&updatefield="+field_userid[0].replace('list_','')+"&updatevalue="+encodeURI(value),
+		contentType: 'application/json',
+		dataType: 'json',
+		beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+		responseType: 'application/json',
+		success: function(status) {
+                    message_status.show();
+                    message_status.text("Deck Updated");
+                    //hide the message
+                    setTimeout(function(){message_status.hide()},3000);
+		    $("#list_prev_"+field_userid[0].replace('list_','')).text(value);
+		},
+		error: function(status) {
+		    console.log(status);
+		}
+            });
+	}
     });
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
 }
@@ -275,6 +282,7 @@ function outputlist(listid) {
 function importlist(listid=null) {
     alert('TODO');
 }
+// TODO:  new list button
 
 
 //   *********************************   fetching / querying the api ******************8

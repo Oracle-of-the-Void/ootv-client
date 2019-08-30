@@ -318,7 +318,10 @@ printingprimary
 
 <script id="template-lists" type="text/x-jsrender">
 <div class="listitem">
-  <div class="listimage" onclick="listinfo('{{:listid}}',true,'{{:type}}')"; return false;><a href="#" onclick="return false;">{{:listid}}</a></div>
+  <div class="listimage" onclick="listinfo('{{:listid}}',true,'{{:type}}')"; return false;><a href="#" onclick="return false;">{{:listid}}</a>
+    <div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
+    <div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
+  </div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div>
   <div class="listmiddle">{{:type}}</div>
   <div class="listmiddle">{{formatDate:createdate}}</div>
