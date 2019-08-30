@@ -291,6 +291,9 @@ function deactivatelist(listid) {
     }
     renderlisteditarea();
 }
+function newlist() {
+    alert('TODO');
+}
 function editlistinfo(listid) {
     // maybe click on the part to edit and just direct instead of new screen? TODO
     alert('TODO');

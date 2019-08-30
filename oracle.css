@@ -124,6 +124,7 @@ div.listimage, div.listmiddle, div.listheadmiddle {
   padding: 4px;
   display: table-cell;
   vertical-align: top;
+  text-align: center;
 }
 
 div.listbody, div.listbodyplain, div.listheadplain {
@@ -277,6 +278,7 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 }
 .inegative { color: #ee2222; }
 .ipositive { color: #0a8913; }
+.listheadmiddle .ipositive { color: #1aee29; }
 .iyellow { color: yellow; }
 .iblue { color: #2222ee; }
 .iblack { color: black; }
