@@ -10,13 +10,14 @@ $.views.settings.allowCode(true);
 $.views.tags("printingidfromset",templateprintingidfromset);
 $.views.tags("imagehashfromset",templateimagehashfromset);
 $.views.tags("printingfromid",templateprintingfromid);
-$.views.converters("formatDate", function(val) {
+function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
 	month: 'long',
 	year:  'numeric'
     });
-});
+}
+$.views.converters("formatDate", function(val) {return formatdate(val);});
 var listtypes = {'deck':'Deck',
 		 'collection':'Collection',
 		 'have':'Have',
@@ -229,7 +230,7 @@ function listinfoupdate(listid,field,value) {
             //message_status.show();
             message_status.text("List Updated");
             //hide the message
-            setTimeout(function(){message_status.text("Just now")},3000);
+            setTimeout(function(){message_status.text(formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	},
