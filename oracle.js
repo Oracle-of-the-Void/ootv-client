@@ -208,7 +208,6 @@ function listinfo(listid=null,switchview=true,sort='deck') {
 	      renderlisteditarea(); // update card counts
 	  } else {
 	      cache_thing("list","data",data);
-	      cache_thing("list","datareverse",data.lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
 	      listinfocallback();
 	  }
 	},
@@ -240,8 +239,10 @@ function listinfoupdate(listid,field,value) {
     });
 }    
 function listinfocallback() {
+    cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
     listertemplate = $.templates("#template-lists");
-    $("#resultdir .out").replaceWith(listertemplate.render(cache_thing("list","data").lists.Items));
+    $(".directorylistitem").remove();
+    $(listertemplate.render(cache_thing("list","data").lists.Items)).insertAfter(".directorylistheader");
     //acknowledgement message
     $(".listitem div[contenteditable=true]").blur(function(){
         var field_userid = $(this).attr("id").split(/:/) ;
@@ -292,7 +293,22 @@ function deactivatelist(listid) {
     renderlisteditarea();
 }
 function newlist() {
-    alert('TODO');
+    $.ajax({
+	type: 'GET',
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new", 
+	contentType: 'application/json',
+	dataType: 'json',
+	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	responseType: 'application/json',
+	success: function(data) {
+	    console.log(data);
+	    var oldlists = cache_thing("list","data");
+	    oldlists.lists.Items.unshift(data.list.Item);
+	    cache_thing("list","data",oldlists);
+	    listinfocallback();
+	},
+	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+    });
 }
 function editlistinfo(listid) {
     // maybe click on the part to edit and just direct instead of new screen? TODO
@@ -304,7 +320,6 @@ function outputlist(listid) {
 function importlist(listid=null) {
     alert('TODO');
 }
-// TODO:  new list button
 
 
 //   *********************************   fetching / querying the api ******************8

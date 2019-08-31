@@ -152,7 +152,7 @@
   </ul>
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet</div></div>
 <div class="resultdir" id="resultdir">
-  <div class="listitem">
+  <div class="listitem directorylistheader">
     <div class="listheadmiddle">Id</div>
     <div class="listheadmiddle">Name</div>
     <div class="listheadmiddle">Type</div>
@@ -163,7 +163,7 @@
     <div class="listheadmiddle"><span class="iiconic ipositive" onclick="newlist();">&#xE008;</span></div>
 
   </div>
-  <div class="out"><div class="randarea">No Lists rendered yet</div></div>
+  <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
 </div>
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected</div></div>
 <div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet</div></div>
@@ -320,7 +320,7 @@ printingprimary
 </script>
 
 <script id="template-lists" type="text/x-jsrender">
-<div class="listitem">
+<div class="listitem directorylistitem">
   <div class="listimage" onclick="listinfo('{{:listid}}',true,'{{:type}}')"; return false;><a href="#" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
