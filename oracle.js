@@ -310,6 +310,29 @@ function newlist() {
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
     });
 }
+function removelist(listid) {
+    if(confirm("Really remove list: "+listid+"?")) {
+	$.ajax({
+	    type: 'GET',
+	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=remove", 
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	    responseType: 'application/json',
+	    success: function(data) {
+		console.log(data);
+
+	    },
+	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+	});
+	var oldlists = cache_thing("list","data");
+	var ind = $("#listitem_"+listid).index();
+	oldlists.lists.Items.splice(ind-1,1);
+	cache_thing("list","data",oldlists);
+	$("#listitem_"+listid).remove();
+	listinfocallback();
+    }
+}
 function editlistinfo(listid) {
     // maybe click on the part to edit and just direct instead of new screen? TODO
     alert('TODO');
