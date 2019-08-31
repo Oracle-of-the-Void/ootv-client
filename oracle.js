@@ -292,10 +292,24 @@ function deactivatelist(listid) {
     }
     renderlisteditarea();
 }
-function newlist() {
+function newlist(json=null) {
+    /*
+    Create new list.   json example:
+    { 
+    "name": "new list name",  // default: "New List"
+    "list": [ { cardid: 6974, printing: 0, quantity: 3 },   // default: empty list
+              { cardid:  123, printing: 2, quanity: 1} 
+	      ],
+    "public": true, // default false
+    "type": "collection"   // default 'deck'
+    }
+    game is set from queryString
+    owner is set from authentication information and matching queryString
+    createdate, modified are automatically set and non-modifiable currently
+    */
     $.ajax({
 	type: 'GET',
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new", 
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?encodeURIComponent(JSON.stringify(json)):''), 
 	contentType: 'application/json',
 	dataType: 'json',
 	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -333,14 +347,11 @@ function removelist(listid) {
 	listinfocallback();
     }
 }
-function editlistinfo(listid) {
-    // maybe click on the part to edit and just direct instead of new screen? TODO
-    alert('TODO');
-}
 function outputlist(listid) {
     alert('TODO');
 }
 function importlist(listid=null) {
+    // this will call newlist with a list of cards as json
     alert('TODO');
 }
 
@@ -806,6 +817,7 @@ function changesort(type,key,rerender=true) {
 
 // ********************** STARTUP ************************8
 $(document).ready(function(){
+    // TODO: doing double-load of lists when startup
     auth = initCognitoSDK();
     var curUrl = window.location.href;
     if(curUrl.includes('#access_token=') || curUrl.includes('?code=') ) {
