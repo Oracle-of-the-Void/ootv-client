@@ -189,30 +189,35 @@ function getuid() {
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...  
-function listinfo(listid=null,switchview=true,sort='deck') {
+function listinfo(listid=null,switchview=true,sort) {
     //TODO: get just lists for current game
     console.log({listid,switchview,sort});
-    $.ajax({
-	type: 'GET',
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""), 
-	contentType: 'application/json',
-	dataType: 'json',
-	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-	responseType: 'application/json',
-	success: function(data) {
-	    console.log(data);
-	  if(listid) {
-	      cache_thing("list",listid,data);
-	      $("#lastlistid").val(listid);
-	      renderlist(data.list.Items[0],switchview,sort);
-	      renderlisteditarea(); // update card counts
-	  } else {
-	      cache_thing("list","data",data);
-	      listinfocallback();
-	  }
-	},
-	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
-    });
+    if(listid && cache_thing("list",listid) != null) {
+	$("#lastlistid").val(listid);
+	renderlist(cache_thing("list",listid).list.Items[0],switchview,sort,listid);
+    } else {
+	$.ajax({
+	    type: 'GET',
+	    url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""), 
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	    responseType: 'application/json',
+	    success: function(data) {
+		console.log(data);
+		if(listid) {
+		    cache_thing("list",listid,data);
+		    $("#lastlistid").val(listid);
+		    renderlist(data.list.Items[0],switchview,sort,listid);
+		    renderlisteditarea(); // update card counts
+		} else {
+		    cache_thing("list","data",data);
+		    listinfocallback();
+		}
+	    },
+	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+	});
+    } 
 }
 function listinfoupdate(listid,field,value) {
     // valid fields:
@@ -358,10 +363,14 @@ function addlistitem(listid,cardid,prid=0,n=1) {
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     var list = cache_thing("list",listid);
     var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
-    if(ind<0) {
+    if(ind<0 && n != null) {
 	list.list.Items[0].list.push({'cardid':cardid,'printing':prid,'quantity':n});
     } else {
-	list.list.Items[0].list[ind].quantity += n;
+	if(n == null) {
+	    list.list.Items[0].list.splice(ind,1);
+	} else {
+	    list.list.Items[0].list[ind].quantity += n;
+	}
     }
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
@@ -410,7 +419,7 @@ function listprefetch(listids,callback=null) {
 	      cache_card(data);
 	  }
 	  if(callback) {
-	      callback[0](callback[1],callback[2],callback[3]);
+	      callback[0](callback[1],callback[2],callback[3],callback[4]);
 	  }
     },
     error: function(error) { console.log("Epic Fail: "+error); }
@@ -471,9 +480,9 @@ function updateselectmulti(one,two) {
     });
 }
 
-function renderlist(list,switchview=true,sort='deck') {
+function renderlist(list,switchview=true,sort) {
     // TODO:  batchget has limits, so fetch least number.  also it's not in order, so meh
-    console.log({list,switchview,sort});
+    console.log([list,switchview,sort]);
     var needfetched = [];
     var listids = [];
     var listdata = [];
@@ -486,12 +495,12 @@ function renderlist(list,switchview=true,sort='deck') {
 	}
     });
     if(needfetched.length > 0) {
-	listprefetch(needfetched,[switchview?dolist:refreshlist,[],list.list,sort]);
+	listprefetch(needfetched,[switchview?dolist:refreshlist,[],list.list,sort,list.listid]);
     } else {
 	if(switchview) {
-	    dolist([],list.list,sort);
+	    dolist([],list.list,sort,list.listid);
 	} else {
-	    refreshlist([],list.list,sort);
+	    refreshlist([],list.list,sort,list.listid);
 	}
     }
     // foreach on list
@@ -607,8 +616,8 @@ function dosearch(from=0,forcedata=false) {
 function docardid(id,prid=null,qs=null,pop=false) {
     docard(cache_card_fetch(id),prid,qs,pop);
 }
-function refreshlist(listdata=[],listlist=[],sort='deck') {
-    console.log("rendering list: "+sort);
+function refreshlist(listdata=[],listlist=[],sort,listid=null) {
+    console.log(["rendering list: "+sort,listid]);
     if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
 	return;
@@ -642,15 +651,15 @@ function refreshlist(listdata=[],listlist=[],sort='deck') {
     // TODO: other rendering schemes
     // TODO:   next thing:   headerize only if deck list....   
     if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{}});
+	var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{'listid':listid}});
     } else {
-	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{}});
+	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid}});
     }
     $("#resultlist").html(html);
 }
-function dolist(listdata=[],listlist=[],sort='deck') {
-    console.log("dolist: "+sort);
-    refreshlist(listdata,listlist,sort);
+function dolist(listdata=[],listlist=[],sort,listid=null) {
+    console.log(["dolist: "+sort,listid]);
+    refreshlist(listdata,listlist,sort,listid);
     /*
       // TODO:  put this in url history???
     if($("#resultsearch").is(":visible")) {

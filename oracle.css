@@ -276,6 +276,12 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
   margin-left: .4em;
   cursor: pointer;
 }
+.listmanagement .iiconic { 
+  margin-left: 0;
+}
+.listmanagement { 
+  float: right
+}
 .inegative { color: #ee2222; }
 .ipositive { color: #0a8913; }
 .listheadmiddle .ipositive { color: #1aee29; }
