@@ -215,6 +215,13 @@ function listinfo(listid=null,switchview=true,sort='deck') {
     });
 }
 function listinfoupdate(listid,field,value) {
+    // valid fields:
+    //     name=text, notes=text, public=t/f, type=short text, list = JSON.stringify(data)
+    //   for the first 4, just do on change
+    //   for the list, periodically do an update if stuff has changed to decrease traffic (have some sort of unsaved/saving/saved area)
+    // TODO: rethink calling listinfo.. that might overwrite pending stuff?   or wait.. that's not the actual list..  might be ok
+    //    either way, we need to trap pulling new list info if we have pending updates.
+    // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
     var message_status = $('#list_modified\\:'+listid);
     var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURI(value);
     console.log(url);
@@ -262,10 +269,10 @@ function renderlisteditarea() {
     if(activelists.length < 1) {
 	$("#deckarea").html('');
     } else {
-	listedittemplate = $.templates("#template-listedit");
+	listactivetemplate = $.templates("#template-listactive");
 	$("#deckarea").html(
 	    '<div class="randarea">Active Lists:<br />'+
-		listedittemplate.render(activelists.map(function(listid) { 
+		listactivetemplate.render(activelists.map(function(listid) { 
 		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
 		    if(cache_thing("list",listid)) {
 			list.listdata = cache_thing("list",listid);
@@ -347,11 +354,26 @@ function removelist(listid) {
 	listinfocallback();
     }
 }
+function addlistitem(listid,cardid,prid=0,n=1) {
+    //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
+    var list = cache_thing("list",listid);
+    var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
+    if(ind<0) {
+	list.list.Items[0].list.push({'cardid':cardid,'printing':prid,'quantity':n});
+    } else {
+	list.list.Items[0].list[ind].quantity += n;
+    }
+    cache_thing("list",listid,list);
+    $("#lastlistid").val(listid);
+    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
+    renderlisteditarea(); // update card counts
+}
+
 function outputlist(listid) {
     alert('TODO');
 }
 function importlist(listid=null) {
-    // this will call newlist with a list of cards as json
+    // this will call newlist with a list of cards/etc as json
     alert('TODO');
 }
 
@@ -591,10 +613,11 @@ function refreshlist(listdata=[],listlist=[],sort='deck') {
 	console.log("templates not loaded yet");
 	return;
     }
+    //console.log(listlist);
     if(listlist.length>0) {
 	listdata = [];
 	listlist.forEach(function(c){
-	    //	    console.log(c);
+	    //console.log(c);
 	    if(c.cardid>0) {
 		var card = cache_card_fetch(c.cardid);
 		card.listprinting = c.printing;
@@ -605,6 +628,7 @@ function refreshlist(listdata=[],listlist=[],sort='deck') {
 	    }
 	});
     }
+    //console.log(listdata);
     console.log("sorting with: "+sort);
     listdata.sort(databasesort[database][sort] != undefined?databasesort[database][sort]:
 		  function(a,b){ 
@@ -614,7 +638,7 @@ function refreshlist(listdata=[],listlist=[],sort='deck') {
 		      if (x > y) {return 1;}
 		      return 0;
 		  });   
-
+    console.log(listdata);
     // TODO: other rendering schemes
     // TODO:   next thing:   headerize only if deck list....   
     if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
@@ -1231,7 +1255,7 @@ function cache_card(carddata) {
     searchcache[database]['data'][carddata.cardid] = carddata;
 }
 function cache_card_fetch(cardid) {
-    return     searchcache[database]['data'][cardid];
+    return     JSON.parse(JSON.stringify(searchcache[database]['data'][cardid]));
 }
 function cache_card_is(cardid) {
     return searchcache[database]['data'].hasOwnProperty(cardid);
