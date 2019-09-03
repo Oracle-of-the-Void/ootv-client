@@ -787,18 +787,26 @@ function showsearch() {
 // TODO:   make both of these be able to handle rarity as well...
 // TODO:   make {{imageurlfromhash set rarity card}}   that returns fully built url
 function templateprintingidfromset(set,hashes) {
+    if(!set) {
+	console.log(["print id issue",set,hashes]);
+	return null;
+    }
     var ret = '';
     hashes.forEach(function(e) {
-	if(e.set.includes(set)) {
+	if((e.set||e.edition).includes(set)) {
 	    ret=e.printingid;
 	}
     });
     return ret;
 }
 function templateimagehashfromset(set,hashes) {
+    if(!set) {
+	console.log(["Imagehash issue",set,hashes]);
+	return null;
+    }
     var ret = '';
     hashes.forEach(function(e) {
-	if(e.set.includes(set)) {
+	if((e.set||e.edition).includes(set)) {
 	    ret=e.printimagehash[0];
 	}
     });

@@ -8,11 +8,36 @@
   </div>
   <div class="listbody">
   <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "set" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
+
        {{for printing}}
           {{:set}} ({{:rarity}}){{if #index+1 < #get("array").data.length}} &#9679; {{/if}}
 	  {{/for}}
 
      <br />
+
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+      <br />
+      {{/for}}
+
+      {{if ~datarequest.field_printing_set}}
+      <div>
+      {{:~datarequest.field_printing_set}}<br />
+        {{for ~activelists ~cardid=cardid ~printing=printing}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},1); return false;">&#57352;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},-1); return false;">&#57353;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},null); return false;">&#10008;</span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/if}}    
+      </div>
+  
      {{:type}}<br />
      {{if force || chi}}
        <span class="smiconic smforce">{{:force}}</span> <span class="smiconic smchi">{{:chi}}</span><br />
@@ -40,17 +65,7 @@
      {{if focus}}
        <span class="smiconic smfo">{{:focus}}</span><br />
      {{/if}}
-<!--
-    so.. we need to pass in active lists... then iterate through each to add this block:
-      1) do we want versioned and non-versioned from a search or force versioned from card details
--->
-      {{for ~activelists ~cardid=cardid}}
-      <div class="listmanagement">
-	{{:name}}
-	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
-      </div><br />
-      {{/for}}
-  </div>
+
+    
+    </div>
 </div>

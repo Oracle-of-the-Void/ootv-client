@@ -280,7 +280,12 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
   margin-left: 0;
 }
 .listmanagement { 
-  float: right
+    float: right;
+    text-align: right;
+}
+.listmanagement div {
+    border: solid black 1px;
+    -moz-border-radius: 3px;  -webkit-border-radius: 3px;  -khtml-border-radius: 7px;  border-radius: 3px;
 }
 .inegative { color: #ee2222; }
 .ipositive { color: #0a8913; }

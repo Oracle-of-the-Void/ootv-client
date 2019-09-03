@@ -4,15 +4,40 @@
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{:~qs}}'); } return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_edition}}{{imagehashfromedition ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromedition ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
+       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
   </div>
   <div class="listbody">
   <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "edition" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
-       {{for printing}}
+
+  {{for printing}}
           {{:edition}} ({{:rarity}}){{if #index+1 < #get("array").data.length}} &#9679; {{/if}}
 	  {{/for}}
-
      <br />
+
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+      <br />
+      {{/for}}
+
+      {{if ~datarequest.field_printing_edition}}
+      <div>
+      {{:~datarequest.field_printing_edition}}<br />
+        {{for ~activelists ~cardid=cardid ~printing=printing}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_edition ~printing /}},1); return false;">&#57352;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_edition ~printing /}},-1); return false;">&#57353;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_edition ~printing /}},null); return false;">&#10008;</span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/if}}    
+      </div>
+
+     
      {{:type}}<br />
      {{if strength || ka}}
        <span class="iconic smstrength">{{:strength}}{{:~labels.shortstrength}}</span> <span class="iconic smka">{{:ka}}{{:~labels.shortka}}</span><br />
@@ -36,13 +61,5 @@
      {{if fate}}
        <span class="iconic smfate">{{:fate}}{{:~labels.shortfate}}</span><br />
      {{/if}}
-      {{for ~activelists ~cardid=cardid}}
-      <div class="listmanagement">
-	{{:name}}
-	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
-      </div><br />
-      {{/for}}
   </div>
 </div>
