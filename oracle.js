@@ -365,7 +365,7 @@ function removelist(listid) {
     }
 }
 
-function addlistitem(listid,cardid,prid=0,n=1,abs=false) {
+function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 	//TODO:   push changes to server
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
@@ -386,7 +386,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false) {
     }
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
-    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
+    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false,sort); // TODO: problem here
     renderlisteditarea(); // update card counts
 }
 
@@ -664,9 +664,9 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null) {
     // TODO: other rendering schemes
     // TODO:   next thing:   headerize only if deck list....   
     if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{'listid':listid}});
+	var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
     } else {
-	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid}});
+	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
     }
     $("#resultlist").html(html);
     $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
@@ -674,7 +674,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null) {
         var value = $(this).text() ;
 	if(field_listid[4] != value) {
 	    console.log(field_listid);
-	    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true);
+	    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
 	}
     });
 }
