@@ -256,7 +256,7 @@ function listinfocallback() {
     $(".directorylistitem").remove();
     $(listertemplate.render(cache_thing("list","data").lists.Items)).insertAfter(".directorylistheader");
     //acknowledgement message
-    $(".listitem div[contenteditable=true]").blur(function(){
+    $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
         var field_userid = $(this).attr("id").split(/:/) ;
         var value = $(this).text() ;
 	//TODO:   update value
@@ -359,7 +359,8 @@ function removelist(listid) {
 	listinfocallback();
     }
 }
-function addlistitem(listid,cardid,prid=0,n=1) {
+function addlistitem(listid,cardid,prid=0,n=1,abs=false) {
+	//TODO:   push changes to server
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     var list = cache_thing("list",listid);
     var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
@@ -369,7 +370,11 @@ function addlistitem(listid,cardid,prid=0,n=1) {
 	if(n == null) {
 	    list.list.Items[0].list.splice(ind,1);
 	} else {
-	    list.list.Items[0].list[ind].quantity += n;
+	    if(abs) {
+		list.list.Items[0].list[ind].quantity = n;
+	    } else {
+		list.list.Items[0].list[ind].quantity += n;
+	    }
 	}
     }
     cache_thing("list",listid,list);
@@ -656,6 +661,19 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null) {
 	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid}});
     }
     $("#resultlist").html(html);
+    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
+        var field_listid = $(this).attr("id").split(/:/) ;
+        var value = $(this).text() ;
+//	if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
+	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
+//	    console.log(field_userid);
+	if(field_listid[4] != value) {
+	    console.log(field_listid);
+	    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true);
+	}
+//	}
+    });
+
 }
 function dolist(listdata=[],listlist=[],sort,listid=null) {
     console.log(["dolist: "+sort,listid]);
