@@ -65,6 +65,7 @@ var searchselectload = {};
 var templates = {'loaded':{}};
 var templateactive = {};
 var updates = {};
+var updatepending = {};
 var updatecallback = {};
 var database = 'l5r';
 if(found = window.location.href.match(/(\w+)\.html/)) {
@@ -273,11 +274,12 @@ function listinfocallback() {
 // ***********************  list edits **************
 function renderlisteditarea() {
     if(activelists.length < 1) {
-	$("#deckarea").html('');
+	$("#deckarea").html(Object.keys(updatepending).length >0 ? '<div class="randarea"><span style="background-color:red;">Updates Pending</span></div>' :'');
     } else {
 	listactivetemplate = $.templates("#template-listactive");
 	$("#deckarea").html(
 	    '<div class="randarea">Active Lists:<br />'+
+		(Object.keys(updatepending).length >0 ? '<span style="background-color:red;">Updates Pending</span>' :'')+
 		listactivetemplate.render(activelists.map(function(listid) { 
 		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
 		    if(cache_thing("list",listid)) {
@@ -365,6 +367,14 @@ function removelist(listid) {
     }
 }
 
+function savecallback() {
+    for(listid in updatepending) {
+	listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
+	delete updatepending[listid];
+    }
+    renderlisteditarea(); // update card counts
+}
+
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 	//TODO:   push changes to server
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
@@ -386,7 +396,11 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     }
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
-    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false,sort); // TODO: problem here
+    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false,sort); 
+    if(Object.keys(updatepending).length < 1) {
+	setTimeout(savecallback,60*1000);
+    }
+    updatepending[listid]=1;
     renderlisteditarea(); // update card counts
 }
 
