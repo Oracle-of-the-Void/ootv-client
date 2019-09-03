@@ -12,7 +12,9 @@
   <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
     <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
 </div>
-    <dl>
+
+
+<dl>
 <!--      <dt>Index</dt><dd><a href="" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a> <a href="" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a> </dd> -->
 
     <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
@@ -49,6 +51,33 @@
       </div>
     {{/for}}
     </dl>
+
+    {{if ~activelists.length > 0}}
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+      <br />
+      {{/for}}
+
+      {{for printing ~cardid=cardid}}
+      <div>
+      {{:edition}}<br />
+        {{for ~activelists ~printingid=printingid}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},1); return false;">&#57352;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},-1); return false;">&#57353;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},null); return false;">&#10008;</span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/for}}    
+      </div>
+    {{/if}}
+
+  
   </div>
 </div>
 <br clear="all" />

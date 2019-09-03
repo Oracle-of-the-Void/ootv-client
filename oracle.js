@@ -695,7 +695,14 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	return;
     }
     $("#lastcardid").val(carddata.cardid);
-    var html = getactivetemplate('card').render(carddata,{"labels": labels[database], "qs": qs});
+    var html = getactivetemplate('card').render(carddata,{"labels": labels[database], "qs": qs, "activelists": activelists.map(function(listid) { 
+	var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+	if(cache_thing("list",listid)) {
+	    list.listdata = cache_thing("list",listid);
+	}
+	return list;
+    })
+							 });
     $("#resultcard").html(html);
     updates[database]('#resultcard');
     var primary = $("#printingprimary").val();

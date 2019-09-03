@@ -57,7 +57,34 @@
       </div>
     {{/for}}
     </dl>
-  </div>
+
+    {{if ~activelists.length > 0}}
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+      <br />
+      {{/for}}
+
+      {{for printing ~cardid=cardid}}
+      <div>
+      {{:set}}<br />
+        {{for ~activelists ~printingid=printingid}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},1); return false;">&#57352;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},-1); return false;">&#57353;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},null); return false;">&#10008;</span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/for}}    
+      </div>
+    {{/if}}
+
+    
+    </div>
 </div>
 <br clear="all" />
 
