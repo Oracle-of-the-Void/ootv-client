@@ -13,9 +13,9 @@
       {{if listprinting}}[{{printingfromid listprinting printing "set" /}} &#149; {{printingfromid listprinting printing "rarity" /}}]{{/if}}
       {{!-- ({{:type}}) --}}
       <div class="listmanagement">
-	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:printing}}',1); return false;">&#57352;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:printing}}',-1); return false;">&#57353;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:printing}}',null); return false;">&#10008;</span>
+	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',null); return false;">&#10008;</span>
       </div>
     </div>
   {{/if}}

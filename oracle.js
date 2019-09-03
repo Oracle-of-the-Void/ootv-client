@@ -406,7 +406,7 @@ function cardfetch(cardid,prid=null,qs=null) {
 	  cache_card(data);
 	  docard(data,prid,qs);
     },
-    error: function(error) { console.log("Epic Fail: "+error); }
+    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
   });
 }
 function listprefetch(listids,callback=null) {
@@ -427,7 +427,7 @@ function listprefetch(listids,callback=null) {
 	      callback[0](callback[1],callback[2],callback[3],callback[4]);
 	  }
     },
-    error: function(error) { console.log("Epic Fail: "+error); }
+    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
   });    
 }
 
@@ -605,7 +605,8 @@ function dosearch(from=0,forcedata=false) {
 		}
 	    },
 	    error: function(error) {
-    		console.log("Epic Fail: "+error);
+    		console.log("Epic Fail: "+JSON.stringify(error));
+		console.log(error);
 		$("#resultsearch").html(searcherror['error']);
 		// This works to force a query failure:  * 234Sdfjkl:sjdfkl23dsf $^@$%
 		// TODO: trap to handle compile-ish failure on lambda
@@ -664,16 +665,11 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null) {
     $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
         var field_listid = $(this).attr("id").split(/:/) ;
         var value = $(this).text() ;
-//	if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
-	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
-//	    console.log(field_userid);
 	if(field_listid[4] != value) {
 	    console.log(field_listid);
 	    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true);
 	}
-//	}
     });
-
 }
 function dolist(listdata=[],listlist=[],sort,listid=null) {
     console.log(["dolist: "+sort,listid]);
@@ -732,7 +728,25 @@ function populate(frm, data) {
 
 function rendercards(data,request,querystring) {
 //    return searchtemplate[database].render(data,{"labels": labels[database], "datarequest": request, "qs": querystring});
-    return getactivetemplate('search').render(data,{"labels": labels[database], "datarequest": request, "qs": querystring});
+/*    console.log(activelists.map(function(listid) { 
+	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+	    if(cache_thing("list",listid)) {
+		list.listdata = cache_thing("list",listid);
+	    }
+	    return list;
+	})); */
+    return getactivetemplate('search').render(data,{
+	"labels": labels[database], 
+	"datarequest": request, 
+	"qs": querystring,
+	"activelists":activelists.map(function(listid) { 
+	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+	    if(cache_thing("list",listid)) {
+		list.listdata = cache_thing("list",listid);
+	    }
+	    return list;
+	})
+    });
 }
 
 

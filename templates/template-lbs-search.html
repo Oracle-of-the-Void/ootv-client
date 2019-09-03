@@ -36,5 +36,13 @@
      {{if fate}}
        <span class="iconic smfate">{{:fate}}{{:~labels.shortfate}}</span><br />
      {{/if}}
+      {{for ~activelists ~cardid=cardid}}
+      <div class="listmanagement">
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+      </div><br />
+      {{/for}}
   </div>
 </div>

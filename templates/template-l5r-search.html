@@ -40,5 +40,17 @@
      {{if focus}}
        <span class="smiconic smfo">{{:focus}}</span><br />
      {{/if}}
+<!--
+    so.. we need to pass in active lists... then iterate through each to add this block:
+      1) do we want versioned and non-versioned from a search or force versioned from card details
+-->
+      {{for ~activelists ~cardid=cardid}}
+      <div class="listmanagement">
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+      </div><br />
+      {{/for}}
   </div>
 </div>

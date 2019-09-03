@@ -9,9 +9,14 @@
     </div>
     {{else}}
     <div class="listbodyplain">
-      {{if listquantity}}{{:listquantity}}x{{/if}} <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> 
+      {{if listquantity}}<span contenteditable="true" class="editquantity" id="clist_quantity:{{:~datarequest.listid}}:{{:cardid}}:{{:listprinting}}:{{:listquantity}}">{{:listquantity}}</span>x{{/if}} <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> 
       {{if listprinting}}[{{printingfromid listprinting printing "set" /}} &#149; {{printingfromid listprinting printing "rarity" /}}]{{/if}}
       {{!-- ({{:type}}) --}}
+      <div class="listmanagement">
+	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',1); return false;">&#57352;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',-1); return false;">&#57353;</span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',null); return false;">&#10008;</span>
+      </div>
     </div>
   {{/if}}
 </div>
