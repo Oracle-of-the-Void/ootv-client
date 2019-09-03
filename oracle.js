@@ -249,7 +249,8 @@ function listinfoupdate(listid,field,value) {
 	    console.log(status);
 	}
     });
-}    
+} 
+   
 function listinfocallback() {
     cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
     listertemplate = $.templates("#template-lists");
@@ -288,6 +289,7 @@ function renderlisteditarea() {
 	);
     }
 }
+
 function activatelist(listid,type) {
     listinfo(listid,false,type);
     var index = activelists.indexOf(listid);
@@ -297,6 +299,7 @@ function activatelist(listid,type) {
     activelists.unshift(listid);
     renderlisteditarea();
 }
+
 function deactivatelist(listid) {
     var index = activelists.indexOf(listid);
     if (index > -1) {
@@ -304,6 +307,7 @@ function deactivatelist(listid) {
     }
     renderlisteditarea();
 }
+
 function newlist(json=null) {
     /*
     Create new list.   json example:
@@ -336,6 +340,7 @@ function newlist(json=null) {
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
     });
 }
+
 function removelist(listid) {
     if(confirm("Really remove list: "+listid+"?")) {
 	$.ajax({
@@ -359,9 +364,11 @@ function removelist(listid) {
 	listinfocallback();
     }
 }
+
 function addlistitem(listid,cardid,prid=0,n=1,abs=false) {
 	//TODO:   push changes to server
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
+    // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
     var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
     if(ind<0 && n != null) {
