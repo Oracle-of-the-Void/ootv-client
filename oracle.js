@@ -190,12 +190,13 @@ function getuid() {
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...  
-function listinfo(listid=null,switchview=true,sort) {
+function listinfo(listid=null,switchview=true) {
     //TODO: get just lists for current game
-    console.log({listid,switchview,sort});
+    console.log(["listinfo",listid,switchview]);
     if(listid && cache_thing("list",listid) != null) {
+	console.log("cached");
 	$("#lastlistid").val(listid);
-	renderlist(cache_thing("list",listid).list.Items[0],switchview,sort,listid);
+	renderlist(cache_thing("list",listid).list.Items[0],switchview);
     } else {
 	$.ajax({
 	    type: 'GET',
@@ -207,9 +208,18 @@ function listinfo(listid=null,switchview=true,sort) {
 	    success: function(data) {
 		console.log(data);
 		if(listid) {
+		    if(data.list.Items[0].sort == undefined) {
+			console.log('nosort set');
+			if(data.list.Items[0].type == 'deck') {
+			    data.list.Items[0].sort = 'deck';
+			    console.log('setting deck');
+			} else {
+			    data.list.Items[0].sort = '';
+			}
+		    }
 		    cache_thing("list",listid,data);
 		    $("#lastlistid").val(listid);
-		    renderlist(data.list.Items[0],switchview,sort,listid);
+		    renderlist(data.list.Items[0],switchview);
 		    renderlisteditarea(); // update card counts
 		} else {
 		    cache_thing("list","data",data);
@@ -292,8 +302,8 @@ function renderlisteditarea() {
     }
 }
 
-function activatelist(listid,type) {
-    listinfo(listid,false,type);
+function activatelist(listid) {
+    listinfo(listid,false);
     var index = activelists.indexOf(listid);
     if (index > -1) {
        activelists.splice(index, 1);
@@ -396,7 +406,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     }
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
-    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false,sort); 
+    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false); 
     if(Object.keys(updatepending).length < 1) {
 	setTimeout(savecallback,60*1000);
     }
@@ -506,9 +516,9 @@ function updateselectmulti(one,two) {
     });
 }
 
-function renderlist(list,switchview=true,sort) {
+function renderlist(list,switchview=true) {
     // TODO:  batchget has limits, so fetch least number.  also it's not in order, so meh
-    console.log([list,switchview,sort]);
+    console.log(["renderlist",list,switchview]);
     var needfetched = [];
     var listids = [];
     var listdata = [];
@@ -521,12 +531,12 @@ function renderlist(list,switchview=true,sort) {
 	}
     });
     if(needfetched.length > 0) {
-	listprefetch(needfetched,[switchview?dolist:refreshlist,[],list.list,sort,list.listid]);
+	listprefetch(needfetched,[switchview?dolist:refreshlist,[],list.list,list.sort,list.listid]);
     } else {
 	if(switchview) {
-	    dolist([],list.list,sort,list.listid);
+	    dolist([],list.list,list.sort,list.listid);
 	} else {
-	    refreshlist([],list.list,sort,list.listid);
+	    refreshlist([],list.list,list.sort,list.listid);
 	}
     }
     // foreach on list
