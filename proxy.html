@@ -1,24 +1,68 @@
-<script src="pdfkit.js"></script>
-<script src="blob-stream.js"></script>
+<script src="pdfkit.min.js"></script>
+<script src="blob-stream.min.js"></script>
 <script>
-const doc = new PDFDocument;
+function getDataUri(url, callback) {
+    var image = new Image();
+    image.setAttribute('crossOrigin', 'anonymous');
+    image.onload = function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+        canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+        canvas.getContext('2d').drawImage(this, 0, 0);
+        callback(canvas.toDataURL('image/png'));
+    };
+    image.src = url;
+}
 
+// 18 = .25 in
+// https://github.com/foliojs/pdfkit/blob/b13423bf0a391ed1c33a2e277bc06c00cabd6bf9/lib/page.coffee#L72-L122
+const doc = new PDFDocument({
+    "layout": "portrait", // landscape
+    "size": "letter", // A4, etc
+    margins: { top: 18, bottom: 18, left: 18, right: 18 }
+});
+
+    
 // pipe the document to a blob
 const stream = doc.pipe(blobStream());
-
+    
 // add your content to the document here, as usual
 
-doc.circle(280, 200, 50).fill('#6600FF');
+//doc.circle(280, 200, 50).fill('#6600FF');
 
+getDataUri("https://s3.us-east-2.amazonaws.com/oracle-l5r/85/61/printing_9774_1_details.jpg",
+	   function(data){
+	       ix = 2.5*72;
+	       mx = (612-3*ix)/2;
+	       iy = 3.5*72;
+	       my = (792-3*iy)/2;
+	       
+    doc.image(data,mx,my,{fit: [ ix, iy ]});
+    doc.image(data,mx+ix,my,{fit: [ ix, iy ]});
+    doc.image(data,mx+2*ix,my,{fit: [ ix, iy ]});
+    
+    doc.image(data,mx,my+iy,{fit: [ ix, iy ]});
+    doc.image(data,mx+ix,my+iy,{fit: [ ix, iy ]});
+    doc.image(data,mx+2*ix,my+iy,{fit: [ ix, iy ]});
 
-// get a blob when you're done
-doc.end();
-stream.on('finish', function() {
-  // get a blob you can do whatever you like with
-  const blob = stream.toBlob('application/pdf');
+    doc.image(data,mx,my+2*iy,{fit: [ ix, iy ]});
+    doc.image(data,mx+ix,my+2*iy,{fit: [ ix, iy ]});
+    doc.image(data,mx+2*ix,my+2*iy,{fit: [ ix, iy ]});
 
-  // or get a blob URL for display in the browser
-  const url = stream.toBlobURL('application/pdf');
-  window.open(url);
+    // doc.image('images/...', x, y, { width: ix, height: dy })
+    // doc.image('images/...', x, y, { fit: [ ix, iy ] })
+    
+    
+    // get a blob when you're done
+    doc.end();
+    stream.on('finish', function() {
+	// get a blob you can do whatever you like with
+        const blob = stream.toBlob('application/pdf');
+	
+	// or get a blob URL for display in the browser
+        const url = stream.toBlobURL('application/pdf');
+	window.open(url);
+    });
+    
 });
 </script>
