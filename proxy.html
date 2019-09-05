@@ -19,6 +19,6 @@ stream.on('finish', function() {
 
   // or get a blob URL for display in the browser
   const url = stream.toBlobURL('application/pdf');
-  location.href = url;
+  window.open(url);
 });
 </script>
