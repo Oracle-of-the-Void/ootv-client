@@ -14,6 +14,8 @@
   <!-- TODO:  dynamic this: -->
   <script src="templates/l5r.js"></script>
   <script src="templates/lbs.js"></script>
+  <script src="pdfkit.min.js" defer></script>
+  <script src="blob-stream.min.js" defer></script>
   
 <!--  <link href="https://www.jsviews.com/samples/samples.css" rel="stylesheet" /> -->
   <LINK href="oracle.css" rel="stylesheet" type="text/css" />
@@ -330,6 +332,7 @@ printingprimary
   <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
   <div class="listmiddle"><span class="iiconic iyellow" onclick="activatelist('{{:listid}}');">&#9889;</span></div>
   <div class="listmiddle"><span class="iiconic inegative" onclick="removelist('{{:listid}}');">&#xE009;</span></div>
+  <div class="listmiddle"><spam class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><img src="res/icon-pdf.png" height="17"></span></div>
 <!--  <div class="listmiddle"><span class="button gray" onclick="activatelist('{{:listid}}');">Activate<span class="iiconic iyellow">&#9889;</span></span></div> -->
 <!--  <div class="listmiddle"><span class="button gray" onclick="editlistinfo('{{:listid}}');">Edit<span class="iiconic iblue">&#57349;</span></span></div> -->
 <!--  <div class="listmiddle"><span class="button gray" onclick="outputlist('{{:listid}}');">Output/Print<span class="iiconic iyellow">&#57356;</span></span></div>

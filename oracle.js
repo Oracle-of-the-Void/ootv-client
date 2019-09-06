@@ -42,6 +42,15 @@ function addslashes(str) {
 	return str;
     }
 }
+
+function chunkArrayInGroups(arr, size) {
+  var myArray = [];
+  for(var i = 0; i < arr.length; i += size) {
+    myArray.push(arr.slice(i, i+size));
+  }
+  return myArray;
+}
+
 function escapequotes(str) {
     return str.replace('"','&quot;');
 }
@@ -191,13 +200,13 @@ function getuid() {
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...  
-function listinfo(listid=null,switchview=true) {
+function listinfo(listid=null,switchview=true,listoutput=null) {
     //TODO: get just lists for current game
-    console.log(["listinfo",listid,switchview]);
+    console.log(["listinfo",listid,switchview,listoutput]);
     if(listid && cache_thing("list",listid) != null) {
 	console.log("cached");
 	$("#lastlistid").val(listid);
-	renderlist(cache_thing("list",listid).list.Items[0],switchview);
+	renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput);
     } else {
 	$.ajax({
 	    type: 'GET',
@@ -220,7 +229,7 @@ function listinfo(listid=null,switchview=true) {
 		    }
 		    cache_thing("list",listid,data);
 		    $("#lastlistid").val(listid);
-		    renderlist(data.list.Items[0],switchview);
+		    renderlist(data.list.Items[0],switchview,listoutput);
 		    renderlisteditarea(); // update card counts
 		} else {
 		    cache_thing("list","data",data);
@@ -444,6 +453,7 @@ function cardfetch(cardid,prid=null,qs=null) {
 }
 
 function listprefetch(listids,callback=null) {
+    console.log(['listprefetch',listids,callback]);
   $.ajax({
     type: 'GET',
       url: apiuri+"/oracle-fetch?table="+database+"&cardid="+listids.join(),
@@ -458,7 +468,7 @@ function listprefetch(listids,callback=null) {
 	      cache_card(imagehashtourl(data));
 	  }
 	  if(callback) {
-	      callback[0](callback[1],callback[2],callback[3],callback[4]);
+	      callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
 	  }
     },
     error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
@@ -536,7 +546,7 @@ function updateselectmulti(one,two) {
 
 function renderlist(list,switchview=true,listoutput=null) {
     // TODO:  batchget has limits, so fetch least number.  also it's not in order, so meh
-    console.log(["renderlist",list,switchview]);
+    console.log(["renderlist",list,switchview,listoutput]);
     var needfetched = [];
     var listids = [];
     var listdata = [];
@@ -740,6 +750,19 @@ function dolist(listdata=[],listlist=[],sort,listid=null) {
     showlist();
 }
 
+function getDataUri(url, callback) {
+    var image = new Image();
+    image.setAttribute('crossOrigin', 'anonymous');
+    image.onload = function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+        canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+        canvas.getContext('2d').drawImage(this, 0, 0);
+        callback(canvas.toDataURL('image/png'));
+    };
+    image.src = url;
+}
+
 function createpdf(data) {
     // TODO: createpdf
     console.log('createpdf');
@@ -755,7 +778,41 @@ function createpdf(data) {
 	}
     }
     console.log(images);
-    //console.log(templates['l5r']['compiled']["pdf"].render(data));
+
+    var imagedata = [];
+    for(image of images) {
+	getDataUri(image,function(data) {
+	    imagedata.push(data);
+	    if(imagedata.length == images.length) {
+		// HERE
+		const doc = new PDFDocument({
+		    "layout": "portrait", // landscape
+		    "size": "letter", // A4, etc
+		    margins: { top: 18, bottom: 18, left: 18, right: 18 }
+		});
+		const stream = doc.pipe(blobStream());
+		ix = 2.5*72;
+		mx = (612-3*ix)/2;
+		iy = 3.5*72;
+		my = (792-3*iy)/2;
+
+		for(var i=0 ; i < imagedata.length; i++) {
+		    doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
+		    if(i%9 == 8 && (i<imagedata.length -1)) {
+			doc.addPage();
+		    }
+		}
+		doc.end();
+		stream.on('finish', function() {
+		    const url = stream.toBlobURL('application/pdf');
+		    window.open(url);
+		});
+
+
+
+	    }
+	});
+    }
 }
 
 // If a list is being displayed, render card and switch to it, pop onto history so back comes back to the list
