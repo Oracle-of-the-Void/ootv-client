@@ -188,6 +188,11 @@ templates['l5r'] = {
 	    'shortname': 'List',
 	    'places': [ 'search','list'],
 	    'headerizable': true
+	},
+	'pdf': {
+	    'longname': 'PDF',
+	    'shortname': 'PDF',
+	    'places': [ ]
 	}
     },
     'default': { 

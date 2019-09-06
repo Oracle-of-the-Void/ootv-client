@@ -1,0 +1,2 @@
+{{for start=0 end=listquantity ~printing=printing ~set=set ~rarity=rarity ~printingprimary=printingprimary ~listprinting=listprinting ~cardid=cardid}}
+https://s3.us-east-2.amazonaws.com/oracle-l5r/{{if ~listprinting>0}}{{printingfromid ~listprinting ~printing "printimagehash" /}}/printing_{{:~cardid}}_{{:~listprinting}}_details.jpg{{else}}{{printingfromid ~printingprimary ~printing "printimagehash" /}}/printing_{{:~cardid}}_{{:~printingprimary}}_details.jpg{{/if}}{{/for}}

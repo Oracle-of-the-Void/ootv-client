@@ -516,7 +516,7 @@ function updateselectmulti(one,two) {
     });
 }
 
-function renderlist(list,switchview=true) {
+function renderlist(list,switchview=true,listoutput=null) {
     // TODO:  batchget has limits, so fetch least number.  also it's not in order, so meh
     console.log(["renderlist",list,switchview]);
     var needfetched = [];
@@ -531,12 +531,12 @@ function renderlist(list,switchview=true) {
 	}
     });
     if(needfetched.length > 0) {
-	listprefetch(needfetched,[switchview?dolist:refreshlist,[],list.list,list.sort,list.listid]);
+	listprefetch(needfetched,[switchview?dolist:refreshlist,[],list.list,list.sort,list.listid,listoutput]);
     } else {
 	if(switchview) {
-	    dolist([],list.list,list.sort,list.listid);
+	    dolist([],list.list,list.sort,list.listid,listoutput);
 	} else {
-	    refreshlist([],list.list,list.sort,list.listid);
+	    refreshlist([],list.list,list.sort,list.listid,listoutput);
 	}
     }
     // foreach on list
@@ -653,8 +653,8 @@ function dosearch(from=0,forcedata=false) {
 function docardid(id,prid=null,qs=null,pop=false) {
     docard(cache_card_fetch(id),prid,qs,pop);
 }
-function refreshlist(listdata=[],listlist=[],sort,listid=null) {
-    console.log(["rendering list: "+sort,listid]);
+function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
+    console.log(["rendering list: "+sort,listid,listoutput]);
     if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
 	return;
@@ -685,23 +685,28 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null) {
 		      return 0;
 		  });   
     console.log(listdata);
-    // TODO: other rendering schemes
-    // TODO:   next thing:   headerize only if deck list....   
-    if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
-    } else {
-	var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
-    }
-    $("#resultlist").html(html);
-    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
-        var field_listid = $(this).attr("id").split(/:/) ;
-        var value = $(this).text() ;
-	if(field_listid[4] != value) {
-	    console.log(field_listid);
-	    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
+    switch(listoutput) {
+    case 'pdf':
+	createpdf(listdata);
+	break;
+    default:
+	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
+	    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
+	} else {
+	    var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
 	}
-    });
+	$("#resultlist").html(html);
+	$('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
+            var field_listid = $(this).attr("id").split(/:/) ;
+            var value = $(this).text() ;
+	    if(field_listid[4] != value) {
+		console.log(field_listid);
+		addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
+	    }
+	});
+    } 
 }
+
 function dolist(listdata=[],listlist=[],sort,listid=null) {
     console.log(["dolist: "+sort,listid]);
     refreshlist(listdata,listlist,sort,listid);
@@ -714,6 +719,13 @@ function dolist(listdata=[],listlist=[],sort,listid=null) {
     }
 */
     showlist();
+}
+
+function createpdf(data) {
+    // TODO: createpdf
+    console.log('createpdf');
+    console.log(data);
+    console.log(templates['l5r']['compiled']["pdf"].render(data));
 }
 
 // If a list is being displayed, render card and switch to it, pop onto history so back comes back to the list
