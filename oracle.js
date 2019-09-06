@@ -9,6 +9,7 @@
 $.views.settings.allowCode(true);
 $.views.tags("printingidfromset",templateprintingidfromset);
 $.views.tags("imagehashfromset",templateimagehashfromset);
+$.views.tags("imagefromset",templateimagefromset);
 $.views.tags("printingfromid",templateprintingfromid);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
@@ -434,12 +435,14 @@ function cardfetch(cardid,prid=null,qs=null) {
     dataType: 'json',
     responseType: 'application/json',
       success: function(data) {
+	  data = imagehashtourl(data);
 	  cache_card(data);
 	  docard(data,prid,qs);
     },
     error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
   });
 }
+
 function listprefetch(listids,callback=null) {
   $.ajax({
     type: 'GET',
@@ -450,9 +453,9 @@ function listprefetch(listids,callback=null) {
       success: function(data) {
 	  console.log(data);
 	  if(Array.isArray(data)) {
-	      data.forEach(function(c) { cache_card(c); });
+	      data.forEach(function(c) { cache_card(imagehashtourl(c)); });
 	  } else if(typeof data == 'object') {
-	      cache_card(data);
+	      cache_card(imagehashtourl(data));
 	  }
 	  if(callback) {
 	      callback[0](callback[1],callback[2],callback[3],callback[4]);
@@ -460,6 +463,21 @@ function listprefetch(listids,callback=null) {
     },
     error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
   });    
+}
+
+function imagehashtourl(card) {
+    //dbinfo[database].imageuri +
+    card.icon = dbinfo[database].imageuri + card.imagehash+'/card_'+card.cardid+'__icon.jpg';
+    card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
+    for(var p = 0; p < card.printing.length; p++) {
+	card.printing[p].images = [];
+	for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
+	    card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/printing_'+card.cardid+'_'+
+		card.printing[p].printingid+'_'; // then you add details, etc
+	}
+    }
+    //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
+    return card;
 }
 
 function updateselect(select) {
@@ -617,6 +635,7 @@ function dosearch(from=0,forcedata=false) {
 		console.log(dataret);
 		searchcache[database]['querytotal'][qs] = raw.hits.total;
 		if(dataret.length>0) {
+		    dataret = dataret.map(imagehashtourl);
 		    var html = rendercards(dataret,datarequest,qs);
 		    if(from > 0) {
 			$(".moreloading").remove();
@@ -725,7 +744,18 @@ function createpdf(data) {
     // TODO: createpdf
     console.log('createpdf');
     console.log(data);
-    console.log(templates['l5r']['compiled']["pdf"].render(data));
+    var images = [];
+    for(card of data) {
+	for(p of card.printing) {
+	    if(p.printingid = card.listprinting>0?card.listprinting:card.printingprimary) {
+		for(i of p.images) {
+		    images.push(i+'details.jpg');
+		}
+	    }
+	}
+    }
+    console.log(images);
+    //console.log(templates['l5r']['compiled']["pdf"].render(data));
 }
 
 // If a list is being displayed, render card and switch to it, pop onto history so back comes back to the list
@@ -858,6 +888,19 @@ function templateimagehashfromset(set,hashes) {
     hashes.forEach(function(e) {
 	if((e.set||e.edition).includes(set)) {
 	    ret=e.printimagehash[0];
+	}
+    });
+    return ret;
+}
+function templateimagefromset(set,hashes) {
+    if(!set) {
+	console.log(["Image issue",set,hashes]);
+	return null;
+    }
+    var ret = '';
+    hashes.forEach(function(e) {
+	if((e.set||e.edition).includes(set)) {
+	    ret=e.images[0];
 	}
     });
     return ret;

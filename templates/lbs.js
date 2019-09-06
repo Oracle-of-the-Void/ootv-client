@@ -5,6 +5,7 @@ dbinfo['lbs'] = {
     'name': "Legend of the Burning Sands",
     'nameshort':"LBS",
     'logo': 'lbs.png',
+    'imageuri': 'https://images.oracleofthevoid.com/lbs/',
     'description':''
 };
 databasesort['lbs'] = {
