@@ -770,9 +770,11 @@ function createpdf(data) {
     var images = [];
     for(card of data) {
 	for(p of card.printing) {
-	    if(p.printingid = card.listprinting>0?card.listprinting:card.printingprimary) {
+	    if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
 		for(i of p.images) {
-		    images.push(i+'details.jpg');
+		    for(cn = 0; cn < card.listquantity; cn++) {
+			images.push(i+'details.jpg');
+		    }
 		}
 	    }
 	}
@@ -784,7 +786,6 @@ function createpdf(data) {
 	getDataUri(image,function(data) {
 	    imagedata.push(data);
 	    if(imagedata.length == images.length) {
-		// HERE
 		const doc = new PDFDocument({
 		    "layout": "portrait", // landscape
 		    "size": "letter", // A4, etc
