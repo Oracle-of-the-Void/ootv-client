@@ -9,10 +9,11 @@
   <div class="listbody">
   <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "edition" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
 
-  {{for printing}}
-          {{:edition}} ({{:rarity}}){{if #index+1 < #get("array").data.length}} &#9679; {{/if}}
+       {{for printing ~cardid=cardid}}
+          <a href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">{{:edition}} ({{:rarity}})</a>{{if #index+1 < #get("array").data.length}} &#9679; {{/if}}
 	  {{/for}}
-     <br />
+
+<br />
 
      <div class="listmanagement">
       {{for ~activelists ~cardid=cardid}}
