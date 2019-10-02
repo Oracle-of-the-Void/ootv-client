@@ -398,6 +398,9 @@ img.inlinesymbol {   border: none;   vertical-align: middle; }
 .buttonsmall { 
   font-size: 11pt;
 }
+.buttonsmaller { 
+  font-size: 10pt;
+}
 .nocolor { 
   color: #ffd73a;
  }
