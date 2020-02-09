@@ -162,7 +162,10 @@
     <div class="listheadmiddle">Modified</div>
     <div class="listheadmiddle">Public</div>
     <div class="listheadmiddle">Notes</div>
-    <div class="listheadmiddle"><span class="iiconic ipositive" onclick="newlist();">&#xE008;</span></div>
+    <div class="listheadmiddle"></div>
+    <div class="listheadmiddle"></div>
+    <div class="listheadmiddle"></div>
+    <div class="listheadmiddle"><span class="iiconic ipositive" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></span></div>
 
   </div>
   <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
@@ -330,13 +333,13 @@ printingprimary
   <div class="listmiddle" id="list_modified:{{:listid}}">{{formatDate:modified}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}></option><option value="true"{{if public}} selected{{/if}}>Public</option></select></div><!-- TODO  figure out how to list public lists -->
   <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
-  <div class="listmiddle"><span class="iiconic iyellow" onclick="activatelist('{{:listid}}');">&#9889;</span></div>
-  <div class="listmiddle"><span class="iiconic inegative" onclick="removelist('{{:listid}}');">&#xE009;</span></div>
-  <div class="listmiddle"><spam class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><img src="res/icon-pdf.png" height="17"></span></div>
-<!--  <div class="listmiddle"><span class="button gray" onclick="activatelist('{{:listid}}');">Activate<span class="iiconic iyellow">&#9889;</span></span></div> -->
-<!--  <div class="listmiddle"><span class="button gray" onclick="editlistinfo('{{:listid}}');">Edit<span class="iiconic iblue">&#57349;</span></span></div> -->
-<!--  <div class="listmiddle"><span class="button gray" onclick="outputlist('{{:listid}}');">Output/Print<span class="iiconic iyellow">&#57356;</span></span></div>
-  <div class="listmiddle"><span class="button gray" onclick="importlist('{{:listid}}');">Import<span class="iiconic iblue">&#8593;</span></span></div>  -->
+  <div class="listmiddle"><span class="iiconic ipositive" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#maximize-2"></svg></span></div>
+    <div class="listmiddle"><span class="iiconic inegative" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></div>
+  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#book-open"></span></div>
+<!--  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><img src="res/icon-pdf.png" height="17"></span></div> -->
+  <div class="listmiddle"><span class="iiconic ipositive" onclick="listinfo('{{:listid}}',false,'text');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span></div>
+<!--  <div class="listmiddle"><span class="iiconic ipositive" onclick="importlist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></span></div> -->
+
 </div>
 </script>
 

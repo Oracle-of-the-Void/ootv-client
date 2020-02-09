@@ -701,3 +701,13 @@ nav ul li ul li:last-child {
     padding-bottom: 2px;
   margin: 4px;
 }
+
+.feather {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}

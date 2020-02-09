@@ -1,16 +1,16 @@
-<!-- TODO:    searching with edition selected but no rarity breaks image output - took out rarity.. now if there were two cards from a edition it will break - need to fix, not as crit
+<!-- TODO:    searching with set selected but no rarity breaks image output - took out rarity.. now if there were two cards from a set it will break - need to fix, not as crit
   TODO: better way to get image info... related to previous TODO
   TODO: pass onclick info into here from oracle.js to make this pure display logic
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
+       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="https://images.oracleofthevoid.com/lbs/{{if ~datarequest.field_printing_set}}{{imagehashfromset ~datarequest.field_printing_set printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_set printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}" /></a><br />
   </div>
   <div class="listbody">
-  <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "edition" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
+  <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "set" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
 
        {{for printing ~cardid=cardid}}
-          <a class="printinglink gray button buttonsmaller" href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:edition}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
+          <a class="printinglink gray button buttonsmaller" href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
 	  {{/for}}
 
 <br />
@@ -24,14 +24,14 @@
       <br />
       {{/for}}
 
-      {{if ~datarequest.field_printing_edition}}
+      {{if ~datarequest.field_printing_set}}
       <div>
-      {{:~datarequest.field_printing_edition}}<br />
+      {{:~datarequest.field_printing_set}}<br />
         {{for ~activelists ~cardid=cardid ~printing=printing}}
           {{:name}}
-          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_edition ~printing /}},1); return false;">&#57352;</span>
-          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_edition ~printing /}},-1); return false;">&#57353;</span>
-          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_edition ~printing /}},null); return false;">&#10008;</span>
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},1); return false;">&#57352;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},-1); return false;">&#57353;</span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},null); return false;">&#10008;</span>
           <br />
 	  {{/for}}
       </div>

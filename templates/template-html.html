@@ -1,0 +1,10 @@
+<div class="listitemplain">
+  <div class="listbodyplain">
+    {{if cardid==0}}
+     {{if #getIndex() > 0}}<br />{{/if}}
+      # {{if title}}{{:title}}{{else}}{{:subtitle}}{{/if}}
+    {{else}}
+      {{if listquantity}}{{:listquantity}}{{/if}} {{:puretexttitle?puretexttitle:title}}
+  {{/if}}
+  </div>
+</div>

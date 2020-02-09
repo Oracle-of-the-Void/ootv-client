@@ -1,0 +1,3 @@
+<a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
+  <img src="https://images.oracleofthevoid.com/{{:~database}}/{{if ~datarequest.checkset}}{{for printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:printimagehash[0]}}{{/if}}{{/for}}/printing_{{:cardid}}_{{for printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:printingid}}{{/if}}{{/for}}_select.jpg{{else}}{{printingfromid printingprimary printing "printimagehash" /}}/printing_{{:cardid}}_{{:printingprimary}}_select.jpg{{/if}}" />
+</a>

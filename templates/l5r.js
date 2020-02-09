@@ -5,7 +5,7 @@ dbinfo['l5r'] = {
     'name': "Legend of the Five Rings",
     'nameshort':'L5R',
     'logo': 'l5r.png',
-    'imageuri': 'https://s3.us-east-2.amazonaws.com/oracle-l5r/',
+    'imageuri': 'https://images.oracleofthevoid.com/l5r/',
     'description':'A collectible card game, set in a fantasy empire called Rokugan, based loosely upon medieval Japan and Japanese Mythology.\n<br /><br />\nThe factions available have changed over the editions, but generally include the 7 Great Clans: Crab, Crane, Dragon, Lion, Phoenix, Scorpion, and Unicorn. Each has specific thematic elements, which are consistent across editions and descendant games. The other currently legal factions include the Spider, Mantis, and an unaligned ronin stronghold.\n<br /><br />\nThe Rokugan setting has been changed over the years by participation in the storyline tournaments for the L5R CCG.\n<br /><br />\nLegend of the Five Rings is different from other collectible card games due to the concept of Clan loyalty. The Clans of the game are what you build your deck around, and the communities that have built up around the Crane Clan, Lion Clan, etc are the backbone of the game. When you say "I\'m a Crab player" you instantly find yourself with hundreds and thousands of clan-mates who are there to help you become a better player. When one member of the Clan wins, all benefit.\n<br /><br />\nL5R was the first CCG to introduce cards that players directly influenced. These are still a core part of the game.\n<br /><br />\nThe L5R CCG has spun off a number of related games: \n<ul>\n<li>Clan War, a miniatures game.\n<li>Diskwars: Legend of the Five Rings, a Rokugan-themed set of the Diskwars tabletop combat game.\n<li>Legend of the Five Rings Roleplaying Game\n</ul>\nAs of 2006, only the CCG and Clan War have had storyline tournaments. Though the RPG players have been heavily involved in the ongoing plot in recent years.\n<br /><br />\nIn 2008, L5R held the first "Mega-Game" which incorporated various methods of competition for the Clans and their supporters, not only in CCG form, but in contests (art, writing, poster-design, etc.), community work (charity, fundraising, food-drives), and more. The Dragon Clan ultimately won the first mega-game, and as such earned the privilege of having the next Empress come from their clan.\n<br /><br />\nIn 2009, L5R released its first graphic novel, Death at Koten, which also included exclusive story-themed cards for the CCG.\n<br /><br />\nAlso in 2009, L5R released The Imperial Gift the first completely free expansion in CCG history.\n<br /><br />\nIn 2010 L5R celebrated its 15th Anniversary with many major events, new prizes, more free cards, and a special flashback set that brought back some of the most popular cards in the history of the game. 2010 also saw the largest World Championships event at Gen Con in the past 7 years.\n<br /><br />\n2011 saw the release of War of Honor, an all new tile-based multiplayer format for L5R that comes with 4 pre-constructed decks.\n<br /><br />\nIn september 2015, AEG and Fantasy Flight Games announced that FFG had bought the L5R brand from AEG and will relaunch the card game as a LCG (non-collectible), with significant rules changes and a new design. The game went on hiatus following the release of Evil Portents, the final expansion from AEG, and was relaunched as an LCG, ending the CCG.   There are significant differences between the LCG and CCG making them not the same game in the least.\n' 
 };
 databasesort['l5r'] = {
@@ -164,15 +164,15 @@ templates['l5r'] = {
 	'visual': { 
 	    'longname': 'Visual Spoiler',
 	    'shortname': 'Visual',
-	    'places': [ 'search','list' ]
-	    //		'generic': true
+	    'places': [ 'search','list' ],
+	    'generic': true
 	},
 	'visual-premium': { 
 	    'longname': 'Visual Spoiler - Large',
 	    'shortname': 'Visual(L)',
 	    'places': [ 'search','list' ],
-	    'premium': true
-	    //			'generic':true
+	    'premium': true,
+	    'generic':true
 	},
 	'card':  { 
 	    'longname': 'Card Details',
@@ -188,12 +188,28 @@ templates['l5r'] = {
 	    'longname': 'Simple List',
 	    'shortname': 'List',
 	    'places': [ 'search','list'],
-	    'headerizable': true
+	    'headerizable': true,
+	    'generic':true
 	},
 	'pdf': {
 	    'longname': 'PDF',
 	    'shortname': 'PDF',
-	    'places': [ ]
+	    'places': [ ],
+	    'generic':true
+	},
+	'text': {
+	    'longname': 'Plain text',
+	    'shortname': 'Text',
+	    'places': [ ],
+	    'headerizable': true,
+	    'generic': true
+	},
+	'html': {
+	    'longname': 'Plain text',
+	    'shortname': 'Text',
+	    'places': [ 'list' ],
+	    'headerizable': true,
+	    'generic': true
 	}
     },
     'default': { 

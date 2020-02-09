@@ -424,9 +424,12 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     renderlisteditarea(); // update card counts
 }
 
+/*
 function outputlist(listid) {
     alert('TODO');
 }
+*/
+
 function importlist(listid=null) {
     // this will call newlist with a list of cards/etc as json
     alert('TODO');
@@ -720,19 +723,43 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	break;
     default:
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
+	    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{
+		"labels": labels[database],
+		datarequest:{'listid':listid,'sort':sort},
+		"database":database
+	    });
 	} else {
-	    var html = getactivetemplate('list').render(listdata,{"labels": labels[database],datarequest:{'listid':listid,'sort':sort}});
+	    var html = getactivetemplate('list').render(listdata,{
+		"labels": labels[database],
+		datarequest:{'listid':listid,'sort':sort},
+		"database":database
+	    });
 	}
-	$("#resultlist").html(html);
-	$('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
-            var field_listid = $(this).attr("id").split(/:/) ;
-            var value = $(this).text() ;
-	    if(field_listid[4] != value) {
-		console.log(field_listid);
-		addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
-	    }
-	});
+	if(listoutput=='text') {
+	    var text = templates[database]['compiled']['text'].render(headerize[database]['deck'] != undefined ? headerize[database]['deck'](listdata) : listdata,{
+		"labels": labels[database],
+		datarequest:{'listid':listid,'sort':sort},
+		"database":database
+	    });
+	    var data = new Blob([text],{type: 'text/plain'});
+	    var url = window.URL.createObjectURL(data);
+	    const a = document.createElement('a');
+	    a.style.display = 'none';
+	    a.href = url;
+	    a.download = "decklist.txt";
+	    document.body.appendChild(a);
+	    a.click();
+	} else {
+	    $("#resultlist").html(html);
+	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
+		var field_listid = $(this).attr("id").split(/:/) ;
+		var value = $(this).text() ;
+		if(field_listid[4] != value) {
+		    console.log(field_listid);
+		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
+		}
+	    });
+	}
     } 
 }
 
@@ -826,14 +853,18 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	return;
     }
     $("#lastcardid").val(carddata.cardid);
-    var html = getactivetemplate('card').render(carddata,{"labels": labels[database], "qs": qs, "activelists": activelists.map(function(listid) { 
-	var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
-	if(cache_thing("list",listid)) {
-	    list.listdata = cache_thing("list",listid);
-	}
-	return list;
-    })
-							 });
+    var html = getactivetemplate('card').render(carddata,{
+	"labels": labels[database],
+	"qs": qs,
+	"activelists": activelists.map(function(listid) { 
+	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+	    if(cache_thing("list",listid)) {
+		list.listdata = cache_thing("list",listid);
+	    }
+	    return list;
+	}),
+	"database": database
+    });
     $("#resultcard").html(html);
     updates[database]('#resultcard');
     var primary = $("#printingprimary").val();
@@ -883,7 +914,8 @@ function rendercards(data,request,querystring) {
 		list.listdata = cache_thing("list",listid);
 	    }
 	    return list;
-	})
+	}),
+	"database": database
     });
 }
 
@@ -964,6 +996,7 @@ function templateimagefromset(set,hashes) {
     return ret;
 }
 function templateprintingfromid(id,hashes,data,noarray=true) {
+    console.log([id,hashes,data,noarray]);
     var ret = '';
     hashes.forEach(function(e) {
 	if(e.printingid == id) {

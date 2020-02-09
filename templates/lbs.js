@@ -58,7 +58,7 @@ headerize['lbs'] = {
 searchables['lbs'] = {
     "quick": true,
     "title": { "type": "text" },
-    "printing.edition": { "sub": "printing.rarity",
+    "printing.set": { "sub": "printing.rarity",
 			  "type": "select" },
     "printing.rarity": { "type": "select" },
     "type": { "type": "select" },
@@ -93,7 +93,7 @@ labels['lbs'] = {
     "tagcity":	"City Points",   "shortcity": "CP",
     "tagfate":	"Fate",     "shortfate": "F",
     "tagtext":		"Card Text",           "shorttext": "Text",
-    "tagedition":		"Edition",                 "shortedition": "Edition",
+    "tagset":		"Set",                 "shortset": "Set",
     "tagrarity":	"Rarity",              "shortrarity": "Rarity",
     "tagflavor":	"Flavor Text",         "shortflavor": "Flavor",
     "tagartist":	"Artist",              "shortartist": "Artist",
@@ -123,15 +123,15 @@ templates['lbs'] = {
 	'visual': { 
 	    'longname': 'Visual Spoiler',
 	    'shortname': 'Visual',
-	    'places': [ 'search','list' ]
-	    //		'generic': true
+	    'places': [ 'search','list' ],
+	    'generic': true
 	},
 	'visual-premium': { 
 	    'longname': 'Visual Spoiler - Large',
 	    'shortname': 'Visual(L)',
 	    'places': [ 'search','list' ],
-	    'premium': true
-	    //			'generic':true
+	    'premium': true,
+	    'generic':true
 	},
 	'card':  { 
 	    'longname': 'Card Details',
@@ -147,7 +147,28 @@ templates['lbs'] = {
 	    'longname': 'Simple List',
 	    'shortname': 'List',
 	    'places': [ 'search','list'],
-	    'headerizable': true
+	    'headerizable': true,
+	    'generic':true
+	},
+	'pdf': {
+	    'longname': 'PDF',
+	    'shortname': 'PDF',
+	    'places': [ ],
+	    'generic':true
+	},
+	'text': {
+	    'longname': 'Plain text',
+	    'shortname': 'Text',
+	    'places': [ ],
+	    'headerizable': true,
+	    'generic': true
+	},
+	'html': {
+	    'longname': 'Plain text',
+	    'shortname': 'Text',
+	    'places': [ 'list' ],
+	    'headerizable': true,
+	    'generic': true
 	}
     },
     'default': { 
