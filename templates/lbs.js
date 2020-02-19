@@ -58,6 +58,7 @@ headerize['lbs'] = {
 searchables['lbs'] = {
     "quick": true,
     "title": { "type": "text" },
+    "text": { "type": "text" },
     "printing.set": { "sub": "printing.rarity",
 			  "type": "select" },
     "printing.rarity": { "type": "select" },
