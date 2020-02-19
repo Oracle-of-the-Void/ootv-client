@@ -711,3 +711,8 @@ nav ul li ul li:last-child {
   stroke-linejoin: round;
   fill: none;
 }
+
+.button .iiconic .feather {
+  position: relative;
+  top: 2px;
+}

@@ -89,7 +89,7 @@
 </dl>
 <div id="searchbottom">
 <span class="gameinfo-gameshort"></span> <span class="gameinfo-gamelogo15"></span><br />
-<span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow">&#9889;</span></span>
+<span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></span></span>
 </div></div>
 </form>
 <br clear="all" />
@@ -318,7 +318,7 @@ printingprimary
 <script id="template-listactive" type="text/x-jsrender">
 <div class="listblock">
   <div><a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:name}}</a> ({{:type}})
-      <span class="iiconic inegative" onclick="deactivatelist('{{:listid}}'); return false;">&#10008;</span>
+      <span class="iiconic inegative" onclick="deactivatelist('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></span>
   </div>
   <div>{{if listdata}}({{:listdata.list.Items[0].list.length}} unique cards){{/if}}</div>
 </div>
@@ -333,9 +333,9 @@ printingprimary
   <div class="listmiddle" id="list_modified:{{:listid}}">{{formatDate:modified}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}></option><option value="true"{{if public}} selected{{/if}}>Public</option></select></div><!-- TODO  figure out how to list public lists -->
   <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
-  <div class="listmiddle"><span class="iiconic ipositive" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#maximize-2"></svg></span></div>
+  <div class="listmiddle"><span class="iiconic ipositive" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></span></div>
     <div class="listmiddle"><span class="iiconic inegative" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></div>
-  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#book-open"></span></div>
+  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></span></div>
 <!--  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><img src="res/icon-pdf.png" height="17"></span></div> -->
   <div class="listmiddle"><span class="iiconic ipositive" onclick="listinfo('{{:listid}}',false,'text');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span></div>
 <!--  <div class="listmiddle"><span class="iiconic ipositive" onclick="importlist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></span></div> -->

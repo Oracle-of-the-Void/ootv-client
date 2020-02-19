@@ -56,9 +56,9 @@
      <div class="listmanagement">
       {{for ~activelists ~cardid=cardid}}
 	{{:name}}
-	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;">&#57352;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;">&#57353;</span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;">&#10008;</span>
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
       <br />
       {{/for}}
 
@@ -67,9 +67,9 @@
       {{:set}}<br />
         {{for ~activelists ~printingid=printingid}}
           {{:name}}
-          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},1); return false;">&#57352;</span>
-          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},-1); return false;">&#57353;</span>
-          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},null); return false;">&#10008;</span>
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
           <br />
 	  {{/for}}
       </div>
