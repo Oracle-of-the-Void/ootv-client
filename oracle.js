@@ -119,6 +119,7 @@ function logincallback(session) {
         console.log("Logged in");
 	$('.loginfo').css({display:'block'});
  	$('#loginbutton').hide();
+	$('.loginfo').show();
     }
     if(window.location.href.includes("#access_token") || window.location.href.includes("?code=")) {
 	window.location = location.protocol + '//' + location.host + location.pathname;
@@ -147,6 +148,9 @@ function initCognitoSDK() {
 	    logincallback(result);
 	},
 	onFailure: function(err) {
+	    console.log("initcognito failure - logging out");
+	    dologout();
+	    logoutcallback();
 	    //				alert("Error!" + err);
 	}
     };

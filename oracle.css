@@ -595,7 +595,7 @@ nav li {
   transition-duration: 0.5s;
   float: left;
   text-decoration: none;
-  padding-right: 1rem;
+/*  padding-right: 1rem; */
   padding-left: 1rem;
 /*  background: rgb(196,196,196); */
   position: relative;
