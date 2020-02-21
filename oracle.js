@@ -740,7 +740,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    });
 	}
 	if(listoutput=='text') {
-	    var text = templates[database]['compiled']['text'].render(headerize[database]['deck'] != undefined ? headerize[database]['deck'](listdata) : listdata,{
+	    var text = templates[database]['compiled']['text'].render((headerize[database]['deck'] != undefined && sort == 'deck') ? headerize[database]['deck'](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database
@@ -767,9 +767,9 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     } 
 }
 
-function dolist(listdata=[],listlist=[],sort,listid=null) {
+function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid]);
-    refreshlist(listdata,listlist,sort,listid);
+    refreshlist(listdata,listlist,sort,listid,listoutput);
     /*
       // TODO:  put this in url history???
     if($("#resultsearch").is(":visible")) {
