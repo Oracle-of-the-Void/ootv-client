@@ -681,6 +681,7 @@ li.menusort ul li.searchdesc::after {
   content: url("res/menu-tinyarrowup.png");
 }
 nav ul li ul li {
+  white-space: nowrap;
   border-right: solid black 1px;
   border-left: solid black 1px;
 }
