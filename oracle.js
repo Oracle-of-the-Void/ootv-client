@@ -78,6 +78,7 @@ var updates = {};
 var updatepending = {};
 var updatecallback = {};
 var database = 'l5r';
+var outputheaders = true;
 if(found = window.location.href.match(/(\w+)\.html/)) {
     if(found && found[1] != 'index') {
 	database = found[1];
@@ -210,7 +211,7 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
     if(listid && cache_thing("list",listid) != null) {
 	console.log("cached");
 	$("#lastlistid").val(listid);
-	renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput);
+	renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
     } else {
 	$.ajax({
 	    type: 'GET',
@@ -233,7 +234,7 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 		    }
 		    cache_thing("list",listid,data);
 		    $("#lastlistid").val(listid);
-		    renderlist(data.list.Items[0],switchview,listoutput);
+		    renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
 		    renderlisteditarea(); // update card counts
 		} else {
 		    cache_thing("list","data",data);
@@ -293,6 +294,17 @@ function listinfocallback() {
 	}
     });
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
+}
+
+function toggleheaders() {
+    if(outputheaders) {
+	$(".toggleheaderson").hide();
+	$(".toggleheadersoff").show();
+    } else {
+	$(".toggleheaderson").show();
+	$(".toggleheadersoff").hide();
+    }	
+    outputheaders = !outputheaders;
 }
 
 // ***********************  list edits **************
@@ -739,8 +751,9 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		"database":database
 	    });
 	}
-	if(listoutput=='text') {
-	    var text = templates[database]['compiled']['text'].render((headerize[database]['deck'] != undefined && sort == 'deck') ? headerize[database]['deck'](listdata) : listdata,{
+	if(listoutput && listoutput.startsWith('text')) {
+	    var textparts = listoutput.split(",");
+	    var text = templates[database]['compiled'][textparts[0]].render((headerize[database]['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? headerize[database]['deck'](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database

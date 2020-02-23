@@ -18,6 +18,7 @@
   <script src="blob-stream.min.js" defer></script>
   
 <!--  <link href="https://www.jsviews.com/samples/samples.css" rel="stylesheet" /> -->
+<!--  <link rel="stylesheet" href="https://unpkg.com/balloon-css/balloon.min.css"> -->
   <LINK href="oracle.css" rel="stylesheet" type="text/css" />
   <style>
   label {display: inline-block; margin: 6px 15px 2px 0px;}
@@ -42,7 +43,7 @@
 	</ul>
       </li>
       <li class="loginfo right"><span id="loginfo"></span>
-	<ul class="dropdown">
+	<ul class="dropdown menuone">
 	  <li id="userinfo-drop">...</li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
@@ -165,7 +166,7 @@
     <div class="listheadmiddle">Notes</div>
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
-    <div class="listheadmiddle"></div>
+<!--    <div class="listheadmiddle"></div> -->
     <div class="listheadmiddle"><span class="iiconic ipositive" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></span></div>
 
   </div>
@@ -336,9 +337,23 @@ printingprimary
   <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
   <div class="listmiddle"><span class="iiconic ipositive" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></span></div>
     <div class="listmiddle"><span class="iiconic inegative" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></div>
-  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></span></div>
+<!--  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></span></div> -->
 <!--  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><img src="res/icon-pdf.png" height="17"></span></div> -->
-  <div class="listmiddle"><span class="iiconic ipositive" onclick="listinfo('{{:listid}}',false,'text');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span></div>
+
+<div class="listmiddle"><nav role="download"><ul class="menuone">
+<li><span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span>
+  <ul>
+  <li onclick="listinfo('{{:listid}}',false,'pdf');"><span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></span> PDF</li>
+  <li onclick="listinfo('{{:listid}}',false,'textsnm');"><span class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg></span> Sun and Moon</li>
+  <li onclick="listinfo('{{:listid}}',false,'texttab');"><span class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg></span> Tab-delimited</li>
+  <li onclick="listinfo('{{:listid}}',false,'texteopk');"><span class="iiconic iblack"><svg class="feather"><use xlink:href="res/feather-sprite.svg#circle"></svg></span> Egg of Pan'ku</li>
+  <li onclick="listinfo('{{:listid}}',false,'textlackey');"><span class="iiconic ipurple"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg></span> Lackey CCG</li>
+  <li onclick="toggleheaders();"><span class="iiconic ipositive toggleheaderson"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></span><span style="display:none;" class="iiconic inegative toggleheadersoff"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></span> Headers</li>
+  </ul>
+</li></ul></nav></div>
+
+<!-- <div class="listmiddle"><button aria-label="Whats up!" data-balloon-pos="down-right"><span class="iiconic ipositive" onclick="listinfo('{{:listid}}',false,'text');w"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span></button></div> -->
+
 <!--  <div class="listmiddle"><span class="iiconic ipositive" onclick="importlist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></span></div> -->
 
 </div>

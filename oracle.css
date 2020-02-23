@@ -271,9 +271,11 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
 
+span .iiconic {
+  margin-left: .4em;
+}
 .iiconic {
   font-family: 'iconicfill';
-  margin-left: .4em;
   cursor: pointer;
 }
 .listmanagement .iiconic { 
@@ -291,6 +293,8 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .ipositive { color: #0a8913; }
 .listheadmiddle .ipositive { color: #1aee29; }
 .iyellow { color: yellow; }
+.idyellow { color: #ffae42; }
+.ipurple { color: purple; }
 .iblue { color: #2222ee; }
 .iblack { color: black; }
 .iyin { font-size: 15pt; }
@@ -586,21 +590,26 @@ div[class^=result] .randarea {
   min-height: 200px;
 }
 
+ul.nobullet, ul.nobullet ul {
+  list-style-type: none;
+}
 nav ul {
   margin: 0;
   padding-left: 0;
 }
+div.menubar nav li {
+/*  padding-right: 1rem; */
+  padding-left: 1rem;
+/*  background: rgb(196,196,196); */
+  font-size: large;
+  font-family: "L5R Title";
+}
 nav li {
+  position: relative;
   display: block;
   transition-duration: 0.5s;
   float: left;
   text-decoration: none;
-/*  padding-right: 1rem; */
-  padding-left: 1rem;
-/*  background: rgb(196,196,196); */
-  position: relative;
-  font-size: large;
-  font-family: "L5R Title";
 }
 nav li dl {
     font-family: "Times New Roman","Georgia","Serif";
@@ -608,7 +617,7 @@ nav li dl {
 nav li.right {
     float: right;
 }
-nav>ul>li { 
+div.menubar nav>ul>li { 
   padding-top: 5px;
   padding-bottom: 1rem;
 }
@@ -621,6 +630,9 @@ nav li:hover {
   cursor: pointer;
 /*  background-color: rgb(128, 128, 128); */
 }
+div.menubar nav ul li ul {
+  top: 31px;
+}
 nav ul li ul {
   visibility: hidden;
   opacity: 0;
@@ -629,7 +641,6 @@ nav ul li ul {
 /*  margin-top: .5rem; */
   left: 0;
   display: none;
-  top: 31px;
 }
 nav ul li.right ul {
     left: auto;
@@ -646,11 +657,13 @@ nav ul li ul:hover {
 /*  background: rgb(255,255,255); */
 }
 
+div.menubar nav ul li ul li {
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+}
 nav ul li ul li {
   clear: both;
   width: 100%;
-  padding-top: .5rem;
-  padding-bottom: .5rem;
   background: rgb(255,255,255);
 }
 
@@ -668,7 +681,7 @@ nav ul li ul li.menuactive::before {
     content: url('res/icon-buttons/led_green_on.png');
     margin-right: .4em;
 }
-nav ul li ul li:not(.menuactive):not(.menunone)::before {
+nav ul:not(.menuone) li:not(.menuone) ul:not(.menuone) li:not(.menuactive):not(.menunone)::before {
     content: url('res/icon-buttons/led_green_off.png');
     margin-right: .4em;
 }

@@ -204,6 +204,34 @@ templates['l5r'] = {
 	    'headerizable': true,
 	    'generic': true
 	},
+	'textsnm': {
+	    'longname': 'Sun and Moon Text',
+	    'shortname': 'Text',
+	    'places': [ ],
+	    'headerizable': true,
+	    'generic': true
+	},
+	'texttab': {
+	    'longname': 'Tab-delimited text',
+	    'shortname': 'Text',
+	    'places': [ ],
+	    'headerizable': true,
+	    'generic': true
+	},
+	'texteopk': {
+	    'longname': 'Egg of Pan\'Ku text',
+	    'shortname': 'Text',
+	    'places': [ ],
+	    'headerizable': true,
+	    'generic': true
+	},
+	'textlackey': {
+	    'longname': 'Lackey text',
+	    'shortname': 'Text',
+	    'places': [ ],
+	    'headerizable': true,
+	    'generic': true
+	},
 	'html': {
 	    'longname': 'Plain text',
 	    'shortname': 'Text',

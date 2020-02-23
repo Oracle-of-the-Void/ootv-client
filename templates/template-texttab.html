@@ -1,0 +1,2 @@
+{{if cardid==0}}{{if #getIndex() > 0}}
+{{/if}}#	     {{if title}}{{:title}}{{else}}{{:subtitle}}{{/if}}{{else}}{{if listquantity}}{{:listquantity}}{{/if}}	{{:puretexttitle?puretexttitle:title}}	{{if listprinting}}({{printingfromid listprinting printing "set" /}}){{else}}({{printingfromid printingprimary printing "set" /}}){{/if}}{{/if}}
