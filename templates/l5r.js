@@ -32,9 +32,9 @@ headerize['l5r'] = {
 	var sumsdeck = {};
 	listdata.forEach(function(c) {
 	    if(sumstype[c.type.join()] === undefined) { sumstype[c.type.join()] = 0; }
-	    sumstype[c.type.join()]++;
+	    sumstype[c.type.join()]+=c.listquantity;
 	    if(sumsdeck[c.deck.join()] === undefined) { sumsdeck[c.deck.join()] = 0; }
-	    sumsdeck[c.deck.join()]++;
+	    sumsdeck[c.deck.join()]+=c.listquantity;
 	});
 	var lasttype = '';
 	var lastdeck = '';
