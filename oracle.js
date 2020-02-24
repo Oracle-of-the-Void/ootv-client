@@ -19,6 +19,10 @@ function formatdate(val) {
     });
 }
 $.views.converters("formatDate", function(val) {return formatdate(val);});
+function filenamecleaner(val) {
+    return val.replace(/[^\-a-z0-9]/gi,'_').toLowerCase().replace(/_{2,}/,'_');
+}
+$.views.converters("filenamecleaner", function(val) {return filenamecleaner(val);});
 var listtypes = {'deck':'Deck',
 		 'collection':'Collection',
 		 'have':'Have',
@@ -335,6 +339,8 @@ function activatelist(listid) {
        activelists.splice(index, 1);
     }
     activelists.unshift(listid);
+    $("#listinactive"+listid).hide();
+    $("#listactive"+listid).show();
     renderlisteditarea();
 }
 
@@ -343,6 +349,8 @@ function deactivatelist(listid) {
     if (index > -1) {
        activelists.splice(index, 1);
     }
+    $("#listactive"+listid).hide();
+    $("#listinactive"+listid).show();
     renderlisteditarea();
 }
 
@@ -733,9 +741,10 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		      return 0;
 		  });   
     console.log(listdata);
-    switch(listoutput) {
+    var listswitch = listoutput.split(",")[0];
+    switch(listswitch) {
     case 'pdf':
-	createpdf(listdata);
+	createpdf(listdata,listoutput);
 	break;
     default:
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
@@ -763,7 +772,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    const a = document.createElement('a');
 	    a.style.display = 'none';
 	    a.href = url;
-	    a.download = "decklist.txt";
+	    a.download = (textparts.find(checkfilename)?textparts.find(checkfilename).replace("filename:",''):"decklist")+".txt";
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
@@ -807,8 +816,14 @@ function getDataUri(url, callback) {
     image.src = url;
 }
 
-function createpdf(data) {
+function checkfilename(data) {
+    return data.startsWith("filename:");
+}
+function createpdf(data,listoutput='') {
     // TODO: createpdf
+    var metadata = listoutput.split(",");
+    console.log(metadata.find(checkfilename));
+    var fn = metadata.find(checkfilename)?metadata.find(checkfilename).replace("filename:",''):"decklist";
     console.log('createpdf');
     console.log(data);
     var images = [];
@@ -835,6 +850,7 @@ function createpdf(data) {
 		    "size": "letter", // A4, etc
 		    margins: { top: 18, bottom: 18, left: 18, right: 18 }
 		});
+		doc.info['Title'] = fn;
 		const stream = doc.pipe(blobStream());
 		ix = 2.5*72;
 		mx = (612-3*ix)/2;
@@ -849,16 +865,26 @@ function createpdf(data) {
 		}
 		doc.end();
 		stream.on('finish', function() {
-		    const url = stream.toBlobURL('application/pdf');
-		    window.open(url);
+//		    const url = stream.toBlobURL('application/pdf');
+//		    window.open(url);
+		    data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
 		});
 
-
+// TODO:   https://stackoverflow.com/questions/30965249/pdfkit-js-how-to-save-document-to-file-win-8-app
 
 	    }
 	});
     }
 }
+function data_url_to_download(data_url, filename) {
+  var a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style = "display: none;";
+  a.href = data_url;
+  a.download = filename;
+  a.click();
+  a.remove();
+};
 
 // If a list is being displayed, render card and switch to it, pop onto history so back comes back to the list
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list

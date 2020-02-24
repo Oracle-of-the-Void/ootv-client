@@ -271,7 +271,13 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
 
-span .iiconic {
+button.iiconic {
+    padding: 0;
+    height: 17px;
+    border: 0;
+    background-color: transparent;
+}
+button .iiconic, span .iiconic {
   margin-left: .4em;
 }
 .iiconic {
@@ -293,7 +299,7 @@ span .iiconic {
 .ipositive { color: #0a8913; }
 .listheadmiddle .ipositive { color: #1aee29; }
 .iyellow { color: yellow; }
-.idyellow { color: #ffae42; }
+.idyellow { color: #ff4d01; }
 .ipurple { color: purple; }
 .iblue { color: #2222ee; }
 .iblack { color: black; }

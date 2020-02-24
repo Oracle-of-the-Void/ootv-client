@@ -18,7 +18,7 @@
   <script src="blob-stream.min.js" defer></script>
   
 <!--  <link href="https://www.jsviews.com/samples/samples.css" rel="stylesheet" /> -->
-<!--  <link rel="stylesheet" href="https://unpkg.com/balloon-css/balloon.min.css"> -->
+<link rel="stylesheet" href="https://unpkg.com/balloon-css/balloon.min.css">
   <LINK href="oracle.css" rel="stylesheet" type="text/css" />
   <style>
   label {display: inline-block; margin: 6px 15px 2px 0px;}
@@ -167,7 +167,7 @@
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
 <!--    <div class="listheadmiddle"></div> -->
-    <div class="listheadmiddle"><span class="iiconic ipositive" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></span></div>
+    <div class="listheadmiddle"><button aria-label="Create new list" data-balloon-pos="up-right" class="iiconic ipositive" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button></div>
 
   </div>
   <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
@@ -320,7 +320,7 @@ printingprimary
 <script id="template-listactive" type="text/x-jsrender">
 <div class="listblock">
   <div><a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:name}}</a> ({{:type}})
-      <span class="iiconic inegative" onclick="deactivatelist('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></span>
+      <button class="iiconic inegative" onclick="deactivatelist('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></button>
   </div>
   <div>{{if listdata}}({{:listdata.list.Items[0].list.length}} unique cards){{/if}}</div>
 </div>
@@ -328,27 +328,30 @@ printingprimary
 
 <script id="template-lists" type="text/x-jsrender">
 <div class="listitem directorylistitem" id="listitem_{{:listid}}">
-  <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a href="#" onclick="return false;">{{:listid}}</a></div>
+  <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a aria-label="View List" data-balloon-pos="up-left" href="#" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
   <div class="listmiddle">{{formatDate:createdate}}</div>
   <div class="listmiddle" id="list_modified:{{:listid}}">{{formatDate:modified}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}></option><option value="true"{{if public}} selected{{/if}}>Public</option></select></div><!-- TODO  figure out how to list public lists -->
   <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
-  <div class="listmiddle"><span class="iiconic ipositive" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></span></div>
-    <div class="listmiddle"><span class="iiconic inegative" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></div>
-<!--  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></span></div> -->
-<!--  <div class="listmiddle"><span class="iiconic" onclick="listinfo('{{:listid}}',false,'pdf');"><img src="res/icon-pdf.png" height="17"></span></div> -->
+
+  <div class="listmiddle">
+  <button aria-label="Activate List to Add cards from search" data-balloon-pos="up-right" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button>
+  <button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
+  </div>
+
+  <div aria-label="Delete List" data-balloon-pos="up-right"  class="listmiddle"><button class="iiconic inegative" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></button></div>
 
 <div class="listmiddle"><nav role="download"><ul class="menuone">
-<li><span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span>
+<li><button aria-label="Download list" data-balloon-pos="up-right" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
   <ul>
-  <li onclick="listinfo('{{:listid}}',false,'pdf');"><span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></span> PDF</li>
-  <li onclick="listinfo('{{:listid}}',false,'textsnm');"><span class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg></span> Sun and Moon</li>
-  <li onclick="listinfo('{{:listid}}',false,'texttab');"><span class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg></span> Tab-delimited</li>
-<!--  <li onclick="listinfo('{{:listid}}',false,'texteopk');"><span class="iiconic iblack"><svg class="feather"><use xlink:href="res/feather-sprite.svg#circle"></svg></span> Egg of Pan'ku</li> -->
-<!--  <li onclick="listinfo('{{:listid}}',false,'textlackey');"><span class="iiconic ipurple"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg></span> Lackey CCG</li> -->
-  <li onclick="toggleheaders();"><span class="iiconic ipositive toggleheaderson"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></span><span style="display:none;" class="iiconic inegative toggleheadersoff"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></span> Headers</li>
+  <li onclick="listinfo('{{:listid}}',false,'pdf,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF</button></li>
+  <li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</button></li>
+  <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Tab-delimited</button></li>
+<!--  <li onclick="listinfo('{{:listid}}',false,'texteopk,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblack"><svg class="feather"><use xlink:href="res/feather-sprite.svg#circle"></svg> Egg of Pan'ku</button></li> -->
+<!--  <li onclick="listinfo('{{:listid}}',false,'textlackey,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic ipurple"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Lackey CCG</button></li> -->
+  <li onclick="toggleheaders();"><button class="iiconic ipositive toggleheaderson"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button><button style="display:none;" class="iiconic inegative toggleheadersoff"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button> Headers</li>
   </ul>
 </li></ul></nav></div>
 
