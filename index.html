@@ -154,7 +154,7 @@
     <li><a href="#" name="resulthelp">Help</a></li>
     <li class="r"><span class="numresults"></span></li>
   </ul>
-<div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet</div></div>
+<div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet, Do a Search and click on a card.</div></div>
 <div class="resultdir" id="resultdir">
   <div class="listitem directorylistheader">
     <div class="listheadmiddle">Id</div>
@@ -167,13 +167,14 @@
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
 <!--    <div class="listheadmiddle"></div> -->
-    <div class="listheadmiddle"><button aria-label="Create new list" data-balloon-pos="up-right" class="iiconic ipositive" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button></div>
+    <div class="listheadmiddle"><button aria-label="Create new list" data-balloon-pos="up-right" class="showonlogin iiconic ipositive" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button></div>
 
   </div>
+  <div class="hideonlogin directorylistitem out"><div class="randarea">You must be logged in to create/work with lists <span class="button gray" id="loginbutton" onclick="dologin();">Log&nbsp;In/Register</span></div></div>
   <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
 </div>
-<div class="resultlist" id="resultlist"><div class="randarea">No list selected</div></div>
-<div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet</div></div>
+<div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
+<div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet, use the Search area on the left</div></div>
 <div class="resultabout" id="resultabout">
 <div class="randarea">
 <!-- TODO:    integrate this documentation into stuff -->

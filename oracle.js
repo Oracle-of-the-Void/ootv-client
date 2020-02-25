@@ -118,6 +118,8 @@ function logoutcallback() {
     $('#loginfo').html("");
     $('.loginfo').hide()
     $('#loginbutton').show();
+    $('.showonlogin').hide();
+    $('.hideonlogin').show();
 }
 function logincallback(session) {
     if (session) {
@@ -125,6 +127,8 @@ function logincallback(session) {
 	$('.loginfo').css({display:'block'});
  	$('#loginbutton').hide();
 	$('.loginfo').show();
+	$('.showonlogin').show();
+	$('.hideonlogin').hide();
     }
     if(window.location.href.includes("#access_token") || window.location.href.includes("?code=")) {
 	window.location = location.protocol + '//' + location.host + location.pathname;
