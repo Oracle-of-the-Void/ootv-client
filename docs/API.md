@@ -19,7 +19,7 @@ In general, when table is required for most things, oracle- is added as a prefix
 
 ## /attributes
 
-Retrieves an array of options suitable for a <select> pulldown
+Retrieves an array of options suitable for a select pulldown
 
 
 Handled by lambda: oracle-search
