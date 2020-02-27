@@ -148,10 +148,10 @@ Note: I'm restricting the card search to 1000 results for bounding, this is a nu
 Note: I'm returning this as list/failed to allow the front-end application to determine if it wants to continue or not instead of just stuffing it into a list directly.
 There is theoretically a little more flexibility here in that lists can be created / manipulated without saving them.
 
-inputs:
+inputs: form/multipart
 
 * table (required)
-* cardlist (required)
+* name=file cardlist (required)
   * text file, one card per line.
   * leading numbers are treated as quantity
   * anything after a parenthesis or comment is stripped for purposes of searching
