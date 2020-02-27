@@ -358,7 +358,14 @@ printingprimary
 
 <!-- <div class="listmiddle"><button aria-label="Whats up!" data-balloon-pos="down-right"><span class="iiconic ipositive" onclick="listinfo('{{:listid}}',false,'text');w"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span></button></div> -->
 
-<!--  <div class="listmiddle"><span class="iiconic ipositive" onclick="importlist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></span></div> -->
+<div class="listmiddle"><nav role="upload"><ul class="menuone">
+<li><button aria-label="Upload list" data-ballon-pos="up-right" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
+  <ul>
+  <li><form enctype="multipart/form-data" action="https://api.oracleofthevoid.com/import" method="POST"><input type="hidden" value="{{:listid}}" name="listid">table: <input name="table" type="text" value="l5r" /><br />fieldlist: <input name="fieldlist" type="text" value="textsnm,puretexttitle,title" /><br />file: <input name="file" type="file" /><input type="submit" value="Upload" /></form></li>
+  </ul>
+</li></ul></nav></div>
+
+<!--  onclick="importlist('{{:listid}}');" -->
 
 </div>
 </script>
