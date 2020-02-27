@@ -2,7 +2,7 @@
 
 ### Not needing Authentication
 
-* /attributes (POST)
+* [/attributes (POST)](#attributes)
 * /oracle-fetch (GET) (POST)
 * /search (POST)
 * /verify-jwt (POST)
