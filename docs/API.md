@@ -20,14 +20,15 @@ In general, when table is required for most things, oracle- is added as a prefix
 ## /attributes
 
 Retrieves an array of options suitable for a <select> pulldown
-<br>
+
+
 Handled by lambda: oracle-search
-<br>
-<br>
+
+
 inputs:
 
 * table (required)
 * lookup (required) "field" to aggregate (returns array)
- * "field1:field2" returns an hash with keys of field1, and values of all field2 contained by cards with field1
- * E.G.   "set a": { "R", "U", "C" }
+  * "field1:field2" returns an hash with keys of field1, and values of all field2 contained by cards with field1
+  * E.G.   "set a": { "R", "U", "C" }
 
