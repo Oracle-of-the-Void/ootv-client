@@ -19,7 +19,7 @@ ul { text-align: left; }
 a.printinglink {  text-decoration: none; }
 
 a.ex { float: right; font-size: large;}
-span.headsetrar { float: right; padding-right: 2px; }
+.headsetrar { float: right; padding-right: 2px; }
 
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
 div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
@@ -735,4 +735,38 @@ nav ul li ul li:last-child {
 .button .iiconic .feather {
   position: relative;
   top: 2px;
+}
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 9; /* Sit on top */ 
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  padding: 20px;
+}
+
+.modal-box {
+  margin: 15% auto; /* 15% from the top and centered */
+  width: 20%; /* Could be more or less, depending on screen size */
+  min-width: 400px;
+  min-height: 250px; 
+  background-color: rgb(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.9);
+  -moz-border-radius: 7px;
+  -webkit-border-radius: 7px;
+  -khtml-border-radius: 7px;
+  border-radius: 7px;
+  padding: 0;
+/*  border: 1px solid #888; */
 }

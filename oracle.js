@@ -278,6 +278,12 @@ function listinfoupdate(listid,field,value) {
             setTimeout(function(){message_status.text(formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
+	    if($("#importlistid").length) {
+		var listid = $("#importlistid").val();
+		erasemodal();
+		cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
+		listinfo(listid);
+	    }
 	},
 	error: function(status) {
 	    console.log(status);
@@ -452,17 +458,72 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     renderlisteditarea(); // update card counts
 }
 
-/*
-function outputlist(listid) {
-    alert('TODO');
-}
-*/
-
-function importlist(listid=null) {
-    // this will call newlist with a list of cards/etc as json
-    alert('TODO');
+function importlist(listid=null,name=null) {
+    // this will initiate a file dialog to upload a file to a list
+    var title = "Import a file from disk into: "+name;
+    var importtemplate = $.templates("#template-import");
+    modal(title,importtemplate.render({"listid": listid, "database": database}));
 }
 
+function importlisttrigger() {
+    $("#importprogress").show();
+    $("#importform").hide();
+    $("#importstatus").html("");
+    $.ajax({
+	// Your server script to process the upload
+	url: 'https://api.oracleofthevoid.com/import',
+	type: 'POST',
+	
+	// Form data
+	data: new FormData($('#importform')[0]),
+	
+	// Tell jQuery not to process data or worry about content-type
+	// You *must* include these options!
+	cache: false,
+	contentType: false,
+	processData: false,
+	
+	// Custom XMLHttpRequest
+	xhr: function () {
+	    var myXhr = $.ajaxSettings.xhr();
+	    if (myXhr.upload) {
+		// For handling the progress of the upload
+		myXhr.upload.addEventListener('importprogress', function (e) {
+		    if (e.lengthComputable) {
+			$('#importprogress').attr({
+			    value: e.loaded,
+			    max: e.total,
+			});
+		    }
+		}, false);
+	    }
+	    return myXhr;
+	},
+	
+	success: function(data) {
+	    console.log("success");
+	    console.log(data);
+	    $("#importprogress").hide();
+	    var importsuccess = $.templates("#template-importsuccess");
+	    $("#importfailedval").val(data.failed.join("\n"));
+	    $("#importdataval").val(JSON.stringify(data.list));
+	    $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n")}));
+	},
+
+	error: function(data) {
+	    console.log("error");
+	    console.log(data);
+	    $("#importprogress").hide();
+	    $("#importstatus").html('<div class="error">Error</div><br /><br />'+data);
+	}
+	
+  });
+}
+
+function importlistfinalize() {
+    listinfoupdate($("#importlistid").val(),'list',$("#importdataval").val());
+    nomodal();
+}
 
 //   *********************************   fetching / querying the api ******************8
 // TODO: sometimes this fails if I do a card not primed from c/p
@@ -1545,9 +1606,10 @@ function cache_card_is(cardid) {
 function cache_select(sel,selval=null) {
     return cache_thing("searchselect",sel,selval);
 }
-function cache_thing(thing,sel,selval=null) {
-        // query
-    if(selval === null) {
+function cache_thing(thing,sel,selval=null,del=false) {
+    // query
+    console.log([thing,sel,selval,del]);
+    if(selval === null && !del) {
 	if (typeof(Storage) !== "undefined") {
 	    return JSON.parse(window.localStorage.getItem(database+"_"+thing+"_"+sel));
 	} else {
@@ -1556,13 +1618,15 @@ function cache_thing(thing,sel,selval=null) {
     } else {
 	// set
 	if (typeof(Storage) !== "undefined") {
-	    if(selval === undefined) {
+	    if(del) {
+		console.log("removing "+thing+" "+sel);
 		window.localStorage.removeItem(database+"_"+thing+"_"+sel);
 	    } else {
 		window.localStorage.setItem(database+"_"+thing+"_"+sel,JSON.stringify(selval));
 	    }
 	} else {
-	    if(selval === undefined) {
+	    if(del) {
+		console.log("removing "+thing+" "+sel);
 		delete nolocalstore[database+"_"+thing+"_"+sel]
 	    } else {
 		nolocalstore[database+"_"+thing+"_"+sel] = selval;
@@ -1594,3 +1658,27 @@ function cache_session(thing,selval=null) {
 	}
     }
 }
+
+
+//**********************************************************  modal window ****************
+
+function modal(title,content) {
+    $('#modal-title').html(title);
+    $('#modal-content').html(content);
+    $('#modal').css('display','block');
+}
+
+function erasemodal() {
+    $('#modal-content').html('');
+    $('#modal-title').html('');
+}    
+
+function nomodal() {
+    $('#modal').css('display','none');
+}
+function generalnomodal(div,event) {
+    if(event.target == div) {
+	nomodal();
+    }
+}
+

@@ -91,7 +91,7 @@
 </dl>
 <div id="searchbottom">
 <span class="gameinfo-gameshort"></span> <span class="gameinfo-gamelogo15"></span><br />
-<span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></span></span>
+<span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></svg></span></span>
 </div></div>
 </form>
 <br clear="all" />
@@ -304,9 +304,40 @@ printingprimary
 
 <div id="all_template">
 
+<script id="template-import" type="text/jsrender">
+  <form id="importform" enctype="multipart/form-data">
+    <input name="listid" id="importlistid" type="hidden" value="{{:listid}}" />
+    <input name="table" type="hidden" value="{{:database}}" />
+    <input name="data" id="importdataval" type="hidden" value="" />
+    <input name="failed" id="importfailedval" type="hidden" value="" />
+    <select name="fieldlist">
+      <option value="">* Select input type *</option>
+      <option value="textsnm,puretexttitle,title">Sun and Moon</option>
+      <option value="puretexttitle,title">Native Oracle</option>
+    </select><br /><br />
+    <input name="file" type="file" /><br /><br />
+    <input type="button" value="Upload" onclick="importlisttrigger();" /></form>
+  <progress id="importprogress" style="display:none"></progress>
+  <div id="importstatus"></div>
+</script>
+
+<script id="template-importsuccess" type="text/jsrender">
+  <div class="numresults">Success</div>
+  <br /><br />
+  {{:numresults}} cards imported successfully<br />
+  {{:numfailed}} cards failed to import<br />
+  Do you wish to continue loading?
+  <span class="button gray" onclick="importlistfinalize();">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
+  <span class="button gray" onclick="nomodal();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
+  <br /><br />
+  Failed cards:
+  <pre>
+    {{:failed}}
+  </pre>
+</script>
+
 <script id="template-hello" type="text/x-jsrender">
 <div class="helloplace">
-<!--  <div class="upperhead">Welcome: {{:cognito.name}}</div> -->
   <strong>Profile Information</strong>
   <dl>
     <dt>Joined</dt><dd>{{formatDate:oracle.insert_date}}</dd>
@@ -356,22 +387,17 @@ printingprimary
   </ul>
 </li></ul></nav></div>
 
-<!-- <div class="listmiddle"><button aria-label="Whats up!" data-balloon-pos="down-right"><span class="iiconic ipositive" onclick="listinfo('{{:listid}}',false,'text');w"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></span></button></div> -->
-
-<div class="listmiddle"><nav role="upload"><ul class="menuone">
-<li><button aria-label="Upload list" data-ballon-pos="up-right" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
-  <ul>
-  <li><form enctype="multipart/form-data" action="https://api.oracleofthevoid.com/import" method="POST"><input type="hidden" value="{{:listid}}" name="listid">table: <input name="table" type="text" value="l5r" /><br />fieldlist: <input name="fieldlist" type="text" value="textsnm,puretexttitle,title" /><br />file: <input name="file" type="file" /><input type="submit" value="Upload" /></form></li>
-  </ul>
-</li></ul></nav></div>
-
-<!--  onclick="importlist('{{:listid}}');" -->
+<div class="listmiddle" onclick="importlist('{{:listid}}','{{:name}}');">
+<button aria-label="Upload list" data-ballon-pos="up-right" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
+</div>
 
 </div>
 </script>
 
 </div><!-- all_template -->
 </div><!-- main content area -->
+
+<div id="modal" class="modal" onclick="generalnomodal(this,event);"><div class="modal-box"><div class="listhead upperhead"><span id="modal-title">Hi</span><button class="iiconic inegative headsetrar" onclick="nomodal();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></button></div><div class="modal-content" id="modal-content"></div></div></div>
 
 </body>
 </html>
