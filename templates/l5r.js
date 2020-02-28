@@ -97,25 +97,6 @@ searchables['l5r'] = {
     "legaldate": { "type": "text",
 	       "advanced": true }
 /* TODO:  erratum, banned, mrp checkboxes from old one?  */
-/*
-  advanced:
-  force
-  chi
-  HR
-  GC
-  PH
-  PS
-  GP
-  SH
-  text
-  focus
-  flavor
-  storyline
-  artist
-  number
-  legal date
-  notes
-*/
 };
 
 labels['l5r'] = {
@@ -141,6 +122,8 @@ labels['l5r'] = {
     "tagartist":	"Artist",              "shortartist": "Artist",
     "tagnumber":	"Card Number",         "shortnumber": "Number",
     "taglegaldate":	"Legal Date",          "shortlegaldate": "Date",
+    "tagbanned":	"Banned",          "shortbanned": "Banned",
+    "tagerratum":	"Erratum",          "shorterratum": "Erratum",
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
     "tagnotes":		"Notes",               "shortnotes": "Notes"
 };
