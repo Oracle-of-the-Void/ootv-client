@@ -329,11 +329,12 @@ printingprimary
   Do you wish to continue loading?
   <span class="button gray" onclick="importlistfinalize();">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
   <span class="button gray" onclick="nomodal();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
-  <br /><br />
+  {{if failed}}<br /><br />
   Failed cards:
   <pre>
     {{:failed}}
   </pre>
+  {{/if}}
 </script>
 
 <script id="template-hello" type="text/x-jsrender">
