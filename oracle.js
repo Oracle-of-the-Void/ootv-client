@@ -1608,7 +1608,6 @@ function cache_select(sel,selval=null) {
 }
 function cache_thing(thing,sel,selval=null,del=false) {
     // query
-    console.log([thing,sel,selval,del]);
     if(selval === null && !del) {
 	if (typeof(Storage) !== "undefined") {
 	    return JSON.parse(window.localStorage.getItem(database+"_"+thing+"_"+sel));
@@ -1619,14 +1618,12 @@ function cache_thing(thing,sel,selval=null,del=false) {
 	// set
 	if (typeof(Storage) !== "undefined") {
 	    if(del) {
-		console.log("removing "+thing+" "+sel);
 		window.localStorage.removeItem(database+"_"+thing+"_"+sel);
 	    } else {
 		window.localStorage.setItem(database+"_"+thing+"_"+sel,JSON.stringify(selval));
 	    }
 	} else {
 	    if(del) {
-		console.log("removing "+thing+" "+sel);
 		delete nolocalstore[database+"_"+thing+"_"+sel]
 	    } else {
 		nolocalstore[database+"_"+thing+"_"+sel] = selval;
