@@ -573,9 +573,13 @@ function imagehashtourl(card) {
     card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
     for(var p = 0; p < card.printing.length; p++) {
 	card.printing[p].images = [];
-	for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
-	    card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/printing_'+card.cardid+'_'+
-		card.printing[p].printingid+'_'; // then you add details, etc
+	if(card.printing[p].printimagehash) {
+	    for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
+		card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/printing_'+card.cardid+'_'+
+		    card.printing[p].printingid+'_'; // then you add details, etc
+	    }
+	} else {
+	    console.log("Card missing a printimagehash: "+JSON.stringify(card));
 	}
     }
     //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
@@ -806,7 +810,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		      return 0;
 		  });   
     console.log(listdata);
-    var listswitch = listoutput.split(",")[0];
+    var listswitch = listoutput ? listoutput.split(",")[0] : listoutput;
     switch(listswitch) {
     case 'pdf':
 	createpdf(listdata,listoutput);
