@@ -911,7 +911,7 @@ function createpdf(data,listoutput='') {
 	    if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
 		for(i of p.images) {
 		    for(cn = 0; cn < card.listquantity; cn++) {
-			images.push(i+'details.jpg');
+			images.push(i+'details.jpg?x-corsworkaround=true');
 		    }
 		}
 	    }
