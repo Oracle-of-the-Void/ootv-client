@@ -431,7 +431,6 @@ function savecallback() {
 }
 
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
-	//TODO:   push changes to server
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
@@ -449,6 +448,10 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 	    }
 	}
     }
+    list.list.Items[0].distinctcount = list.list.Items[0].list.length;
+    list.list.Items[0].totalcount = list.list.Items[0].list.reduce(function (total,card) {
+	return total + card['quantity'];
+    },0);
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
     renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false); 

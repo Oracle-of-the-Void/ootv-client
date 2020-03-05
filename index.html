@@ -166,13 +166,14 @@
     <div class="listheadmiddle">Id</div>
     <div class="listheadmiddle">Name</div>
     <div class="listheadmiddle">Type</div>
+    <div class="listheadmiddle">Count</div>
     <div class="listheadmiddle">Created</div>
     <div class="listheadmiddle">Modified</div>
     <div class="listheadmiddle">Public</div>
     <div class="listheadmiddle">Notes</div>
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
-<!--    <div class="listheadmiddle"></div> -->
+    <div class="listheadmiddle"></div>
     <div class="listheadmiddle"><button aria-label="Create new list" data-balloon-pos="up-right" class="showonlogin iiconic ipositive" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button></div>
 
   </div>
@@ -366,7 +367,7 @@ printingprimary
   <div><a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:name}}</a> ({{:type}})
       <button class="iiconic inegative" onclick="deactivatelist('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></button>
   </div>
-  <div>{{if listdata}}({{:listdata.list.Items[0].list.length}} unique cards){{/if}}</div>
+  <div>{{if listdata}}({{:listdata.list.Items[0].distinctcount}}/{{:listdata.list.Items[0].totalcount}} cards){{/if}}</div>
 </div>
 </script>
 
@@ -375,6 +376,7 @@ printingprimary
   <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a aria-label="View List" data-balloon-pos="up-left" href="#" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
+  <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
   <div class="listmiddle">{{formatDate:createdate}}</div>
   <div class="listmiddle" id="list_modified:{{:listid}}">{{formatDate:modified}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}></option><option value="true"{{if public}} selected{{/if}}>Public</option></select></div><!-- TODO  figure out how to list public lists -->
