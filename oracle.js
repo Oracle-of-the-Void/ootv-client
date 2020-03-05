@@ -1412,6 +1412,9 @@ function initializeform(db) {
 	case "text":
 	    ret += '<input type="text" id="field_'+nound+'" name="field_'+nound+'">';
 	    break;
+	case "exists":
+	    ret += '<input type="checkbox" id="field_'+nound+'" name="field_'+nound+'" value=1>';
+	    break;
 	case "keyword":
 	    ret += '<input type="text" id="field_'+nound+'" name="field_'+nound+'">';
 	    break;
