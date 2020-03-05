@@ -92,9 +92,9 @@ inputs:
   * type_xxx = 'match_phrase' OR 'keyword'
     * elastic match_phrase
   * type_xxx = 'select'
-    * checks terms against the .keyword part of a text field
+    * checks terms against the .keyword part of a text field  (can be multi-value)
   * type_xxx = 'exists'
-    * if parameter has a value, returns cards that contain the field
+    * if parameter has a value, returns cards that contain the field with data
 
 outputs:
 

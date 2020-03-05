@@ -24,9 +24,9 @@
       <br />
       {{/for}}
 
-      {{if ~datarequest.field_printing_set}}
+      {{if ~datarequest.field_printing_set && ~activelists.length>0}}
       <div>
-      {{:~datarequest.field_printing_set}}<br />
+      {{setfromset ~datarequest.field_printing_set printing /}}<br />
         {{for ~activelists ~cardid=cardid ~printing=printing}}
           {{:name}}
           <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>

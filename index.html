@@ -7,6 +7,8 @@
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
 <!--  <script src="https://cdn.jsdelivr.net/npm/jquery.ui.layout@1.0.0/jquery.layout.min.js"></script> -->
 <!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/draggable/1.0.0-beta.8/draggable.min.js"></script>  -->
+<script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+<link href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css" rel="stylesheet"/>
   <script src="https://www.jsviews.com/download/jsviews.min.js"></script>
   <script src="amazon-cognito-auth.min.js"></script>
 <!--  <script src="aws-cognito-sdk.min.js"></script> -->
@@ -319,8 +321,8 @@ printingprimary
     <input name="table" type="hidden" value="{{:database}}" />
     <input name="data" id="importdataval" type="hidden" value="" />
     <input name="failed" id="importfailedval" type="hidden" value="" />
-    <select name="fieldlist">
-      <option value="">* Select input type *</option>
+    <select style="width: 100%" name="fieldlist" data-placeholder="Select input type" class="chosen-select">
+      <option value=""></option>
       <option value="textsnm,puretexttitle,title">Sun and Moon</option>
       <option value="puretexttitle,title">Native Oracle</option>
     </select><br /><br />

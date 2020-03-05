@@ -10,6 +10,7 @@ $.views.settings.allowCode(true);
 $.views.tags("printingidfromset",templateprintingidfromset);
 $.views.tags("imagehashfromset",templateimagehashfromset);
 $.views.tags("imagefromset",templateimagefromset);
+$.views.tags("setfromset",templatesetfromset);
 $.views.tags("printingfromid",templateprintingfromid);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
@@ -682,7 +683,16 @@ function dosearch(from=0,forcedata=false) {
     }
     console.log(from);
     var datarequest = {}; 
-    $.each($('#searchform').serializeArray(), function (i, field) { datarequest[field.name] = field.value || ""; });
+    $.each($('#searchform').serializeArray(), function (i, field) {
+	if(datarequest[field.name]) {
+	    if(!Array.isArray(datarequest[field.name])) {
+		datarequest[field.name] = [ datarequest[field.name] ];
+	    }
+	    datarequest[field.name].push(field.value);
+	} else {
+	    datarequest[field.name] = field.value || "";
+	}
+    });
     datarequest['table'] = database;
     datarequest['sort'] = templates[database]['sort']['search'];
     if(templates[database]['sortdir']['search'] == 'desc') {
@@ -1075,8 +1085,16 @@ function templateprintingidfromset(set,hashes) {
     }
     var ret = '';
     hashes.forEach(function(e) {
-	if((e.set||e.edition).includes(set)) {
-	    ret=e.printingid;
+ 	if(Array.isArray(set)) {
+	    set.forEach(function(f) {
+		if((e.set||e.edition).includes(f)) {
+		    ret=e.printingid;
+		}
+	    });
+	} else {
+	    if((e.set||e.edition).includes(set)) {
+		ret=e.printingid;
+	    }
 	}
     });
     return ret;
@@ -1088,8 +1106,16 @@ function templateimagehashfromset(set,hashes) {
     }
     var ret = '';
     hashes.forEach(function(e) {
-	if((e.set||e.edition).includes(set)) {
-	    ret=e.printimagehash[0];
+ 	if(Array.isArray(set)) {
+	    set.forEach(function(f) {
+		if((e.set||e.edition).includes(f)) {
+		    ret=e.printimagehash[0];
+		}
+	    });
+	} else {
+	    if((e.set||e.edition).includes(set)) {
+		ret=e.printimagehash[0];
+	    }
 	}
     });
     return ret;
@@ -1101,8 +1127,37 @@ function templateimagefromset(set,hashes) {
     }
     var ret = '';
     hashes.forEach(function(e) {
-	if((e.set||e.edition).includes(set)) {
-	    ret=e.images[0];
+	if(Array.isArray(set)) {
+	    set.forEach(function(f) {
+		if((e.set||e.edition).includes(f)) {
+		    ret=e.images[0];
+		}
+	    });
+	} else {
+	    if((e.set||e.edition).includes(set)) {
+		ret=e.images[0];
+	    }
+	}
+    });
+    return ret;
+}
+function templatesetfromset(set,hashes) {
+    if(!set) {
+	console.log(["set issue",set,hashes]);
+	return null;
+    }
+    var ret = '';
+    hashes.forEach(function(e) {
+	if(Array.isArray(set)) {
+	    set.forEach(function(f) {
+		if((e.set||e.edition).includes(f)) {
+		    ret=f;
+		}
+	    });
+	} else {
+	    if((e.set||e.edition).includes(set)) {
+		ret=set;
+	    }
 	}
     });
     return ret;
@@ -1304,7 +1359,18 @@ $(document).ready(function(){
     for (var k in dbinfo) {
 	addgametolist(k);
     }
+
+//    $('.document').bind("DOMSUbtreeModified",chosenify);
+    chosenify();
 });
+
+function chosenify() {
+    console.log("chosenify");
+    $(".chosen-select").chosen({
+//	no_results_text: "Oops, nothing found!",
+	allow_single_deselect: true
+    });
+}
 
 function addgametolist(db) {
     $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
@@ -1439,21 +1505,30 @@ function initializeform(db) {
     }
     $('dd.advanced').hide();
     $('dt.advanced').hide();
+    chosenify();
 }
 
 // changes values for a select chained to another select
 function onchangesub(key,nound,noundsub,db) {
     var fval = $('#field_'+noundsub).val();
+    $('#field_'+noundsub+'_chosen').remove();
+    var newvals = [];
+    if(Array.isArray($('#field_'+nound).val())) {
+	$('#field_'+nound).val().forEach(function(q) {
+	    newvals = newvals.concat(cache_select(key)[q]);
+	});
+    } else {
+	newvals = $('#field_'+nound).val() ?
+	    cache_select(key)[$('#field_'+nound).val()] :
+	    cache_select(searchables[db][key]['sub'])
+    }
     $('#field_'+noundsub).replaceWith(
-	makeselectarray([''].concat(
-	    $('#field_'+nound).val() ?
-		cache_select(key)[$('#field_'+nound).val()] :
-		cache_select(searchables[db][key]['sub'])
-	),
+	makeselectarray([''].concat([...new Set(newvals)].sort()),
 			{id: 'field_'+noundsub, name: 'field_'+noundsub}
 		       )
     );
     $('#field_'+noundsub).val(fval);
+    chosenify();
 }
 
 function loadselectables(db) {
@@ -1531,7 +1606,7 @@ function uri2json(uri) {
 
 // make a select with attrs from att.   values and display are identical
 function makeselectarray(arr,atts={}) {
-    return '<select '+$.map(atts,function(v,i){ return i+'="'+v+'"'; }).join(" ")+'>'+arr.map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("")+'</select>';
+    return '<select class="chosen-select" multiple '+$.map(atts,function(v,i){ return i+'="'+v+'"'; }).join(" ")+'>'+arr.map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("")+'</select>';
 }
 
 // *********************** NAVIGATION ******************
@@ -1670,6 +1745,7 @@ function modal(title,content) {
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
+    chosenify();
 }
 
 function erasemodal() {
