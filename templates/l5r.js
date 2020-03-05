@@ -95,8 +95,13 @@ searchables['l5r'] = {
     "number": { "type": "numeric" ,
 	       "advanced": true},
     "legaldate": { "type": "text",
-	       "advanced": true }
-/* TODO:  erratum, banned, mrp checkboxes from old one?  */
+		   "advanced": true },
+    "banned": { "type": "exists",
+		"advanced": true },
+    "erratum": { "type": "exists",
+		 "advanced": true },
+    "mrp": { "type": "exists",
+		"advanced": true }
 };
 
 labels['l5r'] = {
@@ -124,6 +129,7 @@ labels['l5r'] = {
     "taglegaldate":	"Legal Date",          "shortlegaldate": "Date",
     "tagbanned":	"Banned",          "shortbanned": "Banned",
     "tagerratum":	"Erratum",          "shorterratum": "Erratum",
+    "tagmrp":	"MRP",          "shortmrp": "MRP",
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
     "tagnotes":		"Notes",               "shortnotes": "Notes"
 };
