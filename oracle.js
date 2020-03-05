@@ -1163,7 +1163,6 @@ function templatesetfromset(set,hashes) {
     return ret;
 }
 function templateprintingfromid(id,hashes,data,noarray=true) {
-    console.log([id,hashes,data,noarray]);
     var ret = '';
     hashes.forEach(function(e) {
 	if(e.printingid == id) {
