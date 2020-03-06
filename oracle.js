@@ -456,7 +456,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     }
     list.list.Items[0].distinctcount = list.list.Items[0].list.length;
     list.list.Items[0].totalcount = list.list.Items[0].list.reduce(function (total,card) {
-	return total + card['quantity'];
+	return total + parseInt(card['quantity']);
     },0);
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
