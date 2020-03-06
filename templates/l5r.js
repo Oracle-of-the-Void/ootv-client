@@ -30,11 +30,15 @@ headerize['l5r'] = {
     deck: function(listdata) {
 	var sumstype = {};
 	var sumsdeck = {};
+	var counttype = {};
+	var countdeck = {};
 	listdata.forEach(function(c) {
-	    if(sumstype[c.type.join()] === undefined) { sumstype[c.type.join()] = 0; }
+	    if(sumstype[c.type.join()] === undefined) { sumstype[c.type.join()] = 0; counttype[c.type.join()] = 0; }
 	    sumstype[c.type.join()]+=c.listquantity;
-	    if(sumsdeck[c.deck.join()] === undefined) { sumsdeck[c.deck.join()] = 0; }
+	    counttype[c.type.join()] += 1;
+	    if(sumsdeck[c.deck.join()] === undefined) { sumsdeck[c.deck.join()] = 0; countdeck[c.deck.join()] = 0; }
 	    sumsdeck[c.deck.join()]+=c.listquantity;
+	    countdeck[c.deck.join()] += 1;
 	});
 	var lasttype = '';
 	var lastdeck = '';
@@ -42,11 +46,11 @@ headerize['l5r'] = {
 	listdata.forEach(function(c) {
 	    if(c.deck.join() != lastdeck) {
 		lastdeck = c.deck.join();
-		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+")"});
+		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+") ["+countdeck[lastdeck]+" distinct]"});
 	    }
 	    if(c.type.join() != lasttype) {
 		lasttype = c.type.join();
-		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+")"});
+		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+") ["+counttype[lasttype]+" distinct]"});
 	    }
 	    listout.push(c);
 	});

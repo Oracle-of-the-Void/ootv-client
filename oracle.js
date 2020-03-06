@@ -215,7 +215,6 @@ function getuid() {
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...  
 function listinfo(listid=null,switchview=true,listoutput=null) {
-    //TODO: get just lists for current game
     console.log(["listinfo",listid,switchview,listoutput]);
     if(listid && cache_thing("list",listid) != null) {
 	console.log("cached");
@@ -244,7 +243,14 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 		    cache_thing("list",listid,data);
 		    $("#lastlistid").val(listid);
 		    renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
-		    renderlisteditarea(); // update card counts
+		    renderlisteditarea();
+/*		    console.log('here');
+		    if(data.list.Items[0].list.length > 0 && typeof(data.list.Items[0].totalcount) == "undefined") {
+			console.log('fixing');
+			// fix the counts if they don't exist by adding 0 of first card.
+			addlistitem(listid,data.list.Items[0].list[0].cardid,data.list.Items[0].list[0].printing,0);
+			renderlist(data.list.Items[0],false,listoutput);
+		    } */
 		} else {
 		    cache_thing("list","data",data);
 		    listinfocallback();
