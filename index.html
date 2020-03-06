@@ -86,7 +86,7 @@
 <dl>
 <dt class="notadvanced"></dt><dd class="searchbutton notadvanced"><span class="button gray" id="advancedbutton" onclick="$('dt.advanced').show(); $('dd.advanced').show(); $('dt.notadvanced').hide(); $('dd.notadvanced').hide();">Advanced</span></dd>
 <dt class="advanced"></dt><dd class="searchbutton advanced"><span class="button gray" id="basicbutton" onclick="$('dt.advanced').hide(); $('dd.advanced').hide(); $('dt.notadvanced').show(); $('dd.notadvanced').show();">Basic</span></dd>
-<dt class="advanced"></dt><dd class="searchbutton"><span class="button gray" id="resetbutton" onclick="$('#searchform')[0].reset();">Reset</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton"><span class="button gray" id="resetbutton" onclick="$('#searchform')[0].reset(); $('.chosen-select').trigger('chosen:updated');">Reset</span></dd>
 
 <div id="searchtop"><dt>All</dt><dd><input type="text" name="querystring" id="qs" autofocus /></dd></div>
 <div id="searchmiddle"></div>
