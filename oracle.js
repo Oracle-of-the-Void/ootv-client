@@ -1376,7 +1376,9 @@ function chosenify() {
     console.log("chosenify");
     $(".chosen-select").chosen({
 //	no_results_text: "Oops, nothing found!",
-	allow_single_deselect: true
+	allow_single_deselect: true,
+	placeholder_text_multiple: "Select"
+//	width: "200px"
     });
 }
 
