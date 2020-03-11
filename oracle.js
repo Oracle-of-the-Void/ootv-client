@@ -302,12 +302,13 @@ function listinfocallback() {
     cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
     listertemplate = $.templates("#template-lists");
     $(".directorylistitem").remove();
-    $(listertemplate.render(cache_thing("list","data").lists.Items)).insertAfter(".directorylistheader");
+    var items = cache_thing("list","data").lists.Items;
+    items.sort(function(y,x) {         return x.modified < y.modified ? -1 : x.modified > y.modified ? 1 : 0; });
+    $(listertemplate.render(items)).insertAfter(".directorylistheader");
     //acknowledgement message
     $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
         var field_userid = $(this).attr("id").split(/:/) ;
         var value = $(this).text() ;
-	//TODO:   update value
 	if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
 	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
 	    console.log(field_userid);
