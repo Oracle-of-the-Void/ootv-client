@@ -1172,9 +1172,10 @@ function templatesetfromset(set,hashes) {
     return ret;
 }
 function templateprintingfromid(id,hashes,data,noarray=true) {
+    //console.log(["printingfromid",id,hashes,data,noarray]);
     var ret = '';
     hashes.forEach(function(e) {
-	if(e.printingid == id) {
+	if(parseInt(e.printingid) == parseInt(id)) {
 	    ret=e[data];
 	}
     });
