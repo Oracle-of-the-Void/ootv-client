@@ -160,6 +160,12 @@ templates['l5r'] = {
 	    'places': [ 'search','list' ],
 	    'generic': true
 	},
+	'visual-deck': { 
+	    'longname': 'Visual Deck',
+	    'shortname': 'Deck',
+	    'places': [ 'list' ],
+	    'generic': true
+	},
 	'visual-premium': { 
 	    'longname': 'Visual Spoiler - Large',
 	    'shortname': 'Visual(L)',
