@@ -2,8 +2,8 @@
 <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
   <div style="display: inline-flex; flex-direction: column; padding-top: 190px">
     <!-- qty: {{:listquantity}} -->
-    {{for start=0 end=listquantity itemVar="~qcount" ~cardid=cardid ~printing=printing ~printimagehash=printimagehash ~printingprimary=printingprimary ~printingid=printingid}} 
-    <img style="position: relative; margin-top: -185px" src="https://images.oracleofthevoid.com/{{:~database}}/{{if ~datarequest.checkset}}{{for ~printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:~printimagehash[0]}}{{/if}}{{/for}}/printing_{{:~cardid}}_{{for ~printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:~printingid}}{{/if}}{{/for}}_select.jpg{{else}}{{printingfromid ~printingprimary ~printing "printimagehash" /}}/printing_{{:~cardid}}_{{:~printingprimary}}_select.jpg{{/if}}" />
+    {{for start=0 end=listquantity itemVar="~qcount" ~cardid=cardid ~printing=printing ~printingprimary=printingprimary ~listprinting=listprinting}} 
+    <img style="position: relative; margin-top: -185px" src="https://images.oracleofthevoid.com/{{:~database}}/{{if ~datarequest.checkset}}{{for ~printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:printimagehash[0]}}{{/if}}{{/for}}/printing_{{:~cardid}}_{{for ~printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:printingid}}{{/if}}{{/for}}_select.jpg{{else}}{{printingfromid ~listprinting?~listprinting:~printingprimary ~printing "printimagehash" /}}/printing_{{:~cardid}}_{{:~listprinting?~listprinting:~printingprimary}}_select.jpg{{/if}}" />
     {{/for}}
   </div>
 </a>
