@@ -1,3 +1,4 @@
+{{if cardid==0}}{{if decktitle}}<div class="listhead">{{:title}}</div>{{/if}}{{else}}
 <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
   <div style="display: inline-flex; flex-direction: column; padding-top: 190px">
     <!-- qty: {{:listquantity}} -->
@@ -6,3 +7,4 @@
     {{/for}}
   </div>
 </a>
+{{/if}}

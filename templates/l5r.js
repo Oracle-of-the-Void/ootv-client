@@ -46,11 +46,11 @@ headerize['l5r'] = {
 	listdata.forEach(function(c) {
 	    if(c.deck.join() != lastdeck) {
 		lastdeck = c.deck.join();
-		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+") ["+countdeck[lastdeck]+" distinct]"});
+		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+") ["+countdeck[lastdeck]+" distinct]", decktitle: true});
 	    }
 	    if(c.type.join() != lasttype) {
 		lasttype = c.type.join();
-		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+") ["+counttype[lasttype]+" distinct]"});
+		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+") ["+counttype[lasttype]+" distinct]", typetitle: true});
 	    }
 	    listout.push(c);
 	});
@@ -164,7 +164,8 @@ templates['l5r'] = {
 	    'longname': 'Visual Deck',
 	    'shortname': 'Deck',
 	    'places': [ 'list' ],
-	    'generic': true
+	    'generic': true,
+	    'headerizable': true
 	},
 	'visual-premium': { 
 	    'longname': 'Visual Spoiler - Large',

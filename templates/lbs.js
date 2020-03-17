@@ -43,11 +43,11 @@ headerize['lbs'] = {
 	listdata.forEach(function(c) {
 	    if(c.deck.join() != lastdeck) {
 		lastdeck = c.deck.join();
-		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+")"});
+		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+")", decktitle: true});
 	    }
 	    if(c.type.join() != lasttype) {
 		lasttype = c.type.join();
-		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+")"});
+		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+")", typetitle: true});
 	    }
 	    listout.push(c);
 	});
@@ -131,7 +131,8 @@ templates['lbs'] = {
 	    'longname': 'Visual Deck',
 	    'shortname': 'Deck',
 	    'places': [ 'list' ],
-	    'generic': true
+	    'generic': true,
+	    'headerizable': true
 	},
 	'visual-premium': { 
 	    'longname': 'Visual Spoiler - Large',
