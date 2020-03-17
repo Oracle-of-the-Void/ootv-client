@@ -855,7 +855,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database
 	    });
-	    var data = new Blob([text],{type: 'text/plain'});
+	    var data = new Blob([text.replace(/\n/g, "\r\n")],{type: 'text/plain'});
 	    var url = window.URL.createObjectURL(data);
 	    const a = document.createElement('a');
 	    a.style.display = 'none';
