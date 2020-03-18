@@ -192,7 +192,7 @@ templates['l5r'] = {
 	    'generic':true
 	},
 	'pdf': {
-	    'longname': 'PDF',
+	    'longname': 'PDF Print-n-Play',
 	    'shortname': 'PDF',
 	    'places': [ ],
 	    'generic':true
