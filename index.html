@@ -18,7 +18,7 @@
   <script src="templates/lbs.js"></script>
   <script src="pdfkit.min.js" defer></script>
   <script src="blob-stream.min.js" defer></script>
-  
+
 <!--  <link href="https://www.jsviews.com/samples/samples.css" rel="stylesheet" /> -->
 <link rel="stylesheet" href="https://unpkg.com/balloon-css/balloon.min.css">
   <LINK href="oracle.css" rel="stylesheet" type="text/css" />
@@ -32,10 +32,12 @@
   <!-- <img src="res/logo-inline.png"> -->
   <nav role="navigation">
     <ul>
-      <li><img src="res/hamburger-25.png">
+      <li class="dropdown menuone"><svg class="feather"><use xlink:href="res/feather-sprite.svg#menu"></svg>
 	<ul>
-	  <li>..</li>
-	  <li>Settings/whatnot here</li>
+	  <li><span onclick="localStorage.clear(); window.location = window.location.href.substr(0, window.location.href.indexOf('#'));" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
+    <!-- TODO: make this reload a little more friendly with push/pop history state -->
+    <!--	  <li>Settings/whatnot here</li> -->
+
 <!--	  <li><a href="." onclick="cache_session('database','l5r');">Legend of the Five Rings</a></li>
 	  <li><a href="." onclick="cache_session('database','lbs');">Legend of the Burning Sands</a></li> -->
 	</ul>
@@ -223,7 +225,7 @@ Consider donating to the Oracle's Patreon to support the effort:<br>
 <br><br>
 Report issues or request new features on Github issues:<br>
 <a href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new">
-<img src="https://avatars2.githubusercontent.com/u/61508750?s=200&v=4" width="150px"> 
+<img src="https://avatars2.githubusercontent.com/u/61508750?s=200&v=4" width="150px">
 </a>
 <br><br>
 Youtube channel with some help videos!<br>
@@ -231,7 +233,7 @@ Youtube channel with some help videos!<br>
   <img src="res/social-youtube.jpg" width="300px"> </a>
 <br><br>
 </div>
-</div> 
+</div>
 </div><!-- resultabout   -->
 
 <div class="resulthelp" id="resulthelp">
@@ -434,4 +436,3 @@ printingprimary
 
 </body>
 </html>
-

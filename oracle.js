@@ -1,7 +1,7 @@
 //TODO
 // TODO: selectable change operations on text:   regexp/match/etc
 // TODO: loading symbol on fetchcard (since it's ajax)
-// TODO: active card name in dipslay ( like results returned) 
+// TODO: active card name in dipslay ( like results returned)
 // TODO: # cards in list in display (like numresults)
 
 //  See:  oracle.api for api documentation currently
@@ -60,7 +60,7 @@ function escapequotes(str) {
     return str.replace('"','&quot;');
 }
 $.views.converters("addslashes",addslashes);
-    
+
 var apiuri = "https://api.oracleofthevoid.com";
 // https://sweve5sd4d.execute-api.us-east-1.amazonaws.com
 var searchcache = {};
@@ -102,9 +102,10 @@ var refreshauthvar;
 var dbinfo = {};
 var searchsorts = {'':{}};
 searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
-//	'random': 'Random' 
+//	'random': 'Random'
 searchsorts[database] = searchsorts[''];
 var activelists = [];
+var savetimeout = '';
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
@@ -143,16 +144,16 @@ function logincallback(session) {
 }
 function initCognitoSDK() {
     var authData = {
-	ClientId : '2l3lsebipenkm36upk6e02uh7n', 
-	AppWebDomain : 'login.oracleofthevoid.com', 
-	TokenScopesArray : ['openid','email','profile'], 
+	ClientId : '2l3lsebipenkm36upk6e02uh7n',
+	AppWebDomain : 'login.oracleofthevoid.com',
+	TokenScopesArray : ['openid','email','profile'],
 	RedirectUriSignIn : location.protocol + '//' + location.host + location.pathname,
 	RedirectUriSignOut : location.protocol + '//' + location.host + location.pathname,
-	UserPoolId : 'us-east-1_aIvSiSZy5', 
+	UserPoolId : 'us-east-1_aIvSiSZy5',
 	AdvancedSecurityDataCollectionFlag : false
     };
     var auth = new AmazonCognitoIdentity.CognitoAuth(authData);
-    // You can also set state parameter     // auth.setState(<state parameter>);  
+    // You can also set state parameter     // auth.setState(<state parameter>);
     auth.userhandler = {
 	onSuccess: function(result) {
 	    logincallback(result);
@@ -213,7 +214,7 @@ function getuid() {
 }
 
 //**********************88     LIST STUFFF ****************
-// TODO: cache this better...  
+// TODO: cache this better...
 function listinfo(listid=null,switchview=true,listoutput=null) {
     console.log(["listinfo",listid,switchview,listoutput]);
     if(listid && cache_thing("list",listid) != null) {
@@ -223,7 +224,7 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
     } else {
 	$.ajax({
 	    type: 'GET',
-	    url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""), 
+	    url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
 	    contentType: 'application/json',
 	    dataType: 'json',
 	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -258,7 +259,7 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 	    },
 	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
 	});
-    } 
+    }
 }
 function listinfoupdate(listid,field,value) {
     // valid fields:
@@ -296,8 +297,8 @@ function listinfoupdate(listid,field,value) {
 	    console.log(status);
 	}
     });
-} 
-   
+}
+
 function listinfocallback() {
     cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
     listertemplate = $.templates("#template-lists");
@@ -324,21 +325,21 @@ function toggleheaders() {
     } else {
 	$(".toggleheaderson").show();
 	$(".toggleheadersoff").hide();
-    }	
+    }
     outputheaders = !outputheaders;
 }
 
 // ***********************  list edits **************
 function renderlisteditarea() {
     if(activelists.length < 1) {
-	$("#deckarea").html(Object.keys(updatepending).length >0 ? '<div class="randarea"><span style="background-color:red;">Updates Pending</span></div>' :'');
+	$("#deckarea").html(Object.keys(updatepending).length >0 ? '<div class="randarea"><span style="background-color:red;" onclick="savecallback();">Updates Pending</span></div>' :'');
     } else {
 	listactivetemplate = $.templates("#template-listactive");
 	$("#deckarea").html(
 	    '<div class="randarea">Active Lists:<br />'+
-		(Object.keys(updatepending).length >0 ? '<span style="background-color:red;">Updates Pending</span>' :'')+
-		listactivetemplate.render(activelists.map(function(listid) { 
-		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+		(Object.keys(updatepending).length >0 ? '<span style="background-color:red;" onclick="savecallback();">Updates Pending</span>' :'')+
+		listactivetemplate.render(activelists.map(function(listid) {
+		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
 		    if(cache_thing("list",listid)) {
 			list.listdata = cache_thing("list",listid);
 		    }
@@ -374,10 +375,10 @@ function deactivatelist(listid) {
 function newlist(json=null) {
     /*
     Create new list.   json example:
-    { 
+    {
     "name": "new list name",  // default: "New List"
     "list": [ { cardid: 6974, printing: 0, quantity: 3 },   // default: empty list
-              { cardid:  123, printing: 2, quanity: 1} 
+              { cardid:  123, printing: 2, quanity: 1}
 	      ],
     "public": true, // default false
     "type": "collection"   // default 'deck'
@@ -388,7 +389,7 @@ function newlist(json=null) {
     */
     $.ajax({
 	type: 'GET',
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?encodeURIComponent(JSON.stringify(json)):''), 
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?encodeURIComponent(JSON.stringify(json)):''),
 	contentType: 'application/json',
 	dataType: 'json',
 	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -408,7 +409,7 @@ function removelist(listid) {
     if(confirm("Really remove list: "+listid+"?")) {
 	$.ajax({
 	    type: 'GET',
-	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=remove", 
+	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=remove",
 	    contentType: 'application/json',
 	    dataType: 'json',
 	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -429,11 +430,13 @@ function removelist(listid) {
 }
 
 function savecallback() {
+    console.log("Saving....");
     for(listid in updatepending) {
-	listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
-	delete updatepending[listid];
+	      listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
+	      delete updatepending[listid];
     }
     renderlisteditarea(); // update card counts
+    clearTimeout(savetimeout);
 }
 
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
@@ -460,9 +463,9 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     },0);
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
-    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false); 
+    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
     if(Object.keys(updatepending).length < 1) {
-	setTimeout(savecallback,60*1000);
+	      savetimeout = setTimeout(savecallback,60*1000);
     }
     updatepending[listid]=1;
     renderlisteditarea(); // update card counts
@@ -483,16 +486,16 @@ function importlisttrigger() {
 	// Your server script to process the upload
 	url: 'https://api.oracleofthevoid.com/import',
 	type: 'POST',
-	
+
 	// Form data
 	data: new FormData($('#importform')[0]),
-	
+
 	// Tell jQuery not to process data or worry about content-type
 	// You *must* include these options!
 	cache: false,
 	contentType: false,
 	processData: false,
-	
+
 	// Custom XMLHttpRequest
 	xhr: function () {
 	    var myXhr = $.ajaxSettings.xhr();
@@ -509,7 +512,7 @@ function importlisttrigger() {
 	    }
 	    return myXhr;
 	},
-	
+
 	success: function(data) {
 	    console.log("success");
 	    console.log(data);
@@ -526,7 +529,7 @@ function importlisttrigger() {
 	    $("#importprogress").hide();
 	    $("#importstatus").html('<div class="error">Error</div><br /><br />'+data);
 	}
-	
+
   });
 }
 
@@ -574,7 +577,7 @@ function listprefetch(listids,callback=null) {
 	  }
     },
     error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
-  });    
+  });
 }
 
 function imagehashtourl(card) {
@@ -601,7 +604,7 @@ function updateselect(select) {
     $.ajax({
 	type: 'POST',
 	url: apiuri+"/attributes",
-	data: {   
+	data: {
 	    table: database,
 	    lookup: select
 	},
@@ -628,7 +631,7 @@ function updateselectmulti(one,two) {
     $.ajax({
 	type: 'POST',
 	url: apiuri+"/attributes",
-	data: {   
+	data: {
 	    table: database,
 	    lookup: one+":"+two
 	},
@@ -691,7 +694,7 @@ function dosearch(from=0,forcedata=false) {
 	return;
     }
     console.log(from);
-    var datarequest = {}; 
+    var datarequest = {};
     $.each($('#searchform').serializeArray(), function (i, field) {
 	if(datarequest[field.name]) {
 	    if(!Array.isArray(datarequest[field.name])) {
@@ -739,7 +742,7 @@ function dosearch(from=0,forcedata=false) {
 	    $("#resultsearch").html(searcherror['loading']);
 	    showsearch();
 	}
-	
+
 	console.log('not cached locally: '+qs+' :: '+from);
 
 	// coming into here, we need these things set:
@@ -788,7 +791,7 @@ function dosearch(from=0,forcedata=false) {
 	    }
 	});
     }
-	
+
     return false;
 }
 
@@ -821,13 +824,13 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     //console.log(listdata);
     console.log("sorting with: "+sort);
     listdata.sort(databasesort[database][sort] != undefined?databasesort[database][sort]:
-		  function(a,b){ 
+		  function(a,b){
 		      var x = a.title[0].toLowerCase();
 		      var y = b.title[0].toLowerCase();
 		      if (x < y) {return -1;}
 		      if (x > y) {return 1;}
 		      return 0;
-		  });   
+		  });
     console.log(listdata);
     var listswitch = listoutput ? listoutput.split(",")[0] : listoutput;
     switch(listswitch) {
@@ -874,7 +877,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		}
 	    });
 	}
-    } 
+    }
 }
 
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
@@ -987,8 +990,8 @@ function docard(carddata,prid=null,qs=null,pop=false) {
     var html = getactivetemplate('card').render(carddata,{
 	"labels": labels[database],
 	"qs": qs,
-	"activelists": activelists.map(function(listid) { 
-	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+	"activelists": activelists.map(function(listid) {
+	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
 	    if(cache_thing("list",listid)) {
 		list.listdata = cache_thing("list",listid);
 	    }
@@ -1011,36 +1014,36 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 }
 
 // Populate loads qs data back into the form for searching on
-function populate(frm, data) {   
-    $.each(data, function(key, value) {  
-        var ctrl = $('[name='+key+']', frm);  
-        switch(ctrl.prop("type")) { 
-            case "radio": case "checkbox":   
+function populate(frm, data) {
+    $.each(data, function(key, value) {
+        var ctrl = $('[name='+key+']', frm);
+        switch(ctrl.prop("type")) {
+            case "radio": case "checkbox":
                 ctrl.each(function() {
                     if($(this).attr('value') == value) $(this).attr("checked",value);
-                });   
-                break;  
+                });
+                break;
             default:
-                ctrl.val(value); 
-        }  
-    });  
+                ctrl.val(value);
+        }
+    });
 }
 
 function rendercards(data,request,querystring) {
 //    return searchtemplate[database].render(data,{"labels": labels[database], "datarequest": request, "qs": querystring});
-/*    console.log(activelists.map(function(listid) { 
-	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+/*    console.log(activelists.map(function(listid) {
+	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
 	    if(cache_thing("list",listid)) {
 		list.listdata = cache_thing("list",listid);
 	    }
 	    return list;
 	})); */
     return getactivetemplate('search').render(data,{
-	"labels": labels[database], 
-	"datarequest": request, 
+	"labels": labels[database],
+	"datarequest": request,
 	"qs": querystring,
-	"activelists":activelists.map(function(listid) { 
-	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];  
+	"activelists":activelists.map(function(listid) {
+	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
 	    if(cache_thing("list",listid)) {
 		list.listdata = cache_thing("list",listid);
 	    }
@@ -1274,17 +1277,17 @@ $(document).ready(function(){
     $('#tabs a').click(function(e) {
         e.preventDefault();
         if ($(this).closest("li").attr("id") == "current"){ //detection for current tab
-         return;       
+         return;
         }
-        else{             
+        else{
 	    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
             $("#tabs li").attr("id",""); //Reset id's
             $(this).parent().attr("id","current"); // Activate this
             $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
         }
     });
-    
-    //TODO:  put some stuff in here into functions.   make sure order optimized.  
+
+    //TODO:  put some stuff in here into functions.   make sure order optimized.
     searchcache[database] = {
 	'data': {},    'querydata': {},    'querytotal': {}
     };
@@ -1296,7 +1299,7 @@ $(document).ready(function(){
 	if(typeof searchables[database][field] === "object") {
 	    if(searchables[database][field].type == "select") {
 		var sort = [{}];
-		// TODO:   ASC / DESC - if selected when selected, just replace asc with desc... maybe do it inside dosearch on demand if desc is set?   
+		// TODO:   ASC / DESC - if selected when selected, just replace asc with desc... maybe do it inside dosearch on demand if desc is set?
 		// TODO: up/down arrow on ASC / DESC
 		sort[0][field.replace("printing.","printing")+'.keyword'] = {"order": "asc"};
 		searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
@@ -1309,7 +1312,7 @@ $(document).ready(function(){
 	}
     }
 
-    // TODO: check for premium 
+    // TODO: check for premium
     $.each(templates[database]['available'],function(key,val) {
 	console.log("initiating template load: "+key);
 	$.ajax({
@@ -1318,7 +1321,7 @@ $(document).ready(function(){
 	    datatype: 'text',
 	    cache: true,
 	    success: function(contents) {
-		$("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>'); 
+		$("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
 		templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
 		for (k of ['search','card','list']) {
 		    if(key == templates[database]['default'][k]) {
@@ -1336,7 +1339,7 @@ $(document).ready(function(){
 	    }
 	});
     });
-    
+
 
     // Load selects
     $('#searchmiddle').html(searcherror['searchmiddle']);
@@ -1363,7 +1366,7 @@ $(document).ready(function(){
     $('.gameinfo-game').html(dbinfo[database].name);
     $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
     $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
-    
+
     urlparser();
     for (var k in dbinfo) {
 	addgametolist(k);
@@ -1401,7 +1404,7 @@ $(window).on('popstate', function (e) {
 	} else if(state.qs !== undefined) {
 	    showsearch();
 	} else if(state.search !== undefined) {
-	    
+
 	} else {
 	    showcard();
 	}
@@ -1410,7 +1413,7 @@ $(window).on('popstate', function (e) {
     } else {
 	showsearch();
     }
-}); 
+});
 
 // Keyboard navigation inside a list of cards
 $(document).on('keydown', function ( e ) {
@@ -1470,7 +1473,7 @@ function urlparser() {
 	dosearch(0,fdata);
 	// TODO this needs to update search and the form.
     } else {
-/*	$(window).on('beforeunload', function(e){ 
+/*	$(window).on('beforeunload', function(e){
 	    return 'Are you sure you want to leave?';
 	});    */
     }
@@ -1511,8 +1514,8 @@ function initializeform(db) {
     });
     $('#searchmiddle').html(fdata.join("\n"));
     $('#searchmiddle').append('<input type="hidden" name="selectsloaded" id="selectsloaded" value="1">');
-    while (populatecallback.length){ 
-	populatecallback.shift().call(); 
+    while (populatecallback.length){
+	populatecallback.shift().call();
     }
     $('dd.advanced').hide();
     $('dt.advanced').hide();
@@ -1607,10 +1610,10 @@ function htmlDecode(value){
 
 // parse html into json structure
 function uri2json(uri) {
-    return uri.split('&').map(function(i) { 
+    return uri.split('&').map(function(i) {
 	return i.split('=');
-    }).reduce(function(memo, i) { 
-	memo[i[0]] = i[1] == '' ? '' : (i[1] == +i[1] ? parseFloat(i[1],10) : decodeURIComponent(i[1])); 
+    }).reduce(function(memo, i) {
+	memo[i[0]] = i[1] == '' ? '' : (i[1] == +i[1] ? parseFloat(i[1],10) : decodeURIComponent(i[1]));
 	return memo;
     }, {});
 }
@@ -1676,7 +1679,7 @@ function sidebaropener() {
 }
 
 //TDOO;  maybe ex should go back to search period - maybe scrolling through cards in search should do replacestate
-//TODO:  going back to top level should clear search. 
+//TODO:  going back to top level should clear search.
 //TODO: button to reset/clear search  (escape as a keystroke as well?)
 //TODO:  better right/left buttons
 //TODO: right after a search, if right arrow is hit before any other keystroke, open first card in the list
@@ -1762,7 +1765,7 @@ function modal(title,content) {
 function erasemodal() {
     $('#modal-content').html('');
     $('#modal-title').html('');
-}    
+}
 
 function nomodal() {
     $('#modal').css('display','none');
@@ -1772,4 +1775,3 @@ function generalnomodal(div,event) {
 	nomodal();
     }
 }
-
