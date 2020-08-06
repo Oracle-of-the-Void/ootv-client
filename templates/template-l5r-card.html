@@ -21,8 +21,8 @@
        <dt>{{:~labels.shortforce}}/{{:~labels.shortchi}}</dt><dd><span class="iconic force">{{:force}}</span> <span class="iconic chi">{{:chi}}</span></dd>
      {{/if}}
 
-     {{if hr || personalhonor}}
-       <dt>{{:~labels.shorthr}}/{{:~labels.shortcost}}/{{:~labels.shortpersonalhonor}}</dt><dd><span class="smiconic smhr">{{:honor}}</span> <span class="smiconic smgc">{{:cost}}</span> <span class="smiconic smph">{{:personalhonor}}</span></dd>
+     {{if honor || ph}}
+       <dt>{{:~labels.shorthonor}}/{{:~labels.shortcost}}/{{:~labels.shortph}}</dt><dd><span class="smiconic smhr">{{:honor}}</span> <span class="smiconic smgc">{{:cost}}</span> <span class="smiconic smph">{{:ph}}</span></dd>
      {{else}}
         {{if cost}}
           <dt>{{:~labels.shortcost}}</dt><dd><span class="smiconic smgc">{{:cost}}</span></dd>
