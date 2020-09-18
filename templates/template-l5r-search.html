@@ -1,13 +1,14 @@
 <!-- TODO:    searching with set selected but no rarity breaks image output - took out rarity.. now if there were two cards from a set it will break - need to fix, not as crit
   TODO: better way to get image info... related to previous TODO
   TODO: pass onclick info into here from oracle.js to make this pure display logic
+  TODO:     when displayed as details as part of a list, not doing version completely
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{if ~datarequest.field_printing_set}}{{imagefromset ~datarequest.field_printing_set printing /}}select.jpg{{else}}{{:icon}}{{/if}}" /></a><br />
+       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
   </div>
   <div class="listbody">
-  <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{printingfromid printingprimary printing "set" /}} &#149; {{printingfromid printingprimary printing "rarity" /}}</span></div>
+    <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
 
        {{for printing ~cardid=cardid}}
           <a class="printinglink gray button buttonsmaller" href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
@@ -26,7 +27,7 @@
 
       {{if ~datarequest.field_printing_set && ~activelists.length>0}}
       <div>
-      {{setfromset ~datarequest.field_printing_set printing /}}<br />
+      {{setfromset ~datarequest.field_printing_set printing /}}<br />  {{!-- TODO:  fetchfull should replace this i'd think   --}}
         {{for ~activelists ~cardid=cardid ~printing=printing}}
           {{:name}}
           <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>

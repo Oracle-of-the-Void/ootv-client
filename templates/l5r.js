@@ -155,11 +155,17 @@ templateload['l5r'] = {
 */
 templates['l5r'] = {
     'available': {
-	'search': { 
-	    'longname': 'Detailed Search',
-	    'shortname': 'Detail',
-	    'places': [ 'search','list' ]
-	},
+	      'search': { 
+	          'longname': 'Detailed Search',
+	          'shortname': 'Detail',
+	          'places': [ 'search','list' ]
+	      },
+        'debug': {
+            'longname': 'Debug(ignore)',
+            'shortname': 'Debug(ignore)',
+            'places': [ 'search','list','card' ],
+            'generic': true
+        },
 	'visual': { 
 	    'longname': 'Visual Spoiler',
 	    'shortname': 'Visual',

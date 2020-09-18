@@ -1,2 +1,2 @@
 {{for start=0 end=listquantity ~printing=printing ~printingprimary=printingprimary ~listprinting=listprinting}}
-{{if ~listprinting>0}}{{printingfromid ~listprinting ~printing "printimage" /}}_details.jpg{{else}}{{printingfromid ~printingprimary ~printing "printimage" /}}_details.jpg{{/if}}{{/for}}
+{{!-- {{if ~listprinting>0}}{{printingfromid ~listprinting ~printing "printimage" /}}_details.jpg{{else}}{{printingfromid ~printingprimary ~printing "printimage" /}}_details.jpg{{/if}} --}}{{fetchimage #parent.parent.data "details" ~listprinting?~listprinting:false ~datarequest /}}{{/for}}

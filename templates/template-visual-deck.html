@@ -3,7 +3,7 @@
   <div style="display: inline-flex; flex-direction: column; padding-top: 190px">
     <!-- qty: {{:listquantity}} -->
     {{for start=0 end=listquantity itemVar="~qcount" ~cardid=cardid ~printing=printing ~printingprimary=printingprimary ~listprinting=listprinting}} 
-    <img style="position: relative; margin-top: -185px" src="https://images.oracleofthevoid.com/{{:~database}}/{{if ~datarequest.checkset}}{{for ~printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:printimagehash[0]}}{{/if}}{{/for}}/printing_{{:~cardid}}_{{for ~printing}}{{if set==~datarequest.checkset && rarity==~datarequest.checkrarity}}{{:printingid}}{{/if}}{{/for}}_select.jpg{{else}}{{printingfromid ~listprinting?~listprinting:~printingprimary ~printing "printimagehash" /}}/printing_{{:~cardid}}_{{:~listprinting?~listprinting:~printingprimary}}_select.jpg{{/if}}" />
+    <img style="position: relative; margin-top: -185px" src="{{fetchimage #parent.parent.data "select" ~listprinting?~listprinting:false ~datarequest /}}" />
     {{/for}}
   </div>
 </a>

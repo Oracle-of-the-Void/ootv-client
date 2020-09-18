@@ -1,2 +1,2 @@
-{{if cardid==0}}{{if #getIndex() > 0}}
+{{if cardid==0}}{{if #getIndex() > 0}}{{!-- TODO:   not displaying versions quite right --}}
 {{/if}}# {{if title}}{{:title}}{{else}}{{:subtitle}}{{/if}}{{else}}{{if listquantity}}{{:listquantity}}{{/if}} {{:puretexttitle?puretexttitle:title}} {{if listprinting}}({{printingfromid listprinting printing "set" /}}){{else}}{{/if}}{{/if}}
