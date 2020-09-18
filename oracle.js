@@ -1221,6 +1221,10 @@ function templatefetchimage(card,size,id=false,datarequest={}) {
                     if(datarequest["field_printing_"+att] in card.printingreverse[att]) {
                         pr = card.printingreverse[att][datarequest["field_printing_"+att]];
                     }
+                } else if("field_"+att in datarequest) {
+                    if(datarequest["field_"+att] in card.printingreverse[att]) {
+                        pr = card.printingreverse[att][datarequest["field_"+att]];
+                    }
                 }
             }
         }

@@ -125,12 +125,6 @@ templates['lbs'] = {
 	    'shortname': 'Detail',
 	    'places': [ 'search','list' ]
 	},
-        'visualnew': {
-            'longname': 'NEW Visual Spoiler',
-            'shortname': 'NEW Visual',
-            'places': [ 'search','list' ],
-            'generic': true
-        },
 	'visual': { 
 	    'longname': 'Visual Spoiler',
 	    'shortname': 'Visual',
