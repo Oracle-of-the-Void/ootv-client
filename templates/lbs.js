@@ -60,8 +60,12 @@ searchables['lbs'] = {
     "title": { "type": "text" },
     "text": { "type": "text" },
     "printing.set": { "sub": "printing.rarity",
-			  "type": "select" },
-    "printing.rarity": { "type": "select" },
+			                "type": "select",
+                      "reverse": true
+                    },
+    "printing.rarity": { "type": "select",
+                         "reverse": true
+                       },
     "type": { "type": "select" },
 //    "keywords": { "type": "keyword" },
 //    "clan": { "type": "select" },

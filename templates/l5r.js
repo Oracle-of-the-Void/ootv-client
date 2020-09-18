@@ -62,8 +62,12 @@ searchables['l5r'] = {
     "quick": true,
     "title": { "type": "text" },
     "printing.set": { "sub": "printing.rarity",
-			  "type": "select" },
-    "printing.rarity": { "type": "select" },
+			                "type": "select",
+                      "reverse": true
+                    },
+    "printing.rarity": { "type": "select",
+                         "reverse": true
+                       },
     "type": { "type": "select" },
     "keywords": { "type": "keyword" },
     "text": { "type": "text" },
@@ -93,7 +97,9 @@ searchables['l5r'] = {
     "story": { "type": "text",
 	       "advanced": true },
     "artist": { "type": "text",
-	       "advanced": true },
+	              "advanced": true,
+                "reverse": true
+              },
     "notes": { "type": "text",
 	       "advanced": true },
     "number": { "type": "numeric" ,

@@ -606,19 +606,15 @@ function imagehashtourl(card) {
     }
     for(seakey in searchables[database]) {
         sea = searchables[database][seakey];
-        if((typeof sea === 'object') && ('type' in sea)) {
-            switch(sea.type) {
-            case 'select':
-            case 'numeric':
-                card.printingreverse[seakey.replace("printing.","")] = {};
-                for(var p = 0; p < card.printing.length; p++) {
-                    if(seakey.replace("printing.","") in card.printing[p]) {
-                        card.printingreverse[seakey.replace("printing.","")][card.printing[p][seakey.replace("printing.","")][0]] = p;
-                    }
+        if((typeof sea === 'object') && ('reverse' in sea)) {
+            card.printingreverse[seakey.replace("printing.","")] = {};
+            for(var p = 0; p < card.printing.length; p++) {
+                if(seakey.replace("printing.","") in card.printing[p]) {
+                    card.printingreverse[seakey.replace("printing.","")][card.printing[p][seakey.replace("printing.","")][0]] = p;
                 }
-                if(jQuery.isEmptyObject(card.printingreverse[seakey.replace("printing.","")])) {
-                    delete card.printingreverse[seakey.replace("printing.","")];
-                }
+            }
+            if(jQuery.isEmptyObject(card.printingreverse[seakey.replace("printing.","")])) {
+                delete card.printingreverse[seakey.replace("printing.","")];
             }
         }
     }
