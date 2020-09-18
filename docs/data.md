@@ -7,6 +7,7 @@
 * type (not technically required, but use this label if you can)
 * printingprimary (required)
 * imagehash (this might be deprecated.... need to set up a new game without it - will save a lot of objects)
+  * use new method below if no imagehash
 
 ### printing  (nested)
 
@@ -14,6 +15,17 @@
 * printing.rarity (not sure if technically required, strongly recommended)
 * printing.imagehash (required)
 * printing.printingid (required)
+* NEW: image: hash of images:
+ * ```json
+{icon: filename,
+ select: filename,
+ details: filename
+ master: filename,
+ original: filename (optional),
+ numeric: filename (optional sizing)
+}
+```
+  * new method is simpler.   just gameurlbase+imagehash+images[size]
 
 ### optional
 

@@ -12,6 +12,7 @@ $.views.tags("imagehashfromset",templateimagehashfromset);
 $.views.tags("imagefromset",templateimagefromset);
 $.views.tags("setfromset",templatesetfromset);
 $.views.tags("printingfromid",templateprintingfromid);
+$.views.tags("fetchimage",templatefetchimage);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -106,6 +107,7 @@ searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 searchsorts[database] = searchsorts[''];
 var activelists = [];
 var savetimeout = '';
+var missingimage = '/res/missing-stamp.png';
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
@@ -582,20 +584,44 @@ function listprefetch(listids,callback=null) {
 
 function imagehashtourl(card) {
     //dbinfo[database].imageuri +
-    card.icon = dbinfo[database].imageuri + card.imagehash+'/card_'+card.cardid+'__icon.jpg';
-    card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
-    for(var p = 0; p < card.printing.length; p++) {
-	card.printing[p].images = [];
-	if(card.printing[p].printimagehash) {
-	    for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
-		card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/printing_'+card.cardid+'_'+
-		    card.printing[p].printingid+'_'; // then you add details, etc
-	    }
-	} else {
-	    console.log("Card missing a printimagehash: "+JSON.stringify(card));
-	}
+    if(card.imagehash) {
+        card.icon = dbinfo[database].imageuri + card.imagehash+'/card_'+card.cardid+'__icon.jpg';
+        card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
+        for(var p = 0; p < card.printing.length; p++) {
+	          card.printing[p].images = [];
+	          if(card.printing[p].printimagehash) {
+	              for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
+		                card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/printing_'+card.cardid+'_'+
+		                    card.printing[p].printingid+'_'; // then you add details, etc
+	              }
+	          } else {
+	              console.log("Card missing a printimagehash: "+JSON.stringify(card));
+	          }
+        }
+        //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
     }
-    //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
+    card.printingreverse = {printingid: {}};
+    for(var p = 0; p < card.printing.length; p++) {
+        card.printingreverse.printingid[card.printing[p].printingid] = p;
+    }
+    for(seakey in searchables[database]) {
+        sea = searchables[database][seakey];
+        if((typeof sea === 'object') && ('type' in sea)) {
+            switch(sea.type) {
+            case 'select':
+            case 'numeric':
+                card.printingreverse[seakey.replace("printing.","")] = {};
+                for(var p = 0; p < card.printing.length; p++) {
+                    if(seakey.replace("printing.","") in card.printing[p]) {
+                        card.printingreverse[seakey.replace("printing.","")][card.printing[p][seakey.replace("printing.","")][0]] = p;
+                    }
+                }
+                if(jQuery.isEmptyObject(card.printingreverse[seakey.replace("printing.","")])) {
+                    delete card.printingreverse[seakey.replace("printing.","")];
+                }
+            }
+        }
+    }
     return card;
 }
 
@@ -1186,6 +1212,32 @@ function templateprintingfromid(id,hashes,data,noarray=true) {
 	ret = ret[0];
     }
     return ret;
+}
+function templatefetchimage(card,size,id=false,datarequest={}) {
+    //console.log([card,size,id,datarequest]);
+    pr = card.printingreverse.printingid[card.printingprimary];
+    if(id) {
+        pr = card.printingreverse.printingid[id];
+    } else {
+        if(typeof datarequest === 'object') {
+            for(att in card.printingreverse) {
+                if("field_printing_"+att in datarequest) {
+                    if(datarequest["field_printing_"+att] in card.printingreverse[att]) {
+                        pr = card.printingreverse[att][datarequest["field_printing_"+att]];
+                    }
+                }
+            }
+        }
+    }
+    prdata = card.printing[pr];
+    if("image" in prdata) {
+        //dbinfo[database].imageuri + hash + image
+        return "yes we got one.. bleh";
+    } else if("images" in prdata) {
+        return prdata.images[0]+size+'.jpg';
+    } else {
+        return missingimage;
+    }
 }
 
 function activatetemplate(type,template) {
