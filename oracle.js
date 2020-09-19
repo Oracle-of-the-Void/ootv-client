@@ -13,6 +13,8 @@ $.views.tags("imagefromset",templateimagefromset);
 $.views.tags("setfromset",templatesetfromset);
 $.views.tags("printingfromid",templateprintingfromid);
 $.views.tags("fetchimage",templatefetchimage);
+$.views.tags("fetchdata",templatefetchdata);
+$.views.tags("fetchfull",templatefetch);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -107,7 +109,10 @@ searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 searchsorts[database] = searchsorts[''];
 var activelists = [];
 var savetimeout = '';
-var missingimage = '/res/missing-stamp.png';
+var missingimage = {"select": '/res/missing-stamp-rot150.png',
+                    "details": '/res/missing-stamp-rot150.png',
+                    "master": '/res/missing-stamp-rot150.png'
+                   };
 
 // *************************     AUTHENTICATION   *******************************
 function dologin() {
@@ -1209,35 +1214,52 @@ function templateprintingfromid(id,hashes,data,noarray=true) {
     }
     return ret;
 }
-function templatefetchimage(card,size,id=false,datarequest={}) {
-    //console.log([card,size,id,datarequest]);
+function templatefetch(card,id=false,datarequest={}) {
     pr = card.printingreverse.printingid[card.printingprimary];
     if(id) {
         pr = card.printingreverse.printingid[id];
-    } else {
-        if(typeof datarequest === 'object') {
-            for(att in card.printingreverse) {
-                if("field_printing_"+att in datarequest) {
-                    if(datarequest["field_printing_"+att] in card.printingreverse[att]) {
-                        pr = card.printingreverse[att][datarequest["field_printing_"+att]];
-                    }
-                } else if("field_"+att in datarequest) {
-                    if(datarequest["field_"+att] in card.printingreverse[att]) {
-                        pr = card.printingreverse[att][datarequest["field_"+att]];
-                    }
+    } else if(('listprinting' in card) && card.listprinting>0) {
+        pr = card.printingreverse.printingid[card.listprinting];
+    } else if(typeof datarequest === 'object') {
+        for(att in card.printingreverse) {
+            if("field_printing_"+att in datarequest) {
+                if(datarequest["field_printing_"+att] in card.printingreverse[att]) {
+                    pr = card.printingreverse[att][datarequest["field_printing_"+att]];
+                }
+            } else if("field_"+att in datarequest) {
+                if(datarequest["field_"+att] in card.printingreverse[att]) {
+                    pr = card.printingreverse[att][datarequest["field_"+att]];
                 }
             }
         }
     }
-    prdata = card.printing[pr];
+    return card.printing[pr];
+}
+function templatefetchimage(card,size,id=false,datarequest={}) {
+    console.log([card,size,id,datarequest]);
+    prdata = templatefetch(card,id,datarequest);
     if("image" in prdata) {
         //dbinfo[database].imageuri + hash + image
-        return "yes we got one.. bleh";
+        if(size in prdata.image[0]) {
+            return dbinfo[database].imageuri + prdata.imagehash + "/"+ prdata.image[0][size];
+        } else {
+            if(size in missingimage) {
+                return missingimage[size];
+            } 
+            return missingimage[0];
+        }
     } else if("images" in prdata) {
         return prdata.images[0]+size+'.jpg';
     } else {
-        return missingimage;
+        if(size in missingimage) {
+            return missingimage[size];
+        } 
+        return missingimage[0];
     }
+}
+function templatefetchdata(card,data,id=false,datarequest={}) {
+    prdata = templatefetch(card,id,datarequest);
+    return prdata[data];
 }
 
 function activatetemplate(type,template) {

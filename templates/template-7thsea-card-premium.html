@@ -1,0 +1,94 @@
+<div class="listitem">
+  <div class="listimage">
+       {{for printing ~shorts=#data}}
+          <div class="printing" data-printingid="{{:printingid}}">
+            {{if image}}
+            {{for image ~imagehash=imagehash}}
+               <img src="https://images.oracleofthevoid.com/7thsea/{{:~imagehash}}/{{:master}}" /><br />
+            {{/for}}
+            {{else}}
+               <img src="/res/missing-stamp-rot288.png">
+            {{/if}}
+	  </div>
+       {{/for}}
+  </div>
+  <div class="listbody">
+  <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
+    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
+</div>
+    <dl>
+<!--      <dt>Index</dt><dd><a href="" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a> <a href="" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a> </dd> -->
+
+    <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
+    {{if type}}       <dt>{{:~labels.shorttype}}</dt><dd>{{:type}}</dd>  {{/if}}
+        {{if cost}} <dt>{{:~labels.shortcost}}/{{:~labels.shortcancel}}
+                  </dt><dd><span class="iconic 7siconic">{{:cost}} {{:costtype}}{{if cancel}} / {{:cancel}} {{:canceltype}}{{/if}}</span>
+        </dd> {{/if}}
+     {{if cannon || sailing || adventuring || influence || swashbuckling }}
+       <dt>{{:~labels.shortprod}}</dt><dd><span class="iconic 7siconic">{{:cannon}} {{:~labels.shortcannon}}</span> 
+                                          <span class="iconic 7siconic">{{:sailing}} {{:~labels.shortsailing}}</span>
+                                          <span class="iconic 7siconic">{{:adventuring}} {{:~labels.shortadventuring}}</span>
+                                          <span class="iconic 7siconic">{{:influence}} {{:~labels.shortinfluence}}</span>
+                                          <span class="iconic 7siconic">{{:swashbuckling}} {{:~labels.shortswashbuckling}}</span>
+      </dd>
+     {{/if}}
+
+     {{if movecost}} <dt>{{:~labels.shortmovecost}}</dt><dd><span class="iconic 7siconic">{{:movecost}}</span> </dd> {{/if}}
+     {{if startingwealth}} <dt>{{:~labels.shortstartingwealth}}</dt><dd><span class="iconic 7siconic">{{:startingwealth}}</span> </dd> {{/if}}
+
+     {{if attack}} <dt>{{:~labels.shortattack}}/{{:~labels.shortparry}}</dt><dd><span class="iconic 7siconic">{{:attack}}/{{:parry}}</span> </dd> {{/if}}
+
+    {{if faction}}       <dt>{{:~labels.shortfaction}}</dt><dd>{{:faction}}</dd>  {{/if}}
+    {{if affiliation}}       <dt>{{:~labels.shortaffiliation}}</dt><dd>{{:affiliation}}</dd>  {{/if}}
+
+    {{if trait}}       <dt>{{:~labels.shorttrait}}</dt><dd>{{:trait.join(" &#149; ")}}</dd>  {{/if}}
+    {{if tocomplete}}       <dt>{{:~labels.shorttocomplete}}</dt><dd>{{:tocomplete}}</dd>  {{/if}}
+    {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
+
+	 {{if errata}} <dt>{{:~labels.shorterrata}}</dt><dd>{{:errata}}</dd>  {{/if}}
+
+    {{if notes}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
+
+    <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>    {{for printing}}
+      <div class="printing" data-printingid="{{:printingid}}">
+        <hr>
+        {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
+        {{if rarity}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
+        {{if flavor}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
+        {{if artist}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
+        {{if cardnumber}}       <dt>{{:~labels.shortcardnumber}}</dt><dd>{{:cardnumber}}</dd>  {{/if}}
+        <hr>
+      </div>
+    {{/for}}
+    </dl>
+
+    {{if ~activelists.length > 0}}
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+      <br />
+      {{/for}}
+
+      {{for printing ~cardid=cardid}}
+      <div>
+      {{:set}}<br />
+        {{for ~activelists ~printingid=printingid}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/for}}    
+      </div>
+    {{/if}}
+
+    
+    </div>
+</div>
+<br clear="all" />
+

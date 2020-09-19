@@ -17,10 +17,10 @@
 * printing.printingid (required)
 * NEW: image: hash of images:
  * ```json
-{icon: filename,
- select: filename,
- details: filename
- master: filename,
+{
+ select: filename,    long side 210px  (other 150 or so)
+ details: filename    long side 600px  (other 288 or so)
+ master: filename,    no spec yet
  original: filename (optional),
  numeric: filename (optional sizing)
 }

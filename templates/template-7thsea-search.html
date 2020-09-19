@@ -1,0 +1,71 @@
+<!-- TODO:    searching with set selected but no rarity breaks image output - took out rarity.. now if there were two cards from a set it will break - need to fix, not as crit
+  TODO: better way to get image info... related to previous TODO
+  TODO: pass onclick info into here from oracle.js to make this pure display logic
+  TODO:     when displayed as details as part of a list, not doing version completely
+ -->
+<div class="listitem">
+  <div class="listimage">
+       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
+  </div>
+  <div class="listbody">
+    <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
+
+       {{for printing ~cardid=cardid}}
+          <a class="printinglink gray button buttonsmaller" href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
+	  {{/for}}
+
+     <br />
+
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+      <br />
+      {{/for}}
+
+      {{if ~datarequest.field_printing_set && ~activelists.length>0}}
+      <div>
+      {{setfromset ~datarequest.field_printing_set printing /}}<br />  {{!-- TODO:  fetchfull should replace this i'd think   --}}
+        {{for ~activelists ~cardid=cardid ~printing=printing}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/if}}    
+      </div>
+  
+
+     {{if type}} <dt>{{:~labels.shorttype}}</dt><dd><span class="iconic 7siconic">{{:type}}</span> </dd> {{/if}}
+
+        {{if cost}} <dt>{{:~labels.shortcost}}/{{:~labels.shortcancel}}
+                  </dt><dd><span class="iconic 7siconic">{{:cost}} {{:costtype}}{{if cancel}} / {{:cancel}} {{:canceltype}}{{/if}}</span>
+        </dd> {{/if}}
+     {{if cannon || sailing || adventuring || influence || swashbuckling }}
+       <dt>{{:~labels.shortprod}}</dt><dd><span class="iconic 7siconic">{{:cannon}} {{:~labels.shortcannon}}</span>
+                                          <span class="iconic 7siconic">{{:sailing}} {{:~labels.shortsailing}}</span>
+                                          <span class="iconic 7siconic">{{:adventuring}} {{:~labels.shortadventuring}}</span>
+                                          <span class="iconic 7siconic">{{:influence}} {{:~labels.shortinfluence}}</span>
+                                          <span class="iconic 7siconic">{{:swashbuckling}} {{:~labels.shortswashbuckling}}</span>
+      </dd>
+     {{/if}}
+
+     {{if movecost}} <dt>{{:~labels.shortmovecost}}</dt><dd><span class="iconic 7siconic">{{:movecost}}</span> </dd> {{/if}}
+     {{if startingwealth}} <dt>{{:~labels.shortstartingwealth}}</dt><dd><span class="iconic 7siconic">{{:startingwealth}}</span> </dd> {{/if}}
+
+     {{if attack}} <dt>{{:~labels.shortattack}}/{{:~labels.shortparry}}</dt><dd><span class="iconic 7siconic">{{:attack}}/{{:parry}}</span> </dd> {{/if}}
+
+    {{if faction}}       <dt>{{:~labels.shortfaction}}</dt><dd>{{:faction}}</dd>  {{/if}}
+    {{if affiliation}}       <dt>{{:~labels.shortaffiliation}}</dt><dd>{{:affiliation}}</dd>  {{/if}}
+
+    {{if trait}}       <dt>{{:~labels.shorttrait}}</dt><dd>{{:trait.join(" &#149; ")}}</dd>  {{/if}}
+    {{if tocomplete}}       <dt>{{:~labels.shorttocomplete}}</dt><dd>{{:tocomplete}}</dd>  {{/if}}
+    {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
+
+
+    </div>
+</div>
