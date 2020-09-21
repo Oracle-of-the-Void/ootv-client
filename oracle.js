@@ -15,6 +15,7 @@ $.views.tags("printingfromid",templateprintingfromid);
 $.views.tags("fetchimage",templatefetchimage);
 $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
+$.views.helpers("concatarrays",templateconcatarrays);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -639,7 +640,7 @@ function updateselect(select) {
 	dataType: 'json',
 	responseType: 'application/json',
 	success: function(raw) {
-	    console.log("select lookup results: "+select+":"+raw);
+	    console.log(["select lookup results: ",select,raw]);
 	    cache_select(select,raw);
 	    if(updatecallback[database] !== undefined) {
 		updatecallback[database]();
@@ -1117,6 +1118,15 @@ function showsearch() {
 // *********************************** TEMPLATE HELPERS **************
 // TODO:   make both of these be able to handle rarity as well...
 // TODO:   make {{imageurlfromhash set rarity card}}   that returns fully built url
+function templateconcatarrays() {
+    out = [];
+    for (i = 0; i < arguments.length; i++) {
+        out = out.concat(arguments[i]);
+    }
+    return out.filter(function (el) {
+        return el != null;
+    });
+}
 function templateprintingidfromset(set,hashes) {
     if(!set) {
 	console.log(["print id issue",set,hashes]);
@@ -1556,7 +1566,7 @@ function urlparser() {
 // this builds the search form after all 'select' data is loaded
 function initializeform(db) {
     var fdata = $.map(searchables[db],function( value,key ) {
-	console.log("initialize form: "+key+"/"+value);
+	console.log(["initialize form: ",key,value]);
 	if(key == "quick") { return ''; }
 	var nound = key.replace("printing.","printing_");
 	var nop = key.replace("printing.","").replace("card",'');

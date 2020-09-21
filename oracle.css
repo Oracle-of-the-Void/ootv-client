@@ -27,7 +27,7 @@ div.searchinput input[type=text] {
   width: 105px;
 }
 div.searchinput input.searchnumeric[type=text] { 
-  width: 38px;
+  width: 35px;
 }
 div.searchinput select { 
   width: 110px;

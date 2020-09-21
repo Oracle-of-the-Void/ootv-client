@@ -1,0 +1,62 @@
+<!-- TODO:    searching with set selected but no rarity breaks image output - took out rarity.. now if there were two cards from a set it will break - need to fix, not as crit
+  TODO: better way to get image info... related to previous TODO
+  TODO: pass onclick info into here from oracle.js to make this pure display logic
+  TODO:     when displayed as details as part of a list, not doing version completely
+ -->
+<div class="listitem">
+  <div class="listimage">
+       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
+  </div>
+  <div class="listbody">
+    <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
+
+       {{for printing ~cardid=cardid}}
+          <a class="printinglink gray button buttonsmaller" href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
+	  {{/for}}
+
+     <br />
+
+     <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid}}
+	{{:name}}
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+      <br />
+      {{/for}}
+
+      {{if ~datarequest.field_printing_set && ~activelists.length>0}}
+      <div>
+      {{setfromset ~datarequest.field_printing_set printing /}}<br />  {{!-- TODO:  fetchfull should replace this i'd think   --}}
+        {{for ~activelists ~cardid=cardid ~printing=printing}}
+          {{:name}}
+          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{printingidfromset ~datarequest.field_printing_set ~printing /}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+          <br />
+	  {{/for}}
+      </div>
+      {{/if}}    
+      </div>
+  
+
+     {{if type}} <dt>{{:~labels.shorttype}}</dt><dd><span class="iconic 7siconic">{{:type}}</span> </dd> {{/if}}
+
+    {{if level || class}}       <dt>{{:~labels.shortlevel}}</dt><dd>{{:level}} {{:class}}</dd>  {{/if}}
+    {{if alignment}}       <dt>{{:~labels.shortalignment}}</dt><dd>{{:alignment}}</dd>  {{/if}}
+
+    {{if attack || armorClass || skill || hitPoints}}
+      <dt>Stats</dt>
+      <dd>{{if attack}}{{:attack}} {{:~labels.shortattack}}{{if armorClass}} &#149; {{/if}}{{/if}}
+          {{if armorClass}}{{:armorClass}} {{:~labels.shortarmorClass}}{{/if}}
+          {{if skill || hitPoints}} &#149; {{:skill}} {{:~labels.shortskill}} &#149; {{:hitPoints}} {{:~labels.shorthitPoints}}{{/if}}
+      </dd>  
+    {{/if}}
+
+
+   {{if faction || traits || feats }}       <dt>{{:~labels.shorttraits}}</dt><dd>{{:~concatarrays(faction,traits,feats).join(" &#149; ")}}</dd>  {{/if}}
+
+    {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
+
+    </div>
+</div>
