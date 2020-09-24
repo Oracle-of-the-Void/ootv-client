@@ -1025,7 +1025,8 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	    }
 	    return list;
 	}),
-	"database": database
+	"database": database,
+        "dbinfo": dbinfo[database]
     });
     $("#resultcard").html(html);
     updates[database]('#resultcard');
