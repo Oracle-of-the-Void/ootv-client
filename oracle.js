@@ -224,13 +224,13 @@ function getuid() {
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...
 function listinfo(listid=null,switchview=true,listoutput=null) {
-    console.log(["listinfo",listid,switchview,listoutput]);
-    if(listid && cache_thing("list",listid) != null) {
-	console.log("cached");
-	$("#lastlistid").val(listid);
-	renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
-    } else {
-	$.ajax({
+  console.log(["listinfo",listid,switchview,listoutput]);
+  if(listid && cache_thing("list",listid) != null) {
+	  console.log("cached");
+	  $("#lastlistid").val(listid);
+	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+  } else {
+	  $.ajax({
 	    type: 'GET',
 	    url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
 	    contentType: 'application/json',
@@ -238,92 +238,92 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
 	    responseType: 'application/json',
 	    success: function(data) {
-		console.log(data);
-		if(listid) {
-		    if(data.list.Items[0].sort == undefined) {
-			console.log('nosort set');
-			if(data.list.Items[0].type == 'deck') {
-			    data.list.Items[0].sort = 'deck';
-			    console.log('setting deck');
-			} else {
-			    data.list.Items[0].sort = '';
-			}
+		    console.log(data);
+		    if(listid) {
+		      if(data.list.Items[0].sort == undefined) {
+			      console.log('nosort set');
+			      if(data.list.Items[0].type == 'deck') {
+			        data.list.Items[0].sort = 'deck';
+			        console.log('setting deck');
+			      } else {
+			        data.list.Items[0].sort = '';
+			      }
+		      }
+		      cache_thing("list",listid,data);
+		      $("#lastlistid").val(listid);
+		      renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+		      renderlisteditarea();
+          /*		    console.log('here');
+		                if(data.list.Items[0].list.length > 0 && typeof(data.list.Items[0].totalcount) == "undefined") {
+			              console.log('fixing');
+			              // fix the counts if they don't exist by adding 0 of first card.
+			              addlistitem(listid,data.list.Items[0].list[0].cardid,data.list.Items[0].list[0].printing,0);
+			              renderlist(data.list.Items[0],false,listoutput);
+		                } */
+		    } else {
+		      cache_thing("list","data",data);
+		      listinfocallback();
 		    }
-		    cache_thing("list",listid,data);
-		    $("#lastlistid").val(listid);
-		    renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
-		    renderlisteditarea();
-/*		    console.log('here');
-		    if(data.list.Items[0].list.length > 0 && typeof(data.list.Items[0].totalcount) == "undefined") {
-			console.log('fixing');
-			// fix the counts if they don't exist by adding 0 of first card.
-			addlistitem(listid,data.list.Items[0].list[0].cardid,data.list.Items[0].list[0].printing,0);
-			renderlist(data.list.Items[0],false,listoutput);
-		    } */
-		} else {
-		    cache_thing("list","data",data);
-		    listinfocallback();
-		}
 	    },
 	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
-	});
-    }
+	  });
+  }
 }
 function listinfoupdate(listid,field,value) {
-    // valid fields:
-    //     name=text, notes=text, public=t/f, type=short text, list = JSON.stringify(data)
-    //   for the first 4, just do on change
-    //   for the list, periodically do an update if stuff has changed to decrease traffic (have some sort of unsaved/saving/saved area)
-    // TODO: rethink calling listinfo.. that might overwrite pending stuff?   or wait.. that's not the actual list..  might be ok
-    //    either way, we need to trap pulling new list info if we have pending updates.
-    // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
-    var message_status = $('#list_modified\\:'+listid);
-    var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURI(value);
-    console.log(url);
-    $.ajax({
-	type: "GET",
-	url: url,
-	contentType: 'application/json',
-	dataType: 'json',
-	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-	responseType: 'application/json',
-	success: function(status) {
-            //message_status.show();
-            message_status.text("List Updated");
-            //hide the message
-            setTimeout(function(){message_status.text(formatdate(new Date()))},3000);
+  // valid fields:
+  //     name=text, notes=text, public=t/f, type=short text, list = JSON.stringify(data)
+  //   for the first 4, just do on change
+  //   for the list, periodically do an update if stuff has changed to decrease traffic (have some sort of unsaved/saving/saved area)
+  // TODO: rethink calling listinfo.. that might overwrite pending stuff?   or wait.. that's not the actual list..  might be ok
+  //    either way, we need to trap pulling new list info if we have pending updates.
+  // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
+  var message_status = $('#list_modified\\:'+listid);
+  var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURI(value);
+  console.log(url);
+  $.ajax({
+	  type: "GET",
+	  url: url,
+	  contentType: 'application/json',
+	  dataType: 'json',
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  responseType: 'application/json',
+	  success: function(status) {
+      //message_status.show();
+      message_status.text("List Updated");
+      //hide the message
+      setTimeout(function(){message_status.text(formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	    if($("#importlistid").length) {
-		var listid = $("#importlistid").val();
-		erasemodal();
-		cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
-		listinfo(listid);
+		    var listid = $("#importlistid").val();
+		    erasemodal();
+		    cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
+		    listinfo(listid);
 	    }
-	},
-	error: function(status) {
+	  },
+	  error: function(status) {
 	    console.log(status);
-	}
-    });
+	  }
+  });
 }
 
 function listinfocallback() {
-    cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
-    listertemplate = $.templates("#template-lists");
-    $(".directorylistitem").remove();
-    $(listertemplate.render(cache_thing("list","data").lists.Items)).insertAfter(".directorylistheader");
-    //acknowledgement message
-    $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
-        var field_userid = $(this).attr("id").split(/:/) ;
-        var value = $(this).text() ;
-	//TODO:   update value
-	if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
+  cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
+  listertemplate = $.templates("#template-lists");
+  $(".directorylistitem").remove();
+  $(listertemplate.render(cache_thing("list","data").lists.Items)).insertAfter(".directorylistheader");
+  //acknowledgement message
+  $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
+    var field_userid = $(this).attr("id").split(/:/) ;
+    var value = $(this).text() ;
+	  //TODO:   update value
+	  if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
 	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
 	    console.log(field_userid);
 	    listinfoupdate(field_userid[1],field_userid[0].replace('list_',''),value);
-	}
-    });
-    //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
+	  }
+  });
+  //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
 }
 
 function toggleheaders() {
