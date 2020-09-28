@@ -1,24 +1,4 @@
-<div class="listitem">
-  <div class="listimage">
-       {{for printing ~shorts=#data}}
-          <div class="printing" data-printingid="{{:printingid}}">
-            {{if image}}
-            {{for image ~imagehash=imagehash}}
-               <img style="max-width: 600px; max-height: 600px" src="{{:~dbinfo.imageuri}}{{:~imagehash}}/{{:details}}" /><br />
-            {{/for}}
-            {{else}}
-               <img src="/res/missing-stamp-rot288.png">
-            {{/if}}
-	  </div>
-       {{/for}}
-  </div>
-  <div class="listbody">
-  <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
-    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
-</div>
-    <dl>
-<!--      <dt>Index</dt><dd><a href="" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a> <a href="" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a> </dd> -->
-
+{{include tmpl="#template-card-top" /}}
     <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
 
 
@@ -53,47 +33,19 @@
 
     {{if errata}}       <dt>{{:~labels.shorterrata}}</dt><dd>{{:errata}}</dd>  {{/if}}
 
-    <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>    {{for printing}}
+{{include tmpl="#template-card-middle" /}}
+{{for printing}}
       <div class="printing" data-printingid="{{:printingid}}">
         <hr>
+
         {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
         {{if rarity}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
 
         {{if flavor}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
 
         {{if artist}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
-
         <hr>
       </div>
     {{/for}}
-    </dl>
 
-    {{if ~activelists.length > 0}}
-     <div class="listmanagement">
-      {{for ~activelists ~cardid=cardid}}
-	{{:name}}
-	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
-      <br />
-      {{/for}}
-
-      {{for printing ~cardid=cardid}}
-      <div>
-      {{:set}}<br />
-        {{for ~activelists ~printingid=printingid}}
-          {{:name}}
-          <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
-          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
-          <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{:~printingid}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
-          <br />
-	  {{/for}}
-      </div>
-      {{/for}}    
-      </div>
-    {{/if}}
-
-    
-    </div>
-</div>
-<br clear="all" />
+{{include tmpl="#template-card-bottom" /}}
