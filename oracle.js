@@ -1026,7 +1026,9 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	    return list;
 	  }),
 	  "database": database,
-    "dbinfo": dbinfo[database]
+    "dbinfo": dbinfo[database],
+    "groups": (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
+      cache_thing("user","data").oracle[0].groups : {};
   });
   $("#resultcard").html(html);
   updates[database]('#resultcard');
