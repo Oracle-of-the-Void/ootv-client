@@ -1009,37 +1009,37 @@ function data_url_to_download(data_url, filename) {
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
 function docard(carddata,prid=null,qs=null,pop=false) {
-    console.log("rendering: "+carddata['cardid']+(prid?'/'+prid:''));
-    if(getactivetemplate('card') === undefined) {
-	console.log("templates not loaded yet");
-	return;
-    }
-    $("#lastcardid").val(carddata.cardid);
-    var html = getactivetemplate('card').render(carddata,{
-	"labels": labels[database],
-	"qs": qs,
-	"activelists": activelists.map(function(listid) {
+  console.log("rendering: "+carddata['cardid']+(prid?'/'+prid:''));
+  if(getactivetemplate('card') === undefined) {
+	  console.log("templates not loaded yet");
+	  return;
+  }
+  $("#lastcardid").val(carddata.cardid);
+  var html = getactivetemplate('card').render(carddata,{
+	  "labels": labels[database],
+	  "qs": qs,
+	  "activelists": activelists.map(function(listid) {
 	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
 	    if(cache_thing("list",listid)) {
-		list.listdata = cache_thing("list",listid);
+		    list.listdata = cache_thing("list",listid);
 	    }
 	    return list;
-	}),
-	"database": database,
-        "dbinfo": dbinfo[database]
-    });
-    $("#resultcard").html(html);
-    updates[database]('#resultcard');
-    var primary = $("#printingprimary").val();
-    $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();
+	  }),
+	  "database": database,
+    "dbinfo": dbinfo[database]
+  });
+  $("#resultcard").html(html);
+  updates[database]('#resultcard');
+  var primary = $("#printingprimary").val();
+  $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();
 
-    if($("#resultsearch").is(":visible")) {
-	history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']);
-    } else if($("#resultcard").is(":visible")) {
-	// TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
-	history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-    }
-    showcard();
+  if($("#resultsearch").is(":visible")) {
+	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']);
+  } else if($("#resultcard").is(":visible")) {
+	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
+	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
+  }
+  showcard();
 }
 
 // Populate loads qs data back into the form for searching on
