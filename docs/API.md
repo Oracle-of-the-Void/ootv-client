@@ -12,6 +12,7 @@
 * [/user (GET)](#user)
 * [/import (POST)](#import)
 * [/list (GET)](#list)
+* [/update (POST)](#update)
 
 ## Note
 
@@ -237,3 +238,70 @@ codes:
 * 404 user not found
 * 403 not owner of list
 * 500 failed to create 64 bit int and not collide with another in 10 tries (new list)  if we start seeing this, we adjust the random generation
+
+
+## /update
+
+Handles database manipulation
+
+Handled by lambda: oracle-update/index.js
+
+inputs:
+
+* Header: Authorization (required)
+  * tokens from Cognito
+* uid (required)
+  * uid of user to search for lists of (has to match cognito info)
+  * allowed groups are pulled from user information
+  * groups are in the form of database:operation, where either can be "*"
+* cardid (required for all operations but "new")
+* database
+  * which card database to edit
+* data
+* updateprintingprimary (optional)
+  * used for newinstance only
+* printingid (optional)
+  * used for updateinstance / removeinstance
+* operation (required)
+  * new
+    * new card: generate cardid
+    * data is an ARRAY of cards to add
+    * returns ARRAY of cardids
+  * newinstance
+    * add another instance to that card
+    * to make new instance the MRP set updateprintingprimary=true
+  * update
+    * data is a hash that all keys in the hash replace keys in the card
+    * printing is invalid, use new/update/remove instance instead
+  * updateinstance
+    * data is a hash that all keys in the has replace keys in the instance hash
+    * printingid is required
+  * removeinstance
+    * delete that instance
+    * printingid is required
+  * remove
+    * delete that card:   data stored in oracle-all-updatelog
+
+outputs:
+
+* Generally, the changes
+  * changes are also logged to the item, and to oracle-all-updatelog
+* new
+  * cardids - array of new cardids
+  * errors - count of errors
+  * errormessage - Error messages
+    * Note: the only general errormessage is overwriting a card, but oracle SHOULD write that card back and then try insert again with new cardid.  This will likely ONLY happen if multiple new cards are added by different people within the same millisecond or two.
+* update / updateinstance / newinstance / removeinstance
+  * The things that are changed are returned.
+    * in the case of instance things, the entire printing array is returned
+  * olddata/newdata also added to "updatelog" in item
+* remove
+  * the removed card is returned
+
+codes:
+
+* 200 success
+* 404 user not found
+* 403 not owner of list
+* 500 database error
+* 500 missing required fields
