@@ -207,7 +207,7 @@ Welcome to the L5R Oracle of the Void Database
 <br>
 <br>
 
-After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Don Eisele (Author of the Oracle of the Void) has continued to fund and run the Oracle of the Void.  He is currently working on revamping and coding the Oracle into a serverless cloud architecture on AWS.  The new version will be faster, more resiliant (not running in Don's basement), and support other games.
+After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Don Eisele (Author of the Oracle of the Void) has continued to fund and run the Oracle of the Void.  He is currently working on revamping and coding the Oracle into a serverless cloud architecture on AWS.  The new version <strike>will be</strike> <b>is much</b> faster, more resiliant (not running in Don's basement), and supports other games.
 <br>
 <br>
 <br>
@@ -236,9 +236,10 @@ Report issues or request new features on Github issues:<br>
 Youtube channel with some help videos!<br>
 <a href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new">
   <img src="res/social-youtube.jpg" width="300px"> </a>
+<!--
 <br><br>
 <script type="text/javascript">
-amzn_terms = [ 'l5r lcg', 'l5r ccg', '7th sea ccg', 'warlord ccg', 'dune ccg', 'legend of the burning sands ccg', 'strategy board games', 'ccg' ];
+amzn_terms = [ 'l5r lcg', 'l5r ccg', '7th sea ccg', 'warlord ccg', 'dune ccg', 'legend of the burning sands ccg', 'strategy board games', 'ccg', 'board game deals', 'board game sales', 'fantasy flight games', 'collectible card game' ];
 amzn_assoc_placement = "adunit0";
 amzn_assoc_search_bar = "false";
 amzn_assoc_tracking_id = "ootv-20";
@@ -253,6 +254,13 @@ amzn_assoc_linkid = "2d5eefcc9964a6d5ac179b2e95b28bf9";
 amzn_assoc_default_browse_node = "165793011";
 </script>
 <script src="//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US"></script>
+-->
+<br>
+<br>
+Buying cards from Don also supports the site! (L5R, LBS, SW:CCG, V:TES)<br>
+<a href="https://imperialblock.com/store?user=quixote"><img src="https://imperialblock.com/images/banner2-266x60.jpg"></a>
+<br>
+<br>
 </div>
 </div>
 </div><!-- resultabout   -->
@@ -358,6 +366,17 @@ printingprimary
 
 <div id="all_template">
 
+  <!-- modal template for editing a card -->
+<script id="template-editcard" type="text/jsrender">
+  <form id="editform" enctype="multipart/form-data">
+    <input name="cardid" id="editcardid" type="hidden" value="{{:cardid}}" />
+    <input name="table" type="hidden" value="{{:database}}" />
+    <textarea id="editcard" name="editcard" rows="10" cols="50">{{:carddata}}</textarea>
+    <input type="button" value="Upload" onclick="importlisttrigger();" />
+  </form>
+</script>
+  
+<!-- modal template for importing lists -->
 <script id="template-import" type="text/jsrender">
   <form id="importform" enctype="multipart/form-data">
     <input name="listid" id="importlistid" type="hidden" value="{{:listid}}" />
@@ -375,6 +394,7 @@ printingprimary
   <div id="importstatus"></div>
 </script>
 
+<!-- modal template for finalizing import of a list -->
 <script id="template-importsuccess" type="text/jsrender">
   <div class="numresults">Success</div>
   <br /><br />
@@ -391,6 +411,7 @@ printingprimary
   {{/if}}
 </script>
 
+<!-- login hello info displaying login info -->
 <script id="template-hello" type="text/x-jsrender">
 <div class="helloplace">
   <strong>Profile Information</strong>
@@ -473,11 +494,25 @@ printingprimary
   <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
     <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
 </div>
+    {{if ~groups && (~groups.database || ~groups["*"])}}
+    <span style="float:right; padding-right: 2px;">
+      <span class="iiconic iyellow" onclick="editcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
+	    <span class="iiconic ipositive" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-plus"></span>
+	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+    </span>
+    {{/if}}
     <dl>
 </script> <!-- template-card-top -->
 
 <script id="template-card-middle" type="text/x-jsrender">
-  <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
+  <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
+    {{if ~groups && (~groups.database || ~groups["*"])}}
+    <span style="float:right; padding-right: 2px;">
+      <span class="iiconic iyellow" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
+	    <span class="iiconic ipositive" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
+	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>
+    </span>
+    {{/if}}
 
 </script> <!-- template-card-middle -->
 

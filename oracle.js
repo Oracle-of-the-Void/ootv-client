@@ -89,13 +89,13 @@ var updatecallback = {};
 var database = 'l5r';
 var outputheaders = true;
 if(found = window.location.href.match(/(\w+)\.html/)) {
-    if(found && found[1] != 'index') {
-	database = found[1];
-	console.log("database: "+database);
-    }
+  if(found && found[1] != 'index') {
+	  database = found[1];
+	  console.log("database: "+database);
+  }
 }
 if(cache_session("database")) {
-    database = cache_session("database");
+  database = cache_session("database");
 }
 var labels = {};
 var populatecallback = [];
@@ -486,6 +486,15 @@ function importlist(listid=null,name=null) {
     modal(title,importtemplate.render({"listid": listid, "database": database}));
 }
 
+function editcard(cardid=null) {
+  if(cardid) {
+    carddata = cache_card_fetch(cardid);
+    var title = "Edit card information for: "+carddata.title[0];
+    var editcardtemplate = $.templates("#template-editcard");
+    modal(title,editcardtemplate.render({"cardid": cardid, "carddata": JSON.stringify(carddata), "database": database}));
+  }
+}
+
 function importlisttrigger() {
     $("#importprogress").show();
     $("#importform").hide();
@@ -716,10 +725,10 @@ function renderlist(list,switchview=true,listoutput=null) {
 //   also doesn't need forms to be loaded
 //   TODO: why did i blow past waiting on templates... is that right?   i think i messed this up
 // from is for continuing and getting more entries from a query
-function dosearch(from=0,forcedata=false) {
-    if((getactivetemplate('search') === undefined) && !forcedata) {
-	console.log("templates not loaded yet");
-	return;
+function dosearch(from=0,forcedata=false,skipload=false) {
+  if((getactivetemplate('search') === undefined) && !forcedata && !skipload) {
+	  console.log("templates not loaded yet");
+	  return;
     }
     console.log(from);
     var datarequest = {};
@@ -951,7 +960,7 @@ function createpdf(data,listoutput='') {
 	    if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
 		for(i of p.images) {
 		    for(cn = 0; cn < card.listquantity; cn++) {
-			images.push(i+'details.jpg?x-corsworkaround=true');
+			images.push(i+'details.jpg?x-corsworkaround=true'); // TODO:  this needs fixed since images reworked
 		    }
 		}
 	    }
@@ -1027,8 +1036,8 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	  }),
 	  "database": database,
     "dbinfo": dbinfo[database],
-    "groups": (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
-      cache_thing("user","data").oracle[0].groups : {};
+    "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
+      cache_thing("user","data").oracle[0].groups : {}
   });
   $("#resultcard").html(html);
   updates[database]('#resultcard');
@@ -1036,10 +1045,10 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();
 
   if($("#resultsearch").is(":visible")) {
-	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']);
+	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']);
   } else if($("#resultcard").is(":visible")) {
 	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
-	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
+	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
   }
   showcard();
 }
@@ -1276,45 +1285,45 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 }
 
 function activatetemplate(type,template) {
-    templates[database]['active'][type] = template;
-    if(type == 'search') {
-	if( $('#lastsearchquery').val() ) {
+  templates[database]['active'][type] = template;
+  if(type == 'search') {
+	  if( $('#lastsearchquery').val() ) {
 	    dosearch(0);
-	}
-    }
-    if(type == 'list') {
-	if( $('#lastlistid').val() ) {
+	  }
+  }
+  if(type == 'list') {
+	  if( $('#lastlistid').val() ) {
 	    renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0]);
-	}
-    }
-    if(type == 'card') {
-	if( $("#lastcardid").val() ) {
+	  }
+  }
+  if(type == 'card') {
+	  if( $("#lastcardid").val() ) {
 	    docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
-	}
-    }
-    updatetemplatedropdown(type);
+	  }
+  }
+  updatetemplatedropdown(type);
 }
 function getactivetemplate(type) {
     return templates[database]['compiled'][templates[database]['active'][type]];
 }
 function updatetemplatedropdown(type) {
-    var pulldown = "";
-    for ( key in templates[database].available ) {
-	if(templates[database]['available'][key].places.includes(type)) {
+  var pulldown = "";
+  for ( key in templates[database].available ) {
+	  if(templates[database]['available'][key].places.includes(type)) {
 	    pulldown += "<li "+(templates[database]['active'][type] == key?'class="menuactive" ':'')+"onclick=\"activatetemplate('"+type+"','"+key+"');\">"+templates[database]['available'][key]['longname']+"</li>";
-	}
-    }
-    if(type == 'search') {
-	pulldown += updatesortdropdown(type);
-    }
-    $("#"+type+"templatedropdown").html(pulldown);
+	  }
+  }
+  if(type == 'search') {
+	  pulldown += updatesortdropdown(type);
+  }
+  $("#"+type+"templatedropdown").html(pulldown);
 }
 function updatesortdropdown(type) {
-    var sortdown = '<li class="menunone pullmenuright menusort">Sort<ul>';
-    for (key in searchsorts[database]) {
-	sortdown += '<li'+(templates[database]['sort'][type] == key?' class="menuactive'+(templates[database]['sortdir'][type]&&templates[database]['sortdir'][type]=='desc'?' searchdesc"':'"'):'')+" onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
-    }
-    return sortdown+'</ul></li>';
+  var sortdown = '<li class="menunone pullmenuright menusort">Sort<ul>';
+  for (key in searchsorts[database]) {
+	  sortdown += '<li'+(templates[database]['sort'][type] == key?' class="menuactive'+(templates[database]['sortdir'][type]&&templates[database]['sortdir'][type]=='desc'?' searchdesc"':'"'):'')+" onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
+  }
+  return sortdown+'</ul></li>';
 }
 function changesort(type,key,rerender=true) {
     // need to change the actual sort value
@@ -1340,127 +1349,127 @@ function changesort(type,key,rerender=true) {
 
 // ********************** STARTUP ************************8
 $(document).ready(function(){
-    // TODO: doing double-load of lists when startup
-    auth = initCognitoSDK();
-    var curUrl = window.location.href;
-    if(curUrl.includes('#access_token=') || curUrl.includes('?code=') ) {
-	auth.parseCognitoWebResponse(curUrl);
-    } else {
-	auth.parseCognitoWebResponse('');
+  // TODO: doing double-load of lists when startup
+  auth = initCognitoSDK();
+  var curUrl = window.location.href;
+  if(curUrl.includes('#access_token=') || curUrl.includes('?code=') ) {
+	  auth.parseCognitoWebResponse(curUrl);
+  } else {
+	  auth.parseCognitoWebResponse('');
+  }
+  if(auth.isUserSignedIn() || auth.getSignInUserSession().getRefreshToken().refreshToken!="") {
+	  logincallback(auth.getSession());
+  } else {
+	  logoutcallback();
+  }
+  // load layout
+  (function ($){
+	  $.fn.selector = { split: function() { return ""; }};
+  })(jQuery);
+  
+  $(".ui-layout-center div[id^=result]").hide(); // Hide all content
+  $("#tabs li:first").attr("id","current"); // Activate the first tab
+  $("#resultabout").fadeIn(); // Show first tab's content
+  $('#tabs a').click(function(e) {
+    e.preventDefault();
+    if ($(this).closest("li").attr("id") == "current"){ //detection for current tab
+      return;
     }
-    if(auth.isUserSignedIn() || auth.getSignInUserSession().getRefreshToken().refreshToken!="") {
-	logincallback(auth.getSession());
-    } else {
-	logoutcallback();
-    }
-    // load layout
-    (function ($){
-	$.fn.selector = { split: function() { return ""; }};
-    })(jQuery);
-
-    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-    $("#tabs li:first").attr("id","current"); // Activate the first tab
-    $("#resultabout").fadeIn(); // Show first tab's content
-    $('#tabs a').click(function(e) {
-        e.preventDefault();
-        if ($(this).closest("li").attr("id") == "current"){ //detection for current tab
-         return;
-        }
-        else{
+    else{
 	    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-            $("#tabs li").attr("id",""); //Reset id's
-            $(this).parent().attr("id","current"); // Activate this
-            $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
-        }
-    });
-
-    //TODO:  put some stuff in here into functions.   make sure order optimized.
-    searchcache[database] = {
-	'data': {},    'querydata': {},    'querytotal': {}
-    };
-    templateactive[database] = {};
-
-    templates[database]['sort']['search'] = Object.keys(searchsorts[database])[0];
-    templates[database]['sortdir'] = {'search': 'asc'};
-    for(field in searchables[database]) {
-	if(typeof searchables[database][field] === "object") {
+      $("#tabs li").attr("id",""); //Reset id's
+      $(this).parent().attr("id","current"); // Activate this
+      $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+    }
+  });
+  
+  //TODO:  put some stuff in here into functions.   make sure order optimized.
+  searchcache[database] = {
+	  'data': {},    'querydata': {},    'querytotal': {}
+  };
+  templateactive[database] = {};
+  
+  templates[database]['sort']['search'] = Object.keys(searchsorts[database])[0];
+  templates[database]['sortdir'] = {'search': 'asc'};
+  for(field in searchables[database]) {
+	  if(typeof searchables[database][field] === "object") {
 	    if(searchables[database][field].type == "select") {
-		var sort = [{}];
-		// TODO:   ASC / DESC - if selected when selected, just replace asc with desc... maybe do it inside dosearch on demand if desc is set?
-		// TODO: up/down arrow on ASC / DESC
-		sort[0][field.replace("printing.","printing")+'.keyword'] = {"order": "asc"};
-		searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
+		    var sort = [{}];
+		    // TODO:   ASC / DESC - if selected when selected, just replace asc with desc... maybe do it inside dosearch on demand if desc is set?
+		    // TODO: up/down arrow on ASC / DESC
+		    sort[0][field.replace("printing.","printing")+'.keyword'] = {"order": "asc"};
+		    searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
 	    }
 	    if(searchables[database][field].type == "numeric") {
-		var sort = [{}];
-		sort[0][field] = {"order": "asc"};
-		searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
+		    var sort = [{}];
+		    sort[0][field] = {"order": "asc"};
+		    searchsorts[database][JSON.stringify(sort)] = labels[database]['tag'+field.replace("printing.","")];
 	    }
-	}
-    }
-
-    // TODO: check for premium
-    $.each(templates[database]['available'],function(key,val) {
-	console.log("initiating template load: "+key);
-	$.ajax({
+	  }
+  }
+  
+  // TODO: check for premium
+  $.each(templates[database]['available'],function(key,val) {
+	  console.log("initiating template load: "+key);
+	  $.ajax({
 	    url: "templates/template-"+(val.generic?'':(database+"-"))+key+".html",
 	    type: "GET",
 	    datatype: 'text',
 	    cache: true,
 	    success: function(contents) {
-		$("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
-		templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
-		for (k of ['search','card','list']) {
-		    if(key == templates[database]['default'][k]) {
-			templates[database]['active'][k] = key;
+		    $("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
+		    templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
+		    for (k of ['search','card','list']) {
+		      if(key == templates[database]['default'][k]) {
+			      templates[database]['active'][k] = key;
+		      }
 		    }
-		}
-		for (type of templates[database]['available'][key].places) {
-		    updatetemplatedropdown(type);
-		}
-		// reference like:   templates[database]['compiled'][templates[database].active.search]
-/*		if(Object.keys(templateload[database]['search'])[0] == key) {
-		    searchtemplate[database] = $.templates(["#template",key,database].join("-"));
-		    templateactive[database]['search'] = key;
-		}  */
+		    for (type of templates[database]['available'][key].places) {
+		      updatetemplatedropdown(type);
+		    }
+		    // reference like:   templates[database]['compiled'][templates[database].active.search]
+        /*		if(Object.keys(templateload[database]['search'])[0] == key) {
+		          searchtemplate[database] = $.templates(["#template",key,database].join("-"));
+		          templateactive[database]['search'] = key;
+		          }  */
 	    }
-	});
-    });
+	  });
+  });
+  
 
-
-    // Load selects
-    $('#searchmiddle').html(searcherror['searchmiddle']);
-    loadselectables(database);
-    if(searchables[database]["quick"] !== undefined && searchables[database]["quick"] == false) {
-	$('#searchtop').html('');
+  // Load selects
+  $('#searchmiddle').html(searcherror['searchmiddle']);
+  loadselectables(database);
+  if(searchables[database]["quick"] !== undefined && searchables[database]["quick"] == false) {
+	  $('#searchtop').html('');
+  }
+  
+  // Enter performs a search
+  $('.searchinput').keypress(function(e){
+    if((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)){
+      dosearch();
+      return false;
+    } else {
+      return true;
     }
-
-    // Enter performs a search
-    $('.searchinput').keypress(function(e){
-        if((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)){
-            dosearch();
-            return false;
-        } else {
-            return true;
-        }
-    });
-
-    // update "MORE" and load more when you hit page end
-    $(window).scroll(scrollcheck);
-    $(".ui-layout-center").scroll(scrollcheck);
-//    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
-
-    $('.gameinfo-game').html(dbinfo[database].name);
-    $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
-    $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
-
-    urlparser();
-    for (var k in dbinfo) {
-	addgametolist(k);
-    }
-
-//    $('.document').bind("DOMSUbtreeModified",chosenify);
-    chosenify();
+  });
+  
+  // update "MORE" and load more when you hit page end
+  $(window).scroll(scrollcheck);
+  $(".ui-layout-center").scroll(scrollcheck);
+  //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
+  
+  $('.gameinfo-game').html(dbinfo[database].name);
+  $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
+  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
+  
+  urlparser();
+  for (var k in dbinfo) {
+	  addgametolist(k);
+  }
+  
+  //    $('.document').bind("DOMSUbtreeModified",chosenify);
+  //    chosenify();
 });
 
 function chosenify() {
@@ -1474,7 +1483,7 @@ function chosenify() {
 }
 
 function addgametolist(db) {
-    $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
+  $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
 }
 
 
@@ -1521,49 +1530,59 @@ $(document).on('keydown', function ( e ) {
 });
 
 function urlparser() {
-    // Load bookmarks / shared urls
-    var patt = /#[^#]+/g;
-    var matches = location.hash.match(patt);
-    var matchstruct = {};
-    var structpatt = /#(\w+)=?((?:\w|%)+)?/;
-    if(matches) {
-        for(i=0;i<matches.length;i++) {
-            var matchdetails = structpatt.test(matches[i]);
-            if(typeof(matchstruct[RegExp.$1]) == "undefined") {
-                matchstruct[RegExp.$1] = RegExp.$2;
-            } else if(typeof(matchstruct[RegExp.$1]) == "object") {
-                matchstruct[RegExp.$1].push(RegExp.$2);
-            } else {
-                var oldmatch = matchstruct[RegExp.$1];
-                matchstruct[RegExp.$1] = new Array();
-                matchstruct[RegExp.$1].push(oldmatch);
-                matchstruct[RegExp.$1].push(RegExp.$2);
-            }
-        }
+  // Load bookmarks / shared urls
+  var patt = /#[^#]+/g;
+  var matches = location.hash.match(patt);
+  var matchstruct = {};
+  var structpatt = /#(\w+)=?((?:\w|%)+)?/;
+  if(matches) {
+    for(i=0;i<matches.length;i++) {
+      var matchdetails = structpatt.test(matches[i]);
+      if(typeof(matchstruct[RegExp.$1]) == "undefined") {
+        matchstruct[RegExp.$1] = RegExp.$2;
+      } else if(typeof(matchstruct[RegExp.$1]) == "object") {
+        matchstruct[RegExp.$1].push(RegExp.$2);
+      } else {
+        var oldmatch = matchstruct[RegExp.$1];
+        matchstruct[RegExp.$1] = new Array();
+        matchstruct[RegExp.$1].push(oldmatch);
+        matchstruct[RegExp.$1].push(RegExp.$2);
+      }
     }
-    if(typeof(matchstruct["cardid"]) != "undefined") {
-	console.log("detected card in URL");
-	cardfetch(matchstruct["cardid"],typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null);
-    } else if(typeof(matchstruct['search']) != 'undefined') {
-	console.log("detected search in URL");
-	console.log(uri2json(decodeURIComponent(matchstruct['search'])));
-	populatecallback.push(function() {populate($("#searchform"),uri2json(decodeURIComponent(matchstruct['search'])));});
-	fdata = uri2json(decodeURIComponent(matchstruct['search']));
-	for( param in fdata ) {
+  }
+  if(typeof(matchstruct["game"]) != "undefined") {
+    if((matchstruct["game"] != database) && (matchstruct["game"] != "")) {
+      cache_session("database",matchstruct["game"]);
+      location.reload();
+    }
+  }
+  if(typeof(matchstruct["quicksearch"]) != "undefined") {
+    console.log("detected quicksearch");
+    $("input#qs").val(matchstruct["quicksearch"]);
+    dosearch(0,false,true);
+  } else if(typeof(matchstruct["cardid"]) != "undefined") {
+	  console.log("detected card in URL");
+	  cardfetch(matchstruct["cardid"],typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null);
+  } else if(typeof(matchstruct['search']) != 'undefined') {
+	  console.log("detected search in URL");
+	  console.log(uri2json(decodeURIComponent(matchstruct['search'])));
+	  populatecallback.push(function() {populate($("#searchform"),uri2json(decodeURIComponent(matchstruct['search'])));});
+	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
+	  for( param in fdata ) {
 	    if(param.match(/^(field_|querystring)/)) {
-		$('input[name="'+param+'"]').val(fdata[param]);
+		    $('input[name="'+param+'"]').val(fdata[param]);
 	    }
 	    if(param == 'sort') {
-		changesort('search',fdata[param],false);
+		    changesort('search',fdata[param],false);
 	    }
-	}
-	dosearch(0,fdata);
-	// TODO this needs to update search and the form.
-    } else {
-/*	$(window).on('beforeunload', function(e){
-	    return 'Are you sure you want to leave?';
-	});    */
-    }
+	  }
+	  dosearch(0,fdata);
+	  // TODO this needs to update search and the form.
+  } else {
+    /*	$(window).on('beforeunload', function(e){
+	      return 'Are you sure you want to leave?';
+	      });    */
+  }
 }
 
 // this builds the search form after all 'select' data is loaded
@@ -1604,32 +1623,36 @@ function initializeform(db) {
     while (populatecallback.length){
 	populatecallback.shift().call();
     }
+    chosenify();
     $('dd.advanced').hide();
     $('dt.advanced').hide();
-    chosenify();
 }
 
 // changes values for a select chained to another select
 function onchangesub(key,nound,noundsub,db) {
-    var fval = $('#field_'+noundsub).val();
-    $('#field_'+noundsub+'_chosen').remove();
-    var newvals = [];
-    if(Array.isArray($('#field_'+nound).val())) {
-	$('#field_'+nound).val().forEach(function(q) {
-	    newvals = newvals.concat(cache_select(key)[q]);
-	});
+  var fval = $('#field_'+noundsub).val();
+  $('#field_'+noundsub+'_chosen').remove();
+  var newvals = [];
+  if(Array.isArray($('#field_'+nound).val())) {
+    if($('#field_'+nound).val().length < 1 ) {
+      newvals = cache_select(searchables[db][key]['sub']);
     } else {
-	newvals = $('#field_'+nound).val() ?
+	    $('#field_'+nound).val().forEach(function(q) {
+	      newvals = newvals.concat(cache_select(key)[q]);
+	    });
+    }
+  } else {
+	  newvals = $('#field_'+nound).val() ?
 	    cache_select(key)[$('#field_'+nound).val()] :
 	    cache_select(searchables[db][key]['sub'])
-    }
-    $('#field_'+noundsub).replaceWith(
-	makeselectarray([''].concat([...new Set(newvals)].sort()),
-			{id: 'field_'+noundsub, name: 'field_'+noundsub}
-		       )
-    );
-    $('#field_'+noundsub).val(fval);
-    chosenify();
+  }
+  $('#field_'+noundsub).replaceWith(
+	  makeselectarray([''].concat([...new Set(newvals)].sort()),
+			              {id: 'field_'+noundsub, name: 'field_'+noundsub}
+		               )
+  );
+  $('#field_'+noundsub).val(fval);
+  chosenify();
 }
 
 function loadselectables(db) {
@@ -1734,7 +1757,7 @@ function changeprinting(id,prid,qs,title) {
     //    console.log({id,prid,qs,title});
     $('.printing').hide();
     $('.printing[data-printingid='+prid+']').show();
-    history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title, '#cardid='+id+',#cnprintingid='+prid);
+    history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title, '#game='+database+',#cardid='+id+',#cnprintingid='+prid);
     // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
 }
 
@@ -1815,28 +1838,28 @@ function cache_thing(thing,sel,selval=null,del=false) {
     }
 }
 function cache_session(thing,selval=null) {
-    if(selval === null) {
-	if (typeof(Storage) !== "undefined") {
+  if(selval === null) {
+	  if (typeof(Storage) !== "undefined") {
 	    return JSON.parse(window.localStorage.getItem("session_"+thing));
-	} else {
+	  } else {
 	    return nolocalstore["session_"+thing];
-	}
-    } else {
-	// set
-	if (typeof(Storage) !== "undefined") {
+	  }
+  } else {
+	  // set
+	  if (typeof(Storage) !== "undefined") {
 	    if(selval === undefined) {
-		window.localStorage.removeItem("session_"+thing);
+		    window.localStorage.removeItem("session_"+thing);
 	    } else {
-		window.localStorage.setItem("session_"+thing,JSON.stringify(selval));
+		    window.localStorage.setItem("session_"+thing,JSON.stringify(selval));
 	    }
-	} else {
+	  } else {
 	    if(selval === undefined) {
-		delete nolocalstore["session_"+thing]
+		    delete nolocalstore["session_"+thing]
 	    } else {
-		nolocalstore["session_"+thing] = selval;
+		    nolocalstore["session_"+thing] = selval;
 	    }
-	}
-    }
+	  }
+  }
 }
 
 
