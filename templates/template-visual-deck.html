@@ -1,5 +1,5 @@
 {{if cardid==0}}{{if decktitle}}<div class="listhead">{{:title}}</div>{{/if}}{{else}}
-<a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
+<a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
   <div style="display: inline-flex; flex-direction: column; padding-top: 190px">
     <!-- qty: {{:listquantity}} -->
     {{for start=0 end=listquantity itemVar="~qcount" ~cardid=cardid ~printing=printing ~printingprimary=printingprimary ~listprinting=listprinting}} 

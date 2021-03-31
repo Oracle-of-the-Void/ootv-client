@@ -49,7 +49,7 @@
 
     {{if notes}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
 
-    <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>    {{for printing}}
+    <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>    {{for printing}}
       <div class="printing" data-printingid="{{:printingid}}">
         <hr>
         {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}

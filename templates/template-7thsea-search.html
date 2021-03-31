@@ -5,13 +5,13 @@
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
+       <a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
   </div>
   <div class="listbody">
-    <div class="listhead"><a href="#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
+    <div class="listhead"><a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
 
        {{for printing ~cardid=cardid}}
-          <a class="printinglink gray button buttonsmaller" href="#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
+          <a class="printinglink gray button buttonsmaller" href="#game={{:~database}},#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
 	  {{/for}}
 
      <br />
