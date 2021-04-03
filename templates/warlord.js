@@ -55,7 +55,7 @@ searchables['warlord'] = {
   "attack": { "type": "numeric", "advanced": true },
   "armorClass": { "type": "numeric", "advanced": true },
   "hitPoints": { "type": "numeric", "advanced": true },
-  "level": { "type": "numeric", "advanced": true },
+  "level": { "type": "numeric" },
   "skill": { "type": "numeric", "advanced": true },
   "printing.flavorTraits": { "type": "select", "advanced": true },
   "printing.flavorText": { "type": "text", "advanced": true },
