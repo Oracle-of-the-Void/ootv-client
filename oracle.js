@@ -544,7 +544,7 @@ function importlisttrigger() {
 	    console.log("error");
 	    console.log(data);
 	    $("#importprogress").hide();
-	    $("#importstatus").html('<div class="error">Error</div><br /><br />'+data);
+	  $("#importstatus").html('<div class="error">Error</div><br /><br />'+(data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1))));
 	}
 
   });
