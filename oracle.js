@@ -602,19 +602,23 @@ function imagehashtourl(card) {
     if(card.imagehash) {
         card.icon = dbinfo[database].imageuri + card.imagehash+'/card_'+card.cardid+'__icon.jpg';
         card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
+    }
         for(var p = 0; p < card.printing.length; p++) {
+            if(!card.printing[p].images) {
 	          card.printing[p].images = [];
+                  stub = 'printing_';
 	          if(card.printing[p].printimagehash) {
 	              for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
-		                card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/printing_'+card.cardid+'_'+
+		                card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/'+stub+card.cardid+'_'+
 		                    card.printing[p].printingid+'_'; // then you add details, etc
 	              }
 	          } else {
 	              console.log("Card missing a printimagehash: "+JSON.stringify(card));
 	          }
+             }
         }
         //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
-    }
+    
     card.printingreverse = {printingid: {}};
     for(var p = 0; p < card.printing.length; p++) {
         card.printingreverse.printingid[card.printing[p].printingid] = p;
@@ -958,11 +962,19 @@ function createpdf(data,listoutput='') {
     for(card of data) {
 	for(p of card.printing) {
 	    if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
-		for(i of p.images) {
+                if(p.image) {
+		for(i of p.image) {  // NEW STYLE
 		    for(cn = 0; cn < card.listquantity; cn++) {
-			images.push(i+'details.jpg?x-corsworkaround=true'); // TODO:  this needs fixed since images reworked
+                        images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
+		    }
+                }
+                } else {
+		for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
+		    for(cn = 0; cn < card.listquantity; cn++) {
+			images.push(i+'details.jpg?x-corsworkaround=true'); 
 		    }
 		}
+                }
 	    }
 	}
     }
