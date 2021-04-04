@@ -7,11 +7,11 @@ dbinfo['dune'] = {
 };
 databasesort['dune'] = {
     deck: function (a,b) {
-        if (a.deck.join() == "Imperial" && b.deck.join() != "Imperial") return -1;
-        if (b.deck.join() == "Imperial" && a.deck.join() != "Imperial") return 1;
+        if (a.decktype.join() == "Imperial" && b.decktype.join() != "Imperial") return -1;
+        if (b.decktype.join() == "Imperial" && a.decktype.join() != "Imperial") return 1;
 
-        if (a.deck.join() == "House" && b.deck.join() != "House") return -1;
-        if (b.deck.join() == "House" && a.deck.join() != "House") return 1;
+        if (a.decktype.join() == "House" && b.decktype.join() != "House") return -1;
+        if (b.decktype.join() == "House" && a.decktype.join() != "House") return 1;
 
         if (a.type.join() > b.type.join()) return 1;
         if (b.type.join() > a.type.join()) return -1;
