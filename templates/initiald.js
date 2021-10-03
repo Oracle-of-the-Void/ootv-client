@@ -165,7 +165,11 @@ templates['initiald'] = {
 	'card-premium':  { 
 	    'longname': 'Card Large',
 	    'shortname': 'Card(L)',
-	    'places': [ 'card' ]
+	    'places': [ 'card' ],
+	    'override': {
+                   'templatekey': 'card',
+                   'var': { 'premium': '1' }
+            }
 	},
 	'list': {
 	    'longname': 'Simple List',

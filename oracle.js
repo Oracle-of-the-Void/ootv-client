@@ -1036,7 +1036,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid);
-  var html = getactivetemplate('card').render(carddata,{
+  var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
 	  "activelists": activelists.map(function(listid) {
@@ -1050,8 +1050,14 @@ function docard(carddata,prid=null,qs=null,pop=false) {
     "dbinfo": dbinfo[database],
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
       cache_thing("user","data").oracle[0].groups : {}
-  });
-  $("#resultcard").html(html);
+  };
+  var override = getactivetemplateoverride('card');
+  for ( v in override.var?override.var:{}) {
+    tmpl[v] = override.var[v];
+  }
+  var html = getactivetemplate('card').render(carddata,tmpl);
+
+$("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();
@@ -1318,6 +1324,10 @@ function activatetemplate(type,template) {
 function getactivetemplate(type) {
     return templates[database]['compiled'][templates[database]['active'][type]];
 }
+function getactivetemplateoverride(type) {
+  var t=templates[database]['available'][templates[database]['active'][type]];
+  return t.override?t.override:{};
+}
 function updatetemplatedropdown(type) {
   var pulldown = "";
   for ( key in templates[database].available ) {
@@ -1424,7 +1434,7 @@ $(document).ready(function(){
   $.each(templates[database]['available'],function(key,val) {
 	  console.log("initiating template load: "+key);
 	  $.ajax({
-	    url: "templates/template-"+(val.generic?'':(database+"-"))+key+".html",
+	    url: "templates/template-"+(val.generic?'':(database+"-"))+((val.override&&val.override.templatekey)?val.override.templatekey:key)+".html",
 	    type: "GET",
 	    datatype: 'text',
 	    cache: true,
