@@ -197,7 +197,7 @@ templates['l5r'] = {
   	  'places': [ 'card' ],
 	    'override': {
                    'templatekey': 'card',
-                   'var': { 'premium': '1' }
+                   'var': { 'imageclass': 'master' }
             }
 	},
 	'list': {

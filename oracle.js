@@ -1055,9 +1055,9 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
   }
+	console.log(["rendering card",tmpl]);
   var html = getactivetemplate('card').render(carddata,tmpl);
-
-$("#resultcard").html(html);
+  $("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();

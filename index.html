@@ -479,16 +479,16 @@ printingprimary
        <div class="printing" data-printingid="{{:printingid}}">
             {{if image}}
             {{for image ~imagehash=imagehash}}
-            {{if ~premium}}
-            <img src="{{:~dbinfo.imageuri}}{{:~imagehash}}/{{:master}}" /><br />
+            {{if ~imageclass }}
+            <img src="{{:~dbinfo.imageuri}}{{:~imagehash}}/{{:#data[~imageclass]}}" /><br />
             {{else}}
             <img style="max-width: 600px; max-height: 600px" src="{{:~dbinfo.imageuri}}{{:~imagehash}}/{{:details}}" /><br />
             {{/if}}
             {{/for}}
             {{else images}}
             {{for images}}
-            {{if ~premium}}
-            <img src="{{:}}master.jpg" /><br />
+            {{if ~imageclass}}
+            <img src="{{:}}{{:~imageclass}}.jpg" /><br />
             {{else}}
             <img style="max-width: 600px; max-height: 600px" src="{{:}}details.jpg" /><br />
             {{/if}}

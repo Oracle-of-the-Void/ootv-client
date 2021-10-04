@@ -178,7 +178,7 @@ templates['7thsea'] = {
 	    'places': [ 'card' ],
 	    'override': {
                    'templatekey': 'card',
-                   'var': { 'premium': '1' }
+                   'var': { 'imageclass': 'master' }
             }
 	},
 	'list': {
