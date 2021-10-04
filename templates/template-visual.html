@@ -1,4 +1,10 @@
 <a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
-<img src="{{fetchimage #view.data "select" listprinting ~datarequest /}}" />
+<img src="
+{{if ~imageclass}}
+{{fetchimage #view.data ~imageclass listprinting ~datarequest /}}
+{{else}}
+{{fetchimage #view.data "select" listprinting ~datarequest /}}
+{{/if}}
+" />
 </a>
 

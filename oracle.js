@@ -1096,19 +1096,24 @@ function rendercards(data,request,querystring) {
 	    }
 	    return list;
 	})); */
-    return getactivetemplate('search').render(data,{
-	"labels": labels[database],
-	"datarequest": request,
-	"qs": querystring,
-	"activelists":activelists.map(function(listid) {
-	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-	    if(cache_thing("list",listid)) {
-		list.listdata = cache_thing("list",listid);
-	    }
-	    return list;
-	}),
-	"database": database
-    });
+  var tmpl={
+	    "labels": labels[database],
+	    "datarequest": request,
+	    "qs": querystring,
+	    "activelists":activelists.map(function(listid) {
+	      var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
+	      if(cache_thing("list",listid)) {
+		      list.listdata = cache_thing("list",listid);
+	      }
+	      return list;
+	    }),
+	    "database": database
+  };
+  var override = getactivetemplateoverride('search');
+  for ( v in override.var?override.var:{}) {
+    tmpl[v] = override.var[v];
+  }
+  return getactivetemplate('search').render(data,tmpl);
 }
 
 

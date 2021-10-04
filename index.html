@@ -479,7 +479,7 @@ printingprimary
        <div class="printing" data-printingid="{{:printingid}}">
             {{if image}}
             {{for image ~imagehash=imagehash}}
-            {{if ~imageclass }}
+            {{if ~imageclass}}
             <img src="{{:~dbinfo.imageuri}}{{:~imagehash}}/{{:#data[~imageclass]}}" /><br />
             {{else}}
             <img style="max-width: 600px; max-height: 600px" src="{{:~dbinfo.imageuri}}{{:~imagehash}}/{{:details}}" /><br />

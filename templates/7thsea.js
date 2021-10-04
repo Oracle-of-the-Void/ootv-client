@@ -165,7 +165,11 @@ templates['7thsea'] = {
 	    'shortname': 'Visual(L)',
 	    'places': [ 'search','list' ],
 	    'premium': true,
-	    'generic':true
+	    'generic':true,
+	    'override': {
+                   'templatekey': 'visual',
+                   'var': { 'imageclass': 'details' }
+            }
 	},
 	'card':  { 
 	    'longname': 'Card Details',

@@ -147,6 +147,17 @@ templates['dune'] = {
 	    'generic': true,
 	    'headerizable': true
 	},
+	'visual-premium': { 
+	    'longname': 'Visual Spoiler - Large',
+	    'shortname': 'Visual(L)',
+	    'places': [ 'search','list' ],
+	    'premium': true,
+  	  'generic':true,
+	    'override': {
+                   'templatekey': 'visual',
+                   'var': { 'imageclass': 'details' }
+            }
+	},
 	'card':  { 
 	    'longname': 'Card Details',
 	    'shortname': 'Card',
