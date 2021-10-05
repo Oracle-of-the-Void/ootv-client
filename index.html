@@ -12,6 +12,7 @@
   <script src="https://www.jsviews.com/download/jsviews.min.js"></script>
   <script src="https:////www.jsviews.com/download/sample-tag-controls/jsonview/jsonview.js"></script>
   <script src="amazon-cognito-auth.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
 <!--  <script src="aws-cognito-sdk.min.js"></script> -->
   <script src="oracle.js"></script>
   <!-- TODO:  dynamic this: -->
@@ -371,9 +372,10 @@ printingprimary
 <script id="template-editcard" type="text/jsrender">
   <form id="editform" enctype="multipart/form-data">
     <input name="cardid" id="editcardid" type="hidden" value="{{:cardid}}" />
-    <input name="table" type="hidden" value="{{:database}}" />
-    <textarea id="editcard" name="editcard" rows="10" cols="50">{{:carddata}}</textarea>
-    <input type="button" value="Upload" onclick="importlisttrigger();" />
+    <input name="table" id="editcarddb" type="hidden" value="{{:database}}" />
+    <textarea id="editcard" name="editcard" rows="50" cols="100">{{:carddata}}</textarea>
+    <input type="button" id="editcardbutton" value="Update" onclick="editcardtrigger();" />
+    <div id="editcardbuttonafter"></div>
   </form>
 </script>
   
@@ -506,6 +508,7 @@ printingprimary
     {{if ~groups && (~groups.database || ~groups["*"])}}
     <span style="float:right; padding-right: 2px;">
       <span class="iiconic iyellow" onclick="editcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
+      <!-- TODO:  other editing methods -->
 	    <span class="iiconic ipositive" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-plus"></span>
 	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
     </span>
@@ -517,6 +520,7 @@ printingprimary
   <dt>Versions</dt><dd>{{for printing ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
     {{if ~groups && (~groups.database || ~groups["*"])}}
     <span style="float:right; padding-right: 2px;">
+      <!-- TODO:  other editing methods - including make primary button -->
       <span class="iiconic iyellow" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
 	    <span class="iiconic ipositive" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
 	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>

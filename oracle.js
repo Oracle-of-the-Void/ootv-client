@@ -63,6 +63,31 @@ function chunkArrayInGroups(arr, size) {
 function escapequotes(str) {
     return str.replace('"','&quot;');
 }
+
+
+/**
+ * Deep diff between two object, using lodash
+ * @param  {Object} object Object compared
+ * @param  {Object} base   Object to compare with
+ * @return {Object}        Return a new object who represent the diff
+ */
+function jsondiff(object, base) {
+	function changes(object, base) {
+		return _.transform(object, function(result, value, key) {
+			if (!_.isEqual(value, base[key])) {
+				result[key] = (_.isObject(value) && _.isObject(base[key])) ? changes(value, base[key]) : value;
+			}
+		});
+	}
+	return changes(object, base);
+}
+
+function loadtest() {
+	console.log("load test template");
+	$("#all_template").append('<script src="templates/test.js"></script>');
+  addgametolist('test');
+}
+
 $.views.converters("addslashes",addslashes);
 
 var apiuri = "https://api.oracleofthevoid.com";
@@ -487,12 +512,102 @@ function importlist(listid=null,name=null) {
 }
 
 function editcard(cardid=null) {
+  // This edits just the main card data, no instance info
   if(cardid) {
     carddata = cache_card_fetch(cardid);
+    delete carddata.printing;
+    delete carddata.printingreverse;
+    delete carddata.printingprimary;
+    delete carddata.cardid;
+    delete carddata.updatelog;
     var title = "Edit card information for: "+carddata.title[0];
     var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": cardid, "carddata": JSON.stringify(carddata), "database": database}));
+    modal(title,editcardtemplate.render({"cardid": cardid, "carddata": JSON.stringify(carddata,null,2), "database": database}));
   }
+}
+
+function editcardtrigger() {
+  // https://github.com/Oracle-of-the-Void/ootv-client/blob/master/docs/API.md#update
+  // authenticated:  /update
+  // Header, uid
+  // cardid, database, data
+  // operation: update (hash of keys to update) - replace contents
+  // printingid + operation: updateinstance (hash of keys to update for printing) - replace contents
+  //    new / newinstance laterz
+  //    remove / removeinstance laterz
+
+  // Note, this one is just doing an edit on main card (so just update)
+
+  var url = apiuri+"/update";
+  var requestdata = {
+    "uid": getuid(),
+    "database": $('#editcarddb').val(),
+    "cardid": $('#editcardid').val(),
+    "operation": "update",
+    "data": {}
+  };
+  var newdata;
+  carddata = cache_card_fetch($('#editcardid').val());
+  // kill things managed in different ways
+  delete carddata.printing;
+  delete carddata.printingreverse;
+  delete carddata.printingprimary;
+  delete carddata.cardid;
+  delete carddata.updatelog;
+  try {
+    newdata = JSON.parse($('#editcard').val());
+  } catch(e) {
+    $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Failed to parse</div>');
+    return;
+  }
+  // make sure nobody "adds" anything restricted.
+  delete newdata.printing;
+  delete newdata.printingreverse;
+  delete newdata.printingprimary;
+  delete newdata.cardid;
+  delete newdata.updatelog;
+  if(_.isEqual(newdata,carddata)) {
+    $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">No Change</div>');
+    return;
+  }
+  console.log(["differences",jsondiff(newdata,carddata)]);
+  
+  var changedata = {};
+  for (key in newdata) {
+    if(!_.isEqual(newdata[key],carddata[key])) {
+      changedata[key] = newdata[key];
+    }
+  }
+  for (key in carddata) {
+    if(!(key in newdata)) {
+      changedata[key] = null;
+    }
+  }
+  requestdata.data = changedata;
+
+  $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updating</div>');
+  $('#editcardbutton').hide();
+  console.log(["updating card data",requestdata]);
+  var request = {
+	  type: "POST",
+	  url: url,
+	  contentType: 'application/json',
+	  dataType: 'json',
+    data: JSON.stringify(requestdata),
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  responseType: 'application/json',
+	  success: function(status) {
+      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updated Successfully</div>');
+      cardfetch(requestdata.cardid,null,null,nomodal);
+	  },
+	  error: function(status) {
+      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Error</div><br /> '+status.responseText);
+	    console.log(status);
+	  }
+  };
+  console.log(["posting",request]);
+  $.ajax(request);
+
 }
 
 function importlisttrigger() {
@@ -500,54 +615,53 @@ function importlisttrigger() {
     $("#importform").hide();
     $("#importstatus").html("");
     $.ajax({
-	// Your server script to process the upload
-	url: 'https://api.oracleofthevoid.com/import',
-	type: 'POST',
+	    // Your server script to process the upload
+	    url: 'https://api.oracleofthevoid.com/import',
+	    type: 'POST',
+      
+	    // Form data
+	    data: new FormData($('#importform')[0]),
+      
+	    // Tell jQuery not to process data or worry about content-type
+	    // You *must* include these options!
+	    cache: false,
+	    contentType: false,
+	    processData: false,
+      
+	    // Custom XMLHttpRequest
+	    xhr: function () {
+	      var myXhr = $.ajaxSettings.xhr();
+	      if (myXhr.upload) {
+		      // For handling the progress of the upload
+		      myXhr.upload.addEventListener('importprogress', function (e) {
+		        if (e.lengthComputable) {
+			        $('#importprogress').attr({
+			          value: e.loaded,
+			          max: e.total,
+			        });
+		        }
+		      }, false);
+	      }
+	      return myXhr;
+	    },
+      
+	    success: function(data) {
+	      console.log("success");
+	      console.log(data);
+	      $("#importprogress").hide();
+	      var importsuccess = $.templates("#template-importsuccess");
+	      $("#importfailedval").val(data.failed.join("\n"));
+	      $("#importdataval").val(JSON.stringify(data.list));
+	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n")}));
+	    },
 
-	// Form data
-	data: new FormData($('#importform')[0]),
-
-	// Tell jQuery not to process data or worry about content-type
-	// You *must* include these options!
-	cache: false,
-	contentType: false,
-	processData: false,
-
-	// Custom XMLHttpRequest
-	xhr: function () {
-	    var myXhr = $.ajaxSettings.xhr();
-	    if (myXhr.upload) {
-		// For handling the progress of the upload
-		myXhr.upload.addEventListener('importprogress', function (e) {
-		    if (e.lengthComputable) {
-			$('#importprogress').attr({
-			    value: e.loaded,
-			    max: e.total,
-			});
-		    }
-		}, false);
+	    error: function(data) {
+	      console.log("error");
+	      console.log(data);
+	      $("#importprogress").hide();
+	      $("#importstatus").html('<div class="error">Error</div><br /><br />'+(data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1))));
 	    }
-	    return myXhr;
-	},
-
-	success: function(data) {
-	    console.log("success");
-	    console.log(data);
-	    $("#importprogress").hide();
-	    var importsuccess = $.templates("#template-importsuccess");
-	    $("#importfailedval").val(data.failed.join("\n"));
-	    $("#importdataval").val(JSON.stringify(data.list));
-	    $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n")}));
-	},
-
-	error: function(data) {
-	    console.log("error");
-	    console.log(data);
-	    $("#importprogress").hide();
-	  $("#importstatus").html('<div class="error">Error</div><br /><br />'+(data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1))));
-	}
-
-  });
+    });
 }
 
 function importlistfinalize() {
@@ -558,17 +672,18 @@ function importlistfinalize() {
 //   *********************************   fetching / querying the api ******************8
 // TODO: sometimes this fails if I do a card not primed from c/p
 //   e.g: https://dev.oracleofthevoid.com/#cardid=999
-function cardfetch(cardid,prid=null,qs=null) {
+function cardfetch(cardid,prid=null,qs=null,handler=null) {
   $.ajax({
     type: 'GET',
     url: apiuri+"/oracle-fetch?table="+database+"&cardid="+cardid,
     contentType: 'application/json',
     dataType: 'json',
     responseType: 'application/json',
-      success: function(data) {
-	  data = imagehashtourl(data);
-	  cache_card(data);
-	  docard(data,prid,qs);
+    success: function(data) {
+	    data = imagehashtourl(data);
+	    cache_card(data);
+	    docard(data,prid,qs);
+      if(handler) { handler(); }
     },
     error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
   });
@@ -1462,7 +1577,7 @@ $(document).ready(function(){
 	    }
 	  });
   });
-  
+
 
   // Load selects
   $('#searchmiddle').html(searcherror['searchmiddle']);
