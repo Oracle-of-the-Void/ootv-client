@@ -373,6 +373,7 @@ printingprimary
   <form id="editform" enctype="multipart/form-data">
     <input name="cardid" id="editcardid" type="hidden" value="{{:cardid}}" />
     <input name="table" id="editcarddb" type="hidden" value="{{:database}}" />
+    <input name="printid" id="editcardprint" type="hidden" value="{{:printid}}" />
     <textarea id="editcard" name="editcard" rows="50" cols="100">{{:carddata}}</textarea>
     <input type="button" id="editcardbutton" value="Update" onclick="editcardtrigger();" />
     <div id="editcardbuttonafter"></div>
@@ -521,7 +522,7 @@ printingprimary
     {{if ~groups && (~groups.database || ~groups["*"])}}
     <span style="float:right; padding-right: 2px;">
       <!-- TODO:  other editing methods - including make primary button -->
-      <span class="iiconic iyellow" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
+      <span class="iiconic iyellow" onclick="editcard({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
 	    <span class="iiconic ipositive" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
 	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>
     </span>

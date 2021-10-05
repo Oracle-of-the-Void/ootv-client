@@ -511,15 +511,25 @@ function importlist(listid=null,name=null) {
     modal(title,importtemplate.render({"listid": listid, "database": database}));
 }
 
-function editcard(cardid=null) {
-  // This edits just the main card data, no instance info
-  if(cardid) {
+function editcard(cardid=null,printid=null) {
+  if(cardid&&printid) {
+    // edit just a printing version
+    carddata = cache_card_fetch(cardid);
+    printing = carddata.printing[carddata.printingreverse.printingid[printid]];
+    delete printing.printingid;
+    var title = "Edit card information for: "+carddata.title[0]+' - instance '+printid;
+    var editcardtemplate = $.templates("#template-editcard");
+    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": JSON.stringify(printing,null,2), "database": database}));
+  } else if(cardid) {
+    // This edits just the main card data, no instance info
     carddata = cache_card_fetch(cardid);
     delete carddata.printing;
     delete carddata.printingreverse;
     delete carddata.printingprimary;
     delete carddata.cardid;
     delete carddata.updatelog;
+    delete carddata['@timestamp'];
+    delete carddata['@SequenceNumber'];
     var title = "Edit card information for: "+carddata.title[0];
     var editcardtemplate = $.templates("#template-editcard");
     modal(title,editcardtemplate.render({"cardid": cardid, "carddata": JSON.stringify(carddata,null,2), "database": database}));
@@ -544,46 +554,75 @@ function editcardtrigger() {
     "database": $('#editcarddb').val(),
     "cardid": $('#editcardid').val(),
     "operation": "update",
+    "printingid": $('#editcardprint').val(),
     "data": {}
   };
   var newdata;
+  var changedata = {};
   carddata = cache_card_fetch($('#editcardid').val());
-  // kill things managed in different ways
-  delete carddata.printing;
-  delete carddata.printingreverse;
-  delete carddata.printingprimary;
-  delete carddata.cardid;
-  delete carddata.updatelog;
   try {
     newdata = JSON.parse($('#editcard').val());
   } catch(e) {
     $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Failed to parse</div>');
     return;
   }
-  // make sure nobody "adds" anything restricted.
-  delete newdata.printing;
-  delete newdata.printingreverse;
-  delete newdata.printingprimary;
-  delete newdata.cardid;
-  delete newdata.updatelog;
-  if(_.isEqual(newdata,carddata)) {
-    $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">No Change</div>');
-    return;
-  }
-  console.log(["differences",jsondiff(newdata,carddata)]);
-  
-  var changedata = {};
-  for (key in newdata) {
-    if(!_.isEqual(newdata[key],carddata[key])) {
-      changedata[key] = newdata[key];
+  var printid = $('#editcardprint').val();
+  if (printid) {
+    // TODO :  HERE if printingid, set up the printing, not other
+    printing = carddata.printing[carddata.printingreverse.printingid[printid]];
+    console.log(printing);
+    delete printing.printingid;
+    if(_.isEqual(newdata,printing)) {
+      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">No Change</div>');
+      return;
     }
-  }
-  for (key in carddata) {
-    if(!(key in newdata)) {
-      changedata[key] = null;
+    console.log(["differences",jsondiff(newdata,printing)]);
+    for (key in newdata) {
+      if(!_.isEqual(newdata[key],printing[key])) {
+        changedata[key] = newdata[key];
+      }
     }
+    for (key in printing) {
+      if(!(key in newdata)) {
+        changedata[key] = null;
+      }
+    }
+    requestdata.data = changedata;
+    requestdata.operation = "updateinstance";
+  } else {
+    // kill things managed in different ways
+    delete carddata.printing;
+    delete carddata.printingreverse;
+    delete carddata.printingprimary;
+    delete carddata.cardid;
+    delete carddata.updatelog;
+    delete carddata['@timestamp'];
+    delete carddata['@SequenceNumber'];
+    // make sure nobody "adds" anything restricted.
+    delete newdata.printing;
+    delete newdata.printingreverse;
+    delete newdata.printingprimary;
+    delete newdata.cardid;
+    delete newdata.updatelog;
+    delete newdata['@timestamp'];
+    delete newdata['@SequenceNumber'];
+    if(_.isEqual(newdata,carddata)) {
+      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">No Change</div>');
+      return;
+    }
+    console.log(["differences",jsondiff(newdata,carddata)]);
+    for (key in newdata) {
+      if(!_.isEqual(newdata[key],carddata[key])) {
+        changedata[key] = newdata[key];
+      }
+    }
+    for (key in carddata) {
+      if(!(key in newdata)) {
+        changedata[key] = null;
+      }
+    }
+    requestdata.data = changedata;
   }
-  requestdata.data = changedata;
 
   $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updating</div>');
   $('#editcardbutton').hide();
@@ -598,7 +637,7 @@ function editcardtrigger() {
 	  responseType: 'application/json',
 	  success: function(status) {
       $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updated Successfully</div>');
-      cardfetch(requestdata.cardid,null,null,nomodal);
+      cardfetch(requestdata.cardid,$('#lastprintid').val(),null,nomodal);
 	  },
 	  error: function(status) {
       $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Error</div><br /> '+status.responseText);
@@ -1151,6 +1190,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid);
+  $("#lastprintid").val(prid);
   var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
@@ -1896,11 +1936,12 @@ function scrollforceload() {
 }
 
 function changeprinting(id,prid,qs,title) {
-    //    console.log({id,prid,qs,title});
-    $('.printing').hide();
-    $('.printing[data-printingid='+prid+']').show();
-    history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title, '#game='+database+',#cardid='+id+',#cnprintingid='+prid);
-    // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
+  //    console.log({id,prid,qs,title});
+  $('.printing').hide();
+  $("#lastprintid").val(prid);
+  $('.printing[data-printingid='+prid+']').show();
+  history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title, '#game='+database+',#cardid='+id+',#cnprintingid='+prid);
+  // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
 }
 
 function cardprev(id,qs) {
