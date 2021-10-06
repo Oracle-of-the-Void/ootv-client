@@ -174,6 +174,23 @@ function logincallback(session) {
     } else {
 	userinfo();
     }
+  if (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
+    if(!cache_thing("structuretemplate",database)) {
+        $.ajax({
+          type: 'GET',
+          url: apiuri+"/structure?database="+database+"&key=template",
+          contentType: 'application/json',
+          dataType: 'json',
+          responseType: 'application/json',
+          success: function(data) {
+            cache_thing("structuretemplate",database,data);
+            console.log(["structures loaded",data]);
+          },
+          error: function(error) { console.log("Structure Fetch Fail: "+JSON.stringify(error)); }
+        });
+    }
+  }
+    
 }
 function initCognitoSDK() {
     var authData = {
@@ -533,7 +550,12 @@ function editcard(cardid=null,printid=null) {
     var title = "Edit card information for: "+carddata.title[0];
     var editcardtemplate = $.templates("#template-editcard");
     modal(title,editcardtemplate.render({"cardid": cardid, "carddata": JSON.stringify(carddata,null,2), "database": database}));
-  }
+  } else {
+    var structure = cache_thing("structuretemplate",database);
+    var title = "Insert new card";
+    var editcardtemplate = $.templates("#template-editcard");
+    modal(title,editcardtemplate.render({"cardid": "", "carddata": JSON.stringify(structure.template,null,2), "database": database}));
+  }    
 }
 
 function editcardtrigger() {
@@ -548,27 +570,28 @@ function editcardtrigger() {
 
   // Note, this one is just doing an edit on main card (so just update)
 
+  var printid = $('#editcardprint').val();
+  var cardid = $('#editcardid').val();
   var url = apiuri+"/update";
   var requestdata = {
     "uid": getuid(),
     "database": $('#editcarddb').val(),
-    "cardid": $('#editcardid').val(),
+    "cardid": cardid,
     "operation": "update",
-    "printingid": $('#editcardprint').val(),
+    "printingid": printid,
     "data": {}
   };
   var newdata;
   var changedata = {};
-  carddata = cache_card_fetch($('#editcardid').val());
   try {
     newdata = JSON.parse($('#editcard').val());
   } catch(e) {
     $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Failed to parse</div>');
     return;
   }
-  var printid = $('#editcardprint').val();
   if (printid) {
     // TODO :  HERE if printingid, set up the printing, not other
+    carddata = cache_card_fetch(cardid);
     printing = carddata.printing[carddata.printingreverse.printingid[printid]];
     console.log(printing);
     delete printing.printingid;
@@ -589,8 +612,9 @@ function editcardtrigger() {
     }
     requestdata.data = changedata;
     requestdata.operation = "updateinstance";
-  } else {
+  } else if(cardid) {
     // kill things managed in different ways
+    carddata = cache_card_fetch(cardid);
     delete carddata.printing;
     delete carddata.printingreverse;
     delete carddata.printingprimary;
@@ -622,6 +646,30 @@ function editcardtrigger() {
       }
     }
     requestdata.data = changedata;
+  } else {
+    // NEW
+    requestdata.operation = "new";
+    delete requestdata.cardid;
+    delete requestdata.printingid;
+    // TODO:  enforce requirements, add defaults
+    var structure = cache_thing("structuretemplate",database);
+    for (let rem of structure.operation.new.remove) {
+      delete newdata[rem];
+    }
+    for (let def in structure.operation.new.default) {
+      if(!newdata[def]) {
+        newdata[def] = structure.operation.new.default[def];
+      }
+    }
+    for (let i = 0; i< newdata.printing.length ; i++) {
+      for (let def in structure.operation.new.defaultprinting) { 
+        if(!newdata.printing[i][def]) {
+          newdata.printing[i][def] = structure.operation.new.defaultprinting[def];
+        }
+      }
+    }
+    requestdata.data = [newdata];
+    console.log(["NEW",requestdata]);
   }
 
   $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updating</div>');
@@ -637,7 +685,12 @@ function editcardtrigger() {
 	  responseType: 'application/json',
 	  success: function(status) {
       $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updated Successfully</div>');
-      cardfetch(requestdata.cardid,$('#lastprintid').val(),null,nomodal);
+      console.log(["update ret",status]);
+      if(requestdata.cardid) {
+        cardfetch(requestdata.cardid,$('#lastprintid').val(),null,nomodal);
+      } else if(status.cardids) {
+        cardfetch(status.cardids[0],null,null,nomodal);
+      }
 	  },
 	  error: function(status) {
       $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Error</div><br /> '+status.responseText);
@@ -1652,6 +1705,7 @@ $(document).ready(function(){
   
   //    $('.document').bind("DOMSUbtreeModified",chosenify);
   //    chosenify();
+
 });
 
 function chosenify() {

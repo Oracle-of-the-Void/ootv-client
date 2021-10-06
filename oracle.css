@@ -756,6 +756,7 @@ nav ul li ul li:last-child {
   padding: 20px;
 }
 
+/* TODO:   width is funky for larger things */
 .modal-box {
   margin: 15% auto; /* 15% from the top and centered */
   width: 20%; /* Could be more or less, depending on screen size */
