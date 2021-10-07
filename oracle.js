@@ -805,6 +805,39 @@ function editcardtrigger() {
 
 }
 
+function setprimary(cardid,printid) {
+  if(cardid&&printid) {
+    var url = apiuri+"/update";
+    var requestdata = {
+      "uid": getuid(),
+      "database": database,
+      "cardid": cardid,
+      "operation": "update",
+      "data": {"printingprimary":printid}
+    };
+    console.log(["updating card data",requestdata]);
+    var request = {
+	    type: "POST",
+	    url: url,
+	    contentType: 'application/json',
+	    dataType: 'json',
+      data: JSON.stringify(requestdata),
+	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	    responseType: 'application/json',
+	    success: function(status) {
+        console.log(["update ret",status]);
+        cardfetch(requestdata.cardid,printid,null,nomodal);
+	    },
+	    error: function(status) {
+        alert('Error: '+status.responseText);
+	      console.log(status);
+	    }
+    };
+    console.log(["posting",request]);
+    $.ajax(request);
+  }
+}
+
 function importlisttrigger() {
     $("#importprogress").show();
     $("#importform").hide();
