@@ -2,17 +2,18 @@
 
 ### Not needing Authentication
 
-* [/attributes (POST)](#attributes)
-* [/oracle-fetch (GET) (POST)](#oracle-fetch)
-* [/search (POST)](#search)
-* [/verify-jwt (POST)](#verify-jwt)
+* [/attributes (POST)](#attributes)            -> Pulls attributes from games (for use in pull-downs)
+* [/oracle-fetch (GET) (POST)](#oracle-fetch)  -> Get cards by cardid
+* [/search (POST)](#search)                    -> Search cards, return results
+* [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
+* [/oracle-structure (GET) (#oracle-structure) -> Returns information about games (templating, etc)
 
 ### Needing Authentication
 
-* [/user (GET)](#user)
-* [/import (POST)](#import)
-* [/list (GET)](#list)
-* [/update (POST)](#update)
+* [/user (GET)](#user)                          -> Verify user account and return user data 
+* [/import (POST)](#import)                     -> import decks/lists from external files
+* [/list (GET)](#list)                          -> deck/list handling routines
+* [/update (POST)](#update)                     -> database modification routines
 
 ## Note
 
@@ -116,6 +117,29 @@ I think I was just using this as a tool to help debug auth issues.
 Handled by lambda: oracle-verify-jwt/index.js
 
 TODO: Need more documentation here, and to verify if it's in use.
+
+## /oracle-structure
+
+Pulls information about databases (templates, etc)
+
+inputs:
+
+* database
+  * game to pull from
+* key
+  * type of info to pull
+    * template
+
+
+outputs:
+
+* JSON of data
+
+codes:
+
+* 200: success
+* 404: not found
+* 5xx: error
 
 ## /user
 
