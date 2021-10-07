@@ -2150,6 +2150,13 @@ function modal(title,content) {
     chosenify();
 }
 
+function modalconfirm(title,content,handler,contentafter='') {
+  $('#modal-title').html(title);
+  $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
+  $('#modal').css('display','block');
+  chosenify();
+}
+
 function erasemodal() {
     $('#modal-content').html('');
     $('#modal-title').html('');
