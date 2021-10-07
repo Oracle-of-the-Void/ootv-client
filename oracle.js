@@ -543,9 +543,71 @@ function importlist(listid=null,name=null) {
     modal(title,importtemplate.render({"listid": listid, "database": database}));
 }
 
+function deletecard(cardid=null,printid=null) {
+  if(cardid&&printid) {
+    var carddata = cache_card_fetch(cardid);
+    modalconfirm("Delete instance "+printid+" from: "+carddata.title[0],
+                 "Are you sure you want to delete this instance:<br><br>"+
+                 "Card: "+carddata.title[0]+"<br>"+
+                 (carddata.printing[carddata.printingreverse.printingid[printid]].set ? "Set: "+carddata.printing[carddata.printingreverse.printingid[printid]].set : '')+"<br>"+
+                 (carddata.printing[carddata.printingreverse.printingid[printid]].rarity ? "Rarity: "+carddata.printing[carddata.printingreverse.printingid[printid]].rarity : '')+"<br>"+
+                 "<br><br>",
+                 "deletecardtrigger('"+database+"',"+cardid+","+printid+");"
+                );
+  } else if(cardid) {
+    var carddata = cache_card_fetch(cardid);
+    modalconfirm("Delete: "+carddata.title[0],
+                 "Are you sure you want to delete this card:<br><br>"+
+                 "Card: "+carddata.title[0]+"<br>"+
+                 "<br><br>",
+                 "deletecardtrigger('"+database+"',"+cardid+",null);"
+                );
+  }
+}
+
+function deletecardtrigger(database=null,cardid=null,printid=null) {
+  var url = apiuri+"/update";
+  var requestdata = {
+    "uid": getuid(),
+    "database": database,
+    "cardid": cardid,
+    "data": {"remove":true}  // dummy data
+  };
+  if(cardid&&printid) {
+    requestdata['printingid'] = printid;
+    requestdata['operation'] = 'removeinstance';
+  } else if(cardid) {
+    requestdata['operation'] = 'remove';
+  }
+  var request = {
+	  type: "POST",
+	  url: url,
+	  contentType: 'application/json',
+	  dataType: 'json',
+    data: JSON.stringify(requestdata),
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  responseType: 'application/json',
+	  success: function(status) {
+      console.log(["update ret",status]);
+      nomodal();
+      if(requestdata.cardid) {
+        cache_card_remove(requestdata.cardid);
+        $('#modal-content').html('<div id="submitafter" class="error">REMOVED</div>');
+        $('#resultcard').html('');
+      } 
+	  },
+	  error: function(status) {
+      $('#modal-content').append('<div id="submitafter" class="error">Error</div><br /> '+status.responseText);
+	    console.log(status);
+	  }
+  };
+  console.log(["posting",request]);
+  $.ajax(request);
+}
+
 function editcard(cardid=null,printid=null) {
   if(cardid&&printid) {
-    carddata = cache_card_fetch(cardid);
+    var carddata = cache_card_fetch(cardid);
     var title;
     var printing;
     if(printid == Number.MAX_SAFE_INTEGER) {
@@ -563,7 +625,7 @@ function editcard(cardid=null,printid=null) {
     modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": JSON.stringify(printing,null,2), "database": database}));
   } else if(cardid) {
     // This edits just the main card data, no instance info
-    carddata = cache_card_fetch(cardid);
+    var carddata = cache_card_fetch(cardid);
     delete carddata.printing;
     delete carddata.printingreverse;
     delete carddata.printingprimary;
@@ -728,7 +790,7 @@ function editcardtrigger() {
       $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updated Successfully</div>');
       console.log(["update ret",status]);
       if(requestdata.cardid) {
-        cardfetch(requestdata.cardid,$('#lastprintid').val(),null,nomodal);
+        cardfetch(requestdata.cardid,status.olddata.printingid?status.olddata.printingid:null,null,nomodal);
       } else if(status.cardids) {
         cardfetch(status.cardids[0],null,null,nomodal);
       }
@@ -2078,6 +2140,9 @@ function sidebaropener() {
 // ** searchcache could overrun localstorage pretty fast, so cache searches/cards in memory
 function cache_card(carddata) {
     searchcache[database]['data'][carddata.cardid] = carddata;
+}
+function cache_card_remove(cardid) {
+  delete searchcache[database]['data'][cardid];
 }
 function cache_card_fetch(cardid) {
     return     JSON.parse(JSON.stringify(searchcache[database]['data'][cardid]));

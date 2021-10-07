@@ -511,7 +511,7 @@ printingprimary
       <span class="iiconic iyellow" onclick="editcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
       <!-- TODO:  other editing methods -->
 	    <span class="iiconic ipositive" onclick="editcard(''); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span> 
-	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+	    <span class="iiconic inegative" onclick="deletecard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
     </span>
     {{/if}}
     <dl>
@@ -524,7 +524,7 @@ printingprimary
       <!-- TODO:  other editing methods - including make primary button -->
       <span class="iiconic iyellow" onclick="editcard({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
 	    <span class="iiconic ipositive" onclick="editcard({{:cardid}},Number.MAX_SAFE_INTEGER); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
-	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>
+	    <span class="iiconic inegative" onclick="deletecard({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>
     </span>
     {{/if}}
 
@@ -570,7 +570,7 @@ printingprimary
 
 <div id="modal" class="modal" onclick="generalnomodal(this,event);"><div class="modal-box"><div class="listhead upperhead"><span id="modal-title">Hi</span><button class="iiconic inegative headsetrar" onclick="nomodal();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></button></div><div class="modal-content" id="modal-content"></div></div></div>
 
-<div id="modalconfirm"><span class="button gray" onclick="CONFIRMYES">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
+<div id="modalconfirm" class="modal"><span class="button gray" onclick="CONFIRMYES">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
   <span class="button gray" onclick="nomodal();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span></div>
 
 </body>
