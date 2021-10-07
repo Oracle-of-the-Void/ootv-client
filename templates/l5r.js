@@ -282,40 +282,40 @@ $(document).ready(function(){
 // maybe figure out how to parameterize, and set that a section has been done already via classes/jquery, to avoid infinite scroll slowness
 updates['l5r'] = function (area) {
   $(area+" .listbody").html(function(index, html) {
-    return html.replace(/:g1:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_01.png" />'). //   | Gold symbol with 01 on top   |
-    replace(/:g2:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_02.png" />'). //   | Gold symbol with 02 on top   |
-    replace(/:g3:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_03.png" />'). //   | Gold symbol with 03 on top   |
-    replace(/:g4:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_04.png" />'). //   | Gold symbol with 04 on top   |
-    replace(/:g5:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_05.png" />'). //   | Gold symbol with 05 on top   |
-    replace(/:g6:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_06.png" />'). //   | Gold symbol with 06 on top   |
-    replace(/:g7:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_07.png" />'). //   | Gold symbol with 07 on top   |
-    replace(/:g8:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_08.png" />'). //   | Gold symbol with 08 on top   |
-    replace(/:g9:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_09.png" />'). //   | Gold symbol with 09 on top   |
-    replace(/:g10:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_10.png" />'). //   | Gold symbol with 10 on top   |
-    replace(/:g11:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_11.png" />'). //   | Gold symbol with 11 on top   |
-    replace(/:g12:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_12.png" />'). //   | Gold symbol with 12 on top   |
-    replace(/:g13:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_13.png" />'). //   | Gold symbol with 13 on top   |
-    replace(/:g14:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_14.png" />'). //   | Gold symbol with 14 on top   |
-    replace(/:g15:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_15.png" />'). //   | Gold symbol with 15 on top   |
-    replace(/:g16:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_16.png" />'). //   | Gold symbol with 16 on top   |
-    replace(/:g17:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_17.png" />'). //   | Gold symbol with 17 on top   |
-    replace(/:g18:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_18.png" />'). //   | Gold symbol with 18 on top   |
-    replace(/:g19:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_19.png" />'). //   | Gold symbol with 19 on top   |
-    replace(/:g20:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_20.png" />'). //   | Gold symbol with 20 on top   |
-    replace(/:gstar:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top |
-    replace(/:\*:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top |
-    replace(/:X:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top |
-    replace(/:g\*:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top |
-    replace(/:g0:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_00.png" />'). //   | Gold symbol with 0 on top    |
-    replace(/:0:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_00.png" />'). //   | Gold symbol with 0 on top    |
-    replace(/:bow:/g,'<span class="l5rsym">w</span>'). //                                                    | Bowing symbol                |
-    replace(/:Rank:/g,'<span class="l5rsym" style="font-size: 200%;">c</span>'). //                           | Blank Rank symbol            |
-    replace(/:Rank-1:/g,'<span class="l5rsym" style="font-size: 200%;">f</span>'). //                           | -1 rank symbol               |
-    replace(/:Rank-3:/g,'<span class="l5rsym" style="font-size: 200%;">d</span>'). //                           | rank -3 symbol               |
-    replace(/:Rank-2:/g,'<span class="l5rsym" style="font-size: 200%;">e</span>'). //                           | rank -2 symbol               |
-    replace(/:Rank+1:/g,'<span class="l5rsym" style="font-size: 200%;">g</span>'). //                           | rank +1 symbol               |
-    replace(/:Rank+2:/g,'<span class="l5rsym" style="font-size: 200%;">h</span>'). //                           | rank +2 symbol               |
-    replace(/:Rank+3:/g,'<span class="l5rsym" style="font-size: 200%;">i</span>'). //                           | rank +3 symbol               |
-    replace(/:Rank10:/g,'<span class="l5rsym" style="font-size: 200%;">j</span>'); //                           | rank 10 symbol               |
+    return html.replace(/:g1:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_01.png" />'). //   | Gold symbol with 01 on top
+    replace(/:g2:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_02.png" />'). //   | Gold symbol with 02 on top
+    replace(/:g3:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_03.png" />'). //   | Gold symbol with 03 on top
+    replace(/:g4:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_04.png" />'). //   | Gold symbol with 04 on top
+    replace(/:g5:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_05.png" />'). //   | Gold symbol with 05 on top
+    replace(/:g6:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_06.png" />'). //   | Gold symbol with 06 on top
+    replace(/:g7:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_07.png" />'). //   | Gold symbol with 07 on top
+    replace(/:g8:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_08.png" />'). //   | Gold symbol with 08 on top
+    replace(/:g9:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_09.png" />'). //   | Gold symbol with 09 on top
+    replace(/:g10:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_10.png" />'). //   | Gold symbol with 10 on top
+    replace(/:g11:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_11.png" />'). //   | Gold symbol with 11 on top
+    replace(/:g12:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_12.png" />'). //   | Gold symbol with 12 on top
+    replace(/:g13:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_13.png" />'). //   | Gold symbol with 13 on top
+    replace(/:g14:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_14.png" />'). //   | Gold symbol with 14 on top
+    replace(/:g15:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_15.png" />'). //   | Gold symbol with 15 on top
+    replace(/:g16:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_16.png" />'). //   | Gold symbol with 16 on top
+    replace(/:g17:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_17.png" />'). //   | Gold symbol with 17 on top
+    replace(/:g18:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_18.png" />'). //   | Gold symbol with 18 on top
+    replace(/:g19:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_19.png" />'). //   | Gold symbol with 19 on top
+    replace(/:g20:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_20.png" />'). //   | Gold symbol with 20 on top
+    replace(/:gstar:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top
+    replace(/:\*:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top
+    replace(/:X:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top
+    replace(/:g\*:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_star.png" />'). // | Gold symbol with star on top
+    replace(/:g0:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_00.png" />'). //   | Gold symbol with 0 on top
+    replace(/:0:/g,'<img class="inlinesymbol" src="res/icon-cards-small/g_00.png" />'). //   | Gold symbol with 0 on top
+    replace(/:bow:/g,'<span class="l5rsym">w</span>'). //                             | Bowing symbol
+    replace(/:Rank:/g,'<span class="l5rsym" style="font-size: 200%;">c</span>'). //    | Blank Rank symbol
+    replace(/:Rank-1:/g,'<span class="l5rsym" style="font-size: 200%;">f</span>'). //    | -1 rank symbol
+    replace(/:Rank-3:/g,'<span class="l5rsym" style="font-size: 200%;">d</span>'). //    | rank -3 symbol
+    replace(/:Rank-2:/g,'<span class="l5rsym" style="font-size: 200%;">e</span>'). //    | rank -2 symbol
+    replace(/:Rank\+1:/g,'<span class="l5rsym" style="font-size: 200%;">g</span>'). //    | rank +1 symbol
+    replace(/:Rank\+2:/g,'<span class="l5rsym" style="font-size: 200%;">h</span>'). //    | rank +2 symbol
+    replace(/:Rank\+3:/g,'<span class="l5rsym" style="font-size: 200%;">i</span>'). //    | rank +3 symbol
+    replace(/:Rank10:/g,'<span class="l5rsym" style="font-size: 200%;">j</span>'); //    | rank 10 symbol
   });
 };

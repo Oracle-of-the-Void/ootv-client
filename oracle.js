@@ -1284,7 +1284,6 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid);
-  $("#lastprintid").val(prid);
   var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
@@ -1310,6 +1309,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();
+  $("#lastprintid").val(prid?prid:primary);
 
   if($("#resultsearch").is(":visible")) {
 	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']);
