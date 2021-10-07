@@ -523,7 +523,7 @@ printingprimary
     <span style="float:right; padding-right: 2px;">
       <!-- TODO:  other editing methods - including make primary button -->
       <span class="iiconic iyellow" onclick="editcard({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
-	    <span class="iiconic ipositive" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
+	    <span class="iiconic ipositive" onclick="editcard({{:cardid}},Number.MAX_SAFE_INTEGER); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
 	    <span class="iiconic inegative" onclick="return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>
     </span>
     {{/if}}
