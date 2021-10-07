@@ -6,7 +6,7 @@
 * [/oracle-fetch (GET) (POST)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
 * [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
-* [/oracle-structure (GET)] (#oracle-structure) -> Returns information about games (templating, etc)
+* [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
 
 ### Needing Authentication
 
