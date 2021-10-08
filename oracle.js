@@ -1282,11 +1282,25 @@ function getDataUri(url, callback) {
     var image = new Image();
     image.setAttribute('crossOrigin', 'anonymous');
     image.onload = function () {
-        var canvas = document.createElement('canvas');
+      var canvas = document.createElement('canvas');
+      if(this.naturalWidth <= this.naturalHeight) {
         canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
         canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
-        canvas.getContext('2d').drawImage(this, 0, 0);
-        callback(canvas.toDataURL('image/png'));
+        ctx = canvas.getContext('2d');
+        ctx.drawImage(this, 0, 0);
+        //        canvas.rotate(90*Math.PI/180);
+      } else {
+        //console.log(["WxH",this.naturalWidth,this.naturalHeight]);
+        canvas.height = this.naturalWidth;
+        canvas.width = this.naturalHeight;
+        ctx = canvas.getContext('2d');
+        ctx.save();
+        ctx.translate(canvas.width/2,canvas.height/2);
+        ctx.rotate(90*Math.PI/180);
+        ctx.drawImage(this,-this.width/2,-this.height/2);
+        ctx.restore();
+      }
+      callback(canvas.toDataURL('image/png'));
     };
     image.src = url;
 }
@@ -1303,60 +1317,60 @@ function createpdf(data,listoutput='') {
     console.log(data);
     var images = [];
     for(card of data) {
-	for(p of card.printing) {
-	    if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
-                if(p.image) {
-		for(i of p.image) {  // NEW STYLE
-		    for(cn = 0; cn < card.listquantity; cn++) {
-                        images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
-		    }
-                }
-                } else {
-		for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
-		    for(cn = 0; cn < card.listquantity; cn++) {
-			images.push(i+'details.jpg?x-corsworkaround=true'); 
-		    }
-		}
-                }
+	    for(p of card.printing) {
+	      if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
+          if(p.image) {
+		        for(i of p.image) {  // NEW STYLE
+		          for(cn = 0; cn < card.listquantity; cn++) {
+                images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
+		          }
+            }
+          } else {
+		        for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
+		          for(cn = 0; cn < card.listquantity; cn++) {
+			          images.push(i+'details.jpg?x-corsworkaround=true'); 
+		          }
+		        }
+          }
+	      }
 	    }
-	}
     }
     console.log(images);
 
     var imagedata = [];
     for(image of images) {
-	getDataUri(image,function(data) {
-	    imagedata.push(data);
-	    if(imagedata.length == images.length) {
-		const doc = new PDFDocument({
-		    "layout": "portrait", // landscape
-		    "size": "letter", // A4, etc
-		    margins: { top: 18, bottom: 18, left: 18, right: 18 }
-		});
-		doc.info['Title'] = fn;
-		const stream = doc.pipe(blobStream());
-		ix = 2.5*72;
-		mx = (612-3*ix)/2;
-		iy = 3.5*72;
-		my = (792-3*iy)/2;
+	    getDataUri(image,function(data) {
+	      imagedata.push(data);
+	      if(imagedata.length == images.length) {
+		      const doc = new PDFDocument({
+		        "layout": "portrait", // landscape
+		        "size": "letter", // A4, etc
+		        margins: { top: 18, bottom: 18, left: 18, right: 18 }
+		      });
+		      doc.info['Title'] = fn;
+		      const stream = doc.pipe(blobStream());
+		      ix = 2.5*72;
+		      mx = (612-3*ix)/2;
+		      iy = 3.5*72;
+		      my = (792-3*iy)/2;
 
-		for(var i=0 ; i < imagedata.length; i++) {
-		    doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
-		    if(i%9 == 8 && (i<imagedata.length -1)) {
-			doc.addPage();
-		    }
-		}
-		doc.end();
-		stream.on('finish', function() {
-//		    const url = stream.toBlobURL('application/pdf');
-//		    window.open(url);
-		    data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
-		});
+		      for(var i=0 ; i < imagedata.length; i++) {
+		        doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
+		        if(i%9 == 8 && (i<imagedata.length -1)) {
+			        doc.addPage();
+		        }
+		      }
+		      doc.end();
+		      stream.on('finish', function() {
+            //		    const url = stream.toBlobURL('application/pdf');
+            //		    window.open(url);
+		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
+		      });
 
 // TODO:   https://stackoverflow.com/questions/30965249/pdfkit-js-how-to-save-document-to-file-win-8-app
-
-	    }
-	});
+          
+	      }
+	    });
     }
 }
 function data_url_to_download(data_url, filename) {
