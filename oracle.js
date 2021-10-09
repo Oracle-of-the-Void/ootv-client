@@ -1869,7 +1869,7 @@ function chosenify() {
 }
 
 function addgametolist(db) {
-  $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');">'+dbinfo[db].name+'<img src="gamelogos/15/'+dbinfo[db].logo+'"></a></li>');
+  $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+'</a></li>');
 }
 
 
