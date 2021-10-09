@@ -1,7 +1,7 @@
 Welcome to the L5R Oracle of the Void Database
 <br>
 <br>
-&copy; 2010-2020 Don Eisele.   Source is published to promote contributions while I figure out what I want to do license-wise.
+&copy; 2010-2021 Don Eisele.   Source is published to promote contributions while I figure out what I want to do license-wise.
 <br>
 <br>
 
