@@ -990,7 +990,8 @@ function updateselect(select) {
 	  url: apiuri+"/attributes",
 	  data: {
 	    table: database,
-	    lookup: select
+	    lookup: select,
+      optgroup: 1
 	  },
 	  contentType: 'application/json',
 	  dataType: 'json',
@@ -1973,45 +1974,47 @@ function urlparser() {
 
 // this builds the search form after all 'select' data is loaded
 function initializeform(db) {
-    var fdata = $.map(searchables[db],function( value,key ) {
-	console.log(["initialize form: ",key,value]);
-	if(key == "quick") { return ''; }
-	var nound = key.replace("printing.","printing_");
-	var nop = key.replace("printing.","").replace("card",'');
-	var ret = '<input type="hidden" name="type_'+nound+'" value="'+value.type+'">'+
-	    '<dt'+(value.advanced?' class="advanced"':'')+'>'+labels[db]["short"+nop]+'</dt><dd'+(value.advanced?' class="advanced"':'')+'>';
-	switch(value.type) {
-	case "text":
+  var fdata = $.map(searchables[db],function( value,key ) {
+	  console.log(["initialize form: ",key,value]);
+	  if(key == "quick") { return ''; }
+	  var nound = key.replace("printing.","printing_");
+	  var nop = key.replace("printing.","").replace("card",'');
+	  var ret = '<input type="hidden" name="type_'+nound+'" value="'+value.type+'">'+
+	      '<dt'+(value.advanced?' class="advanced"':'')+'>'+labels[db]["short"+nop]+'</dt><dd'+(value.advanced?' class="advanced"':'')+'>';
+	  switch(value.type) {
+	  case "text":
 	    ret += '<input type="text" id="field_'+nound+'" name="field_'+nound+'">';
 	    break;
-	case "exists":
+	  case "exists":
 	    ret += '<input type="checkbox" id="field_'+nound+'" name="field_'+nound+'" value=1>';
 	    break;
-	case "keyword":
+	  case "keyword":
 	    ret += '<input type="text" id="field_'+nound+'" name="field_'+nound+'">';
 	    break;
-	case 'numeric':
+	  case 'numeric':
 	    ret += '<input class="searchnumeric" type="text" size="2" name="field_lower_'+nound+'">&nbsp;to&nbsp;<input class="searchnumeric" type="text" size="2" name="field_upper_'+nound+'">';
 	    break;
-	case 'select':
+	  case 'select':
 	    if(searchables[db][key]['sub'] !== undefined) {
-		noundsub = searchables[db][key]['sub'].replace("printing.","printing_");
-		ret += makeselectarray([''].concat(Object.keys(cache_select(key))),{id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
+//        console.log('sub');
+		    noundsub = searchables[db][key]['sub'].replace("printing.","printing_");
+		    ret += makeselectarray([''].concat(Object.keys(cache_select(key))),{id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
 	    } else {
-		ret += makeselectarray([''].concat(cache_select(key)),{id: 'field_'+nound, name: 'field_'+nound});
+//        console.log(["makeselect",nound]);
+		    ret += makeselectarray([''].concat(cache_select(key)),{id: 'field_'+nound, name: 'field_'+nound});
 	    }
 	    break;
-	}
-	return ret+'</dd>'
-    });
-    $('#searchmiddle').html(fdata.join("\n"));
-    $('#searchmiddle').append('<input type="hidden" name="selectsloaded" id="selectsloaded" value="1">');
-    while (populatecallback.length){
-	populatecallback.shift().call();
-    }
-    chosenify();
-    $('dd.advanced').hide();
-    $('dt.advanced').hide();
+	  }
+	  return ret+'</dd>'
+  });
+  $('#searchmiddle').html(fdata.join("\n"));
+  $('#searchmiddle').append('<input type="hidden" name="selectsloaded" id="selectsloaded" value="1">');
+  while (populatecallback.length){
+	  populatecallback.shift().call();
+  }
+  chosenify();
+  $('dd.advanced').hide();
+  $('dt.advanced').hide();
 }
 
 // changes values for a select chained to another select
@@ -2068,16 +2071,16 @@ function loadselectables(db) {
 }
 
 function updatecallbackgeneral(db) {
-    $.each(searchselectload,function(key,value) {
-	if(cache_select(key)) {
+  $.each(searchselectload,function(key,value) {
+	  if(cache_select(key)) {
 	    console.log("removing select callback: "+key);
 	    delete searchselectload[key];
-	}
-    });
-    if(Object.keys(searchselectload).length<1 && !$('#selectsloaded').length) {
-	console.log("all select callbacks removed");
-	initializeform(db);
-    }
+	  }
+  });
+  if(Object.keys(searchselectload).length<1 && !$('#selectsloaded').length) {
+	  console.log("all select callbacks removed");
+	  initializeform(db);
+  }
 }
 
 // ********************** GENERIC HELPERS ************************
@@ -2116,7 +2119,23 @@ function uri2json(uri) {
 
 // make a select with attrs from att.   values and display are identical
 function makeselectarray(arr,atts={}) {
-    return '<select class="chosen-select" multiple '+$.map(atts,function(v,i){ return i+'="'+v+'"'; }).join(" ")+'>'+arr.map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("")+'</select>';
+  var sel = '<select class="chosen-select" multiple '+
+    $.map(atts,function(v,i){ // atts pair value id=, name=, etc.
+      return i+'="'+v+'"';
+    }).join(" ")+'>';
+  if(((arr[0] !== '') && (typeof arr[0] === 'string')) || ((arr[0] === '') && (typeof arr[1] === 'string')) ) {
+    sel += arr.map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("");
+  } else {
+    arr.forEach(function(category) {
+      for(let key in category) {
+        sel += '<optgroup label="'+htmlEncode(key)+'">';
+        sel += category[key].map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("");
+        sel += '</optgroup>';
+      }
+    });
+  }
+  sel += '</select>';
+  return sel;
 }
 
 // *********************** NAVIGATION ******************
