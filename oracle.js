@@ -985,56 +985,56 @@ function imagehashtourl(card) {
 
 function updateselect(select) {
     // creates an array consisting of the sorted elements of that field
-    $.ajax({
-	type: 'POST',
-	url: apiuri+"/attributes",
-	data: {
+  $.ajax({
+	  type: 'POST',
+	  url: apiuri+"/attributes",
+	  data: {
 	    table: database,
 	    lookup: select
-	},
-	contentType: 'application/json',
-	dataType: 'json',
-	responseType: 'application/json',
-	success: function(raw) {
+	  },
+	  contentType: 'application/json',
+	  dataType: 'json',
+	  responseType: 'application/json',
+	  success: function(raw) {
 	    console.log(["select lookup results: ",select,raw]);
 	    cache_select(select,raw);
 	    if(updatecallback[database] !== undefined) {
-		updatecallback[database]();
+		    updatecallback[database]();
 	    } else {
-		updatecallbackgeneral(database);
+		    updatecallbackgeneral(database);
 	    }
-	},
-	error: function(error) {
-    	    console.log("Epic Fail: select lookup: "+select);
-	}
-    });
+	  },
+	  error: function(error) {
+    	console.log("Epic Fail: select lookup: "+select);
+	  }
+  });
 }
 
 function updateselectmulti(one,two) {
     // creates a hash of "one" like updateselect, but values are arrays of associated "two" values  (set, rarities in that set)
-    $.ajax({
-	type: 'POST',
-	url: apiuri+"/attributes",
-	data: {
+  $.ajax({
+	  type: 'POST',
+	  url: apiuri+"/attributes",
+	  data: {
 	    table: database,
 	    lookup: one+":"+two
-	},
-	contentType: 'application/json',
-	dataType: 'json',
-	responseType: 'application/json',
-	success: function(raw) {
+	  },
+	  contentType: 'application/json',
+	  dataType: 'json',
+	  responseType: 'application/json',
+	  success: function(raw) {
 	    console.log("multi select lookup: "+one+":"+two+" ::"+raw);
 	    cache_select(one,raw);
 	    if(updatecallback[database] !== undefined) {
-		updatecallback[database]();
+		    updatecallback[database]();
 	    } else {
-		updatecallbackgeneral(database);
+		    updatecallbackgeneral(database);
 	    }
-	},
-	error: function(error) {
-    	    console.log("Epic Fail: multi select lookup: "+one+":"+two);
-	}
-    });
+	  },
+	  error: function(error) {
+    	console.log("Epic Fail: multi select lookup: "+one+":"+two);
+	  }
+  });
 }
 
 function renderlist(list,switchview=true,listoutput=null) {
@@ -2042,29 +2042,29 @@ function onchangesub(key,nound,noundsub,db) {
 }
 
 function loadselectables(db) {
-    $.each(searchables[db],function( key, value ) {
-	if(value.type == 'select') {
+  $.each(searchables[db],function( key, value ) {
+	  if(value.type == 'select') {
 	    if(cache_select(key)) {
-		console.log('select cached: '+key);
+		    console.log('select cached: '+key);
 	    } else {
-		console.log('load select initiate: '+key);
-		if(searchables[db][key]['sub'] !== undefined) {
-		    updateselectmulti(key,searchables[db][key]['sub']);
-		} else {
-		    updateselect(key);
-		}
-		searchselectload[key] = 1;
+		    console.log('load select initiate: '+key);
+		    if(searchables[db][key]['sub'] !== undefined) {
+		      updateselectmulti(key,searchables[db][key]['sub']);
+		    } else {
+		      updateselect(key);
+		    }
+		    searchselectload[key] = 1;
 	    }
-	} else {
+	  } else {
 	    console.log('load select NOT initiate: '+key);
-	}
-    });
-    // if everything is cached, do updatecallbacks to remove holds
-    if(updatecallback[database] !== undefined) {
-	updatecallback[database]();
-    } else {
-	updatecallbackgeneral(database);
-    }
+	  }
+  });
+  // if everything is cached, do updatecallbacks to remove holds
+  if(updatecallback[database] !== undefined) {
+	  updatecallback[database]();
+  } else {
+	  updatecallbackgeneral(database);
+  }
 }
 
 function updatecallbackgeneral(db) {

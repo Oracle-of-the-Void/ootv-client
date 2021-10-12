@@ -2,7 +2,7 @@
 
 ### Not needing Authentication
 
-* [/attributes (POST)](#attributes)            -> Pulls attributes from games (for use in pull-downs)
+* [/attributes (POST or GET)](#attributes)            -> Pulls attributes from games (for use in pull-downs)
 * [/oracle-fetch (GET) (POST)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
 * [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
@@ -24,7 +24,7 @@ In general, when table is required for most things, oracle- is added as a prefix
 Retrieves an array of options suitable for a select pulldown.
 
 
-Handled by lambda: oracle-search/getattribute.js
+Handled by lambda: oracle-attributes
 
 
 inputs:
@@ -32,11 +32,15 @@ inputs:
 * table (required)
 * lookup (required) "field" to aggregate
   * single attribute name, or two attribute names separated by colon (field1:field2)
+* optgroup (optional)
+  * pulls optgroups (e.g.  Arc/Format/etc for legality) if true value
 
 outputs:
 * single: array of values (similar to SELECT distinct field from table)
 * double returns an hash with keys of field1, and values of all field2 contained by cards with field1
   * E.G.   {"regular set a": { "R", "U", "C" },"promo dtp set b": { "F" }}
+* optgroup: returns array of hashes
+  * E.G.   [{"Arc":[blah,blah,blah]},{"Format":[blah,blah,blah]}]
 
 codes:
 
