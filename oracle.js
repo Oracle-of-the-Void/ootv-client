@@ -2000,8 +2000,10 @@ function initializeform(db) {
 //        console.log('sub');
 		    noundsub = searchables[db][key]['sub'].replace("printing.","printing_");
         var sel = cache_select(key);
+        console.log(['sel', sel]);
 		    ret += makeselectarray([''].
-                               concat(Array.isArray(sel[0])?
+                               concat(//(Array.isArray(sel[0])||true)?
+                                   !Array.isArray(sel)?
                                       Object.keys(sel):
                                       sel.map(function(x){var a = {}; a[Object.keys(x)[0]] = Object.keys(x[Object.keys(x)[0]]); return a;})),
                                {id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
@@ -2030,7 +2032,8 @@ function onchangesub(key,nound,noundsub,db) {
   $('#field_'+noundsub+'_chosen').remove();
   var newvals = [];
   var sel = cache_select(key);
-  if(!Array.isArray(sel[0])) {
+  if(//!Array.isArray(sel[0])) {
+    Array.isArray(sel)) {
     var sel2 = {};
     sel.map(function(x){Object.assign(sel2,x[Object.keys(x)[0]]);});
     sel=sel2;
