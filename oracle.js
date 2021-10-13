@@ -1018,7 +1018,8 @@ function updateselectmulti(one,two) {
 	  url: apiuri+"/attributes",
 	  data: {
 	    table: database,
-	    lookup: one+":"+two
+	    lookup: one+":"+two,
+      optgroup: 1
 	  },
 	  contentType: 'application/json',
 	  dataType: 'json',
@@ -1998,7 +1999,12 @@ function initializeform(db) {
 	    if(searchables[db][key]['sub'] !== undefined) {
 //        console.log('sub');
 		    noundsub = searchables[db][key]['sub'].replace("printing.","printing_");
-		    ret += makeselectarray([''].concat(Object.keys(cache_select(key))),{id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
+        var sel = cache_select(key);
+		    ret += makeselectarray([''].
+                               concat(Array.isArray(sel[0])?
+                                      Object.keys(sel):
+                                      sel.map(function(x){var a = {}; a[Object.keys(x)[0]] = Object.keys(x[Object.keys(x)[0]]); return a;})),
+                               {id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
 	    } else {
 //        console.log(["makeselect",nound]);
 		    ret += makeselectarray([''].concat(cache_select(key)),{id: 'field_'+nound, name: 'field_'+nound});
@@ -2019,20 +2025,28 @@ function initializeform(db) {
 
 // changes values for a select chained to another select
 function onchangesub(key,nound,noundsub,db) {
+  console.log(key,nound,noundsub,db);
   var fval = $('#field_'+noundsub).val();
   $('#field_'+noundsub+'_chosen').remove();
   var newvals = [];
+  var sel = cache_select(key);
+  if(!Array.isArray(sel[0])) {
+    var sel2 = {};
+    sel.map(function(x){Object.assign(sel2,x[Object.keys(x)[0]]);});
+    sel=sel2;
+  }
+  console.log(sel);
   if(Array.isArray($('#field_'+nound).val())) {
     if($('#field_'+nound).val().length < 1 ) {
-      newvals = cache_select(searchables[db][key]['sub']);
+      newvals = cache_select(searchables[db][key]['sub']); 
     } else {
 	    $('#field_'+nound).val().forEach(function(q) {
-	      newvals = newvals.concat(cache_select(key)[q]);
+	      newvals = newvals.concat(sel[q]);   // TODO HERE - ugh   [???][q]
 	    });
     }
   } else {
 	  newvals = $('#field_'+nound).val() ?
-	    cache_select(key)[$('#field_'+nound).val()] :
+	    sel[$('#field_'+nound).val()] :     // HERE   this one too
 	    cache_select(searchables[db][key]['sub'])
   }
   $('#field_'+noundsub).replaceWith(
@@ -2119,6 +2133,7 @@ function uri2json(uri) {
 
 // make a select with attrs from att.   values and display are identical
 function makeselectarray(arr,atts={}) {
+  //  console.log(arr);
   var sel = '<select class="chosen-select" multiple '+
     $.map(atts,function(v,i){ // atts pair value id=, name=, etc.
       return i+'="'+v+'"';
@@ -2129,7 +2144,11 @@ function makeselectarray(arr,atts={}) {
     arr.forEach(function(category) {
       for(let key in category) {
         sel += '<optgroup label="'+htmlEncode(key)+'">';
-        sel += category[key].map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("");
+        if(Array.isArray(category[key])) {
+          sel += category[key].map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("");
+        } else {
+          sel += Object.keys(category[key]).map(x=>'<option value="'+htmlEncode(x)+'">'+x+'</option>').join("");
+        }
         sel += '</optgroup>';
       }
     });
