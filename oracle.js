@@ -1081,47 +1081,49 @@ function dosearch(from=0,forcedata=false,skipload=false) {
   }
   console.log(from);
   var datarequest = {};
-  var formdata = $('#searchform').serializeArray();
-  console.log(['dosearch.preload',formdata]);
-  $.each(formdata, function (i, field) {
-    if(field.value !== "" && field.value !== null && field.name != 'selectsloaded') {
-	    if(datarequest[field.name]) {
-	      if(!Array.isArray(datarequest[field.name])) {
-		      datarequest[field.name] = [ datarequest[field.name] ];
-	      }
-	      datarequest[field.name].push(field.value);
-	    } else {
-	      datarequest[field.name] = field.value || "";
-	    }
-    } 
-  });
-  $.each(formdata, function (i, field) {
-    if(field.name.startsWith("type_")) {
-      switch(field.value) {
-      case 'select':
-      case 'text':
-      case 'exists':
-      case 'keyword':
-        if(Object.keys(datarequest).indexOf(field.name.replace("type_","field_"))<0) {
-          delete datarequest[field.name];
-        }
-        break;
-      case 'numeric':
-        if(Object.keys(datarequest).indexOf(field.name.replace("type_","field_lower_"))<0 &&
-          Object.keys(datarequest).indexOf(field.name.replace("type_","field_upper_"))<0) {
-          delete datarequest[field.name];
-        }
-        break;
-      }
-    }
-  });
-  datarequest['table'] = database;
-  datarequest['sort'] = templates[database]['sort']['search'];
-  if(templates[database]['sortdir']['search'] == 'desc') {
-	  datarequest['sort'] = datarequest['sort'].replace(/"asc"/,'"desc"');
-  }
-  if(forcedata!== false) {
+  if(forcedata!==false) {
 	  datarequest = forcedata;
+    console.log(['dosearch.forcedata',datarequest]);
+  } else {
+    var formdata = $('#searchform').serializeArray();
+    console.log(['dosearch.preload',formdata]);
+    $.each(formdata, function (i, field) {
+      if(field.value !== "" && field.value !== null && field.name != 'selectsloaded') {
+	      if(datarequest[field.name]) {
+	        if(!Array.isArray(datarequest[field.name])) {
+		        datarequest[field.name] = [ datarequest[field.name] ];
+	        }
+	        datarequest[field.name].push(field.value);
+	      } else {
+	        datarequest[field.name] = field.value || "";
+	      }
+      } 
+    });
+    $.each(formdata, function (i, field) {
+      if(field.name.startsWith("type_")) {
+        switch(field.value) {
+        case 'select':
+        case 'text':
+        case 'exists':
+        case 'keyword':
+          if(Object.keys(datarequest).indexOf(field.name.replace("type_","field_"))<0) {
+            delete datarequest[field.name];
+          }
+          break;
+        case 'numeric':
+          if(Object.keys(datarequest).indexOf(field.name.replace("type_","field_lower_"))<0 &&
+             Object.keys(datarequest).indexOf(field.name.replace("type_","field_upper_"))<0) {
+            delete datarequest[field.name];
+          }
+          break;
+        }
+      }
+    });
+    datarequest['table'] = database;
+    datarequest['sort'] = templates[database]['sort']['search'];
+    if(templates[database]['sortdir']['search'] == 'desc') {
+	    datarequest['sort'] = datarequest['sort'].replace(/"asc"/,'"desc"');
+    }
   }
 
   console.log(['dosearch.datarequest',datarequest]);
@@ -1434,9 +1436,6 @@ function docard(carddata,prid=null,qs=null,pop=false) {
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
       cache_thing("user","data").oracle[0].groups : {}
   };
-  if(tmpl.root) {
-    console.log(tmpl);
-  }
   if(carddata.updatelog) {
     carddata['updatelogformatted'] = carddata.updatelog.reverse().map(function(ul){
       var ret = {};
@@ -1451,7 +1450,23 @@ function docard(carddata,prid=null,qs=null,pop=false) {
       ret['timestamp'] = new Date(ul.timestamp).toLocaleString();
       return ret;
     });
-  } 
+  }
+  for (key in searchables[database]) {
+    if(searchables[database][key].clickable == true) {
+      if(key.includes('.')) {
+        var keys = key.split('.');
+        for (let i=0;i<carddata[keys[0]].length;i++) {
+          if(carddata[keys[0]][i][keys[1]]) {
+            carddata[keys[0]][i][keys[1]] = carddata[keys[0]][i][keys[1]].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
+          }
+        }
+      } else {
+        if(carddata[key]) {
+          carddata[key] = carddata[key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
+        }
+      }
+    }
+  }
   var override = getactivetemplateoverride('card');
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
@@ -1471,6 +1486,20 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
   }
   showcard();
+}
+
+function process_keywordlink(data,fieldname,type) {
+  fieldname = fieldname.replace('.','_');
+  // strip tags (bold)
+  var cleandata = data;
+  return '<a href="" id="'+
+    '#search='+
+    encodeURIComponent(
+      'table='+database+'&type_'+ 
+        fieldname+'=select&field_'+
+        fieldname+'='+encodeURIComponent(cleandata)
+    )+
+    '" onclick="window.location.hash=this.id; return false;">'+data+'</a>';
 }
 
 // Populate loads qs data back into the form for searching on
@@ -1922,25 +1951,30 @@ function addgametolist(db) {
 // This handles history back changes/etc
 //TODO:  will need to do lists here too
 $(window).on('popstate', function (e) {
-    var state = e.originalEvent.state;
-    console.log('popstate');
-    console.log(state);
-    //	console.log(location.hash);
-    if (state !== undefined && state !== null) {
-	if(state.cardid !== undefined) {
+  var state = e.originalEvent.state;
+  console.log(['popstate',state]);
+  //	console.log(location.hash);
+  if (state !== undefined && state !== null) {
+	  if(state.cardid !== undefined) {
 	    docardid(state.cardid,state.prid,state.qs,true);
-	} else if(state.qs !== undefined) {
-	    showsearch();
-	} else if(state.search !== undefined) {
-
-	} else {
+	  } else if(state.qs !== undefined) {
+      if($('#lastsearchquery').val() == state.qs) {
+	      showsearch();
+      } else {
+        urlparser();
+      }
+	  } else if(state.search !== undefined) {
+      
+	  } else {
 	    showcard();
-	}
-    } else if(location.hash.match(/#cardid=/)) {
-	urlparser();
-    } else {
-	showsearch();
-    }
+	  }
+  } else if(location.hash.match(/#cardid=/) || location.hash.match(/#search=/)) {
+	  urlparser();
+  } else {
+    console.log(['new location',location.hash]);
+    console.log(['previous',$('#lastsearchquery').val()]);
+	  showsearch();
+  }
 });
 
 // Keyboard navigation inside a list of cards
@@ -1996,7 +2030,7 @@ function urlparser() {
 	  console.log("detected card in URL");
 	  cardfetch(matchstruct["cardid"],typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null);
   } else if(typeof(matchstruct['search']) != 'undefined') {
-	  console.log("detected search in URL");
+	  console.log(["detected search in URL",matchstruct['search']]);
 	  console.log(uri2json(decodeURIComponent(matchstruct['search'])));
 	  populatecallback.push(function() {populate($("#searchform"),uri2json(decodeURIComponent(matchstruct['search'])));});
 	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
