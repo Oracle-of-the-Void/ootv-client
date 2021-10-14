@@ -1078,65 +1078,89 @@ function dosearch(from=0,forcedata=false,skipload=false) {
   if((getactivetemplate('search') === undefined) && !forcedata && !skipload) {
 	  console.log("templates not loaded yet");
 	  return;
-    }
-    console.log(from);
-    var datarequest = {};
-    $.each($('#searchform').serializeArray(), function (i, field) {
-	if(datarequest[field.name]) {
-	    if(!Array.isArray(datarequest[field.name])) {
-		datarequest[field.name] = [ datarequest[field.name] ];
+  }
+  console.log(from);
+  var datarequest = {};
+  var formdata = $('#searchform').serializeArray();
+  console.log(['dosearch.preload',formdata]);
+  $.each(formdata, function (i, field) {
+    if(field.value !== "" && field.value !== null && field.name != 'selectsloaded') {
+	    if(datarequest[field.name]) {
+	      if(!Array.isArray(datarequest[field.name])) {
+		      datarequest[field.name] = [ datarequest[field.name] ];
+	      }
+	      datarequest[field.name].push(field.value);
+	    } else {
+	      datarequest[field.name] = field.value || "";
 	    }
-	    datarequest[field.name].push(field.value);
-	} else {
-	    datarequest[field.name] = field.value || "";
-	}
-    });
-    datarequest['table'] = database;
-    datarequest['sort'] = templates[database]['sort']['search'];
-    if(templates[database]['sortdir']['search'] == 'desc') {
-	datarequest['sort'] = datarequest['sort'].replace(/"asc"/,'"desc"');
+    } 
+  });
+  $.each(formdata, function (i, field) {
+    if(field.name.startsWith("type_")) {
+      switch(field.value) {
+      case 'select':
+      case 'text':
+      case 'exists':
+      case 'keyword':
+        if(Object.keys(datarequest).indexOf(field.name.replace("type_","field_"))<0) {
+          delete datarequest[field.name];
+        }
+        break;
+      case 'numeric':
+        if(Object.keys(datarequest).indexOf(field.name.replace("type_","field_lower_"))<0 &&
+          Object.keys(datarequest).indexOf(field.name.replace("type_","field_upper_"))<0) {
+          delete datarequest[field.name];
+        }
+        break;
+      }
     }
-    if(forcedata!== false) {
-	datarequest = forcedata;
-    }
+  });
+  datarequest['table'] = database;
+  datarequest['sort'] = templates[database]['sort']['search'];
+  if(templates[database]['sortdir']['search'] == 'desc') {
+	  datarequest['sort'] = datarequest['sort'].replace(/"asc"/,'"desc"');
+  }
+  if(forcedata!== false) {
+	  datarequest = forcedata;
+  }
 
-    console.log(datarequest);
-    var qs = $.param(datarequest);
+  console.log(['dosearch.datarequest',datarequest]);
+  var qs = $.param(datarequest);
 
-    if(from == 0 && !forcedata) {
-	history.pushState({'qs': qs}, 'Oracle - Search Results', '#search='+encodeURIComponent(qs));
-    }
+  if(from == 0 && !forcedata) {
+	  history.pushState({'qs': qs}, 'Oracle - Search Results', '#search='+encodeURIComponent(qs));
+  }
 
-    // Note: if from > 0, we are triggering from paging, not from searching
-    datarequest['size'] = 50;
-    datarequest['from'] = from;
-    $('#lastsearchquery').val(qs);
+  // Note: if from > 0, we are triggering from paging, not from searching
+  datarequest['size'] = 50;
+  datarequest['from'] = from;
+  $('#lastsearchquery').val(qs);
 
-    // Cache lookup
-    if(searchcache[database]['querydata'][qs] !== undefined && searchcache[database]['querydata'][qs].length > from) {
-	console.log("pulling "+qs+" from local cache");
-	showsearch();
-	var data = [];
-	searchcache[database]['querydata'][qs].forEach(function(cid) {
+  // Cache lookup
+  if(searchcache[database]['querydata'][qs] !== undefined && searchcache[database]['querydata'][qs].length > from) {
+	  console.log("pulling "+qs+" from local cache");
+	  showsearch();
+	  var data = [];
+	  searchcache[database]['querydata'][qs].forEach(function(cid) {
 	    data.push(cache_card_fetch(cid));
-	});
-	$("#resultsearch").html(rendercards(data,datarequest,qs));
-	dosearchpostcallback(qs);
-	updates[database]('#resultsearch');
-    } else {
-	if(from<1){
+	  });
+	  $("#resultsearch").html(rendercards(data,datarequest,qs));
+	  dosearchpostcallback(qs);
+	  updates[database]('#resultsearch');
+  } else {
+	  if(from<1){
 	    $("#resultsearch").html(searcherror['loading']);
 	    showsearch();
-	}
+	  }
 
-	console.log('not cached locally: '+qs+' :: '+from);
+	  console.log('not cached locally: '+qs+' :: '+from);
 
-	// coming into here, we need these things set:
-	// datarequest: search query stuff
-	// qs: stringy search query for caching info
-	// database: global database
-	// searchcache: global searchcache structure
-	$.ajax({
+	  // coming into here, we need these things set:
+	  // datarequest: search query stuff
+	  // qs: stringy search query for caching info
+	  // database: global database
+	  // searchcache: global searchcache structure
+	  $.ajax({
 	    type: 'POST',
 	    url: apiuri+"/search",
 	    contentType: 'application/json',
@@ -1170,15 +1194,15 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	    },
 	    error: function(error) {
     		console.log("Epic Fail: "+JSON.stringify(error));
-		console.log(error);
-		$("#resultsearch").html(searcherror['error']);
-		// This works to force a query failure:  * 234Sdfjkl:sjdfkl23dsf $^@$%
-		// TODO: trap to handle compile-ish failure on lambda
+		    console.log(error);
+		    $("#resultsearch").html(searcherror['error']);
+		    // This works to force a query failure:  * 234Sdfjkl:sjdfkl23dsf $^@$%
+		    // TODO: trap to handle compile-ish failure on lambda
 	    }
-	});
-    }
+	  });
+  }
 
-    return false;
+  return false;
 }
 
 
@@ -1659,7 +1683,7 @@ function templatefetch(card,id=false,datarequest={}) {
     return card.printing[pr];
 }
 function templatefetchimage(card,size,id=false,datarequest={}) {
-    console.log([card,size,id,datarequest]);
+//  console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);
     if("image" in prdata) {
         //dbinfo[database].imageuri + hash + image
@@ -1942,7 +1966,7 @@ function urlparser() {
   var patt = /#[^#]+/g;
   var matches = location.hash.match(patt);
   var matchstruct = {};
-  var structpatt = /#(\w+)=?((?:\w|%)+)?/;
+  var structpatt = /#(\w+)=?((?:\w|%|\.)+)?/;
   if(matches) {
     for(i=0;i<matches.length;i++) {
       var matchdetails = structpatt.test(matches[i]);
