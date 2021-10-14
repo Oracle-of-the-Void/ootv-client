@@ -568,8 +568,16 @@ printingprimary
       </div>
     {{/if}}
 
+     {{if updatelogformatted}}
+     <a href="" onclick="$('#cardupdatesection').toggle(); return false;">Latest Updates: ({{:updatelogformatted[0].timestamp}})+</a><br>
+     <div id="cardupdatesection">
+     {{for updatelogformatted}}
+<div class="updateblock">{{:timestamp}} {{:op}} {{if newdata}}<div class="updatedetails">New: {{:newdata}}</div> {{/if}}{{if olddata}}<div class="updatedetails">Old: {{:olddata}}</div> {{/if}}[{{:uname}}]</div>
+{{/for}}
+</div>
+     {{/if}}
     
-    </div>
+  </div>
 </div>
 <br clear="all" />
 </script> <!-- template-card-bottom -->

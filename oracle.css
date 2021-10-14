@@ -21,6 +21,12 @@ div.updateblock {
 /*  float: left; */
   padding: 2px;
 }
+div.updatedetails {
+  border: solid black 1px;
+}
+div#cardupdatesection { 
+  display: none;
+}
 
 ul { text-align: left; }
 

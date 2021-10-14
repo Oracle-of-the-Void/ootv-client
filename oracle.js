@@ -1410,11 +1410,29 @@ function docard(carddata,prid=null,qs=null,pop=false) {
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
       cache_thing("user","data").oracle[0].groups : {}
   };
+  if(tmpl.root) {
+    console.log(tmpl);
+  }
+  if(carddata.updatelog) {
+    carddata['updatelogformatted'] = carddata.updatelog.reverse().map(function(ul){
+      var ret = {};
+      if(ul.newdata) {
+        ret['newdata'] = JSON.stringify(ul.newdata);
+      }
+      if(ul.olddata) {
+        ret['olddata'] = JSON.stringify(ul.olddata);
+      }
+      ret['op'] = ul.op;
+      ret['uname'] = ul.uname;
+      ret['timestamp'] = new Date(ul.timestamp).toLocaleString();
+      return ret;
+    });
+  } 
   var override = getactivetemplateoverride('card');
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
   }
-	console.log(["rendering card",tmpl]);
+	console.log(["rendering card",tmpl,carddata]);
   var html = getactivetemplate('card').render(carddata,tmpl);
   $("#resultcard").html(html);
   updates[database]('#resultcard');
