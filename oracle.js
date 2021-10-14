@@ -1144,29 +1144,29 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	    responseType: 'application/json',
 	    data: datarequest,
 	    success: function(raw) {
-		console.log(raw);
-		dataret = raw.hits.hits.map(x=>x._source);
-		console.log(dataret);
-		searchcache[database]['querytotal'][qs] = raw.hits.total;
-		if(dataret.length>0) {
-		    dataret = dataret.map(imagehashtourl);
-		    var html = rendercards(dataret,datarequest,qs);
-		    if(from > 0) {
-			$(".moreloading").remove();
-			$("#resultsearch").append(html);
+		    console.log(raw);
+		    dataret = raw.hits.hits.map(x=>x._source);
+        //		    console.log(dataret);
+		    searchcache[database]['querytotal'][qs] = raw.hits.total;
+		    if(dataret.length>0) {
+		      dataret = dataret.map(imagehashtourl);
+		      var html = rendercards(dataret,datarequest,qs);
+		      if(from > 0) {
+			      $(".moreloading").remove();
+			      $("#resultsearch").append(html);
+		      } else {
+			      $("#resultsearch").html(html);
+			      searchcache[database]['querydata'][qs] = [];
+		      }
+		      updates[database]('#resultsearch');
+		      dataret.forEach(function(dataitem) {
+			      searchcache[database]['querydata'][qs].push(dataitem.cardid);
+			      cache_card(dataitem);
+		      });
+		      dosearchpostcallback(qs);
 		    } else {
-			$("#resultsearch").html(html);
-			searchcache[database]['querydata'][qs] = [];
+      		$("#resultsearch").html(searcherror['empty']);
 		    }
-		    updates[database]('#resultsearch');
-		    dataret.forEach(function(dataitem) {
-			searchcache[database]['querydata'][qs].push(dataitem.cardid);
-			cache_card(dataitem);
-		    });
-		    dosearchpostcallback(qs);
-		} else {
-      		    $("#resultsearch").html(searcherror['empty']);
-		}
 	    },
 	    error: function(error) {
     		console.log("Epic Fail: "+JSON.stringify(error));
@@ -1830,6 +1830,8 @@ $(document).ready(function(){
   if(searchables[database]["quick"] !== undefined && searchables[database]["quick"] == false) {
 	  $('#searchtop').html('');
   }
+
+  loadupdates(database);
   
   // Enter performs a search
   $('.searchinput').keypress(function(e){
@@ -2059,6 +2061,49 @@ function onchangesub(key,nound,noundsub,db) {
   );
   $('#field_'+noundsub).val(fval);
   chosenify();
+}
+
+function loadupdates(db,start=null) {
+  // TODO: set timer for start on max last card
+  var req = { 
+    type: 'GET',
+    url: apiuri+"/updatelog",
+    data: {
+      table: database,
+      limit: 110, 
+      fetchcards: true
+    },
+    contentType: 'application/json',
+    dataType: 'json',
+    responseType: 'application/json',
+    success: function(raw) {
+      console.log(['loadupdates success',raw]);
+      // stow them in the card cache
+      var cards = raw.cards.hits.hits.map(x=>x._source).map(imagehashtourl);
+      var updatelogtemplate = $.templates("#template-updatelog");
+      cards.forEach(function(dataitem) {
+			  cache_card(dataitem);
+		  }); 
+      raw.logs.reverse().forEach(function(uplog) {
+        //console.log(['uplog',uplog]);
+        var printlog = JSON.parse(JSON.stringify(uplog));
+        printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
+        printlog.cardids.forEach(function(uplogcard) {
+          printlog['card'] = cache_card_fetch(uplogcard);
+          printlog['cardid'] = uplogcard;
+          printlog['database'] = database;
+          $('#updatelog').prepend(updatelogtemplate.render(printlog));
+        });
+      });
+    },
+    error: function(raw) {
+      console.log(['loadupdates fail',raw]);
+    }
+  };
+  if(start) {
+    req.data['mintime'] = start;
+  }
+  $.ajax(req);
 }
 
 function loadselectables(db) {

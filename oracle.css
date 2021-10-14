@@ -9,9 +9,17 @@ body {
   margin: 0;
 }
 
-div.logo {
-    float: left; 
-    padding: 2px;
+div.logo { 
+  float: left; 
+  padding: 2px;
+}
+div.floatblock {
+  float: left; 
+  padding: 7px;
+}
+div.updateblock {
+/*  float: left; */
+  padding: 2px;
 }
 
 ul { text-align: left; }

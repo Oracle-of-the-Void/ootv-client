@@ -209,35 +209,35 @@ Welcome to the L5R Oracle of the Void Database
 <br>
 <br>
 
-After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Don Eisele (Author of the Oracle of the Void) has continued to fund and run the Oracle of the Void.  He is currently working on revamping and coding the Oracle into a serverless cloud architecture on AWS.  The new version <strike>will be</strike> <b>is much</b> faster, more resiliant (not running in Don's basement), and supports other games.
-<br>
-<br>
-<br>
-
-If you like the Oracle of the Void, please Like our Facebook page: <br>
+<div class="floatblock">
+  After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Don Eisele (Author of the Oracle of the Void) has continued to fund and run the Oracle of the Void.  He is currently working on revamping and coding the Oracle into a serverless cloud architecture on AWS.  The new version <strike>will be</strike> <b>is much</b> faster, more resiliant (not running in Don's basement), and supports other games.
+  </div>
+<div class="floatblock">
+If you like the Oracle of the Void,<br>please Like our Facebook page: <br>
 <a href="https://www.facebook.com/pg/oracleofthevoid" target="_new">
-<img src="res/social-facebook.png" width="300px"> </a>
-<br>
-<br>
-<br>
-Join us on Discord to discuss future plans, or just hang out: <br>
+  <img src="res/social-facebook.png" width="300px"> </a>
+  </div>
+<div class="floatblock">
+Join us on Discord to discuss future plans,<br> or just hang out: <br>
 <a href="https://discord.gg/3ahYmwn" target="_new">
 <img src="res/social-discord.png" width="300px"> </a>
-<br>
-<br>
-<br>
-Consider donating to the Oracle's Patreon to support the effort:<br>
+  </div>
+<div class="floatblock">
+Consider donating to the Oracle's Patreon<br>to support the effort:<br>
 <a href="https://www.patreon.com/oracleofthevoid" target="_new">
 <img src="res/social-patreon.png" width="300px"> </a>
-<br><br>
+  </div>
+<div class="floatblock">
 Report issues or request new features on Github issues:<br>
 <a href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new">
 <img src="https://avatars2.githubusercontent.com/u/61508750?s=200&v=4" width="150px">
 </a>
-<br><br>
+  </div>
+<div class="floatblock">
 Youtube channel with some help videos!<br>
 <a href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new">
   <img src="res/social-youtube.jpg" width="300px"> </a>
+</div>
 <!--
 <br><br>
 <script type="text/javascript">
@@ -257,12 +257,16 @@ amzn_assoc_default_browse_node = "165793011";
 </script>
 <script src="//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US"></script>
 -->
-<br>
-<br>
-Buying cards from Don also supports the site! (L5R, LBS, SW:CCG, V:TES)<br>
+<div class="floatblock">
+Buying cards from Don also supports the site!<br>(L5R, LBS, SW:CCG, V:TES)<br>
 <a href="https://imperialblock.com/store?user=quixote"><img src="https://imperialblock.com/images/banner2-266x60.jpg"></a>
-<br>
-<br>
+</div>
+
+<br clear="all"><br>
+Recent Data Updates for Currently Selected Database:<br>
+<div id="updatelog">
+</div>  
+
 </div>
 </div>
 </div><!-- resultabout   -->
@@ -413,6 +417,13 @@ printingprimary
     {{:failed}}
   </pre>
   {{/if}}
+</script>
+
+<!-- template for updatelog entries -->
+<script id="template-updatelog" type="text/jsrender">
+  <div class="updateblock">
+    {{:timestamp}} {{:operation}} <a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid(5602,null); } return false;">{{:card.title}}</a> [{{:uname}}]
+  </div>
 </script>
 
 <!-- login hello info displaying login info -->
