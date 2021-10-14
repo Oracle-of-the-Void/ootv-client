@@ -2,11 +2,12 @@
 
 ### Not needing Authentication
 
-* [/attributes (POST or GET)](#attributes)            -> Pulls attributes from games (for use in pull-downs)
+* [/attributes (POST or GET)](#attributes)     -> Pulls attributes from games (for use in pull-downs)
 * [/oracle-fetch (GET) (POST)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
 * [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
+* [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 
 ### Needing Authentication
 
@@ -18,6 +19,36 @@
 ## Note
 
 In general, when table is required for most things, oracle- is added as a prefix and used as the table name for dynamodb, index name for elastic.  This is a general selector to get to the game desired.
+
+## /updatelog
+
+Retrieves information from the updatelog about recent updates
+
+inputs:
+
+* table (required)
+* limit (default 10)
+* mintime (optional) -> only pulls updates more recent than this.
+  * Meant to periodically poll with the last most recent updates, will get empty results if nothing is newer
+* fetchcards (optional)
+  * brings back data from the updates:  use to display info on the updates and overwrite local cache entries
+
+outputs:
+
+* logs -> array of hash entries, starting with most recent
+  * database
+  * cardids (array)
+  * operation
+  * uname (of maintainer performing update)
+  * timestamp  (standard millisecond unix timestamp)
+  * uid  (of maintainer)
+* cardids  (array of all cardids in returned results)
+* cards (if fetchcards set) - array of cards in cards.hits.hits
+
+codes:
+
+* 200: success
+* 5xx: failure
 
 ## /attributes
 
