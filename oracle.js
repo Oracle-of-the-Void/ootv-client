@@ -1490,7 +1490,6 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 
 function process_keywordlink(data,fieldname,type) {
   fieldname = fieldname.replace('.','_');
-  // strip tags (bold)
   var cleandata = data.replace(new RegExp("<[^<]+>","g"),"");
   return '<a href="" id="'+
     '#search='+
@@ -2037,7 +2036,9 @@ function urlparser() {
 	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
 	  for( param in fdata ) {
 	    if(param.match(/^(field_|querystring)/)) {
-		    $('input[name="'+param+'"]').val(fdata[param]);
+		    $('#'+param).val(fdata[param]);
+        $('#'+param).trigger("chosen:updated");
+        console.log(['msparam',param]);
 	    }
 	    if(param == 'sort') {
 		    changesort('search',fdata[param],false);
