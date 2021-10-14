@@ -2000,7 +2000,7 @@ function urlparser() {
   var patt = /#[^#]+/g;
   var matches = location.hash.match(patt);
   var matchstruct = {};
-  var structpatt = /#(\w+)=?((?:\w|%|\.)+)?/;
+  var structpatt = /#(\w+)=?((?:[^,=#])+)?/;
   if(matches) {
     for(i=0;i<matches.length;i++) {
       var matchdetails = structpatt.test(matches[i]);
@@ -2016,6 +2016,7 @@ function urlparser() {
       }
     }
   }
+  console.log(['matchstruct',matchstruct]);
   if(typeof(matchstruct["game"]) != "undefined") {
     if((matchstruct["game"] != database) && (matchstruct["game"] != "")) {
       cache_session("database",matchstruct["game"]);
@@ -2247,12 +2248,12 @@ function htmlDecode(value){
 
 // parse html into json structure
 function uri2json(uri) {
-    return uri.split('&').map(function(i) {
-	return i.split('=');
-    }).reduce(function(memo, i) {
-	memo[i[0]] = i[1] == '' ? '' : (i[1] == +i[1] ? parseFloat(i[1],10) : decodeURIComponent(i[1]));
-	return memo;
-    }, {});
+  return uri.split('&').map(function(i) {
+	  return i.split('=');
+  }).reduce(function(memo, i) {
+	  memo[i[0]] = i[1] == '' ? '' : (i[1] == +i[1] ? parseFloat(i[1],10) : decodeURIComponent(i[1]));
+	  return memo;
+  }, {});
 }
 
 // make a select with attrs from att.   values and display are identical
