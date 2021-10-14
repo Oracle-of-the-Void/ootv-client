@@ -1491,12 +1491,12 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 function process_keywordlink(data,fieldname,type) {
   fieldname = fieldname.replace('.','_');
   // strip tags (bold)
-  var cleandata = data;
+  var cleandata = data.replace(new RegExp("<[^<]+>","g"),"");
   return '<a href="" id="'+
     '#search='+
     encodeURIComponent(
       'table='+database+'&type_'+ 
-        fieldname+'=select&field_'+
+        fieldname+'='+type+'&field_'+
         fieldname+'='+encodeURIComponent(cleandata)
     )+
     '" onclick="window.location.hash=this.id; return false;">'+data+'</a>';
