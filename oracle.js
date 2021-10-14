@@ -2036,7 +2036,29 @@ function urlparser() {
 	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
 	  for( param in fdata ) {
 	    if(param.match(/^(field_|querystring)/)) {
-		    $('#'+param).val(fdata[param]);
+        console.log(['yo',$('#'+param).prop('type'),$('#'+param).val(),fdata[param]]);
+        switch($('#'+param).prop('type')) {
+        case 'select-multiple':
+          if($('#'+param).val()) {
+            if(Array.isArray($('#'+param).val())) {
+              $('#'+param).val($('#'+param).val().concat([fdata[param]]));
+            } else {
+              $('#'+param).val([$('#'+param).val(),fdata[param]]);
+            }
+          } else {
+		        $('#'+param).val(fdata[param]);
+          }
+          break;
+        case 'text':
+          if($('#'+param).val()) {
+            $('#'+param).val($('#'+param).val()+" "+fdata[param]);
+          } else {
+		        $('#'+param).val(fdata[param]);
+          }
+          break;
+        default:
+		      $('#'+param).val(fdata[param]);
+        }
         $('#'+param).trigger("chosen:updated");
         console.log(['msparam',param]);
 	    }
