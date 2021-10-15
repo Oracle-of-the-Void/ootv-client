@@ -1452,7 +1452,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
     });
   }
   for (key in searchables[database]) {
-    if(searchables[database][key].clickable) {
+    if(searchables[database][key].clickable || key == "printing.set" || key == "printing.rarity") {
       var keys = false;
       if(key.includes('.')) {
         keys = key.split('.');
@@ -1460,9 +1460,17 @@ function docard(carddata,prid=null,qs=null,pop=false) {
       if(searchables[database][key].clickable !== true) {
         keys = [searchables[database][key].clickable,key];
       }
+      if(key == "printing.set" || key == "printing.rarity") {
+        keys = ["printing",key.replace('printing.','')];
+      }
       if(keys.length>0) {
+        console.log([key,'^2',keys[0],keys[1]]);
         for (let i=0;i<carddata[keys[0]].length;i++) {
+          console.log(i);
           if(carddata[keys[0]][i][keys[1]]) {
+            if(keys[1].match(/^(set|rarity)$/)) {
+              carddata[keys[0]][i][keys[1]+'clean'] = carddata[keys[0]][i][keys[1]];
+            } 
             carddata[keys[0]][i][keys[1]] = carddata[keys[0]][i][keys[1]].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
           }
         }
