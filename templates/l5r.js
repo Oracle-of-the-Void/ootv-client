@@ -104,7 +104,7 @@ searchables['l5r'] = {
     "artist": { "type": "text",
 	              "advanced": true,
                 "reverse": true,
-                      "clickable": true
+                "clickable": "printing" 
               },
     "notes": { "type": "text",
 	       "advanced": true },

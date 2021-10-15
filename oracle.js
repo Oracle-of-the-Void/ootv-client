@@ -1452,9 +1452,15 @@ function docard(carddata,prid=null,qs=null,pop=false) {
     });
   }
   for (key in searchables[database]) {
-    if(searchables[database][key].clickable == true) {
+    if(searchables[database][key].clickable) {
+      var keys = false;
       if(key.includes('.')) {
-        var keys = key.split('.');
+        keys = key.split('.');
+      }
+      if(searchables[database][key].clickable !== true) {
+        keys = [searchables[database][key].clickable,key];
+      }
+      if(keys.length>0) {
         for (let i=0;i<carddata[keys[0]].length;i++) {
           if(carddata[keys[0]][i][keys[1]]) {
             carddata[keys[0]][i][keys[1]] = carddata[keys[0]][i][keys[1]].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
