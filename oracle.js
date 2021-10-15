@@ -790,9 +790,9 @@ function editcardtrigger() {
       $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updated Successfully</div>');
       console.log(["update ret",status]);
       if(requestdata.cardid) {
-        cardfetch(requestdata.cardid,status.olddata.printingid?status.olddata.printingid:null,null,nomodal);
+        cardfetch(requestdata.cardid,status.olddata.printingid?status.olddata.printingid:null,$('#lastsearchquery').val(),nomodal);
       } else if(status.cardids) {
-        cardfetch(status.cardids[0],null,null,nomodal);
+        cardfetch(status.cardids[0],null,$('#lastsearchquery').val(),nomodal);
       }
 	  },
 	  error: function(status) {
@@ -826,7 +826,7 @@ function setprimary(cardid,printid) {
 	    responseType: 'application/json',
 	    success: function(status) {
         console.log(["update ret",status]);
-        cardfetch(requestdata.cardid,printid,null,nomodal);
+        cardfetch(requestdata.cardid,printid,$('#lastsearchquery').val(),nomodal);
 	    },
 	    error: function(status) {
         alert('Error: '+status.responseText);
