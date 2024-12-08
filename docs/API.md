@@ -3,7 +3,7 @@
 ### Not needing Authentication
 
 * [/attributes (POST or GET)](#attributes)     -> Pulls attributes from games (for use in pull-downs)
-* [/oracle-fetch (GET) (POST)](#oracle-fetch)  -> Get cards by cardid
+* [/oracle-fetch (GET)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
 * [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
@@ -86,6 +86,7 @@ Handled by lambda: oracle-fetch/index.js
 
 inputs:
 
+(querystring parameters from a GET)
 * table (required)
 * cardid (required)
   * single cardid, or comma-separated list
