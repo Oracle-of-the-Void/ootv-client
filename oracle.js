@@ -2039,7 +2039,7 @@ function urlparser() {
   }
   if(typeof(matchstruct["quicksearch"]) != "undefined") {
     console.log("detected quicksearch");
-    $("input#qs").val(matchstruct["quicksearch"]);
+    $("input#qs").val(decodeURIComponent(matchstruct["quicksearch"]));
     dosearch(0,false,true);
   } else if(typeof(matchstruct["cardid"]) != "undefined") {
 	  console.log("detected card in URL");
