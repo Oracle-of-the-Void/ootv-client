@@ -2041,6 +2041,10 @@ function urlparser() {
     console.log("detected quicksearch");
     $("input#qs").val(decodeURIComponent(matchstruct["quicksearch"]));
     dosearch(0,false,true);
+  } else if(typeof(matchstruct["quicksearchtitle"]) != "undefined") {
+    console.log("detected quicksearchtitle");
+    $("input#field_title").val(decodeURIComponent(matchstruct["quicksearchtitle"]));
+    dosearch(0,false,true);
   } else if(typeof(matchstruct["cardid"]) != "undefined") {
 	  console.log("detected card in URL");
 	  cardfetch(matchstruct["cardid"],typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null);
