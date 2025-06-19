@@ -117,6 +117,7 @@ inputs:
   * any other valid elastic sort clause
 * size (optional - defaults to 50)
   * Pagination page size
+  * 0 will return all results - be mindful not to do this more than occasionally
 * from (default 0)
   * Pagination page number (0 indexed)
 * querystring (optional)
