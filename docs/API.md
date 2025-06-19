@@ -108,7 +108,7 @@ Searches for cards
 
 Handled by lambda: oracle-search/search.js
 
-inputs - sent in body as json:
+inputs - sent in body querystring:
 
 * table (required)
 * sort (optional)
@@ -117,7 +117,7 @@ inputs - sent in body as json:
   * any other valid elastic sort clause
 * size (optional - defaults to 50)
   * Pagination page size
-  * 0 will return all results - be mindful not to do this more than occasionally
+  * tops out around 1000, please don't abuse this and run more than once a day
 * from (default 0)
   * Pagination page number (0 indexed)
 * querystring (optional)
