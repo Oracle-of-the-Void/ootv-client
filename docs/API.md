@@ -115,6 +115,10 @@ inputs:
   * default: [{'title.keyword': {"order" : "asc"} }]
   * "random": random order
   * any other valid elastic sort clause
+* size (optional - defaults to 50)
+  * Pagination page size
+* from (default 0)
+  * Pagination page number (0 indexed)
 * querystring (optional)
   * string to do an elastic query_string (operator AND)
 * pairs of field_xxx (contains the data) and type_xxx (defines the operation)
