@@ -108,7 +108,7 @@ Searches for cards
 
 Handled by lambda: oracle-search/search.js
 
-inputs:
+inputs - sent in body as json:
 
 * table (required)
 * sort (optional)
