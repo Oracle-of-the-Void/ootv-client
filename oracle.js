@@ -269,7 +269,9 @@ function userinfocallback() {
 //    $('#userinfo-joined').html(info.oracle[0].insert_date);
 //    $('#userinfo-lists').html(info.oracle[0].deckcount);
     hellotemplate = $.templates("#template-hello");
-    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
+    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]},
+	    {"groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ? cache_thing("user","data").oracle[0].groups : {}}
+    ));
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
@@ -803,6 +805,31 @@ function editcardtrigger() {
   console.log(["posting",request]);
   $.ajax(request);
 
+}
+
+function doupload() {
+  var url = apiuri+"/upload";
+  var requestdata=new FormData($("#adminupload")[0]);
+  //requestdata.set("database",database);
+  //requestdata.set("uid",getuid());
+  var request = {
+    type: "POST",
+    url: url,
+    cache: false,
+    contentType: false,
+    processData: false,
+    data: requestdata,
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  responseType: 'application/json',
+    success: function(status) {
+      alert("yes");
+    },
+    error: function(xhr,status,error) {
+      alert('Error'+error);
+    }
+  }
+  console.log(["uploading",request]);
+  $.ajax(request);
 }
 
 function setprimary(cardid,printid) {

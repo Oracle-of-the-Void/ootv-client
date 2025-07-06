@@ -151,6 +151,12 @@
 <img style="margin-top: 4px; float: left;" src="res/social-youtube-small.png" width="32"><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration: none;">&nbsp;Youtube</span>
 </div>
 </a>
+<br>
+<a href="https://chime.com/r/doneisele" target="_new">
+<div style="background-color: white">
+  <img style="float: left;" src="res/chime.png" width="32" /><span style="margin-right: 3px; color: green; a:active: green; a:hover: green; a:link: green; a:visited: green; text-decoration: none;">&nbsp; Make a Chime account, set up direct deposit, get $100 and start getting 3.75%</span>
+</div>
+</a>
 <br><br><br><br>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- square -->
@@ -426,6 +432,7 @@ printingprimary
   </div>
 </script>
 
+
 <!-- login hello info displaying login info -->
 <script id="template-hello" type="text/x-jsrender">
 <div class="helloplace">
@@ -437,6 +444,18 @@ printingprimary
     <dt></dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined</dd>
   </dl>
+  {{if ~groups && (~groups.database || ~groups["*"])}}
+	<div class="adminblock" style="border: solid black 1px;">
+	  Upload images:<br>
+	  <form id="adminupload">
+	    <label for="set">Set:</label><br>
+	    <input type="text" id="adminuploadset" name="set"><br>
+	    <label for="files">Files:</label><br>
+	    <input type="file" id="adminuploadfiles" name="files" multiple><br>
+            <input type="button" value="Upload" onclick="doupload();">
+          </form>
+	</div>
+  {{/if}}
 </div>
 </script>
 
