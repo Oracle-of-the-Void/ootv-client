@@ -323,5 +323,32 @@ updates['l5r'] = function (area) {
     replace(/:Rank\+2:/g,'<span class="l5rsym" style="font-size: 200%;">h</span>'). //    | rank +2 symbol
     replace(/:Rank\+3:/g,'<span class="l5rsym" style="font-size: 200%;">i</span>'). //    | rank +3 symbol
     replace(/:Rank10:/g,'<span class="l5rsym" style="font-size: 200%;">j</span>'); //    | rank 10 symbol
+
+    replace(/:air:/g,'<img class=inlinesymbol" src="res/onyx/bair.png" />'). // | onyx symbol: 
+    replace(/:earth:/g,'<img class=inlinesymbol" src="res/onyx/bearth.png" />'). // | onyx symbol: 
+    replace(/:fire:/g,'<img class=inlinesymbol" src="res/onyx/bfire.png" />'). // | onyx symbol: 
+    replace(/:water:/g,'<img class=inlinesymbol" src="res/onyx/bwater.png" />'). // | onyx symbol: 
+    replace(/:void:/g,'<img class=inlinesymbol" src="res/onyx/bvoid.png" />'). // | onyx symbol: 
+    replace(/:jade:/g,'<img class=inlinesymbol" src="res/onyx/bjade.png" />'). // | onyx symbol: 
+    replace(/:pearl:/g,'<img class=inlinesymbol" src="res/onyx/bpearl.png" />'). // | onyx symbol: 
+    replace(/:maho:/g,'<img class=inlinesymbol" src="res/onyx/bmaho.png" />'). // | onyx symbol: 
+    replace(/:thunder:/g,'<img class=inlinesymbol" src="res/onyx/bthunder.png" />'). // | onyx symbol: 
+    replace(/:shadowlands:/g,'<img class=inlinesymbol" src="res/onyx/bshadowlands.png" />'). // | onyx symbol: 
+
+    replace(/:air\+:/g,'<img class=inlinesymbol" src="res/onyx/air.png" />'). // | onyx symbol: 
+    replace(/:earth\+:/g,'<img class=inlinesymbol" src="res/onyx/earth.png" />'). // | onyx symbol: 
+    replace(/:fire\+:/g, '<imsg class=inlinesymbol" src="res/onyx/fire.png" />'). // | onyx symbol: 
+    replace(/:water\+:/g,'<img class=inlinesymbol" src="res/onyx/water.png" />'). // | onyx symbol: 
+    replace(/:void\+:/g,'<img class=inlinesymbol" src="res/onyx/void.png" />'). // | onyx symbol: 
+    replace(/:jade\+:/g,'<img class=inlinesymbol" src="res/onyx/jade.png" />'). // | onyx symbol: 
+    replace(/:pearl\+:/g,'<img class=inlinesymbol" src="res/onyx/pearl.png" />'). // | onyx symbol: 
+    replace(/:maho\+:/g,'<img class=inlinesymbol" src="res/onyx/maho.png" />'). // | onyx symbol: 
+    replace(/:thunder\+:/g,'<img class=inlinesymbol" src="res/onyx/thunder.png" />'). // | onyx symbol: 
+    replace(/:shadowlands\+:/g,'<img class=inlinesymbol" src="res/onyx/shadowlands.png" />'). // | onyx symbol: 
+
+    replace(/:fear:/g,'<img class=inlinesymbol" src="res/onyx/fear.png" />'). // | onyx symbol: 
+    replace(/:melee:/g,'<img class=inlinesymbol" src="res/onyx/melee.png" />'). // | onyx symbol: 
+    replace(/:ranged:/g,'<img class=inlinesymbol" src="res/onyx/ranged.png" />'). // | onyx symbol: 
+    replace(/:favor:/g,'<img class=inlinesymbol" src="res/onyx/favor.png" />'). // | onyx symbol: 
   });
 };

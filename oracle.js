@@ -943,6 +943,7 @@ function listprefetch(listids,callback=null) {
 function imagehashtourl(card) {
     //dbinfo[database].imageuri +
     if(card.imagehash) {
+	    // TODO:  card.icon is effectively defunct now, right?
         card.icon = dbinfo[database].imageuri + card.imagehash+'/card_'+card.cardid+'__icon.jpg';
         card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
     }
