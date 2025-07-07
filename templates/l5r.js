@@ -322,7 +322,7 @@ updates['l5r'] = function (area) {
     replace(/:Rank\+1:/g,'<span class="l5rsym" style="font-size: 200%;">g</span>'). //    | rank +1 symbol
     replace(/:Rank\+2:/g,'<span class="l5rsym" style="font-size: 200%;">h</span>'). //    | rank +2 symbol
     replace(/:Rank\+3:/g,'<span class="l5rsym" style="font-size: 200%;">i</span>'). //    | rank +3 symbol
-    replace(/:Rank10:/g,'<span class="l5rsym" style="font-size: 200%;">j</span>'); //    | rank 10 symbol
+    replace(/:Rank10:/g,'<span class="l5rsym" style="font-size: 200%;">j</span>'). //    | rank 10 symbol
 
     replace(/:air:/g,'<img class=inlinesymbol" src="res/onyx/bair.png" />'). // | onyx symbol: 
     replace(/:earth:/g,'<img class=inlinesymbol" src="res/onyx/bearth.png" />'). // | onyx symbol: 
@@ -349,6 +349,6 @@ updates['l5r'] = function (area) {
     replace(/:fear:/g,'<img class=inlinesymbol" src="res/onyx/fear.png" />'). // | onyx symbol: 
     replace(/:melee:/g,'<img class=inlinesymbol" src="res/onyx/melee.png" />'). // | onyx symbol: 
     replace(/:ranged:/g,'<img class=inlinesymbol" src="res/onyx/ranged.png" />'). // | onyx symbol: 
-    replace(/:favor:/g,'<img class=inlinesymbol" src="res/onyx/favor.png" />'). // | onyx symbol: 
+    replace(/:favor:/g,'<img class=inlinesymbol" src="res/onyx/favor.png" />'); // | onyx symbol: 
   });
 };
