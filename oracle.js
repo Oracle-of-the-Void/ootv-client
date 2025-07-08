@@ -948,18 +948,21 @@ function imagehashtourl(card) {
         card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
     }
         for(var p = 0; p < card.printing.length; p++) {
-            if(!card.printing[p].images) {
+          if(!card.printing[p].images) {
 	          card.printing[p].images = [];
-                  stub = 'printing_';
+            stub = 'printing_';
 	          if(card.printing[p].printimagehash) {
 	              for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
 		                card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/'+stub+card.cardid+'_'+
-		                    card.printing[p].printingid+'_'; // then you add details, etc
+                      card.printing[p].printingid+'_'; // then you add details, etc
 	              }
 	          } else {
+              // NOT a problem if using new style
+              if(!card.printing[p].image) {
 	              console.log("Card missing a printimagehash: "+JSON.stringify(card));
+              }
 	          }
-             }
+          }
         }
         //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
     
