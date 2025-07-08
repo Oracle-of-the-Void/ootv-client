@@ -16,6 +16,7 @@ $.views.tags("fetchimage",templatefetchimage);
 $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
+$.views.helpers("makelinks",templatemakelinks);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -1610,6 +1611,13 @@ function templateconcatarrays() {
     return out.filter(function (el) {
         return el != null;
     });
+}
+function templatemakelinks() {
+  out = "";
+  for (i=0; i< arguments.length; i++) {
+    out += "<a href=\""+arguments[i]+"\">"+arguments[i]+"</a>";
+  }
+  return out;
 }
 function templateprintingidfromset(set,hashes) {
     if(!set) {

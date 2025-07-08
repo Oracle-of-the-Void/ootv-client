@@ -117,7 +117,8 @@ searchables['l5r'] = {
     "erratum": { "type": "exists",
 		 "advanced": true },
     "mrp": { "type": "exists",
-		"advanced": true }
+		"advanced": true },
+    "printing.publisher": {"type": "select", "advanced":true}
 };
 
 labels['l5r'] = {
@@ -147,7 +148,8 @@ labels['l5r'] = {
     "tagerratum":	"Erratum",          "shorterratum": "Erratum",
     "tagmrp":	"MRP",          "shortmrp": "MRP",
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
-    "tagnotes":		"Notes",               "shortnotes": "Notes"
+    "tagnotes":		"Notes",               "shortnotes": "Notes",
+    "tagpublisher": "Publisher",  "shortpublisher": "Pub"
 };
 
 /*
