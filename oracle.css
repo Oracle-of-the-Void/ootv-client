@@ -385,6 +385,7 @@ font-style: normal;
 
 /***************** button stuff   ************/
 img.inlinesymbol {   border: none;   vertical-align: middle; }
+img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;}
 .button {
   font-size: large;
   font-family: "L5R Title";
