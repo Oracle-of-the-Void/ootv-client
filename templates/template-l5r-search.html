@@ -39,7 +39,7 @@
       {{/if}}    
       </div>
   
-     {{:type}}<br />
+     {{:type}} {{if clan}} - {{:clan}}{{/if}}<br />
      {{if force || chi}}
        <span class="smiconic smforce">{{:force}}</span> <span class="smiconic smchi">{{:chi}}</span><br />
      {{/if}}
@@ -58,7 +58,7 @@
        {{/if}}
      {{/if}}
      {{if keywords}}
-       {{:keywords.join(" &#9679; ")}}<br />
+       {{:keywords.join(" &#9679; ")}}{{if iconised}} {{:iconised.join(" ")}}{{/if}}<br />
      {{/if}}
      {{if text}}
        {{:text}}<br />

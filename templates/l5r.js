@@ -337,7 +337,7 @@ updates['l5r'] = function (area) {
 
     replace(/:air\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bair.png" />'). // | onyx symbol: 
     replace(/:earth\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bearth.png" />'). // | onyx symbol: 
-    replace(/:fire\+:/g, '<imsg class="inlinesymbolbounded" src="res/onyx/bfire.png" />'). // | onyx symbol: 
+    replace(/:fire\+:/g, '<img class="inlinesymbolbounded" src="res/onyx/bfire.png" />'). // | onyx symbol: 
     replace(/:water\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bwater.png" />'). // | onyx symbol: 
     replace(/:void\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bvoid.png" />'). // | onyx symbol: 
     replace(/:jade\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bjade.png" />'). // | onyx symbol: 

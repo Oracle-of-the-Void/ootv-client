@@ -21,7 +21,7 @@
      {{/if}}
 
     {{if clan}}       <dt>{{:~labels.shortclan}}</dt><dd>{{:clan}}</dd>  {{/if}}
-    {{if keywords}}       <dt>{{:~labels.shortkeywords}}</dt><dd>{{:keywords.join(" &#149; ")}}</dd>  {{/if}}
+    {{if keywords}}       <dt>{{:~labels.shortkeywords}}</dt><dd>{{:keywords.join(" &#149; ")}}{{if iconised}} {{:iconised.join(" ")}}{{/if}}</dd>  {{/if}}
     {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
     {{if focus}}       <dt>{{:~labels.shortfocus}}</dt><dd>{{:focus}}</dd>  {{/if}}
     {{if legality}}       <dt>{{:~labels.shortlegality}}</dt><dd>{{:legality.join(" &#149; ")}}</dd>  {{/if}}
