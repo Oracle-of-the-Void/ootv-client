@@ -118,7 +118,7 @@ searchables['l5r'] = {
 		 "advanced": true },
     "mrp": { "type": "exists",
 		"advanced": true },
-    "printing.publisher": {"type": "select", "advanced":true}
+    "printing.publisher": {"type": "select", "reverse": true}
 };
 
 labels['l5r'] = {

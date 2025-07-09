@@ -1496,8 +1496,10 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   $("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
-  $(".printing:not([data-printingid="+(prid?prid:primary)+"])").hide();
-  $("#lastprintid").val(prid?prid:primary);
+  // TODO (done but marking this spot): right here choose Onyx/whatever default first
+  var defpr = templatefetch(carddata,false,$.deparam($('#lastsearchquery').val()))["printingid"];
+  $(".printing:not([data-printingid="+(prid?prid:((defpr>0)?defpr:primary))+"])").hide();
+  $("#lastprintid").val(prid?prid:((defpr>0)?defpr:primary));
 
   if($("#resultsearch").is(":visible")) {
 	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']);
@@ -1712,7 +1714,7 @@ function templateprintingfromid(id,hashes,data,noarray=true) {
 	}
     });
     if(noarray && Array.isArray(ret)) {
-	ret = ret[0];
+	    ret = ret[0];
     }
     return ret;
 }
@@ -1723,7 +1725,9 @@ function templatefetch(card,id=false,datarequest={}) {
     } else if(('listprinting' in card) && card.listprinting>0) {
         pr = card.printingreverse.printingid[card.listprinting];
     } else if(typeof datarequest === 'object') {
+        //console.log("onyx deb 1");
         for(att in card.printingreverse) {
+          //console.log("onyx deb: "+att);
             if("field_printing_"+att in datarequest) {
                 if(datarequest["field_printing_"+att] in card.printingreverse[att]) {
                     pr = card.printingreverse[att][datarequest["field_printing_"+att]];
@@ -1735,10 +1739,11 @@ function templatefetch(card,id=false,datarequest={}) {
             }
         }
     }
+    //console.log("onx ret: "+pr);
     return card.printing[pr];
 }
 function templatefetchimage(card,size,id=false,datarequest={}) {
-//  console.log(['templatefetchimage',card,size,id,datarequest]);
+    console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);
     if("image" in prdata) {
         //dbinfo[database].imageuri + hash + image
