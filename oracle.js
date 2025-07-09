@@ -971,6 +971,7 @@ function imagehashtourl(card) {
     for(var p = 0; p < card.printing.length; p++) {
         card.printingreverse.printingid[card.printing[p].printingid] = p;
     }
+    //DONE for onyx: the searchables in l5r.js are the place to specify reverse.. but i want a hidden printing.legality
     for(seakey in searchables[database]) {
         sea = searchables[database][seakey];
         if((typeof sea === 'object') && ('reverse' in sea)) {
@@ -2116,6 +2117,7 @@ function initializeform(db) {
   var fdata = $.map(searchables[db],function( value,key ) {
 	  console.log(["initialize form: ",key,value]);
 	  if(key == "quick") { return ''; }
+	  if(value.type == "hidden") { return ''; }
 	  var nound = key.replace("printing.","printing_");
 	  var nop = key.replace("printing.","").replace("card",'');
 	  var ret = '<input type="hidden" name="type_'+nound+'" value="'+value.type+'">'+
@@ -2153,6 +2155,7 @@ function initializeform(db) {
 	  }
 	  return ret+'</dd>'
   });
+  //console.log(["forms initialized",fdata]);
   $('#searchmiddle').html(fdata.join("\n"));
   $('#searchmiddle').append('<input type="hidden" name="selectsloaded" id="selectsloaded" value="1">');
   while (populatecallback.length){
