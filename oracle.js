@@ -1422,7 +1422,7 @@ function data_url_to_download(data_url, filename) {
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
 function docard(carddata,prid=null,qs=null,pop=false) {
   var carddata = JSON.parse(JSON.stringify(carddata));
-  console.log("rendering: "+carddata['cardid']+(prid?'/'+prid:''));
+  console.log(["rendering: "+carddata['cardid']+(prid?'/'+prid:''),qs]);
   if(getactivetemplate('card') === undefined) {
 	  console.log("templates not loaded yet");
 	  return;
@@ -1471,9 +1471,9 @@ function docard(carddata,prid=null,qs=null,pop=false) {
         keys = ["printing",key.replace('printing.','')];
       }
       if(keys.length>0) {
-        console.log([key,'^2',keys[0],keys[1]]);
+        //console.log([key,'^2',keys[0],keys[1]]);
         for (let i=0;i<carddata[keys[0]].length;i++) {
-          console.log(i);
+          //console.log(i);
           if(carddata[keys[0]][i][keys[1]]) {
             if(keys[1].match(/^(set|rarity)$/)) {
               carddata[keys[0]][i][keys[1]+'clean'] = carddata[keys[0]][i][keys[1]];
@@ -1495,7 +1495,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   // TODO onyx: do something similar to 1578 here.  bring top values up from bottom
   //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
-  var html = getactivetemplate('card').render(carddata,tmpl);
+  var html = getactivetemplate('card').render(bubbleup([carddata],qs)[0],tmpl);
   $("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
@@ -1511,6 +1511,58 @@ function docard(carddata,prid=null,qs=null,pop=false) {
 	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
   }
   showcard();
+}
+
+function bubbleup(data,request=null) {
+  // takes a printingid that matches one of the reverse lookups that is being used in the current query
+  // and displays its text instead of default
+  // note: expects array of cards - for a single card send array of one, and deref
+  // TODO: some of this can be one-time things on activating a database
+  //console.log(data,request);
+  if(request == null) { return data;}
+  if(typeof request === "string") {
+    request = $.deparam(request);
+    //console.log(request);
+  }
+  const revkeys = Object.keys(data[0].printingreverse);
+  var hasrev = 0;
+  revkeys.forEach(function(key) {
+    if((("field_printing_"+key) in request) || (("field_"+key) in request)) {
+      hasrev=1;
+    }
+  });
+  // (If the request has rev stuff set)
+  if(hasrev>0) {
+    //console.log("hasrev");
+    var bubblekill = ["print.*"];
+    for (key in searchables[database]) {
+      if (
+        typeof searchables[database][key] === "object" &&
+        "nobubbleup" in searchables[database][key]
+      ) {
+        bubblekill.push(key);
+      }
+    }
+    const bkillre = new RegExp("^(" + bubblekill.join("|") + ")$");
+    // IF reversables are set:
+    // rebuild whole array with structuredClone
+    var newdata = [];
+    for (let i = 0; i < data.length; i++) {
+      newdata[i] = structuredClone(data[i]);
+      var matchedpr = templatefetch(data[i], false, request);
+      if (matchedpr["printingid"] > 0) {
+        const mkeys = Object.keys(matchedpr).filter(
+          (key) => !key.match(bkillre)
+        );
+        mkeys.forEach(function (key) {
+          newdata[i][key] = matchedpr[key];
+        });
+      }
+    }
+    return newdata;
+  } else {
+    return data;
+  }
 }
 
 function process_keywordlink(data,fieldname,type) {
@@ -1569,43 +1621,7 @@ function rendercards(data,request,querystring) {
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
   }
-  const revkeys = Object.keys(data[0].printingreverse);
-  var hasrev = 0;
-  revkeys.forEach(function(key) {
-    if((("field_printing_"+key) in request) || (("field_"+key) in request)) {
-      hasrev=1;
-    }
-  });
-  if(hasrev>0) {
-    // DONE  onyx: replace top card here before render
-    var bubblekill = ["print.*"];
-    for (key in searchables[database]) {
-      if (
-        typeof searchables[database][key] === "object" &&
-        "nobubbleup" in searchables[database][key]
-      ) {
-        bubblekill.push(key);
-      }
-    }
-    const bkillre = new RegExp("^(" + bubblekill.join("|") + ")$");
-    // IF reversables are set:
-    // rebuild whole array with structuredClone
-    var newdata = [];
-    for (let i = 0; i < data.length; i++) {
-      newdata[i] = structuredClone(data[i]);
-      var matchedpr = templatefetch(data[i], false, request);
-      if (matchedpr["printingid"] > 0) {
-        const mkeys = Object.keys(matchedpr).filter(
-          (key) => !key.match(bkillre)
-        );
-        mkeys.forEach(function (key) {
-          newdata[i][key] = matchedpr[key];
-        });
-      }
-    }
-    data = newdata;
-  }
-  return getactivetemplate('search').render(data,tmpl);
+  return getactivetemplate('search').render(bubbleup(data,request),tmpl);
 }
 
 
