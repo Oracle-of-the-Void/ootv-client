@@ -1492,12 +1492,14 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
   }
+  // TODO onyx: do something similar to 1578 here.  bring top values up from bottom
+  //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
   var html = getactivetemplate('card').render(carddata,tmpl);
   $("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
-  // TODO (done but marking this spot): right here choose Onyx/whatever default first
+  //  (done but marking this spot): right here choose Onyx/whatever default first
   var defpr = templatefetch(carddata,false,$.deparam($('#lastsearchquery').val()))["printingid"];
   $(".printing:not([data-printingid="+(prid?prid:((defpr>0)?defpr:primary))+"])").hide();
   $("#lastprintid").val(prid?prid:((defpr>0)?defpr:primary));
@@ -1549,6 +1551,7 @@ function rendercards(data,request,querystring) {
 	    }
 	    return list;
 	})); */
+  console.log(["rendercards",data,request,querystring]);
   var tmpl={
 	    "labels": labels[database],
 	    "datarequest": request,
@@ -1565,6 +1568,42 @@ function rendercards(data,request,querystring) {
   var override = getactivetemplateoverride('search');
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
+  }
+  const revkeys = Object.keys(data[0].printingreverse);
+  var hasrev = 0;
+  revkeys.forEach(function(key) {
+    if((("field_printing_"+key) in request) || (("field_"+key) in request)) {
+      hasrev=1;
+    }
+  });
+  if(hasrev>0) {
+    // DONE  onyx: replace top card here before render
+    var bubblekill = ["print.*"];
+    for (key in searchables[database]) {
+      if (
+        typeof searchables[database][key] === "object" &&
+        "nobubbleup" in searchables[database][key]
+      ) {
+        bubblekill.push(key);
+      }
+    }
+    const bkillre = new RegExp("^(" + bubblekill.join("|") + ")$");
+    // IF reversables are set:
+    // rebuild whole array with structuredClone
+    var newdata = [];
+    for (let i = 0; i < data.length; i++) {
+      newdata[i] = structuredClone(data[i]);
+      var matchedpr = templatefetch(data[i], false, request);
+      if (matchedpr["printingid"] > 0) {
+        const mkeys = Object.keys(matchedpr).filter(
+          (key) => !key.match(bkillre)
+        );
+        mkeys.forEach(function (key) {
+          newdata[i][key] = matchedpr[key];
+        });
+      }
+    }
+    data = newdata;
   }
   return getactivetemplate('search').render(data,tmpl);
 }
