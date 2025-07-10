@@ -1483,7 +1483,18 @@ function docard(carddata,prid=null,qs=null,pop=false) {
         }
       } else {
         if(carddata[key]) {
-          carddata[key] = carddata[key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
+          // Done:  onyx   linkify printings as well
+          //console.log(["linkifying",key]);
+          carddata[key] = carddata[key].map(function(x){
+            //console.log([x,key,searchables[database][key].type]);
+            return process_keywordlink(x,key,searchables[database][key].type);
+          });
+          for (let i=0;i<carddata.printing.length;i++) {
+            //console.log(i);
+            if(carddata.printing[i][key]) {
+              carddata.printing[i][key] = carddata.printing[i][key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
+            }
+          }
         }
       }
     }
