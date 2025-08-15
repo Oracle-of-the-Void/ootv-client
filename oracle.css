@@ -129,9 +129,9 @@ div.randarea {
 }
 
 select.listselect { 
-  appearance: none;
+  /* appearance: none;
   -webkit-appearance: none;
-  -moz-appearance: none; 
+  -moz-appearance: none; */
   /* border: none; */
   border: 1px solid black;
   border-radius: 5px;
