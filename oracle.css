@@ -9,6 +9,18 @@ body {
   margin: 0;
 }
 
+[contenteditable="true"] {
+  border: 1px solid black;
+  border-radius: 5px;
+  
+  outline: none; /* Removes default browser outline on focus */
+}
+
+.editable-text:focus {
+  border-color: #007bff; /* Highlight border on focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle shadow */
+}
+
 div.logo { 
   float: left; 
   padding: 2px;
@@ -120,10 +132,14 @@ select.listselect {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none; 
-  border: none;
+  /* border: none; */
+  border: 1px solid black;
+  border-radius: 5px;
+  
+  outline: none;
   /* needed for Firefox: */
   overflow:hidden;
-  width: 120%;
+  width: 110%;
   background: transparent;
 }
 
