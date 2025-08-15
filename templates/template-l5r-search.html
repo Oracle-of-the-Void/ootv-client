@@ -5,10 +5,10 @@
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
+       <a href="#game={{:~database}},#cardid={{:cardid}}{{if printingid}},#cnprintingid={{:printingid}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if printingid}}{{:printingid}}{{else}}null{{/if}},'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
   </div>
   <div class="listbody">
-    <div class="listhead"><a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
+    <div class="listhead"><a href="#game={{:~database}},#cardid={{:cardid}}{{if printingid}},#cnprintingid={{:printingid}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if printingid}}{{:printingid}}{{else}}null{{/if}},'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>
 
        {{for printing ~cardid=cardid}}
           <a class="printinglink gray button buttonsmaller" href="#game={{:~database}},#cardid={{:~cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:~cardid}},{{:printingid}},'{{addslashes:~qs}}'); } return false;">({{:printingid}}) {{:set}}/{{:rarity}}</a><!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} -->
@@ -17,11 +17,11 @@
      <br />
 
      <div class="listmanagement">
-      {{for ~activelists ~cardid=cardid}}
+      {{for ~activelists ~cardid=cardid ~cnprintingid=printingid}}
 	{{:name}}
-	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',0,null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
       <br />
       {{/for}}
 

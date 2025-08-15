@@ -1516,7 +1516,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   $("#lastprintid").val(prid?prid:((defpr>0)?defpr:primary));
 
   if($("#resultsearch").is(":visible")) {
-	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']);
+	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
   } else if($("#resultcard").is(":visible")) {
 	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
 	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
@@ -1545,7 +1545,8 @@ function bubbleup(data,request=null) {
   // (If the request has rev stuff set)
   if(hasrev>0) {
     //console.log("hasrev");
-    var bubblekill = ["print.*"];
+    //    var bubblekill = ["print.*"];
+    var bubblekill = [""];
     for (key in searchables[database]) {
       if (
         typeof searchables[database][key] === "object" &&
