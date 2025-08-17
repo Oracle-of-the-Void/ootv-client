@@ -2494,7 +2494,12 @@ function cache_card_remove(cardid) {
   delete searchcache[database]['data'][cardid];
 }
 function cache_card_fetch(cardid) {
+  if(searchcache[database]['data'][cardid]) {
     return     JSON.parse(JSON.stringify(searchcache[database]['data'][cardid]));
+  } else {
+    return {};
+  }
+
 }
 function cache_card_is(cardid) {
     return searchcache[database]['data'].hasOwnProperty(cardid);
