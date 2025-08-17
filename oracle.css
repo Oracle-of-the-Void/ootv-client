@@ -12,13 +12,16 @@ body {
 [contenteditable="true"] {
   border: 1px solid black;
   border-radius: 5px;
-  
   outline: none; /* Removes default browser outline on focus */
 }
-
-.editable-text:focus {
-  border-color: #007bff; /* Highlight border on focus */
+[contenteditable="true"]:focus {
+  border-color: yellow; /* Highlight border on focus */
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle shadow */
+}
+[contenteditable="true"]:hover {
+  /* color: darkgoldenrod; */
+  border-color: yellow; /* Highlight border on focus */
+  /*box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle shadow */
 }
 
 div.logo { 
