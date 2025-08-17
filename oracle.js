@@ -1278,12 +1278,13 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		"database":database
 	    });
 	}
-	if(listoutput && listoutput.startsWith('text')) {
+	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
 	    var text = templates[database]['compiled'][textparts[0]].render((headerize[database]['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? headerize[database]['deck'](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
-		"database":database
+		"database":database,
+    "listmeta": cache_thing("list",listid).list.Items[0]
 	    });
 	    var data = new Blob([text.replace(/\n/g, "\r\n")],{type: 'text/plain'});
 	    var url = window.URL.createObjectURL(data);

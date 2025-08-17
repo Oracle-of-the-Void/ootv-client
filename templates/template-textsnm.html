@@ -1,2 +1,3 @@
-{{if cardid==0}}{{if #getIndex() > 0}}
+{{if #getIndex()<1}}Legality: {{:~listmeta.legality}}
+{{/if}}{{if cardid==0}}{{if #getIndex() > 0}}
 {{/if}}# {{if title}}{{:title}}{{else}}{{:subtitle}}{{/if}}{{else}}{{if listquantity}}{{:listquantity}}{{/if}} {{:titletextsnm?titletextsnm:(puretexttitle?puretexttitle:title)}} {{if listprinting}}({{printingfromid listprinting printing "set" /}}){{else}}{{/if}}{{/if}}
