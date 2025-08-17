@@ -190,6 +190,7 @@
     <div class="listheadmiddle">Id</div>
     <div class="listheadmiddle">Name</div>
     <div class="listheadmiddle">Type</div>
+    <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
     <div class="listheadmiddle">Created</div>
     <div class="listheadmiddle">Modified</div>
@@ -461,6 +462,7 @@ printingprimary
   <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a aria-label="View List" data-balloon-pos="up-left" href="#" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
+  <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select></div>
   <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
   <div class="listmiddle">{{formatDate:createdate}}</div>
   <div class="listmiddle" id="list_modified:{{:listid}}">{{formatDate:modified}}</div>

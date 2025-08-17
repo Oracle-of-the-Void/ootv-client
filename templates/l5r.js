@@ -78,6 +78,7 @@ searchables['l5r'] = {
     "legality": { "type": "select",
                       "clickable": true,
                     "nobubbleup": true },
+    "legality.sortregex": { "type": "hidden" },
     "deck": { "type": "select",
                       "clickable": true },
     "force": { "type": "numeric",

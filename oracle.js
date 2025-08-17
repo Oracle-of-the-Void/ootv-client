@@ -41,6 +41,15 @@ $.views.converters("listTypeSelect",function(type) {
     }
     return sel;
 });
+$.views.converters("listLegalitySelect",function(legality) {
+  var sel='<option value=""></option>';
+  if(cache_select("legality.sortregex")) {
+      for(flegality in cache_select("legality.sortregex")) {
+        sel += '<option value="'+cache_select("legality.sortregex")[flegality]+'"'+(cache_select("legality.sortregex")[flegality]==legality?' selected':'')+'>'+cache_select("legality.sortregex")[flegality]+'</option>';
+      }
+  }
+  return sel;
+});
 function addslashes(str) {
     if(str) {
 	if(Array.isArray(str)) {
@@ -2314,7 +2323,7 @@ function loadupdates(db,start=null) {
 
 function loadselectables(db) {
   $.each(searchables[db],function( key, value ) {
-	  if(value.type == 'select') {
+	  if(value.type == 'select' || key.match(/\.sortregex$/)) {
 	    if(cache_select(key)) {
 		    console.log('select cached: '+key);
 	    } else {
