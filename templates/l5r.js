@@ -33,12 +33,20 @@ headerize['l5r'] = {
 	var counttype = {};
 	var countdeck = {};
 	listdata.forEach(function(c) {
-	    if(sumstype[c.type.join()] === undefined) { sumstype[c.type.join()] = 0; counttype[c.type.join()] = 0; }
-	    sumstype[c.type.join()]+=c.listquantity;
-	    counttype[c.type.join()] += 1;
-	    if(sumsdeck[c.deck.join()] === undefined) { sumsdeck[c.deck.join()] = 0; countdeck[c.deck.join()] = 0; }
+	    if(sumsdeck[c.deck.join()] === undefined) { 
+            sumsdeck[c.deck.join()] = 0; 
+            countdeck[c.deck.join()] = 0; 
+            sumstype[c.deck.join()] = {};
+            counttype[c.deck.join()] = {};
+        }
 	    sumsdeck[c.deck.join()]+=c.listquantity;
 	    countdeck[c.deck.join()] += 1;
+	    if(sumstype[c.deck.join()][c.type.join()] === undefined) { 
+            sumstype[c.deck.join()][c.type.join()] = 0; 
+            counttype[c.deck.join()][c.type.join()] = 0; 
+        }
+	    sumstype[c.deck.join()][c.type.join()]+=c.listquantity;
+	    counttype[c.deck.join()][c.type.join()] += 1;
 	});
 	var lasttype = '';
 	var lastdeck = '';
@@ -50,7 +58,8 @@ headerize['l5r'] = {
 	    }
 	    if(c.type.join() != lasttype) {
 		lasttype = c.type.join();
-		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+") ["+counttype[lasttype]+" distinct]", typetitle: true});
+        lastdeck = c.deck.join();
+		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lastdeck][lasttype]+") ["+counttype[lastdeck][lasttype]+" distinct]", typetitle: true});
 	    }
 	    listout.push(c);
 	});
