@@ -483,6 +483,25 @@ function newlist(json=null) {
     });
 }
 
+function duplicatelist(listid) {
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate",
+    contentType: 'application/json',
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    responseType: 'application/json',
+    success: function(data) {
+  console.log(data);
+  var oldlists = cache_thing("list","data");
+  oldlists.lists.Items.unshift(data.list.Item);
+  cache_thing("list","data",oldlists);
+  listinfocallback();
+    },
+    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+  })
+}
+
 function removelist(listid) {
     if(confirm("Really remove list: "+listid+"?")) {
 	$.ajax({
