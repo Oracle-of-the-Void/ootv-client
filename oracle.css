@@ -805,3 +805,6 @@ nav ul li ul li:last-child {
   padding: 0;
 /*  border: 1px solid #888; */
 }
+.showonadmin {
+  display: none;
+}

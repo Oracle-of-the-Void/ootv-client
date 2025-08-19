@@ -283,6 +283,9 @@ function userinfocallback() {
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
+    if (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
+      $('.showonadmin').show();
+    }
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
