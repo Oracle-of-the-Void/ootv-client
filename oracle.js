@@ -1388,8 +1388,8 @@ function createpdf(data,listoutput='') {
           if(p.image) {
               for(cn = 0; cn < card.listquantity; cn++) {
                 if(p.doublesided) {
-  	          for(i of p.image) {  // NEW STYLE
-                     images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
+  	              for(i of p.image) {  // NEW STYLE
+                    images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
                   }
                 } else {
                   images.push(dbinfo[database].imageuri+p.imagehash+'/'+p.image[0].details+'?x-corsworkaround=true');
@@ -1397,15 +1397,15 @@ function createpdf(data,listoutput='') {
               }
           } else {
             for(cn = 0; cn < card.listquantity; cn++) {
-                if(p.doublesided) {
-		        for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
-			          images.push(i+'details.jpg?x-corsworkaround=true'); 
-		        }
-		} else {
-                  images.push(p.images[0]+'details.jpg?x-corsworkaround=true');
+              if(p.doublesided) {
+                for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
+                  images.push(i+'details.jpg?x-corsworkaround=true'); 
                 }
+              } else {
+                images.push(p.images[0]+'details.jpg?x-corsworkaround=true');
+              }
             }
-	  }
+	        }
         }
       }
     }
