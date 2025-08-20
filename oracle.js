@@ -1383,23 +1383,31 @@ function createpdf(data,listoutput='') {
     console.log(data);
     var images = [];
     for(card of data) {
-	    for(p of card.printing) {
-	      if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
+      for(p of card.printing) {
+        if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
           if(p.image) {
-		        for(i of p.image) {  // NEW STYLE
-		          for(cn = 0; cn < card.listquantity; cn++) {
-                images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
-		          }
-            }
+              for(cn = 0; cn < card.listquantity; cn++) {
+                if(p.doublesided) {
+  	              for(i of p.image) {  // NEW STYLE
+                    images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
+                  }
+                } else {
+                  images.push(dbinfo[database].imageuri+p.imagehash+'/'+p.image[0].details+'?x-corsworkaround=true');
+                }
+              }
           } else {
-		        for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
-		          for(cn = 0; cn < card.listquantity; cn++) {
-			          images.push(i+'details.jpg?x-corsworkaround=true'); 
-		          }
-		        }
-          }
-	      }
-	    }
+            for(cn = 0; cn < card.listquantity; cn++) {
+              if(p.doublesided) {
+                for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
+                  images.push(i+'details.jpg?x-corsworkaround=true'); 
+                }
+              } else {
+                images.push(p.images[0]+'details.jpg?x-corsworkaround=true');
+              }
+            }
+	        }
+        }
+      }
     }
     console.log(images);
 
