@@ -86,7 +86,14 @@ searchables['lbs'] = {
     "city": { "type": "numeric",
 	       "advanced": true},
     "fate": { "type": "numeric",
-	       "advanced": true}
+	       "advanced": true},
+	"artist": { "type": "text",
+			"advanced": true,
+		  "reverse": true,
+		  "clickable": "printing" 
+		},
+	"flavor": { "type": "text",
+			"advanced": true }
 };
 
 labels['lbs'] = {
