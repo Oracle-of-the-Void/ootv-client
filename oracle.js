@@ -1165,7 +1165,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
   $.each(datarequest, function(key,value) {
     if(match=key.match(/^field_(.*)/)) {
       var f = match[1];
-      if(searchables[database][f].hasOwnProperty('combined')) {
+      if(searchables[database].hasOwnProperty(f) && searchables[database][f].hasOwnProperty('combined')) {
         datarequest["combined_"+f] = searchables[database][f]['combined'];
       }
     }
