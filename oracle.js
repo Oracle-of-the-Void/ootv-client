@@ -1344,7 +1344,8 @@ function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     showlist();
 }
 
-function getDataUri(url, callback) {
+function getDataUri(url, callback) { 
+  // create a canvas for pdf images, set the source to the image url, return resulting data through callback
     var image = new Image();
     image.setAttribute('crossOrigin', 'anonymous');
     image.onload = function () {
@@ -1366,9 +1367,12 @@ function getDataUri(url, callback) {
         ctx.drawImage(this,-this.width/2,-this.height/2);
         ctx.restore();
       }
-      callback(canvas.toDataURL('image/png'));
+      callback(canvas.toDataURL('image/png'),url);
     };
-    image.src = url;
+    image.onerror = function() {
+      callback(null,url);
+    }
+    image.src = url;  
 }
 
 function checkfilename(data) {
@@ -1412,10 +1416,16 @@ function createpdf(data,listoutput='') {
     console.log(images);
 
     var imagedata = [];
+    var imagefailed = [];
     for(image of images) {
-	    getDataUri(image,function(data) {
-	      imagedata.push(data);
-	      if(imagedata.length == images.length) {
+	    getDataUri(image,function(data,url) {
+        //console.log(JSON.stringify(data));
+        if(data) {
+  	      imagedata.push(data);  // TODO:  here is the data pull for pdf images - essentially this is an array of src elements
+        } else {
+          imagefailed.push(url);
+        }
+	      if((imagedata.length+imagefailed.length) == images.length) {
 		      const doc = new PDFDocument({
 		        "layout": "portrait", // landscape
 		        "size": "letter", // A4, etc
@@ -1429,10 +1439,11 @@ function createpdf(data,listoutput='') {
 		      my = (792-3*iy)/2;
 
 		      for(var i=0 ; i < imagedata.length; i++) {
-		        doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
-		        if(i%9 == 8 && (i<imagedata.length -1)) {
-			        doc.addPage();
-		        }
+            //if(JSON.stringify(data).match(/^data:image/)) { 
+              doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
+              if(i%9 == 8 && (i<imagedata.length -1)) {
+                doc.addPage();
+              }
 		      }
 		      doc.end();
 		      stream.on('finish', function() {
@@ -1440,7 +1451,10 @@ function createpdf(data,listoutput='') {
             //		    window.open(url);
 		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
 		      });
-
+          if(imagefailed.length>0) {
+            console.log("Failed"+JSON.stringify(imagefailed));
+            alert("Failed to load some images:"+JSON.stringify(imagefailed));
+          }
 // TODO:   https://stackoverflow.com/questions/30965249/pdfkit-js-how-to-save-document-to-file-win-8-app
           
 	      }
