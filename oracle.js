@@ -300,6 +300,7 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 	  $("#lastlistid").val(listid);
 	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
   } else {
+    console.log("listinfo_ajax");
 	  $.ajax({
 	    type: 'GET',
 	    url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
@@ -311,7 +312,6 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 		    console.log(data);
 		    if(listid) {
 		      if(data.list.Items[0].sort == undefined) {
-			      console.log('nosort set');
 			      if(data.list.Items[0].type == 'deck') {
 			        data.list.Items[0].sort = 'deck';
 			        console.log('setting deck');
@@ -333,6 +333,7 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 		    } else {
 		      cache_thing("list","data",data);
 		      listinfocallback();
+          renderlisteditarea();
 		    }
 	    },
 	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
@@ -365,11 +366,14 @@ function listinfoupdate(listid,field,value) {
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	    if($("#importlistid").length) {
-		    var listid = $("#importlistid").val();
+		    listid = $("#importlistid").val();
 		    erasemodal();
+      }
+      console.log("clear listid cache:"+listid);
 		    cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
-		    listinfo(listid);
-	    }
+        listinfo();
+		    listinfo(listid,false);
+	    //}
 	  },
 	  error: function(status) {
 	    console.log(status);
@@ -1339,7 +1343,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 }
 
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
-    console.log(["dolist: "+sort,listid]);
+    console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
     refreshlist(listdata,listlist,sort,listid,listoutput);
     /*
       // TODO:  put this in url history???
