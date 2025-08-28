@@ -526,7 +526,7 @@ div#maincontent {
 /*  display: table-cell; */
   width: auto;
   overflow: auto;
-  height: 100vh;
+  min-height: 80vh;
  }
 .ui-layout-pane {
   background-color: rgba(0,0,0,0) !important;
