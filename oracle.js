@@ -658,7 +658,7 @@ function editcard(cardid=null,printid=null) {
       delete printing.printingid;
     }
     var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": JSON.stringify(printing,null,2), "database": database}));
+    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": htmlEncode(JSON.stringify(printing,null,2)), "database": database}));
   } else if(cardid) {
     // This edits just the main card data, no instance info
     var carddata = cache_card_fetch(cardid);
