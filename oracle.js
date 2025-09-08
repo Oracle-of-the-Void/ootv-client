@@ -45,7 +45,8 @@ $.views.converters("listLegalitySelect",function(legality) {
   var sel='<option value=""></option>';
   if(cache_select("legality.sortregex")) {
       for(flegality in cache_select("legality.sortregex")) {
-        sel += '<option value="'+cache_select("legality.sortregex")[flegality]+'"'+(cache_select("legality.sortregex")[flegality]==legality?' selected':'')+'>'+cache_select("legality.sortregex")[flegality]+'</option>';
+        var thislegality = cache_select("legality.sortregex")[flegality].replace("&nbsp;", " ");
+        sel += '<option value="'+thislegality+'"'+(thislegality==legality?' selected':'')+'>'+thislegality+'</option>';
       }
   }
   return sel;
