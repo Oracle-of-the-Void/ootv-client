@@ -51,6 +51,16 @@ $.views.converters("listLegalitySelect",function(legality) {
   }
   return sel;
 });
+$.views.converters("databaseitemlookup",function(item) {
+  console.log("databaseitemlookup called: "+item);
+  if(item=="blurb" && typeof blurb !== 'undefined') {
+    console.log("blurb exists");
+    if(blurb[database]) {
+      console.log("returning blurb");
+      return "<div>"+blurb[database]+"</div><br /><br />";  
+    }
+  }
+});
 function addslashes(str) {
     if(str) {
 	if(Array.isArray(str)) {
@@ -155,6 +165,7 @@ var databasesort = {};
 var headerize = {};
 var refreshauthvar;
 var dbinfo = {};
+var blurb = {};
 var searchsorts = {'':{}};
 searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random'

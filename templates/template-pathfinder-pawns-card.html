@@ -1,0 +1,32 @@
+{{include tmpl="#template-card-top" /}}
+    <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
+    {{if sourcetype}}       <dt>{{:~labels.shortsourcetype}}</dt><dd>{{:sourcetype}}</dd>  {{/if}}
+    {{if type}}       <dt>{{:~labels.shorttype}}</dt><dd>{{:type}}</dd>  {{/if}}
+    {{if subtype}}       <dt>{{:~labels.shortsubtype}}</dt><dd>{{:subtype}}</dd>  {{/if}}
+
+    {{if alignment}}<dt>{{:~labels.shortalignment}}</dt><dd>{{:alignment}}</dd>{{/if}}
+    {{if class}}<dt>{{:~labels.shortclas}}</dts><dd>{{:class}}</dd>{{/if}}
+    {{if race}}<dt>{{:~labels.shortrace}}</dt><dd>{{:race}}</dd>{{/if}}
+    {{if size}}<dt>{{:~labels.shortsize}}</dt><dd>{{:size}}</dd>{{/if}}
+    {{if perception}}<dt>{{:~labels.shortperception}}</dt><dd>{{:perception}}</dd>{{/if}}
+    {{if disable_device}}<dt>{{:~labels.shortdisable_device}}</dt><dd>{{:disable_device}}</dd>{{/if}}
+    {{if sources}}<dt>{{:~labels.shortsources}}</dt><dd>{{:sources}}</dd>{{/if}}
+    {{if nethys}}<dt>{{:~labels.shortnethys}}</dt><dd>{{:nethys}}</dd>{{/if}}
+
+    {{if notes}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
+
+{{include tmpl="#template-card-middle" /}}
+
+{{for printing}}
+      <div class="printing" data-printingid="{{:printingid}}">
+        <hr>
+        {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
+        {{if rarity}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
+        {{if flavor}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
+        {{if artist}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
+        {{if number}}       <dt>{{:~labels.shortnumber}}</dt><dd>{{:number}}</dd>  {{/if}}
+        <hr>
+      </div>
+      {{/for}}
+      
+{{include tmpl="#template-card-bottom" /}}
