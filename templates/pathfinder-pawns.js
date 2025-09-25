@@ -196,7 +196,14 @@ templates['pathfinder-pawns'] = {
     'sort': {'search':''}
 };
 
-blurb['pathfinder-pawns'] = "This database uses trademarks and/or copyrights owned by Paizo Inc., used under Paizo's Community Use Policy (paizo.com/licenses/communityuse). We are expressly prohibited from charging you to use or access this content. This database is not published, endorsed, or specifically approved by Paizo. For more information about Paizo Inc. and Paizo products, visit paizo.com."
+blurb['pathfinder-pawns'] = 
+`This database uses trademarks and/or copyrights owned by Paizo Inc., used under Paizo's Community Use Policy (paizo.com/licenses/communityuse). 
+We are expressly prohibited from charging you to use or access this content. 
+This database is not published, endorsed, or specifically approved by Paizo. 
+For more information about Paizo Inc. and Paizo products, visit paizo.com.
+<br /><br />
+The intended purpose of this database is to be able to quickly identify and locate pawns for use in a campaign, or identify which pawn boxes to purchase.
+`;
 
 $(document).ready(function(){
 });
