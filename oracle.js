@@ -149,10 +149,12 @@ var updatepending = {};
 var updatecallback = {};
 var database = 'l5r';
 var outputheaders = true;
-if(found = window.location.href.match(/(\w+)\.html/)) {
+if(found = window.location.href.match(/([\w_-]+)\.html/)) {
   if(found && found[1] != 'index') {
 	  database = found[1];
 	  console.log("database: "+database);
+    cache_session("database",found[1]);
+    window.location = location.protocol + '//' + location.host + location.pathname;
   }
 }
 if(cache_session("database")) {
