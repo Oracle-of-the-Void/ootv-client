@@ -1558,6 +1558,7 @@ function docard(carddata,prid=null,qs=null,pop=false) {
             if(keys[1].match(/^(set|rarity)$/)) {
               carddata[keys[0]][i][keys[1]+'clean'] = carddata[keys[0]][i][keys[1]];
             } 
+            // if you get an error here, you didn't put something in an array
             carddata[keys[0]][i][keys[1]] = carddata[keys[0]][i][keys[1]].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
           }
         }
@@ -1877,13 +1878,19 @@ function templatefetch(card,id=false,datarequest={}) {
         for(att in card.printingreverse) {
           //console.log("onyx deb: "+att);
             if("field_printing_"+att in datarequest) {
-                if(datarequest["field_printing_"+att] in card.printingreverse[att]) {
-                    pr = card.printingreverse[att][datarequest["field_printing_"+att]];
+              //console.log("printing field in search: "+att);
+              for (checkatt of datarequest["field_printing_"+att]) {
+                if(checkatt in card.printingreverse[att]) {
+                    pr = card.printingreverse[att][checkset];
                 }
+              }
             } else if("field_"+att in datarequest) {
-                if(datarequest["field_"+att] in card.printingreverse[att]) {
-                    pr = card.printingreverse[att][datarequest["field_"+att]];
+              //console.log("top field in search: "+att);
+              for (checkatt of datarequest["field_"+att]) {
+                if(checkatt in card.printingreverse[att]) {
+                    pr = card.printingreverse[att][checkatt];
                 }
+              }
             }
         }
     }

@@ -42,8 +42,7 @@ dbinfo['pathfinder-pawns'] = {
 searchables['pathfinder-pawns'] = {
   "quick": { "type": "quick" },
   "title": { "type": "text" },
-  "printing.set": { "type": "select", "sub": "printing.rarity" },
-  "printing.rarity": { "type": "select" },
+  "printing.set": { "type": "select", "sub": "printing.rarity", "reverse":true },
   "sourcetype": { "type": "select", "clickable": true  },
   "type": { "type": "select", "clickable": true  },
   "subtype": { "type": "select", "clickable": true  },
@@ -53,7 +52,8 @@ searchables['pathfinder-pawns'] = {
   "size": { "type": "select", "clickable": true  },
   "sources": { "type": "select", "clickable": true  },
   "notes": { "type": "text", "advanced": true },
-  "printing.number": { "type": "numeric", "advanced": true }
+  "printing.number": { "type": "numeric", "advanced": true },
+  "printing.artist": { "type": "select", "clickable":true, "reverse": true}
 };
 
 // Disable Device
@@ -94,7 +94,9 @@ labels['pathfinder-pawns'] = {
 "tagdisable_device":"Disable Device",
 "shortdisable_device":"Disable Device",
 "tagnethys":"Reference Link",
-"shortnethys":"Ref"
+"shortnethys":"Ref",
+"tagartist": "Artist",
+"shortartist": "Artist"
 };
 
 /*
@@ -156,12 +158,6 @@ templates['pathfinder-pawns'] = {
 	    'shortname': 'List',
 	    'places': [ 'search','list'],
 	    'headerizable': true,
-	    'generic':true
-	},
-	'pdf': {
-	    'longname': 'PDF Print-n-Play',
-	    'shortname': 'PDF',
-	    'places': [ ],
 	    'generic':true
 	},
 	'text': {
