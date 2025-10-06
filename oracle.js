@@ -1881,7 +1881,7 @@ function templatefetch(card,id=false,datarequest={}) {
               //console.log("printing field in search: "+att);
               for (checkatt of datarequest["field_printing_"+att]) {
                 if(checkatt in card.printingreverse[att]) {
-                    pr = card.printingreverse[att][checkset];
+                    pr = card.printingreverse[att][checkatt];
                 }
               }
             } else if("field_"+att in datarequest) {
