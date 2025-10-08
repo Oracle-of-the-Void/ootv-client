@@ -1879,6 +1879,9 @@ function templatefetch(card,id=false,datarequest={}) {
           //console.log("onyx deb: "+att);
             if("field_printing_"+att in datarequest) {
               //console.log("printing field in search: "+att);
+              if(!Array.isArray(datarequest["field_"+att])) {
+                datarequest["field_"+att] = [datarequest["field_"+att]];
+              }
               for (checkatt of datarequest["field_printing_"+att]) {
                 if(checkatt in card.printingreverse[att]) {
                     pr = card.printingreverse[att][checkatt];
@@ -1886,7 +1889,11 @@ function templatefetch(card,id=false,datarequest={}) {
               }
             } else if("field_"+att in datarequest) {
               //console.log("top field in search: "+att);
+              if(!Array.isArray(datarequest["field_"+att])) {
+                datarequest["field_"+att] = [datarequest["field_"+att]];
+              }
               for (checkatt of datarequest["field_"+att]) {
+                //console.log(checkatt);
                 if(checkatt in card.printingreverse[att]) {
                     pr = card.printingreverse[att][checkatt];
                 }
