@@ -1,3 +1,8 @@
+(function() {
+    ['dbinfo','databasesort','headerize','searchables','labels','templates','updates'].forEach(function(g) {
+        if (typeof window[g] === 'undefined') window[g] = {};
+    });
+})();
 dbinfo['dune'] = {
     'name': "Dune CCG",
     'nameshort':'dune',

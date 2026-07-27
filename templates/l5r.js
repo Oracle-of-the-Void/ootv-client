@@ -1,3 +1,8 @@
+(function() {
+    ['dbinfo','databasesort','headerize','searchables','labels','templates','updates'].forEach(function(g) {
+        if (typeof window[g] === 'undefined') window[g] = {};
+    });
+})();
 /* TODO */
 // advanced/basic switch  (tri-level)?
 // hide search switch

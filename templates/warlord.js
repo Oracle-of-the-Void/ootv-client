@@ -1,3 +1,8 @@
+(function() {
+    ['dbinfo','databasesort','headerize','searchables','labels','templates','updates'].forEach(function(g) {
+        if (typeof window[g] === 'undefined') window[g] = {};
+    });
+})();
 dbinfo['warlord'] = {
     'name': "Warlord: Saga of the Storm CCG",
     'nameshort':'warlord',

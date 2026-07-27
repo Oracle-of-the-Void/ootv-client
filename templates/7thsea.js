@@ -1,3 +1,8 @@
+(function() {
+    ['dbinfo','databasesort','headerize','searchables','labels','templates','updates'].forEach(function(g) {
+        if (typeof window[g] === 'undefined') window[g] = {};
+    });
+})();
 dbinfo['7thsea'] = {
     'name': "7th Sea CCG",
     'nameshort':'7thsea',
