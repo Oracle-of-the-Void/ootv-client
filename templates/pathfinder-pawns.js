@@ -1,3 +1,8 @@
+(function() {
+    ['dbinfo','databasesort','headerize','searchables','labels','templates','updates','blurb'].forEach(function(g) {
+        if (typeof window[g] === 'undefined') window[g] = {};
+    });
+})();
 dbinfo['pathfinder-pawns'] = {
     'name': "Pathfinder Pawns",
     'nameshort':'pathfinder-pawns',
