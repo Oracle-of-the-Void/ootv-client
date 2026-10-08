@@ -1,0 +1,67 @@
+name: Deploy
+
+# dev    -> preview.oracleofthevoid.com (like sync-test.sh)
+# master -> oracleofthevoid.com         (like sync-prod.sh)
+on:
+  push:
+    branches:
+      - dev
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Select target
+        id: target
+        run: |
+          case "${{ github.ref_name }}" in
+            master)
+              echo "bucket=oracleofthevoid.com" >> $GITHUB_OUTPUT
+              echo "distribution=E6ECGAAP7LNKR" >> $GITHUB_OUTPUT
+              ;;
+            dev)
+              echo "bucket=preview.oracleofthevoid.com" >> $GITHUB_OUTPUT
+              echo "distribution=E2S43UTDKL45NF" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "No deploy target for branch ${{ github.ref_name }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ github.ref_name == 'master' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync . "s3://${{ steps.target.outputs.bucket }}/" --delete \
+            --exclude '.DS*' --exclude '._*' --exclude '.git' --exclude '.git/*' --exclude '.gitignore' \
+            --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*' \
+            --exclude '*/#*' --exclude '*/*\+' --exclude '*/*-prev' \
+            --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' \
+            --exclude '.github' --exclude '.github/*'
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.target.outputs.distribution }}" \
+            --paths '/*'

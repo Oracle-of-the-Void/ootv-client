@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: GitHub Actions OIDC roles for deploying ootv-client to S3/CloudFront
+
+# Deploy once by hand:
+#   aws cloudformation deploy --stack-name ootv-client-deploy-roles \
+#     --template-file .github/aws/deploy-roles.yml --capabilities CAPABILITY_NAMED_IAM \
+#     --region us-east-1 --profile ksuquix
+
+Parameters:
+  GitHubRepo:
+    Type: String
+    Default: Oracle-of-the-Void/ootv-client
+  DevBranch:
+    Type: String
+    Default: dev
+  ProdBranch:
+    Type: String
+    Default: master
+  DevBucket:
+    Type: String
+    Default: preview.oracleofthevoid.com
+  ProdBucket:
+    Type: String
+    Default: oracleofthevoid.com
+  DevDistributionId:
+    Type: String
+    Default: E2S43UTDKL45NF
+  ProdDistributionId:
+    Type: String
+    Default: E6ECGAAP7LNKR
+
+Resources:
+  DevDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ootv-client-deploy-dev
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepo}:ref:refs/heads/${DevBranch}
+      Policies:
+        - PolicyName: DeployPreview
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub arn:aws:s3:::${DevBucket}
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub arn:aws:s3:::${DevBucket}/*
+              - Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DevDistributionId}
+
+  ProdDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ootv-client-deploy-prod
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepo}:ref:refs/heads/${ProdBranch}
+      Policies:
+        - PolicyName: DeployProd
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub arn:aws:s3:::${ProdBucket}
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub arn:aws:s3:::${ProdBucket}/*
+              - Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${ProdDistributionId}
+
+Outputs:
+  DevRoleArn:
+    Description: Set as repo secret AWS_ROLE_ARN_DEV
+    Value: !GetAtt DevDeployRole.Arn
+  ProdRoleArn:
+    Description: Set as repo secret AWS_ROLE_ARN_PROD
+    Value: !GetAtt ProdDeployRole.Arn
