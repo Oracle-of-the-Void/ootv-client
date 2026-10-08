@@ -52,6 +52,9 @@ $.views.converters("listLegalitySelect",function(legality) {
   }
   return sel;
 });
+$.views.converters("nbsptospace",function(val) {
+  return (val||'').replace(/&nbsp;/g, " ");
+});
 $.views.converters("databaseitemlookup",function(item) {
   console.log("databaseitemlookup called: "+item);
   if(item=="blurb" && typeof blurb !== 'undefined') {
