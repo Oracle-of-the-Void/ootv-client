@@ -45,11 +45,15 @@ $.views.converters("listLegalitySelect",function(legality) {
   var sel='<option value=""></option>';
   if(cache_select("legality.sortregex")) {
       for(flegality in cache_select("legality.sortregex")) {
-        var thislegality = cache_select("legality.sortregex")[flegality].replace("&nbsp;", " ");
-        sel += '<option value="'+thislegality+'"'+(thislegality==legality?' selected':'')+'>'+thislegality+'</option>';
+        var thislegality = cache_select("legality.sortregex")[flegality].replace(/&nbsp;/g, " ");
+        // saved lists may hold a value with only the first &nbsp; replaced, so compare normalized
+        sel += '<option value="'+thislegality+'"'+(thislegality==(legality||'').replace(/&nbsp;/g, " ")?' selected':'')+'>'+thislegality+'</option>';
       }
   }
   return sel;
+});
+$.views.converters("nbsptospace",function(val) {
+  return (val||'').replace(/&nbsp;/g, " ");
 });
 $.views.converters("databaseitemlookup",function(item) {
   console.log("databaseitemlookup called: "+item);
@@ -1027,7 +1031,10 @@ function imagehashtourl(card) {
             card.printingreverse[seakey.replace("printing.","")] = {};
             for(var p = 0; p < card.printing.length; p++) {
                 if(seakey.replace("printing.","") in card.printing[p]) {
-                    card.printingreverse[seakey.replace("printing.","")][card.printing[p][seakey.replace("printing.","")][0]] = p;
+                    // index every value (a printing can be legal in several arcs), not just the first
+                    [].concat(card.printing[p][seakey.replace("printing.","")]).forEach(function(v) {
+                        card.printingreverse[seakey.replace("printing.","")][v] = p;
+                    });
                 }
             }
             if(jQuery.isEmptyObject(card.printingreverse[seakey.replace("printing.","")])) {
