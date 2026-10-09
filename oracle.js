@@ -1783,7 +1783,8 @@ function templatesortlegality(legality) {
         order = order.concat(typeof group === 'string' ? group : group[Object.keys(group)[0]]);
     });
     var pos = function(val) {
-        var i = order.indexOf(val);
+        // clickable fields are already wrapped in search links by process_keywordlink
+        var i = order.indexOf(String(val).replace(new RegExp("<[^<]+>","g"),""));
         return i < 0 ? order.length : i;
     };
     // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
