@@ -5,8 +5,10 @@ or tests. The files in this directory are exactly what gets served.
 
 ## Layout
 
-- `index.html` is the single page. It loads jQuery, Chosen and lodash from CDNs, plus
-  local `jsviews.min.js`, `amazon-cognito-auth.min.js` and the per-game `templates/<game>.js`.
+- `index.html` is the single page. It loads jQuery and lodash from CDNs, plus local
+  `chosen.jquery.min.js`/`chosen.min.css` (vendored Chosen 1.8.7; the CSS needs the
+  `chosen-sprite*.png` files beside it), `jsviews.min.js`, `amazon-cognito-auth.min.js`
+  and the per-game `templates/<game>.js`.
 - `oracle.js` (~2500 lines, global functions and `var`s) holds all app logic: Cognito
   login, search (`dosearch`), card view (`docard`), lists/decks (`listinfo`,
   `addlistitem`, `renderlist`), card editing (`editcard*`), PDF proxies (`createpdf`),
