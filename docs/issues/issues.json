@@ -8093,7 +8093,7 @@
       "name": "Don Eisele"
     },
     "body": "aesthetic: Legality sorting in card detail should be in chronological order, not alphabetical",
-    "closedAt": null,
+    "closedAt": "2026-10-09T08:48:54Z",
     "comments": [],
     "createdAt": "2025-09-08T21:48:15Z",
     "labels": [
@@ -8106,10 +8106,10 @@
     ],
     "milestone": null,
     "number": 190,
-    "state": "OPEN",
-    "stateReason": "",
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
     "title": "aesthetic: Legality sorting in card detail should be in chronological order, not alphabetical",
-    "updatedAt": "2025-09-08T21:48:15Z",
+    "updatedAt": "2026-10-09T08:48:54Z",
     "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/190"
   },
   {
