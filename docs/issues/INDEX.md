@@ -2,8 +2,9 @@
 
 Grouped view of the GitHub issues on `Oracle-of-the-Void/ootv-client`. The full text
 and comments for each issue are in [issues.json](issues.json), a snapshot taken
-on 2026-10-09: **58 open, 148 closed**. GitHub is authoritative, so check there before
-acting on anything here.
+on 2026-10-09: **56 open, 150 closed** (refreshed after closing #14 and #72). GitHub is
+authoritative, so check there before acting on anything here. Section 4 records a
+status check of the open issues against the code and live data on the same date.
 
 Refresh the cache from `ootv-client/` (the grouping below is hand-maintained, so
 update it to match):
@@ -40,7 +41,7 @@ Nobody has confirmed them on GitHub.
 | **[76][i76]** | Wrong or missing rank/kabuto icon | Mostly fixed. The symbol font lacks the 4 and 5 glyphs. |
 | **[12][i12]** | Online card editor not finished | Add/edit/delete and set-MRP are done. **Image handler is still missing.** |
 
-### Enhancements by functional area (33)
+### Enhancements by functional area (32)
 
 | Area | Open issues |
 |---|---|
@@ -53,22 +54,21 @@ Nobody has confirmed them on GitHub.
 | PDF / print-and-play | **[35][i35]** spacing, multiples, sizes, sorting · **[22][i22]** card backs and double-sided printing |
 | Accounts and integrations | **[21][i21]** user profile management · **[38][i38]** Patreon OAuth · **[84][i84]** embeddable card-hover widget for other sites · **[20][i20]** Discord bot (see `ootv-claude/DISCORD-BOT.md`, abandoned 2020) |
 | Content | **[17][i17]** host old rulebooks |
-| Infra | **[14][i14]** CodePipeline to S3. **Likely done:** PR #218 added the GitHub Actions deploy (`dev`→preview, `master`→prod). Candidate to close. |
 | Game-specific | **[75][i75]** LBS faction filter (needs faction pulled out of the data) |
 
-### Data errors (20)
+### Data errors (19)
 
 These are fixed in DynamoDB, not in this repo, but they're tracked here.
 
 | Game | Kind | Open issues |
 |---|---|---|
-| L5R | Missing cards/printings | **[47][i47]** missing reprints · **[112][i112]** 2014 foil promos · **[113][i113]** foil Bamboo Harvesters · **[196][i196]** 11 20F story premium cards · **[98][i98]** Gold koku cards (5 koku missing; rarity/set wrong) · **[53][i53]** Obsidian box-art strongholds (scans were emailed) |
+| L5R | Missing cards/printings | **[47][i47]** missing reprints · **[112][i112]** 2014 foil promos · **[113][i113]** foil Bamboo Harvesters · **[196][i196]** 11 20F story premium cards · **[98][i98]** Gold koku cards (Gold 5 Koku missing; Gold 10/50 rarity and set wrong) · **[53][i53]** Obsidian box-art strongholds (scans were emailed) |
 | L5R | Wrong printing/order | **[208][i208]** Brothers in Battle defaults to old printing · **[199][i199]** full-bleed Yasuki Palaces on the wrong card · **[135][i135]** The Deciding Moment I–VIII order, flavor, story |
 | L5R | Field values | **[206][i206]** Daigotsu Gyoken missing Celestial · **[180][i180]** null → `0` GC on Ivory/20F strategies · **[197][i197]** Kiho keyword inconsistent · **[195][i195]** Ambush Pass artist |
 | L5R | S&M set names | **[82][i82]** "Dark Journey Home" set name · **[198][i198]** Shattered Empire export (set codes, quotes in titles) |
-| Dune | | **[69][i69]** missing reprints (built from OCTGN) · **[71][i71]** fan-template images · **[72][i72]** ~80 EoS cards missing or without a set |
+| Dune | | **[69][i69]** missing reprints (built from OCTGN) · **[71][i71]** fan-template images |
 | LBS | | **[186][i186]** most cards missing artist · **[75][i75]** factions (also an enhancement) |
-| 7th Sea | | **[80][i80]** missing Parting Shot |
+| 7th Sea | | **[80][i80]** missing Parting Shot (a card by that name now exists; see section 4) |
 
 ---
 
@@ -182,15 +182,67 @@ These are kept for reference. They're useful as examples of recurring data probl
 | Text, typos, keywords, stats | [2][i2] [48][i48] [49][i49] [62][i62] [63][i63] [140][i140] [153][i153] [157][i157] [167][i167] [176][i176] [179][i179] [64][i64] [18][i18] |
 | Misc card fixes | [73][i73] [83][i83] [86][i86]–[93][i93] (Jade Edition batch) [89][i89] [96][i96] [109][i109] [114][i114] [115][i115] [116][i116] [117][i117] [121][i121] [122][i122] [125][i125] [200][i200] |
 | LBS | [74][i74] (duplicate Abd al-Zhayn) |
-| Other / void | [85][i85] (deleted by reporter), [68][i68] (Warlord added), [13][i13] (API docs → `docs/API.md`) |
+| Dune | [72][i72] (Eye of the Storm missing ~80 cards; closed 2026-10-09 after the database matched ccgtrader's 301-card count) |
+| Other / void | [85][i85] (deleted by reporter), [68][i68] (Warlord added), [13][i13] (API docs → `docs/API.md`), [14][i14] (deploy pipeline → GitHub Actions, PR #218) |
 
 Closed UI/cosmetic work not listed above: [29][i29], [45][i45], [51][i51] (clear-cache menu), [70][i70].
 
 ---
 
-## 4. Suggested housekeeping
+## 4. Status check (2026-10-09)
 
-- Close **#14**. GitHub Actions deploy (PR #218) covers it.
+Each open issue was checked against `oracle.js`/templates, the git log and read-only
+queries to the live `/search` and `/attributes` API. The query strings are included
+so the counts can be re-run, for example
+`curl -s -X POST https://api.oracleofthevoid.com/search --data-urlencode table=l5r --data-urlencode 'querystring=...'`.
+
+Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) and
+**#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301).
+
+### Possibly done (needs confirmation)
+
+| # | Finding |
+|---|---|
+| **[80][i80]** | A 7th Sea card titled *Parting Shot* exists (cardid 977, Strange Vistas). If the issue meant that card, it's done. If it meant a *set* by that name, it isn't: the 7th Sea set list has no Parting Shot. |
+
+### Almost done (one piece left)
+
+| # | Done | Left |
+|---|---|---|
+| **[216][i216]** / **[212][i212]** | Front end indexes every printing value (PR #217). | Per-printing `legality` for pre-Onyx printings (data). |
+| **[12][i12]** | Add/edit/delete cards and instances, set MRP, "New Card" admin link. | Image upload. The admin page still lists it under "Need to have". |
+| **[31][i31]** | Multi-select search. | "Strict" arc legalities (20F Strict, Ivory Strict). None exist in `/attributes` `legality`. Could be split off into its own issue. |
+| **[22][i22]** | Card backs exist as cards (#56). Double-sided instances print both sides (PR #185). | Automatically pairing fronts with backs for duplex output. |
+| **[191][i191]** | The versioned-link work (commit `ade929d`). | Simplifying the older card-page logic. |
+| **[76][i76]** | Most rank icons fixed (per the issue comment). | Glyphs for 4 and 5 are missing from the symbol font. Not checked visually. |
+| **[98][i98]** | A 5 Koku card exists (Ivory and Emperor premium printings). | No Gold Edition 5 Koku. Gold 10/50 Koku are still `Promo` / `Promotional–Gold` instead of `Premium` / `Gold Edition`. |
+
+### Confirmed still open
+
+| # | Evidence |
+|---|---|
+| **[206][i206]** | cardid 1720 legality has no `Destroyer War (Celestial)`, despite a Celestial printing. |
+| **[208][i208]** | cardid 1164 `printingprimary` is still 1 (Before the Dawn). The Emperor promo is printing 2. |
+| **[199][i199]** | cardid 9458 (Yasuki Palaces) still has the Promotional–Emperor full-bleed printing (3). |
+| **[195][i195]** | Ambush Pass (10195) still credits Noah Bradley. |
+| **[135][i135]** | cardid 10119 still has one promo printing with all seven artists, not eight versions. |
+| **[113][i113]** | No foil printing on any Bamboo Harvesters. |
+| **[53][i53]** | Ancestral Home of the Lion Obsidian printing is still the Emerald art (Christina Wald). |
+| **[180][i180]** | `type:strategy AND (legality:*Ivory* OR legality:*Festivals*)`: 440 with no `cost`, 78 with. |
+| **[197][i197]** | `text:kiho AND NOT keywords:kiho`: 222 cards; `keywords:kiho`: 297. |
+| **[30][i30]** | `type:holding`: 159 with `production`, 789 without. |
+| **[186][i186]** | LBS: 8 of 684 cards have `artist`. |
+| **[75][i75]** | LBS: no card has a `faction` field. |
+| **[190][i190]** | `template-l5r-card.html` joins `legality` in stored order. |
+| **[214][i214]** / **[82][i82]** / **[198][i198]** | `template-textsnm.html` exports the full printing `set` name, not an S&M code. |
+| **[188][i188]** | `renderlist`/`listprefetch` have no handling for a `cardid` that no longer exists. |
+
+---
+
+## 5. Suggested housekeeping
+
+- Confirm what **#80** meant and close it if it was the card.
+- Narrow **#12** to "image upload" and **#31** to "strict legalities", or split them.
 - Re-scope or close **#22** (see cluster E).
 - Merge **#28 into #193**, or the reverse.
 - Link **#212 ↔ #216** and **#214 ↔ #198 ↔ #82 ↔ #16** on GitHub so the clusters

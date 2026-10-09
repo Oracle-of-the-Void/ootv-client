@@ -750,8 +750,24 @@
       "name": "Don Eisele"
     },
     "body": "tentatively: \r\n   dev branch pushes to dev.oracleofthevoid.com\r\n   preview branch pushes to preview.oracleofthevoid.com\r\n   pushes to preview will invalidate cloudfront\r\n\r\n",
-    "closedAt": null,
-    "comments": [],
+    "closedAt": "2026-10-09T08:11:40Z",
+    "comments": [
+      {
+        "id": "IC_kwDODoCR9c8AAAABajj3pA",
+        "author": {
+          "login": "ksuquix"
+        },
+        "authorAssociation": "MEMBER",
+        "body": "Done via GitHub Actions instead of CodePipeline (#218): `.github/workflows/deploy.yml` syncs `dev` → preview.oracleofthevoid.com and `master` → oracleofthevoid.com, then invalidates CloudFront. No separate dev.oracleofthevoid.com / `preview` branch.",
+        "createdAt": "2026-10-09T08:11:39Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/14#issuecomment-6077085604",
+        "viewerDidAuthor": true
+      }
+    ],
     "createdAt": "2020-02-26T19:59:36Z",
     "labels": [
       {
@@ -769,10 +785,10 @@
     ],
     "milestone": null,
     "number": 14,
-    "state": "OPEN",
-    "stateReason": "",
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
     "title": "Set up codepipeline to push to s3",
-    "updatedAt": "2020-02-26T19:59:48Z",
+    "updatedAt": "2026-10-09T08:11:40Z",
     "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/14"
   },
   {
@@ -3160,7 +3176,7 @@
       "name": "Don Eisele"
     },
     "body": "EoS still missing cards, ca 80. Paul Atreides, Gurney Halleck etc\r\n",
-    "closedAt": null,
+    "closedAt": "2026-10-09T08:18:26Z",
     "comments": [
       {
         "id": "IC_kwDODoCR9c7AD_8S",
@@ -3176,6 +3192,21 @@
         "reactionGroups": [],
         "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/72#issuecomment-3222273810",
         "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDODoCR9c8AAAABajpthw",
+        "author": {
+          "login": "ksuquix"
+        },
+        "authorAssociation": "MEMBER",
+        "body": "Eye of the Storm is complete: the database has 301 EoS cards, matching ccgtrader's set count of 301, and Paul Atreides and the others are now filed under EoS. Every Dune card has a set. Missing reprints are tracked separately in #69.",
+        "createdAt": "2026-10-09T08:18:25Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/72#issuecomment-6077181319",
+        "viewerDidAuthor": true
       }
     ],
     "createdAt": "2020-09-24T16:38:12Z",
@@ -3189,10 +3220,10 @@
     ],
     "milestone": null,
     "number": 72,
-    "state": "OPEN",
-    "stateReason": "",
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
     "title": "some cards are missing",
-    "updatedAt": "2025-08-26T01:50:45Z",
+    "updatedAt": "2026-10-09T08:18:26Z",
     "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/72"
   },
   {
