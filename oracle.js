@@ -1782,13 +1782,18 @@ function templatesortlegality(legality) {
     if(!Array.isArray(legality) || !Array.isArray(sel)) {
         return legality;
     }
+    // clickable fields are already wrapped in search links by process_keywordlink, and older
+    // cached selects may use spaces where the card data uses &nbsp;, so compare plain text
+    var plain = function(val) {
+        return String(val).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;| /g," ").trim();
+    };
     var order = [];
     sel.forEach(function(group) {
         order = order.concat(typeof group === 'string' ? group : group[Object.keys(group)[0]]);
     });
+    order = order.map(plain);
     var pos = function(val) {
-        // clickable fields are already wrapped in search links by process_keywordlink
-        var i = order.indexOf(String(val).replace(new RegExp("<[^<]+>","g"),""));
+        var i = order.indexOf(plain(val));
         return i < 0 ? order.length : i;
     };
     // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
