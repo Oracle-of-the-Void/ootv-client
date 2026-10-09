@@ -26,12 +26,10 @@ or tests. The files in this directory are exactly what gets served.
 - `docs/API.md` is the API contract with ootv-search (routes, inputs, outputs).
   `docs/data.md` describes the card JSON. `oracle.api` holds scratch notes on the search
   request format.
-- `docs/issues/` is a local cache of the GitHub issues: `issues.json` (raw `gh` output,
-  with comments) and `INDEX.md` (issues grouped by type and overlapping functionality).
-  Refresh with the command in `INDEX.md`. Index edits go out in the same `dev` → `master`
-  PR as the fix, so write the state after the merge (the issue is closed and released
-  in PR #N), not "fixed on `dev`". Put `Fixes #N` in the PR body so GitHub closes
-  the issue when the PR merges.
+- The issue index and cache live in the workspace repo, at
+  `../ootv-claude/issues/ootv-client/` (`INDEX.md`, `issues.json`), not here. Update them
+  there; don't commit issue bookkeeping to this repo. Put `Fixes #N` in the `dev` →
+  `master` PR body so GitHub closes the issue when the PR merges.
 
 ## Conventions
 
