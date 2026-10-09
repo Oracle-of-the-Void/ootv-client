@@ -17,6 +17,7 @@ $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
+$.views.helpers("sortlegality",templatesortlegality);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -1769,6 +1770,24 @@ function templateconcatarrays() {
     return out.filter(function (el) {
         return el != null;
     });
+}
+function templatesortlegality(legality) {
+    // sort a card's legalities into the chronological order of the legality select (#190)
+    // the cached select is grouped: [{"Arc":[...]},{"Format":[...]},{"Misc":[...]}]
+    var sel = cache_select("legality");
+    if(!Array.isArray(legality) || !Array.isArray(sel)) {
+        return legality;
+    }
+    var order = [];
+    sel.forEach(function(group) {
+        order = order.concat(typeof group === 'string' ? group : group[Object.keys(group)[0]]);
+    });
+    var pos = function(val) {
+        var i = order.indexOf(val);
+        return i < 0 ? order.length : i;
+    };
+    // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
+    return legality.slice().sort(function(a,b) { return pos(a) - pos(b); });
 }
 function templatemakelinks() {
   out = "";
