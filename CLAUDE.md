@@ -28,7 +28,10 @@ or tests. The files in this directory are exactly what gets served.
   request format.
 - `docs/issues/` is a local cache of the GitHub issues: `issues.json` (raw `gh` output,
   with comments) and `INDEX.md` (issues grouped by type and overlapping functionality).
-  Refresh with the command in `INDEX.md`.
+  Refresh with the command in `INDEX.md`. Index edits go out in the same `dev` → `master`
+  PR as the fix, so write the state after the merge (the issue is closed and released
+  in PR #N), not "fixed on `dev`". Put `Fixes #N` in the PR body so GitHub closes
+  the issue when the PR merges.
 
 ## Conventions
 
