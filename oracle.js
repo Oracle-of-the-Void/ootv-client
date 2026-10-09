@@ -17,6 +17,8 @@ $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
+$.views.helpers("sortlegality",templatesortlegality);
+$.views.helpers("sortprintings",templatesortprintings);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -1045,6 +1047,14 @@ function imagehashtourl(card) {
     return card;
 }
 
+function redrawcardforselect() {
+    // on a cold cache the card can render before a select it sorts by arrives (sortlegality,
+    // sortprintings); redraw it once the select is cached, if the card view is showing
+    if($("#resultcard").is(":visible") && $("#lastcardid").val() && cache_card_is($("#lastcardid").val())) {
+	docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+    }
+}
+
 function updateselect(select) {
     // creates an array consisting of the sorted elements of that field
   $.ajax({
@@ -1061,6 +1071,9 @@ function updateselect(select) {
 	  success: function(raw) {
 	    console.log(["select lookup results: ",select,raw]);
 	    cache_select(select,raw);
+	    if(select == "legality") {
+		    redrawcardforselect();
+	    }
 	    if(updatecallback[database] !== undefined) {
 		    updatecallback[database]();
 	    } else {
@@ -1089,6 +1102,9 @@ function updateselectmulti(one,two) {
 	  success: function(raw) {
 	    console.log("multi select lookup: "+one+":"+two+" ::"+raw);
 	    cache_select(one,raw);
+	    if(one == "printing.set") {
+		    redrawcardforselect();
+	    }
 	    if(updatecallback[database] !== undefined) {
 		    updatecallback[database]();
 	    } else {
@@ -1768,6 +1784,47 @@ function templateconcatarrays() {
     }
     return out.filter(function (el) {
         return el != null;
+    });
+}
+function selectplaintext(val) {
+    // clickable fields are already wrapped in search links by process_keywordlink, and older
+    // cached selects may use spaces where the card data uses &nbsp;, so compare plain text
+    return String(val).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;|\u00a0/g," ").trim();
+}
+function sortbyselect(items,key,valuefn) {
+    // sort items into the order of a cached select that is grouped into optgroups, e.g.
+    // legality: [{"Arc":[...]},{"Format":[...]}]   printing.set: [{"Clan War (Imperial)":{"Imperial Edition":[rarities]}}]
+    // older legality caches may be a flat array (same order). Games without arcs cache printing.set
+    // as a plain object in alphabetical order, not chronological, so leave the stored order alone.
+    var sel = cache_select(key);
+    if(!Array.isArray(items) || !Array.isArray(sel)) {
+        return items;
+    }
+    var order = [];
+    sel.forEach(function(group) {
+        if(typeof group === 'string') {
+            order.push(group);
+            return;
+        }
+        var vals = group[Object.keys(group)[0]];
+        order = order.concat(Array.isArray(vals) ? vals : Object.keys(vals));
+    });
+    order = order.map(selectplaintext);
+    var pos = function(item) {
+        var i = order.indexOf(selectplaintext(valuefn(item)));
+        return i < 0 ? order.length : i;
+    };
+    // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
+    return items.slice().sort(function(a,b) { return pos(a) - pos(b); });
+}
+function templatesortlegality(legality) {
+    // card detail legalities in chronological (arc) order (#190)
+    return sortbyselect(legality,"legality",function(l) { return l; });
+}
+function templatesortprintings(printing) {
+    // card detail Versions in chronological set order; set is linkified by docard, setclean is not
+    return sortbyselect(printing,"printing.set",function(p) {
+        return [].concat(p.setclean || p.set || [""])[0];
     });
 }
 function templatemakelinks() {

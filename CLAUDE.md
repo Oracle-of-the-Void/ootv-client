@@ -26,6 +26,9 @@ or tests. The files in this directory are exactly what gets served.
 - `docs/API.md` is the API contract with ootv-search (routes, inputs, outputs).
   `docs/data.md` describes the card JSON. `oracle.api` holds scratch notes on the search
   request format.
+- `docs/issues/` is a local cache of the GitHub issues: `issues.json` (raw `gh` output,
+  with comments) and `INDEX.md` (issues grouped by type and overlapping functionality).
+  Refresh with the command in `INDEX.md`.
 
 ## Conventions
 
@@ -40,7 +43,7 @@ or tests. The files in this directory are exactly what gets served.
 - `dev` → `preview.oracleofthevoid.com` (CloudFront `E2S43UTDKL45NF`)
 - `master` → `oracleofthevoid.com` (CloudFront `E6ECGAAP7LNKR`)
 
-`*.md`, `*.drawio` and dotfiles are excluded from the sync. Any other new file at the
+`*.md`, `*.drawio`, dotfiles and `docs/` are excluded from the sync. Any other new file at the
 top level gets published, so keep scratch files out of the repo. Push to `dev` and
 check preview before going to `master`. Ask the user before pushing either branch.
 
@@ -49,3 +52,9 @@ check preview before going to `master`. Ask the user before pushing either branc
 There are no automated tests. To check a change, serve the directory locally (e.g.
 `python3 -m http.server`) and load `index.html`. It talks to the live prod API, so
 read-only browsing is safe, but editing cards or lists while logged in writes real data.
+
+For headless checks, use Playwright with Chromium (installed globally; see the workspace
+`CLAUDE.md`). Run scripts with `NODE_PATH=$(npm root -g) node script.js` against
+`http://localhost:<port>/#game=l5r,#cardid=...` or preview. Use a fresh browser context
+to reproduce a first visit: selects are cached in `localStorage`, so a reload behaves
+differently from a cold load. `page.route()` can delay `/attributes` to force that race.

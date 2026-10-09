@@ -24,7 +24,7 @@
     {{if keywords}}       <dt>{{:~labels.shortkeywords}}</dt><dd>{{:keywords.join(" &#149; ")}}{{if iconised}} {{:iconised.join(" ")}}{{/if}}</dd>  {{/if}}
     {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
     {{if focus}}       <dt>{{:~labels.shortfocus}}</dt><dd>{{:focus}}</dd>  {{/if}}
-    {{if legality}}       <dt>{{:~labels.shortlegality}}</dt><dd>{{:legality.join(" &#149; ")}}</dd>  {{/if}}
+    {{if legality}}       <dt>{{:~labels.shortlegality}}</dt><dd>{{:~sortlegality(legality).join(" &#149; ")}}</dd>  {{/if}}
 	 {{if legaldate}}       <dt>{{:~labels.shortlegaldate}}</dt><dd>{{:legaldate}}</dd>  {{/if}}
 	 {{if banned}} <dt>{{:~labels.shortbanned}}</dt><dd>{{:banned}}</dd>  {{/if}}
 	 {{if erratum}} <dt>{{:~labels.shorterratum}}</dt><dd>{{:erratum}}</dd>  {{/if}}
