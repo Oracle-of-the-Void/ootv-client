@@ -21,7 +21,8 @@ jq -r '.[]|select(.state=="OPEN")|"\(.number)\t\([.labels[].name]|join(","))\t\(
 jq '.[]|select(.number==216)' docs/issues/issues.json
 ```
 
-Links point at GitHub. Issues still open are in **bold**. The annotations ("likely
+Links point at GitHub. Issues still open are in **bold**. ◐ marks an open issue
+that is almost done; the note says what's left (details in section 4). The annotations ("likely
 done", "duplicate of") are the snapshot's own reading of the comments and commits.
 Nobody has confirmed them on GitHub.
 
@@ -35,23 +36,23 @@ Nobody has confirmed them on GitHub.
 
 | # | Title | Notes |
 |---|---|---|
-| **[216][i216]** | Legality search shows MRP instead of the printing from that arc | Front-end half fixed in PR #217. The rest needs per-printing `legality` data for pre-Onyx printings (back end/data). See cluster A. |
+| **[216][i216]** | Legality search shows MRP instead of the printing from that arc | ◐ Front end done (PR #217: every printing value is indexed). **Left:** per-printing `legality` data for pre-Onyx printings (back end/data). See cluster A. |
 | **[188][i188]** | Deleted cards break lists | No description. Lists keep `cardid`s that no longer resolve. |
 | **[79][i79]** | Top menu not working on iPhone Safari | Template body never filled in. |
-| **[76][i76]** | Wrong or missing rank/kabuto icon | Mostly fixed. The symbol font lacks the 4 and 5 glyphs. |
-| **[12][i12]** | Online card editor not finished | Add/edit/delete and set-MRP are done. **Image handler is still missing.** |
+| **[76][i76]** | Wrong or missing rank/kabuto icon | ◐ Most icons fixed. **Left:** the symbol font lacks the 4 and 5 glyphs (not checked visually). |
+| **[12][i12]** | Online card editor not finished | ◐ Add/edit/delete cards and instances, set MRP and the "New Card" admin link work. **Left:** image upload. |
 
 ### Enhancements by functional area (32)
 
 | Area | Open issues |
 |---|---|
-| Search and filters | **[31][i31]** more search options (strict-arc legality, multi-select done) · **[212][i212]** search by format, show that arc's MRP · **[201][i201]** add whole search result to list · **[8][i8]** sort by clan (primary clan problem) · **[213][i213]** quick link to "Soul of" versions · **[39][i39]** set/card chronology |
+| Search and filters | **[31][i31]** ◐ more search options (multi-select done; **left:** strict-arc legalities such as 20F Strict and Ivory Strict) · **[212][i212]** ◐ search by format, show that arc's MRP (same work as #216; **left:** pre-Onyx per-printing legality data) · **[201][i201]** add whole search result to list · **[8][i8]** sort by clan (primary clan problem) · **[213][i213]** quick link to "Soul of" versions · **[39][i39]** set/card chronology |
 | Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** · **[190][i190]** chronological legality order on card page (cosmetic) |
-| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** simplify card page logic after versioned search · **[169][i169]** Legacy rulings per card |
+| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** ◐ simplify card page logic after versioned search · **[169][i169]** Legacy rulings per card |
 | Data model | **[202][i202]** per-instance erratum/keywords · **[204][i204]** proxy as an `isProxy` flag, not a type · **[203][i203]** two-way proxy ↔ creator links |
 | Lists and decks | **[28][i28]** add/remove cards in views other than simple list · **[193][i193]** edit inside visual deck list · **[194][i194]** groups (smart groups) in lists · **[36][i36]** list folders and sorting · **[189][i189]** sort the list directory by created/name · **[104][i104]** deck statistics |
 | Sun and Moon interop | **[214][i214]** export S&M set codes · **[16][i16]** import S&M set acronyms |
-| PDF / print-and-play | **[35][i35]** spacing, multiples, sizes, sorting · **[22][i22]** card backs and double-sided printing |
+| PDF / print-and-play | **[35][i35]** spacing, multiples, sizes, sorting · **[22][i22]** ◐ card backs and double-sided printing (backs exist as cards, double-sided instances print both sides; **left:** automatic front/back pairing for duplex) |
 | Accounts and integrations | **[21][i21]** user profile management · **[38][i38]** Patreon OAuth · **[84][i84]** embeddable card-hover widget for other sites · **[20][i20]** Discord bot (see `ootv-claude/DISCORD-BOT.md`, abandoned 2020) |
 | Content | **[17][i17]** host old rulebooks |
 | Game-specific | **[75][i75]** LBS faction filter (needs faction pulled out of the data) |
@@ -62,7 +63,7 @@ These are fixed in DynamoDB, not in this repo, but they're tracked here.
 
 | Game | Kind | Open issues |
 |---|---|---|
-| L5R | Missing cards/printings | **[47][i47]** missing reprints · **[112][i112]** 2014 foil promos · **[113][i113]** foil Bamboo Harvesters · **[196][i196]** 11 20F story premium cards · **[98][i98]** Gold koku cards (Gold 5 Koku missing; Gold 10/50 rarity and set wrong) · **[53][i53]** Obsidian box-art strongholds (scans were emailed) |
+| L5R | Missing cards/printings | **[47][i47]** missing reprints · **[112][i112]** 2014 foil promos · **[113][i113]** foil Bamboo Harvesters · **[196][i196]** 11 20F story premium cards · **[98][i98]** ◐ Gold koku cards (a 5 Koku exists in Ivory/Emperor; **left:** Gold 5 Koku, and Gold 10/50 rarity/set) · **[53][i53]** Obsidian box-art strongholds (scans were emailed) |
 | L5R | Wrong printing/order | **[208][i208]** Brothers in Battle defaults to old printing · **[199][i199]** full-bleed Yasuki Palaces on the wrong card · **[135][i135]** The Deciding Moment I–VIII order, flavor, story |
 | L5R | Field values | **[206][i206]** Daigotsu Gyoken missing Celestial · **[180][i180]** null → `0` GC on Ivory/20F strategies · **[197][i197]** Kiho keyword inconsistent · **[195][i195]** Ambush Pass artist |
 | L5R | S&M set names | **[82][i82]** "Dark Journey Home" set name · **[198][i198]** Shattered Empire export (set codes, quotes in titles) |
@@ -82,7 +83,7 @@ Closed issues are included for history.
 How `templatefetch`/`printingreverse` in `oracle.js` choose a printing when a search
 or list names a set, an arc, an artist or an instance.
 
-- Open: **[216][i216]**, **[212][i212]**, **[208][i208]**, **[191][i191]**, **[199][i199]**, **[135][i135]**
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[191][i191]** ◐, **[199][i199]**, **[135][i135]**
 - Closed: [1][i1] (artist done; legality done for Onyx+), [107][i107] (fixed in PR #183), [41][i41] (visual deck ignored chosen edition), [173][i173] (multi-instance PDF, `doublesided` flag), [81][i81], [52][i52], [123][i123], [97][i97]
 - **#216 and #212 are the same feature.** #212 asks for the behaviour #216 diagnoses.
   Both are blocked on per-printing `legality` data for pre-Onyx arcs. That is one
@@ -92,7 +93,7 @@ or list names a set, an arc, an artist or an instance.
 
 ### B. Legality and formats
 
-- Open: **[216][i216]**, **[212][i212]**, **[57][i57]**, **[31][i31]**, **[190][i190]**, **[39][i39]**, **[206][i206]**
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[57][i57]**, **[31][i31]** ◐, **[190][i190]**, **[39][i39]**, **[206][i206]**
 - Closed features: [15][i15] (Modern), [66][i66] (Unreleased), [105][i105] (dropdown in edition order), [108][i108] (Modern listed twice)
 - Closed data fixes: [10][i10], [46][i46], [120][i120], [124][i124], [158][i158], [159][i159], [160][i160], [164][i164], [165][i165], [166][i166], [174][i174], [175][i175], [177][i177], [178][i178]
 - **#190, #105 and #39 all need an ordering for arcs.** #105 solved this for the
@@ -126,11 +127,11 @@ or list names a set, an arc, an artist or an instance.
 
 ### E. PDF / print-and-play
 
-- Open: **[35][i35]**, **[22][i22]**
+- Open: **[35][i35]**, **[22][i22]** ◐
 - Closed: [23][i23] (duplicate of #22), [56][i56] (card backs added as cards), [24][i24] (CORS), [26][i26], [100][i100], [103][i103] (landscape rotation), [173][i173], [187][i187] (missing images)
-- **#22 may be mostly done.** #56 added card backs and PR #185 added double-sided
-  printing counts. What's left is probably *assigning* backs automatically for duplex
-  output. Re-scope it or close it.
+- ◐ **#22 is mostly done.** #56 added card backs as cards, and PR #185 prints both
+  sides of double-sided instances. What's left is pairing fronts with backs
+  automatically for duplex output. Re-scope it to that, or close it.
 - #35's "spoiler (one of each) vs. proxy (quantity)" overlaps #173's printing selection.
 
 ### F. Proxy *cards* (in-game tokens, not PDF proxies)
@@ -144,7 +145,7 @@ or list names a set, an arc, an artist or an instance.
 
 ### G. Search fields and field consistency
 
-- Open: **[31][i31]**, **[197][i197]**, **[180][i180]**, **[8][i8]**, **[201][i201]**, **[213][i213]**, **[94][i94]**
+- Open: **[31][i31]** ◐, **[197][i197]**, **[180][i180]**, **[8][i8]**, **[201][i201]**, **[213][i213]**, **[94][i94]**
 - Closed: [27][i27] (MRP/erratum/banned fields), [37][i37], [44][i44] (click set → search), [65][i65] (`-`/`*` in numeric fields), [101][i101] (Warlord level), [107][i107], [184][i184] (search printed titles/notes), [162][i162] (Ninja faction), [32][i32]
 - **#197 (Kiho keyword) and #180 (null vs. 0 GC)** are both "normalise data so the
   structured filter matches what text search finds". The closed #157 (Fist of the
