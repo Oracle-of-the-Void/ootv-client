@@ -2,7 +2,7 @@
 
 Grouped view of the GitHub issues on `Oracle-of-the-Void/ootv-client`. The full text
 and comments for each issue are in [issues.json](issues.json), a snapshot taken
-on 2026-10-09: **56 open, 151 closed** (refreshed after closing #14, #72 and #190, and opening #220). GitHub is
+on 2026-10-09: **55 open, 152 closed** (refreshed after closing #14, #72, #190 and #191, and opening #220). GitHub is
 authoritative, so check there before acting on anything here. Section 4 records a
 status check of the open issues against the code and live data on the same date.
 
@@ -43,13 +43,13 @@ Nobody has confirmed them on GitHub.
 | **[76][i76]** | Wrong or missing rank/kabuto icon | ◐ Most icons fixed. **Left:** the symbol font lacks the 4 and 5 glyphs (not checked visually). |
 | **[12][i12]** | Online card editor not finished | ◐ Add/edit/delete cards and instances, set MRP and the "New Card" admin link work. **Left:** image upload. |
 
-### Enhancements by functional area (32)
+### Enhancements by functional area (30)
 
 | Area | Open issues |
 |---|---|
 | Search and filters | **[31][i31]** ◐ more search options (multi-select done; **left:** strict-arc legalities such as 20F Strict and Ivory Strict) · **[212][i212]** ◐ search by format, show that arc's MRP (same work as #216; **left:** pre-Onyx per-printing legality data) · **[201][i201]** add whole search result to list · **[8][i8]** sort by clan (primary clan problem) · **[213][i213]** quick link to "Soul of" versions · **[39][i39]** set/card chronology |
 | Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** |
-| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** simplify card page logic after versioned search (fixed on `dev` in `98f0a9c`; closes when PR #223 merges) · **[169][i169]** Legacy rulings per card |
+| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[169][i169]** Legacy rulings per card |
 | Data model | **[202][i202]** per-instance erratum/keywords · **[204][i204]** proxy as an `isProxy` flag, not a type · **[203][i203]** two-way proxy ↔ creator links |
 | Lists and decks | **[28][i28]** add/remove cards in views other than simple list · **[193][i193]** edit inside visual deck list · **[194][i194]** groups (smart groups) in lists · **[36][i36]** list folders and sorting · **[189][i189]** sort the list directory by created/name · **[104][i104]** deck statistics |
 | Sun and Moon interop | **[214][i214]** export S&M set codes · **[16][i16]** import S&M set acronyms |
@@ -84,8 +84,8 @@ Closed issues are included for history.
 How `templatefetch`/`printingreverse` in `oracle.js` choose a printing when a search
 or list names a set, an arc, an artist or an instance.
 
-- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[191][i191]** (fix in PR #223), **[199][i199]**, **[135][i135]**
-- Closed: [1][i1] (artist done; legality done for Onyx+), [107][i107] (fixed in PR #183), [41][i41] (visual deck ignored chosen edition), [173][i173] (multi-instance PDF, `doublesided` flag), [81][i81], [52][i52], [123][i123], [97][i97]
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[199][i199]**, **[135][i135]**
+- Closed: [1][i1] (artist done; legality done for Onyx+), [107][i107] (fixed in PR #183), [191][i191] (card page uses the link's printing instead of re-matching the search; PR #223), [41][i41] (visual deck ignored chosen edition), [173][i173] (multi-instance PDF, `doublesided` flag), [81][i81], [52][i52], [123][i123], [97][i97]
 - **#216 and #212 are the same feature.** #212 asks for the behaviour #216 diagnoses.
   Both are blocked on per-printing `legality` data for pre-Onyx arcs. That is one
   data job in `ootv-backups`/DynamoDB.
@@ -204,9 +204,8 @@ so the counts can be re-run, for example
 
 Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) and
 **#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301). Closed later the
-same day: **#190** (fixed and released in PRs #221 and #222; see cluster B).
-**#191** is fixed on `dev` (`98f0a9c`: the card page uses the link's printing instead of
-re-matching the search) and closes when PR #223 merges to `master`.
+same day: **#190** (fixed and released in PRs #221 and #222; see cluster B) and **#191**
+(released in PR #223; see cluster A).
 
 ### Possibly done (needs confirmation)
 
