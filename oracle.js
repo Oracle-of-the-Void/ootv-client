@@ -1062,6 +1062,10 @@ function updateselect(select) {
 	  success: function(raw) {
 	    console.log(["select lookup results: ",select,raw]);
 	    cache_select(select,raw);
+	    // on a cold cache the card can render before this arrives; redraw it so sortlegality applies (#190)
+	    if(select == "legality" && $("#resultcard").is(":visible") && $("#lastcardid").val() && cache_card_is($("#lastcardid").val())) {
+		    docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	    }
 	    if(updatecallback[database] !== undefined) {
 		    updatecallback[database]();
 	    } else {
