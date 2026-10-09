@@ -1,0 +1,23 @@
+# Post pushes to master to Discord.
+# Replaces the repo push webhook, which can't filter by branch and fired on every push.
+# The secret is the Discord webhook URL ending in /github (Discord's GitHub-compatible
+# endpoint), so the message looks the same as the old webhook's.
+name: discord-push
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Forward push event to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PUSH }}
+        run: |
+          curl -sS --fail-with-body -X POST "$WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: push" \
+            --data @"$GITHUB_EVENT_PATH"
