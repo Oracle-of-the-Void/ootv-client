@@ -8823,5 +8823,39 @@
     "title": "Legality search shows MRP instead of the printing from that arc (pre-Onyx printings lack per-printing legality)",
     "updatedAt": "2026-10-08T21:53:18Z",
     "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/216"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjI0ODE1Mjk=",
+      "is_bot": false,
+      "login": "ksuquix",
+      "name": "Don Eisele"
+    },
+    "body": "## Problem\n`loadselectables()` (`oracle.js`) only calls `/attributes` for a select when `cache_select(key)` is empty. Once a select (legality, set, rarity, clan, `legality.sortregex`, ...) is in `localStorage` as `<game>_searchselect_<key>`, it is never refetched. Shift-reload doesn't clear it, and the CloudFront invalidation on deploy doesn't touch it. Returning visitors keep whatever was current on their first visit until they log out (`dologout()` clears `localStorage`) or use **Clear Cache** in the menu (#51).\n\nThat means:\n- New sets, rarities, legalities, etc. added to the data don't appear in a returning visitor's dropdowns.\n- Front-end code that relies on the cached values breaks for older caches. Found during #190: an old legality cache used spaces where the card data uses `&nbsp;`, so the chronological sort matched only Modern/Legacy and left the rest alphabetical. That was worked around in 1172cf8 by normalising both sides, but the underlying stale cache remains.\n\n#51 asked for this (\"when major updates happen, auto-trigger it\"). The menu option was added, but not the auto-trigger.\n\n## Proposal\n- Add a cache version constant in `oracle.js` (e.g. `var cacheversion = 1;`). On startup, if `localStorage` has a different stored version, clear the cached `*_searchselect_*` entries (and any other derived caches that should go) and store the new version. Bump it whenever a deploy changes the shape or meaning of cached data.\n- Optionally also expire selects by age (store a timestamp with each `cache_select` write and refetch after N days), so data changes reach returning visitors without a code deploy.\n- Keep the session/login entries, so a version bump doesn't log people out.\n\n## Notes\n- Cache helpers: `cache_select()` / `cache_thing()` (`oracle.js`), keys `database+\"_\"+thing+\"_\"+sel`.\n- To test, seed `localStorage` with an old-format value before page load, e.g. Playwright `context.addInitScript()` (see the Testing section of `CLAUDE.md`).\n\nRelated: #51, #190\n",
+    "closedAt": null,
+    "comments": [],
+    "createdAt": "2026-10-09T08:38:01Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxODcyODUzMTcy",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      },
+      {
+        "id": "MDU6TGFiZWwxODkwNjc1MzQz",
+        "name": "usability",
+        "description": "Fixing this will make the site generally more usable for existing functionality",
+        "color": "f7b2b7"
+      }
+    ],
+    "milestone": null,
+    "number": 220,
+    "state": "OPEN",
+    "stateReason": "",
+    "title": "Cached select lists in localStorage never refresh; version the cache so a deploy can invalidate it",
+    "updatedAt": "2026-10-09T08:38:01Z",
+    "url": "https://github.com/Oracle-of-the-Void/ootv-client/issues/220"
   }
 ]
