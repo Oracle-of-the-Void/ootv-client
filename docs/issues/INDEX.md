@@ -2,7 +2,7 @@
 
 Grouped view of the GitHub issues on `Oracle-of-the-Void/ootv-client`. The full text
 and comments for each issue are in [issues.json](issues.json), a snapshot taken
-on 2026-10-09: **55 open, 152 closed** (refreshed after closing #14, #72, #190 and #191, and opening #220). GitHub is
+on 2026-10-09: **56 open, 152 closed** (refreshed after closing #14, #72, #190 and #191, and opening #220 and #224). GitHub is
 authoritative, so check there before acting on anything here. Section 4 records a
 status check of the open issues against the code and live data on the same date.
 
@@ -32,12 +32,13 @@ Nobody has confirmed them on GitHub.
 
 ## 1. Open issues by type
 
-### Bugs: site and app (6)
+### Bugs: site and app (7)
 
 | # | Title | Notes |
 |---|---|---|
 | **[216][i216]** | Legality search shows MRP instead of the printing from that arc | ◐ Front end done (PR #217: every printing value is indexed). **Left:** per-printing `legality` data for pre-Onyx printings (back end/data). See cluster A. |
 | **[220][i220]** | Cached select lists in `localStorage` never refresh | Opened 2026-10-09 after #190. Needs a cache version so a deploy can invalidate old caches. |
+| **[224][i224]** | Paging a search opened from a URL or card link throws in `dosearch` | Opened 2026-10-09 while testing #191. `scrollforceload`/`cardnext` take `from` from the URL query but `dosearch` rebuilds the query from the form, so `querydata[qs]` is undefined. Cards render, but only the first 50 are cached, so next/prev likely stops near card 50. Fix: page with `forcedata` from `#lastsearchquery`. |
 | **[188][i188]** | Deleted cards break lists | No description. Lists keep `cardid`s that no longer resolve. |
 | **[79][i79]** | Top menu not working on iPhone Safari | Template body never filled in. |
 | **[76][i76]** | Wrong or missing rank/kabuto icon | ◐ Most icons fixed. **Left:** the symbol font lacks the 4 and 5 glyphs (not checked visually). |
@@ -458,3 +459,4 @@ same day: **#190** (fixed and released in PRs #221 and #222; see cluster B) and 
 [i215]: https://github.com/Oracle-of-the-Void/ootv-client/issues/215
 [i216]: https://github.com/Oracle-of-the-Void/ootv-client/issues/216
 [i220]: https://github.com/Oracle-of-the-Void/ootv-client/issues/220
+[i224]: https://github.com/Oracle-of-the-Void/ootv-client/issues/224
