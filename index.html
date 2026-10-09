@@ -574,7 +574,7 @@ printingprimary
       <br />
       {{/for}}
 
-      {{for printing ~cardid=cardid}}
+      {{for ~sortprintings(printing) ~cardid=cardid}}
       <div>
       {{:setclean}}<br />
         {{for ~activelists ~printingid=printingid}}
