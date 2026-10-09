@@ -22,7 +22,8 @@ jq '.[]|select(.number==216)' docs/issues/issues.json
 ```
 
 Links point at GitHub. Issues still open are in **bold**. ◐ marks an open issue
-that is almost done; the note says what's left (details in section 4). The annotations ("likely
+that is almost done; the note says what's left (details in section 4). ✓ marks an open
+issue fixed on `dev`; it closes when `dev` is merged to `master`. The annotations ("likely
 done", "duplicate of") are the snapshot's own reading of the comments and commits.
 Nobody has confirmed them on GitHub.
 
@@ -48,7 +49,7 @@ Nobody has confirmed them on GitHub.
 | Area | Open issues |
 |---|---|
 | Search and filters | **[31][i31]** ◐ more search options (multi-select done; **left:** strict-arc legalities such as 20F Strict and Ivory Strict) · **[212][i212]** ◐ search by format, show that arc's MRP (same work as #216; **left:** pre-Onyx per-printing legality data) · **[201][i201]** add whole search result to list · **[8][i8]** sort by clan (primary clan problem) · **[213][i213]** quick link to "Soul of" versions · **[39][i39]** set/card chronology |
-| Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** · **[190][i190]** chronological legality order on card page (cosmetic) |
+| Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** · **[190][i190]** ✓ chronological legality order on card page (cosmetic; fixed on `dev`, and the card's Versions are now sorted the same way) |
 | Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** ◐ simplify card page logic after versioned search · **[169][i169]** Legacy rulings per card |
 | Data model | **[202][i202]** per-instance erratum/keywords · **[204][i204]** proxy as an `isProxy` flag, not a type · **[203][i203]** two-way proxy ↔ creator links |
 | Lists and decks | **[28][i28]** add/remove cards in views other than simple list · **[193][i193]** edit inside visual deck list · **[194][i194]** groups (smart groups) in lists · **[36][i36]** list folders and sorting · **[189][i189]** sort the list directory by created/name · **[104][i104]** deck statistics |
@@ -94,12 +95,16 @@ or list names a set, an arc, an artist or an instance.
 
 ### B. Legality and formats
 
-- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[57][i57]**, **[31][i31]** ◐, **[190][i190]**, **[39][i39]**, **[206][i206]**
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[57][i57]**, **[31][i31]** ◐, **[190][i190]** ✓, **[39][i39]**, **[206][i206]**
 - Closed features: [15][i15] (Modern), [66][i66] (Unreleased), [105][i105] (dropdown in edition order), [108][i108] (Modern listed twice)
 - Closed data fixes: [10][i10], [46][i46], [120][i120], [124][i124], [158][i158], [159][i159], [160][i160], [164][i164], [165][i165], [166][i166], [174][i174], [175][i175], [177][i177], [178][i178]
-- **#190, #105 and #39 all need an ordering for arcs.** #105 solved this for the
-  dropdown. The same ordering (from `oracle-all-structure`?) could drive #190, and it
-  could be a first step toward #39.
+- **#190, #105 and #39 all need an ordering for arcs.** #105 put the legality dropdown
+  in arc order, and #190 (fixed on `dev`) reuses that `/attributes` order on the card
+  page. The same mechanism (`sortbyselect()` in `oracle.js`) also sorts the card's
+  **Versions** by the `printing.set` select, which L5R groups by arc in release order.
+  That's a first step toward #39 for L5R. The other games' set selects are ungrouped
+  and alphabetical, so their Versions keep the stored order until their set data has
+  a chronology.
 - **#31 "strict" legalities and #57 ban-list formats** are both "derived legality =
   base legality ± explicit list". One mechanism could serve both.
 
@@ -201,6 +206,12 @@ so the counts can be re-run, for example
 Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) and
 **#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301).
 
+### Fixed on `dev` (closes when merged to `master`)
+
+| # | Change |
+|---|---|
+| **[190][i190]** | Card legalities in chronological arc order (`6e8416c`, `65d87a7`, `015ff80`, `1172cf8`). Follow-on: the card's Versions buttons are sorted chronologically by set (`ea58b52`, L5R only). Both use `sortbyselect()` and redraw the card if the select list arrives after a cold first load. Old cached legality lists are matched by plain text; the underlying stale-cache problem is #220. |
+
 ### Possibly done (needs confirmation)
 
 | # | Finding |
@@ -235,7 +246,6 @@ Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) an
 | **[30][i30]** | `type:holding`: 159 with `production`, 789 without. |
 | **[186][i186]** | LBS: 8 of 684 cards have `artist`. |
 | **[75][i75]** | LBS: no card has a `faction` field. |
-| **[190][i190]** | `template-l5r-card.html` joins `legality` in stored order. |
 | **[214][i214]** / **[82][i82]** / **[198][i198]** | `template-textsnm.html` exports the full printing `set` name, not an S&M code. |
 | **[188][i188]** | `renderlist`/`listprefetch` have no handling for a `cardid` that no longer exists. |
 
