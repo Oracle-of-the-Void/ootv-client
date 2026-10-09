@@ -2,7 +2,7 @@
 
 Grouped view of the GitHub issues on `Oracle-of-the-Void/ootv-client`. The full text
 and comments for each issue are in [issues.json](issues.json), a snapshot taken
-on 2026-10-09: **57 open, 150 closed** (refreshed after closing #14 and #72, and opening #220). GitHub is
+on 2026-10-09: **56 open, 152 closed** (refreshed after closing #14, #72, #190 and #191, and opening #220 and #224). GitHub is
 authoritative, so check there before acting on anything here. Section 4 records a
 status check of the open issues against the code and live data on the same date.
 
@@ -22,8 +22,7 @@ jq '.[]|select(.number==216)' docs/issues/issues.json
 ```
 
 Links point at GitHub. Issues still open are in **bold**. ◐ marks an open issue
-that is almost done; the note says what's left (details in section 4). ✓ marks an open
-issue fixed on `dev`; it closes when `dev` is merged to `master`. The annotations ("likely
+that is almost done; the note says what's left (details in section 4). The annotations ("likely
 done", "duplicate of") are the snapshot's own reading of the comments and commits.
 Nobody has confirmed them on GitHub.
 
@@ -33,24 +32,25 @@ Nobody has confirmed them on GitHub.
 
 ## 1. Open issues by type
 
-### Bugs: site and app (6)
+### Bugs: site and app (7)
 
 | # | Title | Notes |
 |---|---|---|
 | **[216][i216]** | Legality search shows MRP instead of the printing from that arc | ◐ Front end done (PR #217: every printing value is indexed). **Left:** per-printing `legality` data for pre-Onyx printings (back end/data). See cluster A. |
 | **[220][i220]** | Cached select lists in `localStorage` never refresh | Opened 2026-10-09 after #190. Needs a cache version so a deploy can invalidate old caches. |
+| **[224][i224]** | Paging a search opened from a URL or card link throws in `dosearch` | Opened 2026-10-09 while testing #191. `scrollforceload`/`cardnext` take `from` from the URL query but `dosearch` rebuilds the query from the form, so `querydata[qs]` is undefined. Cards render, but only the first 50 are cached, so next/prev likely stops near card 50. Fix: page with `forcedata` from `#lastsearchquery`. |
 | **[188][i188]** | Deleted cards break lists | No description. Lists keep `cardid`s that no longer resolve. |
 | **[79][i79]** | Top menu not working on iPhone Safari | Template body never filled in. |
 | **[76][i76]** | Wrong or missing rank/kabuto icon | ◐ Most icons fixed. **Left:** the symbol font lacks the 4 and 5 glyphs (not checked visually). |
 | **[12][i12]** | Online card editor not finished | ◐ Add/edit/delete cards and instances, set MRP and the "New Card" admin link work. **Left:** image upload. |
 
-### Enhancements by functional area (32)
+### Enhancements by functional area (30)
 
 | Area | Open issues |
 |---|---|
 | Search and filters | **[31][i31]** ◐ more search options (multi-select done; **left:** strict-arc legalities such as 20F Strict and Ivory Strict) · **[212][i212]** ◐ search by format, show that arc's MRP (same work as #216; **left:** pre-Onyx per-printing legality data) · **[201][i201]** add whole search result to list · **[8][i8]** sort by clan (primary clan problem) · **[213][i213]** quick link to "Soul of" versions · **[39][i39]** set/card chronology |
-| Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** · **[190][i190]** ✓ chronological legality order on card page (cosmetic; fixed on `dev`, and the card's Versions are now sorted the same way) |
-| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** ◐ simplify card page logic after versioned search · **[169][i169]** Legacy rulings per card |
+| Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** |
+| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[169][i169]** Legacy rulings per card |
 | Data model | **[202][i202]** per-instance erratum/keywords · **[204][i204]** proxy as an `isProxy` flag, not a type · **[203][i203]** two-way proxy ↔ creator links |
 | Lists and decks | **[28][i28]** add/remove cards in views other than simple list · **[193][i193]** edit inside visual deck list · **[194][i194]** groups (smart groups) in lists · **[36][i36]** list folders and sorting · **[189][i189]** sort the list directory by created/name · **[104][i104]** deck statistics |
 | Sun and Moon interop | **[214][i214]** export S&M set codes · **[16][i16]** import S&M set acronyms |
@@ -85,8 +85,8 @@ Closed issues are included for history.
 How `templatefetch`/`printingreverse` in `oracle.js` choose a printing when a search
 or list names a set, an arc, an artist or an instance.
 
-- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[191][i191]** ◐, **[199][i199]**, **[135][i135]**
-- Closed: [1][i1] (artist done; legality done for Onyx+), [107][i107] (fixed in PR #183), [41][i41] (visual deck ignored chosen edition), [173][i173] (multi-instance PDF, `doublesided` flag), [81][i81], [52][i52], [123][i123], [97][i97]
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[199][i199]**, **[135][i135]**
+- Closed: [1][i1] (artist done; legality done for Onyx+), [107][i107] (fixed in PR #183), [191][i191] (card page uses the link's printing instead of re-matching the search; PR #223), [41][i41] (visual deck ignored chosen edition), [173][i173] (multi-instance PDF, `doublesided` flag), [81][i81], [52][i52], [123][i123], [97][i97]
 - **#216 and #212 are the same feature.** #212 asks for the behaviour #216 diagnoses.
   Both are blocked on per-printing `legality` data for pre-Onyx arcs. That is one
   data job in `ootv-backups`/DynamoDB.
@@ -95,13 +95,13 @@ or list names a set, an arc, an artist or an instance.
 
 ### B. Legality and formats
 
-- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[57][i57]**, **[31][i31]** ◐, **[190][i190]** ✓, **[39][i39]**, **[206][i206]**
-- Closed features: [15][i15] (Modern), [66][i66] (Unreleased), [105][i105] (dropdown in edition order), [108][i108] (Modern listed twice)
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[57][i57]**, **[31][i31]** ◐, **[39][i39]**, **[206][i206]**
+- Closed features: [15][i15] (Modern), [66][i66] (Unreleased), [105][i105] (dropdown in edition order), [108][i108] (Modern listed twice), [190][i190] (chronological legality on card page, plus Versions and search results sorted by set; PRs #221, #222)
 - Closed data fixes: [10][i10], [46][i46], [120][i120], [124][i124], [158][i158], [159][i159], [160][i160], [164][i164], [165][i165], [166][i166], [174][i174], [175][i175], [177][i177], [178][i178]
 - **#190, #105 and #39 all need an ordering for arcs.** #105 put the legality dropdown
-  in arc order, and #190 (fixed on `dev`) reuses that `/attributes` order on the card
+  in arc order, and #190 (closed; PR #221) reuses that `/attributes` order on the card
   page. The same mechanism (`sortbyselect()` in `oracle.js`) also sorts the card's
-  **Versions** by the `printing.set` select, which L5R groups by arc in release order.
+  **Versions** and the search results' version buttons (PR #222) by the `printing.set` select, which L5R groups by arc in release order.
   That's a first step toward #39 for L5R. The other games' set selects are ungrouped
   and alphabetical, so their Versions keep the stored order until their set data has
   a chronology.
@@ -204,13 +204,9 @@ so the counts can be re-run, for example
 `curl -s -X POST https://api.oracleofthevoid.com/search --data-urlencode table=l5r --data-urlencode 'querystring=...'`.
 
 Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) and
-**#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301).
-
-### Fixed on `dev` (closes when merged to `master`)
-
-| # | Change |
-|---|---|
-| **[190][i190]** | Card legalities in chronological arc order (`6e8416c`, `65d87a7`, `015ff80`, `1172cf8`). Follow-on: the card's Versions buttons are sorted chronologically by set (`ea58b52`, L5R only). Both use `sortbyselect()` and redraw the card if the select list arrives after a cold first load. Old cached legality lists are matched by plain text; the underlying stale-cache problem is #220. |
+**#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301). Closed later the
+same day: **#190** (fixed and released in PRs #221 and #222; see cluster B) and **#191**
+(released in PR #223; see cluster A).
 
 ### Possibly done (needs confirmation)
 
@@ -226,7 +222,6 @@ Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) an
 | **[12][i12]** | Add/edit/delete cards and instances, set MRP, "New Card" admin link. | Image upload. The admin page still lists it under "Need to have". |
 | **[31][i31]** | Multi-select search. | "Strict" arc legalities (20F Strict, Ivory Strict). None exist in `/attributes` `legality`. Could be split off into its own issue. |
 | **[22][i22]** | Card backs exist as cards (#56). Double-sided instances print both sides (PR #185). | Automatically pairing fronts with backs for duplex output. |
-| **[191][i191]** | The versioned-link work (commit `ade929d`). | Simplifying the older card-page logic. |
 | **[76][i76]** | Most rank icons fixed (per the issue comment). | Glyphs for 4 and 5 are missing from the symbol font. Not checked visually. |
 | **[98][i98]** | A 5 Koku card exists (Ivory and Emperor premium printings). | No Gold Edition 5 Koku. Gold 10/50 Koku are still `Promo` / `Promotional–Gold` instead of `Premium` / `Gold Edition`. |
 
@@ -464,3 +459,4 @@ Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) an
 [i215]: https://github.com/Oracle-of-the-Void/ootv-client/issues/215
 [i216]: https://github.com/Oracle-of-the-Void/ootv-client/issues/216
 [i220]: https://github.com/Oracle-of-the-Void/ootv-client/issues/220
+[i224]: https://github.com/Oracle-of-the-Void/ootv-client/issues/224
