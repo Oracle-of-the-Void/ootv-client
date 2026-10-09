@@ -374,7 +374,7 @@ button .iiconic, span .iiconic {
 .l5rsym { font-family: "L5R Symbol"; font-size: 120%; }
 .l5rrank { position: relative; display: inline-block; line-height: 1; }
 .l5rranknum { position: absolute; left: -3%; right: 3%; top: 48%; text-align: center; font-family: Georgia, serif; font-weight: bold; font-size: 38%; letter-spacing: -0.05em; color: #fff; }
-.iconic .l5rranknum { color: #000; }
+.iconic .l5rranknum, .smiconic .l5rranknum { color: #000; }
 
 @font-face {
     font-family: "L5R Title";
