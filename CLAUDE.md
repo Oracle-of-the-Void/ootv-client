@@ -52,3 +52,9 @@ check preview before going to `master`. Ask the user before pushing either branc
 There are no automated tests. To check a change, serve the directory locally (e.g.
 `python3 -m http.server`) and load `index.html`. It talks to the live prod API, so
 read-only browsing is safe, but editing cards or lists while logged in writes real data.
+
+For headless checks, use Playwright with Chromium (installed globally; see the workspace
+`CLAUDE.md`). Run scripts with `NODE_PATH=$(npm root -g) node script.js` against
+`http://localhost:<port>/#game=l5r,#cardid=...` or preview. Use a fresh browser context
+to reproduce a first visit: selects are cached in `localStorage`, so a reload behaves
+differently from a cold load. `page.route()` can delay `/attributes` to force that race.
