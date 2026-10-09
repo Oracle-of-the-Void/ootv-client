@@ -49,7 +49,7 @@ Nobody has confirmed them on GitHub.
 |---|---|
 | Search and filters | **[31][i31]** ◐ more search options (multi-select done; **left:** strict-arc legalities such as 20F Strict and Ivory Strict) · **[212][i212]** ◐ search by format, show that arc's MRP (same work as #216; **left:** pre-Onyx per-printing legality data) · **[201][i201]** add whole search result to list · **[8][i8]** sort by clan (primary clan problem) · **[213][i213]** quick link to "Soul of" versions · **[39][i39]** set/card chronology |
 | Legality and formats | **[57][i57]** new legalities with ban lists (AEG Legacy, Big Deck) · **[212][i212]** · **[31][i31]** |
-| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** ◐ simplify card page logic after versioned search · **[169][i169]** Legacy rulings per card |
+| Card display | **[205][i205]** look of the Holding GP stat · **[30][i30]** GP on pre-20F holdings (data-heavy) · **[94][i94]** hover rules text on traits · **[191][i191]** simplify card page logic after versioned search (fixed on `dev` in `98f0a9c`; closes when PR #223 merges) · **[169][i169]** Legacy rulings per card |
 | Data model | **[202][i202]** per-instance erratum/keywords · **[204][i204]** proxy as an `isProxy` flag, not a type · **[203][i203]** two-way proxy ↔ creator links |
 | Lists and decks | **[28][i28]** add/remove cards in views other than simple list · **[193][i193]** edit inside visual deck list · **[194][i194]** groups (smart groups) in lists · **[36][i36]** list folders and sorting · **[189][i189]** sort the list directory by created/name · **[104][i104]** deck statistics |
 | Sun and Moon interop | **[214][i214]** export S&M set codes · **[16][i16]** import S&M set acronyms |
@@ -84,7 +84,7 @@ Closed issues are included for history.
 How `templatefetch`/`printingreverse` in `oracle.js` choose a printing when a search
 or list names a set, an arc, an artist or an instance.
 
-- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[191][i191]** ◐, **[199][i199]**, **[135][i135]**
+- Open: **[216][i216]** ◐, **[212][i212]** ◐, **[208][i208]**, **[191][i191]** (fix in PR #223), **[199][i199]**, **[135][i135]**
 - Closed: [1][i1] (artist done; legality done for Onyx+), [107][i107] (fixed in PR #183), [41][i41] (visual deck ignored chosen edition), [173][i173] (multi-instance PDF, `doublesided` flag), [81][i81], [52][i52], [123][i123], [97][i97]
 - **#216 and #212 are the same feature.** #212 asks for the behaviour #216 diagnoses.
   Both are blocked on per-printing `legality` data for pre-Onyx arcs. That is one
@@ -205,6 +205,8 @@ so the counts can be re-run, for example
 Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) and
 **#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301). Closed later the
 same day: **#190** (fixed and released in PRs #221 and #222; see cluster B).
+**#191** is fixed on `dev` (`98f0a9c`: the card page uses the link's printing instead of
+re-matching the search) and closes when PR #223 merges to `master`.
 
 ### Possibly done (needs confirmation)
 
@@ -220,7 +222,6 @@ same day: **#190** (fixed and released in PRs #221 and #222; see cluster B).
 | **[12][i12]** | Add/edit/delete cards and instances, set MRP, "New Card" admin link. | Image upload. The admin page still lists it under "Need to have". |
 | **[31][i31]** | Multi-select search. | "Strict" arc legalities (20F Strict, Ivory Strict). None exist in `/attributes` `legality`. Could be split off into its own issue. |
 | **[22][i22]** | Card backs exist as cards (#56). Double-sided instances print both sides (PR #185). | Automatically pairing fronts with backs for duplex output. |
-| **[191][i191]** | The versioned-link work (commit `ade929d`). | Simplifying the older card-page logic. |
 | **[76][i76]** | Most rank icons fixed (per the issue comment). | Glyphs for 4 and 5 are missing from the symbol font. Not checked visually. |
 | **[98][i98]** | A 5 Koku card exists (Ivory and Emperor premium printings). | No Gold Edition 5 Koku. Gold 10/50 Koku are still `Promo` / `Promotional–Gold` instead of `Premium` / `Gold Edition`. |
 
