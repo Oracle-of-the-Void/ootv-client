@@ -2,7 +2,7 @@
 
 Grouped view of the GitHub issues on `Oracle-of-the-Void/ootv-client`. The full text
 and comments for each issue are in [issues.json](issues.json), a snapshot taken
-on 2026-10-09: **56 open, 152 closed** (refreshed after closing #14, #72, #190 and #191, and opening #220 and #224). GitHub is
+on 2026-10-09: **55 open, 153 closed** (refreshed after opening #220 and #224, and closing #14, #72, #190, #191 and #224). GitHub is
 authoritative, so check there before acting on anything here. Section 4 records a
 status check of the open issues against the code and live data on the same date.
 
@@ -32,13 +32,12 @@ Nobody has confirmed them on GitHub.
 
 ## 1. Open issues by type
 
-### Bugs: site and app (7)
+### Bugs: site and app (6)
 
 | # | Title | Notes |
 |---|---|---|
 | **[216][i216]** | Legality search shows MRP instead of the printing from that arc | ◐ Front end done (PR #217: every printing value is indexed). **Left:** per-printing `legality` data for pre-Onyx printings (back end/data). See cluster A. |
 | **[220][i220]** | Cached select lists in `localStorage` never refresh | Opened 2026-10-09 after #190. Needs a cache version so a deploy can invalidate old caches. |
-| **[224][i224]** | Paging a search opened from a URL or card link throws in `dosearch` | Opened 2026-10-09 while testing #191. `scrollforceload`/`cardnext` take `from` from the URL query but `dosearch` rebuilds the query from the form, so `querydata[qs]` is undefined. Cards render, but only the first 50 are cached, so next/prev likely stops near card 50. Fix: page with `forcedata` from `#lastsearchquery`. |
 | **[188][i188]** | Deleted cards break lists | No description. Lists keep `cardid`s that no longer resolve. |
 | **[79][i79]** | Top menu not working on iPhone Safari | Template body never filled in. |
 | **[76][i76]** | Wrong or missing rank/kabuto icon | ◐ Most icons fixed. **Left:** the symbol font lacks the 4 and 5 glyphs (not checked visually). |
@@ -206,7 +205,8 @@ so the counts can be re-run, for example
 Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) and
 **#72** (Dune EoS has 301 cards, matching ccgtrader's count of 301). Closed later the
 same day: **#190** (fixed and released in PRs #221 and #222; see cluster B) and **#191**
-(released in PR #223; see cluster A).
+(released in PR #223; see cluster A), and **#224**, found while testing #191 (paging a search
+opened from a URL or card link now reuses page 1's request; released in PR #225).
 
 ### Possibly done (needs confirmation)
 

@@ -1214,6 +1214,8 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 
   console.log(['dosearch.datarequest',datarequest]);
   var qs = $.param(datarequest);
+  // keep the request so paging reuses it instead of rebuilding from the form (#224)
+  searchcache[database]['queryrequest'][qs] = $.extend(true, {}, datarequest);
 
   if(from == 0 && !forcedata) {
 	  history.pushState({'qs': qs}, 'Oracle - Search Results', '#search='+encodeURIComponent(qs));
@@ -2103,7 +2105,7 @@ $(document).ready(function(){
   
   //TODO:  put some stuff in here into functions.   make sure order optimized.
   searchcache[database] = {
-	  'data': {},    'querydata': {},    'querytotal': {}
+	  'data': {},    'querydata': {},    'querytotal': {},    'queryrequest': {}
   };
   templateactive[database] = {};
   
@@ -2581,11 +2583,16 @@ function scrollcheck() {
     }
 }
 
+// load the next page of an existing search, using the request that started it
+function searchnextpage(qs) {
+    dosearch(searchcache[database]['querydata'][qs].length, $.extend(true, {}, searchcache[database]['queryrequest'][qs]));
+}
+
 function scrollforceload() {
     // ajax call get data from server and append to the div
     if($('.more').length) {
 	$('.more').remove();
-	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length);
+	searchnextpage($('#lastsearchquery').val());
 	$("#resultsearch").append(searcherror['moreloading']);
 	// if we want transitions
 	// new_element.hide().appendTo('.your_div').fadeIn(); $(window).scrollTop($(window).scrollTop()-1);
@@ -2612,7 +2619,7 @@ function cardprev(id,qs) {
 function cardnext(id,qs) {
     var index = searchcache[database]['querydata'][qs].indexOf(id);
     if((index >= searchcache[database]['querydata'][qs].length - 5) && (searchcache[database]['querydata'][qs].length < searchcache[database]['querytotal'][qs])) {
-	dosearch(searchcache[database]['querydata'][$('#lastsearchquery').val()].length);
+	searchnextpage(qs);
     }
     if(index < searchcache[database]['querydata'][qs].length - 1) {
 	docardid(searchcache[database]['querydata'][qs][searchcache[database]['querydata'][qs].indexOf(id)+1],null,qs);
