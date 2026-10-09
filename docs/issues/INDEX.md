@@ -39,6 +39,7 @@ Nobody has confirmed them on GitHub.
 | **[216][i216]** | Legality search shows MRP instead of the printing from that arc | ◐ Front end done (PR #217: every printing value is indexed). **Left:** per-printing `legality` data for pre-Onyx printings (back end/data). See cluster A. |
 | **[220][i220]** | Cached select lists in `localStorage` never refresh | Opened 2026-10-09 after #190. Needs a cache version so a deploy can invalidate old caches. |
 | **[188][i188]** | Deleted cards break lists | No description. Lists keep `cardid`s that no longer resolve. |
+| **[80][i80]** | The issue means the *set* Parting Shot, which isn't in the 7th Sea set list. (The card of that name, cardid 977 in Strange Vistas, is unrelated.) 54 cards. Sources are in `ootv-games/game-7thsea/todo/Set-PartingShot/`: AEG's 2004 remastered sheets, and AEG's 2003 text spoiler (`aeg-archive/`, the best source for card text). Notes in `ootv-games/game-7thsea/PARTING-SHOT.md`. |
 | **[79][i79]** | Top menu not working on iPhone Safari | Template body never filled in. |
 | **[76][i76]** | Wrong or missing rank/kabuto icon | ◐ Most icons fixed. **Left:** the symbol font lacks the 4 and 5 glyphs (not checked visually). |
 | **[12][i12]** | Online card editor not finished | ◐ Add/edit/delete cards and instances, set MRP and the "New Card" admin link work. **Left:** image upload. |
@@ -70,7 +71,7 @@ These are fixed in DynamoDB, not in this repo, but they're tracked here.
 | L5R | S&M set names | **[82][i82]** "Dark Journey Home" set name · **[198][i198]** Shattered Empire export (set codes, quotes in titles) |
 | Dune | | **[69][i69]** missing reprints (built from OCTGN) · **[71][i71]** fan-template images |
 | LBS | | **[186][i186]** most cards missing artist · **[75][i75]** factions (also an enhancement) |
-| 7th Sea | | **[80][i80]** missing Parting Shot (a card by that name now exists; see section 4) |
+| 7th Sea | | **[80][i80]** missing Parting Shot set (still open; see section 4) |
 
 ---
 
@@ -207,12 +208,6 @@ Closed as a result: **#14** (deploy now runs through GitHub Actions, PR #218) an
 same day: **#190** (fixed and released in PRs #221 and #222; see cluster B) and **#191**
 (released in PR #223; see cluster A), and **#224**, found while testing #191 (paging a search
 opened from a URL or card link now reuses page 1's request; released in PR #225).
-
-### Possibly done (needs confirmation)
-
-| # | Finding |
-|---|---|
-| **[80][i80]** | A 7th Sea card titled *Parting Shot* exists (cardid 977, Strange Vistas). If the issue meant that card, it's done. If it meant a *set* by that name, it isn't: the 7th Sea set list has no Parting Shot. |
 
 ### Almost done (one piece left)
 
