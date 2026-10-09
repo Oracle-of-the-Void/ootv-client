@@ -1610,14 +1610,15 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   // TODO onyx: do something similar to 1578 here.  bring top values up from bottom
   //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
-  var html = getactivetemplate('card').render(bubbleup([carddata],qs)[0],tmpl);
+  var html = getactivetemplate('card').render(bubbleup([carddata],qs,prid)[0],tmpl);
   $("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
-  //  (done but marking this spot): right here choose Onyx/whatever default first
-  var defpr = templatefetch(carddata,false,$.deparam($('#lastsearchquery').val()))["printingid"];
-  $(".printing:not([data-printingid="+(prid?prid:((defpr>0)?defpr:primary))+"])").hide();
-  $("#lastprintid").val(prid?prid:((defpr>0)?defpr:primary));
+  // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
+  var defpr = prid ? null : templatefetch(carddata,false,qs ? $.deparam(qs) : {})["printingid"];
+  var showpr = prid?prid:((defpr>0)?defpr:primary);
+  $(".printing:not([data-printingid="+showpr+"])").hide();
+  $("#lastprintid").val(showpr);
 
   if($("#resultsearch").is(":visible")) {
 	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
@@ -1628,9 +1629,10 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   showcard();
 }
 
-function bubbleup(data,request=null) {
+function bubbleup(data,request=null,prid=null) {
   // takes a printingid that matches one of the reverse lookups that is being used in the current query
   // and displays its text instead of default
+  // prid: use this printing instead of re-matching it from the query (single card view)
   // note: expects array of cards - for a single card send array of one, and deref
   // TODO: some of this can be one-time things on activating a database
   //console.log(data,request);
@@ -1665,8 +1667,8 @@ function bubbleup(data,request=null) {
     var newdata = [];
     for (let i = 0; i < data.length; i++) {
       newdata[i] = structuredClone(data[i]);
-      var matchedpr = templatefetch(data[i], false, request);
-      if (matchedpr["printingid"] > 0) {
+      var matchedpr = templatefetch(data[i], prid ? prid : false, request);
+      if (matchedpr && matchedpr["printingid"] > 0) {
         const mkeys = Object.keys(matchedpr).filter(
           (key) => !key.match(bkillre)
         );
