@@ -343,6 +343,8 @@ updates['l5r'] = function (area) {
     replace(/:Rank\+2:/g,'<span class="l5rsym" style="font-size: 200%;">h</span>'). //    | rank +2 symbol
     replace(/:Rank\+3:/g,'<span class="l5rsym" style="font-size: 200%;">i</span>'). //    | rank +3 symbol
     replace(/:Rank10:/g,'<span class="l5rsym" style="font-size: 200%;">j</span>'). //    | rank 10 symbol
+    // the font has no other numbered ranks (3, 4, 5, 15, ...): overlay the number on the blank rank symbol.  &#149; crept into some tokens via edits
+    replace(/:Rank(?:&#149;|\u2022)?(\d+):/g,'<span class="l5rsym l5rrank" style="font-size: 200%;">c<span class="l5rranknum">$1</span></span>'). // | rank N symbol
 
     replace(/:air:/g,'<img class="inlinesymbolbounded" src="res/onyx/air.png" />'). // | onyx symbol: 
     replace(/:earth:/g,'<img class="inlinesymbolbounded" src="res/onyx/earth.png" />'). // | onyx symbol: 
