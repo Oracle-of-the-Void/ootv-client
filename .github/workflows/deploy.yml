@@ -58,7 +58,7 @@ jobs:
             --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*' \
             --exclude '*/#*' --exclude '*/*\+' --exclude '*/*-prev' \
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' \
-            --exclude '.github' --exclude '.github/*'
+            --exclude '.github' --exclude '.github/*' --exclude 'docs/*'
 
       - name: Invalidate CloudFront
         run: |
