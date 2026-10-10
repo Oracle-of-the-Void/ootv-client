@@ -400,4 +400,9 @@ outputs:
 * expires: seconds the URLs are valid (900)
 
 Afterwards, save the image on the printing with /update `updateinstance`, using the modern layout
-only: `imagehash` plus `image: [{master, details, select}]`, and no `printimagehash` (see data.md).
+only: `imagehash` plus `image: [{master, details, select}, ...]`, and no `printimagehash` (see data.md).
+A printing has one `imagehash` directory, so every image of the printing goes there, and a new image
+is appended to `image`, not swapped in. The card editor converts a legacy printing on the way: it copies
+`<printimagehash[i]>/printing_<cardid>_<printingid>_{master,details,select}.jpg` byte for byte into the
+directory (adding `_<i+1>` after the first, since legacy directories reuse the same names) and lists
+them first.

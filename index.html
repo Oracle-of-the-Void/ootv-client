@@ -400,9 +400,10 @@ printingprimary
     <fieldset id="editimage">
       <legend>Image</legend>
       <input type="file" id="editimagefile" accept="image/png,image/jpeg" /><br />
-      Directory <input type="text" id="editimagehash" size="12" value="{{:imageupload.imagehash}}" />
+      Directory <input type="text" id="editimagehash" size="12" value="{{:imageupload.imagehash}}" {{if imageupload.locked}}readonly title="All images of an instance share its directory"{{/if}} />
       File name <input type="text" id="editimagestem" size="16" value="{{:imageupload.stem}}" />_master / _details / _select
       <label><input type="checkbox" id="editimageoverwrite" /> Replace existing files</label><br />
+      {{if imageupload.legacy}}<small>This instance has {{:imageupload.legacy}} image(s) in the old layout. They will be copied into the directory and kept. Upload with no file chosen to only convert them.</small><br />{{/if}}
       <input type="button" id="editimagebutton" value="Upload image" onclick="uploadimagetrigger();" />
       <div id="editimagestatus"></div>
       <div id="editimagepreview"></div>
