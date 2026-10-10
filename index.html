@@ -534,6 +534,22 @@ printingprimary
 </div>
 </script> <!-- template-lists -->
 
+<!-- list view: the list's directory details as a header line -->
+<script id="template-listheader" type="text/x-jsrender">
+<div class="listviewheader upperhead">
+  <span class="listviewname">{{:name}}</span>
+  <span class="listviewdetails">
+    {{:~listtypes[type] || type}}
+    {{if legality}} &#149; {{nbsptospace:legality}}{{/if}}
+    {{if totalcount>0}} &#149; {{:totalcount}} cards ({{:distinctcount}} distinct){{/if}}
+    {{if public}} &#149; Public{{/if}}
+    {{if createdate}} &#149; Created {{formatDate:createdate}}{{/if}}
+    {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
+  </span>
+  {{if notes}}<div class="listviewnotes">{{:notes}}</div>{{/if}}
+</div>
+</script>
+
 <script id="template-card-top" type="text/x-jsrender">
 <div class="listitem">
   <div class="listimage">

@@ -1588,7 +1588,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(html);
+	    $("#resultlist").html(listheader(listid)+html);
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
@@ -1601,6 +1601,21 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
 }
 
+// header line for the list view: the list's details as the directory shows them
+function listheader(listid) {
+    var meta = null;
+    var dir = cache_thing("list","data");
+    var rev = cache_thing("list","datareverse");
+    if(dir && rev && rev[listid] !== undefined) {
+	meta = dir.lists.Items[rev[listid]];
+    } else if(cache_thing("list",listid)) {
+	meta = cache_thing("list",listid).list.Items[0];
+    }
+    if(!meta) {
+	return '';
+    }
+    return $.templates("#template-listheader").render(meta,{"listtypes": listtypes});
+}
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
     refreshlist(listdata,listlist,sort,listid,listoutput);
