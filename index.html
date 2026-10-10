@@ -453,7 +453,7 @@ printingprimary
 <!-- template for updatelog entries -->
 <script id="template-updatelog" type="text/jsrender">
   <div class="updateblock">
-    {{:timestamp}} {{:operation}} <a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid(5602,null); } return false;">{{:card.title}}</a> [{{:uname}}]
+    {{:timestamp}} {{:operation}} <a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:card.title}}</a> [{{:uname}}]
   </div>
 </script>
 
