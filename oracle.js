@@ -218,6 +218,7 @@ function logincallback(session) {
     refreshauthvar = setTimeout(refreshauth,45*60*1000); // refresh every 45 min...   tokens last 1h
     if(cache_thing("user","data")) {
 	userinfocallback();
+	refreshviewdefaults(); // pick up defaults saved from another tab/device
     } else {
 	userinfo();
     }
@@ -309,6 +310,7 @@ function userinfocallback() {
       $('.showonadmin').show();
     }
     updateviewbuttons();
+    applyviewdefaults();
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2275,6 +2277,90 @@ function viewbutton(template) {
 	  template = 'visual-premium';
   }
   activatetemplate(type,template);
+}
+// saved view defaults: users.settings[database] = {search, card, list, large}, saved via /user?settings=
+function viewdefaults() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings[database])) {
+	  return null;
+  }
+  return user.oracle[0].settings[database];
+}
+// apply saved defaults: they become the game's defaults (so templates still loading pick them up),
+// and views already loaded switch now (only the tab on screen re-renders)
+function applyviewdefaults() {
+  var saved = viewdefaults();
+  if(!saved) {
+	  return;
+  }
+  var available = templates[database]['available'];
+  for (type of ['search','card','list']) {
+	  var key = saved[type];
+	  if(key == 'visual' && saved.large && available['visual-premium']) {
+	    key = 'visual-premium';
+	  }
+	  if(!key || available[key] === undefined || !available[key].places.includes(type)) {
+	    continue;
+	  }
+	  templates[database]['default'][type] = key;
+	  if(templates[database]['compiled'][key] === undefined || templates[database]['active'][type] == key) {
+	    continue;
+	  }
+	  if(currentresulttab() == type) {
+	    activatetemplate(type,key);
+	  } else {
+	    templates[database]['active'][type] = key;
+	    updatetemplatedropdown(type);
+	  }
+  }
+  if(saved.large !== undefined) {
+	  largeview = saved.large;
+	  updatesizebuttons();
+  }
+}
+function saveviewdefaults() {
+  var active = templates[database]['active'];
+  var settings = { 'large': largeview };
+  for (type of ['search','card','list']) {
+	  // debug is a temporary toggle: save what it replaced
+	  settings[type] = (active[type] == 'debug') ? (debugprevious[type] || templates[database]['default'][type]) : active[type];
+  }
+  $.ajax({
+	  type: 'GET',
+	  url: apiuri+"/user?database="+database+"&settings="+encodeURIComponent(JSON.stringify(settings)),
+	  dataType: 'json',
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  success: function(data) {
+	    cache_thing("user","data",data);
+	    var saved = viewdefaults();
+	    if(!saved || Object.keys(settings).some(function(k) { return saved[k] !== settings[k]; })) {
+		    // an API without settings support answers like a plain /user
+		    alert("Couldn't save view defaults");
+		    return;
+	    }
+	    applyviewdefaults();
+	    $('#saveviewdefaults').addClass('saved');
+	    setTimeout(function() { $('#saveviewdefaults').removeClass('saved'); }, 2000);
+	  },
+	  error: function(error) { console.log("Save view defaults failed: "+JSON.stringify(error)); alert("Couldn't save view defaults"); }
+  });
+}
+// a fresh tab uses the cached user; re-fetch it quietly and apply defaults if they changed elsewhere
+function refreshviewdefaults() {
+  var before = JSON.stringify(viewdefaults());
+  $.ajax({
+	  type: 'GET',
+	  url: apiuri+"/user",
+	  dataType: 'json',
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  success: function(data) {
+	    cache_thing("user","data",data);
+	    if(JSON.stringify(viewdefaults()) != before) {
+		    applyviewdefaults();
+	    }
+	  },
+	  error: function(error) { console.log("User refresh failed: "+JSON.stringify(error)); }
+  });
 }
 // menubar size toggle: Card Details <-> Card Large, Visual Spoiler <-> Visual Spoiler - Large (search and list).
 // Only the tab on screen re-renders (docard would jump to the Card tab); the others pick it up on their next render.

@@ -193,16 +193,22 @@ inputs:
 
 * Header: Authorization (required)
   * tokens from Cognito
+* database (with settings)
+* settings (optional): JSON of the client's view defaults for that database, saved to the user's `settings[database]`
+  * `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "large": true|false}`; other fields are dropped
+  * the hamburger menu's "Save Views as Default"; the client applies them when the user loads
 
 outputs:
 
 * {cognito:{name: payload.name,email: payload.email,email_verified: payload.email_verified},oracle: userdata.Items}
+  * with settings, the returned user already has the new `settings`
   * payload is the cognito token information
   * userdata.Items is the user info from DynamoDB
 
 codes:
 
 * 200: success
+* 400: bad database or settings
 * 404: not found
 * other: passed from various actions
 
