@@ -22,7 +22,7 @@ Headless Chromium can't stand in for these:
 - [ ] Search form selects. Chosen disables itself on phones, so these are plain
   `<select multiple>`. iOS should show a one-line picker; Chromium draws tall list boxes.
   If they're unusable, consider a compact custom control for the panel.
-- [ ] Search panel: opens from the search (magnifier) button by the hamburger, closes on Search, the arrow, or a tap
+- [ ] Search panel: opens from the Search Results button when already on the results, closes on Search, the arrow, or a tap
   on the results. Check the page behind it doesn't scroll while the panel is open.
 
 ## Still to do

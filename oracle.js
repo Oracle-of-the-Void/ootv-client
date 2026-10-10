@@ -3100,11 +3100,29 @@ function narrowscreen() {
 }
 function mobilesearchtoggle(open) {
     $('body').toggleClass('mobilesearch', open);
+    // start the panel below the menubar (when it's on screen) so the button that toggles it stays reachable
+    $('#sidebar').css('top', Math.max(0, $('div.menubar')[0].getBoundingClientRect().bottom));
 }
 // tapping the results while the panel is open closes it
 $(document).on('click', '#maincontent', function() {
     mobilesearchtoggle(false);
 });
+// menubar Search Results button: go to the search results; if they're already on screen, show/hide the search form
+// (the slide-over panel on narrow screens, the sidebar collapse on desktop)
+function searchviewbutton() {
+    if(currentresulttab() != 'search') {
+	showview('resultsearch');
+	if(narrowscreen() && !$('#lastsearchquery').val()) {
+	    mobilesearchtoggle(true); // no search yet: nothing to show but the form
+	}
+    } else if(narrowscreen()) {
+	mobilesearchtoggle();
+    } else if($('#sidebar').is(':visible')) {
+	sidebarcloser();
+    } else {
+	sidebaropener();
+    }
+}
 function sidebarcloser() {
     if(narrowscreen()) {
 	mobilesearchtoggle(false);

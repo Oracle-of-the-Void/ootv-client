@@ -837,15 +837,9 @@ div.menubar nav li.sortbuttons {
 }
 
 /* ********************** narrow screens (phones) **********************
-   Search sidebar becomes a slide-over panel (body.mobilesearch, opened from the menubar search button),
+   Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
-.mobileonly {
-  display: none !important;
-}
 @media (max-width: 768px) {
-  .mobileonly {
-    display: block !important;
-  }
   div.menubar {
     height: auto;
     min-height: 31px;
@@ -856,7 +850,7 @@ div.menubar nav li.sortbuttons {
   div.menubar nav li {
     padding-left: .6rem;
   }
-  div.menubar nav li.mobilesearchbutton, div.menubar nav li.viewicons {
+  div.menubar nav li.viewicons {
     padding-top: 3px;
   }
   .gameinfo-game .gamename, li.numresultsmenu {
