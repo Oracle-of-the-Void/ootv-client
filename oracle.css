@@ -837,7 +837,7 @@ div.menubar nav li.sortbuttons {
 }
 
 /* ********************** narrow screens (phones) **********************
-   Search sidebar becomes a slide-over panel (body.mobilesearch, opened from the menubar sliders button),
+   Search sidebar becomes a slide-over panel (body.mobilesearch, opened from the menubar search button),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
 .mobileonly {
   display: none !important;
