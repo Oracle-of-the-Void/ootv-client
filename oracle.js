@@ -2004,6 +2004,34 @@ function defaultcard(qs) {
 	docardid(ids[0],null,qs,false,false);
     }
 }
+// Touch screens: menubar (and list download) dropdowns open on hover only with a mouse, so a tap toggles them instead.
+// Tapping a menu header opens its dropdown (closing other open menus outside it); tapping an item or anywhere else closes them.
+var lastpointertype = 'mouse';
+$(document).on('pointerdown', function(e) {
+    lastpointertype = e.originalEvent.pointerType || 'mouse';
+});
+$(document).on('click', function(e) {
+    if(lastpointertype == 'mouse') {
+	return;
+    }
+    menutap(e.target);
+});
+function menutap(target) {
+    // the innermost nav li whose dropdown doesn't contain the tap is the header that was tapped
+    var header = $();
+    for(var li = $(target).closest('nav li'); li.length; li = li.parent().closest('nav li')) {
+	var sub = li.children('ul');
+	if(sub.length && !$.contains(sub[0], target)) {
+	    header = li;
+	    break;
+	}
+    }
+    var keep = header.length ? header.parents('nav li').addBack() : $();
+    $('nav li.menuopen').not(keep).removeClass('menuopen');
+    if(header.length) {
+	header.toggleClass('menuopen');
+    }
+}
 // switch the main content area to one of the result* views (menubar view icons, about, admin)
 function showview(view) {
     if($('#' + view).is(":visible")) {

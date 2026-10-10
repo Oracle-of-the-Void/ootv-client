@@ -638,7 +638,8 @@ nav li a:link, nav li a:hover, nav li a:active, nav li a:visited {
   color: black;
 }
 
-nav li:hover {
+/* pointer cursor on every menu item: iOS Safari only sends taps on plain elements to click handlers when they have it */
+nav li {
   cursor: pointer;
 /*  background-color: rgb(128, 128, 128); */
 }
@@ -659,14 +660,23 @@ nav ul li.right ul {
     right: 0;
 }
 
-nav ul li:hover > ul,
-ul li:focus-within > ul,
-nav ul li ul:hover {
+/* dropdowns open on hover with a mouse; on touch screens (no hover) only a tap opens them (li.menuopen, see menutap in oracle.js),
+   so a sticky :hover or :focus-within after a tap can't hold a menu open */
+@media (hover: hover) {
+  nav ul li:hover > ul,
+  ul li:focus-within > ul,
+  nav ul li ul:hover {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+    z-index: 4;
+  }
+}
+nav ul li.menuopen > ul {
   visibility: visible;
   opacity: 1;
   display: block;
   z-index: 4;
-/*  background: rgb(255,255,255); */
 }
 
 div.menubar nav ul li ul li {
