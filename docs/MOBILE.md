@@ -22,17 +22,24 @@ Headless Chromium can't stand in for these:
 - [ ] Search form selects. Chosen disables itself on phones, so these are plain
   `<select multiple>`. iOS should show a one-line picker; Chromium draws tall list boxes.
   If they're unusable, consider a compact custom control for the panel.
-- [ ] Search panel: opens from the Search Results button when already on the results, closes on Search, the arrow, or a tap
-  on the results. Check the page behind it doesn't scroll while the panel is open.
+- [ ] Search panel: phones start with it open; it opens from the Search Results button when
+  already on the results and closes on Search, the arrow, a tap on the results, or switching
+  view. Check the page behind it doesn't scroll while the panel is open.
+- [ ] Tooltips: a tap shows the label for 1.5 s, then it hides (iOS keeps `:hover` after a
+  tap in its own way).
 
 ## Still to do
 
 - [ ] **Directory table**: 13 columns, too wide for a phone. Cheap: `overflow-x: auto` on
   `#resultdir`. Better: stack each list as a card (name, type and legality on one line,
   then the action buttons).
-- [ ] **Hover-only labels**: on touch the menubar icon buttons have no visible label,
-  because balloon tooltips only show on hover. Options: list the views by name in the
-  hamburger menu, or show the label on long-press.
+- [ ] **Hover-only labels**: on touch a tap now flashes the button's label for 1.5 s
+  (`balloonflash`), but you only learn what a button does by pressing it. Options: list the
+  views by name in the hamburger menu, or show the label on long-press.
+- [ ] **Menubar height**: with the double-size icons it wraps to three rows (~160px) at
+  390px. Could fold the format and size buttons into one dropdown on phones.
+- [ ] **Save menu labels**: phones save their own view defaults (`settings[game].mobile`),
+  but the hamburger items don't say so. Maybe add "(phone)".
 - [ ] **Deck/list view on a phone**: not tested yet. Check Visual Deck, Simple List and
   Visual, including the `+`/`-`/trash buttons and the editable quantities.
 - [ ] **Modals on a phone**: list import, the confirm dialog and the card editor
