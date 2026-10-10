@@ -393,11 +393,18 @@ inputs: JSON
   * contentType must match (`image/png` or `image/jpeg`)
 * overwrite (optional)
   * without it, `If-None-Match: *` is signed into the URL and S3 refuses (412) to replace an existing file
+* cardid, printingid (optional)
+  * recorded in the updatelog row (see below)
 
 outputs:
 
 * urls: `[{name, key, url, headers}]`. PUT the file to `url` with exactly `headers`.
 * expires: seconds the URLs are valid (900)
+
+Each call adds an `upload` row to oracle-all-updatelog: database, uid, uname, timestamp,
+`cardids` (`[cardid]`, or `[]` without one), printingid, imagehash, `files` (names) and overwrite.
+It records the URLs handed out. The PUTs go straight to S3, so the server can't tell whether
+they succeeded, and files that are uploaded but never saved to a card are still listed.
 
 Afterwards, save the image on the printing with /update `updateinstance`, using the modern layout
 only: `imagehash` plus `image: [{master, details, select}, ...]`, and no `printimagehash` (see data.md).

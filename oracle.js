@@ -928,9 +928,10 @@ function resizeimage(resizer,bitmap,w,h,mime) {
 }
 
 // Presigned PUTs from /upload (at most 10 files per request), then the uploads.
+// Each /upload call logs an 'upload' row (with cardid) to the updatelog.
 // files: [{name, blob, legacy}]. A legacy copy that already exists (412) was copied
 // by an earlier attempt and counts as done; any other existing file is an error.
-function uploadimagefiles(db,hash,files,overwrite) {
+function uploadimagefiles(db,hash,files,overwrite,cardid,printid) {
   var chunks = [];
   for (let i = 0; i < files.length; i += 10) { chunks.push(files.slice(i,i+10)); }
   return chunks.reduce(function(prev,chunk) {
@@ -941,6 +942,7 @@ function uploadimagefiles(db,hash,files,overwrite) {
         contentType: 'application/json',
         dataType: 'json',
         data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
+                              "cardid": cardid, "printingid": printid,
                               "files": chunk.map(f => ({"name": f.name, "contentType": f.blob.type}))}),
         beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
       })).then(function(ret) {
@@ -1023,7 +1025,7 @@ function uploadimagetrigger() {
     .then(function() {
       if(legacy.length && !legacyentries.length) { throw new Error('None of the old image files could be read, so nothing was changed.'); }
       status('Uploading...');
-      return uploadimagefiles(db,hash,files,overwrite);
+      return uploadimagefiles(db,hash,files,overwrite,cardid,printid);
     })
     .then(function() {
       // Old images first, then the existing ones, then the new one (or replace it in place).
