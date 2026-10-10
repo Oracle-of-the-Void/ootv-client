@@ -770,6 +770,30 @@ nav ul li ul li:last-child {
   fill: none;
 }
 
+/* search output quick-switch buttons in the menubar (detailed / visual / simple) */
+div.menubar nav li.searchviewbuttons {
+  padding-top: 3px;
+  padding-right: .5rem;
+}
+.searchviewbuttons button {
+  padding: 2px 3px;
+  margin-left: 2px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background-color: transparent;
+  color: rgb(96, 96, 96);
+  cursor: pointer;
+}
+.searchviewbuttons button:hover {
+  color: black;
+  border-color: rgb(192, 192, 192);
+}
+.searchviewbuttons button.searchviewactive {
+  color: black;
+  border-color: rgb(128, 128, 128);
+  background-color: rgb(224, 224, 224);
+}
+
 .button .iiconic .feather {
   position: relative;
   top: 2px;

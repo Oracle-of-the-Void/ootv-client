@@ -2232,6 +2232,9 @@ function updatetemplatedropdown(type) {
   }
   if(type == 'search') {
 	  pulldown += updatesortdropdown(type);
+	  $(".searchviewbuttons button").each(function() {
+	    $(this).toggleClass("searchviewactive", $(this).data("template") == templates[database]['active']['search']);
+	  });
   }
   $("#"+type+"templatedropdown").html(pulldown);
 }

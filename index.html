@@ -75,6 +75,11 @@
       </ul>
       </li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In/Register</span></li>
+      <li class="right searchviewbuttons">
+	<button aria-label="Detailed List" data-balloon-pos="down" data-template="search" onclick="activatetemplate('search','search');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
+	<button aria-label="Visual Spoiler" data-balloon-pos="down" data-template="visual" onclick="activatetemplate('search','visual');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
+	<button aria-label="Simple List" data-balloon-pos="down" data-template="list" onclick="activatetemplate('search','list');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+      </li>
     </ul>
   </nav>
 <div id="logarea"></div>
