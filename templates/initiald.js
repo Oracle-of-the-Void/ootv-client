@@ -222,7 +222,7 @@ templates['initiald'] = {
     'default': { 
 	'search': 'search',
 	'card': 'card',
-	'list': 'list' 
+	'list': 'visual-deck' 
     },
     'compiled': {},
     'active': {},

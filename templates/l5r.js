@@ -289,7 +289,7 @@ templates['l5r'] = {
     'default': { 
 	'search': 'search',
 	'card': 'card',
-	'list': 'list' 
+	'list': 'visual-deck' 
     },
     'compiled': {},
     'active': {},
