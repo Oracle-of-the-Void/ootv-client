@@ -37,8 +37,7 @@ Headless Chromium can't stand in for these:
   Visual, including the `+`/`-`/trash buttons and the editable quantities.
 - [ ] **Modals on a phone**: list import, the confirm dialog and the card editor
   (`editcard*`) have only had their min-width removed. Check they fit and scroll.
-- [ ] **Search panel form**: still uses the desktop sizes (105px inputs, 110px selects)
-  inside a panel up to 360px wide. Let the inputs fill the panel.
+- [x] **Search panel form**: full width, fields 60vw (was the desktop 105px inputs, 110px selects)
 - [ ] **Tablets and landscape phones** (769–1000px): they get the desktop layout with the
   sidebar always open. Decide whether the breakpoint should be higher.
 - [ ] **Profile menu and Admin entry**: not tested by tap because they need a login (see

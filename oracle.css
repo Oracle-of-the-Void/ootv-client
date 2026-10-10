@@ -881,8 +881,8 @@ div.menubar nav li.sortbuttons {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 92vw;
-    max-width: 360px;
+    right: 0;
+    width: auto;
     overflow-y: auto;
     z-index: 8;
     background: rgb(235, 235, 235);
@@ -890,6 +890,13 @@ div.menubar nav li.sortbuttons {
   }
   body.mobilesearch div#sidebar {
     display: block !important;
+  }
+  /* the panel is full width, so let the form fields use it instead of the desktop sidebar's pixel widths */
+  div#sidebar div.searchinput {
+    float: none;
+  }
+  div#sidebar div.searchinput input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
+    width: 60vw;
   }
   div[class^=result] .randarea, .modal-box {
     min-width: 0;
