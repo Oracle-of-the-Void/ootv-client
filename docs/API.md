@@ -15,6 +15,7 @@
 * [/import (POST)](#import)                     -> import decks/lists from external files
 * [/list (GET)](#list)                          -> deck/list handling routines
 * [/update (POST)](#update)                     -> database modification routines
+* [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
 
 ## Note
 
@@ -370,3 +371,45 @@ codes:
 * 403 not owner of list
 * 500 database error
 * 500 missing required fields
+
+## /upload
+
+Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12).
+The browser PUTs straight to the images bucket, so the files never go through API Gateway.
+
+Handled by lambda: ootv-search/routes/upload.js
+
+inputs: JSON
+
+* Header: Authorization (required)
+  * tokens from Cognito
+* uid (required)
+  * same check as /update: the groups must allow `updateinstance` (or `*`) for the database
+* database (required)
+* imagehash (required)
+  * the directory under the game's imageuri: one name, letters, digits, `_` or `-`
+* files (required): 1-10 of `{name, contentType}`
+  * name must end `_master`, `_details` or `_select`, with `.png`, `.jpg` or `.jpeg`
+  * contentType must match (`image/png` or `image/jpeg`)
+* overwrite (optional)
+  * without it, `If-None-Match: *` is signed into the URL and S3 refuses (412) to replace an existing file
+* cardid, printingid (optional)
+  * recorded in the updatelog row (see below)
+
+outputs:
+
+* urls: `[{name, key, url, headers}]`. PUT the file to `url` with exactly `headers`.
+* expires: seconds the URLs are valid (900)
+
+Each call adds an `upload` row to oracle-all-updatelog: database, uid, uname, timestamp,
+`cardids` (`[cardid]`, or `[]` without one), printingid, imagehash, `files` (names) and overwrite.
+It records the URLs handed out. The PUTs go straight to S3, so the server can't tell whether
+they succeeded, and files that are uploaded but never saved to a card are still listed.
+
+Afterwards, save the image on the printing with /update `updateinstance`, using the modern layout
+only: `imagehash` plus `image: [{master, details, select}, ...]`, and no `printimagehash` (see data.md).
+A printing has one `imagehash` directory, so every image of the printing goes there, and a new image
+is appended to `image`, not swapped in. The card editor converts a legacy printing on the way: it copies
+`<printimagehash[i]>/printing_<cardid>_<printingid>_{master,details,select}.jpg` byte for byte into the
+directory (adding `_<i+1>` after the first, since legacy directories reuse the same names) and lists
+them first.

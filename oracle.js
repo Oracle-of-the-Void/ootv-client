@@ -676,9 +676,10 @@ function editcard(cardid=null,printid=null) {
       // edit just a printing version
       printing = carddata.printing[carddata.printingreverse.printingid[printid]];
       delete printing.printingid;
+      var imageupload = imageuploaddefaults(cardid,printid,printing);
     }
     var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": htmlEncode(JSON.stringify(printing,null,2)), "database": database}));
+    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": htmlEncode(JSON.stringify(printing,null,2)), "database": database, "imageupload": imageupload}));
   } else if(cardid) {
     // This edits just the main card data, no instance info
     var carddata = cache_card_fetch(cardid);
@@ -859,6 +860,202 @@ function editcardtrigger() {
   console.log(["posting",request]);
   $.ajax(request);
 
+}
+
+// Card image upload (#12). Images use the modern layout only: printing.imagehash is the
+// directory and printing.image[] holds {master, details, select} file names, so the URL
+// is imageuri + imagehash + "/" + file. A printing has one directory, so every image of
+// a printing lives in it. Uploads add to image[]; they never drop existing images.
+// Legacy printings (printimagehash, #227) are converted on the way: their files are
+// copied from the old hash directories into the printing's directory.
+function imageuploaddefaults(cardid,printid,printing) {
+  var hasimages = !!(printing.image && printing.image.length);
+  var hash = (typeof printing.imagehash === 'string') ? printing.imagehash : '';
+  if(!hash && printing.set && printing.set[0]) {
+    // initials of the set name: "Rise of Jigoku" -> "RoJ"
+    hash = printing.set[0].replace(/&[a-z]+;|<[^>]*>/gi,' ').split(/\s+/).map(w => w.charAt(0)).join('');
+  }
+  hash = hash.replace(/[^A-Za-z0-9_-]/g,'');
+  // base name: the first uploaded (not legacy-copied) image's, else <hash>_<number>, else <cardid>_<printid>
+  var own = hasimages ? printing.image.find(e => e.master && !e.master.startsWith('printing_')) : null;
+  var stem = own ? own.master.replace(/_master\.[a-z]+$/i,'')
+           : (hash && printing.number && printing.number[0]) ? hash+'_'+String(printing.number[0]).padStart(3,'0')
+           : cardid+'_'+printid;
+  if(hasimages) {
+    // another image of the same printing: number it past the ones already there
+    stem += '_'+(printing.image.length+1);
+  }
+  return {"imagehash": hash, "stem": stem.replace(/[^A-Za-z0-9_.-]/g,''), "locked": hasimages,
+          "legacy": (printing.printimagehash && printing.printimagehash.length) || 0};
+}
+
+// The legacy images of a printing, as files to copy: printimagehash[i] is a directory
+// holding printing_<cardid>_<printingid>_{master,details,select}.jpg. The copies are named
+// the same, with _<i+1> added after the first so directories don't collide.
+function legacyimages(db,cardid,printid,printing) {
+  if(!printing.printimagehash || !printing.printimagehash.length) { return []; }
+  return printing.printimagehash.map(function(dir,i) {
+    var from = 'printing_'+cardid+'_'+printid+'_';
+    var to = 'printing_'+cardid+'_'+printid+'_'+(i ? (i+1)+'_' : '');
+    var sizes = {};
+    for (let size of ['master','details','select']) {
+      sizes[size] = {"url": dbinfo[db].imageuri+dir+'/'+from+size+'.jpg', "name": to+size+'.jpg'};
+    }
+    return sizes;
+  });
+}
+
+// pica (vendored, ~54KB) is only needed here, so load it on first use.
+function loadpica(callback) {
+  if(typeof pica !== 'undefined') { callback(); return; }
+  $.ajax({url: 'pica.min.js', dataType: 'script', cache: true})
+    .done(callback)
+    .fail(function() {
+      $('#editimagestatus').html('<span class="error">Could not load pica.min.js</span>');
+      $('#editimagebutton').prop('disabled',false);
+    });
+}
+
+// Fit within w x h without enlarging, Lanczos3 + unsharp, like
+// ootv-import/SCRIPTS/imagemogrify-generic.sh (convert -resize WxH -unsharp 0x.5).
+function resizeimage(resizer,bitmap,w,h,mime) {
+  var scale = Math.min(w/bitmap.width, h/bitmap.height, 1);
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.max(1,Math.round(bitmap.width*scale));
+  canvas.height = Math.max(1,Math.round(bitmap.height*scale));
+  return resizer.resize(bitmap, canvas, {filter: 'lanczos3', unsharpAmount: 100, unsharpRadius: 0.5, unsharpThreshold: 0})
+    .then(c => resizer.toBlob(c, mime, 0.92));
+}
+
+// Presigned PUTs from /upload (at most 10 files per request), then the uploads.
+// Each /upload call logs an 'upload' row (with cardid) to the updatelog.
+// files: [{name, blob, legacy}]. A legacy copy that already exists (412) was copied
+// by an earlier attempt and counts as done; any other existing file is an error.
+function uploadimagefiles(db,hash,files,overwrite,cardid,printid) {
+  var chunks = [];
+  for (let i = 0; i < files.length; i += 10) { chunks.push(files.slice(i,i+10)); }
+  return chunks.reduce(function(prev,chunk) {
+    return prev.then(function() {
+      return Promise.resolve($.ajax({
+        type: "POST",
+        url: apiuri+"/upload",
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
+                              "cardid": cardid, "printingid": printid,
+                              "files": chunk.map(f => ({"name": f.name, "contentType": f.blob.type}))}),
+        beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+      })).then(function(ret) {
+        return Promise.all(ret.urls.map(function(u) {
+          var f = chunk.find(f => f.name == u.name);
+          return fetch(u.url, {method: 'PUT', headers: u.headers, body: f.blob}).then(function(r) {
+            if(r.status == 412 && f.legacy) { return; }
+            if(r.status == 412) { throw new Error(u.name+' already exists. Tick "Replace existing files" to overwrite it, or change the file name.'); }
+            if(!r.ok) { throw new Error(u.name+': upload failed ('+r.status+')'); }
+          });
+        }));
+      });
+    });
+  }, Promise.resolve());
+}
+
+function uploadimagetrigger() {
+  var file = $('#editimagefile')[0].files[0];
+  var hash = $('#editimagehash').val().trim();
+  var stem = $('#editimagestem').val().trim();
+  var overwrite = $('#editimageoverwrite').is(':checked');
+  var db = $('#editcarddb').val();
+  var cardid = $('#editcardid').val();
+  var printid = $('#editcardprint').val();
+  var status = function(msg,err) { $('#editimagestatus').html('<span'+(err?' class="error"':'')+'>'+msg+'</span>'); };
+  var printing;
+  try {
+    printing = JSON.parse($('#editcard').val());
+  } catch(e) {
+    status('The instance JSON below does not parse. Fix it before uploading.',1); return;
+  }
+  var existing = (printing.image && printing.image.length) ? printing.image : [];
+  if(existing.length && printing.imagehash && hash != printing.imagehash) {
+    status('This instance keeps its images in "'+htmlEncode(printing.imagehash)+'"; new images have to go there too.',1); return;
+  }
+  var legacy = legacyimages(db,cardid,printid,printing);
+  if(!file && !legacy.length) { status('Choose an image file first.',1); return; }
+  if(file && file.type != 'image/png' && file.type != 'image/jpeg') { status('The image must be PNG or JPEG.',1); return; }
+  if(!hash.match(/^[A-Za-z0-9_-]+$/)) { status('Directory: letters, digits, _ or - only.',1); return; }
+  if(file && !stem.match(/^[A-Za-z0-9_.-]+$/)) { status('File name: letters, digits, _ . or - only.',1); return; }
+  var names = null;
+  if(file) {
+    var ext = (file.type == 'image/png') ? 'png' : 'jpg';
+    names = {"master": stem+'_master.'+ext, "details": stem+'_details.'+ext, "select": stem+'_select.'+ext};
+    if(!overwrite && existing.some(e => e.master == names.master)) {
+      status('This instance already has '+htmlEncode(names.master)+'. Change the file name, or tick "Replace existing files".',1); return;
+    }
+  }
+  var files = [];
+  var legacyentries = [];
+
+  $('#editimagebutton').prop('disabled',true);
+  status(legacy.length ? 'Copying the old images...' : 'Resizing...');
+  // fetch the legacy files (skipping sizes that don't exist), then make the new sizes
+  Promise.all(legacy.map(function(sizes) {
+    var entry = {};
+    return Promise.all(Object.keys(sizes).map(function(size) {
+      // The card view already loaded these as plain <img>s, and CloudFront answers those with no
+      // CORS header and no Vary: Origin, so the browser's cached copy fails a CORS fetch.
+      // Bypass it, with the same query string the PDF code uses (x-corsworkaround).
+      return fetch(sizes[size].url+'?x-corsworkaround=true', {mode: 'cors', cache: 'no-store'}).catch(function() {
+        throw new Error('Could not read the old image '+sizes[size].url+' (the browser blocked or lost the request), so nothing was uploaded.');
+      }).then(function(r) {
+        if(!r.ok) { return; }
+        return r.blob().then(function(b) {
+          entry[size] = sizes[size].name;
+          files.push({"name": sizes[size].name, "blob": new Blob([b], {type: 'image/jpeg'}), "legacy": true});
+        });
+      });
+    })).then(function() { if(Object.keys(entry).length) { legacyentries.push(entry); } });
+  }))
+    .then(function() {
+      if(!file) { return; }
+      status('Resizing...');
+      return new Promise(function(resolve,reject) { loadpica(resolve); })
+        .then(function() { return createImageBitmap(file); })
+        .then(function(bitmap) {
+          var resizer = pica();
+          files.push({"name": names.master, "blob": file});
+          return resizeimage(resizer,bitmap,1000,600,file.type)
+            .then(function(b) { files.push({"name": names.details, "blob": b}); return resizeimage(resizer,bitmap,1000,210,file.type); })
+            .then(function(b) { files.push({"name": names.select, "blob": b}); });
+        });
+    })
+    .then(function() {
+      if(legacy.length && !legacyentries.length) { throw new Error('None of the old image files could be read, so nothing was changed.'); }
+      status('Uploading...');
+      return uploadimagefiles(db,hash,files,overwrite,cardid,printid);
+    })
+    .then(function() {
+      // Old images first, then the existing ones, then the new one (or replace it in place).
+      // The user reviews the JSON and presses Update to save.
+      var image = legacyentries.concat(existing);
+      if(names) {
+        var at = image.findIndex(e => e.master == names.master);
+        if(at >= 0) { image[at] = names; } else { image.push(names); }
+      }
+      printing.imagehash = hash;
+      printing.image = image;
+      delete printing.printimagehash;
+      $('#editcard').val(JSON.stringify(printing,null,2));
+      var base = dbinfo[db].imageuri+hash+'/';
+      $('#editimagepreview').html(image.map(e => '<img src="'+base+e.select+'?t='+Date.now()+'" />').join(' '));
+      $('#editimagehash').prop('readonly',true);
+      $('#editimagestem').val(imageuploaddefaults(cardid,printid,printing).stem);
+      $('#editimagefile').val('');
+      status((legacyentries.length ? 'Copied '+legacyentries.length+' old image(s). ' : '')+(names ? 'Uploaded '+htmlEncode(names.master)+'. ' : '')+
+             'The image list below now has '+image.length+' image(s): review it and press Update to save.');
+    })
+    .catch(function(e) {
+      status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
+    })
+    .finally(function() { $('#editimagebutton').prop('disabled',false); });
 }
 
 function setprimary(cardid,printid) {
