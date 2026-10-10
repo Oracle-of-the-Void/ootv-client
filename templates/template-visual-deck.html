@@ -1,4 +1,4 @@
-{{if cardid==0}}{{if decktitle}}<div class="listhead">{{:title}}</div>{{/if}}{{else}}
+{{if cardid==0}}{{if decktitle}}<div class="listhead">{{:title}}</div>{{else typetitle}}<div class="listheadplain deckviewtype">{{:subtitle}}</div>{{/if}}{{else}}
 <a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
   <div style="display: inline-flex; flex-direction: column; padding-top: 190px">
     <!-- qty: {{:listquantity}} -->

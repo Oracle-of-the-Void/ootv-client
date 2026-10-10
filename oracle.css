@@ -230,6 +230,16 @@ div.upperhead {
 div.listheadxl {
     font-size: x-large;
 }
+/* deck view (template-visual-deck): type rows under a deck header */
+div.deckviewtype {
+    display: inline-block;
+    vertical-align: top;
+    width: 8em;
+    margin: 4px 4px 0 0;
+    font-size: medium;
+    white-space: normal;
+    border-radius: 7px;
+}
 div.listhead, div.listheadxl, div.listhead a:visited, div.listhead a:link, div.listhead a:hover, div.listhead a:active, div.listheadplain, div.upperhead, div.listheadmiddle{
     color:  /* #ffd73a; */  #FFFFFF;
     text-decoration: none;
