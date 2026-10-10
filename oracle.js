@@ -201,7 +201,7 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
-    $('.showondebug').hide();
+    updateviewbuttons();
 }
 function logincallback(session) {
     if (session) {
@@ -308,7 +308,7 @@ function userinfocallback() {
     if (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
       $('.showonadmin').show();
     }
-    updatedebugbutton();
+    updateviewbuttons();
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2203,7 +2203,7 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 function activatetemplate(type,template) {
   templates[database]['active'][type] = template;
   // picking a card or visual template from the dropdowns also sets the size toggle
-  if(['card','visual'].includes(template.replace(/-premium$/,'')) && (type == 'card' || type == 'search')) {
+  if(['card','visual'].includes(template.replace(/-premium$/,'')) && ['card','search','list'].includes(type)) {
 	  largeview = template.endsWith('-premium');
 	  updatesizebuttons();
   }
@@ -2224,40 +2224,14 @@ function activatetemplate(type,template) {
   }
   updatetemplatedropdown(type);
 }
-// menubar search output buttons: visual follows the size toggle
-function searchview(template) {
-  if(template == 'visual' && largeview && templates[database]['available']['visual-premium']) {
-	  template = 'visual-premium';
-  }
-  activatetemplate('search',template);
+// the result tab on screen: search, card, list, about, ...
+function currentresulttab() {
+  return ($("#tabs li#current a").attr("name") || '').replace(/^result/,'');
 }
-// menubar size toggle: Card Details <-> Card Large, Visual Spoiler <-> Visual Spoiler - Large.
-// Only the tab on screen re-renders (docard would jump to the Card tab); the other picks it up on its next render.
-function setlargeview(large) {
-  largeview = large;
-  var available = templates[database]['available'];
-  var active = templates[database]['active'];
-  var card = (large && available['card-premium']) ? 'card-premium' : 'card';
-  if(active['card'] != card) {
-	  if($("#resultcard").is(":visible")) {
-	    activatetemplate('card',card);
-	  } else {
-	    active['card'] = card;
-	    updatetemplatedropdown('card');
-	  }
-  }
-  if((active['search']||'').replace(/-premium$/,'') == 'visual') {
-	  var visual = (large && available['visual-premium']) ? 'visual-premium' : 'visual';
-	  if(active['search'] != visual) {
-	    if($("#resultsearch").is(":visible")) {
-		    activatetemplate('search',visual);
-	    } else {
-		    active['search'] = visual;
-		    updatetemplatedropdown('search');
-	    }
-	  }
-  }
-  updatesizebuttons();
+// which output the menubar template buttons drive: the search, card or list view on screen, else search
+function viewbuttontype() {
+  var tab = currentresulttab();
+  return ['search','card','list'].includes(tab) ? tab : 'search';
 }
 // full permissions on this game: groups[database] or groups['*'] allows every operation (same rule as /update)
 function fullgamepermission() {
@@ -2268,18 +2242,53 @@ function fullgamepermission() {
   var groups = user.oracle[0].groups;
   return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('*'); });
 }
-// the result tab on screen: search, card, list, about, ...
-function currentresulttab() {
-  return ($("#tabs li#current a").attr("name") || '').replace(/^result/,'');
+// menubar template buttons: show the ones this game has for the view in play, highlight the active one.
+// debug also needs full game permission and the debug tab itself on screen.
+function updateviewbuttons() {
+  var type = viewbuttontype();
+  var available = templates[database]['available'];
+  var active = (templates[database]['active'][type]||'').replace(/-premium$/,'');
+  $("#templatebuttons button[data-template]").each(function() {
+	  var key = $(this).data("template");
+	  var show = available[key] !== undefined && available[key].places.includes(type);
+	  if(key == 'debug') {
+	    show = show && fullgamepermission() && currentresulttab() == type;
+	  }
+	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
+  });
+  $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
-// shown only with full game permission and a debug template for the view on screen
-function updatedebugbutton() {
-  var debug = templates[database]['available']['debug'];
-  $('.showondebug').toggle(fullgamepermission() && debug !== undefined && debug.places.includes(currentresulttab()));
+// menubar template button: switch the view in play; visual follows the size toggle
+function viewbutton(template) {
+  if(template == 'visual' && largeview && templates[database]['available']['visual-premium']) {
+	  template = 'visual-premium';
+  }
+  activatetemplate(viewbuttontype(),template);
 }
-// menubar debug button: switch the search/card/list view on screen to the debug template
-function debugview() {
-  activatetemplate(currentresulttab(),'debug');
+// menubar size toggle: Card Details <-> Card Large, Visual Spoiler <-> Visual Spoiler - Large (search and list).
+// Only the tab on screen re-renders (docard would jump to the Card tab); the others pick it up on their next render.
+function setlargeview(large) {
+  largeview = large;
+  var available = templates[database]['available'];
+  var active = templates[database]['active'];
+  var want = {
+	  'card': (large && available['card-premium']) ? 'card-premium' : 'card',
+	  'search': (large && available['visual-premium']) ? 'visual-premium' : 'visual',
+	  'list': (large && available['visual-premium']) ? 'visual-premium' : 'visual'
+  };
+  for (type in want) {
+	  // only flip views already showing that template family (card, or a visual spoiler)
+	  if((active[type]||'').replace(/-premium$/,'') != want[type].replace(/-premium$/,'') || active[type] == want[type]) {
+	    continue;
+	  }
+	  if(currentresulttab() == type) {
+	    activatetemplate(type,want[type]);
+	  } else {
+	    active[type] = want[type];
+	    updatetemplatedropdown(type);
+	  }
+  }
+  updatesizebuttons();
 }
 function updatesizebuttons() {
   $(".searchviewbuttons button[data-size]").each(function() {
@@ -2302,10 +2311,9 @@ function updatetemplatedropdown(type) {
   }
   if(type == 'search') {
 	  pulldown += updatesortdropdown(type);
-	  $(".searchviewbuttons button[data-template]").each(function() {
-	    $(this).toggleClass("searchviewactive", $(this).data("template") == (templates[database]['active']['search']||'').replace(/-premium$/,''));
-	  });	  updatesizebuttons();
   }
+  updateviewbuttons();
+  updatesizebuttons();
   $("#"+type+"templatedropdown").html(pulldown);
 }
 function updatesortdropdown(type) {
@@ -2370,7 +2378,7 @@ $(document).ready(function(){
       $("#tabs li").attr("id",""); //Reset id's
       $(this).parent().attr("id","current"); // Activate this
       $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
-      updatedebugbutton();
+      updateviewbuttons();
     }
   });
   
