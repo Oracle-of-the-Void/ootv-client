@@ -1000,7 +1000,12 @@ function uploadimagetrigger() {
   Promise.all(legacy.map(function(sizes) {
     var entry = {};
     return Promise.all(Object.keys(sizes).map(function(size) {
-      return fetch(sizes[size].url, {mode: 'cors'}).then(function(r) {
+      // The card view already loaded these as plain <img>s, and CloudFront answers those with no
+      // CORS header and no Vary: Origin, so the browser's cached copy fails a CORS fetch.
+      // Bypass it, with the same query string the PDF code uses (x-corsworkaround).
+      return fetch(sizes[size].url+'?x-corsworkaround=true', {mode: 'cors', cache: 'no-store'}).catch(function() {
+        throw new Error('Could not read the old image '+sizes[size].url+' (the browser blocked or lost the request), so nothing was uploaded.');
+      }).then(function(r) {
         if(!r.ok) { return; }
         return r.blob().then(function(b) {
           entry[size] = sizes[size].name;
