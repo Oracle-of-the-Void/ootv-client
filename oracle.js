@@ -2016,6 +2016,11 @@ $(document).on('click', function(e) {
 	return;
     }
     menutap(e.target);
+    // a tap leaves the button in :hover/:focus, so its tooltip would stick: show it briefly instead (CSS hides the rest)
+    var balloon = $(e.target).closest('[data-balloon-pos]');
+    balloon.addClass('balloonflash').trigger('blur');
+    clearTimeout(balloon.data('balloontimer'));
+    balloon.data('balloontimer', setTimeout(function() { balloon.removeClass('balloonflash'); }, 1500));
 });
 function menutap(target) {
     // the innermost nav li whose dropdown doesn't contain the tap is the header that was tapped
@@ -2035,6 +2040,9 @@ function menutap(target) {
 }
 // switch the main content area to one of the result* views (menubar view icons, about, admin)
 function showview(view) {
+    if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
+	mobilesearchtoggle(false); // phone search panel would cover the other views
+    }
     if($('#' + view).is(":visible")) {
 	return;
     }

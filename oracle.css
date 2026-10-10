@@ -844,6 +844,12 @@ div.menubar nav li.sortbuttons {
 /* ********************** narrow screens (phones) **********************
    Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
+/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js flashes them after a tap */
+@media (hover: none) {
+  [aria-label][data-balloon-pos]:not(.balloonflash):before, [aria-label][data-balloon-pos]:not(.balloonflash):after {
+    opacity: 0 !important;
+  }
+}
 @media (max-width: 768px) {
   div.menubar {
     height: auto;
