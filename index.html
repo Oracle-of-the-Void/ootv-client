@@ -396,6 +396,18 @@ printingprimary
     <input name="cardid" id="editcardid" type="hidden" value="{{:cardid}}" />
     <input name="table" id="editcarddb" type="hidden" value="{{:database}}" />
     <input name="printid" id="editcardprint" type="hidden" value="{{:printid}}" />
+    {{if imageupload}}
+    <fieldset id="editimage">
+      <legend>Image</legend>
+      <input type="file" id="editimagefile" accept="image/png,image/jpeg" /><br />
+      Directory <input type="text" id="editimagehash" size="12" value="{{:imageupload.imagehash}}" />
+      File name <input type="text" id="editimagestem" size="16" value="{{:imageupload.stem}}" />_master / _details / _select
+      <label><input type="checkbox" id="editimageoverwrite" /> Replace existing files</label><br />
+      <input type="button" id="editimagebutton" value="Upload image" onclick="uploadimagetrigger();" />
+      <div id="editimagestatus"></div>
+      <div id="editimagepreview"></div>
+    </fieldset>
+    {{/if}}
     <textarea id="editcard" name="editcard" rows="50" cols="100">{{:carddata}}</textarea>
     <input type="button" id="editcardbutton" value="Update" onclick="editcardtrigger();" />
     <div id="editcardbuttonafter"></div>

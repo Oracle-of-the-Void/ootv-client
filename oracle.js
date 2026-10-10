@@ -676,9 +676,10 @@ function editcard(cardid=null,printid=null) {
       // edit just a printing version
       printing = carddata.printing[carddata.printingreverse.printingid[printid]];
       delete printing.printingid;
+      var imageupload = imageuploaddefaults(cardid,printid,printing);
     }
     var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": htmlEncode(JSON.stringify(printing,null,2)), "database": database}));
+    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": htmlEncode(JSON.stringify(printing,null,2)), "database": database, "imageupload": imageupload}));
   } else if(cardid) {
     // This edits just the main card data, no instance info
     var carddata = cache_card_fetch(cardid);
@@ -859,6 +860,120 @@ function editcardtrigger() {
   console.log(["posting",request]);
   $.ajax(request);
 
+}
+
+// Card image upload (#12). Images use the modern layout only: printing.imagehash is the
+// directory and printing.image[] holds {master, details, select} file names, so the URL
+// is imageuri + imagehash + "/" + file. No printimagehash (#227 converts the old ones).
+function imageuploaddefaults(cardid,printid,printing) {
+  var hash = (typeof printing.imagehash === 'string') ? printing.imagehash : '';
+  if(!hash && printing.set && printing.set[0]) {
+    // initials of the set name: "Rise of Jigoku" -> "RoJ"
+    hash = printing.set[0].replace(/&[a-z]+;|<[^>]*>/gi,' ').split(/\s+/).map(w => w.charAt(0)).join('');
+  }
+  hash = hash.replace(/[^A-Za-z0-9_-]/g,'');
+  var stem = '';
+  if(printing.image && printing.image[0] && printing.image[0].master) {
+    stem = printing.image[0].master.replace(/_master\.[a-z]+$/i,'');
+  } else if(hash && printing.number && printing.number[0]) {
+    stem = hash+'_'+String(printing.number[0]).padStart(3,'0');
+  } else {
+    stem = cardid+'_'+printid;
+  }
+  return {"imagehash": hash, "stem": stem.replace(/[^A-Za-z0-9_.-]/g,'')};
+}
+
+// pica (vendored, ~54KB) is only needed here, so load it on first use.
+function loadpica(callback) {
+  if(typeof pica !== 'undefined') { callback(); return; }
+  $.ajax({url: 'pica.min.js', dataType: 'script', cache: true})
+    .done(callback)
+    .fail(function() {
+      $('#editimagestatus').html('<span class="error">Could not load pica.min.js</span>');
+      $('#editimagebutton').prop('disabled',false);
+    });
+}
+
+// Fit within w x h without enlarging, Lanczos3 + unsharp, like
+// ootv-import/SCRIPTS/imagemogrify-generic.sh (convert -resize WxH -unsharp 0x.5).
+function resizeimage(resizer,bitmap,w,h,mime) {
+  var scale = Math.min(w/bitmap.width, h/bitmap.height, 1);
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.max(1,Math.round(bitmap.width*scale));
+  canvas.height = Math.max(1,Math.round(bitmap.height*scale));
+  return resizer.resize(bitmap, canvas, {filter: 'lanczos3', unsharpAmount: 100, unsharpRadius: 0.5, unsharpThreshold: 0})
+    .then(c => resizer.toBlob(c, mime, 0.92));
+}
+
+function uploadimagetrigger() {
+  var file = $('#editimagefile')[0].files[0];
+  var hash = $('#editimagehash').val().trim();
+  var stem = $('#editimagestem').val().trim();
+  var overwrite = $('#editimageoverwrite').is(':checked');
+  var status = function(msg,err) { $('#editimagestatus').html('<span'+(err?' class="error"':'')+'>'+msg+'</span>'); };
+  if(!file) { status('Choose an image file first.',1); return; }
+  if(file.type != 'image/png' && file.type != 'image/jpeg') { status('The image must be PNG or JPEG.',1); return; }
+  if(!hash.match(/^[A-Za-z0-9_-]+$/)) { status('Directory: letters, digits, _ or - only.',1); return; }
+  if(!stem.match(/^[A-Za-z0-9_.-]+$/)) { status('File name: letters, digits, _ . or - only.',1); return; }
+  var ext = (file.type == 'image/png') ? 'png' : 'jpg';
+  var names = {"master": stem+'_master.'+ext, "details": stem+'_details.'+ext, "select": stem+'_select.'+ext};
+  var db = $('#editcarddb').val();
+  var blobs = {"master": file};
+
+  $('#editimagebutton').prop('disabled',true);
+  status('Resizing...');
+  loadpica(function() {
+    var resizer = pica();
+    createImageBitmap(file)
+      .then(function(bitmap) {
+        return resizeimage(resizer,bitmap,1000,600,file.type)
+          .then(function(b) { blobs.details = b; return resizeimage(resizer,bitmap,1000,210,file.type); })
+          .then(function(b) { blobs.select = b; });
+      })
+      .then(function() {
+        status('Getting upload URLs...');
+        return $.ajax({
+          type: "POST",
+          url: apiuri+"/upload",
+          contentType: 'application/json',
+          dataType: 'json',
+          data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
+                                "files": Object.keys(names).map(k => ({"name": names[k], "contentType": file.type}))}),
+          beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+        });
+      })
+      .then(function(ret) {
+        status('Uploading...');
+        return Promise.all(ret.urls.map(function(u) {
+          var size = Object.keys(names).find(k => names[k] == u.name);
+          return fetch(u.url, {method: 'PUT', headers: u.headers, body: blobs[size]}).then(function(r) {
+            if(r.status == 412) { throw new Error(u.name+' already exists. Tick "Replace existing files" to overwrite it.'); }
+            if(!r.ok) { throw new Error(u.name+': upload failed ('+r.status+')'); }
+          });
+        }));
+      })
+      .then(function() {
+        // Put the new image fields into the instance JSON; the user reviews it and presses Update.
+        var printing;
+        try {
+          printing = JSON.parse($('#editcard').val());
+        } catch(e) {
+          status('Uploaded, but the JSON below does not parse. Add by hand: "imagehash": "'+hash+'", "image": [{"master": "'+names.master+'", "details": "'+names.details+'", "select": "'+names.select+'"}]',1);
+          return;
+        }
+        printing.imagehash = hash;
+        printing.image = [names];
+        delete printing.printimagehash;
+        $('#editcard').val(JSON.stringify(printing,null,2));
+        var base = dbinfo[db].imageuri+hash+'/';
+        $('#editimagepreview').html('<img src="'+base+names.select+'?t='+Date.now()+'" /> <img style="max-height: 300px" src="'+base+names.details+'?t='+Date.now()+'" />');
+        status('Uploaded. The image fields are filled in below: review them and press Update to save.');
+      })
+      .catch(function(e) {
+        status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
+      })
+      .finally(function() { $('#editimagebutton').prop('disabled',false); });
+  });
 }
 
 function setprimary(cardid,printid) {
