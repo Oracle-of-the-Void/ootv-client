@@ -58,14 +58,11 @@ $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
 });
 $.views.converters("databaseitemlookup",function(item) {
-  console.log("databaseitemlookup called: "+item);
-  if(item=="blurb" && typeof blurb !== 'undefined') {
-    console.log("blurb exists");
-    if(blurb[database]) {
-      console.log("returning blurb");
-      return "<div>"+blurb[database]+"</div><br /><br />";  
-    }
+  if(item=="blurb" && typeof blurb !== 'undefined' && blurb[database]) {
+    return "<div>"+blurb[database]+"</div><br /><br />";
   }
+  // a converter returning undefined makes JsViews render the raw argument ("blurb")
+  return "";
 });
 function addslashes(str) {
     if(str) {
