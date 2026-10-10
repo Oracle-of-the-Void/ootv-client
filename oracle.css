@@ -788,8 +788,8 @@ div.menubar nav li.sortbuttons {
   border: 1px solid rgb(128, 128, 128);
   border-radius: 4px;
 }
-/* hamburger "Save Views as Default": brief confirmation after saving */
-#saveviewdefaults.saved::after {
+/* hamburger "Save ..." defaults: brief confirmation after saving */
+.saveviewdefaults.saved::after {
   content: " \2714";
   color: green;
 }

@@ -2279,8 +2279,8 @@ function viewbutton(template) {
   }
   activatetemplate(type,template);
 }
-// saved view defaults: users.settings[database] = {search, card, list}, saved via /user?settings=
-// (sizes come from the templates; an older saved `large` is ignored)
+// saved view defaults: users.settings[database] = {search, card, list, sort, sortdir}, saved via /user?settings=
+// (the API stores any small object; sizes come from the templates, an older saved `large` is ignored)
 function viewdefaults() {
   var user = cache_thing("user","data");
   if(!(user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings[database])) {
@@ -2295,6 +2295,8 @@ function applyviewdefaults() {
   if(!saved) {
 	  return;
   }
+  var sortchanged = applysortdefault();
+  var searchrendered = false;
   var available = templates[database]['available'];
   for (type of ['search','card','list']) {
 	  var key = saved[type];
@@ -2310,18 +2312,45 @@ function applyviewdefaults() {
 	  }
 	  if(currentresulttab() == type) {
 	    activatetemplate(type,key);
+	    searchrendered = searchrendered || type == 'search';
 	  } else {
 	    templates[database]['active'][type] = key;
 	  }
   }
-  updateviewbuttons();
+  if(sortchanged && !searchrendered && currentresulttab() == 'search' && $('#lastsearchquery').val()) {
+	  dosearch(0);
+  }
+  updatemenubar('search');
 }
-function saveviewdefaults() {
+// saved search sort: only a sort this game offers; returns true if it changed the current sort
+function applysortdefault() {
+  var saved = viewdefaults();
+  if(!saved || !saved.sort || !searchsorts[database] || !(saved.sort in searchsorts[database])) {
+	  return false;
+  }
+  var dir = (saved.sortdir == 'desc') ? 'desc' : 'asc';
+  if(templates[database]['sort']['search'] == saved.sort && templates[database]['sortdir'] && templates[database]['sortdir']['search'] == dir) {
+	  return false;
+  }
+  templates[database]['sort']['search'] = saved.sort;
+  templates[database]['sortdir'] = templates[database]['sortdir'] || {};
+  templates[database]['sortdir']['search'] = dir;
+  return true;
+}
+// save one part (search, card, list, sort) or 'all' as this game's default, merged into what's already saved
+function saveviewdefaults(part='all',el=null) {
   var active = templates[database]['active'];
-  var settings = {};
+  var settings = Object.assign({}, viewdefaults() || {});
+  delete settings['large']; // older saves; sizes come from the templates now
+  if(part == 'all' || part == 'sort') {
+	  settings['sort'] = templates[database]['sort']['search'];
+	  settings['sortdir'] = templates[database]['sortdir']['search'];
+  }
   for (type of ['search','card','list']) {
-	  // debug is a temporary toggle: save what it replaced
-	  settings[type] = (active[type] == 'debug') ? (debugprevious[type] || templates[database]['default'][type]) : active[type];
+	  if(part == 'all' || part == type) {
+	    // debug is a temporary toggle: save what it replaced
+	    settings[type] = (active[type] == 'debug') ? (debugprevious[type] || templates[database]['default'][type]) : active[type];
+	  }
   }
   $.ajax({
 	  type: 'GET',
@@ -2331,14 +2360,14 @@ function saveviewdefaults() {
 	  success: function(data) {
 	    cache_thing("user","data",data);
 	    var saved = viewdefaults();
-	    if(!saved || Object.keys(settings).some(function(k) { return saved[k] !== settings[k]; })) {
+	    if(!saved || Object.keys(settings).some(function(k) { return JSON.stringify(saved[k]) !== JSON.stringify(settings[k]); })) {
 		    // an API without settings support answers like a plain /user
 		    alert("Couldn't save view defaults");
 		    return;
 	    }
-	    applyviewdefaults();
-	    $('#saveviewdefaults').addClass('saved');
-	    setTimeout(function() { $('#saveviewdefaults').removeClass('saved'); }, 2000);
+	    // no applyviewdefaults(): the screen already shows what was saved, and it would reset unsaved views
+	    $(el).addClass('saved');
+	    setTimeout(function() { $(el).removeClass('saved'); }, 2000);
 	  },
 	  error: function(error) { console.log("Save view defaults failed: "+JSON.stringify(error)); alert("Couldn't save view defaults"); }
   });
@@ -2492,6 +2521,7 @@ $(document).ready(function(){
 	    }
 	  }
   }
+  applysortdefault(); // login ran before the sorts existed
   
   // TODO: check for premium
   $.each(templates[database]['available'],function(key,val) {

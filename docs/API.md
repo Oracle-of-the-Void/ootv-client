@@ -194,9 +194,10 @@ inputs:
 * Header: Authorization (required)
   * tokens from Cognito
 * database (with settings)
-* settings (optional): JSON of the client's view defaults for that database, saved to the user's `settings[database]`
-  * `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "large": true|false}`; other fields are dropped
-  * the hamburger menu's "Save Views as Default"; the client applies them when the user loads
+* settings (optional): JSON object of client settings for that database, saved to the user's `settings[database]`
+  * any object up to 4096 bytes and 4 levels deep; the client checks values before using them
+  * today: `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "sort": "<searchsorts key>", "sortdir": "asc"|"desc"}`
+  * the hamburger menu's "Save ..." items (all, or search/card/list view or sort alone, merged into what's saved); the client applies them when the user loads
 
 outputs:
 

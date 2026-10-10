@@ -44,7 +44,11 @@
       <li class="dropdown menuone"><svg class="feather"><use xlink:href="res/feather-sprite.svg#menu"></svg>
 	<ul>
 	  <li><span onclick="localStorage.clear(); window.location = window.location.href.substr(0, window.location.href.indexOf('#'));" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
-	  <li class="showonlogin" style="display:none"><span id="saveviewdefaults" onclick="saveviewdefaults();">Save Views as Default <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('all',this);">Save All as Default <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('search',this);">Save Search View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('card',this);">Save Card View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('list',this);">Save List View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('sort',this);">Save Sort <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
     <!-- TODO: make this reload a little more friendly with push/pop history state -->
     <!--	  <li>Settings/whatnot here</li> -->
 
