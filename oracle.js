@@ -1525,7 +1525,10 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
     //console.log(listdata);
     console.log("sorting with: "+sort);
-    listdata.sort(databasesort[database][sort] != undefined?databasesort[database][sort]:
+    // games without list sorts/headers (pathfinder-pawns) fall back to title order, no headers
+    var gamesort = databasesort[database] || {};
+    var gameheaderize = headerize[database] || {};
+    listdata.sort(gamesort[sort] != undefined?gamesort[sort]:
 		  function(a,b){
 		      var x = a.title[0].toLowerCase();
 		      var y = b.title[0].toLowerCase();
@@ -1541,7 +1544,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	break;
     default:
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{
+	    var html = getactivetemplate('list').render(gameheaderize[sort] != undefined ? gameheaderize[sort](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database
@@ -1555,7 +1558,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
-	    var text = templates[database]['compiled'][textparts[0]].render((headerize[database]['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? headerize[database]['deck'](listdata) : listdata,{
+	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
