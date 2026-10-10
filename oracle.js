@@ -1963,20 +1963,31 @@ function dosearchpostcallback(qs) {
     }
 }
 
+// switch the main content area to one of the result* views (menubar view icons, about, admin)
+function showview(view) {
+    if($('#' + view).is(":visible")) {
+	return;
+    }
+    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
+    $(".viewicons button").removeClass("searchviewactive");
+    $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
+    $('#' + view).fadeIn();
+    updateviewbuttons();
+}
 function showcard() {
-    $('#tabs a[name=resultcard]').click();
+    showview('resultcard');
 //    $("#resultsearch").hide();
 //    $("#resultlist").hide();
 //    $("#resultcard").show();
 }
 function showlist() {
-    $('#tabs a[name=resultlist]').click();
+    showview('resultlist');
 //    $("#resultsearch").hide();
 //    $("#resultlist").show();
 //    $("#resultcard").hide();
 }
 function showsearch() {
-    $('#tabs a[name=resultsearch]').click();
+    showview('resultsearch');
 //    $("#resultsearch").show();
 //    $("#resultlist").hide();
 //    $("#resultcard").hide();
@@ -2230,7 +2241,7 @@ function activatetemplate(type,template) {
 }
 // the result tab on screen: search, card, list, about, ...
 function currentresulttab() {
-  return ($("#tabs li#current a").attr("name") || '').replace(/^result/,'');
+  return ($(".ui-layout-center div[id^=result]:visible").attr("id") || '').replace(/^result/,'');
 }
 // which output the menubar template buttons drive: the search, card or list view on screen, else search
 function viewbuttontype() {
@@ -2484,21 +2495,7 @@ $(document).ready(function(){
   })(jQuery);
   
   $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-  $("#tabs li:first").attr("id","current"); // Activate the first tab
-  $("#resultabout").fadeIn(); // Show first tab's content
-  $('#tabs a').click(function(e) {
-    e.preventDefault();
-    if ($(this).closest("li").attr("id") == "current"){ //detection for current tab
-      return;
-    }
-    else{
-	    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-      $("#tabs li").attr("id",""); //Reset id's
-      $(this).parent().attr("id","current"); // Activate this
-      $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
-      updateviewbuttons();
-    }
-  });
+  showview('resultabout');
   
   //TODO:  put some stuff in here into functions.   make sure order optimized.
   searchcache[database] = {

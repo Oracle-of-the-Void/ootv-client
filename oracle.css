@@ -566,76 +566,15 @@ div#maincontent {
 .ui-layout-toggler-north-open    { background: url(res/toggle-up.gif) no-repeat center left !important; }
 
 
-/* TODO:  make the tab colors match my other colors...   along the same vein, i think listitem needs even/odd swapped if i choose the light colored tabs vs the dark */
-#tabs {
-  font-size: large;
-  font-family: "L5R Title";
-  overflow: hidden;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* view switcher icons in the menubar (search / card / directory / list, help); buttons styled by .searchviewgroup */
+div.menubar nav li.viewicons {
+  padding-top: 3px;
 }
-
-#tabs li {
-      float: left;
-      margin: 0 .375em 0 0 ;
-}
-#tabs li.r { 
-  float: right;
-}
-
-#tabs a, #tabs span {
-  position: relative;
-  background: #ddd;
-  background-image: linear-gradient(to bottom, #fff, #ddd);  
-  text-decoration: none;
-  color: #444;
-  text-shadow: 0 1px 0 rgba(255,255,255,.8);
-  box-shadow: 0 2px 2px rgba(0,0,0,.4);
-}
-
-#tabs a {
-  padding: .3em 1.5em;
-  border-radius: 5px 0 0 0;
-  float: left;
-}
-#tabs span { 
-  padding: .3em;
-  float: right;
-  border-radius: 5px;
- }
-#tabs span:empty { display:none; }
-#tabs a:hover,
-#tabs a:hover::after,
-#tabs a:focus,
-#tabs a:focus::after {
-  background: #fff;
-}
-
-#tabs a:focus {
-  outline: 0;
-}
-
-#tabs a::after {
-  content:'';
-  position:absolute;
-  z-index: 1;
-  top: 0;
-  right: -.375em;  
-  bottom: 0;
-  width: .875em;
-  background: #ddd;
-  background-image: linear-gradient(to bottom, #fff, #ddd);  
-  box-shadow: 2px 2px 2px rgba(0,0,0,.4);
-  transform: skew(10deg);
-  border-radius: 0 5px 0 0;  
-}
-
-#tabs #current a,
-#tabs #current a::after {
-  background: #fff;
-  z-index: 3;
+div.menubar nav li.numresultsmenu {
+  font-family: "Times New Roman",Georgia,Serif;
+  font-size: medium;
+  padding-top: 7px;
+  cursor: default;
 }
 
 div[class^=result] .randarea { 

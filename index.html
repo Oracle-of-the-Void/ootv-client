@@ -43,6 +43,7 @@
     <ul>
       <li class="dropdown menuone"><svg class="feather"><use xlink:href="res/feather-sprite.svg#menu"></svg>
 	<ul>
+	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="localStorage.clear(); window.location = window.location.href.substr(0, window.location.href.indexOf('#'));" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
 	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('all',this);">Save All as Default <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
 	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('search',this);">Save Search View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
@@ -60,9 +61,22 @@
 	<ul class="dropdown gamelist">
 	</ul>
       </li>
+      <li class="viewicons">
+	<span class="searchviewgroup">
+	<button aria-label="Search results" data-balloon-pos="down" data-view="resultsearch" onclick="showview('resultsearch');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></button>
+	<button aria-label="Card" data-balloon-pos="down" data-view="resultcard" onclick="showview('resultcard');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg></button>
+	<button aria-label="Directory" data-balloon-pos="down" data-view="resultdir" onclick="showview('resultdir');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></button>
+	<button aria-label="List" data-balloon-pos="down" data-view="resultlist" onclick="showview('resultlist');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+	</span>
+	<span class="searchviewgroup">
+	<button aria-label="Help" data-balloon-pos="down" data-view="resulthelp" onclick="showview('resulthelp');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#help-circle"></svg></button>
+	</span>
+      </li>
+      <li class="numresultsmenu"><span class="numresults"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
 	  <li id="userinfo-drop">...</li>
+	  <li class="showonadmin" onclick="showview('resultadmin');">Admin <svg class="feather"><use xlink:href="res/feather-sprite.svg#tool"></svg></li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
       </li>
@@ -187,16 +201,6 @@
 <!-- end search area -->
 <!-- <br clear="all" /> -->
 <div class="ui-layout-center" id="maincontent"> <!-- main content area -->
-  <ul id="tabs">
-    <li><a href="#" name="resultabout">About</a></li>
-    <li><a href="#" name="resultsearch">Search</a></li>
-    <li><a href="#" name="resultcard">Card</a></li>
-    <li><a href="#" name="resultdir">Directory</a></li>
-    <li><a href="#" name="resultlist">List</a></li>
-    <li><a href="#" name="resulthelp">Help</a></li>
-    <li><a href="#" name="resultadmin" class="showonadmin">Admin</a></li>
-    <li class="r"><span class="numresults"></span></li>
-  </ul>
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet, Do a Search and click on a card.</div></div>
 <div class="resultdir" id="resultdir">
   <div class="listitem directorylistheader">
