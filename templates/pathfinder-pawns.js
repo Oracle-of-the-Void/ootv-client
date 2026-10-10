@@ -10,39 +10,42 @@ dbinfo['pathfinder-pawns'] = {
     'imageuri': 'https://images.oracleofthevoid.com/pathfinder-pawns/',
     'description':'Printed on sturdy cardstock, each pawn contains a beautiful full-color image of a character from Pathfinder RPG, and slots into a size-appropriate plastic base, making it easy to use in play alongside traditional metal or plastic miniatures.'
 };
-/*databasesort['initiald'] = {
+// pawns have no decks: the "deck" sort and headers group by Type, then title
+databasesort['pathfinder-pawns'] = {
     deck: function (a,b) {
-	if (a.type.join() > b.type.join()) return 1;
-	if (b.type.join() > a.type.join()) return -1;
+	var at = (a.type||[]).join(), bt = (b.type||[]).join();
+	if (at > bt) return 1;
+	if (bt > at) return -1;
 	
 	if (a.title.join() > b.title.join()) return 1;
 	if (b.title.join() > a.title.join()) return -1;
 	
 	return 0;
     }
-}; */
-// deck headerizer is generalizable as any game that uses multiple "decks" and "types".
-/* headerize['initiald'] = {
+};
+headerize['pathfinder-pawns'] = {
     deck: function(listdata) {
 	var sumstype = {};
 	var counttype = {};
 	listdata.forEach(function(c) {
-	    if(sumstype[c.type.join()] === undefined) { sumstype[c.type.join()] = 0; counttype[c.type.join()] = 0; }
-	    sumstype[c.type.join()]+=c.listquantity;
-	    counttype[c.type.join()] += 1;
+	    var t = (c.type||[]).join();
+	    if(sumstype[t] === undefined) { sumstype[t] = 0; counttype[t] = 0; }
+	    sumstype[t]+=c.listquantity;
+	    counttype[t] += 1;
 	});
-	var lasttype = '';
+	var lasttype = null;
 	var listout = [];
 	listdata.forEach(function(c) {
-	    if(c.type.join() != lasttype) {
-		lasttype = c.type.join();
-		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lasttype]+") ["+counttype[lasttype]+" distinct]", typetitle: true});
+	    var t = (c.type||[]).join();
+	    if(t != lasttype) {
+		lasttype = t;
+		listout.push({cardid: 0, subtitle: (t || "Other")+" - ("+sumstype[t]+") ["+counttype[t]+" distinct]", typetitle: true});
 	    }
 	    listout.push(c);
 	});
 	return listout;
     }
-}; */
+};
 
 searchables['pathfinder-pawns'] = {
   "quick": { "type": "quick" },
@@ -190,7 +193,7 @@ templates['pathfinder-pawns'] = {
     'default': { 
 	'search': 'search',
 	'card': 'card',
-	'list': 'list' 
+	'list': 'visual-deck' 
     },
     'compiled': {},
     'active': {},

@@ -2,6 +2,7 @@
 
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
@@ -43,7 +44,13 @@
     <ul>
       <li class="dropdown menuone"><svg class="feather"><use xlink:href="res/feather-sprite.svg#menu"></svg>
 	<ul>
+	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="localStorage.clear(); window.location = window.location.href.substr(0, window.location.href.indexOf('#'));" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('all',this);">Save All as Default <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('search',this);">Save Search View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('card',this);">Save Card View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('list',this);">Save List View <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('sort',this);">Save Sort <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
     <!-- TODO: make this reload a little more friendly with push/pop history state -->
     <!--	  <li>Settings/whatnot here</li> -->
 
@@ -55,26 +62,45 @@
 	<ul class="dropdown gamelist">
 	</ul>
       </li>
+      <li class="viewicons">
+	<span class="searchviewgroup">
+	<button aria-label="Search Results (again: show/hide search form)" data-balloon-pos="down-left" data-view="resultsearch" onclick="searchviewbutton();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></button>
+	<button aria-label="Card Details" data-balloon-pos="down" data-view="resultcard" onclick="showview('resultcard');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg></button>
+	<button aria-label="List/Deck Directory" data-balloon-pos="down" data-view="resultdir" onclick="showview('resultdir');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></button>
+	<button aria-label="Deck/List Details" data-balloon-pos="down" data-view="resultlist" onclick="showview('resultlist');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+	</span>
+	<span class="searchviewgroup">
+	<button aria-label="Help" data-balloon-pos="down" data-view="resulthelp" onclick="showview('resulthelp');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#help-circle"></svg></button>
+	</span>
+      </li>
+      <li class="numresultsmenu"><span class="numresults"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
 	  <li id="userinfo-drop">...</li>
+	  <li class="showonadmin" onclick="showview('resultadmin');">Admin <svg class="feather"><use xlink:href="res/feather-sprite.svg#tool"></svg></li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
       </li>
-      <li>Formats:</li>
-      <li class="pullmenu">Search
-      <ul class="dropdown" id="searchtemplatedropdown">
-      </ul>
-      </li>
-      <li class="pullmenu">Card
-      <ul class="dropdown" id="cardtemplatedropdown">
-      </ul>
-      </li>
-      <li class="pullmenu">List
-      <ul class="dropdown" id="listtemplatedropdown">
-      </ul>
-      </li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In/Register</span></li>
+      <li class="right menusort sortbuttons">
+	<span class="searchviewgroup"><button aria-label="Sort"><svg class="feather"><use xlink:href="res/feather-sprite.svg#filter"></svg></button></span>
+	<ul class="dropdown" id="sortdropdown">
+	</ul>
+      </li>
+      <li class="right searchviewbuttons">
+	<span class="searchviewgroup" id="templatebuttons">
+	<button aria-label="Detailed List" data-balloon-pos="down" data-template="search" onclick="viewbutton('search');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
+	<button aria-label="Visual Spoiler" data-balloon-pos="down" data-template="visual" onclick="viewbutton('visual');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
+	<button aria-label="Simple List" data-balloon-pos="down" data-template="list" onclick="viewbutton('list');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+	<button aria-label="Text" data-balloon-pos="down" data-template="html" style="display:none" onclick="viewbutton('html');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-text"></svg></button>
+	<button aria-label="Deck" data-balloon-pos="down" data-template="visual-deck" style="display:none" onclick="viewbutton('visual-deck');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
+	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
+	</span>
+	<span class="searchviewgroup" id="sizebuttons">
+	<button aria-label="Normal size" data-balloon-pos="down-right" data-size="normal" onclick="setlargeview(false);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minimize-2"></svg></button>
+	<button aria-label="Large" data-balloon-pos="down-right" data-size="large" onclick="setlargeview(true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#maximize-2"></svg></button>
+	</span>
+      </li>
     </ul>
   </nav>
 <div id="logarea"></div>
@@ -111,6 +137,7 @@
 <br />
 <div id="deckarea">
 </div>
+<div class="sidebarextras"> <!-- links and ads under the search form; hidden on narrow screens -->
 
 <!--
 <br>
@@ -157,7 +184,7 @@
 <a href="https://chime.com/r/doneisele" target="_new">
 <div style="background-color: white">
   <img style="float: left;" src="res/chime.png" width="32" /><span style="margin-right: 3px; color: green; a:active: green; a:hover: green; a:link: green; a:visited: green; text-decoration: none;">&nbsp; Make a Chime account, set up direct deposit, get $100 and start getting 3.75%</span>
-</a>
+</div></a>
 <br><br><br><br>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- square -->
@@ -168,24 +195,15 @@
      data-ad-format="auto"
      data-full-width-responsive="true"></ins>
 <script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
+     // the ad is hidden on narrow screens (.sidebarextras), where an empty slot makes AdSense throw
+     if(document.querySelector('.sidebarextras').offsetParent) { (adsbygoogle = window.adsbygoogle || []).push({}); }
 </script>
 
-</div>
+</div> <!-- sidebarextras -->
 </div>
 <!-- end search area -->
 <!-- <br clear="all" /> -->
 <div class="ui-layout-center" id="maincontent"> <!-- main content area -->
-  <ul id="tabs">
-    <li><a href="#" name="resultabout">About</a></li>
-    <li><a href="#" name="resultsearch">Search</a></li>
-    <li><a href="#" name="resultcard">Card</a></li>
-    <li><a href="#" name="resultdir">Directory</a></li>
-    <li><a href="#" name="resultlist">List</a></li>
-    <li><a href="#" name="resulthelp">Help</a></li>
-    <li><a href="#" name="resultadmin" class="showonadmin">Admin</a></li>
-    <li class="r"><span class="numresults"></span></li>
-  </ul>
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet, Do a Search and click on a card.</div></div>
 <div class="resultdir" id="resultdir">
   <div class="listitem directorylistheader">
@@ -212,7 +230,6 @@
 <div class="resultadmin" id="resultadmin"><div class="randarea" style="text-align: left;">
   <br><br>Need to have:
   <ul>
-    <li>Image upload</li>
     <li><a href="" onclick="editcard(null,null); return false">New Card</a></li>
     <li>Reporting</li>
   </ul>
@@ -291,6 +308,20 @@ Recent Data Updates for Currently Selected Database:<br>
 <div class="resulthelp" id="resulthelp">
 <div class="randarea">
 <div class="infoplace">
+<!-- community links (same as the sidebar) -->
+<div class="helplinks">
+<a href="https://discord.gg/3ahYmwn" target="_new">
+<img src="res/Discord-Logo%2BWordmark-Color.png" width="125px"></a>
+<a href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new"><div style="background-color: white; display: inline-block; margin: 3px; height: 32px;">
+<svg style="float: left;" class="octicon octicon-mark-github v-align-middle" height="30" viewBox="0 0 16 16" version="1.1" width="30" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration:none;">&nbsp;Report&nbsp;Problems</span>
+</div></a>
+<a href="https://www.patreon.com/oracleofthevoid" target="_new">
+<img src="res/become_a_patron_button@2x.png" width="125px"></a>
+<a href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new">
+<div style="background-color: white; display: inline-block; margin: 3px; height: 32px;">
+<img style="margin-top: 4px; float: left;" src="res/social-youtube-small.png" width="32"><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration: none;">&nbsp;Youtube</span>
+</div></a>
+</div>
 <ul>
 <li>Not everything is completely set yet, so if you have feedback let me know.
 <li>All search boxes are logically AND'ed together.
@@ -519,6 +550,22 @@ printingprimary
 
 </div>
 </script> <!-- template-lists -->
+
+<!-- list view: the list's directory details as a header line -->
+<script id="template-listheader" type="text/x-jsrender">
+<div class="listviewheader upperhead">
+  <span class="listviewname">{{:name}}</span>
+  <span class="listviewdetails">
+    {{:~listtypes[type] || type}}
+    {{if legality}} &#149; {{nbsptospace:legality}}{{/if}}
+    {{if totalcount>0}} &#149; {{:totalcount}} cards ({{:distinctcount}} distinct){{/if}}
+    {{if public}} &#149; Public{{/if}}
+    {{if createdate}} &#149; Created {{formatDate:createdate}}{{/if}}
+    {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
+  </span>
+  {{if notes}}<div class="listviewnotes">{{:notes}}</div>{{/if}}
+</div>
+</script>
 
 <script id="template-card-top" type="text/x-jsrender">
 <div class="listitem">

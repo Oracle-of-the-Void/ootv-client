@@ -60,3 +60,7 @@ For headless checks, use Playwright with Chromium (installed globally; see the w
 `http://localhost:<port>/#game=l5r,#cardid=...` or preview. Use a fresh browser context
 to reproduce a first visit: selects are cached in `localStorage`, so a reload behaves
 differently from a cold load. `page.route()` can delay `/attributes` to force that race.
+
+`docs/MOBILE.md` lists the remaining mobile/touch work and what still needs a real-phone check.
+`docs/TESTING.md` has the detailed techniques: faking login and admin groups, mocking
+API writes, early vs late login timing, fake lists, and per-game differences to cover.

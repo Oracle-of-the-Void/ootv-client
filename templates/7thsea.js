@@ -237,7 +237,7 @@ templates['7thsea'] = {
     'default': { 
 	'search': 'search',
 	'card': 'card',
-	'list': 'list' 
+	'list': 'visual-deck' 
     },
     'compiled': {},
     'active': {},
