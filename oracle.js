@@ -2258,6 +2258,7 @@ function updateviewbuttons() {
 	  }
 	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
   });
+  $(".sortbuttons").toggle(type == 'search'); // sort only applies to search results
   $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
@@ -2414,11 +2415,16 @@ function updatetemplatedropdown(type) {
   $("#"+type+"templatedropdown").html(pulldown);
 }
 function updatesortdropdown(type) {
-  var sortdown = '<li class="menunone pullmenuright menusort">Sort<ul>';
+  var sortitems = sortdropdownitems(type);
+  $("#sortdropdown").html(sortitems); // menubar filter button
+  return '<li class="menunone pullmenuright menusort">Sort<ul>'+sortitems+'</ul></li>';
+}
+function sortdropdownitems(type) {
+  var sortdown = '';
   for (key in searchsorts[database]) {
 	  sortdown += '<li'+(templates[database]['sort'][type] == key?' class="menuactive'+(templates[database]['sortdir'][type]&&templates[database]['sortdir'][type]=='desc'?' searchdesc"':'"'):'')+" onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
   }
-  return sortdown+'</ul></li>';
+  return sortdown;
 }
 function changesort(type,key,rerender=true) {
     // need to change the actual sort value

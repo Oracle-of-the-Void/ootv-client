@@ -773,6 +773,12 @@ nav ul li ul li:last-child {
 /* search output quick-switch buttons in the menubar (detailed / visual / simple) */
 div.menubar nav li.searchviewbuttons {
   padding-top: 3px;
+  padding-right: 0;
+}
+/* sort (filter) group sits right of the view groups; its dropdown is the search sort list */
+div.menubar nav li.sortbuttons {
+  padding-top: 3px;
+  padding-left: 6px;
   padding-right: .5rem;
 }
 .searchviewgroup {
@@ -790,7 +796,7 @@ div.menubar nav li.searchviewbuttons {
 .searchviewgroup + .searchviewgroup {
   margin-left: 6px;
 }
-.searchviewbuttons button {
+.searchviewgroup button {
   padding: 1px 2px;
   margin: 0;
   border: 1px solid transparent;
@@ -799,11 +805,11 @@ div.menubar nav li.searchviewbuttons {
   color: rgb(96, 96, 96);
   cursor: pointer;
 }
-.searchviewbuttons button:hover {
+.searchviewgroup button:hover {
   color: black;
   border-color: rgb(192, 192, 192);
 }
-.searchviewbuttons button.searchviewactive {
+.searchviewgroup button.searchviewactive {
   color: black;
   border-color: rgb(128, 128, 128);
   background-color: rgb(224, 224, 224);
