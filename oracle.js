@@ -2258,12 +2258,23 @@ function updateviewbuttons() {
   });
   $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
-// menubar template button: switch the view in play; visual follows the size toggle
+// menubar template button: switch the view in play; visual follows the size toggle.
+// debug toggles: a second click goes back to the template it replaced (the Card tab has no other button)
+var debugprevious = {};
 function viewbutton(template) {
+  var type = viewbuttontype();
+  var active = templates[database]['active'][type];
+  if(template == 'debug') {
+	  if(active == 'debug') {
+	    template = debugprevious[type] || templates[database]['default'][type];
+	  } else {
+	    debugprevious[type] = active;
+	  }
+  }
   if(template == 'visual' && largeview && templates[database]['available']['visual-premium']) {
 	  template = 'visual-premium';
   }
-  activatetemplate(viewbuttontype(),template);
+  activatetemplate(type,template);
 }
 // menubar size toggle: Card Details <-> Card Large, Visual Spoiler <-> Visual Spoiler - Large (search and list).
 // Only the tab on screen re-renders (docard would jump to the Card tab); the others pick it up on their next render.
