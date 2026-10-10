@@ -2268,17 +2268,18 @@ function fullgamepermission() {
   var groups = user.oracle[0].groups;
   return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('*'); });
 }
-function updatedebugbutton() {
-  $('.showondebug').toggle(fullgamepermission() && templates[database]['available']['debug'] !== undefined);
+// the result tab on screen: search, card, list, about, ...
+function currentresulttab() {
+  return ($("#tabs li#current a").attr("name") || '').replace(/^result/,'');
 }
-// menubar debug button: switch whichever of search/card/list is on screen to the debug template
+// shown only with full game permission and a debug template for the view on screen
+function updatedebugbutton() {
+  var debug = templates[database]['available']['debug'];
+  $('.showondebug').toggle(fullgamepermission() && debug !== undefined && debug.places.includes(currentresulttab()));
+}
+// menubar debug button: switch the search/card/list view on screen to the debug template
 function debugview() {
-  for (type of ['search','card','list']) {
-	  if($("#result"+type).is(":visible")) {
-	    activatetemplate(type,'debug');
-	    return;
-	  }
-  }
+  activatetemplate(currentresulttab(),'debug');
 }
 function updatesizebuttons() {
   $(".searchviewbuttons button[data-size]").each(function() {
@@ -2369,6 +2370,7 @@ $(document).ready(function(){
       $("#tabs li").attr("id",""); //Reset id's
       $(this).parent().attr("id","current"); // Activate this
       $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
+      updatedebugbutton();
     }
   });
   
