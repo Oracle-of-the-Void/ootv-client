@@ -38,8 +38,11 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
   rendering, and expect `templates not loaded yet` in the console if you don't.
 - A search takes ~3 s against the live API.
 - **Changing only the URL hash doesn't switch games.** Use a new page (or context) per game.
-- `docard()` always switches to the Card tab and `dosearch()` to the Search tab (and pushes
-  history), so code that re-renders a view that isn't on screen will yank the user's tab.
+- `docard()` switches to the Card view (and pushes history) unless called with
+  `switchview=false`, and `dosearch()` always switches to Search, so code that re-renders a
+  view that isn't on screen can yank the user's view. A new search renders its first card
+  behind the scenes (`defaultcard()`), and the directory loads its first list
+  (`listinfo(id,false)`) when the List view is empty.
   The menubar code re-renders only the tab on screen; test that switching from another tab
   doesn't jump.
 - Hover a menu (`page.hover`) before clicking its items; move the mouse away before

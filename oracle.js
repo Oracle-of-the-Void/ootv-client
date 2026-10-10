@@ -422,6 +422,11 @@ function listinfocallback() {
 	    listinfoupdate(field_userid[1],field_userid[0].replace('list_',''),value);
 	  }
   });
+  // nothing in the list view yet: load the first list in the directory behind the scenes
+  var lists = cache_thing("list","data").lists.Items;
+  if(!$("#lastlistid").val() && lists.length) {
+	  listinfo(lists[0].listid,false);
+  }
   //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
 }
 
@@ -551,6 +556,10 @@ function removelist(listid) {
 	oldlists.lists.Items.splice(ind-1,1);
 	cache_thing("list","data",oldlists);
 	$("#listitem_"+listid).remove();
+	if($("#lastlistid").val() == listid) {
+	    $("#lastlistid").val('');
+	    $("#resultlist").html('<div class="randarea">No list selected, click on Directory</div>');
+	}
 	listinfocallback();
     }
 }
@@ -1438,6 +1447,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  });
 	  $("#resultsearch").html(rendercards(data,datarequest,qs));
 	  dosearchpostcallback(qs);
+	  if(from == 0) {
+	    defaultcard(qs);
+	  }
 	  updates[database]('#resultsearch');
   } else {
 	  if(from<1){
@@ -1480,6 +1492,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      cache_card(dataitem);
 		      });
 		      dosearchpostcallback(qs);
+		      if(from == 0) {
+			      defaultcard(qs);
+		      }
 		    } else {
       		$("#resultsearch").html(searcherror['empty']);
 		    }
@@ -1499,8 +1514,8 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 
 
 // *****************************88 RENDERING DATA ********************
-function docardid(id,prid=null,qs=null,pop=false) {
-    docard(cache_card_fetch(id),prid,qs,pop);
+function docardid(id,prid=null,qs=null,pop=false,switchview=true) {
+    docard(cache_card_fetch(id),prid,qs,pop,switchview);
 }
 function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["rendering list: "+sort,listid,listoutput]);
@@ -1730,7 +1745,8 @@ function data_url_to_download(data_url, filename) {
 // If a list is being displayed, render card and switch to it, pop onto history so back comes back to the list
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
-function docard(carddata,prid=null,qs=null,pop=false) {
+// switchview=false renders the card view behind the scenes: no history entry, the view on screen stays
+function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var carddata = JSON.parse(JSON.stringify(carddata));
   console.log(["rendering: "+carddata['cardid']+(prid?'/'+prid:''),qs]);
   if(getactivetemplate('card') === undefined) {
@@ -1827,6 +1843,9 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   $(".printing:not([data-printingid="+showpr+"])").hide();
   $("#lastprintid").val(showpr);
 
+  if(!switchview) {
+	  return;
+  }
   if($("#resultsearch").is(":visible")) {
 	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
   } else if($("#resultcard").is(":visible")) {
@@ -1963,6 +1982,13 @@ function dosearchpostcallback(qs) {
     }
 }
 
+// a new search puts its first result in the card view, as if it had been clicked (without leaving the search view)
+function defaultcard(qs) {
+    var ids = searchcache[database]['querydata'][qs];
+    if(ids && ids.length) {
+	docardid(ids[0],null,qs,false,false);
+    }
+}
 // switch the main content area to one of the result* views (menubar view icons, about, admin)
 function showview(view) {
     if($('#' + view).is(":visible")) {
