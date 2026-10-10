@@ -197,6 +197,7 @@ inputs:
 * settings (optional): JSON object of client settings for that database, saved to the user's `settings[database]`
   * any object up to 4096 bytes and 4 levels deep; the client checks values before using them
   * today: `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "sort": "<searchsorts key>", "sortdir": "asc"|"desc"}`
+    plus `"mobile": {same keys}`: phones (narrow screens) save and read their own set there
   * the hamburger menu's "Save ..." items (all, or search/card/list view or sort alone, merged into what's saved); the client applies them when the user loads
 
 outputs:

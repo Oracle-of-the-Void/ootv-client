@@ -2374,9 +2374,18 @@ function viewbutton(template) {
   }
   activatetemplate(type,template);
 }
-// saved view defaults: users.settings[database] = {search, card, list, sort, sortdir}, saved via /user?settings=
+// saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, mobile: {same keys}}, saved via /user?settings=
 // (the API stores any small object; sizes come from the templates, an older saved `large` is ignored)
+// phones save and read their own set under `mobile`, so they can use a different view than desktop.
 function viewdefaults() {
+  var saved = savedgamesettings();
+  if(saved && narrowscreen()) {
+	  saved = saved['mobile'] || null;
+  }
+  return saved;
+}
+// everything saved for this game, desktop and mobile
+function savedgamesettings() {
   var user = cache_thing("user","data");
   if(!(user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings[database])) {
 	  return null;
@@ -2435,6 +2444,7 @@ function applysortdefault() {
 // save one part (search, card, list, sort) or 'all' as this game's default, merged into what's already saved
 function saveviewdefaults(part='all',el=null) {
   var active = templates[database]['active'];
+  var gamesettings = Object.assign({}, savedgamesettings() || {});
   var settings = Object.assign({}, viewdefaults() || {});
   delete settings['large']; // older saves; sizes come from the templates now
   if(part == 'all' || part == 'sort') {
@@ -2447,9 +2457,15 @@ function saveviewdefaults(part='all',el=null) {
 	    settings[type] = (active[type] == 'debug') ? (debugprevious[type] || templates[database]['default'][type]) : active[type];
 	  }
   }
+  if(narrowscreen()) {
+	  gamesettings['mobile'] = settings;
+  } else {
+	  settings['mobile'] = gamesettings['mobile']; // keep the phone's set (dropped by JSON if there isn't one)
+	  gamesettings = settings;
+  }
   $.ajax({
 	  type: 'GET',
-	  url: apiuri+"/user?database="+database+"&settings="+encodeURIComponent(JSON.stringify(settings)),
+	  url: apiuri+"/user?database="+database+"&settings="+encodeURIComponent(JSON.stringify(gamesettings)),
 	  dataType: 'json',
 	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
 	  success: function(data) {
@@ -2603,6 +2619,10 @@ $(document).ready(function(){
 	  }
   }
   applysortdefault(); // login ran before the sorts existed
+  // phones default search results to the Visual Spoiler, unless a saved phone default says otherwise
+  if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
+	  templates[database]['default']['search'] = 'visual';
+  }
   
   // TODO: check for premium
   $.each(templates[database]['available'],function(key,val) {
