@@ -21,6 +21,10 @@ databasesort['l5r'] = {
 	if (a.deck.join() == "Dynasty" && b.deck.join() != "Dynasty") return -1;
 	if (b.deck.join() == "Dynasty" && a.deck.join() != "Dynasty") return 1;
 	
+	// then the remaining decks in name order, so each deck stays together
+	if (a.deck.join() > b.deck.join()) return 1;
+	if (b.deck.join() > a.deck.join()) return -1;
+	
 	if (a.type.join() > b.type.join()) return 1;
 	if (b.type.join() > a.type.join()) return -1;
 	
@@ -59,11 +63,11 @@ headerize['l5r'] = {
 	listdata.forEach(function(c) {
 	    if(c.deck.join() != lastdeck) {
 		lastdeck = c.deck.join();
+		lasttype = ''; // each deck starts its own type headers
 		listout.push({cardid: 0, title: lastdeck+" - ("+sumsdeck[lastdeck]+") ["+countdeck[lastdeck]+" distinct]", decktitle: true});
 	    }
 	    if(c.type.join() != lasttype) {
 		lasttype = c.type.join();
-        lastdeck = c.deck.join();
 		listout.push({cardid: 0, subtitle: lasttype+" - ("+sumstype[lastdeck][lasttype]+") ["+counttype[lastdeck][lasttype]+" distinct]", typetitle: true});
 	    }
 	    listout.push(c);
