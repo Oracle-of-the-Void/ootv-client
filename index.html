@@ -62,19 +62,6 @@
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
       </li>
-      <li>Formats:</li>
-      <li class="pullmenu">Search
-      <ul class="dropdown" id="searchtemplatedropdown">
-      </ul>
-      </li>
-      <li class="pullmenu">Card
-      <ul class="dropdown" id="cardtemplatedropdown">
-      </ul>
-      </li>
-      <li class="pullmenu">List
-      <ul class="dropdown" id="listtemplatedropdown">
-      </ul>
-      </li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In/Register</span></li>
       <li class="right menusort sortbuttons">
 	<span class="searchviewgroup"><button aria-label="Sort"><svg class="feather"><use xlink:href="res/feather-sprite.svg#filter"></svg></button></span>
@@ -90,7 +77,7 @@
 	<button aria-label="Deck" data-balloon-pos="down" data-template="visual-deck" style="display:none" onclick="viewbutton('visual-deck');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span>
-	<span class="searchviewgroup">
+	<span class="searchviewgroup" id="sizebuttons">
 	<button aria-label="Normal size" data-balloon-pos="down" data-size="normal" onclick="setlargeview(false);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minimize-2"></svg></button>
 	<button aria-label="Large" data-balloon-pos="down" data-size="large" onclick="setlargeview(true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#maximize-2"></svg></button>
 	</span>

@@ -155,7 +155,7 @@ var updatepending = {};
 var updatecallback = {};
 var database = 'l5r';
 var outputheaders = true;
-var largeview = false;   // menubar size toggle: card-premium / visual-premium when available
+var largeview = {'search': false, 'card': false, 'list': false};   // menubar size toggle per view: card-premium / visual-premium
 if(found = window.location.href.match(/([\w_-]+)\.html/)) {
   if(found && found[1] != 'index') {
 	  database = found[1];
@@ -2204,10 +2204,9 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 
 function activatetemplate(type,template) {
   templates[database]['active'][type] = template;
-  // picking a card or visual template from the dropdowns also sets the size toggle
-  if(['card','visual'].includes(template.replace(/-premium$/,'')) && ['card','search','list'].includes(type)) {
-	  largeview = template.endsWith('-premium');
-	  updatesizebuttons();
+  // a card or visual template sets that view's size toggle
+  if(['card','visual'].includes(template.replace(/-premium$/,'')) && type in largeview) {
+	  largeview[type] = template.endsWith('-premium');
   }
   if(type == 'search') {
 	  if( $('#lastsearchquery').val() ) {
@@ -2224,7 +2223,7 @@ function activatetemplate(type,template) {
 	    docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
 	  }
   }
-  updatetemplatedropdown(type);
+  updatemenubar(type);
 }
 // the result tab on screen: search, card, list, about, ...
 function currentresulttab() {
@@ -2259,6 +2258,7 @@ function updateviewbuttons() {
 	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
   });
   $(".sortbuttons").toggle(type == 'search'); // sort only applies to search results
+  updatesizebuttons();
   $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
@@ -2274,12 +2274,13 @@ function viewbutton(template) {
 	    debugprevious[type] = active;
 	  }
   }
-  if(template == 'visual' && largeview && templates[database]['available']['visual-premium']) {
+  if(template == 'visual' && largeview[type] && templates[database]['available']['visual-premium']) {
 	  template = 'visual-premium';
   }
   activatetemplate(type,template);
 }
-// saved view defaults: users.settings[database] = {search, card, list, large}, saved via /user?settings=
+// saved view defaults: users.settings[database] = {search, card, list}, saved via /user?settings=
+// (sizes come from the templates; an older saved `large` is ignored)
 function viewdefaults() {
   var user = cache_thing("user","data");
   if(!(user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings[database])) {
@@ -2297,13 +2298,13 @@ function applyviewdefaults() {
   var available = templates[database]['available'];
   for (type of ['search','card','list']) {
 	  var key = saved[type];
-	  if(key == 'visual' && saved.large && available['visual-premium']) {
-	    key = 'visual-premium';
-	  }
 	  if(!key || available[key] === undefined || !available[key].places.includes(type)) {
 	    continue;
 	  }
 	  templates[database]['default'][type] = key;
+	  if(['card','visual'].includes(key.replace(/-premium$/,''))) {
+	    largeview[type] = key.endsWith('-premium');
+	  }
 	  if(templates[database]['compiled'][key] === undefined || templates[database]['active'][type] == key) {
 	    continue;
 	  }
@@ -2311,17 +2312,13 @@ function applyviewdefaults() {
 	    activatetemplate(type,key);
 	  } else {
 	    templates[database]['active'][type] = key;
-	    updatetemplatedropdown(type);
 	  }
   }
-  if(saved.large !== undefined) {
-	  largeview = saved.large;
-	  updatesizebuttons();
-  }
+  updateviewbuttons();
 }
 function saveviewdefaults() {
   var active = templates[database]['active'];
-  var settings = { 'large': largeview };
+  var settings = {};
   for (type of ['search','card','list']) {
 	  // debug is a temporary toggle: save what it replaced
 	  settings[type] = (active[type] == 'debug') ? (debugprevious[type] || templates[database]['default'][type]) : active[type];
@@ -2363,34 +2360,32 @@ function refreshviewdefaults() {
 	  error: function(error) { console.log("User refresh failed: "+JSON.stringify(error)); }
   });
 }
-// menubar size toggle: Card Details <-> Card Large, Visual Spoiler <-> Visual Spoiler - Large (search and list).
-// Only the tab on screen re-renders (docard would jump to the Card tab); the others pick it up on their next render.
+// menubar size toggle, for the view in play only: Card Details <-> Card Large, or a search/list
+// Visual Spoiler <-> Visual Spoiler - Large (other layouts keep the choice for the grid button).
+// About/Directory/Help drive search without re-rendering it (dosearch would jump to the Search tab).
 function setlargeview(large) {
-  largeview = large;
+  var type = viewbuttontype();
   var available = templates[database]['available'];
   var active = templates[database]['active'];
-  var want = {
-	  'card': (large && available['card-premium']) ? 'card-premium' : 'card',
-	  'search': (large && available['visual-premium']) ? 'visual-premium' : 'visual',
-	  'list': (large && available['visual-premium']) ? 'visual-premium' : 'visual'
-  };
-  for (type in want) {
-	  // only flip views already showing that template family (card, or a visual spoiler)
-	  if((active[type]||'').replace(/-premium$/,'') != want[type].replace(/-premium$/,'') || active[type] == want[type]) {
-	    continue;
-	  }
+  largeview[type] = large;
+  var family = (type == 'card') ? 'card' : 'visual';
+  var want = (large && available[family+'-premium'] && available[family+'-premium'].places.includes(type)) ? family+'-premium' : family;
+  if((active[type]||'').replace(/-premium$/,'') == family && active[type] != want) {
 	  if(currentresulttab() == type) {
-	    activatetemplate(type,want[type]);
+	    activatetemplate(type,want);
 	  } else {
-	    active[type] = want[type];
-	    updatetemplatedropdown(type);
+	    active[type] = want;
 	  }
   }
   updatesizebuttons();
 }
+// size buttons follow the view in play; the group hides where the game has no large version
 function updatesizebuttons() {
-  $(".searchviewbuttons button[data-size]").each(function() {
-	  $(this).toggleClass("searchviewactive", ($(this).data("size") == 'large') == largeview);
+  var type = viewbuttontype();
+  var large = templates[database]['available'][(type == 'card' ? 'card' : 'visual')+'-premium'];
+  $("#sizebuttons").toggle(large !== undefined && large.places.includes(type));
+  $("#sizebuttons button[data-size]").each(function() {
+	  $(this).toggleClass("searchviewactive", ($(this).data("size") == 'large') == largeview[type]);
   });
 }
 function getactivetemplate(type) {
@@ -2400,24 +2395,12 @@ function getactivetemplateoverride(type) {
   var t=templates[database]['available'][templates[database]['active'][type]];
   return t.override?t.override:{};
 }
-function updatetemplatedropdown(type) {
-  var pulldown = "";
-  for ( key in templates[database].available ) {
-	  if(templates[database]['available'][key].places.includes(type)) {
-	    pulldown += "<li "+(templates[database]['active'][type] == key?'class="menuactive" ':'')+"onclick=\"activatetemplate('"+type+"','"+key+"');\">"+templates[database]['available'][key]['longname']+"</li>";
-	  }
-  }
+// refresh the menubar after a template or sort change: sort dropdown, view and size buttons
+function updatemenubar(type) {
   if(type == 'search') {
-	  pulldown += updatesortdropdown(type);
+	  $("#sortdropdown").html(sortdropdownitems(type));
   }
   updateviewbuttons();
-  updatesizebuttons();
-  $("#"+type+"templatedropdown").html(pulldown);
-}
-function updatesortdropdown(type) {
-  var sortitems = sortdropdownitems(type);
-  $("#sortdropdown").html(sortitems); // menubar filter button
-  return '<li class="menunone pullmenuright menusort">Sort<ul>'+sortitems+'</ul></li>';
 }
 function sortdropdownitems(type) {
   var sortdown = '';
@@ -2440,7 +2423,7 @@ function changesort(type,key,rerender=true) {
 	templates[database]['sortdir']['search'] = 'asc';
     }
     // need to update menus
-    updatetemplatedropdown(type);
+    updatemenubar(type);
     // need to re-render
     if(rerender) {
 	dosearch(0);
@@ -2527,7 +2510,7 @@ $(document).ready(function(){
 		      }
 		    }
 		    for (type of templates[database]['available'][key].places) {
-		      updatetemplatedropdown(type);
+		      updatemenubar(type);
 		    }
 		    // reference like:   templates[database]['compiled'][templates[database].active.search]
         /*		if(Object.keys(templateload[database]['search'])[0] == key) {
