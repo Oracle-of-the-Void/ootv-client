@@ -782,6 +782,9 @@ div.menubar nav li.searchviewbuttons {
   border: 1px solid rgb(128, 128, 128);
   border-radius: 4px;
 }
+.searchviewgroup + .searchviewgroup {
+  margin-left: 6px;
+}
 .searchviewbuttons button {
   padding: 1px 2px;
   margin: 0;

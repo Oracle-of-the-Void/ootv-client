@@ -155,6 +155,7 @@ var updatepending = {};
 var updatecallback = {};
 var database = 'l5r';
 var outputheaders = true;
+var largeview = false;   // menubar size toggle: card-premium / visual-premium when available
 if(found = window.location.href.match(/([\w_-]+)\.html/)) {
   if(found && found[1] != 'index') {
 	  database = found[1];
@@ -2199,6 +2200,11 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 
 function activatetemplate(type,template) {
   templates[database]['active'][type] = template;
+  // picking a card or visual template from the dropdowns also sets the size toggle
+  if(['card','visual'].includes(template.replace(/-premium$/,'')) && (type == 'card' || type == 'search')) {
+	  largeview = template.endsWith('-premium');
+	  updatesizebuttons();
+  }
   if(type == 'search') {
 	  if( $('#lastsearchquery').val() ) {
 	    dosearch(0);
@@ -2216,6 +2222,46 @@ function activatetemplate(type,template) {
   }
   updatetemplatedropdown(type);
 }
+// menubar search output buttons: visual follows the size toggle
+function searchview(template) {
+  if(template == 'visual' && largeview && templates[database]['available']['visual-premium']) {
+	  template = 'visual-premium';
+  }
+  activatetemplate('search',template);
+}
+// menubar size toggle: Card Details <-> Card Large, Visual Spoiler <-> Visual Spoiler - Large.
+// Only the tab on screen re-renders (docard would jump to the Card tab); the other picks it up on its next render.
+function setlargeview(large) {
+  largeview = large;
+  var available = templates[database]['available'];
+  var active = templates[database]['active'];
+  var card = (large && available['card-premium']) ? 'card-premium' : 'card';
+  if(active['card'] != card) {
+	  if($("#resultcard").is(":visible")) {
+	    activatetemplate('card',card);
+	  } else {
+	    active['card'] = card;
+	    updatetemplatedropdown('card');
+	  }
+  }
+  if((active['search']||'').replace(/-premium$/,'') == 'visual') {
+	  var visual = (large && available['visual-premium']) ? 'visual-premium' : 'visual';
+	  if(active['search'] != visual) {
+	    if($("#resultsearch").is(":visible")) {
+		    activatetemplate('search',visual);
+	    } else {
+		    active['search'] = visual;
+		    updatetemplatedropdown('search');
+	    }
+	  }
+  }
+  updatesizebuttons();
+}
+function updatesizebuttons() {
+  $(".searchviewbuttons button[data-size]").each(function() {
+	  $(this).toggleClass("searchviewactive", ($(this).data("size") == 'large') == largeview);
+  });
+}
 function getactivetemplate(type) {
     return templates[database]['compiled'][templates[database]['active'][type]];
 }
@@ -2232,9 +2278,9 @@ function updatetemplatedropdown(type) {
   }
   if(type == 'search') {
 	  pulldown += updatesortdropdown(type);
-	  $(".searchviewbuttons button").each(function() {
-	    $(this).toggleClass("searchviewactive", $(this).data("template") == templates[database]['active']['search']);
-	  });
+	  $(".searchviewbuttons button[data-template]").each(function() {
+	    $(this).toggleClass("searchviewactive", $(this).data("template") == (templates[database]['active']['search']||'').replace(/-premium$/,''));
+	  });	  updatesizebuttons();
   }
   $("#"+type+"templatedropdown").html(pulldown);
 }
