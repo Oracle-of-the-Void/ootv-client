@@ -2312,7 +2312,10 @@ function updateviewbuttons() {
 	  }
 	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
   });
-  $(".sortbuttons").toggle(type == 'search'); // sort only applies to search results
+  // directory, about, help, admin have no formats: hide the whole format/size/sort group there
+  var formatview = ['search','card','list'].includes(currentresulttab());
+  $(".searchviewbuttons").toggle(formatview);
+  $(".sortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
   $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
