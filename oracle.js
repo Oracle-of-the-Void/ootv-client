@@ -2602,7 +2602,7 @@ $(document).ready(function(){
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html(dbinfo[database].name);
+  $('.gameinfo-game').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">&nbsp;'+dbinfo[database].name);
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
   $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
   
