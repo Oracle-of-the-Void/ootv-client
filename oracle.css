@@ -589,6 +589,11 @@ div#maincontent {
 div.menubar nav li.viewicons {
   padding-top: 3px;
 }
+/* menubar game logo: the 64px file, so it stays sharp when phones show it doubled */
+.gameinfo-game img {
+  width: 15px;
+  height: 15px;
+}
 div.menubar nav li.numresultsmenu {
   font-family: "Times New Roman",Georgia,Serif;
   font-size: medium;
@@ -852,6 +857,11 @@ div.menubar nav li.sortbuttons {
   }
   div.menubar nav li.viewicons {
     padding-top: 3px;
+  }
+  /* menubar icons at double size for fingers (not the icons inside the dropdowns) */
+  div.menubar nav > ul > li > svg.feather, div.menubar nav .searchviewgroup svg.feather, .gameinfo-game img {
+    width: 34px;
+    height: 34px;
   }
   .gameinfo-game .gamename, li.numresultsmenu {
     display: none !important;

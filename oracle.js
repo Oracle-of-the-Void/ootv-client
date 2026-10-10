@@ -2328,7 +2328,7 @@ function fullgamepermission() {
   return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('*'); });
 }
 // menubar template buttons: show the ones this game has for the view in play, highlight the active one.
-// debug also needs full game permission and the debug tab itself on screen.
+// debug also needs full game permission and the debug tab itself on screen, and isn't offered on phones.
 function updateviewbuttons() {
   var type = viewbuttontype();
   var available = templates[database]['available'];
@@ -2337,7 +2337,7 @@ function updateviewbuttons() {
 	  var key = $(this).data("template");
 	  var show = available[key] !== undefined && available[key].places.includes(type);
 	  if(key == 'debug') {
-	    show = show && fullgamepermission() && currentresulttab() == type;
+	    show = show && fullgamepermission() && currentresulttab() == type && !narrowscreen();
 	  }
 	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
   });
@@ -2649,11 +2649,16 @@ $(document).ready(function(){
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html('<img src="gamelogos/15/'+dbinfo[database].logo+'"><span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
+  $('.gameinfo-game').html('<img src="gamelogos/64/'+dbinfo[database].logo+'"><span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
   $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
   
   urlparser();
+  // phones start on the search form, unless the url asked for something (beyond the game)
+  if(narrowscreen() && !location.hash.replace(/#game=[^#]*/,'')) {
+	  showview('resultsearch');
+	  mobilesearchtoggle(true);
+  }
   for (var k in dbinfo) {
 	  addgametolist(k);
   }
