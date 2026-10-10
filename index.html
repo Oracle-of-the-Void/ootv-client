@@ -2,6 +2,7 @@
 
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
@@ -57,6 +58,7 @@
 	  <li><a href="." onclick="cache_session('database','lbs');">Legend of the Burning Sands</a></li> -->
 	</ul>
       </li>
+      <li class="mobileonly mobilesearchbutton"><span class="searchviewgroup"><button aria-label="Search form" data-balloon-pos="down" onclick="mobilesearchtoggle();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sliders"></svg></button></span></li>
       <li class="gamechooser pullmenu"><span class="gameinfo-game"></span>
 	<ul class="dropdown gamelist">
 	</ul>
@@ -96,8 +98,8 @@
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span>
 	<span class="searchviewgroup" id="sizebuttons">
-	<button aria-label="Normal size" data-balloon-pos="down" data-size="normal" onclick="setlargeview(false);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minimize-2"></svg></button>
-	<button aria-label="Large" data-balloon-pos="down" data-size="large" onclick="setlargeview(true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#maximize-2"></svg></button>
+	<button aria-label="Normal size" data-balloon-pos="down-right" data-size="normal" onclick="setlargeview(false);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minimize-2"></svg></button>
+	<button aria-label="Large" data-balloon-pos="down-right" data-size="large" onclick="setlargeview(true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#maximize-2"></svg></button>
 	</span>
       </li>
     </ul>
@@ -136,6 +138,7 @@
 <br />
 <div id="deckarea">
 </div>
+<div class="sidebarextras"> <!-- links and ads under the search form; hidden on narrow screens -->
 
 <!--
 <br>
@@ -182,7 +185,7 @@
 <a href="https://chime.com/r/doneisele" target="_new">
 <div style="background-color: white">
   <img style="float: left;" src="res/chime.png" width="32" /><span style="margin-right: 3px; color: green; a:active: green; a:hover: green; a:link: green; a:visited: green; text-decoration: none;">&nbsp; Make a Chime account, set up direct deposit, get $100 and start getting 3.75%</span>
-</a>
+</div></a>
 <br><br><br><br>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- square -->
@@ -193,10 +196,11 @@
      data-ad-format="auto"
      data-full-width-responsive="true"></ins>
 <script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
+     // the ad is hidden on narrow screens (.sidebarextras), where an empty slot makes AdSense throw
+     if(document.querySelector('.sidebarextras').offsetParent) { (adsbygoogle = window.adsbygoogle || []).push({}); }
 </script>
 
-</div>
+</div> <!-- sidebarextras -->
 </div>
 <!-- end search area -->
 <!-- <br clear="all" /> -->

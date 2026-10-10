@@ -48,6 +48,25 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
 - Hover a menu (`page.hover`) before clicking its items; move the mouse away before
   screenshots so balloon tooltips don't cover things.
 
+## Phone width
+
+Narrow-screen rules live in one `@media (max-width: 768px)` block at the end of `oracle.css`
+(`narrowscreen()` in `oracle.js` uses the same width). Emulate a phone with a touch context:
+
+```js
+const ctx = await browser.newContext({hasTouch: true, isMobile: true,
+  viewport: {width: 390, height: 844}, userAgent: devices['iPhone 13'].userAgent});
+```
+
+- Use `page.tap()`, not `click()`, so the touch paths run (`menutap`, `pointerType`).
+- Check `document.documentElement.scrollWidth` equals the viewport width in every view: any
+  overflow means sideways scrolling. Balloon tooltips are always laid out (just transparent),
+  so a centred `down` tooltip on a right-edge button can cause it; use `down-right` there.
+- `max-width: %` on images inside the `display: table-cell` layouts collapses them to nothing;
+  cap with `vw` instead.
+- Chromium draws Chosen's mobile fallback (plain `<select multiple>`) as tall list boxes;
+  real iOS Safari shows a one-line picker. Check those on a real phone.
+
 ## Cover every game
 
 Games differ in ways that break shared code. Loop over all seven

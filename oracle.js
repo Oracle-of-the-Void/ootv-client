@@ -1364,6 +1364,7 @@ function renderlist(list,switchview=true,listoutput=null) {
 //   TODO: why did i blow past waiting on templates... is that right?   i think i messed this up
 // from is for continuing and getting more entries from a query
 function dosearch(from=0,forcedata=false,skipload=false) {
+  mobilesearchtoggle(false); // narrow screens: close the search panel to show the results
   if((getactivetemplate('search') === undefined) && !forcedata && !skipload) {
 	  console.log("templates not loaded yet");
 	  return;
@@ -2648,7 +2649,7 @@ $(document).ready(function(){
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">&nbsp;'+dbinfo[database].name);
+  $('.gameinfo-game').html('<img src="gamelogos/15/'+dbinfo[database].logo+'"><span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
   $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
   
@@ -3093,7 +3094,22 @@ function cardnext(id,qs) {
     }
 }
 
+// narrow screens (phones): the search sidebar is a slide-over panel, opened from the menubar (body.mobilesearch)
+function narrowscreen() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+function mobilesearchtoggle(open) {
+    $('body').toggleClass('mobilesearch', open);
+}
+// tapping the results while the panel is open closes it
+$(document).on('click', '#maincontent', function() {
+    mobilesearchtoggle(false);
+});
 function sidebarcloser() {
+    if(narrowscreen()) {
+	mobilesearchtoggle(false);
+	return;
+    }
     $('#sidebar').hide();
     $('#sidebaropener').show();
 }
