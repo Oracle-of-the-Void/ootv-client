@@ -201,6 +201,7 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
+    $('.showondebug').hide();
 }
 function logincallback(session) {
     if (session) {
@@ -307,6 +308,7 @@ function userinfocallback() {
     if (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
       $('.showonadmin').show();
     }
+    updatedebugbutton();
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2256,6 +2258,27 @@ function setlargeview(large) {
 	  }
   }
   updatesizebuttons();
+}
+// full permissions on this game: groups[database] or groups['*'] allows every operation (same rule as /update)
+function fullgamepermission() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) {
+	  return false;
+  }
+  var groups = user.oracle[0].groups;
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('*'); });
+}
+function updatedebugbutton() {
+  $('.showondebug').toggle(fullgamepermission() && templates[database]['available']['debug'] !== undefined);
+}
+// menubar debug button: switch whichever of search/card/list is on screen to the debug template
+function debugview() {
+  for (type of ['search','card','list']) {
+	  if($("#result"+type).is(":visible")) {
+	    activatetemplate(type,'debug');
+	    return;
+	  }
+  }
 }
 function updatesizebuttons() {
   $(".searchviewbuttons button[data-size]").each(function() {
