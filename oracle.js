@@ -1635,7 +1635,7 @@ function createpdf(data,listoutput='') {
     console.log(data);
     var images = [];
     for(card of data) {
-      for(p of card.printing) {
+      for(p of (card.printing || [])) {
         if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
           if(p.image) {
               for(cn = 0; cn < card.listquantity; cn++) {
@@ -1663,17 +1663,26 @@ function createpdf(data,listoutput='') {
     }
     console.log(images);
 
-    var imagedata = [];
+    // images load asynchronously and finish in any order, so keep each one's data by URL
+    // and lay out the pages from `images`, which is in list order. Each URL loads once.
+    var urls = images.filter(function(url,i) { return images.indexOf(url) == i; });
+    var imagedata = {};
     var imagefailed = [];
-    for(image of images) {
+    var loaded = 0;
+    if(urls.length == 0) {
+      alert("No card images to print in this list.");
+      return;
+    }
+    for(image of urls) {
 	    getDataUri(image,function(data,url) {
-        //console.log(JSON.stringify(data));
         if(data) {
-  	      imagedata.push(data);  // TODO:  here is the data pull for pdf images - essentially this is an array of src elements
+  	      imagedata[url] = data;
         } else {
           imagefailed.push(url);
         }
-	      if((imagedata.length+imagefailed.length) == images.length) {
+        loaded++;
+	      if(loaded == urls.length) {
+          var pages = images.filter(function(url) { return imagedata[url]; });
 		      const doc = new PDFDocument({
 		        "layout": "portrait", // landscape
 		        "size": "letter", // A4, etc
@@ -1686,10 +1695,9 @@ function createpdf(data,listoutput='') {
 		      iy = 3.5*72;
 		      my = (792-3*iy)/2;
 
-		      for(var i=0 ; i < imagedata.length; i++) {
-            //if(JSON.stringify(data).match(/^data:image/)) { 
-              doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
-              if(i%9 == 8 && (i<imagedata.length -1)) {
+		      for(var i=0 ; i < pages.length; i++) {
+              doc.image(imagedata[pages[i]],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
+              if(i%9 == 8 && (i<pages.length -1)) {
                 doc.addPage();
               }
 		      }
