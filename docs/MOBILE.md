@@ -8,12 +8,16 @@ Status as of 2026-10-10. The first pass is on `dev` (not yet on `master`):
   phone layout: viewport meta, slide-over search panel, wrapping menubar, hidden sidebar
   extras, no fixed min-widths, and a stacked card view.
 
-The phone rules are in the `@media (max-width: 768px)` block at the end of `oracle.css`.
+The phone rules are in the `@media (max-width: 768px), (pointer: coarse) and (max-height: 500px)`
+block at the end of `oracle.css` (narrow screens, plus phones held sideways); `narrowscreen()` in
+`oracle.js` uses the same query. There's no user-agent sniffing, so "Request desktop site" (which
+widens the viewport) gets the desktop layout.
 How to test at phone width is in `TESTING.md` under "Phone width".
 
 ## Check on a real iPhone first
 
-Headless Chromium can't stand in for these:
+Tested on Android (2026-10-10): deck/list views, pop-ups, the profile menu and the Admin
+entry all work. Headless Chromium can't stand in for these on iOS:
 
 - [ ] Menubar dropdowns (hamburger, game chooser, sort, profile, directory Download) open
   and close by tap ([#79](https://github.com/Oracle-of-the-Void/ootv-client/issues/79)).
@@ -25,34 +29,24 @@ Headless Chromium can't stand in for these:
 - [ ] Search panel: phones start with it open; it opens from the Search Results button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
   view. Check the page behind it doesn't scroll while the panel is open.
-- [ ] Tooltips: a tap shows the label for 1.5 s, then it hides (iOS keeps `:hover` after a
-  tap in its own way).
+- [ ] Tooltips: hidden on touch except after a 0.5 s long-press, then shown for 1.5 s
+  (`data-balloon-visible`). Check iOS doesn't pop its own long-press menu over it.
 
 ## Still to do
 
-- [ ] **Directory table**: 13 columns, too wide for a phone. Cheap: `overflow-x: auto` on
-  `#resultdir`. Better: stack each list as a card (name, type and legality on one line,
-  then the action buttons).
-- [ ] **Hover-only labels**: on touch a tap now flashes the button's label for 1.5 s
-  (`balloonflash`), but you only learn what a button does by pressing it. Options: list the
-  views by name in the hamburger menu, or show the label on long-press.
+- [ ] **Directory as cards**: the directory table (13 columns) now scrolls sideways inside
+  its view on phones. Better: stack each list as a card (name, type and legality on one
+  line, then the action buttons).
+- [ ] **Detailed List search view on a phone**: the text and the list +/- buttons run off the
+  right edge (clipped, not scrollable). Phones default to the Visual Spoiler, so it only
+  shows if picked. Stack the image above the text like the card view does.
 - [ ] **Menubar height**: with the double-size icons it wraps to three rows (~160px) at
-  390px. Could fold the format and size buttons into one dropdown on phones.
-- [ ] **Save menu labels**: phones save their own view defaults (`settings[game].mobile`),
-  but the hamburger items don't say so. Maybe add "(phone)".
-- [ ] **Deck/list view on a phone**: not tested yet. Check Visual Deck, Simple List and
-  Visual, including the `+`/`-`/trash buttons and the editable quantities.
-- [ ] **Modals on a phone**: list import, the confirm dialog and the card editor
-  (`editcard*`) have only had their min-width removed. Check they fit and scroll.
-- [x] **Search panel form**: full width, fields 60vw (was the desktop 105px inputs, 110px selects)
-- [ ] **Tablets and landscape phones** (769–1000px): they get the desktop layout with the
-  sidebar always open. Decide whether the breakpoint should be higher.
-- [ ] **Profile menu and Admin entry**: not tested by tap because they need a login (see
-  "Faking login" in `TESTING.md`).
+  390px. Fine for now; could fold the format and size buttons into one dropdown on phones.
 
-## Unrelated loose ends from the same session
+## Done since the first pass
 
-- [ ] The Help page has a large YouTube banner further down, now that YouTube is also in
-  the links row at the top. Remove one.
-- [ ] The Admin entry in the profile menu doesn't hide again on logout until a reload
-  (`logoutcallback()` doesn't hide `.showonadmin`).
+Double-size menubar icons, no debug button, start on the search form, full-width search
+panel, other views close the panel, separate saved view defaults with "(Mobile)" on the
+save items (`settings[game].mobile`), Visual Spoiler as the phone search default,
+directory scrolls sideways, list quantity beside the +/- buttons (desktop too),
+long-press labels, sideways phones get the phone layout, one YouTube link on Help.

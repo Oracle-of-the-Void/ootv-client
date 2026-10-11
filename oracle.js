@@ -19,6 +19,8 @@ $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
 $.views.helpers("sortlegality",templatesortlegality);
 $.views.helpers("sortprintings",templatesortprintings);
+$.views.helpers("printingidfromset",templateprintingidfromset);
+$.views.helpers("listqty",listquantity);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -571,6 +573,15 @@ function savecallback() {
     clearTimeout(savetimeout);
 }
 
+// how many of this card (and printing) the list holds, shown beside its +/- buttons (span.listqty)
+function listquantity(listid,cardid,prid=0) {
+    var list = cache_thing("list",listid);
+    if(!(list && list.list && list.list.Items && list.list.Items[0])) {
+	return '';
+    }
+    var item = list.list.Items[0].list.find(function(ele) { return ele.cardid == cardid && ele.printing == (prid||0); });
+    return item ? item.quantity : 0;
+}
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
@@ -594,6 +605,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 	return total + parseInt(card['quantity']);
     },0);
     cache_thing("list",listid,list);
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
     $("#lastlistid").val(listid);
     renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
     if(Object.keys(updatepending).length < 1) {
@@ -2013,11 +2025,29 @@ $(document).on('click', function(e) {
 	return;
     }
     menutap(e.target);
-    // a tap leaves the button in :hover/:focus, so its tooltip would stick: show it briefly instead (CSS hides the rest)
-    var balloon = $(e.target).closest('[data-balloon-pos]');
-    balloon.addClass('balloonflash').trigger('blur');
-    clearTimeout(balloon.data('balloontimer'));
-    balloon.data('balloontimer', setTimeout(function() { balloon.removeClass('balloonflash'); }, 1500));
+    $(e.target).closest('[data-balloon-pos]').trigger('blur'); // a tap leaves :focus behind
+});
+// touch: tooltips are hidden (CSS, hover: none) except after a long-press on the button, for 1.5 s
+var balloonpress = null;
+$(document).on('pointerdown', '[data-balloon-pos]', function(e) {
+    if(e.originalEvent.pointerType == 'mouse') {
+	return;
+    }
+    var balloon = $(this);
+    clearTimeout(balloonpress);
+    balloonpress = setTimeout(function() {
+	balloon.attr('data-balloon-visible', ''); // balloon.css shows it without :hover
+	clearTimeout(balloon.data('balloontimer'));
+	balloon.data('balloontimer', setTimeout(function() { balloon.removeAttr('data-balloon-visible'); }, 1500));
+    }, 500);
+});
+$(document).on('pointerup pointercancel pointerleave', '[data-balloon-pos]', function() {
+    clearTimeout(balloonpress);
+});
+$(document).on('contextmenu', '[data-balloon-pos]', function(e) {
+    if(lastpointertype != 'mouse') {
+	e.preventDefault(); // Android's long-press menu would cover the label
+    }
 });
 function menutap(target) {
     // the innermost nav li whose dropdown doesn't contain the tap is the header that was tapped
@@ -3124,9 +3154,10 @@ function cardnext(id,qs) {
     }
 }
 
-// narrow screens (phones): the search sidebar is a slide-over panel, opened from the menubar (body.mobilesearch)
+// narrow screens (phones): the search sidebar is a slide-over panel, opened from the menubar (body.mobilesearch).
+// Phones held sideways count too (coarse pointer, short screen); same query as the phone block in oracle.css.
 function narrowscreen() {
-    return window.matchMedia('(max-width: 768px)').matches;
+    return window.matchMedia('(max-width: 768px), (pointer: coarse) and (max-height: 500px)').matches;
 }
 function mobilesearchtoggle(open) {
     $('body').toggleClass('mobilesearch', open);

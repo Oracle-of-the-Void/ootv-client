@@ -844,13 +844,31 @@ div.menubar nav li.sortbuttons {
 /* ********************** narrow screens (phones) **********************
    Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
-/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js flashes them after a tap */
+/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js sets data-balloon-visible after a long-press */
 @media (hover: none) {
-  [aria-label][data-balloon-pos]:not(.balloonflash):before, [aria-label][data-balloon-pos]:not(.balloonflash):after {
+  [aria-label][data-balloon-pos]:not([data-balloon-visible]):before, [aria-label][data-balloon-pos]:not([data-balloon-visible]):after {
     opacity: 0 !important;
   }
 }
-@media (max-width: 768px) {
+/* list quantity beside the +/- buttons (search results, card view) */
+span.listqty {
+  font-weight: bold;
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
+}
+.phoneonly {
+  display: none;
+}
+/* phone layout: narrow screens, and phones held sideways; keep in step with narrowscreen() in oracle.js */
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  .phoneonly {
+    display: inline;
+  }
+  /* the directory table has too many columns for a phone: scroll it sideways inside its view */
+  #resultdir {
+    overflow-x: auto;
+  }
   div.menubar {
     height: auto;
     min-height: 31px;

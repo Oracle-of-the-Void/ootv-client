@@ -50,7 +50,7 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
 
 ## Phone width
 
-Narrow-screen rules live in one `@media (max-width: 768px)` block at the end of `oracle.css`
+Narrow-screen rules live in one `@media (max-width: 768px), (pointer: coarse) and (max-height: 500px)` block (narrow screens and sideways phones) at the end of `oracle.css`
 (`narrowscreen()` in `oracle.js` uses the same width). Emulate a phone with a touch context:
 
 ```js
