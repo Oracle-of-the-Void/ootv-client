@@ -8,7 +8,7 @@ dbinfo['dune'] = {
     'nameshort':'dune',
     'logo': 'dune.png',
     'imageuri': 'https://images.oracleofthevoid.com/dune/',
-    'cardsize': [2.5, 3.5], // inches (width, height): the PDF print-n-play card cell
+    'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':'A collectible card game about the Dune movies / books.'
 };
 databasesort['dune'] = {
