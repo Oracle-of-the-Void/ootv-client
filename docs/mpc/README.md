@@ -18,3 +18,15 @@ in mm, plus `bleed`, default 0.12 in), draws the `_master` scan (~750 × 1050, i
 poker size) at the cut size, and fills the bleed with black or with the card's stretched edge
 pixels. Scans have white rounded corners and sometimes white edge slivers, which
 `pdffixcorners()` paints over with the card's edge colour first.
+
+## MPC's PDF upload rules (from MPC support, 2026-10-11)
+
+For PDF upload MPC wants **one PDF file per card**, named `1.pdf`, `2.pdf`, ... in order, and a
+separate file for every copy even when designs repeat. They also ask for the artwork in a layer
+group called "CMYK", MPC's guide layers hidden, text converted to outlines, and the file saved as
+"CS2 version or below" (PDF 1.5 or older).
+
+The OotV "PDF for MakePlayingCards" download is a zip of exactly that: one single-page PDF per
+card copy (proxy quantities repeat), numbered in list order. PDFKit writes PDF 1.3 with no text and
+no guide layers. The images are RGB JPEGs: there is no "CMYK" layer group (an Illustrator concept),
+and the browser can't encode CMYK images, so if MPC rejects RGB the files need converting first.

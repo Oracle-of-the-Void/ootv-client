@@ -1765,7 +1765,7 @@ function pdfsummary() {
   if(o.layout == 'mpc') {
     var unit = pdfunits[o.units] || 72;
     var size = function(w,h) { return (Math.round(w/unit*100)/100)+" \u00d7 "+(Math.round(h/unit*100)/100)+" "+o.units; };
-    text = "One card per page: "+size(o.cardwidth,o.cardheight)+" cut, "+size(layout.pagewidth,layout.pageheight)+" with bleed, 300 dpi.";
+    text = "A zip of one-page PDFs (1.pdf, 2.pdf, ...), one per card including repeats: "+size(o.cardwidth,o.cardheight)+" cut, "+size(layout.pagewidth,layout.pageheight)+" with bleed, 300 dpi.";
   } else if(layout.cols < 1 || layout.rows < 1) {
     text = "The cards don't fit on the page with these margins.";
   } else {
@@ -2049,6 +2049,14 @@ function createpdf(data,listoutput='') {
         loaded++;
 	      if(loaded == urls.length) {
           var pages = images.filter(function(url) { return imagedata[url]; });
+          if(imagefailed.length>0) {
+            console.log("Failed"+JSON.stringify(imagefailed));
+            alert("Failed to load some images:"+JSON.stringify(imagefailed));
+          }
+          if(o.layout == 'mpc') {
+            pdfmpczip(pages.map(function(url) { return imagedata[url]; }), layout, fn);
+            return;
+          }
 		      const doc = new PDFDocument({
 		        "size": [layout.pagewidth, layout.pageheight],
 		        margins: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -2057,14 +2065,10 @@ function createpdf(data,listoutput='') {
 		      const stream = doc.pipe(blobStream());
 		      for(var i=0 ; i < pages.length; i++) {
               var slot = i % perpage;
-              if(o.layout == 'mpc') {
-                doc.image(imagedata[pages[i]], 0, 0, {width: layout.pagewidth, height: layout.pageheight});
-              } else {
-                doc.image(imagedata[pages[i]],
-                          layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
-                          layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
-                          {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
-              }
+              doc.image(imagedata[pages[i]],
+                        layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
+                        layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
+                        {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
               if(slot == perpage-1 && (i<pages.length -1)) {
                 doc.addPage();
               }
@@ -2073,13 +2077,79 @@ function createpdf(data,listoutput='') {
 		      stream.on('finish', function() {
 		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
 		      });
-          if(imagefailed.length>0) {
-            console.log("Failed"+JSON.stringify(imagefailed));
-            alert("Failed to load some images:"+JSON.stringify(imagefailed));
-          }
 	      }
 	    }, o.cardwidth > o.cardheight, (o.layout == 'mpc') ? function(canvas) { return pdfmpcimage(canvas, o); } : null);
     }
+}
+// MakePlayingCards wants a separate one-page PDF per card, repeats included, named 1.pdf, 2.pdf, ...
+// in list order. Build them one at a time and download them together as a zip.
+function pdfmpczip(pages, layout, fn) {
+  var files = [];
+  var next = function(i) {
+    if(i == pages.length) {
+      data_url_to_download(URL.createObjectURL(pdfzip(files)), fn+".zip");
+      return;
+    }
+    const doc = new PDFDocument({
+      "size": [layout.pagewidth, layout.pageheight],
+      margins: { top: 0, bottom: 0, left: 0, right: 0 }
+    });
+    doc.info['Title'] = fn+" "+(i+1);
+    const stream = doc.pipe(blobStream());
+    doc.image(pages[i], 0, 0, {width: layout.pagewidth, height: layout.pageheight});
+    doc.end();
+    stream.on('finish', function() {
+      stream.toBlob('application/pdf').arrayBuffer().then(function(buffer) {
+        files.push({'name': (i+1)+".pdf", 'data': new Uint8Array(buffer)});
+        next(i+1);
+      });
+    });
+  };
+  next(0);
+}
+// a zip of [{name, data: Uint8Array}], stored without compression (the PDFs hold JPEGs already)
+var pdfcrctable = null;
+function pdfcrc32(data) {
+  if(!pdfcrctable) {
+    pdfcrctable = new Uint32Array(256);
+    for(var n = 0; n < 256; n++) {
+      var c = n;
+      for(var k = 0; k < 8; k++) { c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); }
+      pdfcrctable[n] = c >>> 0;
+    }
+  }
+  var crc = 0xFFFFFFFF;
+  for(var i = 0; i < data.length; i++) { crc = pdfcrctable[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8); }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function pdfzip(files) {
+  var parts = [], central = [], offset = 0;
+  var now = new Date();
+  var time = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  var date = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  files.forEach(function(f) {
+    var name = new TextEncoder().encode(f.name);
+    var crc = pdfcrc32(f.data);
+    var local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true); local.setUint16(4, 20, true); local.setUint16(6, 0, true);
+    local.setUint16(8, 0, true); local.setUint16(10, time, true); local.setUint16(12, date, true);
+    local.setUint32(14, crc, true); local.setUint32(18, f.data.length, true); local.setUint32(22, f.data.length, true);
+    local.setUint16(26, name.length, true); local.setUint16(28, 0, true);
+    var entry = new DataView(new ArrayBuffer(46));
+    entry.setUint32(0, 0x02014b50, true); entry.setUint16(4, 20, true); entry.setUint16(6, 20, true);
+    entry.setUint16(8, 0, true); entry.setUint16(10, 0, true); entry.setUint16(12, time, true); entry.setUint16(14, date, true);
+    entry.setUint32(16, crc, true); entry.setUint32(20, f.data.length, true); entry.setUint32(24, f.data.length, true);
+    entry.setUint16(28, name.length, true); entry.setUint16(30, 0, true); entry.setUint16(32, 0, true);
+    entry.setUint16(34, 0, true); entry.setUint16(36, 0, true); entry.setUint32(38, 0, true); entry.setUint32(42, offset, true);
+    parts.push(local, name, f.data);
+    central.push(entry, name);
+    offset += 30 + name.length + f.data.length;
+  });
+  var size = central.reduce(function(t, c) { return t + c.byteLength; }, 0);
+  var end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, size, true); end.setUint32(16, offset, true);
+  return new Blob(parts.concat(central, [end]), {type: 'application/zip'});
 }
 function data_url_to_download(data_url, filename) {
   var a = document.createElement("a");
