@@ -8,6 +8,7 @@ dbinfo['pathfinder-pawns'] = {
     'nameshort':'pathfinder-pawns',
     'logo': 'pathfinder-pawns.png',
     'imageuri': 'https://images.oracleofthevoid.com/pathfinder-pawns/',
+    'pdfprint': false, // no PDF print-n-play: Paizo doesn't want proxies printed (and each pawn's size depends on its size trait)
     'description':'Printed on sturdy cardstock, each pawn contains a beautiful full-color image of a character from Pathfinder RPG, and slots into a size-appropriate plastic base, making it easy to use in play alongside traditional metal or plastic miniatures.'
 };
 /*databasesort['initiald'] = {
