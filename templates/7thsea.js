@@ -8,6 +8,7 @@ dbinfo['7thsea'] = {
     'nameshort':'7thsea',
     'logo': '7thsea.png',
     'imageuri': 'https://images.oracleofthevoid.com/7thsea/',
+    'cardsize': [2.5, 3.5], // inches (width, height): the PDF print-n-play card cell
     'description':'A collectible card game about pirates. Each player starts with a ship and captain. Players strengthen their ships by hiring crew and collecting items. Conflict is usually done through cannon attacks or boarding/sword fights. Generally, players win by having the last standing captain.'
 };
 databasesort['7thsea'] = {
