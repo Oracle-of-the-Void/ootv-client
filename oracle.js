@@ -301,7 +301,7 @@ function userinfocallback() {
 //    $('#userinfo-joined').html(info.oracle[0].insert_date);
 //    $('#userinfo-lists').html(info.oracle[0].deckcount);
     hellotemplate = $.templates("#template-hello");
-    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
+    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]},{"pdfallowed": pdfallowed()}));
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
@@ -409,7 +409,7 @@ function listinfocallback() {
   cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
   listertemplate = $.templates("#template-lists");
   $(".directorylistitem").remove();
-  $(listertemplate.render(cache_thing("list","data").lists.Items)).insertAfter(".directorylistheader");
+  $(listertemplate.render(cache_thing("list","data").lists.Items,{"pdfallowed": pdfallowed()})).insertAfter(".directorylistheader");
   //acknowledgement message
   $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
@@ -1663,6 +1663,10 @@ var pdfdefaults = {
 };
 var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 
+// games can turn PDF output off (dbinfo[game].pdfprint: false)
+function pdfallowed() {
+  return !(dbinfo[database] && dbinfo[database].pdfprint === false);
+}
 // the game's card size (dbinfo[game].cardsize, mm), in points
 function pdfgamecardsize() {
   var size = (dbinfo[database] && dbinfo[database].cardsize) || [63.5, 88.9];
@@ -1730,12 +1734,14 @@ function pdfstartoptions() {
 }
 var pdfdialogstate = {};
 function pdfdialog(listid,filename,layout=null) {
+  if(!pdfallowed()) { return; }
   pdfdialogstate = {'mode': 'print', 'listid': listid, 'filename': filename};
   var o = pdfstartoptions();
   if(layout) { o.layout = layout; }
   pdfrender(o);
 }
 function pdfsettingsdialog() {
+  if(!pdfallowed()) { return; }
   pdfdialogstate = {'mode': 'settings'};
   pdfrender(pdfstartoptions());
 }
@@ -2018,6 +2024,10 @@ function createpdf(data,listoutput='') {
     var fn = metadata.find(checkfilename)?metadata.find(checkfilename).replace("filename:",''):"decklist";
     var o = pdfoptions || pdfbaseoptions();
     pdfoptions = null;
+    if(!pdfallowed()) {
+      alert("PDF printing isn't available for "+dbinfo[database].name+".");
+      return;
+    }
     var layout = pdflayout(o);
     if(layout.cols < 1 || layout.rows < 1) {
       alert("The cards don't fit on the page with these margins.");
