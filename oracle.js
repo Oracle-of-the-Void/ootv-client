@@ -1640,20 +1640,232 @@ function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     showlist();
 }
 
-function getDataUri(url, callback) { 
+//**********************************************************  PDF print-n-play ****************
+// Lengths are PDF points (72 per inch). The dialog shows them in the chosen units.
+var pdfpapers = {
+  'letter': {'name': 'Letter (8.5 \u00d7 11 in)', 'width': 612, 'height': 792},
+  'legal': {'name': 'Legal (8.5 \u00d7 14 in)', 'width': 612, 'height': 1008},
+  'a4': {'name': 'A4 (210 \u00d7 297 mm)', 'width': 210*72/25.4, 'height': 297*72/25.4},
+  'a3': {'name': 'A3 (297 \u00d7 420 mm)', 'width': 297*72/25.4, 'height': 420*72/25.4},
+  'custom': {'name': 'Custom'}
+};
+var pdfunits = {'in': 72, 'mm': 72/25.4};
+var pdfdefaults = {
+  'paper': 'letter', 'paperwidth': 612, 'paperheight': 792, 'orientation': 'portrait', 'units': 'in',
+  'margin': 18, 'spacing': 0, 'offsetx': 0, 'offsety': 0,
+  'columns': 0, 'rows': 0, // 0 = as many as fit
+  'quantity': 'proxy', // proxy = the list's quantities, spoiler = one of each
+  'sort': 'list' // list = the list's own order, or a key of databasesort[database], or title
+};
+var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
+
+// the game's card cell, in points
+function pdfgamecardsize() {
+  var size = (dbinfo[database] && dbinfo[database].cardsize) || [2.5, 3.5];
+  return [size[0]*72, size[1]*72];
+}
+// options with the game's card size, for when nothing else set them
+function pdfbaseoptions() {
+  var size = pdfgamecardsize();
+  return Object.assign({}, pdfdefaults, {'cardwidth': size[0], 'cardheight': size[1]});
+}
+// where the cards go: page size, grid, and the top-left corner of the grid
+function pdflayout(o) {
+  var pw = o.paperwidth, ph = o.paperheight;
+  if(o.paper in pdfpapers && pdfpapers[o.paper].width) {
+    pw = pdfpapers[o.paper].width;
+    ph = pdfpapers[o.paper].height;
+  }
+  if((o.orientation == 'landscape') != (pw > ph)) {
+    var t = pw; pw = ph; ph = t;
+  }
+  var fitcols = Math.max(0, Math.floor((pw - 2*o.margin + o.spacing + 0.01) / (o.cardwidth + o.spacing)));
+  var fitrows = Math.max(0, Math.floor((ph - 2*o.margin + o.spacing + 0.01) / (o.cardheight + o.spacing)));
+  var cols = o.columns > 0 ? Math.min(o.columns, fitcols) : fitcols;
+  var rows = o.rows > 0 ? Math.min(o.rows, fitrows) : fitrows;
+  var gridwidth = cols*o.cardwidth + Math.max(0, cols-1)*o.spacing;
+  var gridheight = rows*o.cardheight + Math.max(0, rows-1)*o.spacing;
+  return {
+    'pagewidth': pw, 'pageheight': ph, 'cols': cols, 'rows': rows, 'fitcols': fitcols, 'fitrows': fitrows,
+    'x': (pw - gridwidth)/2 + o.offsetx, 'y': (ph - gridheight)/2 + o.offsety
+  };
+}
+function pdftitlesort(a,b) {
+  var x = a.title[0].toLowerCase();
+  var y = b.title[0].toLowerCase();
+  if (x < y) {return -1;}
+  if (x > y) {return 1;}
+  return 0;
+}
+
+// saved defaults live in users.settings.all.pdf (user-wide, not per game), with the card
+// size per game in .cardsizes[game]. The session copy covers games whose cached user is older.
+function pdfsaveddefaults() {
+  var user = cache_thing("user","data");
+  var server = (user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'] && user.oracle[0].settings['all']['pdf']) || {};
+  var session = cache_session("pdfdefaults") || {};
+  return ((session.saved || '') > (server.saved || '')) ? session : server;
+}
+function pdfstartoptions() {
+  var saved = Object.assign({}, pdfsaveddefaults());
+  var cardsizes = saved.cardsizes || {};
+  delete saved.cardsizes;
+  delete saved.saved;
+  var o = Object.assign(pdfbaseoptions(), saved);
+  if(cardsizes[database]) {
+    o.cardwidth = cardsizes[database][0];
+    o.cardheight = cardsizes[database][1];
+  }
+  return o;
+}
+var pdfdialogstate = {};
+function pdfdialog(listid,filename) {
+  pdfdialogstate = {'mode': 'print', 'listid': listid, 'filename': filename};
+  pdfrender(pdfstartoptions());
+}
+function pdfsettingsdialog() {
+  pdfdialogstate = {'mode': 'settings'};
+  pdfrender(pdfstartoptions());
+}
+function pdfrender(o) {
+  var unit = pdfunits[o.units] || 72;
+  var v = {};
+  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety'].forEach(function(k) {
+    v[k] = Math.round(o[k]/unit*1000)/1000;
+  });
+  var layout = pdflayout(o);
+  if(o.paper in pdfpapers && pdfpapers[o.paper].width) {
+    v.paperwidth = Math.round(Math.min(layout.pagewidth,layout.pageheight)/unit*1000)/1000;
+    v.paperheight = Math.round(Math.max(layout.pagewidth,layout.pageheight)/unit*1000)/1000;
+  }
+  var sorts = {'list': "The list's order"};
+  Object.keys(databasesort[database] || {}).forEach(function(k) { sorts[k] = k.charAt(0).toUpperCase()+k.slice(1); });
+  if(!('title' in sorts)) { sorts['title'] = 'Title'; }
+  var user = cache_thing("user","data");
+  modal(pdfdialogstate.mode == 'print' ? "PDF Print-n-Play" : "PDF print settings",
+        $.templates("#template-pdfoptions").render({
+          'mode': pdfdialogstate.mode, 'o': o, 'v': v, 'papers': pdfpapers, 'sorts': sorts,
+          'gamename': dbinfo[database].name, 'loggedin': !!(user && ("oracle" in user))
+        }));
+  pdfsummary();
+}
+// the form's values as options, in points
+function pdfreadform(units=null) {
+  var form = {};
+  $('#pdfform').serializeArray().forEach(function(f) { form[f.name] = f.value; });
+  $('#pdfform input:disabled').each(function() { form[this.name] = this.value; });
+  var unit = pdfunits[units || form.units] || 72;
+  var o = Object.assign(pdfbaseoptions(), {
+    'paper': form.paper, 'orientation': form.orientation, 'units': form.units,
+    'quantity': form.quantity, 'sort': form.sort,
+    'columns': Math.max(0, parseInt(form.columns) || 0), 'rows': Math.max(0, parseInt(form.rows) || 0)
+  });
+  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety'].forEach(function(k) {
+    var n = parseFloat(form[k]);
+    if(!isNaN(n)) { o[k] = Math.round(n*unit*1000)/1000; }
+  });
+  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin'].forEach(function(k) {
+    o[k] = Math.max(0, o[k]);
+  });
+  if(o.paper == 'custom' && o.paperwidth > o.paperheight) {
+    var t = o.paperwidth; o.paperwidth = o.paperheight; o.paperheight = t;
+  }
+  return o;
+}
+// paper and units change which fields are enabled and how lengths read, so redraw the form
+function pdfrerender() {
+  var previous = pdfdialogstate.units || $('#pdfform select[name=units] option[selected]').val();
+  var o = pdfreadform(previous);
+  pdfdialogstate.units = o.units;
+  if(o.paper in pdfpapers && pdfpapers[o.paper].width) {
+    o.paperwidth = pdfpapers[o.paper].width;
+    o.paperheight = pdfpapers[o.paper].height;
+  }
+  pdfrender(o);
+}
+function pdfsummary() {
+  var o = pdfreadform();
+  pdfdialogstate.units = o.units;
+  var layout = pdflayout(o);
+  var text;
+  if(layout.cols < 1 || layout.rows < 1) {
+    text = "The cards don't fit on the page with these margins.";
+  } else {
+    text = layout.cols+" \u00d7 "+layout.rows+" = "+(layout.cols*layout.rows)+" cards per page";
+    if((o.columns > layout.fitcols) || (o.rows > layout.fitrows)) {
+      text += " (only "+layout.fitcols+" \u00d7 "+layout.fitrows+" fit)";
+    }
+    var right = layout.pagewidth - layout.x - layout.cols*o.cardwidth - (layout.cols-1)*o.spacing;
+    var bottom = layout.pageheight - layout.y - layout.rows*o.cardheight - (layout.rows-1)*o.spacing;
+    if(Math.min(layout.x, layout.y, right, bottom) < 0) {
+      text += ". The offset pushes cards off the page.";
+    }
+  }
+  $('#pdfsummary').text(text);
+}
+function pdfgenerate() {
+  var o = pdfreadform();
+  var layout = pdflayout(o);
+  if(layout.cols < 1 || layout.rows < 1) {
+    pdfsummary();
+    return;
+  }
+  pdfoptions = o;
+  nomodal();
+  listinfo(pdfdialogstate.listid,false,'pdf,filename:'+pdfdialogstate.filename);
+}
+function pdfreset() {
+  pdfdialogstate.units = null;
+  pdfrender(pdfbaseoptions());
+}
+function pdfsavedefaults() {
+  var o = pdfreadform();
+  var previous = pdfsaveddefaults();
+  var cardsizes = Object.assign({}, previous.cardsizes || {});
+  var size = pdfgamecardsize();
+  if(Math.abs(o.cardwidth - size[0]) < 0.01 && Math.abs(o.cardheight - size[1]) < 0.01) {
+    delete cardsizes[database];
+  } else {
+    cardsizes[database] = [o.cardwidth, o.cardheight];
+  }
+  var saved = {'saved': new Date().toISOString(), 'cardsizes': cardsizes};
+  Object.keys(pdfdefaults).forEach(function(k) { saved[k] = o[k]; });
+  var user = cache_thing("user","data");
+  var all = Object.assign({}, (user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all']) || {});
+  all['pdf'] = saved;
+  $('#pdfsaved').text("Saving...");
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/user?database=all&settings="+encodeURIComponent(JSON.stringify(all)),
+    contentType: 'application/json',
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    responseType: 'application/json',
+    success: function(data) {
+      cache_thing("user","data",data);
+      cache_session("pdfdefaults",saved);
+      $('#pdfsaved').text("Saved as your defaults.");
+    },
+    error: function(error) {
+      console.log("PDF defaults save failed: "+JSON.stringify(error));
+      $('#pdfsaved').text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
+    }
+  });
+}
+
+function getDataUri(url, callback, landscape=false) {
   // create a canvas for pdf images, set the source to the image url, return resulting data through callback
+  // images are turned 90 degrees when they don't match the card cell's orientation
     var image = new Image();
     image.setAttribute('crossOrigin', 'anonymous');
     image.onload = function () {
       var canvas = document.createElement('canvas');
-      if(this.naturalWidth <= this.naturalHeight) {
+      if((this.naturalWidth > this.naturalHeight) == landscape || this.naturalWidth == this.naturalHeight) {
         canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
         canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
         ctx = canvas.getContext('2d');
         ctx.drawImage(this, 0, 0);
-        //        canvas.rotate(90*Math.PI/180);
       } else {
-        //console.log(["WxH",this.naturalWidth,this.naturalHeight]);
         canvas.height = this.naturalWidth;
         canvas.width = this.naturalHeight;
         ctx = canvas.getContext('2d');
@@ -1675,18 +1887,27 @@ function checkfilename(data) {
     return data.startsWith("filename:");
 }
 function createpdf(data,listoutput='') {
-    // TODO: createpdf
     var metadata = listoutput.split(",");
-    console.log(metadata.find(checkfilename));
     var fn = metadata.find(checkfilename)?metadata.find(checkfilename).replace("filename:",''):"decklist";
-    console.log('createpdf');
-    console.log(data);
+    var o = pdfoptions || pdfbaseoptions();
+    pdfoptions = null;
+    var layout = pdflayout(o);
+    if(layout.cols < 1 || layout.rows < 1) {
+      alert("The cards don't fit on the page with these margins.");
+      return;
+    }
+    console.log(['createpdf',o,layout,data]);
+    if(o.sort != 'list') {
+      var gamesort = databasesort[database] || {};
+      data = data.slice().sort(gamesort[o.sort] != undefined ? gamesort[o.sort] : pdftitlesort);
+    }
     var images = [];
     for(card of data) {
-      for(p of card.printing) {
+      var copies = (o.quantity == 'spoiler') ? 1 : card.listquantity;
+      for(p of (card.printing || [])) {
         if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
           if(p.image) {
-              for(cn = 0; cn < card.listquantity; cn++) {
+              for(cn = 0; cn < copies; cn++) {
                 if(p.doublesided) {
   	              for(i of p.image) {  // NEW STYLE
                     images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
@@ -1695,8 +1916,8 @@ function createpdf(data,listoutput='') {
                   images.push(dbinfo[database].imageuri+p.imagehash+'/'+p.image[0].details+'?x-corsworkaround=true');
                 }
               }
-          } else {
-            for(cn = 0; cn < card.listquantity; cn++) {
+          } else if(p.images && p.images.length) {
+            for(cn = 0; cn < copies; cn++) {
               if(p.doublesided) {
                 for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
                   images.push(i+'details.jpg?x-corsworkaround=true'); 
@@ -1711,50 +1932,53 @@ function createpdf(data,listoutput='') {
     }
     console.log(images);
 
-    var imagedata = [];
+    // images load asynchronously and finish in any order, so keep each one's data by URL
+    // and lay out the pages from `images`, which is in list order. Each URL loads once.
+    var urls = images.filter(function(url,i) { return images.indexOf(url) == i; });
+    var imagedata = {};
     var imagefailed = [];
-    for(image of images) {
+    var loaded = 0;
+    if(urls.length == 0) {
+      alert("No card images to print in this list.");
+      return;
+    }
+    var perpage = layout.cols*layout.rows;
+    for(image of urls) {
 	    getDataUri(image,function(data,url) {
-        //console.log(JSON.stringify(data));
         if(data) {
-  	      imagedata.push(data);  // TODO:  here is the data pull for pdf images - essentially this is an array of src elements
+  	      imagedata[url] = data;
         } else {
           imagefailed.push(url);
         }
-	      if((imagedata.length+imagefailed.length) == images.length) {
+        loaded++;
+	      if(loaded == urls.length) {
+          var pages = images.filter(function(url) { return imagedata[url]; });
 		      const doc = new PDFDocument({
-		        "layout": "portrait", // landscape
-		        "size": "letter", // A4, etc
-		        margins: { top: 18, bottom: 18, left: 18, right: 18 }
+		        "size": [layout.pagewidth, layout.pageheight],
+		        margins: { top: 0, bottom: 0, left: 0, right: 0 }
 		      });
 		      doc.info['Title'] = fn;
 		      const stream = doc.pipe(blobStream());
-		      ix = 2.5*72;
-		      mx = (612-3*ix)/2;
-		      iy = 3.5*72;
-		      my = (792-3*iy)/2;
-
-		      for(var i=0 ; i < imagedata.length; i++) {
-            //if(JSON.stringify(data).match(/^data:image/)) { 
-              doc.image(imagedata[i],mx+(i%3)*ix,my+Math.floor((i%9)/3)*iy,{fit: [ ix,iy ]});
-              if(i%9 == 8 && (i<imagedata.length -1)) {
+		      for(var i=0 ; i < pages.length; i++) {
+              var slot = i % perpage;
+              doc.image(imagedata[pages[i]],
+                        layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
+                        layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
+                        {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
+              if(slot == perpage-1 && (i<pages.length -1)) {
                 doc.addPage();
               }
 		      }
 		      doc.end();
 		      stream.on('finish', function() {
-            //		    const url = stream.toBlobURL('application/pdf');
-            //		    window.open(url);
 		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
 		      });
           if(imagefailed.length>0) {
             console.log("Failed"+JSON.stringify(imagefailed));
             alert("Failed to load some images:"+JSON.stringify(imagefailed));
           }
-// TODO:   https://stackoverflow.com/questions/30965249/pdfkit-js-how-to-save-document-to-file-win-8-app
-          
 	      }
-	    });
+	    }, o.cardwidth > o.cardheight);
     }
 }
 function data_url_to_download(data_url, filename) {

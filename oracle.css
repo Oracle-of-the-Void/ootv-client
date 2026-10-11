@@ -841,6 +841,15 @@ div.menubar nav li.sortbuttons {
   display: none;
 }
 
+/* PDF print-n-play options */
+.modal-box:has(.pdfform) { width: 640px; max-width: 95vw; min-width: 0; margin-top: 5%; }
+.pdfform fieldset { border: 1px solid #ccc; border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 12px; }
+.pdfform label { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.pdfform input[type=number] { width: 6em; }
+.pdfform label.wide { grid-column: 1 / -1; justify-content: flex-start; }
+.pdfform input:disabled { color: #888; }
+.pdfsummary { margin: 4px 0 10px 0; font-weight: bold; }
+
 /* ********************** narrow screens (phones) **********************
    Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
@@ -934,4 +943,3 @@ span.listqty {
     height: auto;
   }
 }
-

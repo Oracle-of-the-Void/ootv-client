@@ -478,6 +478,55 @@ printingprimary
   {{/if}}
 </script>
 
+<!-- modal template for PDF print-n-play options (mode "print") and the saved defaults (mode "settings") -->
+<script id="template-pdfoptions" type="text/jsrender">
+  <form id="pdfform" class="pdfform" onsubmit="return false;">
+    <fieldset><legend>Paper</legend>
+      <label class="wide">Size <select name="paper" onchange="pdfrerender();">
+        {{props papers}}<option value="{{:key}}" {{if key==~root.o.paper}}selected{{/if}}>{{:prop.name}}</option>{{/props}}
+      </select></label>
+      <label>Width <input name="paperwidth" type="number" step="any" min="0" value="{{:v.paperwidth}}" {{if o.paper!='custom'}}disabled{{/if}} oninput="pdfsummary();" /></label>
+      <label>Height <input name="paperheight" type="number" step="any" min="0" value="{{:v.paperheight}}" {{if o.paper!='custom'}}disabled{{/if}} oninput="pdfsummary();" /></label>
+      <label>Orientation <select name="orientation" onchange="pdfsummary();">
+        <option value="portrait" {{if o.orientation=='portrait'}}selected{{/if}}>Portrait</option>
+        <option value="landscape" {{if o.orientation=='landscape'}}selected{{/if}}>Landscape</option>
+      </select></label>
+      <label>Units <select name="units" onchange="pdfrerender();">
+        <option value="in" {{if o.units=='in'}}selected{{/if}}>inches</option>
+        <option value="mm" {{if o.units=='mm'}}selected{{/if}}>mm</option>
+      </select></label>
+    </fieldset>
+    <fieldset><legend>Cards ({{:gamename}})</legend>
+      <label>Card width <input name="cardwidth" type="number" step="any" min="0" value="{{:v.cardwidth}}" oninput="pdfsummary();" /></label>
+      <label>Card height <input name="cardheight" type="number" step="any" min="0" value="{{:v.cardheight}}" oninput="pdfsummary();" /></label>
+      <label>Columns <input name="columns" type="number" step="1" min="0" value="{{:o.columns||''}}" placeholder="fit" oninput="pdfsummary();" /></label>
+      <label>Rows <input name="rows" type="number" step="1" min="0" value="{{:o.rows||''}}" placeholder="fit" oninput="pdfsummary();" /></label>
+      <label>Spacing <input name="spacing" type="number" step="any" min="0" value="{{:v.spacing}}" oninput="pdfsummary();" /></label>
+      <label>Margins <input name="margin" type="number" step="any" min="0" value="{{:v.margin}}" oninput="pdfsummary();" /></label>
+      <label>Offset right <input name="offsetx" type="number" step="any" value="{{:v.offsetx}}" oninput="pdfsummary();" /></label>
+      <label>Offset down <input name="offsety" type="number" step="any" value="{{:v.offsety}}" oninput="pdfsummary();" /></label>
+    </fieldset>
+    <fieldset><legend>Contents</legend>
+      <label class="wide">Quantity <select name="quantity">
+        <option value="proxy" {{if o.quantity=='proxy'}}selected{{/if}}>Proxy: the list's quantities</option>
+        <option value="spoiler" {{if o.quantity=='spoiler'}}selected{{/if}}>Spoiler: one of each</option>
+      </select></label>
+      <label class="wide">Sort <select name="sort">
+        {{props sorts}}<option value="{{:key}}" {{if key==~root.o.sort}}selected{{/if}}>{{:prop}}</option>{{/props}}
+      </select></label>
+    </fieldset>
+    <div id="pdfsummary" class="pdfsummary"></div>
+    {{if mode=='print'}}
+    <input type="button" value="Create PDF" onclick="pdfgenerate();" />
+    {{if loggedin}}<input type="button" value="Save as my defaults" onclick="pdfsavedefaults();" />{{/if}}
+    {{else}}
+    <input type="button" value="Save defaults" onclick="pdfsavedefaults();" />
+    {{/if}}
+    <input type="button" value="Reset" onclick="pdfreset();" />
+    <div id="pdfsaved"></div>
+  </form>
+</script>
+
 <!-- template for updatelog entries -->
 <script id="template-updatelog" type="text/jsrender">
   <div class="updateblock">
@@ -496,6 +545,7 @@ printingprimary
     <dt></dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined</dd>
   </dl>
+  <button class="iiconic iblue" onclick="pdfsettingsdialog();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#printer"></svg> PDF print settings</button>
 </div>
 </script>
 
@@ -532,7 +582,7 @@ printingprimary
 <div class="listmiddle"><nav role="download"><ul class="menuone">
 <li><button aria-label="Download list" data-balloon-pos="up-right" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
   <ul>
-  <li onclick="listinfo('{{:listid}}',false,'pdf,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</button></li>
+  <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</button></li>
   <li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><button class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</button></li>
   <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Native Oracle (Tab-delimited)</button></li>
 <!--  <li onclick="listinfo('{{:listid}}',false,'texteopk,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblack"><svg class="feather"><use xlink:href="res/feather-sprite.svg#circle"></svg> Egg of Pan'ku</button></li> -->

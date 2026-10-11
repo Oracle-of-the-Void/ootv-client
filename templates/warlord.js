@@ -8,6 +8,7 @@ dbinfo['warlord'] = {
     'nameshort':'warlord',
     'logo': 'warlord.png',
     'imageuri': 'https://images.oracleofthevoid.com/warlord/',
+    'cardsize': [2.5, 3.5], // inches (width, height): the PDF print-n-play card cell
     'description':'A collectible card game: Warlord: Saga of the Storm'
 };
 databasesort['warlord'] = {
