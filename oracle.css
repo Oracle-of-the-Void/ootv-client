@@ -927,8 +927,9 @@ span.listqty {
     display: block;
     width: auto;
   }
-  #maincontent img {
-    /* vw, not %: images sit in auto-width table cells, where a % max-width collapses them; !important beats the card view's inline max-width: 600px */
+  #maincontent img:not(.inlinesymbolbounded) {
+    /* not the 1em text symbols (onyx elements etc.), which height: auto would blow up to full size.
+       vw, not %: images sit in auto-width table cells, where a % max-width collapses them; !important beats the card view's inline max-width: 600px */
     max-width: 90vw !important;
     height: auto;
   }

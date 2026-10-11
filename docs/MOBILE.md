@@ -37,9 +37,6 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] **Directory as cards**: the directory table (13 columns) now scrolls sideways inside
   its view on phones. Better: stack each list as a card (name, type and legality on one
   line, then the action buttons).
-- [ ] **Detailed List search view on a phone**: the text and the list +/- buttons run off the
-  right edge (clipped, not scrollable). Phones default to the Visual Spoiler, so it only
-  shows if picked. Stack the image above the text like the card view does.
 - [ ] **Menubar height**: with the double-size icons it wraps to three rows (~160px) at
   390px. Fine for now; could fold the format and size buttons into one dropdown on phones.
 
@@ -49,4 +46,4 @@ Double-size menubar icons, no debug button, start on the search form, full-width
 panel, other views close the panel, separate saved view defaults with "(Mobile)" on the
 save items (`settings[game].mobile`), Visual Spoiler as the phone search default,
 directory scrolls sideways, list quantity beside the +/- buttons (desktop too),
-long-press labels, sideways phones get the phone layout, one YouTube link on Help.
+long-press labels (noted in Help), 1em text symbols kept small, sideways phones get the phone layout, one YouTube link on Help.
