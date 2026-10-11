@@ -3427,12 +3427,15 @@ function loadupdates(db,start=null) {
         //console.log(['uplog',uplog]);
         var printlog = JSON.parse(JSON.stringify(uplog));
         printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
-        printlog.cardids.forEach(function(uplogcard) {
-          printlog['card'] = cache_card_fetch(uplogcard);
-          printlog['cardid'] = uplogcard;
-          printlog['database'] = database;
-          $('#updatelog').prepend(updatelogtemplate.render(printlog));
+        // one block per log row; long card lists (and bulkupdates with a
+        // description) start collapsed
+        printlog.cards = (printlog.cardids || []).map(function(uplogcard) {
+          var card = cache_card_fetch(uplogcard);
+          return { cardid: uplogcard, database: database,
+                   title: card.title ? card.title[0] : 'card #'+uplogcard };
         });
+        printlog.collapse = printlog.cards.length > 5 || !!printlog.description;
+        $('#updatelog').prepend(updatelogtemplate.render(printlog));
       });
     },
     error: function(raw) {

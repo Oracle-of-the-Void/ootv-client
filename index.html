@@ -546,9 +546,17 @@ printingprimary
 <!-- template for updatelog entries -->
 <script id="template-updatelog" type="text/jsrender">
   <div class="updateblock">
-    {{:timestamp}} {{:operation}} <a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:card.title}}</a> [{{:uname}}]
+    {{:timestamp}} {{:operation}} [{{:uname}}]{{if description}}: {{>description}}{{/if}}
+    {{if collapse}}
+      <details class="updatecards"><summary>{{:cards.length}} cards</summary>
+        {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+      </details>
+    {{else}}
+      {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+    {{/if}}
   </div>
 </script>
+<script id="template-updatelog-card" type="text/jsrender"><a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:title}}</a></script>
 
 <!-- login hello info displaying login info -->
 <script id="template-hello" type="text/x-jsrender">
