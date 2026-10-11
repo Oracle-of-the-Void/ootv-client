@@ -484,7 +484,7 @@ printingprimary
     <fieldset><legend>Layout</legend>
       <label class="wide">Layout <select name="layout" onchange="pdfrerender();">
         <option value="sheet" {{if o.layout!='mpc'}}selected{{/if}}>Sheets: a grid of cards on paper</option>
-        <option value="mpc" {{if o.layout=='mpc'}}selected{{/if}}>MakePlayingCards: one card per page, with bleed</option>
+        <option value="mpc" {{if o.layout=='mpc'}}selected{{/if}}>MakePlayingCards: a zip of one-card PDFs, with bleed</option>
       </select></label>
     </fieldset>
     <fieldset {{if o.layout!='mpc'}}style="display: none"{{/if}}><legend>Bleed (MakePlayingCards)</legend>
