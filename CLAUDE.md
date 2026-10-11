@@ -29,8 +29,8 @@ or tests. The files in this directory are exactly what gets served.
   request format.
 - The issue index and cache live in the workspace repo, at
   `../ootv-claude/issues/ootv-client/` (`INDEX.md`, `issues.json`), not here. Update them
-  there; don't commit issue bookkeeping to this repo. Put `Fixes #N` in the `dev` →
-  `master` PR body so GitHub closes the issue when the PR merges.
+  there; don't commit issue bookkeeping to this repo. Put `Fixes #N` in the feature
+  branch → `master` PR body so GitHub closes the issue when the PR merges.
 
 ## Conventions
 
@@ -46,8 +46,22 @@ or tests. The files in this directory are exactly what gets served.
 - `master` → `oracleofthevoid.com` (CloudFront `E6ECGAAP7LNKR`)
 
 `*.md`, `*.drawio`, dotfiles and `docs/` are excluded from the sync. Any other new file at the
-top level gets published, so keep scratch files out of the repo. Push to `dev` and
-check preview before going to `master`. Ask the user before pushing either branch.
+top level gets published, so keep scratch files out of the repo.
+
+## Branch workflow
+
+1. Do each feature or fix on its own branch, cut from `master` (e.g. `pdf-options`,
+   `fix/<thing>`), and push that branch to GitHub.
+2. Merge the branch into `dev` and push `dev` to test it on preview. Several features
+   can sit on `dev` at once. Don't commit features directly on `dev`.
+3. When a feature is ready, open a PR from **its own branch** to `master` (not
+   `dev` → `master`), so features ship individually. Merging to `master` deploys prod,
+   so ask the user first.
+4. After a merge to `master`, merge `master` back into `dev` and push, to keep `dev`
+   in sync.
+
+Pushing feature branches and `dev` doesn't need confirmation; pushing or merging to
+`master` does.
 
 ## Testing
 
