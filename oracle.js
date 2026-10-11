@@ -405,7 +405,7 @@ function listinfocallback() {
   cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
   listertemplate = $.templates("#template-lists");
   $(".directorylistitem").remove();
-  $(listertemplate.render(cache_thing("list","data").lists.Items,{"pdfallowed": pdfallowed()})).insertAfter(".directorylistheader");
+  $(listertemplate.render(cache_thing("list","data").lists.Items,{"pdfallowed": pdfallowed(), "snm": snmallowed()})).insertAfter(".directorylistheader");
   //acknowledgement message
   $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
@@ -596,7 +596,7 @@ function importlist(listid=null,name=null) {
     // this will initiate a file dialog to upload a file to a list
     var title = "Import a file from disk into: "+name;
     var importtemplate = $.templates("#template-import");
-    modal(title,importtemplate.render({"listid": listid, "database": database}));
+    modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed()}));
 }
 
 function deletecard(cardid=null,printid=null) {
@@ -1615,6 +1615,10 @@ var pdfdefaults = {
 };
 var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 
+// Sun and Moon is an L5R client: its list export/import only applies to games with a textsnm template
+function snmallowed() {
+  return !!(templates[database] && templates[database]['available'] && templates[database]['available']['textsnm']);
+}
 // games can turn PDF output off (dbinfo[game].pdfprint: false)
 function pdfallowed() {
   return !(dbinfo[database] && dbinfo[database].pdfprint === false);
