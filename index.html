@@ -452,7 +452,7 @@ printingprimary
     <input name="failed" id="importfailedval" type="hidden" value="" />
     <select style="width: 100%" name="fieldlist" data-placeholder="Select input type" class="chosen-select">
       <option value=""></option>
-      <option value="textsnm,puretexttitle,title,alttitle">Sun and Moon</option>
+      {{if snm}}<option value="textsnm,puretexttitle,title,alttitle">Sun and Moon</option>{{/if}}
       <option value="puretexttitle,title">Native Oracle (Tab-delimited)</option>
     </select><br /><br />
     <input name="file" type="file" /><br /><br />
@@ -602,7 +602,7 @@ printingprimary
   <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</button></li>
   <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}_mpc','mpc');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF for MakePlayingCards</button></li>
   {{/if}}
-  <li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><button class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</button></li>
+  {{if ~snm}}<li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><button class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</button></li>{{/if}}
   <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Native Oracle (Tab-delimited)</button></li>
 <!--  <li onclick="listinfo('{{:listid}}',false,'texteopk,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblack"><svg class="feather"><use xlink:href="res/feather-sprite.svg#circle"></svg> Egg of Pan'ku</button></li> -->
 <!--  <li onclick="listinfo('{{:listid}}',false,'textlackey,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic ipurple"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Lackey CCG</button></li> -->
