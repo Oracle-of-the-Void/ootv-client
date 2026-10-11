@@ -1,15 +1,15 @@
 {{include tmpl="#template-card-top" /}}
     <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
-     {{if type}} <dt>{{:~labels.shorttype}}</dt><dd><span class="iconic 7siconic">{{:type}}</span> </dd> {{/if}}
+     {{if ~hasval(type)}} <dt>{{:~labels.shorttype}}</dt><dd><span class="iconic 7siconic">{{:type}}</span> </dd> {{/if}}
 
-        {{if power}}
+        {{if ~hasval(power)}}
                   <dt>{{:~labels.shortpower}}/{{:~labels.shorttraction}}/{{:~labels.shortcost}}/{{:~labels.shortmods}}
                   </dt><dd><span class="iconic 7siconic">{{:power}}/{{:traction}}/{{:cost}}/{{:mods}}</span></dd>
         {{else cost}}
             <dt>{{:~labels.shortcost}}</dt><dd><span class="iconic 7siconic">{{:cost}}</span> </dd>
         {{/if}}
 
-        {{if stages}}       <dt>{{:~labels.shortstages}}</dt><dd>{{:stages.join(" &#149; ")}}</dd>  {{/if}}
+        {{if ~hasval(stages)}}       <dt>{{:~labels.shortstages}}</dt><dd>{{:stages.join(" &#149; ")}}</dd>  {{/if}}
 
         {{if tactic || turn || speed}}
                   <dt>{{:~labels.shorttactic}}/{{:~labels.shortturn}}/{{:~labels.shortspeed}}
@@ -26,24 +26,24 @@
                   </dt><dd><span class="iconic 7siconic">{{:straight}}/{{:curves}}/{{:obstacles}}</span></dd>
         {{/if}}
 
-    {{if traits}}       <dt>{{:~labels.shorttraits}}</dt><dd>{{:traits.join(" &#149; ")}}</dd>  {{/if}}
+    {{if ~hasval(traits)}}       <dt>{{:~labels.shorttraits}}</dt><dd>{{:traits.join(" &#149; ")}}</dd>  {{/if}}
     {{if only && only.length}}       <dt>{{:~labels.shortonly}}</dt><dd>{{:only.join(" &#149; ")}}</dd>  {{/if}}
-    {{if text}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
+    {{if ~hasval(text)}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
 
-    {{if notes}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
+    {{if ~hasval(notes)}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
 
 {{include tmpl="#template-card-middle" /}}
                   
  {{for printing}}
       <div class="printing" data-printingid="{{:printingid}}">
         <hr>
-        {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
-        {{if rarity}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
-        {{if flavor}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
+        {{if ~hasval(set)}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
+        {{if ~hasval(rarity)}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
+        {{if ~hasval(flavor)}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
 
-        {{if cardno}}       <dt>{{:~labels.shortcardno}}</dt><dd>{{:cardno}}</dd>  {{/if}}
-        {{if setno}}       <dt>{{:~labels.shortsetno}}</dt><dd>{{:setno}}</dd>  {{/if}}
-        {{if copy}}       <dt>{{:~labels.shortcopy}}</dt><dd>{{:copy}}</dd>  {{/if}}
+        {{if ~hasval(cardno)}}       <dt>{{:~labels.shortcardno}}</dt><dd>{{:cardno}}</dd>  {{/if}}
+        {{if ~hasval(setno)}}       <dt>{{:~labels.shortsetno}}</dt><dd>{{:setno}}</dd>  {{/if}}
+        {{if ~hasval(copy)}}       <dt>{{:~labels.shortcopy}}</dt><dd>{{:copy}}</dd>  {{/if}}
 
         <hr>
       </div>
