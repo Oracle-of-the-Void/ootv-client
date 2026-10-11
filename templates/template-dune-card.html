@@ -2,13 +2,13 @@
     <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
 
 
-    {{if type}} <dt>{{:~labels.shorttype}}</dt><dd><span class="iconic 7siconic">{{:type}}</span> </dd> {{/if}}
+    {{if ~hasval(type)}} <dt>{{:~labels.shorttype}}</dt><dd><span class="iconic 7siconic">{{:type}}</span> </dd> {{/if}}
 
 
-   {{if deploymentcost}}       <dt>{{:~labels.shortdeploymentcost}}</dt><dd>{{:deploymentcost}}</dd>  {{/if}}
-   {{if talentrequirement}}       <dt>{{:~labels.shorttalentrequirementbase}}</dt><dd>{{:talentrequirement}}</dd>  {{/if}}
-   {{if command}}       <dt>{{:~labels.shortcommand}}</dt><dd>{{:command}}</dd>  {{/if}}
-   {{if resistance}}       <dt>{{:~labels.shortresistance}}</dt><dd>{{:resistance}}</dd>  {{/if}}
+   {{if ~hasval(deploymentcost)}}       <dt>{{:~labels.shortdeploymentcost}}</dt><dd>{{:deploymentcost}}</dd>  {{/if}}
+   {{if ~hasval(talentrequirement)}}       <dt>{{:~labels.shorttalentrequirementbase}}</dt><dd>{{:talentrequirement}}</dd>  {{/if}}
+   {{if ~hasval(command)}}       <dt>{{:~labels.shortcommand}}</dt><dd>{{:command}}</dd>  {{/if}}
+   {{if ~hasval(resistance)}}       <dt>{{:~labels.shortresistance}}</dt><dd>{{:resistance}}</dd>  {{/if}}
 
     {{if dueling || battle || intrigue || arbitration || weirding || prescience }}
       <dt>Talents</dt>
@@ -22,28 +22,28 @@
       </dd>
     {{/if}}
 
-     {{if allegiance}} <dt>{{:~labels.shortallegiance}}</dt><dd><span class="iconic 7siconic">{{:allegiance}}</span> </dd> {{/if}}
+     {{if ~hasval(allegiance)}} <dt>{{:~labels.shortallegiance}}</dt><dd><span class="iconic 7siconic">{{:allegiance}}</span> </dd> {{/if}}
 
-   {{if subtype }}       <dt>{{:~labels.shortsubtype}}</dt><dd>{{:subtype.join(" &#149; ")}}</dd>  {{/if}}
+   {{if ~hasval(subtype)}}       <dt>{{:~labels.shortsubtype}}</dt><dd>{{:subtype.join(" &#149; ")}}</dd>  {{/if}}
 
-    {{if operation}}       <dt>{{:~labels.shortoperation}}</dt><dd>{{:operation}}</dd>  {{/if}}
+    {{if ~hasval(operation)}}       <dt>{{:~labels.shortoperation}}</dt><dd>{{:operation}}</dd>  {{/if}}
 
-   {{if decktype }}       <dt>{{:~labels.shortdecktype}}</dt><dd>{{:decktype}}</dd>  {{/if}}
+   {{if ~hasval(decktype)}}       <dt>{{:~labels.shortdecktype}}</dt><dd>{{:decktype}}</dd>  {{/if}}
 
 
-    {{if errata}}       <dt>{{:~labels.shorterrata}}</dt><dd>{{:errata}}</dd>  {{/if}}
+    {{if ~hasval(errata)}}       <dt>{{:~labels.shorterrata}}</dt><dd>{{:errata}}</dd>  {{/if}}
 
 {{include tmpl="#template-card-middle" /}}
 {{for printing}}
       <div class="printing" data-printingid="{{:printingid}}">
         <hr>
 
-        {{if set}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
-        {{if rarity}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
+        {{if ~hasval(set)}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
+        {{if ~hasval(rarity)}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
 
-        {{if flavor}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
+        {{if ~hasval(flavor)}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
 
-        {{if artist}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
+        {{if ~hasval(artist)}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
         <hr>
       </div>
     {{/for}}
