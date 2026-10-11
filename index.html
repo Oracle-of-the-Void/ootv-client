@@ -453,7 +453,21 @@ printingprimary
 <!-- modal template for PDF print-n-play options (mode "print") and the saved defaults (mode "settings") -->
 <script id="template-pdfoptions" type="text/jsrender">
   <form id="pdfform" class="pdfform" onsubmit="return false;">
-    <fieldset><legend>Paper</legend>
+    <fieldset><legend>Layout</legend>
+      <label class="wide">Layout <select name="layout" onchange="pdfrerender();">
+        <option value="sheet" {{if o.layout!='mpc'}}selected{{/if}}>Sheets: a grid of cards on paper</option>
+        <option value="mpc" {{if o.layout=='mpc'}}selected{{/if}}>MakePlayingCards: one card per page, with bleed</option>
+      </select></label>
+    </fieldset>
+    <fieldset {{if o.layout!='mpc'}}style="display: none"{{/if}}><legend>Bleed (MakePlayingCards)</legend>
+      <label>Bleed <input name="bleed" type="number" step="any" min="0" value="{{:v.bleed}}" oninput="pdfsummary();" /></label>
+      <label>Fill <select name="bleedfill">
+        <option value="black" {{if o.bleedfill=='black'}}selected{{/if}}>Black</option>
+        <option value="extend" {{if o.bleedfill=='extend'}}selected{{/if}}>Extend the card's edge</option>
+      </select></label>
+      <label class="wide"><input name="fixcorners" type="checkbox" {{if o.fixcorners}}checked{{/if}} /> Paint over white corners and edge slivers</label>
+    </fieldset>
+    <fieldset {{if o.layout=='mpc'}}style="display: none"{{/if}}><legend>Paper</legend>
       <label class="wide">Size <select name="paper" onchange="pdfrerender();">
         {{props papers}}<option value="{{:key}}" {{if key==~root.o.paper}}selected{{/if}}>{{:prop.name}}</option>{{/props}}
       </select></label>
@@ -463,14 +477,16 @@ printingprimary
         <option value="portrait" {{if o.orientation=='portrait'}}selected{{/if}}>Portrait</option>
         <option value="landscape" {{if o.orientation=='landscape'}}selected{{/if}}>Landscape</option>
       </select></label>
+    </fieldset>
+    <fieldset><legend>Cards ({{:gamename}})</legend>
+      <label>Card width <input name="cardwidth" type="number" step="any" min="0" value="{{:v.cardwidth}}" oninput="pdfsummary();" /></label>
+      <label>Card height <input name="cardheight" type="number" step="any" min="0" value="{{:v.cardheight}}" oninput="pdfsummary();" /></label>
       <label>Units <select name="units" onchange="pdfrerender();">
         <option value="in" {{if o.units=='in'}}selected{{/if}}>inches</option>
         <option value="mm" {{if o.units=='mm'}}selected{{/if}}>mm</option>
       </select></label>
     </fieldset>
-    <fieldset><legend>Cards ({{:gamename}})</legend>
-      <label>Card width <input name="cardwidth" type="number" step="any" min="0" value="{{:v.cardwidth}}" oninput="pdfsummary();" /></label>
-      <label>Card height <input name="cardheight" type="number" step="any" min="0" value="{{:v.cardheight}}" oninput="pdfsummary();" /></label>
+    <fieldset {{if o.layout=='mpc'}}style="display: none"{{/if}}><legend>Grid</legend>
       <label>Columns <input name="columns" type="number" step="1" min="0" value="{{:o.columns||''}}" placeholder="fit" oninput="pdfsummary();" /></label>
       <label>Rows <input name="rows" type="number" step="1" min="0" value="{{:o.rows||''}}" placeholder="fit" oninput="pdfsummary();" /></label>
       <label>Spacing <input name="spacing" type="number" step="any" min="0" value="{{:v.spacing}}" oninput="pdfsummary();" /></label>
@@ -555,6 +571,7 @@ printingprimary
 <li><button aria-label="Download list" data-balloon-pos="up-right" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
   <ul>
   <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</button></li>
+  <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}_mpc','mpc');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF for MakePlayingCards</button></li>
   <li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><button class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</button></li>
   <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Native Oracle (Tab-delimited)</button></li>
 <!--  <li onclick="listinfo('{{:listid}}',false,'texteopk,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblack"><svg class="feather"><use xlink:href="res/feather-sprite.svg#circle"></svg> Egg of Pan'ku</button></li> -->

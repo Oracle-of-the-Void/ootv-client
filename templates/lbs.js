@@ -11,7 +11,7 @@ dbinfo['lbs'] = {
     'nameshort':"LBS",
     'logo': 'lbs.png',
     'imageuri': 'https://images.oracleofthevoid.com/lbs/',
-    'cardsize': [2.5, 3.5], // inches (width, height): the PDF print-n-play card cell
+    'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':''
 };
 databasesort['lbs'] = {

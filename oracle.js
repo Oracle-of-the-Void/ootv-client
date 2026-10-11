@@ -1603,6 +1603,10 @@ var pdfpapers = {
 };
 var pdfunits = {'in': 72, 'mm': 72/25.4};
 var pdfdefaults = {
+  'layout': 'sheet', // sheet = a grid of cards on paper, mpc = one card per page with bleed (MakePlayingCards)
+  'bleed': 8.64, // mpc: added on each side (MPC's poker template: 2.5 x 3.5 in cut, 2.74 x 3.74 in with bleed)
+  'bleedfill': 'black', // mpc: black, or extend = stretch the card's outer pixels
+  'fixcorners': true, // mpc: paint over the scans' white rounded corners and edge slivers
   'paper': 'letter', 'paperwidth': 612, 'paperheight': 792, 'orientation': 'portrait', 'units': 'in',
   'margin': 18, 'spacing': 0, 'offsetx': 0, 'offsety': 0,
   'columns': 0, 'rows': 0, // 0 = as many as fit
@@ -1611,10 +1615,10 @@ var pdfdefaults = {
 };
 var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 
-// the game's card cell, in points
+// the game's card size (dbinfo[game].cardsize, mm), in points
 function pdfgamecardsize() {
-  var size = (dbinfo[database] && dbinfo[database].cardsize) || [2.5, 3.5];
-  return [size[0]*72, size[1]*72];
+  var size = (dbinfo[database] && dbinfo[database].cardsize) || [63.5, 88.9];
+  return [size[0]*72/25.4, size[1]*72/25.4];
 }
 // options with the game's card size, for when nothing else set them
 function pdfbaseoptions() {
@@ -1623,6 +1627,12 @@ function pdfbaseoptions() {
 }
 // where the cards go: page size, grid, and the top-left corner of the grid
 function pdflayout(o) {
+  if(o.layout == 'mpc') {
+    return {
+      'pagewidth': o.cardwidth + 2*o.bleed, 'pageheight': o.cardheight + 2*o.bleed,
+      'cols': 1, 'rows': 1, 'fitcols': 1, 'fitrows': 1, 'x': o.bleed, 'y': o.bleed
+    };
+  }
   var pw = o.paperwidth, ph = o.paperheight;
   if(o.paper in pdfpapers && pdfpapers[o.paper].width) {
     pw = pdfpapers[o.paper].width;
@@ -1671,9 +1681,11 @@ function pdfstartoptions() {
   return o;
 }
 var pdfdialogstate = {};
-function pdfdialog(listid,filename) {
+function pdfdialog(listid,filename,layout=null) {
   pdfdialogstate = {'mode': 'print', 'listid': listid, 'filename': filename};
-  pdfrender(pdfstartoptions());
+  var o = pdfstartoptions();
+  if(layout) { o.layout = layout; }
+  pdfrender(o);
 }
 function pdfsettingsdialog() {
   pdfdialogstate = {'mode': 'settings'};
@@ -1682,13 +1694,12 @@ function pdfsettingsdialog() {
 function pdfrender(o) {
   var unit = pdfunits[o.units] || 72;
   var v = {};
-  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety'].forEach(function(k) {
+  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety','bleed'].forEach(function(k) {
     v[k] = Math.round(o[k]/unit*1000)/1000;
   });
-  var layout = pdflayout(o);
   if(o.paper in pdfpapers && pdfpapers[o.paper].width) {
-    v.paperwidth = Math.round(Math.min(layout.pagewidth,layout.pageheight)/unit*1000)/1000;
-    v.paperheight = Math.round(Math.max(layout.pagewidth,layout.pageheight)/unit*1000)/1000;
+    v.paperwidth = Math.round(pdfpapers[o.paper].width/unit*1000)/1000;
+    v.paperheight = Math.round(pdfpapers[o.paper].height/unit*1000)/1000;
   }
   var sorts = {'list': "The list's order"};
   Object.keys(databasesort[database] || {}).forEach(function(k) { sorts[k] = k.charAt(0).toUpperCase()+k.slice(1); });
@@ -1708,15 +1719,16 @@ function pdfreadform(units=null) {
   $('#pdfform input:disabled').each(function() { form[this.name] = this.value; });
   var unit = pdfunits[units || form.units] || 72;
   var o = Object.assign(pdfbaseoptions(), {
+    'layout': form.layout, 'bleedfill': form.bleedfill, 'fixcorners': form.fixcorners == 'on',
     'paper': form.paper, 'orientation': form.orientation, 'units': form.units,
     'quantity': form.quantity, 'sort': form.sort,
     'columns': Math.max(0, parseInt(form.columns) || 0), 'rows': Math.max(0, parseInt(form.rows) || 0)
   });
-  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety'].forEach(function(k) {
+  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety','bleed'].forEach(function(k) {
     var n = parseFloat(form[k]);
     if(!isNaN(n)) { o[k] = Math.round(n*unit*1000)/1000; }
   });
-  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin'].forEach(function(k) {
+  ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','bleed'].forEach(function(k) {
     o[k] = Math.max(0, o[k]);
   });
   if(o.paper == 'custom' && o.paperwidth > o.paperheight) {
@@ -1740,7 +1752,11 @@ function pdfsummary() {
   pdfdialogstate.units = o.units;
   var layout = pdflayout(o);
   var text;
-  if(layout.cols < 1 || layout.rows < 1) {
+  if(o.layout == 'mpc') {
+    var unit = pdfunits[o.units] || 72;
+    var size = function(w,h) { return (Math.round(w/unit*100)/100)+" \u00d7 "+(Math.round(h/unit*100)/100)+" "+o.units; };
+    text = "One card per page: "+size(o.cardwidth,o.cardheight)+" cut, "+size(layout.pagewidth,layout.pageheight)+" with bleed, 300 dpi.";
+  } else if(layout.cols < 1 || layout.rows < 1) {
     text = "The cards don't fit on the page with these margins.";
   } else {
     text = layout.cols+" \u00d7 "+layout.rows+" = "+(layout.cols*layout.rows)+" cards per page";
@@ -1805,9 +1821,120 @@ function pdfsavedefaults() {
   });
 }
 
-function getDataUri(url, callback, landscape=false) {
+// MPC page image: the card at its cut size and 300 dpi, with the bleed added all round
+function pdfmpcimage(card, o) {
+  var dpi = 300/72;
+  var cw = Math.round(o.cardwidth*dpi), ch = Math.round(o.cardheight*dpi), b = Math.round(o.bleed*dpi);
+  var src = document.createElement('canvas');
+  src.width = cw;
+  src.height = ch;
+  var sctx = src.getContext('2d');
+  sctx.imageSmoothingQuality = 'high';
+  sctx.drawImage(card, 0, 0, cw, ch);
+  var fill = o.bleedfill;
+  if(o.fixcorners && pdffixcorners(src) == 'lightframe' && fill == 'black') {
+    fill = 'extend'; // black bleed round a white frame would show if the cut drifts
+  }
+  var out = document.createElement('canvas');
+  out.width = cw + 2*b;
+  out.height = ch + 2*b;
+  var ctx = out.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, out.width, out.height);
+  if(fill == 'extend' && b > 0) {
+    // stretch the outermost row/column of pixels across the bleed, and the corner pixels into the corners
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(src, 0, 0, cw, 1, b, 0, cw, b);
+    ctx.drawImage(src, 0, ch-1, cw, 1, b, ch+b, cw, b);
+    ctx.drawImage(src, 0, 0, 1, ch, 0, b, b, ch);
+    ctx.drawImage(src, cw-1, 0, 1, ch, cw+b, b, b, ch);
+    ctx.drawImage(src, 0, 0, 1, 1, 0, 0, b, b);
+    ctx.drawImage(src, cw-1, 0, 1, 1, cw+b, 0, b, b);
+    ctx.drawImage(src, 0, ch-1, 1, 1, 0, ch+b, b, b);
+    ctx.drawImage(src, cw-1, ch-1, 1, 1, cw+b, ch+b, b, b);
+  }
+  ctx.drawImage(src, b, b);
+  return out.toDataURL('image/jpeg', 0.92);
+}
+// Scans have white rounded corners and sometimes white slivers along an edge. Paint the light
+// pixels joined to the edge, within a band 4% of the card's width, with the card's edge colour.
+// Cards with a light frame are left alone ('lightframe').
+function pdffixcorners(canvas) {
+  var w = canvas.width, h = canvas.height;
+  var ctx = canvas.getContext('2d');
+  var img = ctx.getImageData(0, 0, w, h);
+  var d = img.data;
+  var band = Math.max(4, Math.round(Math.min(w,h)*0.04));
+  var light = function(i) { return d[i*4] > 170 && d[i*4+1] > 170 && d[i*4+2] > 170; };
+  var inband = function(x,y) { return x < band || y < band || x >= w-band || y >= h-band; };
+  // a light frame shows as light pixels along the line just inside the corners' reach
+  var lit = 0, total = 0;
+  for(var x = 2*band; x < w-2*band; x++) {
+    lit += light(band*w+x) + light((h-1-band)*w+x);
+    total += 2;
+  }
+  for(var y = 2*band; y < h-2*band; y++) {
+    lit += light(y*w+band) + light(y*w+w-1-band);
+    total += 2;
+  }
+  if(total == 0 || lit/total > 0.5) {
+    return 'lightframe';
+  }
+  var mark = new Uint8Array(w*h);
+  var stack = [];
+  for(var x = 0; x < w; x++) { stack.push(x, (h-1)*w+x); }
+  for(var y = 0; y < h; y++) { stack.push(y*w, y*w+w-1); }
+  while(stack.length) {
+    var i = stack.pop();
+    if(mark[i] || !light(i)) { continue; }
+    var x = i % w, y = (i - x)/w;
+    if(!inband(x,y)) { continue; }
+    mark[i] = 1;
+    if(x > 0) { stack.push(i-1); }
+    if(x < w-1) { stack.push(i+1); }
+    if(y > 0) { stack.push(i-w); }
+    if(y < h-1) { stack.push(i+w); }
+  }
+  // the edge colour: the average of the band's pixels that aren't white
+  var sum = [0,0,0], n = 0;
+  for(var y = 0; y < h; y++) {
+    for(var x = 0; x < w; x++) {
+      var i = y*w+x;
+      if(!inband(x,y) || mark[i] || light(i)) { continue; }
+      sum[0] += d[i*4]; sum[1] += d[i*4+1]; sum[2] += d[i*4+2]; n++;
+    }
+  }
+  var fill = n ? sum.map(function(c) { return Math.round(c/n); }) : [0,0,0];
+  var filllevel = (fill[0]+fill[1]+fill[2])/3;
+  // the anti-aliased fringe round the white is grey: take the next pixel out, then up to two
+  // more while they're clearly lighter than the edge colour
+  var grow = mark.slice();
+  for(var pass = 0; pass < 3; pass++) {
+    var next = grow.slice();
+    for(var i = 0; i < w*h; i++) {
+      if(!grow[i]) { continue; }
+      var x = i % w, y = (i - x)/w;
+      [[x-1,y],[x+1,y],[x,y-1],[x,y+1]].forEach(function(q) {
+        if(q[0] < 0 || q[1] < 0 || q[0] >= w || q[1] >= h || !inband(q[0],q[1])) { return; }
+        var j = q[1]*w+q[0];
+        if(!grow[j] && (pass == 0 || (d[j*4]+d[j*4+1]+d[j*4+2])/3 > filllevel + 40)) { next[j] = 1; }
+      });
+    }
+    grow = next;
+  }
+  for(var i = 0; i < w*h; i++) {
+    if(grow[i]) {
+      d[i*4] = fill[0]; d[i*4+1] = fill[1]; d[i*4+2] = fill[2]; d[i*4+3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return 'fixed';
+}
+
+function getDataUri(url, callback, landscape=false, finish=null) {
   // create a canvas for pdf images, set the source to the image url, return resulting data through callback
   // images are turned 90 degrees when they don't match the card cell's orientation
+  // finish(canvas) makes the data URL (default: PNG of the canvas)
     var image = new Image();
     image.setAttribute('crossOrigin', 'anonymous');
     image.onload = function () {
@@ -1827,7 +1954,7 @@ function getDataUri(url, callback, landscape=false) {
         ctx.drawImage(this,-this.width/2,-this.height/2);
         ctx.restore();
       }
-      callback(canvas.toDataURL('image/png'),url);
+      callback(finish ? finish(canvas) : canvas.toDataURL('image/png'),url);
     };
     image.onerror = function() {
       callback(null,url);
@@ -1853,6 +1980,9 @@ function createpdf(data,listoutput='') {
       var gamesort = databasesort[database] || {};
       data = data.slice().sort(gamesort[o.sort] != undefined ? gamesort[o.sort] : pdftitlesort);
     }
+    // MPC prints at 300 dpi: the _master scans (~750 x 1050) instead of _details (600px long side)
+    var size = (o.layout == 'mpc') ? 'master' : 'details';
+    var newurl = function(p,i) { return dbinfo[database].imageuri+p.imagehash+'/'+(i[size] || i.details)+'?x-corsworkaround=true'; };
     var images = [];
     for(card of data) {
       var copies = (o.quantity == 'spoiler') ? 1 : card.listquantity;
@@ -1862,20 +1992,20 @@ function createpdf(data,listoutput='') {
               for(cn = 0; cn < copies; cn++) {
                 if(p.doublesided) {
   	              for(i of p.image) {  // NEW STYLE
-                    images.push(dbinfo[database].imageuri+p.imagehash+'/'+i.details+'?x-corsworkaround=true');
+                    images.push(newurl(p,i));
                   }
                 } else {
-                  images.push(dbinfo[database].imageuri+p.imagehash+'/'+p.image[0].details+'?x-corsworkaround=true');
+                  images.push(newurl(p,p.image[0]));
                 }
               }
           } else if(p.images && p.images.length) {
             for(cn = 0; cn < copies; cn++) {
               if(p.doublesided) {
                 for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
-                  images.push(i+'details.jpg?x-corsworkaround=true'); 
+                  images.push(i+size+'.jpg?x-corsworkaround=true'); 
                 }
               } else {
-                images.push(p.images[0]+'details.jpg?x-corsworkaround=true');
+                images.push(p.images[0]+size+'.jpg?x-corsworkaround=true');
               }
             }
 	        }
@@ -1913,10 +2043,14 @@ function createpdf(data,listoutput='') {
 		      const stream = doc.pipe(blobStream());
 		      for(var i=0 ; i < pages.length; i++) {
               var slot = i % perpage;
-              doc.image(imagedata[pages[i]],
-                        layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
-                        layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
-                        {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
+              if(o.layout == 'mpc') {
+                doc.image(imagedata[pages[i]], 0, 0, {width: layout.pagewidth, height: layout.pageheight});
+              } else {
+                doc.image(imagedata[pages[i]],
+                          layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
+                          layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
+                          {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
+              }
               if(slot == perpage-1 && (i<pages.length -1)) {
                 doc.addPage();
               }
@@ -1930,7 +2064,7 @@ function createpdf(data,listoutput='') {
             alert("Failed to load some images:"+JSON.stringify(imagefailed));
           }
 	      }
-	    }, o.cardwidth > o.cardheight);
+	    }, o.cardwidth > o.cardheight, (o.layout == 'mpc') ? function(canvas) { return pdfmpcimage(canvas, o); } : null);
     }
 }
 function data_url_to_download(data_url, filename) {
