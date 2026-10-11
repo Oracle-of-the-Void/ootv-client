@@ -19,6 +19,7 @@ $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
 $.views.helpers("sortlegality",templatesortlegality);
 $.views.helpers("sortprintings",templatesortprintings);
+$.views.helpers("hasval",templatehasval);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -2459,6 +2460,16 @@ function sortbyselect(items,key,valuefn) {
     };
     // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
     return items.slice().sort(function(a,b) { return pos(a) - pos(b); });
+}
+function templatehasval(v) {
+    // card detail guards: card fields are arrays, and [""] / ["&nbsp;"] are truthy but display nothing (#236)
+    if(Array.isArray(v)) {
+        return v.some(templatehasval);
+    }
+    if(typeof v === 'string') {
+        return v.replace(/&nbsp;/gi," ").trim() !== "";
+    }
+    return v !== undefined && v !== null && v !== false;
 }
 function templatesortlegality(legality) {
     // card detail legalities in chronological (arc) order (#190)
