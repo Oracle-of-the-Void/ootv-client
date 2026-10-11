@@ -36,6 +36,17 @@ div.updateblock {
 /*  float: left; */
   padding: 2px;
 }
+div.updateblock details.updatecards {
+  display: inline;
+  margin-left: 4px;
+}
+div.updateblock details.updatecards[open] {
+  display: block;
+  margin-left: 20px;
+}
+div.updateblock details.updatecards summary {
+  cursor: pointer;
+}
 div.updatedetails {
   border: solid black 1px;
 }
