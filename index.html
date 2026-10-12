@@ -214,8 +214,10 @@
   <ul>
     <li>Image upload</li>
     <li><a href="" onclick="editcard(null,null); return false">New Card</a></li>
+    <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
     <li>Reporting</li>
   </ul>
+  <div id="loginlog"></div>
 </div></div>
 <div class="resultabout" id="resultabout">
 <div class="randarea">
@@ -527,6 +529,29 @@ printingprimary
       {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
     {{/if}}
   </div>
+</script>
+<!-- admin login log (/loginlog): name, email, reason come from users, so always escape with {{>}} -->
+<script id="template-loginlog" type="text/jsrender">
+  <div class="loginlog-nav">
+    <span class="button gray" onclick="loadloginlog(0)">Newest</span>
+    {{if page > 0}}<span class="button gray" onclick="loadloginlog(page_loginlog-1)">&laquo; Newer</span>{{/if}}
+    {{if next}}<span class="button gray" onclick="loadloginlog(page_loginlog+1)">Older &raquo;</span>{{/if}}
+    Page {{:page+1}}
+  </div>
+  <table class="loginlog">
+    <tr><th>Time</th><th>Result</th><th>User</th><th>Provider</th><th>Details</th></tr>
+    {{for entries}}
+    <tr class="loginlog-{{:result}}">
+      <td>{{>timelocal}}</td>
+      <td>{{if result == 'failed'}}failed{{else}}login{{/if}}</td>
+      <td>{{if result == 'failed'}}<i>unknown</i>{{else}}{{>name}}{{if email}} &lt;{{>email}}&gt;{{/if}}{{/if}}</td>
+      <td>{{>provider}}</td>
+      <td>{{if result == 'failed'}}{{>reason}} from {{>ip}}{{else newDeviceUsed}}new device{{/if}}</td>
+    </tr>
+    {{else}}
+    <tr><td colspan="5">No logins recorded</td></tr>
+    {{/for}}
+  </table>
 </script>
 <script id="template-updatelog-card" type="text/jsrender"><a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:title}}</a></script>
 
