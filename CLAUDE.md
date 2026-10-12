@@ -13,7 +13,9 @@ or tests. The files in this directory are exactly what gets served.
   login, search (`dosearch`), card view (`docard`), lists/decks (`listinfo`,
   `addlistitem`, `renderlist`), card editing (`editcard*`), PDF proxies (`createpdf`),
   URL routing (`urlparser`), and template switching (`activatetemplate`, `changesort`).
-  The API base is `apiuri = "https://api.oracleofthevoid.com"`.
+  The API base is `apiuri`: `https://api.oracleofthevoid.com` (prod Lambda) on the live
+  site, `https://api-dev.oracleofthevoid.com` (dev Lambda) on preview and localhost. Both
+  share the same DynamoDB tables and Elasticsearch, so writes are always live.
 - `templates/<game>.js` registers a game by filling the globals `dbinfo[game]`,
   `databasesort[game]`, `headerize`, `searchables`, `labels` and `templates`. Copy an
   existing game (e.g. `dune.js`) when adding one, and add its `<script>` tag to `index.html`.
