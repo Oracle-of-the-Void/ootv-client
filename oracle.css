@@ -36,6 +36,17 @@ div.updateblock {
 /*  float: left; */
   padding: 2px;
 }
+div.updateblock details.updatecards {
+  display: inline;
+  margin-left: 4px;
+}
+div.updateblock details.updatecards[open] {
+  display: block;
+  margin-left: 20px;
+}
+div.updateblock details.updatecards summary {
+  cursor: pointer;
+}
 div.updatedetails {
   border: solid black 1px;
 }
@@ -74,7 +85,7 @@ div.ui-layout-center {
 div.helloplace { text-align: center; max-width: 750px; display: inline-block;}
 div.infoplace {  max-width: 750px; display: inline-block; text-align: left;}
 
-div.error, div.more, div.moreloading, div.numresults, div.searchinput {
+div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchinput {
   font-family: "L5R Title","Times New Roman",Georgia,Serif;
   text-align: center;
   font-size: 16pt;
@@ -841,6 +852,15 @@ div.menubar nav li.sortbuttons {
   display: none;
 }
 
+/* PDF print-n-play options */
+.modal-box:has(.pdfform) { width: 640px; max-width: 95vw; min-width: 0; margin-top: 5%; }
+.pdfform fieldset { border: 1px solid #ccc; border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 12px; }
+.pdfform label { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.pdfform input[type=number] { width: 6em; }
+.pdfform label.wide { grid-column: 1 / -1; justify-content: flex-start; }
+.pdfform input:disabled { color: #888; }
+.pdfsummary { margin: 4px 0 10px 0; font-weight: bold; }
+
 /* ********************** narrow screens (phones) **********************
    Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
@@ -934,4 +954,8 @@ span.listqty {
     height: auto;
   }
 }
-
+/* admin login log */
+.loginlog-nav { margin: 10px 0; }
+table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
+table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+table.loginlog tr.loginlog-failed td { color: #a00; }
