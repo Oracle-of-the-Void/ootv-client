@@ -12,6 +12,7 @@ $.views.tags("imagehashfromset",templateimagehashfromset);
 $.views.tags("imagefromset",templateimagefromset);
 $.views.tags("setfromset",templatesetfromset);
 $.views.tags("printingfromid",templateprintingfromid);
+$.views.tags("snmset",templatesnmset);
 $.views.tags("fetchimage",templatefetchimage);
 $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
@@ -1348,6 +1349,10 @@ function updateselectmulti(one,two) {
 function renderlist(list,switchview=true,listoutput=null) {
     // TODO:  batchget has limits, so fetch least number.  also it's not in order, so meh
     console.log(["renderlist",list,switchview,listoutput]);
+    if(listoutput && listoutput.startsWith('textsnm') && snmsets[database] === undefined) {
+	snmsetload(function() { renderlist(list,switchview,listoutput); });
+	return;
+    }
     var needfetched = [];
     var listids = [];
     var listdata = [];
@@ -1680,6 +1685,31 @@ var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 // Sun and Moon is an L5R client: its list export/import only applies to games with a textsnm template
 function snmallowed() {
   return !!(templates[database] && templates[database]['available'] && templates[database]['available']['textsnm']);
+}
+// Sun and Moon set codes for the export: templates/<game>-snm.json (built by docs/snm/snm-map.py),
+// loaded on the first S&M export. sets: OotV set -> S&M code; printings: "cardid/printingid" -> code
+// where that printing differs ("" = write no set, S&M shows its default printing)
+var snmsets = {};
+function snmsetload(callback) {
+  $.ajax({
+    url: "templates/"+database+"-snm.json",
+    dataType: "json",
+    success: function(data) { snmsets[database] = data; callback(); },
+    error: function(error) {
+      console.log("Epic Fail: snm sets: "+JSON.stringify(error));
+      snmsets[database] = {'sets': {}, 'printings': {}};
+      callback();
+    }
+  });
+}
+// {{snmset listprinting printing cardid /}}: "(CODE)", or nothing when S&M has no code for that printing
+function templatesnmset(id,hashes,cardid) {
+  var map = snmsets[database] || {'sets': {}, 'printings': {}};
+  var code = map.printings[cardid+"/"+id];
+  if(code === undefined) {
+    code = map.sets[templateprintingfromid(id,hashes,"set")] || '';
+  }
+  return code ? "("+code+")" : '';
 }
 // games can turn PDF output off (dbinfo[game].pdfprint: false)
 function pdfallowed() {
