@@ -23,6 +23,10 @@ or tests. The files in this directory are exactly what gets served.
   (`card`, `search`). Generic ones (`template-list.html`, `template-text*.html`,
   `template-visual*.html`, `template-pdf.html`) have no game prefix. They are fetched
   at runtime: `"templates/template-" + (generic ? "" : database + "-") + key + ".html"`.
+- `templates/l5r-snm.json` maps l5r sets (and odd printings) to Sun and Moon edition codes
+  for the S&M text export; `oracle.js` loads it on the first S&M export. It's generated:
+  rerun `python3 -I docs/snm/snm-map.py` after a new set or when S&M updates its
+  database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`).
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) loads it on demand.
