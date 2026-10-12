@@ -16,6 +16,7 @@
 * [/list (GET)](#list)                          -> deck/list handling routines
 * [/update (POST)](#update)                     -> database modification routines
 * [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
+* [/loginlog (GET)](#loginlog)                 -> sign-in log for the admin page (site admins only)
 
 ## Note
 
@@ -421,3 +422,28 @@ is appended to `image`, not swapped in. The card editor converts a legacy printi
 `<printimagehash[i]>/printing_<cardid>_<printingid>_{master,details,select}.jpg` byte for byte into the
 directory (adding `_<i+1>` after the first, since legacy directories reuse the same names) and lists
 them first.
+
+## /loginlog
+
+Sign-in log for the Admin tab's "Login log" view, newest first.
+
+Handled by lambda: ootv-search/routes/loginlog.js
+
+Only site admins can read it (`groups['*']` includes `'*'`): the rows hold every user's email and IP.
+Otherwise it returns 403. The token's email must be one of the uid's emails (404 if not).
+
+Inputs (query string):
+* uid: required
+* limit: entries per page, default 50, max 100
+* before: the `next` cursor from the previous page, to get older entries
+
+Output: `{entries, next}`
+* entries: `[{time, result, name, email, provider, newDeviceUsed, ip, reason, userAgent}]`
+  * result `login`: a successful sign-in (Cognito post-authentication trigger), with name, email,
+    provider (`Google`, `LoginWithAmazon`, `Cognito`) and newDeviceUsed
+  * result `failed`: a failed hosted-UI password login, polled from CloudTrail every 10 minutes.
+    Cognito redacts the username, so these have ip, reason and userAgent but no user.
+* next: cursor for the page after, or null on the last page
+
+Data: DynamoDB `oracle-all-logins`, read through its `feed-time` index. Written by the
+`cognito-post-auth` Lambdas in ootv-search.

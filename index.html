@@ -567,7 +567,7 @@ printingprimary
     Page {{:page+1}}
   </div>
   <table class="loginlog">
-    <tr><th>Time</th><th>Result</th><th>User</th><th>Provider</th><th>Details</th></tr>
+    <tr><th>Time{{if tz}} ({{>tz}}){{/if}}</th><th>Result</th><th>User</th><th>Provider</th><th>Details</th></tr>
     {{for entries}}
     <tr class="loginlog-{{:result}}">
       <td>{{>timelocal}}</td>
