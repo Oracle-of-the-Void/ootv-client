@@ -2759,6 +2759,12 @@ function templatefetch(card,id=false,datarequest={}) {
                 console.log(checkatt);
                 if(checkatt in card.printingreverse[att]) {
                     pr = card.printingreverse[att][checkatt];
+                } else {
+                    // a derived value (e.g. Jade Extended) is on no printing: use one that fits its rule
+                    var dpr = derivedprinting(card,att,checkatt);
+                    if(dpr !== null) {
+                        pr = dpr;
+                    }
                 }
               }
             }
@@ -2766,6 +2772,55 @@ function templatefetch(card,id=false,datarequest={}) {
     }
     //console.log("onx ret: "+pr);
     return card.printing[pr];
+}
+function derivedprinting(card,field,value) {
+    // index of a printing that satisfies the derived value's rule, or null. The rules come from
+    // /attributes <field>.derived (ootv-search lib/attributeopts.js): every `all` clause and at
+    // least one `any` clause; card fields must match the card, `printing` fields the printing.
+    // Among the printings that fit, prefer one carrying a <field> value the clause lists, the later in
+    // the clause's list the better (Jade over Imperial for Jade Extended); on a tie the later
+    // printing, as the stored-value lookup above does.
+    var derived = cache_select(field+".derived");
+    if(!Array.isArray(derived)) {
+        return null;
+    }
+    var d = derived.find(function(x) { return selectplaintext(x.name) == selectplaintext(value); });
+    if(!d) {
+        return null;
+    }
+    var has = function(vals,want) {
+        want = [].concat(want).map(selectplaintext);
+        return [].concat(vals || []).some(function(v) { return want.includes(selectplaintext(v)); });
+    };
+    var cardok = function(cl) {
+        return Object.keys(cl).every(function(k) { return k == 'printing' || has(card[k],cl[k]); });
+    };
+    var printingok = function(cl,p) {
+        return !cl.printing || Object.keys(cl.printing).every(function(k) { return has(p[k],cl.printing[k]); });
+    };
+    var rank = function(cl,p) {
+        // only the derived field itself: printings can carry other card fields (type, text, ...)
+        var r = -1;
+        [].concat(cl[field] || []).forEach(function(v,i) {
+            if(has(p[field],v)) { r = Math.max(r,i); }
+        });
+        return r;
+    };
+    var all = d.all || [];
+    var any = (d.any && d.any.length) ? d.any.filter(cardok) : [{}];
+    if(!all.every(cardok) || any.length == 0) {
+        return null;
+    }
+    var best = null, bestrank = -1;
+    card.printing.forEach(function(p,i) {
+        if(!all.every(function(cl) { return printingok(cl,p); })) { return; }
+        any.forEach(function(cl) {
+            if(!printingok(cl,p)) { return; }
+            var r = cl.printing ? Math.max(rank(cl,p),0) : rank(cl,p);
+            if(r >= 0 && r >= bestrank) { best = i; bestrank = r; }
+        });
+    });
+    return best;
 }
 function templatefetchimage(card,size,id=false,datarequest={}) {
     console.log(['templatefetchimage',card,size,id,datarequest]);
@@ -3523,7 +3578,7 @@ function loadupdates(db,start=null) {
 
 function loadselectables(db) {
   $.each(searchables[db],function( key, value ) {
-	  if(value.type == 'select' || key.match(/\.sortregex$/)) {
+	  if(value.type == 'select' || key.match(/\.(sortregex|derived)$/)) {
 	    if(cache_select(key)) {
 		    console.log('select cached: '+key);
 	    } else {
