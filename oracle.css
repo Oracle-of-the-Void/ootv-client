@@ -238,8 +238,37 @@ div.upperhead {
   -moz-border-radius-topleft: 7px;  -webkit-border-top-left-radius: 7px;  -khtml-border-top-left-radius: 7px;  border-top-left-radius: 7px;
 }
 
+/* help page: community links row */
+div.helplinks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+/* list view header line: the list's directory details */
+div.listviewheader {
+    margin-bottom: 4px;
+}
+div.listviewheader .listviewname {
+    font-size: x-large;
+    margin-right: .5em;
+}
+div.listviewheader .listviewdetails, div.listviewheader .listviewnotes {
+    font-family: "Times New Roman",Georgia,Serif;
+    font-size: medium;
+}
 div.listheadxl {
     font-size: x-large;
+}
+/* deck view (template-visual-deck): type rows under a deck header */
+div.deckviewtype {
+    display: inline-block;
+    vertical-align: top;
+    width: 8em;
+    margin: 4px 4px 0 0;
+    font-size: medium;
+    white-space: normal;
+    border-radius: 7px;
 }
 div.listhead, div.listheadxl, div.listhead a:visited, div.listhead a:link, div.listhead a:hover, div.listhead a:active, div.listheadplain, div.upperhead, div.listheadmiddle{
     color:  /* #ffd73a; */  #FFFFFF;
@@ -567,76 +596,20 @@ div#maincontent {
 .ui-layout-toggler-north-open    { background: url(res/toggle-up.gif) no-repeat center left !important; }
 
 
-/* TODO:  make the tab colors match my other colors...   along the same vein, i think listitem needs even/odd swapped if i choose the light colored tabs vs the dark */
-#tabs {
-  font-size: large;
-  font-family: "L5R Title";
-  overflow: hidden;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* view switcher icons in the menubar (search / card / directory / list, help); buttons styled by .searchviewgroup */
+div.menubar nav li.viewicons {
+  padding-top: 3px;
 }
-
-#tabs li {
-      float: left;
-      margin: 0 .375em 0 0 ;
+/* menubar game logo: the 64px file, so it stays sharp when phones show it doubled */
+.gameinfo-game img {
+  width: 15px;
+  height: 15px;
 }
-#tabs li.r { 
-  float: right;
-}
-
-#tabs a, #tabs span {
-  position: relative;
-  background: #ddd;
-  background-image: linear-gradient(to bottom, #fff, #ddd);  
-  text-decoration: none;
-  color: #444;
-  text-shadow: 0 1px 0 rgba(255,255,255,.8);
-  box-shadow: 0 2px 2px rgba(0,0,0,.4);
-}
-
-#tabs a {
-  padding: .3em 1.5em;
-  border-radius: 5px 0 0 0;
-  float: left;
-}
-#tabs span { 
-  padding: .3em;
-  float: right;
-  border-radius: 5px;
- }
-#tabs span:empty { display:none; }
-#tabs a:hover,
-#tabs a:hover::after,
-#tabs a:focus,
-#tabs a:focus::after {
-  background: #fff;
-}
-
-#tabs a:focus {
-  outline: 0;
-}
-
-#tabs a::after {
-  content:'';
-  position:absolute;
-  z-index: 1;
-  top: 0;
-  right: -.375em;  
-  bottom: 0;
-  width: .875em;
-  background: #ddd;
-  background-image: linear-gradient(to bottom, #fff, #ddd);  
-  box-shadow: 2px 2px 2px rgba(0,0,0,.4);
-  transform: skew(10deg);
-  border-radius: 0 5px 0 0;  
-}
-
-#tabs #current a,
-#tabs #current a::after {
-  background: #fff;
-  z-index: 3;
+div.menubar nav li.numresultsmenu {
+  font-family: "Times New Roman",Georgia,Serif;
+  font-size: medium;
+  padding-top: 7px;
+  cursor: default;
 }
 
 div[class^=result] .randarea { 
@@ -681,7 +654,8 @@ nav li a:link, nav li a:hover, nav li a:active, nav li a:visited {
   color: black;
 }
 
-nav li:hover {
+/* pointer cursor on every menu item: iOS Safari only sends taps on plain elements to click handlers when they have it */
+nav li {
   cursor: pointer;
 /*  background-color: rgb(128, 128, 128); */
 }
@@ -702,14 +676,23 @@ nav ul li.right ul {
     right: 0;
 }
 
-nav ul li:hover > ul,
-ul li:focus-within > ul,
-nav ul li ul:hover {
+/* dropdowns open on hover with a mouse; on touch screens (no hover) only a tap opens them (li.menuopen, see menutap in oracle.js),
+   so a sticky :hover or :focus-within after a tap can't hold a menu open */
+@media (hover: hover) {
+  nav ul li:hover > ul,
+  ul li:focus-within > ul,
+  nav ul li ul:hover {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+    z-index: 4;
+  }
+}
+nav ul li.menuopen > ul {
   visibility: visible;
   opacity: 1;
   display: block;
   z-index: 4;
-/*  background: rgb(255,255,255); */
 }
 
 div.menubar nav ul li ul li {
@@ -781,6 +764,51 @@ nav ul li ul li:last-child {
   fill: none;
 }
 
+/* search output quick-switch buttons in the menubar (detailed / visual / simple) */
+div.menubar nav li.searchviewbuttons {
+  padding-top: 3px;
+  padding-right: 0;
+}
+/* sort (filter) group sits right of the view groups; its dropdown is the search sort list */
+div.menubar nav li.sortbuttons {
+  padding-top: 3px;
+  padding-left: 6px;
+  padding-right: .5rem;
+}
+.searchviewgroup {
+  display: inline-flex;
+  gap: 1px;
+  padding: 1px;
+  border: 1px solid rgb(128, 128, 128);
+  border-radius: 4px;
+}
+/* hamburger "Save ..." defaults: brief confirmation after saving */
+.saveviewdefaults.saved::after {
+  content: " \2714";
+  color: green;
+}
+.searchviewgroup + .searchviewgroup {
+  margin-left: 6px;
+}
+.searchviewgroup button {
+  padding: 1px 2px;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background-color: transparent;
+  color: rgb(96, 96, 96);
+  cursor: pointer;
+}
+.searchviewgroup button:hover {
+  color: black;
+  border-color: rgb(192, 192, 192);
+}
+.searchviewgroup button.searchviewactive {
+  color: black;
+  border-color: rgb(128, 128, 128);
+  background-color: rgb(224, 224, 224);
+}
+
 .button .iiconic .feather {
   position: relative;
   top: 2px;
@@ -833,6 +861,99 @@ nav ul li ul li:last-child {
 .pdfform input:disabled { color: #888; }
 .pdfsummary { margin: 4px 0 10px 0; font-weight: bold; }
 
+/* ********************** narrow screens (phones) **********************
+   Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
+   the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
+/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js sets data-balloon-visible after a long-press */
+@media (hover: none) {
+  [aria-label][data-balloon-pos]:not([data-balloon-visible]):before, [aria-label][data-balloon-pos]:not([data-balloon-visible]):after {
+    opacity: 0 !important;
+  }
+}
+/* list quantity beside the +/- buttons (search results, card view) */
+span.listqty {
+  font-weight: bold;
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
+}
+.phoneonly {
+  display: none;
+}
+/* phone layout: narrow screens, and phones held sideways; keep in step with narrowscreen() in oracle.js */
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  .phoneonly {
+    display: inline;
+  }
+  /* the directory table has too many columns for a phone: scroll it sideways inside its view */
+  #resultdir {
+    overflow-x: auto;
+  }
+  div.menubar {
+    height: auto;
+    min-height: 31px;
+  }
+  div.menubar nav>ul>li {
+    padding-bottom: 5px;
+  }
+  div.menubar nav li {
+    padding-left: .6rem;
+  }
+  div.menubar nav li.viewicons {
+    padding-top: 3px;
+  }
+  /* menubar icons at double size for fingers (not the icons inside the dropdowns) */
+  div.menubar nav > ul > li > svg.feather, div.menubar nav .searchviewgroup svg.feather, .gameinfo-game img {
+    width: 34px;
+    height: 34px;
+  }
+  .gameinfo-game .gamename, li.numresultsmenu {
+    display: none !important;
+  }
+  div#sidebaropener, .sidebarextras {
+    display: none !important;
+  }
+  div#sidebar {
+    display: none !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: auto;
+    overflow-y: auto;
+    z-index: 8;
+    background: rgb(235, 235, 235);
+    box-shadow: 2px 0 8px rgba(0,0,0,.5);
+  }
+  body.mobilesearch div#sidebar {
+    display: block !important;
+  }
+  /* the panel is full width, so let the form fields use it instead of the desktop sidebar's pixel widths */
+  div#sidebar div.searchinput {
+    float: none;
+  }
+  div#sidebar div.searchinput input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
+    width: 60vw;
+  }
+  div[class^=result] .randarea, .modal-box {
+    min-width: 0;
+  }
+  .modal-box {
+    width: 95%;
+  }
+  /* card view (template-card-top, all games): image above the details instead of beside them */
+  #resultcard div.listitem, #resultcard div.listimage, #resultcard div.listbody {
+    display: block;
+    width: auto;
+  }
+  #maincontent img:not(.inlinesymbolbounded) {
+    /* not the 1em text symbols (onyx elements etc.), which height: auto would blow up to full size.
+       vw, not %: images sit in auto-width table cells, where a % max-width collapses them; !important beats the card view's inline max-width: 600px */
+    max-width: 90vw !important;
+    height: auto;
+  }
+}
 /* admin login log */
 .loginlog-nav { margin: 10px 0; }
 table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }

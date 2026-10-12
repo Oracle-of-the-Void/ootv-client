@@ -213,7 +213,7 @@ templates['dune'] = {
     'default': { 
 	'search': 'search',
 	'card': 'card',
-	'list': 'list' 
+	'list': 'visual-deck' 
     },
     'compiled': {},
     'active': {},

@@ -19,6 +19,8 @@ $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
 $.views.helpers("sortlegality",templatesortlegality);
 $.views.helpers("sortprintings",templatesortprintings);
+$.views.helpers("printingidfromset",templateprintingidfromset);
+$.views.helpers("listqty",listquantity);
 $.views.helpers("hasval",templatehasval);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
@@ -59,14 +61,11 @@ $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
 });
 $.views.converters("databaseitemlookup",function(item) {
-  console.log("databaseitemlookup called: "+item);
-  if(item=="blurb" && typeof blurb !== 'undefined') {
-    console.log("blurb exists");
-    if(blurb[database]) {
-      console.log("returning blurb");
-      return "<div>"+blurb[database]+"</div><br /><br />";  
-    }
+  if(item=="blurb" && typeof blurb !== 'undefined' && blurb[database]) {
+    return "<div>"+blurb[database]+"</div><br /><br />";
   }
+  // a converter returning undefined makes JsViews render the raw argument ("blurb")
+  return "";
 });
 function addslashes(str) {
     if(str) {
@@ -160,6 +159,7 @@ var updatepending = {};
 var updatecallback = {};
 var database = 'l5r';
 var outputheaders = true;
+var largeview = {'search': false, 'card': false, 'list': false};   // menubar size toggle per view: card-premium / visual-premium
 if(found = window.location.href.match(/([\w_-]+)\.html/)) {
   if(found && found[1] != 'index') {
 	  database = found[1];
@@ -205,6 +205,7 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
+    updateviewbuttons();
 }
 function logincallback(session) {
     if (session) {
@@ -221,6 +222,7 @@ function logincallback(session) {
     refreshauthvar = setTimeout(refreshauth,45*60*1000); // refresh every 45 min...   tokens last 1h
     if(cache_thing("user","data")) {
 	userinfocallback();
+	refreshviewdefaults(); // pick up defaults saved from another tab/device
     } else {
 	userinfo();
     }
@@ -311,6 +313,8 @@ function userinfocallback() {
     if (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
       $('.showonadmin').show();
     }
+    updateviewbuttons();
+    applyviewdefaults();
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -422,6 +426,11 @@ function listinfocallback() {
 	    listinfoupdate(field_userid[1],field_userid[0].replace('list_',''),value);
 	  }
   });
+  // nothing in the list view yet: load the first list in the directory behind the scenes
+  var lists = cache_thing("list","data").lists.Items;
+  if(!$("#lastlistid").val() && lists.length) {
+	  listinfo(lists[0].listid,false);
+  }
   //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
 }
 
@@ -551,6 +560,10 @@ function removelist(listid) {
 	oldlists.lists.Items.splice(ind-1,1);
 	cache_thing("list","data",oldlists);
 	$("#listitem_"+listid).remove();
+	if($("#lastlistid").val() == listid) {
+	    $("#lastlistid").val('');
+	    $("#resultlist").html('<div class="randarea">No list selected, click on Directory</div>');
+	}
 	listinfocallback();
     }
 }
@@ -565,6 +578,15 @@ function savecallback() {
     clearTimeout(savetimeout);
 }
 
+// how many of this card (and printing) the list holds, shown beside its +/- buttons (span.listqty)
+function listquantity(listid,cardid,prid=0) {
+    var list = cache_thing("list",listid);
+    if(!(list && list.list && list.list.Items && list.list.Items[0])) {
+	return '';
+    }
+    var item = list.list.Items[0].list.find(function(ele) { return ele.cardid == cardid && ele.printing == (prid||0); });
+    return item ? item.quantity : 0;
+}
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
@@ -588,6 +610,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 	return total + parseInt(card['quantity']);
     },0);
     cache_thing("list",listid,list);
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
     $("#lastlistid").val(listid);
     renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
     if(Object.keys(updatepending).length < 1) {
@@ -1355,6 +1378,7 @@ function renderlist(list,switchview=true,listoutput=null) {
 //   TODO: why did i blow past waiting on templates... is that right?   i think i messed this up
 // from is for continuing and getting more entries from a query
 function dosearch(from=0,forcedata=false,skipload=false) {
+  mobilesearchtoggle(false); // narrow screens: close the search panel to show the results
   if((getactivetemplate('search') === undefined) && !forcedata && !skipload) {
 	  console.log("templates not loaded yet");
 	  return;
@@ -1438,6 +1462,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  });
 	  $("#resultsearch").html(rendercards(data,datarequest,qs));
 	  dosearchpostcallback(qs);
+	  if(from == 0) {
+	    defaultcard(qs);
+	  }
 	  updates[database]('#resultsearch');
   } else {
 	  if(from<1){
@@ -1480,6 +1507,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      cache_card(dataitem);
 		      });
 		      dosearchpostcallback(qs);
+		      if(from == 0) {
+			      defaultcard(qs);
+		      }
 		    } else {
       		$("#resultsearch").html(searcherror['empty']);
 		    }
@@ -1505,8 +1535,8 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 
 
 // *****************************88 RENDERING DATA ********************
-function docardid(id,prid=null,qs=null,pop=false) {
-    docard(cache_card_fetch(id),prid,qs,pop);
+function docardid(id,prid=null,qs=null,pop=false,switchview=true) {
+    docard(cache_card_fetch(id),prid,qs,pop,switchview);
 }
 function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["rendering list: "+sort,listid,listoutput]);
@@ -1531,7 +1561,10 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
     //console.log(listdata);
     console.log("sorting with: "+sort);
-    listdata.sort(databasesort[database][sort] != undefined?databasesort[database][sort]:
+    // games without list sorts/headers (pathfinder-pawns) fall back to title order, no headers
+    var gamesort = databasesort[database] || {};
+    var gameheaderize = headerize[database] || {};
+    listdata.sort(gamesort[sort] != undefined?gamesort[sort]:
 		  function(a,b){
 		      var x = a.title[0].toLowerCase();
 		      var y = b.title[0].toLowerCase();
@@ -1547,7 +1580,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	break;
     default:
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(headerize[database][sort] != undefined ? headerize[database][sort](listdata) : listdata,{
+	    var html = getactivetemplate('list').render(gameheaderize[sort] != undefined ? gameheaderize[sort](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database
@@ -1561,7 +1594,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
-	    var text = templates[database]['compiled'][textparts[0]].render((headerize[database]['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? headerize[database]['deck'](listdata) : listdata,{
+	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](listdata) : listdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
@@ -1576,7 +1609,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(html);
+	    $("#resultlist").html(listheader(listid)+html);
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
@@ -1589,6 +1622,21 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
 }
 
+// header line for the list view: the list's details as the directory shows them
+function listheader(listid) {
+    var meta = null;
+    var dir = cache_thing("list","data");
+    var rev = cache_thing("list","datareverse");
+    if(dir && rev && rev[listid] !== undefined) {
+	meta = dir.lists.Items[rev[listid]];
+    } else if(cache_thing("list",listid)) {
+	meta = cache_thing("list",listid).list.Items[0];
+    }
+    if(!meta) {
+	return '';
+    }
+    return $.templates("#template-listheader").render(meta,{"listtypes": listtypes});
+}
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
     refreshlist(listdata,listlist,sort,listid,listoutput);
@@ -2175,7 +2223,8 @@ function data_url_to_download(data_url, filename) {
 // If a list is being displayed, render card and switch to it, pop onto history so back comes back to the list
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
-function docard(carddata,prid=null,qs=null,pop=false) {
+// switchview=false renders the card view behind the scenes: no history entry, the view on screen stays
+function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var carddata = JSON.parse(JSON.stringify(carddata));
   console.log(["rendering: "+carddata['cardid']+(prid?'/'+prid:''),qs]);
   if(getactivetemplate('card') === undefined) {
@@ -2272,6 +2321,9 @@ function docard(carddata,prid=null,qs=null,pop=false) {
   $(".printing:not([data-printingid="+showpr+"])").hide();
   $("#lastprintid").val(showpr);
 
+  if(!switchview) {
+	  return;
+  }
   if($("#resultsearch").is(":visible")) {
 	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
   } else if($("#resultcard").is(":visible")) {
@@ -2415,20 +2467,92 @@ function dosearchpostcallback(qs) {
     }
 }
 
+// a new search puts its first result in the card view, as if it had been clicked (without leaving the search view)
+function defaultcard(qs) {
+    var ids = searchcache[database]['querydata'][qs];
+    if(ids && ids.length) {
+	docardid(ids[0],null,qs,false,false);
+    }
+}
+// Touch screens: menubar (and list download) dropdowns open on hover only with a mouse, so a tap toggles them instead.
+// Tapping a menu header opens its dropdown (closing other open menus outside it); tapping an item or anywhere else closes them.
+var lastpointertype = 'mouse';
+$(document).on('pointerdown', function(e) {
+    lastpointertype = e.originalEvent.pointerType || 'mouse';
+});
+$(document).on('click', function(e) {
+    if(lastpointertype == 'mouse') {
+	return;
+    }
+    menutap(e.target);
+    $(e.target).closest('[data-balloon-pos]').trigger('blur'); // a tap leaves :focus behind
+});
+// touch: tooltips are hidden (CSS, hover: none) except after a long-press on the button, for 1.5 s
+var balloonpress = null;
+$(document).on('pointerdown', '[data-balloon-pos]', function(e) {
+    if(e.originalEvent.pointerType == 'mouse') {
+	return;
+    }
+    var balloon = $(this);
+    clearTimeout(balloonpress);
+    balloonpress = setTimeout(function() {
+	balloon.attr('data-balloon-visible', ''); // balloon.css shows it without :hover
+	clearTimeout(balloon.data('balloontimer'));
+	balloon.data('balloontimer', setTimeout(function() { balloon.removeAttr('data-balloon-visible'); }, 1500));
+    }, 500);
+});
+$(document).on('pointerup pointercancel pointerleave', '[data-balloon-pos]', function() {
+    clearTimeout(balloonpress);
+});
+$(document).on('contextmenu', '[data-balloon-pos]', function(e) {
+    if(lastpointertype != 'mouse') {
+	e.preventDefault(); // Android's long-press menu would cover the label
+    }
+});
+function menutap(target) {
+    // the innermost nav li whose dropdown doesn't contain the tap is the header that was tapped
+    var header = $();
+    for(var li = $(target).closest('nav li'); li.length; li = li.parent().closest('nav li')) {
+	var sub = li.children('ul');
+	if(sub.length && !$.contains(sub[0], target)) {
+	    header = li;
+	    break;
+	}
+    }
+    var keep = header.length ? header.parents('nav li').addBack() : $();
+    $('nav li.menuopen').not(keep).removeClass('menuopen');
+    if(header.length) {
+	header.toggleClass('menuopen');
+    }
+}
+// switch the main content area to one of the result* views (menubar view icons, about, admin)
+function showview(view) {
+    if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
+	mobilesearchtoggle(false); // phone search panel would cover the other views
+    }
+    if($('#' + view).is(":visible")) {
+	return;
+    }
+    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
+    $(".viewicons button").removeClass("searchviewactive");
+    $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
+    $('#' + view).fadeIn();
+    updateviewbuttons();
+}
 function showcard() {
-    $('#tabs a[name=resultcard]').click();
+    showview('resultcard');
 //    $("#resultsearch").hide();
 //    $("#resultlist").hide();
 //    $("#resultcard").show();
 }
 function showlist() {
-    $('#tabs a[name=resultlist]').click();
+    showview('resultlist');
 //    $("#resultsearch").hide();
 //    $("#resultlist").show();
 //    $("#resultcard").hide();
 }
 function showsearch() {
-    $('#tabs a[name=resultsearch]').click();
+    showview('resultsearch');
 //    $("#resultsearch").show();
 //    $("#resultlist").hide();
 //    $("#resultcard").hide();
@@ -2669,6 +2793,10 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 
 function activatetemplate(type,template) {
   templates[database]['active'][type] = template;
+  // a card or visual template sets that view's size toggle
+  if(['card','visual'].includes(template.replace(/-premium$/,'')) && type in largeview) {
+	  largeview[type] = template.endsWith('-premium');
+  }
   if(type == 'search') {
 	  if( $('#lastsearchquery').val() ) {
 	    dosearch(0);
@@ -2684,7 +2812,218 @@ function activatetemplate(type,template) {
 	    docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
 	  }
   }
-  updatetemplatedropdown(type);
+  updatemenubar(type);
+}
+// the result tab on screen: search, card, list, about, ...
+function currentresulttab() {
+  return ($(".ui-layout-center div[id^=result]:visible").attr("id") || '').replace(/^result/,'');
+}
+// which output the menubar template buttons drive: the search, card or list view on screen, else search
+function viewbuttontype() {
+  var tab = currentresulttab();
+  return ['search','card','list'].includes(tab) ? tab : 'search';
+}
+// full permissions on this game: groups[database] or groups['*'] allows every operation (same rule as /update)
+function fullgamepermission() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) {
+	  return false;
+  }
+  var groups = user.oracle[0].groups;
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('*'); });
+}
+// menubar template buttons: show the ones this game has for the view in play, highlight the active one.
+// debug also needs full game permission and the debug tab itself on screen, and isn't offered on phones.
+function updateviewbuttons() {
+  var type = viewbuttontype();
+  var available = templates[database]['available'];
+  var active = (templates[database]['active'][type]||'').replace(/-premium$/,'');
+  $("#templatebuttons button[data-template]").each(function() {
+	  var key = $(this).data("template");
+	  var show = available[key] !== undefined && available[key].places.includes(type);
+	  if(key == 'debug') {
+	    show = show && fullgamepermission() && currentresulttab() == type && !narrowscreen();
+	  }
+	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
+  });
+  // directory, about, help, admin have no formats: hide the whole format/size/sort group there
+  var formatview = ['search','card','list'].includes(currentresulttab());
+  $(".searchviewbuttons").toggle(formatview);
+  $(".sortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
+  updatesizebuttons();
+  $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
+}
+// menubar template button: switch the view in play; visual follows the size toggle.
+// debug toggles: a second click goes back to the template it replaced (the Card tab has no other button)
+var debugprevious = {};
+function viewbutton(template) {
+  var type = viewbuttontype();
+  var active = templates[database]['active'][type];
+  if(template == 'debug') {
+	  if(active == 'debug') {
+	    template = debugprevious[type] || templates[database]['default'][type];
+	  } else {
+	    debugprevious[type] = active;
+	  }
+  }
+  if(template == 'visual' && largeview[type] && templates[database]['available']['visual-premium']) {
+	  template = 'visual-premium';
+  }
+  activatetemplate(type,template);
+}
+// saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, mobile: {same keys}}, saved via /user?settings=
+// (the API stores any small object; sizes come from the templates, an older saved `large` is ignored)
+// phones save and read their own set under `mobile`, so they can use a different view than desktop.
+function viewdefaults() {
+  var saved = savedgamesettings();
+  if(saved && narrowscreen()) {
+	  saved = saved['mobile'] || null;
+  }
+  return saved;
+}
+// everything saved for this game, desktop and mobile
+function savedgamesettings() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings[database])) {
+	  return null;
+  }
+  return user.oracle[0].settings[database];
+}
+// apply saved defaults: they become the game's defaults (so templates still loading pick them up),
+// and views already loaded switch now (only the tab on screen re-renders)
+function applyviewdefaults() {
+  var saved = viewdefaults();
+  if(!saved) {
+	  return;
+  }
+  var sortchanged = applysortdefault();
+  var searchrendered = false;
+  var available = templates[database]['available'];
+  for (type of ['search','card','list']) {
+	  var key = saved[type];
+	  if(!key || available[key] === undefined || !available[key].places.includes(type)) {
+	    continue;
+	  }
+	  templates[database]['default'][type] = key;
+	  if(['card','visual'].includes(key.replace(/-premium$/,''))) {
+	    largeview[type] = key.endsWith('-premium');
+	  }
+	  if(templates[database]['compiled'][key] === undefined || templates[database]['active'][type] == key) {
+	    continue;
+	  }
+	  if(currentresulttab() == type) {
+	    activatetemplate(type,key);
+	    searchrendered = searchrendered || type == 'search';
+	  } else {
+	    templates[database]['active'][type] = key;
+	  }
+  }
+  if(sortchanged && !searchrendered && currentresulttab() == 'search' && $('#lastsearchquery').val()) {
+	  dosearch(0);
+  }
+  updatemenubar('search');
+}
+// saved search sort: only a sort this game offers; returns true if it changed the current sort
+function applysortdefault() {
+  var saved = viewdefaults();
+  if(!saved || !saved.sort || !searchsorts[database] || !(saved.sort in searchsorts[database])) {
+	  return false;
+  }
+  var dir = (saved.sortdir == 'desc') ? 'desc' : 'asc';
+  if(templates[database]['sort']['search'] == saved.sort && templates[database]['sortdir'] && templates[database]['sortdir']['search'] == dir) {
+	  return false;
+  }
+  templates[database]['sort']['search'] = saved.sort;
+  templates[database]['sortdir'] = templates[database]['sortdir'] || {};
+  templates[database]['sortdir']['search'] = dir;
+  return true;
+}
+// save one part (search, card, list, sort) or 'all' as this game's default, merged into what's already saved
+function saveviewdefaults(part='all',el=null) {
+  var active = templates[database]['active'];
+  var gamesettings = Object.assign({}, savedgamesettings() || {});
+  var settings = Object.assign({}, viewdefaults() || {});
+  delete settings['large']; // older saves; sizes come from the templates now
+  if(part == 'all' || part == 'sort') {
+	  settings['sort'] = templates[database]['sort']['search'];
+	  settings['sortdir'] = templates[database]['sortdir']['search'];
+  }
+  for (type of ['search','card','list']) {
+	  if(part == 'all' || part == type) {
+	    // debug is a temporary toggle: save what it replaced
+	    settings[type] = (active[type] == 'debug') ? (debugprevious[type] || templates[database]['default'][type]) : active[type];
+	  }
+  }
+  if(narrowscreen()) {
+	  gamesettings['mobile'] = settings;
+  } else {
+	  settings['mobile'] = gamesettings['mobile']; // keep the phone's set (dropped by JSON if there isn't one)
+	  gamesettings = settings;
+  }
+  $.ajax({
+	  type: 'GET',
+	  url: apiuri+"/user?database="+database+"&settings="+encodeURIComponent(JSON.stringify(gamesettings)),
+	  dataType: 'json',
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  success: function(data) {
+	    cache_thing("user","data",data);
+	    var saved = viewdefaults();
+	    if(!saved || Object.keys(settings).some(function(k) { return JSON.stringify(saved[k]) !== JSON.stringify(settings[k]); })) {
+		    // an API without settings support answers like a plain /user
+		    alert("Couldn't save view defaults");
+		    return;
+	    }
+	    // no applyviewdefaults(): the screen already shows what was saved, and it would reset unsaved views
+	    $(el).addClass('saved');
+	    setTimeout(function() { $(el).removeClass('saved'); }, 2000);
+	  },
+	  error: function(error) { console.log("Save view defaults failed: "+JSON.stringify(error)); alert("Couldn't save view defaults"); }
+  });
+}
+// a fresh tab uses the cached user; re-fetch it quietly and apply defaults if they changed elsewhere
+function refreshviewdefaults() {
+  var before = JSON.stringify(viewdefaults());
+  $.ajax({
+	  type: 'GET',
+	  url: apiuri+"/user",
+	  dataType: 'json',
+	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	  success: function(data) {
+	    cache_thing("user","data",data);
+	    if(JSON.stringify(viewdefaults()) != before) {
+		    applyviewdefaults();
+	    }
+	  },
+	  error: function(error) { console.log("User refresh failed: "+JSON.stringify(error)); }
+  });
+}
+// menubar size toggle, for the view in play only: Card Details <-> Card Large, or a search/list
+// Visual Spoiler <-> Visual Spoiler - Large (other layouts keep the choice for the grid button).
+// About/Directory/Help drive search without re-rendering it (dosearch would jump to the Search tab).
+function setlargeview(large) {
+  var type = viewbuttontype();
+  var available = templates[database]['available'];
+  var active = templates[database]['active'];
+  largeview[type] = large;
+  var family = (type == 'card') ? 'card' : 'visual';
+  var want = (large && available[family+'-premium'] && available[family+'-premium'].places.includes(type)) ? family+'-premium' : family;
+  if((active[type]||'').replace(/-premium$/,'') == family && active[type] != want) {
+	  if(currentresulttab() == type) {
+	    activatetemplate(type,want);
+	  } else {
+	    active[type] = want;
+	  }
+  }
+  updatesizebuttons();
+}
+// size buttons follow the view in play; the group hides where the game has no large version
+function updatesizebuttons() {
+  var type = viewbuttontype();
+  var large = templates[database]['available'][(type == 'card' ? 'card' : 'visual')+'-premium'];
+  $("#sizebuttons").toggle(large !== undefined && large.places.includes(type));
+  $("#sizebuttons button[data-size]").each(function() {
+	  $(this).toggleClass("searchviewactive", ($(this).data("size") == 'large') == largeview[type]);
+  });
 }
 function getactivetemplate(type) {
     return templates[database]['compiled'][templates[database]['active'][type]];
@@ -2693,24 +3032,19 @@ function getactivetemplateoverride(type) {
   var t=templates[database]['available'][templates[database]['active'][type]];
   return t.override?t.override:{};
 }
-function updatetemplatedropdown(type) {
-  var pulldown = "";
-  for ( key in templates[database].available ) {
-	  if(templates[database]['available'][key].places.includes(type)) {
-	    pulldown += "<li "+(templates[database]['active'][type] == key?'class="menuactive" ':'')+"onclick=\"activatetemplate('"+type+"','"+key+"');\">"+templates[database]['available'][key]['longname']+"</li>";
-	  }
-  }
+// refresh the menubar after a template or sort change: sort dropdown, view and size buttons
+function updatemenubar(type) {
   if(type == 'search') {
-	  pulldown += updatesortdropdown(type);
+	  $("#sortdropdown").html(sortdropdownitems(type));
   }
-  $("#"+type+"templatedropdown").html(pulldown);
+  updateviewbuttons();
 }
-function updatesortdropdown(type) {
-  var sortdown = '<li class="menunone pullmenuright menusort">Sort<ul>';
+function sortdropdownitems(type) {
+  var sortdown = '';
   for (key in searchsorts[database]) {
 	  sortdown += '<li'+(templates[database]['sort'][type] == key?' class="menuactive'+(templates[database]['sortdir'][type]&&templates[database]['sortdir'][type]=='desc'?' searchdesc"':'"'):'')+" onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
   }
-  return sortdown+'</ul></li>';
+  return sortdown;
 }
 function changesort(type,key,rerender=true) {
     // need to change the actual sort value
@@ -2726,7 +3060,7 @@ function changesort(type,key,rerender=true) {
 	templates[database]['sortdir']['search'] = 'asc';
     }
     // need to update menus
-    updatetemplatedropdown(type);
+    updatemenubar(type);
     // need to re-render
     if(rerender) {
 	dosearch(0);
@@ -2755,20 +3089,7 @@ $(document).ready(function(){
   })(jQuery);
   
   $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-  $("#tabs li:first").attr("id","current"); // Activate the first tab
-  $("#resultabout").fadeIn(); // Show first tab's content
-  $('#tabs a').click(function(e) {
-    e.preventDefault();
-    if ($(this).closest("li").attr("id") == "current"){ //detection for current tab
-      return;
-    }
-    else{
-	    $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-      $("#tabs li").attr("id",""); //Reset id's
-      $(this).parent().attr("id","current"); // Activate this
-      $('#' + $(this).attr('name')).fadeIn(); // Show content for the current tab
-    }
-  });
+  showview('resultabout');
   
   //TODO:  put some stuff in here into functions.   make sure order optimized.
   searchcache[database] = {
@@ -2794,6 +3115,11 @@ $(document).ready(function(){
 	    }
 	  }
   }
+  applysortdefault(); // login ran before the sorts existed
+  // phones default search results to the Visual Spoiler, unless a saved phone default says otherwise
+  if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
+	  templates[database]['default']['search'] = 'visual';
+  }
   
   // TODO: check for premium
   $.each(templates[database]['available'],function(key,val) {
@@ -2812,7 +3138,7 @@ $(document).ready(function(){
 		      }
 		    }
 		    for (type of templates[database]['available'][key].places) {
-		      updatetemplatedropdown(type);
+		      updatemenubar(type);
 		    }
 		    // reference like:   templates[database]['compiled'][templates[database].active.search]
         /*		if(Object.keys(templateload[database]['search'])[0] == key) {
@@ -2848,11 +3174,16 @@ $(document).ready(function(){
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html(dbinfo[database].name);
+  $('.gameinfo-game').html('<img src="gamelogos/64/'+dbinfo[database].logo+'"><span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
   $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
   
   urlparser();
+  // phones start on the search form, unless the url asked for something (beyond the game)
+  if(narrowscreen() && !location.hash.replace(/#game=[^#]*/,'')) {
+	  showview('resultsearch');
+	  mobilesearchtoggle(true);
+  }
   for (var k in dbinfo) {
 	  addgametolist(k);
   }
@@ -3338,7 +3669,41 @@ function cardnext(id,qs) {
     }
 }
 
+// narrow screens (phones): the search sidebar is a slide-over panel, opened from the menubar (body.mobilesearch).
+// Phones held sideways count too (coarse pointer, short screen); same query as the phone block in oracle.css.
+function narrowscreen() {
+    return window.matchMedia('(max-width: 768px), (pointer: coarse) and (max-height: 500px)').matches;
+}
+function mobilesearchtoggle(open) {
+    $('body').toggleClass('mobilesearch', open);
+    // start the panel below the menubar (when it's on screen) so the button that toggles it stays reachable
+    $('#sidebar').css('top', Math.max(0, $('div.menubar')[0].getBoundingClientRect().bottom));
+}
+// tapping the results while the panel is open closes it
+$(document).on('click', '#maincontent', function() {
+    mobilesearchtoggle(false);
+});
+// menubar Search Results button: go to the search results; if they're already on screen, show/hide the search form
+// (the slide-over panel on narrow screens, the sidebar collapse on desktop)
+function searchviewbutton() {
+    if(currentresulttab() != 'search') {
+	showview('resultsearch');
+	if(narrowscreen() && !$('#lastsearchquery').val()) {
+	    mobilesearchtoggle(true); // no search yet: nothing to show but the form
+	}
+    } else if(narrowscreen()) {
+	mobilesearchtoggle();
+    } else if($('#sidebar').is(':visible')) {
+	sidebarcloser();
+    } else {
+	sidebaropener();
+    }
+}
 function sidebarcloser() {
+    if(narrowscreen()) {
+	mobilesearchtoggle(false);
+	return;
+    }
     $('#sidebar').hide();
     $('#sidebaropener').show();
 }
