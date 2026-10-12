@@ -3465,6 +3465,8 @@ function loadloginlog(page) {
   });
 }
 
+// cards linked per updatelog row; matches FETCH_PER_ROW in ootv-search routes/updatelog.js
+const updatelogshown = 50;
 function loadupdates(db,start=null) {
   // TODO: set timer for start on max last card
   var req = { 
@@ -3491,13 +3493,18 @@ function loadupdates(db,start=null) {
         var printlog = JSON.parse(JSON.stringify(uplog));
         printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
         // one block per log row; long card lists (and bulkupdates with a
-        // description) start collapsed
-        printlog.cards = (printlog.cardids || []).map(function(uplogcard) {
+        // description) start collapsed. A bulkupdate can list thousands of
+        // cards: link only the first updatelogshown (the ones the API fetched)
+        // and count the rest, so the page doesn't build a link per card.
+        var cardids = printlog.cardids || [];
+        printlog.total = cardids.length;
+        printlog.cards = cardids.slice(0, updatelogshown).map(function(uplogcard) {
           var card = cache_card_fetch(uplogcard);
           return { cardid: uplogcard, database: database,
                    title: card.title ? card.title[0] : 'card #'+uplogcard };
         });
-        printlog.collapse = printlog.cards.length > 5 || !!printlog.description;
+        printlog.more = printlog.total - printlog.cards.length;
+        printlog.collapse = printlog.total > 5 || !!printlog.description;
         $('#updatelog').prepend(updatelogtemplate.render(printlog));
       });
     },

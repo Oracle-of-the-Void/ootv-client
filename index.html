@@ -550,8 +550,8 @@ printingprimary
   <div class="updateblock">
     {{:timestamp}} {{:operation}} [{{:uname}}]{{if description}}: {{>description}}{{/if}}
     {{if collapse}}
-      <details class="updatecards"><summary>{{:cards.length}} cards</summary>
-        {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+      <details class="updatecards"><summary>{{:total}} cards</summary>
+        {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}{{if more}} and {{:more}} more{{/if}}
       </details>
     {{else}}
       {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
