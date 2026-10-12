@@ -135,6 +135,8 @@ $.views.converters("addslashes",addslashes);
 var apiuri = "https://api.oracleofthevoid.com";
 // https://sweve5sd4d.execute-api.us-east-1.amazonaws.com
 var searchcache = {};
+// the API (Elasticsearch's max_result_window) only pages through the first 10000 results
+const searchwindow = 10000;
 // potential for language stuff:
 const searcherror = {'empty': '<div class="error"><img src="res/splatout-150.png"><br>No cards found.</div>',
 		     'error': '<div class="error"><img src="res/splatout-150.png"><br>Something went wrong with the search.</div>',
@@ -142,6 +144,8 @@ const searcherror = {'empty': '<div class="error"><img src="res/splatout-150.png
 		     'moreloading': '<div class="moreloading">Loading <img width=20 src="res/shuriken-150x150.png-animated.gif" /></div>',
 		     'loading': '<img src="res/shuriken-150x150.png-animated.gif" />',
 		     'numresults': 'XXX cards found',
+		     'window': '<div class="morelimit">Only the first '+searchwindow.toLocaleString()+' cards can be shown. Narrow the search to see the rest.</div>',
+		     'moreerror': '<div class="morelimit">Loading more results failed.</div>',
 		     'searchmiddle': 'Loading more search terms <img width=25 src="res/shuriken-150x150.png-animated.gif" />'
 		    };
 var oraclelayout;
@@ -1513,7 +1517,13 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	    error: function(error) {
     		console.log("Epic Fail: "+JSON.stringify(error));
 		    console.log(error);
-		    $("#resultsearch").html(searcherror['error']);
+		    if(from > 0) {
+			    // a failed next page keeps the results already shown
+			    $(".moreloading").remove();
+			    $("#resultsearch").append(searcherror['moreerror']);
+		    } else {
+			    $("#resultsearch").html(searcherror['error']);
+		    }
 		    // This works to force a query failure:  * 234Sdfjkl:sjdfkl23dsf $^@$%
 		    // TODO: trap to handle compile-ish failure on lambda
 	    }
@@ -2438,11 +2448,18 @@ function rendercards(data,request,querystring) {
 
 
 // ******************** PAGING HELPERS ********************
+// how many of a search's results can be paged through (the API stops at searchwindow)
+function searchpageable(qs) {
+    return Math.min(searchcache[database]['querytotal'][qs], searchwindow);
+}
+
 // sets up "MORE" and numresultsearchs...   both cached and non-cached searches use it
 function dosearchpostcallback(qs) {
     if(!$('.error').length) {
-	if(searchcache[database]['querydata'][qs].length < searchcache[database]['querytotal'][qs]) {
+	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
+	} else if(searchcache[database]['querytotal'][qs] > searchwindow) {
+	    $("#resultsearch").append(searcherror['window']);
 	}
 	//	if(!$('.numresults').length) {
 	$(".numresults").html(searcherror['numresults'].replace('XXX',searchcache[database]['querytotal'][qs]));
@@ -3637,7 +3654,7 @@ function cardprev(id,qs) {
 // TODO: er.. .lastsearchquery is getting messy with being able to load searches?  or will it work...
 function cardnext(id,qs) {
     var index = searchcache[database]['querydata'][qs].indexOf(id);
-    if((index >= searchcache[database]['querydata'][qs].length - 5) && (searchcache[database]['querydata'][qs].length < searchcache[database]['querytotal'][qs])) {
+    if((index >= searchcache[database]['querydata'][qs].length - 5) && (searchcache[database]['querydata'][qs].length < searchpageable(qs))) {
 	searchnextpage(qs);
     }
     if(index < searchcache[database]['querydata'][qs].length - 1) {
