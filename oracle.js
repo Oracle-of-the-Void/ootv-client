@@ -2777,9 +2777,10 @@ function derivedprinting(card,field,value) {
     // index of a printing that satisfies the derived value's rule, or null. The rules come from
     // /attributes <field>.derived (ootv-search lib/attributeopts.js): every `all` clause and at
     // least one `any` clause; card fields must match the card, `printing` fields the printing.
-    // Among the printings that fit, prefer one carrying a <field> value the clause lists, the later in
-    // the clause's list the better (Jade over Imperial for Jade Extended); on a tie the later
-    // printing, as the stored-value lookup above does.
+    // Among the printings that fit, prefer one carrying a value in the entry's optional `prefer`
+    // list (the arc a format is named after, e.g. Ivory for Ivory Extended), then one carrying a
+    // <field> value the clause lists, the later in the clause's list the better (Jade over
+    // Imperial for Jade Extended); on a tie the later printing, as the stored-value lookup does.
     var derived = cache_select(field+".derived");
     if(!Array.isArray(derived)) {
         return null;
@@ -2817,7 +2818,9 @@ function derivedprinting(card,field,value) {
         any.forEach(function(cl) {
             if(!printingok(cl,p)) { return; }
             var r = cl.printing ? Math.max(rank(cl,p),0) : rank(cl,p);
-            if(r >= 0 && r >= bestrank) { best = i; bestrank = r; }
+            if(r < 0) { return; }
+            if(d.prefer && has(p[field],d.prefer)) { r += 1000; }
+            if(r >= bestrank) { best = i; bestrank = r; }
         });
     });
     return best;
