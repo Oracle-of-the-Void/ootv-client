@@ -35,7 +35,7 @@ inputs:
 * maxtime (optional) -> only pulls updates older than this. With mintime, pins a fixed window (used by the tests).
 * fetchcards (optional)
   * brings back data from the updates:  use to display info on the updates and overwrite local cache entries
-  * fetches at most the first 50 cardids of each log row; `cardids` is still complete
+  * fetches at most the first 10 cardids of each log row; `cardids` is still complete
 
 outputs:
 

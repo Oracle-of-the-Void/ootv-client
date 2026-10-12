@@ -3466,7 +3466,7 @@ function loadloginlog(page) {
 }
 
 // cards linked per updatelog row; matches FETCH_PER_ROW in ootv-search routes/updatelog.js
-const updatelogshown = 50;
+const updatelogshown = 10;
 function loadupdates(db,start=null) {
   // TODO: set timer for start on max last card
   var req = { 
