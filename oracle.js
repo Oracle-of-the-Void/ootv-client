@@ -132,8 +132,11 @@ function loadtest() {
 
 $.views.converters("addslashes",addslashes);
 
-var apiuri = "https://api.oracleofthevoid.com";
-// https://sweve5sd4d.execute-api.us-east-1.amazonaws.com
+// preview (and local testing) uses the dev API stack, which runs the dev-ootv-search Lambda;
+// the data behind it (DynamoDB, Elasticsearch) is shared with prod, so writes are still live
+var apiuri = /^(preview\.|localhost|127\.0\.0\.1)/.test(location.hostname)
+    ? "https://api-dev.oracleofthevoid.com"
+    : "https://api.oracleofthevoid.com";
 var searchcache = {};
 // the API (Elasticsearch's max_result_window) only pages through the first 10000 results
 const searchwindow = 10000;
@@ -1125,7 +1128,7 @@ function importlisttrigger() {
     $("#importstatus").html("");
     $.ajax({
 	    // Your server script to process the upload
-	    url: 'https://api.oracleofthevoid.com/import',
+	    url: apiuri+'/import',
 	    type: 'POST',
       
 	    // Form data
