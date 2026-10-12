@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build templates/l5r-snm.json: OotV l5r set name -> Sun and Moon edition code.
+"""Build templates/l5r-snm.json (and ootv-search lib/snm/l5r-snm.json): OotV l5r set name -> Sun and Moon edition code.
 
 The Sun and Moon text export writes "2x Card (CODE)". S&M only shows a printing it
 has under that edition, so this script matches every OotV printing against S&M's
@@ -24,6 +24,8 @@ SNMDB = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     WS, 'SnM/Sun and Moon - Onyx/Sun and Moon_Data/StreamingAssets/Database/database.xml')
 CARDS = sys.argv[2] if len(sys.argv) > 2 else os.path.join(WS, 'ootv-backups/work/cur-l5r/split2')
 OUT = os.path.join(HERE, '../../templates/l5r-snm.json')
+# ootv-search's /import reads its own copy to turn codes back into printings
+SEARCHOUT = os.path.join(WS, 'ootv-search/lib/snm/l5r-snm.json')
 
 # Codes from the S&M Discord list (issue #214) for sets the S&M database files under
 # other editions. Always written, even though the database has no such edition.
@@ -110,8 +112,10 @@ for card in cards:
             alt = next((a for a in ALTERNATES.get(s, []) if a in eds), '')
             printings[f"{card['cardid']}/{p['printingid']}"] = alt
 
-json.dump({'sets': dict(sorted(sets.items())), 'printings': dict(sorted(printings.items()))},
-          open(OUT, 'w'), indent=0, sort_keys=False)
-open(OUT, 'a').write('\n')
+text = json.dumps({'sets': dict(sorted(sets.items())), 'printings': dict(sorted(printings.items()))},
+                  indent=0) + '\n'
+for out in [OUT] + ([SEARCHOUT] if os.path.isdir(os.path.dirname(SEARCHOUT)) else []):
+    open(out, 'w').write(text)
 print(f"{len(sets)} sets, {len(printings)} printing overrides "
-      f"({sum(1 for v in printings.values() if not v)} with no set) -> {os.path.relpath(OUT)}")
+      f"({sum(1 for v in printings.values() if not v)} with no set) -> {os.path.relpath(OUT)}"
+      + (f", {os.path.relpath(SEARCHOUT)}" if os.path.isdir(os.path.dirname(SEARCHOUT)) else ''))
