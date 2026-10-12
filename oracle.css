@@ -954,3 +954,8 @@ span.listqty {
     height: auto;
   }
 }
+/* admin login log */
+.loginlog-nav { margin: 10px 0; }
+table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
+table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+table.loginlog tr.loginlog-failed td { color: #a00; }

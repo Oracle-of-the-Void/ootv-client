@@ -3413,6 +3413,35 @@ function onchangesub(key,nound,noundsub,db) {
   chosenify();
 }
 
+// admin login log: newest 50 per page from /loginlog (site admins only).
+// cursors_loginlog[n] is the `before` cursor for page n, so Newer can step back.
+var cursors_loginlog = [null];
+var page_loginlog = 0;
+function loadloginlog(page) {
+  if(page === undefined) { page = 0; }
+  if(page === 0) { cursors_loginlog = [null]; }
+  $('#loginlog').html('Loading login log...');
+  var data = { uid: getuid(), limit: 50 };
+  if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/loginlog",
+    data: data,
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(raw) {
+      page_loginlog = page;
+      cursors_loginlog[page+1] = raw.next;
+      raw.entries.forEach(function(e) { e.timelocal = new Date(e.time).toLocaleString(); });
+      $('#loginlog').html($.templates("#template-loginlog").render({entries: raw.entries, next: raw.next, page: page}));
+    },
+    error: function(raw) {
+      console.log(['loadloginlog fail',raw]);
+      $('#loginlog').text('Could not load the login log: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
+    }
+  });
+}
+
 function loadupdates(db,start=null) {
   // TODO: set timer for start on max last card
   var req = { 
