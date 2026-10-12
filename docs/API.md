@@ -29,11 +29,13 @@ Retrieves information from the updatelog about recent updates
 inputs:
 
 * table (required)
-* limit (default 10)
+* limit (default 10, at most 30)
 * mintime (optional) -> only pulls updates more recent than this.
   * Meant to periodically poll with the last most recent updates, will get empty results if nothing is newer
+* maxtime (optional) -> only pulls updates older than this. With mintime, pins a fixed window (used by the tests).
 * fetchcards (optional)
   * brings back data from the updates:  use to display info on the updates and overwrite local cache entries
+  * fetches at most the first 50 cardids of each log row; `cardids` is still complete
 
 outputs:
 
