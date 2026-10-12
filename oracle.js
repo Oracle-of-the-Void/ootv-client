@@ -3102,7 +3102,13 @@ function loadloginlog(page) {
       page_loginlog = page;
       cursors_loginlog[page+1] = raw.next;
       raw.entries.forEach(function(e) { e.timelocal = new Date(e.time).toLocaleString(); });
-      $('#loginlog').html($.templates("#template-loginlog").render({entries: raw.entries, next: raw.next, page: page}));
+      // short name of the viewer's time zone for the Time header (e.g. "CDT"); times are shown in it
+      var tz = '';
+      try {
+        tz = Intl.DateTimeFormat(undefined, {timeZoneName: 'short'}).formatToParts(new Date())
+          .find(function(p) { return p.type === 'timeZoneName'; }).value;
+      } catch(e) {}
+      $('#loginlog').html($.templates("#template-loginlog").render({entries: raw.entries, next: raw.next, page: page, tz: tz}));
     },
     error: function(raw) {
       console.log(['loadloginlog fail',raw]);
