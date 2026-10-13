@@ -15,6 +15,7 @@
 
 <br />
 
+     {{if ~datarequest.listid}}{{include tmpl="#template-decklistcontrols"/}}{{/if}}
      <div class="listmanagement">
       {{for ~activelists ~cardid=cardid}}
 	{{:name}}
