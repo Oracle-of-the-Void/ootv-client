@@ -14,11 +14,25 @@
           {{:formattedtitle?formattedtitle:title}}</a> 
       {{if listprinting}}[{{printingfromid listprinting printing "set" /}} &#149; {{printingfromid listprinting printing "rarity" /}}]{{/if}}
       {{!-- ({{:type}}) --}}
+      {{if ~datarequest.listid}}
       <div class="listmanagement">
 	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
 	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',-1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
 	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',null,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
       </div>
+      {{else ~activelists && ~activelists.length > 0}}
+      {{!-- search results: no list is being shown, so act on the active lists, with each one's count, as the Detail search does --}}
+      <div class="listmanagement">
+      {{for ~activelists ~cardid=cardid ~cnprintingid=printingid ~many=~activelists.length>1}}
+	{{if ~many}}{{:name}}{{/if}}
+	<span class="listqty" data-list="{{:listid}}" data-card="{{:~cardid}}" data-printing="{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}}">{{:~listqty(listid,~cardid,~cnprintingid||0)}}</span>
+	<span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+	{{if #index+1 < #get("array").data.length}}<br />{{/if}}
+      {{/for}}
+      </div>
+      {{/if}}
     </div>
   {{/if}}
 </div>
