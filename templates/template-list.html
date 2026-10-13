@@ -10,7 +10,7 @@
     {{else}}
     <div class="listbodyplain">
       {{if listquantity}}<span contenteditable="true" class="editquantity" id="clist_quantity:{{:~datarequest.listid}}:{{:cardid}}:{{:listprinting}}:{{:listquantity}}">{{:listquantity}}</span>x{{/if}} 
-        <a href="#game={{:~database}},#cardid={{:cardid}}{{if listprinting}},#cnprintingid={{:listprinting}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if listprinting}}{{:listprinting}}{{else}}null{{/if}},'{{:~qs}}'); } return false;">
+        <a class="deckswipe" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{if ~datarequest.listid}}{{:listprinting||0}}{{else}}{{:printingid||0}}{{/if}}" href="#game={{:~database}},#cardid={{:cardid}}{{if listprinting}},#cnprintingid={{:listprinting}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if listprinting}}{{:listprinting}}{{else}}null{{/if}},'{{:~qs}}'); } return false;">
           {{:formattedtitle?formattedtitle:title}}</a> 
       {{if listprinting}}[{{printingfromid listprinting printing "set" /}} &#149; {{printingfromid listprinting printing "rarity" /}}]{{/if}}
       {{!-- ({{:type}}) --}}

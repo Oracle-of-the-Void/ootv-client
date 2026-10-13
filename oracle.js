@@ -2542,7 +2542,7 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 	e.preventDefault(); // Android's long-press menu would cover the label
     }
 });
-// Card images (a.deckswipe) in search results and the deck/list view (Deck, Detail and Visual Spoiler formats):
+// Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
 // swipe (touch) or click-drag (mouse) to change the card's count. right +1, left -1, up-right +3, up-left -3.
 // Going to 0 or below asks before removing the card. In the list view it changes the list shown; in search, the
 // first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
