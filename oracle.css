@@ -870,6 +870,32 @@ div.menubar nav li.sortbuttons {
     opacity: 0 !important;
   }
 }
+/* visual spoiler search while lists are active (template-visual): image on a gray card, deck controls below */
+div.visualcard {
+  display: inline-block;
+  vertical-align: top;
+  margin: 3px;
+  padding: 4px;
+  border-radius: 7px;
+  background-color: rgba(218, 218, 218, 0.9);
+  font-family: "Times New Roman",Georgia,Serif;
+}
+div.visualcard > a {
+  display: block;
+}
+div.visualcard .listmanagement {
+  float: none;
+  text-align: center;
+}
+div.visualcard .visualcardlist {
+  display: inline-block;
+  width: 6em;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
 /* list quantity beside the +/- buttons (search results, card view) */
 span.listqty {
   font-weight: bold;
