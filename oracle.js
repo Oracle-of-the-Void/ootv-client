@@ -2542,6 +2542,132 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 	e.preventDefault(); // Android's long-press menu would cover the label
     }
 });
+// Card images (a.deckswipe) in search results and the deck/list view (Deck, Detail and Visual Spoiler formats):
+// swipe (touch) or click-drag (mouse) to change the card's count. right +1, left -1, up-right +3, up-left -3.
+// Going to 0 or below asks before removing the card. In the list view it changes the list shown; in search, the
+// first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
+var deckswipe = null;
+var deckswipedone = 0;
+function deckswipestart(target, x, y) {
+    var a = $(target).closest('a.deckswipe');
+    var listid = a.length ? (a.data('list') || activelists[0]) : null;
+    deckswipe = listid ? {a: a, listid: String(listid), x: x, y: y, lock: null} : null;
+    return !!deckswipe;
+}
+// returns true while the drag is a swipe (the caller then blocks scrolling)
+function deckswipemove(x, y) {
+    if(!deckswipe) {
+	return false;
+    }
+    var dx = x - deckswipe.x, dy = y - deckswipe.y;
+    if(deckswipe.lock === null && Math.hypot(dx,dy) > 12) {
+	// sideways or diagonally up is a swipe; up, down or diagonally down scrolls
+	deckswipe.lock = Math.abs(dx) >= 0.5*Math.abs(dy) && !(dy > 0 && Math.abs(dx) < 2*dy);
+    }
+    if(deckswipe.lock === false) {
+	deckswipe = null;
+    }
+    return !!(deckswipe && deckswipe.lock);
+}
+function deckswipeend(x, y) {
+    var s = deckswipe;
+    deckswipe = null;
+    if(!(s && s.lock)) {
+	return;
+    }
+    var dx = x - s.x, dy = y - s.y;
+    if(Math.hypot(dx,dy) < 50) {
+	return;
+    }
+    deckswipedone = Date.now();  // a swipe, even one that changes nothing, mustn't open the card
+    var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left
+    var n = (Math.abs(angle) <= 30) ? 1 : (angle > 30 && angle <= 65) ? 3 :
+	(Math.abs(angle) >= 150) ? -1 : (angle >= 115 && angle < 150) ? -3 : 0;
+    if(n != 0) {
+	deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, n, !s.a.data('list') && activelists.length > 1);
+    }
+}
+document.addEventListener('touchstart', function(e) {
+    if(e.touches.length == 1) {
+	deckswipestart(e.target, e.touches[0].clientX, e.touches[0].clientY);
+    } else {
+	deckswipe = null;
+    }
+}, {passive: true});
+document.addEventListener('touchmove', function(e) {
+    if(deckswipemove(e.touches[0].clientX, e.touches[0].clientY) && e.cancelable) {
+	e.preventDefault();
+    }
+}, {passive: false});
+document.addEventListener('touchcancel', function() { deckswipe = null; });
+document.addEventListener('touchend', function(e) {
+    deckswipeend(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+});
+// mouse: the left button only. Blocking mousedown stops the browser's own image/link drag and text selection.
+var deckmousedown = null;
+document.addEventListener('mousedown', function(e) {
+    deckmousedown = null;
+    if(e.button == 0 && !e.metaKey && !e.ctrlKey && deckswipestart(e.target, e.clientX, e.clientY)) {
+	deckmousedown = {x: e.clientX, y: e.clientY};
+	e.preventDefault();
+    }
+});
+document.addEventListener('mousemove', function(e) {
+    if(deckswipe && !(e.buttons & 1)) {   // released outside the window
+	deckswipe = null;
+    }
+    deckswipemove(e.clientX, e.clientY);
+});
+document.addEventListener('mouseup', function(e) {
+    if(e.button == 0) {
+	if(deckmousedown && Math.hypot(e.clientX - deckmousedown.x, e.clientY - deckmousedown.y) > 12) {
+	    deckswipedone = Date.now();  // any drag, swipe or not, isn't a click on the card
+	}
+	deckmousedown = null;
+	deckswipeend(e.clientX, e.clientY);
+    }
+});
+document.addEventListener('dragstart', function(e) {
+    if($(e.target).closest('a.deckswipe').length) {
+	e.preventDefault();
+    }
+});
+// the click that ends a swipe mustn't open the card
+document.addEventListener('click', function(e) {
+    if(Date.now() - deckswipedone < 500 && $(e.target).closest('a.deckswipe').length) {
+	e.preventDefault();
+	e.stopPropagation();
+    }
+}, true);
+// named: say which list changed (search with more than one active list)
+function deckswipeapply(listid, cardid, prid, n, named=false) {
+    var have = Number(listquantity(listid, cardid, prid)) || 0;
+    var card = cache_card_fetch(cardid);
+    var title = card ? [].concat(card.title).join() : 'card #' + cardid;
+    if(named) {
+	var lists = cache_thing("list","data").lists.Items;
+	title += ' \u2192 ' + lists[cache_thing("list","datareverse")[listid]].name;
+    }
+    if(have + n <= 0) {
+	if(!confirm('Remove ' + $('<div>').html(title).text() + ' (' + have + ') from the list?')) {
+	    return;
+	}
+	addlistitem(listid, cardid, prid, null);
+	deckswipetoast('Removed ' + title);
+    } else {
+	addlistitem(listid, cardid, prid, n);
+	deckswipetoast((n > 0 ? '+' : '\u2212') + Math.abs(n) + ' ' + title + ' (' + (have + n) + ')');
+    }
+}
+function deckswipetoast(html) {
+    var t = $('#deckswipetoast');
+    if(!t.length) {
+	t = $('<div id="deckswipetoast"></div>').appendTo('body');
+    }
+    t.html(html).stop(true, true).show();
+    clearTimeout(t.data('timer'));
+    t.data('timer', setTimeout(function() { t.fadeOut(300); }, 1200));
+}
 function menutap(target) {
     // the innermost nav li whose dropdown doesn't contain the tap is the header that was tapped
     var header = $();

@@ -896,6 +896,21 @@ div.visualcard .visualcardlist {
   white-space: nowrap;
   vertical-align: middle;
 }
+/* deck view swipe feedback (deckswipetoast in oracle.js) */
+#deckswipetoast {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 15%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 8px 16px;
+  border-radius: 7px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: large;
+  pointer-events: none;
+}
 /* list quantity beside the +/- buttons (search results, card view) */
 span.listqty {
   font-weight: bold;
