@@ -1000,3 +1000,8 @@ span.listqty {
 table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
 table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
 table.loginlog tr.loginlog-failed td { color: #a00; }
+.admindoc { max-width: 60em; }
+.admindoc:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }
+.admindoc th, .admindoc td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+.admindoc code { background: rgba(127,127,127,0.15); padding: 0 3px; border-radius: 3px; }

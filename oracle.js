@@ -3681,6 +3681,7 @@ var page_loginlog = 0;
 function loadloginlog(page) {
   if(page === undefined) { page = 0; }
   if(page === 0) { cursors_loginlog = [null]; }
+  $('#admindoc').empty();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -3707,6 +3708,32 @@ function loadloginlog(page) {
       $('#loginlog').text('Could not load the login log: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
     }
   });
+}
+
+// admin docs: docs/admin/<name>.md (published by deploy.yml), rendered with marked loaded on demand.
+// Links to another docs/admin .md file open in the same viewer.
+var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js';
+function loadadmindoc(name) {
+  $('#loginlog').empty();
+  $('#admindoc').text('Loading '+name+'...');
+  var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
+  $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))
+    .done(function(m, doc) {
+      $('#admindoc').html(marked.parse(doc[0]));
+      $('#admindoc a[href]').each(function() {
+        var href = $(this).attr('href');
+        var local = /^(?:\.\/)?([\w-]+)\.md(#.*)?$/.exec(href);
+        if(local) {
+          $(this).attr('href', '').on('click', function() { loadadmindoc(local[1]); return false; });
+        } else if(/^https?:/.test(href)) {
+          $(this).attr('target', '_blank');
+        }
+      });
+    })
+    .fail(function(raw) {
+      console.log(['loadadmindoc fail',raw]);
+      $('#admindoc').text('Could not load '+name+': '+(raw.status || raw));
+    });
 }
 
 // cards linked per updatelog row; matches FETCH_PER_ROW in ootv-search routes/updatelog.js
