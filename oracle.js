@@ -326,12 +326,16 @@ function getuid() {
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...
-function listinfo(listid=null,switchview=true,listoutput=null) {
+// done: called once the list's data is in the cache (listid set)
+function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
   if(listid && cache_thing("list",listid) != null) {
 	  console.log("cached");
 	  $("#lastlistid").val(listid);
 	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+	  if(done) {
+	    done();
+	  }
   } else {
     console.log("listinfo_ajax");
 	  $.ajax({
@@ -356,6 +360,9 @@ function listinfo(listid=null,switchview=true,listoutput=null) {
 		      $("#lastlistid").val(listid);
 		      renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
 		      renderlisteditarea();
+		      if(done) {
+			done();
+		      }
           /*		    console.log('here');
 		                if(data.list.Items[0].list.length > 0 && typeof(data.list.Items[0].totalcount) == "undefined") {
 			              console.log('fixing');
@@ -471,7 +478,6 @@ function renderlisteditarea() {
 }
 
 function activatelist(listid) {
-    listinfo(listid,false);
     var index = activelists.indexOf(listid);
     if (index > -1) {
        activelists.splice(index, 1);
@@ -480,6 +486,8 @@ function activatelist(listid) {
     $("#listinactive"+listid).hide();
     $("#listactive"+listid).show();
     renderlisteditarea();
+    // after activelists has it: a cached list calls back at once, and the refresh renders its controls
+    listinfo(listid,false,null,refreshactivelistviews);
 }
 
 function deactivatelist(listid) {
@@ -490,6 +498,25 @@ function deactivatelist(listid) {
     $("#listactive"+listid).hide();
     $("#listinactive"+listid).show();
     renderlisteditarea();
+    refreshactivelistviews();
+}
+
+// The search results and the card view show controls for the active lists. Re-render them in place after
+// a list is activated or deactivated: no new search, no history entry, the tab on screen and scroll stay.
+function refreshactivelistviews() {
+    var qs = $('#lastsearchquery').val();
+    if(qs && searchcache[database] && searchcache[database]['querydata'][qs] && searchcache[database]['querydata'][qs].length) {
+	var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs));
+	var data = searchcache[database]['querydata'][qs].map(cache_card_fetch);
+	var scrolled = [window, '#maincontent', '#resultsearch'].map(function(el) { return [el, $(el).scrollTop()]; });
+	$("#resultsearch").html(rendercards(data,request,qs));
+	dosearchpostcallback(qs);
+	updates[database]('#resultsearch');
+	scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
+    }
+    if($("#lastcardid").val()) {
+	docardid($("#lastcardid").val(), $("#lastprintid").val() || null, qs || null, false, false);
+    }
 }
 
 function newlist(json=null) {
