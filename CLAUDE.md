@@ -35,6 +35,13 @@ or tests. The files in this directory are exactly what gets served.
 - `docs/API.md` is the API contract with ootv-search (routes, inputs, outputs).
   `docs/data.md` describes the card JSON. `oracle.api` holds scratch notes on the search
   request format.
+- `docs/admin/*.md` are admin docs on site structures (first: `derived-legality.md`, the L5R
+  derived legality rules and ban exceptions). The admin page links each one; `loadadmindoc()`
+  in `oracle.js` fetches it and renders it with marked (loaded on demand from cdnjs). **Keep
+  them current:** when you change something a doc describes (e.g. a derived rule, a ban
+  exception, a count), update the doc and its "Last updated" line in the same piece of work.
+  A new doc needs a link in the admin list in `index.html`. Doc-only changes still go through
+  a branch → `dev` → PR to `master`, like code.
 - The issue index and cache live in the workspace repo, at
   `../ootv-claude/issues/ootv-client/` (`INDEX.md`, `issues.json`), not here. Update them
   there; don't commit issue bookkeeping to this repo. Put `Fixes #N` in the feature
@@ -53,7 +60,8 @@ or tests. The files in this directory are exactly what gets served.
 - `dev` → `preview.oracleofthevoid.com` (CloudFront `E2S43UTDKL45NF`)
 - `master` → `oracleofthevoid.com` (CloudFront `E6ECGAAP7LNKR`)
 
-`*.md`, `*.drawio`, dotfiles and `docs/` are excluded from the sync. Any other new file at the
+`*.md`, `*.drawio`, dotfiles and `docs/` are excluded from the sync, except `docs/admin/`
+(published so the admin page can show those docs; the repo is public anyway, so nothing secret goes there). Any other new file at the
 top level gets published, so keep scratch files out of the repo.
 
 ## Branch workflow
