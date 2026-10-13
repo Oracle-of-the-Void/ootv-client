@@ -1,3 +1,7 @@
+{{if !~datarequest.listid && ~activelists && ~activelists.length > 0}}
+{{!-- search results while editing decks: each image on a card with the active lists' counts and +/-, as the Detail search does --}}
+<div class="visualcard">
+{{/if}}
 <a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
 <img src="
 {{if ~imageclass}}
@@ -7,4 +11,16 @@
 {{/if}}
 " />
 </a>
-
+{{if !~datarequest.listid && ~activelists && ~activelists.length > 0}}
+  <div class="listmanagement">
+  {{for ~activelists ~cardid=cardid ~cnprintingid=printingid ~many=~activelists.length>1}}
+    {{if ~many}}<span class="visualcardlist">{{:name}}</span>{{/if}}
+    <span class="listqty" data-list="{{:listid}}" data-card="{{:~cardid}}" data-printing="{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}}">{{:~listqty(listid,~cardid,~cnprintingid||0)}}</span>
+    <span class="iiconic ipositive" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+    <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},-1); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+    <span class="iiconic inegative" onclick="addlistitem('{{:listid}}','{{:~cardid}}',{{if ~cnprintingid}}{{:~cnprintingid}}{{else}}0{{/if}},null); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+    {{if #index+1 < #get("array").data.length}}<br />{{/if}}
+  {{/for}}
+  </div>
+</div>
+{{/if}}
