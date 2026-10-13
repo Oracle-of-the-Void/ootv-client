@@ -720,6 +720,16 @@ printingprimary
 
 </script> <!-- template-card-middle -->
 
+<!-- deck/list view, Detail and Visual Spoiler formats (template-<game>-search, template-visual): count and +/- for the list being shown; addlistitem re-renders the list -->
+<script id="template-decklistcontrols" type="text/x-jsrender">
+     <div class="listmanagement">
+	<span class="listqty" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{:listprinting||0}}">{{:listquantity}}</span>
+	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},-1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},null,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+     </div>
+</script>
+
 <script id="template-card-bottom" type="text/x-jsrender">
     </dl>
 
