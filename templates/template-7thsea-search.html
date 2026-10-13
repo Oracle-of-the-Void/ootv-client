@@ -5,7 +5,7 @@
  -->
 <div class="listitem">
   <div class="listimage">
-       <a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
+       <a class="deckswipe" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{if ~datarequest.listid}}{{:listprinting||0}}{{else}}{{:printingid||0}}{{/if}}" href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;"><img src="{{fetchimage #view.data "select" false ~datarequest /}}" /></a><br />
   </div>
   <div class="listbody">
     <div class="listhead"><a href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null,'{{addslashes:~qs}}'); } return false;">{{:formattedtitle?formattedtitle:title}}</a> <span class="headsetrar">{{fetchdata #view.data "set" false ~datarequest /}} &#149; {{fetchdata #view.data "rarity" false ~datarequest /}}</span></div>

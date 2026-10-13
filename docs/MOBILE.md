@@ -48,6 +48,8 @@ save items (`settings[game].mobile`), Visual Spoiler as the phone search default
 directory scrolls sideways, list quantity beside the +/- buttons (desktop too),
 long-press labels (noted in Help), 1em text symbols kept small, sideways phones get the phone layout, one YouTube link on Help.
 
-Deck view (Deck format) swipes on a card stack (click-drag with a mouse): right +1, left −1, up-right +3, up-left −3,
-with a short toast; going to 0 asks before removing the card. Mostly vertical drags still
-scroll. Tested with emulated touch only: check on a real phone.
+Swipes on card images (click-drag with a mouse): right +1, left −1, up-right +3, up-left −3,
+with a short toast; going to 0 asks before removing the card. They work in search (Detail and
+Visual Spoiler, on the first active list; the toast names the list when several are active)
+and in the deck/list view (Deck, Detail and Visual Spoiler, on the list shown). Mostly vertical
+drags still scroll. Tested with emulated touch only: check on a real phone.
