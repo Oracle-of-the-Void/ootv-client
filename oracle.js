@@ -2542,14 +2542,16 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 	e.preventDefault(); // Android's long-press menu would cover the label
     }
 });
-// Deck view (template-visual-deck): swipe a card stack (touch) or click-drag it (mouse) to change its count.
-// right +1, left -1, up-right +3, up-left -3. Going to 0 or below asks before removing the card.
-// On touch, a mostly vertical drag is left to the browser, so the view still scrolls.
+// Card images (a.deckswipe) in search results and the deck/list view (Deck, Detail and Visual Spoiler formats):
+// swipe (touch) or click-drag (mouse) to change the card's count. right +1, left -1, up-right +3, up-left -3.
+// Going to 0 or below asks before removing the card. In the list view it changes the list shown; in search, the
+// first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
 var deckswipe = null;
 var deckswipedone = 0;
 function deckswipestart(target, x, y) {
     var a = $(target).closest('a.deckswipe');
-    deckswipe = a.length ? {a: a, x: x, y: y, lock: null} : null;
+    var listid = a.length ? (a.data('list') || activelists[0]) : null;
+    deckswipe = listid ? {a: a, listid: String(listid), x: x, y: y, lock: null} : null;
     return !!deckswipe;
 }
 // returns true while the drag is a swipe (the caller then blocks scrolling)
@@ -2582,7 +2584,7 @@ function deckswipeend(x, y) {
     var n = (Math.abs(angle) <= 30) ? 1 : (angle > 30 && angle <= 65) ? 3 :
 	(Math.abs(angle) >= 150) ? -1 : (angle >= 115 && angle < 150) ? -3 : 0;
     if(n != 0) {
-	deckswipeapply(s.a.data('list'), s.a.data('card'), s.a.data('printing') || 0, n);
+	deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, n, !s.a.data('list') && activelists.length > 1);
     }
 }
 document.addEventListener('touchstart', function(e) {
@@ -2637,10 +2639,15 @@ document.addEventListener('click', function(e) {
 	e.stopPropagation();
     }
 }, true);
-function deckswipeapply(listid, cardid, prid, n) {
+// named: say which list changed (search with more than one active list)
+function deckswipeapply(listid, cardid, prid, n, named=false) {
     var have = Number(listquantity(listid, cardid, prid)) || 0;
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
+    if(named) {
+	var lists = cache_thing("list","data").lists.Items;
+	title += ' \u2192 ' + lists[cache_thing("list","datareverse")[listid]].name;
+    }
     if(have + n <= 0) {
 	if(!confirm('Remove ' + $('<div>').html(title).text() + ' (' + have + ') from the list?')) {
 	    return;
@@ -2649,7 +2656,7 @@ function deckswipeapply(listid, cardid, prid, n) {
 	deckswipetoast('Removed ' + title);
     } else {
 	addlistitem(listid, cardid, prid, n);
-	deckswipetoast((n > 0 ? '+' : '−') + Math.abs(n) + ' ' + title + ' (' + (have + n) + ')');
+	deckswipetoast((n > 0 ? '+' : '\u2212') + Math.abs(n) + ' ' + title + ' (' + (have + n) + ')');
     }
 }
 function deckswipetoast(html) {
