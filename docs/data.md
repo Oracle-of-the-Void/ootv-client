@@ -15,6 +15,9 @@
 * printing.rarity (not sure if technically required, strongly recommended)
 * printing.imagehash (required)
 * printing.printingid (required)
+* printing.publisher (optional, array of one string). L5R: Five Rings Publishing Group, Wizards
+  of the Coast, Alderac Entertainment Group or Onyx Lives (with printing.publisherurl). The
+  l5r "Paper" filter depends on it, so set it on every new printing.
 * NEW: image: hash of images:
  * ```json
 {
