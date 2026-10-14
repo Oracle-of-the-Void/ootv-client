@@ -119,6 +119,11 @@ inputs - sent in body querystring:
   * default: [{'title.keyword': {"order" : "asc"} }]
   * "random": random order
   * any other valid elastic sort clause
+  * `<field>.keyword` sorts are case-insensitive (the API swaps them for a script sort)
+* sortmode (optional) - how `.keyword` sorts compare text, all case-insensitive
+  * "lex" (default): plain A–Z
+  * "punct": skip leading punctuation and spaces (`"Guest" of the Chuda` under G)
+  * "library": like punct, and also skip a leading "a", "an" or "the"
 * size (optional - defaults to 50)
   * Pagination page size
   * tops out around 1000, please don't abuse this and run more than once a day
@@ -199,7 +204,7 @@ inputs:
 * database (with settings)
 * settings (optional): JSON object of client settings for that database, saved to the user's `settings[database]`
   * any object up to 4096 bytes and 4 levels deep; the client checks values before using them
-  * today: `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "sort": "<searchsorts key>", "sortdir": "asc"|"desc"}`
+  * today: `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "sort": "<searchsorts key>", "sortdir": "asc"|"desc", "sortmode": "lex"|"punct"|"library"}`
     plus `"mobile": {same keys}`: phones (narrow screens) save and read their own set there
   * the Settings page's "Save" buttons under Saved views (all, or search/card/list view or sort alone, merged into what's saved); the client applies them when the user loads
 

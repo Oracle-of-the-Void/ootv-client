@@ -199,6 +199,8 @@ var searchsorts = {'':{}};
 searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random'
 searchsorts[database] = searchsorts[''];
+// how /search compares text sorts (all case-insensitive); the first is the default
+var sortmodes = {'lex': 'A\u2013Z', 'punct': 'Skip leading punctuation', 'library': 'Library (skip A/An/The)'};
 var activelists = [];
 var savetimeout = '';
 var missingimage = {"select": '/res/missing-stamp-rot150.png',
@@ -1612,6 +1614,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
     if(templates[database]['sortdir']['search'] == 'desc') {
 	    datarequest['sort'] = datarequest['sort'].replace(/"asc"/,'"desc"');
     }
+    datarequest['sortmode'] = templates[database]['sortmode']['search'];
   }
   $.each(datarequest, function(key,value) {
     if(match=key.match(/^field_(.*)/)) {
@@ -1850,7 +1853,8 @@ function settingssortname(set) {
     return '\u2014';
   }
   var name = (searchsorts[database] && searchsorts[database][set.sort]) || set.sort;
-  return name+(set.sortdir == 'desc' ? ' (descending)' : '');
+  var mode = (set.sortmode && set.sortmode != 'lex' && sortmodes[set.sortmode]) ? ', '+sortmodes[set.sortmode].toLowerCase() : '';
+  return name+(set.sortdir == 'desc' ? ' (descending)' : '')+mode;
 }
 // PDF defaults in words, in the saved units
 function settingspdfsummary(o) {
@@ -1886,7 +1890,8 @@ function rendersettings() {
     return {'part': v[0], 'label': v[1], 'desktop': settingsviewname(desktop[v[0]]), 'phone': settingsviewname(phone[v[0]]), 'now': settingsviewname(active[v[0]])};
   });
   views.push({'part': 'sort', 'label': 'Sort', 'desktop': settingssortname(desktop), 'phone': settingssortname(phone),
-              'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search']})});
+              'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search'],
+                                           'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render({
     'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0], 'gamename': dbinfo[database].name,
     'phone': narrowscreen(), 'views': views,
@@ -3333,7 +3338,7 @@ function viewbutton(template) {
   }
   activatetemplate(type,template);
 }
-// saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, mobile: {same keys}}, saved via /user?settings=
+// saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, sortmode, mobile: {same keys}}, saved via /user?settings=
 // (the API stores any small object; sizes come from the templates, an older saved `large` is ignored)
 // phones save and read their own set under `mobile`, so they can use a different view than desktop.
 function viewdefaults() {
@@ -3392,12 +3397,16 @@ function applysortdefault() {
 	  return false;
   }
   var dir = (saved.sortdir == 'desc') ? 'desc' : 'asc';
-  if(templates[database]['sort']['search'] == saved.sort && templates[database]['sortdir'] && templates[database]['sortdir']['search'] == dir) {
+  var mode = (saved.sortmode in sortmodes) ? saved.sortmode : Object.keys(sortmodes)[0];
+  if(templates[database]['sort']['search'] == saved.sort && templates[database]['sortdir'] && templates[database]['sortdir']['search'] == dir &&
+     templates[database]['sortmode'] && templates[database]['sortmode']['search'] == mode) {
 	  return false;
   }
   templates[database]['sort']['search'] = saved.sort;
   templates[database]['sortdir'] = templates[database]['sortdir'] || {};
   templates[database]['sortdir']['search'] = dir;
+  templates[database]['sortmode'] = templates[database]['sortmode'] || {};
+  templates[database]['sortmode']['search'] = mode;
   return true;
 }
 // save one part (search, card, list, sort) or 'all' as this game's default, merged into what's already saved
@@ -3409,6 +3418,7 @@ function saveviewdefaults(part='all',el=null) {
   if(part == 'all' || part == 'sort') {
 	  settings['sort'] = templates[database]['sort']['search'];
 	  settings['sortdir'] = templates[database]['sortdir']['search'];
+	  settings['sortmode'] = templates[database]['sortmode']['search'];
   }
   for (type of ['search','card','list']) {
 	  if(part == 'all' || part == type) {
@@ -3510,6 +3520,10 @@ function sortdropdownitems(type) {
   for (key in searchsorts[database]) {
 	  sortdown += '<li'+(templates[database]['sort'][type] == key?' class="menuactive'+(templates[database]['sortdir'][type]&&templates[database]['sortdir'][type]=='desc'?' searchdesc"':'"'):'')+" onclick=\"changesort('"+type+"','"+encodeURI(key)+"');\">"+searchsorts[database][key]+'</li>';
   }
+  sortdown += '<li class="menunone sortmodehead">Compare text</li>';
+  for (mode in sortmodes) {
+	  sortdown += '<li class="sortmodeitem'+(templates[database]['sortmode'][type] == mode?' menuactive':'')+'" onclick="changesortmode(\''+type+'\',\''+mode+'\');">'+sortmodes[mode]+'</li>';
+  }
   return sortdown;
 }
 function changesort(type,key,rerender=true) {
@@ -3531,6 +3545,14 @@ function changesort(type,key,rerender=true) {
     if(rerender) {
 	dosearch(0);
     }
+}
+function changesortmode(type,mode) {
+  if(!(mode in sortmodes) || templates[database]['sortmode'][type] == mode) {
+	  return;
+  }
+  templates[database]['sortmode'][type] = mode;
+  updatemenubar(type);
+  dosearch(0);
 }
 
 
@@ -3565,6 +3587,7 @@ $(document).ready(function(){
   
   templates[database]['sort']['search'] = Object.keys(searchsorts[database])[0];
   templates[database]['sortdir'] = {'search': 'asc'};
+  templates[database]['sortmode'] = {'search': Object.keys(sortmodes)[0]};
   for(field in searchables[database]) {
 	  if(typeof searchables[database][field] === "object") {
 	    if(searchables[database][field].type == "select") {

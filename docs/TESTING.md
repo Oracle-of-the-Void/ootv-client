@@ -26,7 +26,7 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
 |---|---|
 | `templates[database].available` | every template key with `places` (`search`/`card`/`list`), `generic`, `override` |
 | `templates[database].active` / `.default` / `.compiled` | current template per view, the game's default, compiled JsRender templates |
-| `templates[database].sort.search`, `.sortdir.search` | current search sort key (a JSON string) and `asc`/`desc` |
+| `templates[database].sort.search`, `.sortdir.search`, `.sortmode.search` | current search sort key (a JSON string), `asc`/`desc`, and how text compares (`lex`/`punct`/`library`, keys of `sortmodes`) |
 | `largeview` | per-view size toggle `{search, card, list}` |
 | `currentresulttab()` / `viewbuttontype()` | tab on screen; which view the menubar buttons drive |
 | `searchcache[database].querydata[qs]` | **plain card ids** for a search, not card objects |
