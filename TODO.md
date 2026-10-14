@@ -34,3 +34,11 @@ JS as `\uXXXX` escapes, and in HTML as entities (`&bull;`, `&#149;`).
 - [ ] Check that nothing currently relies on the windows-1252 guess: look for non-ASCII
       bytes in served files (`LC_ALL=C grep -nP '[^\x00-\x7F]' *.html *.js templates/*`,
       skipping vendored `*.min.js`) and confirm they render the same after the change.
+
+## Look at Proxy Nexus's L5R support for ideas (noted 2026-10-14)
+
+Proxy Nexus announced L5R support:
+https://www.reddit.com/r/l5r/comments/1tr2web/announcing_proxy_nexus_support_for_l5r/
+
+Not read yet. Go through the post and the site for ideas we could borrow for the proxy
+page (`proxy.html`) and proxy printing in general.
