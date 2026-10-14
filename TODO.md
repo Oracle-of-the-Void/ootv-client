@@ -1,5 +1,22 @@
 # TODO
 
+## Rework the look of directory folders (noted 2026-10-13)
+
+Folders work (#36, PR #264) but they're still butt-ugly and need a design pass. What's
+rough today:
+
+- Table view: a folder is a gray band built from 15 empty table cells, with its name and
+  buttons absolutely positioned over them (`template-dirfolderrow`, `.dirfolderrow` in
+  `oracle.css`). It reads as a stray header row, not a folder.
+- Cards view: folder tiles are plain gray boxes beside the list cards
+  (`template-dirfoldercard`).
+- The path bar (`#dirpathbar`, `template-dirpath`) is a bare white strip.
+- Every list row/card has a Folder dropdown, which crowds the table and is a clumsy way
+  to move things. Drag and drop onto a folder or the path bar would be nicer (it also
+  needs a touch fallback).
+- New folder and Rename use `prompt()`, and Remove uses `confirm()`. Use the site's modal.
+- Missing: moving a folder into another folder (Rename can only rename in place).
+
 ## Declare the page's character encoding (noted 2026-10-13)
 
 `index.html` has no `<meta charset>`, and S3/CloudFront serve `index.html` as `text/html` and
