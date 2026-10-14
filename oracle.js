@@ -51,8 +51,10 @@ $.views.converters("listLegalitySelect",function(legality) {
   var sel='<option value=""></option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
-  // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex.
-  var derived = (cache_select("legality.derived") || []).map(function(d) { return d.name.replace(/&nbsp;/g, " "); })
+  // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex. Entries with
+  // listable: false (Paper) are search filters, not formats, so they're left out.
+  var derived = (cache_select("legality.derived") || []).filter(function(d) { return d.listable !== false; })
+      .map(function(d) { return d.name.replace(/&nbsp;/g, " "); })
       .filter(function(d) { return base.indexOf(d) == -1; });
   var all = [];
   base.forEach(function(b) {
@@ -2862,6 +2864,9 @@ function bubbleup(data,request=null,prid=null) {
       hasrev=1;
     }
   });
+  if(Object.keys(request).some(function(k) { return k.startsWith("require_"); })) {
+    hasrev=1;
+  }
   // (If the request has rev stuff set)
   if(hasrev>0) {
     //console.log("hasrev");
@@ -3402,9 +3407,34 @@ function templatefetch(card,id=false,datarequest={}) {
               }
             }
         }
+        // require_<field> (e.g. the "Paper only" checkbox): keep the printing chosen above if it
+        // fits every required value, else switch to one that does
+        Object.keys(datarequest).filter(function(k) { return k.startsWith("require_"); }).forEach(function(k) {
+            var att = k.replace("require_","").replace("printing_","");
+            [].concat(datarequest[k]).forEach(function(v) {
+                if(!printingfits(card,pr,att,v)) {
+                    var dpr = card.printingreverse[att] && (v in card.printingreverse[att]) ?
+                        card.printingreverse[att][v] : derivedprinting(card,att,v);
+                    if(dpr !== null && dpr !== undefined) {
+                        pr = dpr;
+                    }
+                }
+            });
+        });
     }
     //console.log("onx ret: "+pr);
     return card.printing[pr];
+}
+function printingfits(card,pr,field,value) {
+    // whether printing index pr carries value, or fits the derived value's rule on its own
+    var p = card.printing[pr];
+    if(!p) {
+        return false;
+    }
+    if([].concat(p[field] || []).some(function(v) { return selectplaintext(v) == selectplaintext(value); })) {
+        return true;
+    }
+    return derivedprinting(Object.assign({}, card, {printing: [p]}), field, value) === 0;
 }
 function derivedprinting(card,field,value) {
     // index of a printing that satisfies the derived value's rule, or null. The rules come from
@@ -4092,6 +4122,13 @@ function initializeform(db) {
 	  console.log(["initialize form: ",key,value]);
 	  if(key == "quick") { return ''; }
 	  if(value.type == "hidden") { return ''; }
+	  if(value.type == "require") {
+	    // a checkbox that sends require_<field>=<value>: ANDed with the rest of the search,
+	    // including the field's own select (ootv-search routes/search.js)
+	    var rname = 'require_'+value.field.replace("printing.","printing_");
+	    return '<dt'+(value.advanced?' class="advanced"':'')+'>'+labels[db]["short"+key]+'</dt><dd'+(value.advanced?' class="advanced"':'')+'>'+
+	      '<label><input type="checkbox" id="'+rname+'" name="'+rname+'" value="'+value.value+'"> '+labels[db]["tag"+key]+'</label></dd>';
+	  }
 	  var nound = key.replace("printing.","printing_");
 	  var nop = key.replace("printing.","").replace("card",'');
 	  var ret = '<input type="hidden" name="type_'+nound+'" value="'+value.type+'">'+

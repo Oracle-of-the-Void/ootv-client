@@ -142,6 +142,7 @@ searchables['l5r'] = {
     "mrp": { "type": "exists",
 		"advanced": true },
     "printing.publisher": {"type": "select", "reverse": true},
+    "paper": { "type": "require", "field": "legality", "value": "Paper" },
     "printing.legality":{"type":"hidden","reverse":true}
 };
 
@@ -163,6 +164,7 @@ labels['l5r'] = {
     "tagset":		"Set",                 "shortset": "Set",
     "tagrarity":	"Rarity",              "shortrarity": "Rarity",
     "taglegality":	"Legality",            "shortlegality": "Legality",
+    "tagpaper":		"only",          "shortpaper": "Paper",
     "tagflavor":	"Flavor Text",         "shortflavor": "Flavor",
     "tagstory":		"Storyline Credit",    "shortstory": "Story",
     "tagartist":	"Artist",              "shortartist": "Artist",
