@@ -4110,21 +4110,7 @@ function initializeform(db) {
 	    ret += '<input class="searchnumeric" type="text" size="2" name="field_lower_'+nound+'">&nbsp;to&nbsp;<input class="searchnumeric" type="text" size="2" name="field_upper_'+nound+'">';
 	    break;
 	  case 'select':
-	    if(searchables[db][key]['sub'] !== undefined) {
-//        console.log('sub');
-		    noundsub = searchables[db][key]['sub'].replace("printing.","printing_");
-        var sel = cache_select(key);
-        console.log(['sel', sel]);
-		    ret += makeselectarray([''].
-                               concat(//(Array.isArray(sel[0])||true)?
-                                   !Array.isArray(sel)?
-                                      Object.keys(sel):
-                                      sel.map(function(x){var a = {}; a[Object.keys(x)[0]] = Object.keys(x[Object.keys(x)[0]]); return a;})),
-                               {id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
-	    } else {
-//        console.log(["makeselect",nound]);
-		    ret += makeselectarray([''].concat(cache_select(key)),{id: 'field_'+nound, name: 'field_'+nound});
-	    }
+	    ret += selectfield(db,key);
 	    break;
 	  }
 	  return ret+'</dd>'
@@ -4138,6 +4124,21 @@ function initializeform(db) {
   chosenify();
   $('dd.advanced').hide();
   $('dt.advanced').hide();
+}
+
+// a search form select, from the cached values
+function selectfield(db,key) {
+  var nound = key.replace("printing.","printing_");
+  if(searchables[db][key]['sub'] !== undefined) {
+    var noundsub = searchables[db][key]['sub'].replace("printing.","printing_");
+    var sel = cache_select(key);
+    return makeselectarray([''].
+                           concat(!Array.isArray(sel)?
+                                  Object.keys(sel):
+                                  sel.map(function(x){var a = {}; a[Object.keys(x)[0]] = Object.keys(x[Object.keys(x)[0]]); return a;})),
+                           {id: 'field_'+nound, name: 'field_'+nound, onchange: "onchangesub('"+key+"','"+nound+"','"+noundsub+"','"+db+"');" });
+  }
+  return makeselectarray([''].concat(cache_select(key)),{id: 'field_'+nound, name: 'field_'+nound});
 }
 
 // changes values for a select chained to another select
@@ -4296,6 +4297,9 @@ function loadselectables(db) {
 	  if(value.type == 'select' || key.match(/\.(sortregex|derived)$/)) {
 	    if(cache_select(key)) {
 		    console.log('select cached: '+key);
+		    if(!(Date.now() - cache_thing("searchselecttime",key) < selectmaxage)) {
+		      refreshselect(db,key);
+		    }
 	    } else {
 		    console.log('load select initiate: '+key);
 		    if(searchables[db][key]['sub'] !== undefined) {
@@ -4314,6 +4318,64 @@ function loadselectables(db) {
 	  updatecallback[database]();
   } else {
 	  updatecallbackgeneral(database);
+  }
+}
+
+// Cached selects (sets, rarities, legalities, sortregex, ...) are drawn from localStorage straight
+// away. One cached longer than selectmaxage (or never timestamped) is refetched in the background,
+// and if the data changed, the cache and its form field are updated in place, keeping the selection.
+var selectmaxage = 60*60*1000;
+function refreshselect(db,key) {
+  var sub = searchables[db][key]['sub'];
+  $.ajax({
+	  type: 'POST',
+	  url: apiuri+"/attributes",
+	  data: {
+	    table: db,
+	    lookup: sub !== undefined ? key+":"+sub : key,
+      optgroup: 1
+	  },
+	  contentType: 'application/json',
+	  dataType: 'json',
+	  responseType: 'application/json',
+	  success: function(raw) {
+	    if(db != database) { return; }
+	    if(JSON.stringify(raw) == JSON.stringify(cache_select(key))) {
+		    cache_thing("searchselecttime",key,Date.now());
+		    return;
+	    }
+	    console.log("select changed, refreshing: "+key);
+	    cache_select(key,raw);
+	    refreshselectfield(db,key);
+	    if(key == "legality" || key == "printing.set") {
+		    redrawcardforselect();
+	    }
+	  },
+	  error: function(error) {
+    	console.log("Epic Fail: select refresh: "+key);
+	  }
+  });
+}
+// redraw one search form select from the cache, keeping what is selected
+function refreshselectfield(db,key) {
+  var nound = key.replace("printing.","printing_");
+  if(searchables[db][key].type != 'select' || !$('#field_'+nound).length) {
+	  return;   // not a form field, or the form isn't drawn yet (it will draw from the new cache)
+  }
+  // a select chained from another (rarity from set) is redrawn through its parent, which filters it
+  var parent = Object.keys(searchables[db]).find(function(k) { return searchables[db][k]['sub'] == key; });
+  if(parent && $('#field_'+parent.replace("printing.","printing_")).length) {
+	  onchangesub(parent,parent.replace("printing.","printing_"),nound,db);
+	  return;
+  }
+  var val = $('#field_'+nound).val();
+  $('#field_'+nound+'_chosen').remove();
+  $('#field_'+nound).replaceWith(selectfield(db,key));
+  $('#field_'+nound).val(val);
+  chosenify();
+  // the select chained to this one (set -> rarity) takes its values from this one
+  if(searchables[db][key]['sub'] !== undefined) {
+	  onchangesub(key,nound,searchables[db][key]['sub'].replace("printing.","printing_"),db);
   }
 }
 
@@ -4515,6 +4577,9 @@ function cache_card_is(cardid) {
 
 // cache selects, and login info more absolutely
 function cache_select(sel,selval=null) {
+    if(selval !== null) {
+	cache_thing("searchselecttime",sel,Date.now());
+    }
     return cache_thing("searchselect",sel,selval);
 }
 function cache_thing(thing,sel,selval=null,del=false) {
