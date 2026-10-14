@@ -51,8 +51,10 @@ $.views.converters("listLegalitySelect",function(legality) {
   var sel='<option value=""></option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
-  // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex.
-  var derived = (cache_select("legality.derived") || []).map(function(d) { return d.name.replace(/&nbsp;/g, " "); })
+  // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex. Entries with
+  // listable: false (Paper) are search filters, not formats, so they're left out.
+  var derived = (cache_select("legality.derived") || []).filter(function(d) { return d.listable !== false; })
+      .map(function(d) { return d.name.replace(/&nbsp;/g, " "); })
       .filter(function(d) { return base.indexOf(d) == -1; });
   var all = [];
   base.forEach(function(b) {
