@@ -1065,6 +1065,19 @@ span.listqty {
     width: 34px;
     height: 34px;
   }
+  /* directory cards: their buttons match the menubar icons (not the icons inside the Download dropdown) */
+  div.directorycard .dircardhead > button.iiconic, div.directorycard .dircardactions > button.iiconic,
+  div.directorycard .dircardactions nav > ul > li > button.iiconic {
+    height: auto;
+  }
+  div.directorycard .dircardhead > button.iiconic svg.feather, div.directorycard .dircardactions > button.iiconic svg.feather,
+  div.directorycard .dircardactions nav > ul > li > button.iiconic svg.feather, div.directorycard.dircardnew svg.feather {
+    width: 34px;
+    height: 34px;
+  }
+  div.directorycard .dircardactions {
+    gap: 14px;
+  }
   .gameinfo-game .gamename, li.numresultsmenu {
     display: none !important;
   }
