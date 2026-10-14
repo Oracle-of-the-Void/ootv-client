@@ -42,3 +42,20 @@ https://www.reddit.com/r/l5r/comments/1tr2web/announcing_proxy_nexus_support_for
 
 Not read yet. Go through the post and the site for ideas we could borrow for the proxy
 page (`proxy.html`) and proxy printing in general.
+
+## Revisit the hourly select refresh: would CloudFront be cheaper? (noted 2026-10-14)
+
+Since #220 (PR #272), a returning visitor's cached search selects are refetched in the
+background once they're an hour old (`selectmaxage` in `oracle.js`). That's about 9
+`POST /attributes` calls per visitor per game per hour, each going through API Gateway,
+the `prod-ootv-search` Lambda and, on a Lambda cache miss, an Elasticsearch aggregation.
+POSTs can't be cached by CloudFront, so every one is billed.
+
+- [ ] After a few weeks, compare `/attributes` request and Lambda invocation counts in
+      CloudWatch before and after 2026-10-14, and what they cost.
+- [ ] Price the alternative: serve each game's selects as cacheable GETs through
+      CloudFront (a `GET /attributes` with `Cache-Control`, or static JSON per game
+      written when data changes). CloudFront requests cost less than API Gateway +
+      Lambda, and the edge would absorb most of them, which could allow a shorter
+      `selectmaxage`.
+- [ ] Decide whether to keep the hour, change it, or move the selects behind CloudFront.
