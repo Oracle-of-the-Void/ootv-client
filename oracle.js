@@ -449,8 +449,8 @@ function listinfoupdate(listid,field,value) {
 // ***********************  directory view and sort **************
 // view: 'table' (detailed list) or 'cards'; phones default to cards. sort: {field, desc}, default newest modified first.
 // Both are kept per browser (not per game) in localStorage.
-var dirsortdefaults = {'modified': true, 'name': false, 'listid': false, 'type': false, 'legality': false};
-var dirsortlabels = {'modified': 'Last Modified', 'name': 'Name', 'listid': 'Id', 'type': 'Type', 'legality': 'Legality'};
+var dirsortdefaults = {'modified': true, 'created': true, 'name': false, 'listid': false, 'type': false, 'legality': false};
+var dirsortlabels = {'modified': 'Last Modified', 'created': 'Created', 'name': 'Name', 'listid': 'Id', 'type': 'Type', 'legality': 'Legality'};
 function dirviewstate() {
   var view = cache_session("dirview");
   return (view == 'table' || view == 'cards') ? view : (narrowscreen() ? 'cards' : 'table');
@@ -477,6 +477,7 @@ function setdirsort(field) {
 function dirsortkey(list,field) {
   switch(field) {
     case 'modified': return Date.parse(list.modified || list.createdate) || 0;
+    case 'created':  return Date.parse(list.createdate) || 0;
     case 'type':     return (listtypes[list.type] || list.type || '').toLowerCase();
     case 'legality': return (list.legality || '').replace(/&nbsp;/g," ").trim().toLowerCase();
     default:         return String(list[field] || '').trim().toLowerCase();
