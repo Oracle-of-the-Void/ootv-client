@@ -215,6 +215,16 @@ function dologout() {
     localStorage.clear();
     sessionStorage.clear();
 }
+// Clear Cache menu: drop cached data but keep the Cognito login tokens
+function clearcache() {
+    for (var i = localStorage.length - 1; i >= 0; i--) {
+	var key = localStorage.key(i);
+	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0) {
+	    localStorage.removeItem(key);
+	}
+    }
+    window.location = window.location.href.split('#')[0];
+}
 function logoutcallback() {
     console.log("Not logged in");
     $('#loginfo').html("");
