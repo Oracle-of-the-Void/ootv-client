@@ -506,14 +506,25 @@ function renderdirectory() {
   if(!dir || !dir.lists) { return; }
   var view = dirviewstate(), sort = dirsortstate();
   var lists = sortlists(dir.lists.Items,sort);
-  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed()};
+  var folders = dirfolders();
+  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
+  var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
+  var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
+  var collapsed = dircollapsed();
+  // folders first (by name, each with its lists in the directory sort), then the unfiled lists
+  var html = folders.map(function(folder) {
+    var inside = lists.filter(function(list) { return listfolder(list) == folder; });
+    var closed = collapsed.indexOf(folder) > -1;
+    return foldertemplate.render({"folder": folder, "count": inside.length, "closed": closed}) +
+      (closed ? '' : listtemplate.render(inside,ctx));
+  }).join('') + listtemplate.render(lists.filter(function(list) { return listfolder(list) == ''; }),ctx);
   $(".directorylistitem").remove();
   if(view == 'cards') {
-    $("#directorycards").html($.templates("#template-listnewcard").render({})+$.templates("#template-listcards").render(lists,ctx)).show();
+    $("#directorycards").html($.templates("#template-listnewcard").render({})+html).show();
     $("#directorytable").hide();
   } else {
     $("#directorycards").empty().hide();
-    $($.templates("#template-lists").render(lists,ctx)).insertAfter(".directorylistheader");
+    $(html).insertAfter(".directorylistheader");
     $("#directorytable").show();
   }
   updatedirbuttons();
@@ -531,6 +542,142 @@ function renderdirectory() {
   activelists.forEach(function(listid) {
     $("#listinactive"+listid).hide();
     $("#listactive"+listid).show();
+  });
+}
+
+// ***********************  directory folders **************
+// A list's folder is its "folder" field ('' or missing = unfiled); folders are one level deep.
+// A folder exists while a list is in it, except ones made with New folder, which stay (empty) until the page reloads.
+// Collapsed folders are kept per browser and game in localStorage.
+var dirnewfolders = {};
+function listfolder(list) {
+  return String(list.folder || '').trim();
+}
+function dirfolders() {
+  var dir = cache_thing("list","data");
+  var names = (dirnewfolders[database] || []).slice();
+  ((dir && dir.lists) ? dir.lists.Items : []).forEach(function(list) {
+    var folder = listfolder(list);
+    if(folder && names.indexOf(folder) < 0) { names.push(folder); }
+  });
+  return names.sort(function(a,b) { return a.localeCompare(b,undefined,{numeric: true, sensitivity: 'base'}); });
+}
+function dircollapsed(set) {
+  if(set !== undefined) { cache_thing("dir","collapsed",set); return set; }
+  var saved = cache_thing("dir","collapsed");
+  return Array.isArray(saved) ? saved : [];
+}
+// the folder of the clicked directory element (names go through data-folder, so they need no quoting in onclick)
+function eventfolder(el) {
+  return $(el).closest("[data-folder]").attr("data-folder");
+}
+// <option>s for a list's Folder select
+function folderoptions(current) {
+  current = String(current || '').trim();
+  return '<option value=""'+(current ? '' : ' selected')+'>No folder</option>' +
+    dirfolders().map(function(folder) {
+      return '<option value="'+_.escape(folder)+'"'+(folder == current ? ' selected' : '')+'>'+_.escape(folder)+'</option>';
+    }).join('') +
+    '<option value="\u0001new">New folder&hellip;</option>';
+}
+function askfoldername(message,value) {
+  var name = prompt(message,value || '');
+  if(name === null) { return null; }
+  name = name.trim();
+  if(name.length > 100) {
+    alert("Folder names can be at most 100 characters.");
+    return null;
+  }
+  return name;
+}
+function togglefolder(el) {
+  var folder = eventfolder(el), collapsed = dircollapsed();
+  var index = collapsed.indexOf(folder);
+  if(index > -1) { collapsed.splice(index,1); } else { collapsed.push(folder); }
+  dircollapsed(collapsed);
+  renderdirectory();
+}
+function newfolder() {
+  var name = askfoldername("New folder name:");
+  if(!name) { return; }
+  if(dirfolders().indexOf(name) < 0) {
+    dirnewfolders[database] = (dirnewfolders[database] || []).concat([name]);
+  }
+  renderdirectory();
+}
+// a list's Folder select changed
+function setlistfolder(listid,select) {
+  var folder = select.value;
+  if(folder == '\u0001new') {
+    folder = askfoldername("New folder name:");
+    if(folder === null) { renderdirectory(); return; }
+  }
+  updatelistfolders([listid],folder);
+}
+function renamefolder(el) {
+  var folder = eventfolder(el);
+  var name = askfoldername("Rename folder \""+folder+"\" to:",folder);
+  if(name === null || name == folder) { return; }
+  if(name === '') { removefolder(el); return; }
+  var collapsed = dircollapsed();
+  if(collapsed.indexOf(folder) > -1) { dircollapsed(collapsed.filter(function(f) { return f != folder; }).concat([name])); }
+  if(dirnewfolders[database]) {
+    dirnewfolders[database] = dirnewfolders[database].map(function(f) { return f == folder ? name : f; });
+  }
+  updatelistfolders(folderlistids(folder),name);
+}
+// removing a folder keeps its lists: they go back to unfiled
+function removefolder(el) {
+  var folder = eventfolder(el), listids = folderlistids(folder);
+  if(listids.length && !confirm("Remove folder \""+folder+"\"? Its "+listids.length+" list"+(listids.length == 1 ? "" : "s")+" will be kept, unfiled.")) { return; }
+  if(dirnewfolders[database]) {
+    dirnewfolders[database] = dirnewfolders[database].filter(function(f) { return f != folder; });
+  }
+  dircollapsed(dircollapsed().filter(function(f) { return f != folder; }));
+  updatelistfolders(listids,'');
+}
+function folderlistids(folder) {
+  return cache_thing("list","data").lists.Items.filter(function(list) { return listfolder(list) == folder; }).map(function(list) { return list.listid; });
+}
+function newlistinfolder(el) {
+  newlist({"name": "New List", "list": [], "public": false, "type": "deck", "folder": eventfolder(el)});
+}
+// File lists in a folder ('' = unfiled): one update per list, then the directory is redrawn from the cache
+// (filing doesn't change modified, so the cached directory stays right without a refetch).
+function updatelistfolders(listids,folder) {
+  var dir = cache_thing("list","data");
+  var rev = cache_thing("list","datareverse");
+  var failed = 0;
+  $.when.apply($, listids.map(function(listid) {
+    return $.ajax({
+      type: "GET",
+      url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield=folder&updatevalue="+encodeURIComponent(folder),
+      contentType: 'application/json',
+      dataType: 'json',
+      beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+      success: function() {
+        dir.lists.Items[rev[listid]].folder = folder;
+        var cached = cache_thing("list",listid);
+        if(cached) {
+          cached.list.Items[0].folder = folder;
+          cache_thing("list",listid,cached);
+        }
+      },
+      error: function(status) {
+        failed++;
+        console.log(status);
+      }
+    }).then(null,function() { return $.Deferred().resolve(); }); // one failure doesn't stop waiting for the rest
+  })).then(function() {
+    cache_thing("list","data",dir);
+    if(folder && dirnewfolders[database]) {
+      dirnewfolders[database] = dirnewfolders[database].filter(function(f) { return f != folder; });
+    }
+    renderdirectory();
+    if(failed) {
+      alert("Couldn't move "+failed+" list"+(failed == 1 ? "" : "s")+" to the folder; the directory has been reloaded.");
+      listinfo();
+    }
   });
 }
 
@@ -680,15 +827,17 @@ function newlist(json=null) {
               { cardid:  123, printing: 2, quanity: 1}
 	      ],
     "public": true, // default false
-    "type": "collection"   // default 'deck'
+    "type": "collection",   // default 'deck'
+    "folder": "Tournament decks"   // default unfiled
     }
+    json replaces the whole default item, so give every field
     game is set from queryString
     owner is set from authentication information and matching queryString
     createdate, modified are automatically set and non-modifiable currently
     */
     $.ajax({
 	type: 'GET',
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?encodeURIComponent(JSON.stringify(json)):''),
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?"&json="+encodeURIComponent(JSON.stringify(json)):''),
 	contentType: 'application/json',
 	dataType: 'json',
 	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},

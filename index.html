@@ -214,6 +214,7 @@
   <div class="listitem directorylistheader">
     <div class="listheadmiddle">Id</div>
     <div class="listheadmiddle">Name</div>
+    <div class="listheadmiddle">Folder</div>
     <div class="listheadmiddle">Type</div>
     <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
@@ -225,7 +226,7 @@
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
-    <div class="listheadmiddle dirnewlistcell"><button class="showonlogin iiconic ipositive dirnewlist" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</button></div>
+    <div class="listheadmiddle dirnewlistcell"><span class="dirnewbuttons"><button aria-label="New folder" data-balloon-pos="down-right" class="showonlogin iiconic ipositive dirnewlist" onclick="newfolder();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-plus"></svg></button><button class="showonlogin iiconic ipositive dirnewlist" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</button></span></div>
 
   </div>
   <div class="hideonlogin directorylistitem out"><div class="randarea">You must be logged in to create/work with lists <span class="button gray" id="loginbutton" onclick="dologin();">Log&nbsp;In/Register</span></div></div>
@@ -650,6 +651,7 @@ printingprimary
 <div class="listitem directorylistitem" id="listitem_{{:listid}}">
   <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a aria-label="View List" data-balloon-pos="up-left" href="#" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
+  <div class="listmiddle"><select class="listselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select></div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select></div>
   <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
@@ -692,6 +694,28 @@ printingprimary
 <!-- directory cards view: one card per list, same fields and ids as template-lists (only one view is drawn at a time) -->
 <script id="template-listnewcard" type="text/x-jsrender">
 <div class="directorycard directorylistitem dircardnew" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</div>
+<div class="directorycard directorylistitem dircardnew" onclick="newfolder();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-plus"></svg> New folder</div>
+</script>
+<!-- directory folders: a folder's header, followed by its lists unless it's collapsed (renderdirectory) -->
+<script id="template-dirfolderrow" type="text/x-jsrender">
+<div class="listitem directorylistitem dirfolderrow" data-folder="{{>folder}}">
+  <div class="listmiddle dirfoldername"><span class="dirfoldertoggle" onclick="togglefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#{{if closed}}chevron-right{{else}}chevron-down{{/if}}"></svg><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>folder}} <small>({{:count}})</small></span></div>
+  <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
+  <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
+  <div class="listmiddle dirfolderactions"><span>
+    <button aria-label="New list in this folder" data-balloon-pos="left" class="iiconic ipositive" onclick="newlistinfolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button>
+    <button aria-label="Rename folder" data-balloon-pos="left" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    <button aria-label="Remove folder (keeps its lists)" data-balloon-pos="left" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
+  </span></div>
+</div>
+</script>
+<script id="template-dirfoldercard" type="text/x-jsrender">
+<div class="directorylistitem dirfoldercard" data-folder="{{>folder}}">
+  <span class="dirfoldertoggle" onclick="togglefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#{{if closed}}chevron-right{{else}}chevron-down{{/if}}"></svg><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>folder}} <small>({{:count}})</small></span>
+  <button aria-label="New list in this folder" data-balloon-pos="left" class="iiconic ipositive" onclick="newlistinfolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button>
+  <button aria-label="Rename folder" data-balloon-pos="left" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+  <button aria-label="Remove folder (keeps its lists)" data-balloon-pos="left" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
+</div>
 </script>
 <script id="template-listcards" type="text/x-jsrender">
 <div class="directorycard directorylistitem" id="listitem_{{:listid}}">
@@ -702,6 +726,7 @@ printingprimary
   </div>
   <div class="dircardbody">
     <div class="dircardselects">
+      <select class="listselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select>
       <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
       <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
       <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>Private</option><option value="true"{{if public}} selected{{/if}}>Public</option></select>
