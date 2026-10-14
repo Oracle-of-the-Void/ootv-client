@@ -26,7 +26,7 @@ Each entry is `{ name, all, any, none, prefer }`:
 
 | Part | Meaning |
 |---|---|
-| `name` | The menu value, with `&nbsp;` for spaces (e.g. `Legacy&nbsp;(derived)`). |
+| `name` | The menu value, with `&nbsp;` for spaces (e.g. `Ivory&nbsp;Strict`). |
 | `all` | Every clause must match. |
 | `any` | At least one clause must match (when there are any). |
 | `none` | No clause may match. A clause on printing fields drops the card if **any** of its printings matches. |
@@ -42,15 +42,12 @@ Exceptions on a card (`legalityderivedexception`) override the rule:
   apply to it.
 - **remove:** the card is out of the format, even if the rule or an `add` matches. Ban lists are
   done this way.
-- **Names:** the format names, written with plain spaces (e.g. `Legacy (derived)`). The
+- **Names:** the format names, written with plain spaces (e.g. `Ivory Strict`). The
   `&nbsp;` spelling also works.
-
-Some ban exceptions also name the stored `Legacy`/`Modern` values. Those names have no effect
-on the stored values; they cover a future rename of the derived formats to those names.
 
 ## Common exclusions
 
-Legacy (derived), Modern (derived) and BigDeck share these `none` clauses:
+Legacy, Modern and BigDeck share these `none` clauses:
 
 - legality `Unreleased` or `Not Legal (Proxy)`
 - type Proxy, Other, Clock or Territory (Clock and Territory are Siege board pieces)
@@ -117,10 +114,11 @@ Any of:
 
 This is its own type-based rule. Don't generalize it to other Extended formats.
 
-### Legacy (derived) (11,981)
+### Legacy (11,981)
 
-A trial next to the stored `Legacy` value; it matches stored Legacy exactly. Legacy counts any
-card *printed* in its era, whether or not it carries a bug.
+Legacy counts any card *printed* in its era, whether or not it carries a bug. It started as the
+trial "Legacy (derived)" next to a stored `Legacy` value on the cards. Once the two matched card
+for card, the stored value was dropped and the derived entry took the name (2026-10-13).
 
 Any of:
 - legal in any arc from Imperial through Ivory (Imperial, Jade, Gold, Diamond, Lotus, Samurai,
@@ -138,7 +136,7 @@ None of: the common exclusions.
 
 No prefer: the MRPs stop before The Blackest Storm, so there's nothing to prefer.
 
-**Ban list / removed** (`remove: Legacy (derived)`):
+**Ban list / removed** (`remove: Legacy`):
 
 | Card | ID | Type | Why |
 |---|---|---|---|
@@ -157,10 +155,10 @@ No prefer: the MRPs stop before The Blackest Storm, so there's nothing to prefer
 
 The ban list is closed: these are all of Legacy's bans.
 
-### Modern (derived) (6,367)
+### Modern (6,367)
 
-A trial next to the stored `Modern` value; stored Modern was synced to match it on 2026-10-13.
-Modern is **not** a subset of Legacy. Legacy counts any card printed in its era, while a Modern
+Like Legacy, it started as the trial "Modern (derived)", and the stored `Modern` value was
+synced to it, then dropped (2026-10-13). Modern is **not** a subset of Legacy. Legacy counts any card printed in its era, while a Modern
 card needs a Modern bug (Samurai, Celestial, Emperor, Ivory, 20F, Onyx, before The Blackest
 Storm). Each format has its own ban list.
 
@@ -185,7 +183,7 @@ None of: the common exclusions.
 Cards with no arc legality and no arc ban aren't Modern. That's why Gates of the Second City and
 The Governor's Estate are removed below. Shabura is out.
 
-**Ban list / removed** (`remove: Modern (derived)`):
+**Ban list / removed** (`remove: Modern`):
 
 | Card | ID | Type | Why |
 |---|---|---|---|
@@ -207,7 +205,7 @@ exceptions.
 
 ### BigDeck (11,973)
 
-The Legacy (derived) clauses, unchanged, with BigDeck's own ban list (July 5th, 2016). Legacy's
+The Legacy clauses, unchanged, with BigDeck's own ban list (July 5th, 2016). Legacy's
 bans don't apply here.
 
 **Ban list** (`remove: BigDeck`):
@@ -262,4 +260,6 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-12: Ivory and Twenty Festivals Strict/Extended; Jade Extended.
 - 2026-10-13: Legacy (derived) and the `none` clause support; Ivory/20F Extended prefer their own
   arc; Modern (derived), followed by syncing stored Modern to it; the Legacy ban list
-  exceptions; BigDeck.
+  exceptions; BigDeck. Then the stored `Legacy`/`Modern` values were dropped from 11,981 cards
+  (bulkupdate) and the derived entries renamed from "Legacy (derived)"/"Modern (derived)" to
+  `Legacy`/`Modern`, with the ban exceptions renamed to match.
