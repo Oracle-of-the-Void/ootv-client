@@ -83,6 +83,11 @@
 	<ul class="dropdown" id="sortdropdown">
 	</ul>
       </li>
+      <li class="right menusort sortbuttons dirsortbuttons" style="display:none">
+	<span class="searchviewgroup"><button aria-label="Sort"><svg class="feather"><use xlink:href="res/feather-sprite.svg#filter"></svg></button></span>
+	<ul class="dropdown" id="dirsortdropdown">
+	</ul>
+      </li>
       <li class="right searchviewbuttons">
 	<span class="searchviewgroup" id="templatebuttons">
 	<button aria-label="Detailed List" data-balloon-pos="down" data-template="search" onclick="viewbutton('search');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
@@ -90,6 +95,8 @@
 	<button aria-label="Simple List" data-balloon-pos="down" data-template="list" onclick="viewbutton('list');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
 	<button aria-label="Text" data-balloon-pos="down" data-template="html" style="display:none" onclick="viewbutton('html');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-text"></svg></button>
 	<button aria-label="Deck" data-balloon-pos="down" data-template="visual-deck" style="display:none" onclick="viewbutton('visual-deck');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
+	<button aria-label="Detailed List" data-balloon-pos="down" data-dirview="table" style="display:none" onclick="setdirview('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
+	<button aria-label="Cards" data-balloon-pos="down" data-dirview="cards" style="display:none" onclick="setdirview('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span>
 	<span class="searchviewgroup" id="sizebuttons">
@@ -202,6 +209,8 @@
 <div class="ui-layout-center" id="maincontent"> <!-- main content area -->
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet, Do a Search and click on a card.</div></div>
 <div class="resultdir" id="resultdir">
+  <div class="directorycards" id="directorycards" style="display:none"></div>
+  <div class="directorytable" id="directorytable">
   <div class="listitem directorylistheader">
     <div class="listheadmiddle">Id</div>
     <div class="listheadmiddle">Name</div>
@@ -215,11 +224,13 @@
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
-    <div class="listheadmiddle"><button aria-label="Create new list" data-balloon-pos="up-right" class="showonlogin iiconic ipositive" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button></div>
+    <div class="listheadmiddle"></div>
+    <div class="listheadmiddle dirnewlistcell"><button class="showonlogin iiconic ipositive dirnewlist" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</button></div>
 
   </div>
   <div class="hideonlogin directorylistitem out"><div class="randarea">You must be logged in to create/work with lists <span class="button gray" id="loginbutton" onclick="dologin();">Log&nbsp;In/Register</span></div></div>
   <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
+  </div> <!-- directorytable -->
 </div>
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
 <div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet, use the Search area on the left</div></div>
@@ -677,6 +688,50 @@ printingprimary
 
 </div>
 </script> <!-- template-lists -->
+
+<!-- directory cards view: one card per list, same fields and ids as template-lists (only one view is drawn at a time) -->
+<script id="template-listnewcard" type="text/x-jsrender">
+<div class="directorycard directorylistitem dircardnew" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</div>
+</script>
+<script id="template-listcards" type="text/x-jsrender">
+<div class="directorycard directorylistitem" id="listitem_{{:listid}}">
+  <div class="dircardhead">
+    <div class="dircardname" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
+    <button aria-label="Activate List to Add cards from search" data-balloon-pos="left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button>
+    <button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
+  </div>
+  <div class="dircardbody">
+    <div class="dircardselects">
+      <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
+      <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
+      <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>Private</option><option value="true"{{if public}} selected{{/if}}>Public</option></select>
+    </div>
+    <div class="dircardmeta">
+      {{if distinctcount>0}}{{:totalcount}} cards ({{:distinctcount}} distinct) &#149; {{/if}}Modified <span id="list_modified:{{:listid}}">{{formatDate:modified}}</span>
+      <br /><small>Created {{formatDate:createdate}} &#149; Id <a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></small>
+    </div>
+    <div class="dircardnotes" id="list_notes:{{:listid}}" contenteditable="true" data-placeholder="Notes">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
+  </div>
+  <div class="dircardactions">
+    <button aria-label="View List" data-balloon-pos="up-left" class="iiconic iblue" onclick="listinfo('{{:listid}}',true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#eye"></svg></button>
+    <button aria-label="Duplicate List" data-balloon-pos="up" class="iiconic ipositive" onclick="duplicatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg></button>
+    <nav role="download"><ul class="menuone">
+    <li><button aria-label="Download list" data-balloon-pos="up" class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
+      <ul>
+      {{if ~pdfallowed}}
+      <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</button></li>
+      <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}_mpc','mpc');"><button class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF for MakePlayingCards</button></li>
+      {{/if}}
+      {{if ~snm}}<li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><button class="iiconic idyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</button></li>{{/if}}
+      <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><button class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Native Oracle (Tab-delimited)</button></li>
+      <li onclick="toggleheaders();"><button class="iiconic ipositive toggleheaderson"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button><button style="display:none;" class="iiconic inegative toggleheadersoff"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button> Headers</li>
+      </ul>
+    </li></ul></nav>
+    <button aria-label="Upload list" data-balloon-pos="up" class="iiconic ipositive" onclick="importlist('{{:listid}}','{{:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
+    <button aria-label="Delete List" data-balloon-pos="up-right" class="iiconic inegative dircarddelete" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></button>
+  </div>
+</div>
+</script> <!-- template-listcards -->
 
 <!-- list view: the list's directory details as a header line -->
 <script id="template-listheader" type="text/x-jsrender">

@@ -29,14 +29,14 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] Search panel: phones start with it open; it opens from the Search Results button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
   view. Check the page behind it doesn't scroll while the panel is open.
+- [ ] Directory cards view (the phone default; the menubar view buttons switch to the
+  detailed table, which still scrolls sideways): editing the name and notes on a card, the
+  Download dropdown inside a card, the New list tile, and the menubar Sort dropdown.
 - [ ] Tooltips: hidden on touch except after a 0.5 s long-press, then shown for 1.5 s
   (`data-balloon-visible`). Check iOS doesn't pop its own long-press menu over it.
 
 ## Still to do
 
-- [ ] **Directory as cards**: the directory table (13 columns) now scrolls sideways inside
-  its view on phones. Better: stack each list as a card (name, type and legality on one
-  line, then the action buttons).
 - [ ] **Menubar height**: with the double-size icons it wraps to three rows (~160px) at
   390px. Fine for now; could fold the format and size buttons into one dropdown on phones.
 
