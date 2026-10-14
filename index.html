@@ -46,11 +46,7 @@
 	<ul>
 	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="clearcache();" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
-	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('all',this);">Save All as Default<span class="phoneonly"> (Mobile)</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
-	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('search',this);">Save Search View<span class="phoneonly"> (Mobile)</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
-	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('card',this);">Save Card View<span class="phoneonly"> (Mobile)</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
-	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('list',this);">Save List View<span class="phoneonly"> (Mobile)</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
-	  <li class="showonlogin" style="display:none"><span class="saveviewdefaults" onclick="saveviewdefaults('sort',this);">Save Sort<span class="phoneonly"> (Mobile)</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></li>
+	  <li class="showonlogin" style="display:none" onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
     <!-- TODO: make this reload a little more friendly with push/pop history state -->
     <!--	  <li>Settings/whatnot here</li> -->
 
@@ -76,8 +72,7 @@
       <li class="numresultsmenu"><span class="numresults"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
-	  <li id="userinfo-drop">...</li>
-	  <li class="showonpdf" onclick="pdfsettingsdialog();">PDF Print Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#printer"></svg></li>
+	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
 	  <li class="showonadmin" onclick="showview('resultadmin');">Admin <svg class="feather"><use xlink:href="res/feather-sprite.svg#tool"></svg></li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
@@ -243,6 +238,7 @@
   <div id="loginlog"></div>
   <div id="admindoc" class="admindoc"></div>
 </div></div>
+<div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
 <div class="resultabout" id="resultabout">
 <div class="randarea">
 <!-- TODO:    integrate this documentation into stuff -->
@@ -590,18 +586,44 @@ printingprimary
 </script>
 <script id="template-updatelog-card" type="text/jsrender"><a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:title}}</a></script>
 
-<!-- login hello info displaying login info -->
-<script id="template-hello" type="text/x-jsrender">
-<div class="helloplace">
-  <strong>Profile Information</strong>
+<!-- Settings page (showsettings): one section per kind of setting, add new ones here -->
+<script id="template-settings" type="text/x-jsrender">
+<h2>Settings</h2>
+<section class="settingsection">
+  <h3>Profile</h3>
   <dl>
+    <dt>Name</dt><dd>{{>name}}</dd>
     <dt>Joined</dt><dd>{{formatDate:oracle.insert_date}}</dd>
     <dt>Uid</dt><dd>{{:oracle.uid}}</dd>
-    <dt>Emails</dt><dd>{{:oracle.emails.join("<br/>")}}</dd>
-    <dt></dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
+    <dt>Emails</dt><dd>{{for oracle.emails}}{{>#data}}<br/>{{/for}}</dd>
+    <dt>Notifications</dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined</dd>
   </dl>
-</div>
+</section>
+<section class="settingsection">
+  <h3>Saved views ({{>gamename}})</h3>
+  <p>The views and sort {{>gamename}} opens with. Phones save their own set; this screen uses the <b>{{if phone}}phone{{else}}desktop{{/if}}</b> set.
+    Save copies what the Search, Card and List tabs show right now.</p>
+  <table class="settingstable">
+    <tr><th></th><th>Desktop</th><th>Phone</th><th>Showing now</th><th></th></tr>
+    {{for views}}
+    <tr><td>{{>label}}</td><td>{{>desktop}}</td><td>{{>phone}}</td><td>{{>now}}</td>
+      <td><span class="button gray saveviewdefaults" onclick="saveviewdefaults('{{:part}}',this);">Save <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span></td></tr>
+    {{/for}}
+  </table>
+  <span class="button gray saveviewdefaults" onclick="saveviewdefaults('all',this);">Save all as default <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span>
+</section>
+<section class="settingsection">
+  <h3>PDF print (all games)</h3>
+  {{if pdfallowed}}
+  <p>{{if pdfsaved}}Saved {{formatDate:pdfsaved}}.{{else}}Nothing saved yet: these are the built-in defaults.{{/if}}
+    The print dialog starts from these. Card size is kept per game.</p>
+  <dl>{{props pdf}}<dt>{{>key}}</dt><dd>{{>prop}}</dd>{{/props}}</dl>
+  <span class="button gray" onclick="pdfsettingsdialog();">Edit PDF print settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#printer"></svg></span>
+  {{else}}
+  <p>{{>gamename}} has PDF printing turned off.</p>
+  {{/if}}
+</section>
 </script>
 
 <script id="template-listactive" type="text/x-jsrender">

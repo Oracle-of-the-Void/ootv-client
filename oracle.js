@@ -232,6 +232,9 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
+    if($('#resultsettings').is(':visible')) {
+	showview('resultabout');
+    }
     updateviewbuttons();
 }
 function logincallback(session) {
@@ -332,9 +335,7 @@ function userinfocallback() {
 //    $('#userinfo-email').html(info.oracle[0].emails.join("<br />"));
 //    $('#userinfo-joined').html(info.oracle[0].insert_date);
 //    $('#userinfo-lists').html(info.oracle[0].deckcount);
-    hellotemplate = $.templates("#template-hello");
-    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
-    $('.showonpdf').toggle(pdfallowed());
+    rendersettings();
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
@@ -1749,6 +1750,65 @@ function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     showlist();
 }
 
+//**********************************************************  Settings page ****************
+function showsettings() {
+  rendersettings();
+  showview('resultsettings');
+}
+// a saved view's name, or a dash when nothing is saved
+function settingsviewname(key) {
+  var available = templates[database]['available'];
+  return (key && available[key]) ? available[key].longname : '\u2014';
+}
+function settingssortname(set) {
+  if(!(set && set.sort)) {
+    return '\u2014';
+  }
+  var name = (searchsorts[database] && searchsorts[database][set.sort]) || set.sort;
+  return name+(set.sortdir == 'desc' ? ' (descending)' : '');
+}
+// PDF defaults in words, in the saved units
+function settingspdfsummary(o) {
+  var unit = pdfunits[o.units] || 72;
+  var len = function(pt) { return (Math.round(pt/unit*100)/100)+' '+o.units; };
+  var out = {};
+  if(o.layout == 'mpc') {
+    out['Layout'] = 'MakePlayingCards (one card per page)';
+    out['Bleed'] = len(o.bleed)+', '+(o.bleedfill == 'extend' ? "extend the card's edge" : 'black')+(o.fixcorners ? ', corners painted over' : '');
+  } else {
+    out['Layout'] = 'Sheets';
+    var paper = (o.paper in pdfpapers && pdfpapers[o.paper].width) ? pdfpapers[o.paper].name : 'Custom '+len(o.paperwidth)+' \u00d7 '+len(o.paperheight);
+    out['Paper'] = paper+', '+o.orientation;
+    out['Grid'] = (o.columns || 'fit')+' \u00d7 '+(o.rows || 'fit')+', spacing '+len(o.spacing)+', margins '+len(o.margin);
+    if(o.offsetx || o.offsety) {
+      out['Offset'] = len(o.offsetx)+' right, '+len(o.offsety)+' down';
+    }
+  }
+  out['Card size'] = len(o.cardwidth)+' \u00d7 '+len(o.cardheight)+' ('+dbinfo[database].name+')';
+  out['Quantity'] = o.quantity == 'spoiler' ? 'One of each' : "The list's quantities";
+  out['Sort'] = o.sort == 'list' ? "The list's order" : o.sort.charAt(0).toUpperCase()+o.sort.slice(1);
+  return out;
+}
+function rendersettings() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user))) {
+    return;
+  }
+  var saved = savedgamesettings() || {};
+  var desktop = saved, phone = saved['mobile'] || {};
+  var active = templates[database]['active'];
+  var views = [['search','Search results'],['card','Card details'],['list','List details']].map(function(v) {
+    return {'part': v[0], 'label': v[1], 'desktop': settingsviewname(desktop[v[0]]), 'phone': settingsviewname(phone[v[0]]), 'now': settingsviewname(active[v[0]])};
+  });
+  views.push({'part': 'sort', 'label': 'Sort', 'desktop': settingssortname(desktop), 'phone': settingssortname(phone),
+              'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search']})});
+  $('#settingsarea').html($.templates("#template-settings").render({
+    'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0], 'gamename': dbinfo[database].name,
+    'phone': narrowscreen(), 'views': views,
+    'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
+  }));
+}
+
 //**********************************************************  PDF print-n-play ****************
 // Lengths are PDF points (72 per inch). The dialog shows them in the chosen units.
 var pdfpapers = {
@@ -2005,6 +2065,7 @@ function pdfsavedefaults() {
       cache_thing("user","data",data);
       cache_session("pdfdefaults",saved);
       $('#pdfsaved').text("Saved as your defaults.");
+      rendersettings();
     },
     error: function(error) {
       console.log("PDF defaults save failed: "+JSON.stringify(error));
@@ -3281,6 +3342,10 @@ function saveviewdefaults(part='all',el=null) {
 		    return;
 	    }
 	    // no applyviewdefaults(): the screen already shows what was saved, and it would reset unsaved views
+	    rendersettings();
+	    if(el && !document.contains(el)) { // re-rendered: flash the new copy of the button
+		    el = $('#settingsarea .saveviewdefaults[onclick*="\''+part+'\'"]')[0];
+	    }
 	    $(el).addClass('saved');
 	    setTimeout(function() { $(el).removeClass('saved'); }, 2000);
 	  },
