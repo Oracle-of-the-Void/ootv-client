@@ -213,6 +213,7 @@ function dologin() {
 function dologout() {
     auth.signOut();
     localStorage.clear();
+    sessionStorage.clear();
 }
 function logoutcallback() {
     console.log("Not logged in");
@@ -449,6 +450,7 @@ function listinfocallback() {
 	    listinfoupdate(field_userid[1],field_userid[0].replace('list_',''),value);
 	  }
   });
+  syncactivelists();
   // nothing in the list view yet: load the first list in the directory behind the scenes
   var lists = cache_thing("list","data").lists.Items;
   if(!$("#lastlistid").val() && lists.length) {
@@ -497,6 +499,7 @@ function activatelist(listid) {
     activelists.unshift(listid);
     $("#listinactive"+listid).hide();
     $("#listactive"+listid).show();
+    saveactivelists();
     renderlisteditarea();
     // after activelists has it: a cached list calls back at once, and the refresh renders its controls
     listinfo(listid,false,null,refreshactivelistviews);
@@ -509,8 +512,45 @@ function deactivatelist(listid) {
     }
     $("#listactive"+listid).hide();
     $("#listinactive"+listid).show();
+    saveactivelists();
     renderlisteditarea();
     refreshactivelistviews();
+}
+
+// Active lists are per tab: sessionStorage keeps them across a reload, and a new tab starts with none.
+function saveactivelists() {
+    try { sessionStorage.setItem(database+"_activelists", JSON.stringify(activelists)); } catch(e) {}
+}
+
+// Called whenever the list directory is drawn (it needs the list data, so login is done). The first time,
+// restore this tab's active lists. Every time, drop lists that no longer exist and set the directory toggles.
+var activelistsrestored = false;
+function syncactivelists() {
+    var rev = cache_thing("list","datareverse");
+    var restoring = !activelistsrestored;
+    if(restoring) {
+	activelistsrestored = true;
+	var saved = null;
+	try { saved = JSON.parse(sessionStorage.getItem(database+"_activelists")); } catch(e) {}
+	if(Array.isArray(saved) && !activelists.length) {
+	    activelists = saved;
+	}
+    }
+    var before = activelists.length;
+    activelists = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); });
+    activelists.forEach(function(listid) {
+	$("#listinactive"+listid).hide();
+	$("#listactive"+listid).show();
+    });
+    saveactivelists();
+    if(restoring && activelists.length) {
+	renderlisteditarea();
+	// load each list for its counts and controls; the last one loaded fills the list view, so oldest first
+	activelists.slice().reverse().forEach(function(listid) { listinfo(listid,false,null,refreshactivelistviews); });
+    } else if(activelists.length != before) {
+	renderlisteditarea();
+	refreshactivelistviews();
+    }
 }
 
 // The search results and the card view show controls for the active lists. Re-render them in place after
