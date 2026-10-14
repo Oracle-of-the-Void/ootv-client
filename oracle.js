@@ -49,13 +49,25 @@ $.views.converters("listTypeSelect",function(type) {
 });
 $.views.converters("listLegalitySelect",function(legality) {
   var sel='<option value=""></option>';
-  if(cache_select("legality.sortregex")) {
-      for(flegality in cache_select("legality.sortregex")) {
-        var thislegality = cache_select("legality.sortregex")[flegality].replace(/&nbsp;/g, " ");
-        // saved lists may hold a value with only the first &nbsp; replaced, so compare normalized
-        sel += '<option value="'+thislegality+'"'+(thislegality==(legality||'').replace(/&nbsp;/g, " ")?' selected':'')+'>'+thislegality+'</option>';
-      }
-  }
+  var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
+  // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
+  // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex.
+  var derived = (cache_select("legality.derived") || []).map(function(d) { return d.name.replace(/&nbsp;/g, " "); })
+      .filter(function(d) { return base.indexOf(d) == -1; });
+  var all = [];
+  base.forEach(function(b) {
+    all.push(b);
+    derived.filter(function(d) { return d.indexOf(b+" ") == 0; }).forEach(function(d) {
+      all.push(d);
+      derived.splice(derived.indexOf(d),1);
+    });
+  });
+  all = all.concat(derived);
+  // saved lists may hold a value with only the first &nbsp; replaced, so compare normalized
+  var current = (legality||'').replace(/&nbsp;/g, " ");
+  all.forEach(function(thislegality) {
+    sel += '<option value="'+thislegality+'"'+(thislegality==current?' selected':'')+'>'+thislegality+'</option>';
+  });
   return sel;
 });
 $.views.converters("nbsptospace",function(val) {

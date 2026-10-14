@@ -19,6 +19,10 @@ defined once instead of tagged card by card. Cards never display these values.
 - **Code:** ootv-search `lib/attributeopts.js` (`derivedQuery`). `/attributes` lists the names
   and `/search` expands them. In ootv-client, `derivedprinting()` picks which printing to
   show.
+- **Deck/list legality menu:** ootv-client `listLegalitySelect` lists `legality.sortregex`,
+  then adds each derived name right after the format it starts with (Ivory → Ivory Strict),
+  with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
+  need to add it to `sortregex`. A list's legality is only a label and isn't checked.
 
 ## How a rule works
 
