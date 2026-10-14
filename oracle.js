@@ -444,13 +444,81 @@ function listinfoupdate(listid,field,value) {
   });
 }
 
-function listinfocallback() {
-  cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
-  listertemplate = $.templates("#template-lists");
+// ***********************  directory view and sort **************
+// view: 'table' (detailed list) or 'cards'; phones default to cards. sort: {field, desc}, default newest modified first.
+// Both are kept per browser (not per game) in localStorage.
+var dirsortdefaults = {'modified': true, 'name': false, 'listid': false, 'type': false, 'legality': false};
+function dirviewstate() {
+  var view = cache_session("dirview");
+  return (view == 'table' || view == 'cards') ? view : (narrowscreen() ? 'cards' : 'table');
+}
+function dirsortstate() {
+  var sort = cache_session("dirsort");
+  return (sort && dirsortdefaults.hasOwnProperty(sort.field)) ? sort : {'field': 'modified', 'desc': true};
+}
+function setdirview(view) {
+  cache_session("dirview",view);
+  renderdirectory();
+}
+// pick a sort field; picking the current one again (or reverse=true) flips the direction
+function setdirsort(field,reverse) {
+  var sort = dirsortstate();
+  if(reverse || sort.field == field) {
+    sort.desc = !sort.desc;
+  } else {
+    sort = {'field': field, 'desc': dirsortdefaults[field]};
+  }
+  cache_session("dirsort",sort);
+  renderdirectory();
+}
+function dirsortkey(list,field) {
+  switch(field) {
+    case 'modified': return Date.parse(list.modified || list.createdate) || 0;
+    case 'type':     return (listtypes[list.type] || list.type || '').toLowerCase();
+    case 'legality': return (list.legality || '').replace(/&nbsp;/g," ").trim().toLowerCase();
+    default:         return String(list[field] || '').trim().toLowerCase();
+  }
+}
+// a sorted copy: the cached array's order backs the "datareverse" index, so it is never reordered
+function sortlists(lists,sort) {
+  var dir = sort.desc ? -1 : 1;
+  var cmp = function(a,b) { return typeof a == 'number' ? a-b : a.localeCompare(b,undefined,{numeric: true}); };
+  return lists.slice().sort(function(a,b) {
+    var ka = dirsortkey(a,sort.field), kb = dirsortkey(b,sort.field);
+    // lists with no name/legality go last whichever way it's sorted
+    if(ka === '' || kb === '') {
+      if(ka !== kb) { return ka === '' ? 1 : -1; }
+    } else if(ka !== kb) {
+      return dir*cmp(ka,kb);
+    }
+    // ties: newest modified first, then name
+    return cmp(dirsortkey(b,'modified'),dirsortkey(a,'modified')) || cmp(dirsortkey(a,'name'),dirsortkey(b,'name'));
+  });
+}
+function renderdirectory() {
+  var dir = cache_thing("list","data");
+  if(!dir || !dir.lists) { return; }
+  var view = dirviewstate(), sort = dirsortstate();
+  var lists = sortlists(dir.lists.Items,sort);
+  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed()};
   $(".directorylistitem").remove();
-  $(listertemplate.render(cache_thing("list","data").lists.Items,{"pdfallowed": pdfallowed(), "snm": snmallowed()})).insertAfter(".directorylistheader");
+  if(view == 'cards') {
+    $("#directorycards").html(lists.length ? $.templates("#template-listcards").render(lists,ctx) : '<div class="randarea">No lists yet</div>').show();
+    $("#directorytable").hide();
+  } else {
+    $("#directorycards").empty().hide();
+    $($.templates("#template-lists").render(lists,ctx)).insertAfter(".directorylistheader");
+    $("#directorytable").show();
+  }
+  // toolbar state
+  $(".dirviewbuttons button").removeClass("dirviewactive").filter('[data-dirview="'+view+'"]').addClass("dirviewactive");
+  $(".dircardsonly").toggleClass("dirhidden",view != 'cards');
+  $("#dirsortfield").val(sort.field);
+  $("#dirsortdir use").attr("xlink:href","res/feather-sprite.svg#arrow-"+(sort.desc ? "down" : "up"));
+  $("#dirsortdir").attr("aria-label",sort.desc ? "Descending (click to reverse)" : "Ascending (click to reverse)");
+  $(".dirsorthead").removeClass("dirsortasc dirsortdesc").filter('[data-dirsort="'+sort.field+'"]').addClass(sort.desc ? "dirsortdesc" : "dirsortasc");
   //acknowledgement message
-  $('.listitem div[contenteditable=true][id^="list_"]').blur(function(){
+  $('#resultdir [contenteditable=true][id^="list_"]').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
     var value = $(this).text() ;
 	  //TODO:   update value
@@ -460,6 +528,15 @@ function listinfocallback() {
 	    listinfoupdate(field_userid[1],field_userid[0].replace('list_',''),value);
 	  }
   });
+  activelists.forEach(function(listid) {
+    $("#listinactive"+listid).hide();
+    $("#listactive"+listid).show();
+  });
+}
+
+function listinfocallback() {
+  cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
+  renderdirectory();
   syncactivelists();
   // nothing in the list view yet: load the first list in the directory behind the scenes
   var lists = cache_thing("list","data").lists.Items;
@@ -649,8 +726,7 @@ function removelist(listid) {
 	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
 	});
 	var oldlists = cache_thing("list","data");
-	var ind = $("#listitem_"+listid).index();
-	oldlists.lists.Items.splice(ind-1,1);
+	oldlists.lists.Items = oldlists.lists.Items.filter(function(list) { return list.listid != listid; });
 	cache_thing("list","data",oldlists);
 	$("#listitem_"+listid).remove();
 	if($("#lastlistid").val() == listid) {
