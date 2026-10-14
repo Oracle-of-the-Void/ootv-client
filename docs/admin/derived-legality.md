@@ -261,7 +261,7 @@ isn't `Unreleased`. Onyx Lives printings, The Blackest Storm included (Onyx fini
 published it), don't count. 250 of these cards also have an Onyx Lives reprint. On those, the
 search results and card page show the paper printing.
 
-The search form has a **Paper only** checkbox. It sends `require_legality=Paper`, which the
+The search form has a **Paper** row, just below Pub, with an **only** checkbox. It sends `require_legality=Paper`, which the
 API ANDs with the rest of the search, including whatever the Legality menu holds. Picking
 Paper in the Legality menu instead ORs it with the other legalities chosen there.
 
@@ -306,4 +306,4 @@ change up through the DynamoDB stream; no cold start is needed.
   (bulkupdate) and the derived entries renamed from "Legacy (derived)"/"Modern (derived)" to
   `Legacy`/`Modern`, with the ban exceptions renamed to match.
 - 2026-10-14: Paper (ootv-client #240), after `printing.publisher` was backfilled on 18,197
-  printings; `listable: false`; the search API's `require_<field>` and the Paper only checkbox.
+  printings; `listable: false`; the search API's `require_<field>` and the Paper "only" checkbox (below Pub).
