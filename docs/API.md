@@ -147,6 +147,13 @@ inputs - sent in body querystring:
     * checks terms against the .keyword part of a text field  (can be multi-value)
   * type_xxx = 'exists'
     * if parameter has a value, returns cards that contain the field with data
+  * a select field's value can be a derived name (e.g. l5r `Legacy`, `Paper`) from the game's
+    `attributes.<field>.derived` config; the API expands it into its rule
+* require_xxx (optional, one or many values)
+  * every value must match, ANDed with the rest of the search (field_xxx ORs its values)
+  * each value is a derived name or a stored value; no type_xxx needed
+  * e.g. `field_legality[]=Legacy&require_legality=Paper` = Legacy cards that are paper. The
+    l5r "Paper only" checkbox sends `require_legality=Paper`
 
 outputs:
 

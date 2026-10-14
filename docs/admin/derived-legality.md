@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-13
+Last updated: 2026-10-14
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -12,8 +12,9 @@ defined once instead of tagged card by card. Cards never display these values.
 - **Rules:** DynamoDB `oracle-all-structure`, item `database = l5r`, `key = attributes`, field
   `attributes.legality.derived` (a list, one entry per format).
 - **Menu group:** `attributes.legality.optgroupregex`. The "Format" group regex
-  (`Strict|Extended|Modern|Legacy|BigDeck`) must match every derived name, or the name lands in
-  the wrong group. The "Arc" regex excludes `Strict|Extended`.
+  (`Strict|Extended|Modern|Legacy|BigDeck`) must match every derived format, or the name lands
+  in the wrong group. The "Arc" regex excludes `Strict|Extended`. Filters that aren't formats
+  (Paper) go in "Misc" (`Proxy|Unreleased|Paper`).
 - **Per-card overrides:** the card field `legalityderivedexception`
   (`{ "add": [names], "remove": [names] }`), edited on the card itself.
 - **Code:** ootv-search `lib/attributeopts.js` (`derivedQuery`). `/attributes` lists the names
@@ -22,7 +23,13 @@ defined once instead of tagged card by card. Cards never display these values.
 - **Deck/list legality menu:** ootv-client `listLegalitySelect` lists `legality.sortregex`,
   then adds each derived name right after the format it starts with (Ivory → Ivory Strict),
   with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
-  need to add it to `sortregex`. A list's legality is only a label and isn't checked.
+  need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's
+  legality is only a label and isn't checked.
+- **Search form checkbox:** a `searchables` entry of type `require` in `templates/l5r.js`
+  (`"paper": {"type": "require", "field": "legality", "value": "Paper"}`, labels
+  `tagpaper`/`shortpaper`) renders a checkbox that sends `require_legality=Paper`. The API ANDs
+  `require_<field>` with the rest of the search; `templatefetch()` then switches to a printing
+  that fits it.
 
 ## How a rule works
 
@@ -241,13 +248,44 @@ A name on a ban list without "(exp)" means only the non-experienced card. That's
 inexperienced Mirumoto Hakahime is banned. Experienced versions are separate cards; check the
 card's title and keywords for "Experienced".
 
+## Filters
+
+Derived values that aren't formats. They sit in the Legality menu's "Misc" group, and their
+entry has `listable: false`, so the deck/list Legality menu leaves them out.
+
+### Paper (12,403)
+
+Cards printed on paper by the original publishers: at least one printing whose `publisher` is
+Five Rings Publishing Group, Wizards of the Coast or Alderac Entertainment Group, and the card
+isn't `Unreleased`. Onyx Lives printings, The Blackest Storm included (Onyx finished and
+published it), don't count. 250 of these cards also have an Onyx Lives reprint. On those, the
+search results and card page show the paper printing.
+
+The search form has a **Paper** row, just below Pub, with an **only** checkbox. It sends `require_legality=Paper`, which the
+API ANDs with the rest of the search, including whatever the Legality menu holds. Picking
+Paper in the Legality menu instead ORs it with the other legalities chosen there.
+
+The publishers come from the set (`ootv-backups/printing-publisher.py`, 2026-10-14):
+
+| Publisher | Sets |
+|---|---|
+| Five Rings Publishing Group | Pre-Imperial Edition through Scorpion Clan Coup, plus Promotional–Imperial |
+| Wizards of the Coast | Jade Edition through The War of Spirits, plus Promotional–Jade, Promotional–CWF and Gold Edition |
+| Alderac Entertainment Group | After Gold Edition (plus Promotional–Gold) up to The Blackest Storm |
+| Onyx Lives | The Blackest Storm and later (already set) |
+
+In the Oracle of the Void set, the proxies are AEG and the Old, New and SotE card backs are
+FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. A new set needs its
+publisher set at import time.
+
 ## Changing a rule
 
 1. Read `attributes.legality.derived` from `oracle-all-structure` (`l5r` / `attributes`) and
    edit it. Before writing, compare the old and new card counts against Elasticsearch, using
    ootv-search `lib/attributeopts.derivedQuery`.
 2. Write the change with `update-item ... SET attributes.legality.derived = :d`. For a new
-   format, also add its name to the Format `optgroupregex`.
+   format, also add its name to the Format `optgroupregex`. For a new filter that isn't a
+   format, add it to Misc instead and give it `listable: false`.
 3. The search Lambdas cache the config per container. Force a cold start of `prod-ootv-search`
    and `dev-ootv-search`, e.g. by changing the function description.
 4. Check the count by selecting the value in a search, or by POSTing to `/search` with
@@ -267,3 +305,5 @@ change up through the DynamoDB stream; no cold start is needed.
   exceptions; BigDeck. Then the stored `Legacy`/`Modern` values were dropped from 11,981 cards
   (bulkupdate) and the derived entries renamed from "Legacy (derived)"/"Modern (derived)" to
   `Legacy`/`Modern`, with the ban exceptions renamed to match.
+- 2026-10-14: Paper (ootv-client #240), after `printing.publisher` was backfilled on 18,197
+  printings; `listable: false`; the search API's `require_<field>` and the Paper "only" checkbox (below Pub).
