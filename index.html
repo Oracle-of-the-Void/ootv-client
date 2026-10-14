@@ -3,6 +3,8 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- stamped with the commit by .github/stamp-version.sh on deploy -->
+  <script>var ootvversion = 'dev';</script>
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
@@ -37,6 +39,7 @@
   </style>
 </head>
 <body>
+<div id="newversion" style="display:none">A new version of the site is available. <button onclick="location.reload();">Reload</button> <span class="newversionclose" onclick="$('#newversion').hide();" title="Dismiss">&times;</span></div>
 <!-- <div class="ui-layout-north"> -->
 <div class="menubar" style="position: relative">
   <!-- <img src="res/logo-inline.png"> -->
