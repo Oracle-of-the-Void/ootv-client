@@ -3,6 +3,8 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- stamped with the commit by .github/stamp-version.sh on deploy -->
+  <script>var ootvversion = 'dev';</script>
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
@@ -77,6 +79,7 @@
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
       </li>
+      <li class="right" id="newversion" style="display:none"><span class="button" onclick="location.reload();" title="A new version of the site is available">New version <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-cw"></svg></span></li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In/Register</span></li>
       <li class="right menusort sortbuttons">
 	<span class="searchviewgroup"><button aria-label="Sort"><svg class="feather"><use xlink:href="res/feather-sprite.svg#filter"></svg></button></span>

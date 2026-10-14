@@ -1221,3 +1221,7 @@ table.loginlog tr.loginlog-failed td { color: #a00; }
 .admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }
 .admindoc th, .admindoc td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
 .admindoc code { background: rgba(127,127,127,0.15); padding: 0 3px; border-radius: 3px; }
+/* reload offer in the menu bar when a newer deploy is live (checkversion in oracle.js) */
+#newversion .button { color: #fff; border: solid 1px #7a0a0a; background: linear-gradient(#d23a3a, #9c1414); }
+#newversion .button:hover { background: linear-gradient(#bf2e2e, #851010); }
+#newversion .feather { stroke: #fff; }

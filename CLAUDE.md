@@ -60,6 +60,18 @@ or tests. The files in this directory are exactly what gets served.
 - `dev` → `preview.oracleofthevoid.com` (CloudFront `E2S43UTDKL45NF`)
 - `master` → `oracleofthevoid.com` (CloudFront `E6ECGAAP7LNKR`)
 
+Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stamps the
+checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
+`var ootvversion` in `index.html` gets the sha, and it writes `version.json`. `.js`, `.css` and
+`templates/*` are then served `immutable` for a year, the pages, `version.json` and `docs/admin`
+as `no-cache`, and images for a day. So anything new that `oracle.js` loads at runtime from
+this repo needs `'?v='+ootvversion` on its URL (see the template, snm and pica loads), or
+browsers keep a stale copy for a year. CloudFront ignores query strings, so the deploy
+uploads assets, invalidates and waits (the deploy roles need `cloudfront:GetInvalidation`),
+then uploads the pages. A tab left open across a deploy checks `version.json` when it comes
+back into view (`checkversion`) and offers a reload. Locally `ootvversion` is `'dev'` and
+the check is off.
+
 `*.md`, `*.drawio`, dotfiles and `docs/` are excluded from the sync, except `docs/admin/`
 (published so the admin page can show those docs; the repo is public anyway, so nothing secret goes there). Any other new file at the
 top level gets published, so keep scratch files out of the repo.
