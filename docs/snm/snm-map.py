@@ -35,6 +35,7 @@ DISCORD = {
     'L5R Experience': 'L5REXP',
     'Top Deck Booster Pack': 'TDBP',
     'Crab vs. Lion': 'CvL',
+    'Three Dynasties': '3D',  # code given before release; S&M's database may not have it yet
 }
 # Sets whose cards are mostly reprints, so title matching can't pick the code.
 FIXED = {
