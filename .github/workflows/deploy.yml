@@ -51,14 +51,45 @@ jobs:
           role-to-assume: ${{ github.ref_name == 'master' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
           aws-region: ${{ env.REGION }}
 
+      - name: Stamp version
+        run: .github/stamp-version.sh "${GITHUB_SHA::12}"
+
+      # Caching (see .github/stamp-version.sh):
+      #   *.js, *.css, templates/*  versioned (?v=<commit>) -> cached a year, immutable
+      #   pages, version.json, docs  revalidated on every load (no-cache; 304 when unchanged)
+      #   everything else (images)   cached a day
+      # CloudFront leaves the query string out of its cache key, so oracle.js?v=new could be
+      # answered with the old oracle.js until the invalidation finishes, and a browser would
+      # then keep that for a year. So: upload assets, invalidate and wait, and only then
+      # upload the pages that point at the new URLs.
       - name: Sync to S3
+        env:
+          BUCKET: ${{ steps.target.outputs.bucket }}
+          DISTRIBUTION: ${{ steps.target.outputs.distribution }}
         run: |
-          aws s3 sync . "s3://${{ steps.target.outputs.bucket }}/" --delete \
-            --exclude '.DS*' --exclude '._*' --exclude '.git' --exclude '.git/*' --exclude '.gitignore' \
-            --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*' \
-            --exclude '*/#*' --exclude '*/*\+' --exclude '*/*-prev' \
-            --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' \
-            --exclude '.github' --exclude '.github/*' --exclude 'docs/*' \
+          junk=(--exclude '.DS*' --exclude '._*' --exclude '.git' --exclude '.git/*' --exclude '.gitignore'
+                --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*'
+                --exclude '*/#*' --exclude '*/*\+' --exclude '*/*-prev'
+                --exclude '.github' --exclude '.github/*')
+          pages=(--exclude '*' --include '*.html' --include 'version.json' --exclude 'templates/*'
+                 "${junk[@]}" --include 'docs/admin/*.md')
+
+          # 1. versioned assets, then everything else except the pages (old pages keep working)
+          aws s3 sync . "s3://$BUCKET/" --exclude '*' --include '*.js' --include '*.css' --include 'templates/*' \
+            "${junk[@]}" --exclude 'docs/*' \
+            --cache-control 'public, max-age=31536000, immutable'
+          aws s3 sync . "s3://$BUCKET/" "${junk[@]}" \
+            --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
+            --exclude '*.html' --exclude 'version.json' --exclude '*.js' --exclude '*.css' --exclude 'templates/*' \
+            --cache-control 'public, max-age=86400'
+
+          id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths '/*' --query Invalidation.Id --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
+
+          # 2. pages and version.json, then drop files that are gone from the repo
+          aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --cache-control 'no-cache'
+          aws s3 sync . "s3://$BUCKET/" --delete "${junk[@]}" \
+            --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
             --include 'docs/admin/*'
 
       - name: Invalidate CloudFront

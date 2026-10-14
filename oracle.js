@@ -139,7 +139,7 @@ function jsondiff(object, base) {
 
 function loadtest() {
 	console.log("load test template");
-	$("#all_template").append('<script src="templates/test.js"></script>');
+	$("#all_template").append('<script src="templates/test.js?v='+ootvversion+'"></script>');
   addgametolist('test');
 }
 
@@ -1354,7 +1354,7 @@ function legacyimages(db,cardid,printid,printing) {
 // pica (vendored, ~54KB) is only needed here, so load it on first use.
 function loadpica(callback) {
   if(typeof pica !== 'undefined') { callback(); return; }
-  $.ajax({url: 'pica.min.js', dataType: 'script', cache: true})
+  $.ajax({url: 'pica.min.js?v='+ootvversion, dataType: 'script', cache: true})
     .done(callback)
     .fail(function() {
       $('#editimagestatus').html('<span class="error">Could not load pica.min.js</span>');
@@ -2168,7 +2168,7 @@ function snmallowed() {
 var snmsets = {};
 function snmsetload(callback) {
   $.ajax({
-    url: "templates/"+database+"-snm.json",
+    url: "templates/"+database+"-snm.json?v="+ootvversion,
     dataType: "json",
     success: function(data) { snmsets[database] = data; callback(); },
     error: function(error) {
@@ -3794,6 +3794,23 @@ function changesortmode(type,mode) {
 
 
 // ********************** STARTUP ************************8
+// ootvversion (index.html) and version.json are stamped with the commit on deploy. A tab
+// left open across a deploy still runs the old code, so when it comes back into view
+// (or every 30 minutes) check version.json and offer a reload if a newer deploy is live.
+var versionchecked = 0;
+function checkversion() {
+  if(ootvversion == 'dev' || $('#newversion').is(':visible') || Date.now() - versionchecked < 300000) return;
+  versionchecked = Date.now();
+  $.ajax({url: 'version.json', dataType: 'json', cache: false})
+    .done(function(data) {
+      if(data.version && data.version != ootvversion) $('#newversion').show();
+    });
+}
+document.addEventListener('visibilitychange', function() {
+  if(document.visibilityState == 'visible') checkversion();
+});
+setInterval(checkversion, 1800000);
+
 $(document).ready(function(){
   // TODO: doing double-load of lists when startup
   auth = initCognitoSDK();
@@ -3851,7 +3868,7 @@ $(document).ready(function(){
   $.each(templates[database]['available'],function(key,val) {
 	  console.log("initiating template load: "+key);
 	  $.ajax({
-	    url: "templates/template-"+(val.generic?'':(database+"-"))+((val.override&&val.override.templatekey)?val.override.templatekey:key)+".html",
+	    url: "templates/template-"+(val.generic?'':(database+"-"))+((val.override&&val.override.templatekey)?val.override.templatekey:key)+".html?v="+ootvversion,
 	    type: "GET",
 	    datatype: 'text',
 	    cache: true,
