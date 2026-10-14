@@ -29,9 +29,9 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] Search panel: phones start with it open; it opens from the Search Results button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
   view. Check the page behind it doesn't scroll while the panel is open.
-- [ ] Directory cards view (the phone default; the toolbar switches to the detailed table,
-  which still scrolls sideways): editing the name and notes on a card, the Download
-  dropdown inside a card, and the sort select and direction arrow.
+- [ ] Directory cards view (the phone default; the menubar view buttons switch to the
+  detailed table, which still scrolls sideways): editing the name and notes on a card, the
+  Download dropdown inside a card, the New list tile, and the menubar Sort dropdown.
 - [ ] Tooltips: hidden on touch except after a 0.5 s long-press, then shown for 1.5 s
   (`data-balloon-visible`). Check iOS doesn't pop its own long-press menu over it.
 
