@@ -731,6 +731,16 @@ li.menusort ul li.menuactive::after {
 li.menusort ul li.searchdesc::after { 
   content: url("res/menu-tinyarrowup.png");
 }
+li.menusort ul li.sortmodeitem::after {
+  content: none;
+}
+nav ul li ul li.sortmodehead,
+nav ul li ul li.sortmodehead:hover {
+  border-top: solid black 1px;
+  background: rgb(230,230,230);
+  font-size: smaller;
+  cursor: default;
+}
 nav ul li ul li {
   white-space: nowrap;
   border-right: solid black 1px;
