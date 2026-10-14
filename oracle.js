@@ -448,6 +448,7 @@ function listinfoupdate(listid,field,value) {
 // view: 'table' (detailed list) or 'cards'; phones default to cards. sort: {field, desc}, default newest modified first.
 // Both are kept per browser (not per game) in localStorage.
 var dirsortdefaults = {'modified': true, 'name': false, 'listid': false, 'type': false, 'legality': false};
+var dirsortlabels = {'modified': 'Last Modified', 'name': 'Name', 'listid': 'Id', 'type': 'Type', 'legality': 'Legality'};
 function dirviewstate() {
   var view = cache_session("dirview");
   return (view == 'table' || view == 'cards') ? view : (narrowscreen() ? 'cards' : 'table');
@@ -460,10 +461,10 @@ function setdirview(view) {
   cache_session("dirview",view);
   renderdirectory();
 }
-// pick a sort field; picking the current one again (or reverse=true) flips the direction
-function setdirsort(field,reverse) {
+// pick a sort field; picking the current one again flips the direction (like the search sort)
+function setdirsort(field) {
   var sort = dirsortstate();
-  if(reverse || sort.field == field) {
+  if(sort.field == field) {
     sort.desc = !sort.desc;
   } else {
     sort = {'field': field, 'desc': dirsortdefaults[field]};
@@ -503,20 +504,14 @@ function renderdirectory() {
   var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed()};
   $(".directorylistitem").remove();
   if(view == 'cards') {
-    $("#directorycards").html(lists.length ? $.templates("#template-listcards").render(lists,ctx) : '<div class="randarea">No lists yet</div>').show();
+    $("#directorycards").html($.templates("#template-listnewcard").render({})+$.templates("#template-listcards").render(lists,ctx)).show();
     $("#directorytable").hide();
   } else {
     $("#directorycards").empty().hide();
     $($.templates("#template-lists").render(lists,ctx)).insertAfter(".directorylistheader");
     $("#directorytable").show();
   }
-  // toolbar state
-  $(".dirviewbuttons button").removeClass("dirviewactive").filter('[data-dirview="'+view+'"]').addClass("dirviewactive");
-  $(".dircardsonly").toggleClass("dirhidden",view != 'cards');
-  $("#dirsortfield").val(sort.field);
-  $("#dirsortdir use").attr("xlink:href","res/feather-sprite.svg#arrow-"+(sort.desc ? "down" : "up"));
-  $("#dirsortdir").attr("aria-label",sort.desc ? "Descending (click to reverse)" : "Ascending (click to reverse)");
-  $(".dirsorthead").removeClass("dirsortasc dirsortdesc").filter('[data-dirsort="'+sort.field+'"]').addClass(sort.desc ? "dirsortdesc" : "dirsortasc");
+  updatedirbuttons();
   //acknowledgement message
   $('#resultdir [contenteditable=true][id^="list_"]').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
@@ -532,6 +527,19 @@ function renderdirectory() {
     $("#listinactive"+listid).hide();
     $("#listactive"+listid).show();
   });
+}
+
+// menubar on the Directory tab: its view buttons and sort dropdown (the search ones are hidden there)
+function updatedirbuttons() {
+  var ondir = currentresulttab() == 'dir';
+  var view = dirviewstate(), sort = dirsortstate();
+  $("#templatebuttons button[data-dirview]").each(function() {
+    $(this).toggle(ondir).toggleClass("searchviewactive", $(this).data("dirview") == view);
+  });
+  $(".dirsortbuttons").toggle(ondir);
+  $("#dirsortdropdown").html(Object.keys(dirsortlabels).map(function(key) {
+    return '<li'+(sort.field == key ? ' class="menuactive'+(sort.desc ? ' searchdesc' : '')+'"' : '')+' onclick="setdirsort(\''+key+'\');">'+dirsortlabels[key]+'</li>';
+  }).join(''));
 }
 
 function listinfocallback() {
@@ -3228,12 +3236,21 @@ function updateviewbuttons() {
 	  }
 	  $(this).toggle(show).toggleClass("searchviewactive", key == active);
   });
-  // directory, about, help, admin have no formats: hide the whole format/size/sort group there
-  var formatview = ['search','card','list'].includes(currentresulttab());
-  $(".searchviewbuttons").toggle(formatview);
-  $(".sortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
+  // about, help, admin have no formats: hide the whole format/size/sort group there.
+  // The directory has its own view buttons and sort (updatedirbuttons), in place of the search ones.
+  var tab = currentresulttab();
+  var formatview = ['search','card','list'].includes(tab);
+  if(tab == 'dir') {
+    $("#templatebuttons button[data-template]").hide();
+  }
+  $(".searchviewbuttons").toggle(formatview || tab == 'dir');
+  $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
-  $("#templatebuttons").toggle($("#templatebuttons button[data-template]").filter(function() { return this.style.display != 'none'; }).length > 0);
+  if(tab == 'dir') {
+    $("#sizebuttons").hide();
+  }
+  updatedirbuttons();
+  $("#templatebuttons").toggle($("#templatebuttons button").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
 // debug toggles: a second click goes back to the template it replaced (the Card tab has no other button)

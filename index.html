@@ -87,6 +87,11 @@
 	<ul class="dropdown" id="sortdropdown">
 	</ul>
       </li>
+      <li class="right menusort sortbuttons dirsortbuttons" style="display:none">
+	<span class="searchviewgroup"><button aria-label="Sort"><svg class="feather"><use xlink:href="res/feather-sprite.svg#filter"></svg></button></span>
+	<ul class="dropdown" id="dirsortdropdown">
+	</ul>
+      </li>
       <li class="right searchviewbuttons">
 	<span class="searchviewgroup" id="templatebuttons">
 	<button aria-label="Detailed List" data-balloon-pos="down" data-template="search" onclick="viewbutton('search');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
@@ -94,6 +99,8 @@
 	<button aria-label="Simple List" data-balloon-pos="down" data-template="list" onclick="viewbutton('list');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
 	<button aria-label="Text" data-balloon-pos="down" data-template="html" style="display:none" onclick="viewbutton('html');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-text"></svg></button>
 	<button aria-label="Deck" data-balloon-pos="down" data-template="visual-deck" style="display:none" onclick="viewbutton('visual-deck');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
+	<button aria-label="Detailed List" data-balloon-pos="down" data-dirview="table" style="display:none" onclick="setdirview('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
+	<button aria-label="Cards" data-balloon-pos="down" data-dirview="cards" style="display:none" onclick="setdirview('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span>
 	<span class="searchviewgroup" id="sizebuttons">
@@ -206,34 +213,16 @@
 <div class="ui-layout-center" id="maincontent"> <!-- main content area -->
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet, Do a Search and click on a card.</div></div>
 <div class="resultdir" id="resultdir">
-  <!-- directory view (detailed list / cards) and sort; drawn by renderdirectory() -->
-  <div class="directorytools">
-    <span class="dirviewbuttons">
-      <button aria-label="Detailed list" data-balloon-pos="down-left" class="iiconic" data-dirview="table" onclick="setdirview('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
-      <button aria-label="Cards" data-balloon-pos="down-left" class="iiconic" data-dirview="cards" onclick="setdirview('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
-    </span>
-    <label>Sort
-      <select id="dirsortfield" class="dirsortselect" onchange="setdirsort(this.value);">
-        <option value="modified">Last Modified</option>
-        <option value="name">Name</option>
-        <option value="listid">Id</option>
-        <option value="type">Type</option>
-        <option value="legality">Legality</option>
-      </select>
-    </label>
-    <button aria-label="Reverse sort" data-balloon-pos="down" class="iiconic" id="dirsortdir" onclick="setdirsort(dirsortstate().field,true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#arrow-down"></svg></button>
-    <button aria-label="Create new list" data-balloon-pos="down" class="showonlogin iiconic ipositive dircardsonly" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></button>
-  </div>
   <div class="directorycards" id="directorycards" style="display:none"></div>
   <div class="directorytable" id="directorytable">
   <div class="listitem directorylistheader">
-    <div class="listheadmiddle dirsorthead" data-dirsort="listid" onclick="setdirsort('listid');">Id</div>
-    <div class="listheadmiddle dirsorthead" data-dirsort="name" onclick="setdirsort('name');">Name</div>
-    <div class="listheadmiddle dirsorthead" data-dirsort="type" onclick="setdirsort('type');">Type</div>
-    <div class="listheadmiddle dirsorthead" data-dirsort="legality" onclick="setdirsort('legality');">Legality</div>
+    <div class="listheadmiddle">Id</div>
+    <div class="listheadmiddle">Name</div>
+    <div class="listheadmiddle">Type</div>
+    <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
     <div class="listheadmiddle">Created</div>
-    <div class="listheadmiddle dirsorthead" data-dirsort="modified" onclick="setdirsort('modified');">Modified</div>
+    <div class="listheadmiddle">Modified</div>
     <div class="listheadmiddle">Public</div>
     <div class="listheadmiddle">Notes</div>
     <div class="listheadmiddle"></div>
@@ -678,6 +667,9 @@ printingprimary
 </script> <!-- template-lists -->
 
 <!-- directory cards view: one card per list, same fields and ids as template-lists (only one view is drawn at a time) -->
+<script id="template-listnewcard" type="text/x-jsrender">
+<div class="directorycard directorylistitem dircardnew" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</div>
+</script>
 <script id="template-listcards" type="text/x-jsrender">
 <div class="directorycard directorylistitem" id="listitem_{{:listid}}">
   <div class="dircardhead">
