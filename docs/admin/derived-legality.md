@@ -12,8 +12,9 @@ defined once instead of tagged card by card. Cards never display these values.
 - **Rules:** DynamoDB `oracle-all-structure`, item `database = l5r`, `key = attributes`, field
   `attributes.legality.derived` (a list, one entry per format).
 - **Menu group:** `attributes.legality.optgroupregex`. The "Format" group regex
-  (`Strict|Extended|Modern|Legacy|BigDeck`) must match every derived name, or the name lands in
-  the wrong group. The "Arc" regex excludes `Strict|Extended`.
+  (`Strict|Extended|Modern|Legacy|BigDeck`) must match every derived format, or the name lands
+  in the wrong group. The "Arc" regex excludes `Strict|Extended`. Filters that aren't formats
+  (Paper) go in "Misc" (`Proxy|Unreleased|Paper`).
 - **Per-card overrides:** the card field `legalityderivedexception`
   (`{ "add": [names], "remove": [names] }`), edited on the card itself.
 - **Code:** ootv-search `lib/attributeopts.js` (`derivedQuery`). `/attributes` lists the names
@@ -22,7 +23,13 @@ defined once instead of tagged card by card. Cards never display these values.
 - **Deck/list legality menu:** ootv-client `listLegalitySelect` lists `legality.sortregex`,
   then adds each derived name right after the format it starts with (Ivory → Ivory Strict),
   with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
-  need to add it to `sortregex`. A list's legality is only a label and isn't checked.
+  need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's
+  legality is only a label and isn't checked.
+- **Search form checkbox:** a `searchables` entry of type `require` in `templates/l5r.js`
+  (`"paper": {"type": "require", "field": "legality", "value": "Paper"}`, labels
+  `tagpaper`/`shortpaper`) renders a checkbox that sends `require_legality=Paper`. The API ANDs
+  `require_<field>` with the rest of the search; `templatefetch()` then switches to a printing
+  that fits it.
 
 ## How a rule works
 
@@ -277,7 +284,8 @@ publisher set at import time.
    edit it. Before writing, compare the old and new card counts against Elasticsearch, using
    ootv-search `lib/attributeopts.derivedQuery`.
 2. Write the change with `update-item ... SET attributes.legality.derived = :d`. For a new
-   format, also add its name to the Format `optgroupregex`.
+   format, also add its name to the Format `optgroupregex`. For a new filter that isn't a
+   format, add it to Misc instead and give it `listable: false`.
 3. The search Lambdas cache the config per container. Force a cold start of `prod-ootv-search`
    and `dev-ootv-search`, e.g. by changing the function description.
 4. Check the count by selecting the value in a search, or by POSTing to `/search` with
