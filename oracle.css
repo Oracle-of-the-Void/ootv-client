@@ -318,6 +318,20 @@ div.directorycard.dircardnew {
     color: #1aa329;
     border: 2px dashed #1aa329;
 }
+/* directory table header: New list button with its label, like the cards view tile.
+   It sits over the empty header cells of the action columns so it doesn't widen them. */
+div.listheadmiddle.dirnewlistcell {
+    position: relative;
+}
+button.dirnewlist {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    height: auto;
+    font-family: "L5R Title";
+    font-size: medium;
+    white-space: nowrap;
+}
 div.directorycard .dircarddelete {
     margin-left: auto;
 }
