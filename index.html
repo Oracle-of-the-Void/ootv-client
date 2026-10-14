@@ -209,11 +209,13 @@
 <div class="ui-layout-center" id="maincontent"> <!-- main content area -->
 <div class="resultcard" id="resultcard"><div class="randarea">No Cards rendered yet, Do a Search and click on a card.</div></div>
 <div class="resultdir" id="resultdir">
+  <div class="dirpathbar" id="dirpathbar" style="display:none"></div>
   <div class="directorycards" id="directorycards" style="display:none"></div>
   <div class="directorytable" id="directorytable">
   <div class="listitem directorylistheader">
     <div class="listheadmiddle">Id</div>
     <div class="listheadmiddle">Name</div>
+    <div class="listheadmiddle">Folder</div>
     <div class="listheadmiddle">Type</div>
     <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
@@ -225,7 +227,7 @@
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
     <div class="listheadmiddle"></div>
-    <div class="listheadmiddle dirnewlistcell"><button class="showonlogin iiconic ipositive dirnewlist" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</button></div>
+    <div class="listheadmiddle dirnewlistcell"><span class="dirnewbuttons"><button aria-label="New folder" data-balloon-pos="down-right" class="showonlogin iiconic ipositive dirnewlist" onclick="newfolder();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-plus"></svg></button><button class="showonlogin iiconic ipositive dirnewlist" onclick="newlist();" style="display:none"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</button></span></div>
 
   </div>
   <div class="hideonlogin directorylistitem out"><div class="randarea">You must be logged in to create/work with lists <span class="button gray" id="loginbutton" onclick="dologin();">Log&nbsp;In/Register</span></div></div>
@@ -650,6 +652,7 @@ printingprimary
 <div class="listitem directorylistitem" id="listitem_{{:listid}}">
   <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a aria-label="View List" data-balloon-pos="up-left" href="#" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
+  <div class="listmiddle"><select class="listselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select></div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select></div>
   <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
@@ -692,6 +695,32 @@ printingprimary
 <!-- directory cards view: one card per list, same fields and ids as template-lists (only one view is drawn at a time) -->
 <script id="template-listnewcard" type="text/x-jsrender">
 <div class="directorycard directorylistitem dircardnew" onclick="newlist();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</div>
+<div class="directorycard directorylistitem dircardnew" onclick="newfolder();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-plus"></svg> New folder</div>
+</script>
+<!-- directory folders (renderdirectory): the path bar, and the open folder's subfolders, before its lists -->
+<script id="template-dirpath" type="text/x-jsrender">
+{{if path}}<button aria-label="Up a folder" data-balloon-pos="down-left" class="iiconic iblue dirupbutton" onclick="opendirfolder(folderparent(dirpath()));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#corner-left-up"></svg></button>{{/if}}
+<svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg>
+{{if path}}<a href="#" onclick="opendirfolder(''); return false;">All lists</a>{{else}}<b>All lists</b>{{/if}}
+{{for crumbs}} <span class="dirpathsep">&rsaquo;</span> {{if !last}}<a href="#" data-folder="{{>folder}}" onclick="opendirfolder(eventfolder(this)); return false;">{{>name}}</a>{{else}}<b>{{>name}}</b>{{/if}}{{/for}}
+</script>
+<script id="template-dirfolderrow" type="text/x-jsrender">
+<div class="listitem directorylistitem dirfolderrow" data-folder="{{>folder}}">
+  <div class="listmiddle dirfoldername"><a href="#" class="dirfolderopen" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>name}} <small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></a></div>
+  <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
+  <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
+  <div class="listmiddle dirfolderactions"><span>
+    <button aria-label="Rename folder" data-balloon-pos="left" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="left" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
+  </span></div>
+</div>
+</script>
+<script id="template-dirfoldercard" type="text/x-jsrender">
+<div class="directorycard directorylistitem dirfoldercard" data-folder="{{>folder}}">
+  <a href="#" class="dirfolderopen" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> <span class="dirfolderlabel">{{>name}}<br /><small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></span></a>
+  <button aria-label="Rename folder" data-balloon-pos="up" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+  <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="up-right" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
+</div>
 </script>
 <script id="template-listcards" type="text/x-jsrender">
 <div class="directorycard directorylistitem" id="listitem_{{:listid}}">
@@ -702,6 +731,7 @@ printingprimary
   </div>
   <div class="dircardbody">
     <div class="dircardselects">
+      <select class="listselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select>
       <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
       <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
       <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>Private</option><option value="true"{{if public}} selected{{/if}}>Public</option></select>
