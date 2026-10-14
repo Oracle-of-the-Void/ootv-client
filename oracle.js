@@ -3797,6 +3797,9 @@ function changesortmode(type,mode) {
 // ootvversion (index.html) and version.json are stamped with the commit on deploy. A tab
 // left open across a deploy still runs the old code, so when it comes back into view
 // (or every 30 minutes) check version.json and offer a reload if a newer deploy is live.
+// an index.html cached from before versioning doesn't define it; that page then loads
+// this file unversioned, so fall back rather than throw on every runtime load
+var ootvversion = (typeof ootvversion !== 'undefined') ? ootvversion : 'dev';
 var versionchecked = 0;
 function checkversion() {
   if(ootvversion == 'dev' || $('#newversion').is(':visible') || Date.now() - versionchecked < 300000) return;
