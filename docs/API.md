@@ -274,6 +274,7 @@ inputs:
   * uid of user to search for lists of.
 * listid (optional)
   * 'new': create new list
+    * json (optional): the whole new item as JSON (name, list, public, type, folder, ...); it replaces the defaults
   * '': retrieve metadata for all lists for current user
   * otherwise needs to be a valid listid owned by the user, or set public by another user
 * database (required for 'new' or '' listid)
@@ -281,9 +282,10 @@ inputs:
 * updatefield (optional)
   * ignored if 'new' operation happening
   * user must be the list's owner
-  * one of ['name','notes','public','type','list']
-    * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }
-  * if this is set we update that field of the list
+  * one of ['name','notes','public','type','list','legality','folder']
+    * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality,
+      directory folder ('' = unfiled; trimmed, at most 100 characters)
+  * if this is set we update that field of the list (updatevalue), and modified, except for folder
   * TODO: when updating 'list' field, we should have a field that has the quantity of cards in it that gets updated as well, so general listing can have that info
 * action (optional)
   * remove
@@ -292,7 +294,7 @@ inputs:
 outputs:
 
 *  listid ''
-  * lists.Items: array of { createdate, listid, notes, public, owner, game, name, modified }
+  * lists.Items: array of { createdate, listid, notes, public, owner, game, name, modified, type, legality, folder, totalcount, distinctcount }
   * doesn't return actual lists as that can be quite lengthy.
 * listid set or new listid
   * elastic returning the list

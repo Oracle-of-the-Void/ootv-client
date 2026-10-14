@@ -323,14 +323,61 @@ div.directorycard.dircardnew {
 div.listheadmiddle.dirnewlistcell {
     position: relative;
 }
-button.dirnewlist {
+span.dirnewbuttons {
     position: absolute;
     right: 4px;
     top: 4px;
+    white-space: nowrap;
+}
+button.dirnewlist {
     height: auto;
     font-family: "L5R Title";
     font-size: medium;
     white-space: nowrap;
+}
+/* directory folders: a header band over the folder's lists. In the table its name and buttons are
+   positioned over the row's empty cells, so they don't widen the Id and action columns. */
+div.listitem.dirfolderrow > div {
+    background: #b9b9b9;
+    background: rgba(185, 185, 185, 0.95);
+    height: 1.7em;
+}
+div.dirfolderrow div.dirfoldername, div.dirfolderrow div.dirfolderactions {
+    position: relative;
+}
+div.dirfolderrow div.dirfoldername > span {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    white-space: nowrap;
+}
+div.dirfolderrow div.dirfolderactions > span {
+    position: absolute;
+    right: 4px;
+    top: 2px;
+    white-space: nowrap;
+}
+.dirfoldertoggle {
+    cursor: pointer;
+    font-family: "L5R Title";
+    font-size: large;
+}
+.dirfoldertoggle svg.feather {
+    vertical-align: middle;
+}
+div.dirfoldercard {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    background: rgba(185, 185, 185, 0.95);
+    border-radius: 7px;
+}
+div.dirfoldercard .dirfoldertoggle {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 div.directorycard .dircarddelete {
     margin-left: auto;
@@ -1077,6 +1124,13 @@ span.listqty {
   }
   div.directorycard .dircardactions {
     gap: 14px;
+  }
+  div.dirfoldercard > button.iiconic {
+    height: auto;
+  }
+  div.dirfoldercard svg.feather {
+    width: 34px;
+    height: 34px;
   }
   .gameinfo-game .gamename, li.numresultsmenu {
     display: none !important;
