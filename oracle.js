@@ -2130,7 +2130,7 @@ function rendersettings() {
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render({
     'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0], 'gamename': dbinfo[database].name,
-    'phone': narrowscreen(), 'views': views,
+    'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
   }));
 }

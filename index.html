@@ -610,7 +610,7 @@ printingprimary
     <dt>Uid</dt><dd>{{:oracle.uid}}</dd>
     <dt>Emails</dt><dd>{{for oracle.emails}}{{>#data}}<br/>{{/for}}</dd>
     <dt>Notifications</dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
-    <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined</dd>
+    <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined<br/>{{:folders}} folder{{if folders!=1}}s{{/if}} ({{>gamename}})</dd>
   </dl>
 </section>
 <section class="settingsection">
