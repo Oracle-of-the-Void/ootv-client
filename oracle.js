@@ -505,19 +505,21 @@ function renderdirectory() {
   var dir = cache_thing("list","data");
   if(!dir || !dir.lists) { return; }
   var view = dirviewstate(), sort = dirsortstate();
-  var lists = sortlists(dir.lists.Items,sort);
-  var folders = dirfolders();
+  var path = dirpath();
   var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
-  var collapsed = dircollapsed();
-  // folders first (by name, each with its lists in the directory sort), then the unfiled lists
-  var html = folders.map(function(folder) {
-    var inside = lists.filter(function(list) { return listfolder(list) == folder; });
-    var closed = collapsed.indexOf(folder) > -1;
-    return foldertemplate.render({"folder": folder, "count": inside.length, "closed": closed}) +
-      (closed ? '' : listtemplate.render(inside,ctx));
-  }).join('') + listtemplate.render(lists.filter(function(list) { return listfolder(list) == ''; }),ctx);
+  // the open folder's subfolders (by name), then its lists (in the directory sort)
+  var subfolders = folderchildren(path).map(function(folder) {
+    var counts = foldercounts(folder);
+    return {"folder": folder, "name": foldername(folder), "lists": counts.lists, "folders": counts.folders};
+  });
+  var lists = sortlists(dir.lists.Items.filter(function(list) { return listfolder(list) == path; }),sort);
+  var html = foldertemplate.render(subfolders) + listtemplate.render(lists,ctx);
+  if(!subfolders.length && !lists.length && path) {
+    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or move a list in with its Folder menu.</div></div>';
+  }
+  $("#dirpathbar").html($.templates("#template-dirpath").render({"path": path, "crumbs": foldercrumbs(path)})).show();
   $(".directorylistitem").remove();
   if(view == 'cards') {
     $("#directorycards").html($.templates("#template-listnewcard").render({})+html).show();
@@ -546,109 +548,193 @@ function renderdirectory() {
 }
 
 // ***********************  directory folders **************
-// A list's folder is its "folder" field ('' or missing = unfiled); folders are one level deep.
-// A folder exists while a list is in it, except ones made with New folder, which stay (empty) until the page reloads.
-// Collapsed folders are kept per browser and game in localStorage.
-var dirnewfolders = {};
+// A list's folder is its "folder" field: a path like "Tournament/2026" ('' or missing = top level).
+// The directory shows one folder at a time (dirpath, kept per browser and game), with a path bar to go back up.
+// Folders are saved in the user's settings[database].folders, so empty ones last; a folder named only by
+// a list's path shows too. Folder names can't contain "/".
 function listfolder(list) {
   return String(list.folder || '').trim();
 }
+function foldername(folder) {
+  return folder.split('/').pop();
+}
+function folderparent(folder) {
+  return folder.split('/').slice(0,-1).join('/');
+}
+function foldercmp(a,b) {
+  return a.localeCompare(b,undefined,{numeric: true, sensitivity: 'base'});
+}
+function savedfolders() {
+  var saved = savedgamesettings();
+  return (saved && Array.isArray(saved.folders)) ? saved.folders.filter(function(f) { return typeof f == 'string' && f; }) : [];
+}
+// every folder: the saved ones and the ones lists are in, with all their parents
 function dirfolders() {
   var dir = cache_thing("list","data");
-  var names = (dirnewfolders[database] || []).slice();
-  ((dir && dir.lists) ? dir.lists.Items : []).forEach(function(list) {
-    var folder = listfolder(list);
-    if(folder && names.indexOf(folder) < 0) { names.push(folder); }
-  });
-  return names.sort(function(a,b) { return a.localeCompare(b,undefined,{numeric: true, sensitivity: 'base'}); });
+  var all = {};
+  var add = function(folder) {
+    while(folder) { all[folder] = true; folder = folderparent(folder); }
+  };
+  savedfolders().forEach(add);
+  ((dir && dir.lists) ? dir.lists.Items : []).forEach(function(list) { add(listfolder(list)); });
+  return Object.keys(all).sort(foldercmp);
 }
-function dircollapsed(set) {
-  if(set !== undefined) { cache_thing("dir","collapsed",set); return set; }
-  var saved = cache_thing("dir","collapsed");
-  return Array.isArray(saved) ? saved : [];
+function folderchildren(path) {
+  return dirfolders().filter(function(folder) { return folderparent(folder) == path; })
+    .sort(function(a,b) { return foldercmp(foldername(a),foldername(b)); });
 }
-// the folder of the clicked directory element (names go through data-folder, so they need no quoting in onclick)
+function foldercounts(folder) {
+  var dir = cache_thing("list","data");
+  return {"lists": dir.lists.Items.filter(function(list) { return listfolder(list) == folder; }).length,
+          "folders": folderchildren(folder).length};
+}
+// the path bar: Top, then each folder down to the open one
+function foldercrumbs(path) {
+  var parts = path ? path.split('/') : [];
+  return parts.map(function(name,i) { return {"folder": parts.slice(0,i+1).join("/"), "name": name, "last": i == parts.length-1}; });
+}
+// the open folder; falls back to the nearest parent that still exists (renamed or removed elsewhere)
+function dirpath(set) {
+  if(set !== undefined) { cache_thing("dir","path",set); return set; }
+  var path = cache_thing("dir","path") || '';
+  var folders = dirfolders();
+  while(path && folders.indexOf(path) < 0) { path = folderparent(path); }
+  return path;
+}
+function opendirfolder(folder) {
+  dirpath(folder || '');
+  renderdirectory();
+  $("#resultdir").scrollTop(0);
+}
+// the folder of the clicked directory element (paths go through data-folder, so they need no quoting in onclick)
 function eventfolder(el) {
-  return $(el).closest("[data-folder]").attr("data-folder");
+  return $(el).closest("[data-folder]").attr("data-folder") || '';
 }
-// <option>s for a list's Folder select
+// <option>s for a list's Folder select: every folder by its path
 function folderoptions(current) {
   current = String(current || '').trim();
-  return '<option value=""'+(current ? '' : ' selected')+'>No folder</option>' +
+  return '<option value=""'+(current ? '' : ' selected')+'>Top level</option>' +
     dirfolders().map(function(folder) {
-      return '<option value="'+_.escape(folder)+'"'+(folder == current ? ' selected' : '')+'>'+_.escape(folder)+'</option>';
+      return '<option value="'+_.escape(folder)+'"'+(folder == current ? ' selected' : '')+'>'+folder.split('/').map(_.escape).join(' &rsaquo; ')+'</option>';
     }).join('') +
-    '<option value="\u0001new">New folder&hellip;</option>';
+    '<option value="\u0001new">New folder here&hellip;</option>';
+}
+// a new folder's path inside parent, or null (cancelled, or too long for the API's 255 characters)
+function newfolderpath(parent,name) {
+  if(!name) { return null; }
+  var folder = parent ? parent+'/'+name : name;
+  if(folder.length > 255) {
+    alert("That folder path is too long (at most 255 characters, counting the folders it's in).");
+    return null;
+  }
+  return folder;
 }
 function askfoldername(message,value) {
   var name = prompt(message,value || '');
   if(name === null) { return null; }
   name = name.trim();
-  if(name.length > 100) {
-    alert("Folder names can be at most 100 characters.");
+  if(!name) { return null; }
+  if(name.indexOf('/') > -1) {
+    alert("Folder names can't contain \"/\".");
     return null;
   }
   return name;
 }
-function togglefolder(el) {
-  var folder = eventfolder(el), collapsed = dircollapsed();
-  var index = collapsed.indexOf(folder);
-  if(index > -1) { collapsed.splice(index,1); } else { collapsed.push(folder); }
-  dircollapsed(collapsed);
-  renderdirectory();
+// Save the folder set to the user's settings for this game (merged with the view defaults kept there).
+// done(true) when saved; on failure it says so and reloads the user, so the folders shown are what's saved.
+function savefolders(folders,done) {
+  var gamesettings = Object.assign({}, savedgamesettings() || {});
+  gamesettings['folders'] = folders.filter(function(f,i) { return f && folders.indexOf(f) == i; }).sort(foldercmp);
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/user?database="+database+"&settings="+encodeURIComponent(JSON.stringify(gamesettings)),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      var user = data && data.oracle && data.oracle[0];
+      if(!user || !user.settings || !user.settings[database] || !Array.isArray(user.settings[database].folders)) {
+        alert("Couldn't save your folders.");
+        if(done) { done(false); }
+        return;
+      }
+      cache_thing("user","data",data);
+      if(done) { done(true); }
+    },
+    error: function(error) {
+      console.log(error);
+      alert("Couldn't save your folders: "+((error.responseJSON && error.responseJSON.error) || error.statusText || "network error"));
+      if(done) { done(false); }
+    }
+  });
 }
 function newfolder() {
-  var name = askfoldername("New folder name:");
-  if(!name) { return; }
-  if(dirfolders().indexOf(name) < 0) {
-    dirnewfolders[database] = (dirnewfolders[database] || []).concat([name]);
-  }
-  renderdirectory();
+  var path = dirpath();
+  var name = askfoldername("New folder"+(path ? " in \""+foldername(path)+"\"" : "")+":");
+  var folder = newfolderpath(path,name);
+  if(!folder) { return; }
+  savefolders(dirfolders().concat([folder]),function() { renderdirectory(); });
 }
 // a list's Folder select changed
 function setlistfolder(listid,select) {
   var folder = select.value;
   if(folder == '\u0001new') {
-    folder = askfoldername("New folder name:");
-    if(folder === null) { renderdirectory(); return; }
+    var path = dirpath();
+    var name = askfoldername("New folder"+(path ? " in \""+foldername(path)+"\"" : "")+":");
+    folder = newfolderpath(path,name);
+    if(!folder) { renderdirectory(); return; }
+    savefolders(dirfolders().concat([folder]),function(ok) {
+      if(ok) { updatelistfolders([listid],function() { return folder; }); } else { renderdirectory(); }
+    });
+    return;
   }
-  updatelistfolders([listid],folder);
+  updatelistfolders([listid],function() { return folder; });
 }
+function infolder(folder,path) {
+  return path == folder || path.indexOf(folder+'/') == 0;
+}
+// rename keeps the folder where it is; its subfolders and lists move with it
 function renamefolder(el) {
   var folder = eventfolder(el);
-  var name = askfoldername("Rename folder \""+folder+"\" to:",folder);
-  if(name === null || name == folder) { return; }
-  if(name === '') { removefolder(el); return; }
-  var collapsed = dircollapsed();
-  if(collapsed.indexOf(folder) > -1) { dircollapsed(collapsed.filter(function(f) { return f != folder; }).concat([name])); }
-  if(dirnewfolders[database]) {
-    dirnewfolders[database] = dirnewfolders[database].map(function(f) { return f == folder ? name : f; });
-  }
-  updatelistfolders(folderlistids(folder),name);
+  var name = askfoldername("Rename folder \""+foldername(folder)+"\" to:",foldername(folder));
+  if(!name || name == foldername(folder)) { return; }
+  var renamed = newfolderpath(folderparent(folder),name);
+  if(!renamed) { return; }
+  if(dirfolders().indexOf(renamed) > -1 && !confirm("\""+name+"\" already exists here. Merge the two folders?")) { return; }
+  var move = function(path) { return infolder(folder,path) ? renamed+path.slice(folder.length) : path; };
+  movefolders(folder,move);
 }
-// removing a folder keeps its lists: they go back to unfiled
+// removing a folder keeps what's in it: its lists and subfolders move up into its parent
 function removefolder(el) {
-  var folder = eventfolder(el), listids = folderlistids(folder);
-  if(listids.length && !confirm("Remove folder \""+folder+"\"? Its "+listids.length+" list"+(listids.length == 1 ? "" : "s")+" will be kept, unfiled.")) { return; }
-  if(dirnewfolders[database]) {
-    dirnewfolders[database] = dirnewfolders[database].filter(function(f) { return f != folder; });
-  }
-  dircollapsed(dircollapsed().filter(function(f) { return f != folder; }));
-  updatelistfolders(listids,'');
+  var folder = eventfolder(el), parent = folderparent(folder);
+  var counts = foldercounts(folder);
+  if((counts.lists || counts.folders) && !confirm("Remove folder \""+foldername(folder)+"\"? What's in it ("+
+      counts.lists+" list"+(counts.lists == 1 ? "" : "s")+", "+counts.folders+" folder"+(counts.folders == 1 ? "" : "s")+
+      ") moves up to "+(parent ? "\""+foldername(parent)+"\"" : "the top level")+".")) { return; }
+  var move = function(path) {
+    if(path == folder) { return parent; }
+    return infolder(folder,path) ? (parent ? parent+'/' : '')+path.slice(folder.length+1) : path;
+  };
+  movefolders(folder,move,true);
 }
-function folderlistids(folder) {
-  return cache_thing("list","data").lists.Items.filter(function(list) { return listfolder(list) == folder; }).map(function(list) { return list.listid; });
+// apply move(path) to the saved folders and to the lists under folder
+function movefolders(folder,move,removing) {
+  var folders = (removing ? dirfolders().filter(function(f) { return f != folder; }) : dirfolders()).map(move);
+  var listids = cache_thing("list","data").lists.Items.filter(function(list) { return infolder(folder,listfolder(list)); }).map(function(list) { return list.listid; });
+  savefolders(folders,function(ok) {
+    if(!ok) { renderdirectory(); return; }
+    var path = dirpath();
+    if(infolder(folder,path)) { dirpath(removing && path == folder ? folderparent(folder) : move(path)); }
+    updatelistfolders(listids,function(list) { return move(listfolder(list)); });
+  });
 }
-function newlistinfolder(el) {
-  newlist({"name": "New List", "list": [], "public": false, "type": "deck", "folder": eventfolder(el)});
-}
-// File lists in a folder ('' = unfiled): one update per list, then the directory is redrawn from the cache
-// (filing doesn't change modified, so the cached directory stays right without a refetch).
-function updatelistfolders(listids,folder) {
+// File lists: folderof(list) gives each list's new folder. One update per list, then the directory is
+// redrawn from the cache (filing doesn't change modified, so the cached directory stays right without a refetch).
+function updatelistfolders(listids,folderof) {
   var dir = cache_thing("list","data");
   var rev = cache_thing("list","datareverse");
   var failed = 0;
   $.when.apply($, listids.map(function(listid) {
+    var folder = folderof(dir.lists.Items[rev[listid]]);
     return $.ajax({
       type: "GET",
       url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield=folder&updatevalue="+encodeURIComponent(folder),
@@ -670,12 +756,9 @@ function updatelistfolders(listids,folder) {
     }).then(null,function() { return $.Deferred().resolve(); }); // one failure doesn't stop waiting for the rest
   })).then(function() {
     cache_thing("list","data",dir);
-    if(folder && dirnewfolders[database]) {
-      dirnewfolders[database] = dirnewfolders[database].filter(function(f) { return f != folder; });
-    }
     renderdirectory();
     if(failed) {
-      alert("Couldn't move "+failed+" list"+(failed == 1 ? "" : "s")+" to the folder; the directory has been reloaded.");
+      alert("Couldn't move "+failed+" list"+(failed == 1 ? "" : "s")+"; the directory has been reloaded.");
       listinfo();
     }
   });
@@ -819,6 +902,10 @@ function refreshactivelistviews() {
 }
 
 function newlist(json=null) {
+    // from the directory, a new list goes in the open folder
+    if(json === null && dirpath()) {
+	json = {"name": "New List", "list": [], "public": false, "type": "deck", "folder": dirpath()};
+    }
     /*
     Create new list.   json example:
     {
@@ -3488,6 +3575,7 @@ function viewbutton(template) {
   activatetemplate(type,template);
 }
 // saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, sortmode, mobile: {same keys}}, saved via /user?settings=
+// (settings[database].folders, the directory folders, shares the object: saves here keep it)
 // (the API stores any small object; sizes come from the templates, an older saved `large` is ignored)
 // phones save and read their own set under `mobile`, so they can use a different view than desktop.
 function viewdefaults() {

@@ -345,7 +345,7 @@ div.listitem.dirfolderrow > div {
 div.dirfolderrow div.dirfoldername, div.dirfolderrow div.dirfolderactions {
     position: relative;
 }
-div.dirfolderrow div.dirfoldername > span {
+div.dirfolderrow div.dirfoldername > a {
     position: absolute;
     left: 4px;
     top: 4px;
@@ -357,30 +357,62 @@ div.dirfolderrow div.dirfolderactions > span {
     top: 2px;
     white-space: nowrap;
 }
-.dirfoldertoggle {
-    cursor: pointer;
+a.dirfolderopen, a.dirfolderopen:visited {
+    color: #222;
+    text-decoration: none;
     font-family: "L5R Title";
     font-size: large;
 }
-.dirfoldertoggle svg.feather {
+a.dirfolderopen:hover {
+    text-decoration: underline;
+}
+a.dirfolderopen svg.feather, div.dirpathbar svg.feather {
     vertical-align: middle;
 }
-div.dirfoldercard {
-    grid-column: 1 / -1;
+a.dirfolderopen small {
+    font-family: "Times New Roman",Georgia,Serif;
+    font-size: small;
+    color: #444;
+}
+/* cards view: a folder is a tile like the lists' (the whole name opens it) */
+div.directorycard.dirfoldercard {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    align-self: start;
+    background: rgba(185, 185, 185, 0.95);
+}
+div.dirfoldercard a.dirfolderopen {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 6px;
-    background: rgba(185, 185, 185, 0.95);
-    border-radius: 7px;
-}
-div.dirfoldercard .dirfoldertoggle {
-    flex: 1;
-    min-width: 0;
     overflow-wrap: anywhere;
 }
-div.directorycard .dircarddelete {
-    margin-left: auto;
+div.dirfoldercard a.dirfolderopen > svg.feather {
+    width: 34px;
+    height: 34px;
+    flex: none;
+}
+/* path bar over the directory: Up, then All lists > folder > ... */
+div.dirpathbar {
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 7px;
+    font-family: "L5R Title";
+    font-size: large;
+}
+div.dirpathbar a, div.dirpathbar a:visited {
+    color: #1a4fa3;
+}
+div.dirpathbar .dirpathsep {
+    color: #777;
+}
+div.dirempty .randarea {
+    padding: 8px;
 }
 /* help page: community links row */
 div.helplinks {
@@ -1125,10 +1157,10 @@ span.listqty {
   div.directorycard .dircardactions {
     gap: 14px;
   }
-  div.dirfoldercard > button.iiconic {
+  div.dirfoldercard > button.iiconic, div.dirpathbar button.iiconic {
     height: auto;
   }
-  div.dirfoldercard svg.feather {
+  div.dirfoldercard svg.feather, div.dirpathbar button.iiconic svg.feather {
     width: 34px;
     height: 34px;
   }
