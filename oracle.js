@@ -323,7 +323,8 @@ function userinfocallback() {
 //    $('#userinfo-joined').html(info.oracle[0].insert_date);
 //    $('#userinfo-lists').html(info.oracle[0].deckcount);
     hellotemplate = $.templates("#template-hello");
-    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]},{"pdfallowed": pdfallowed()}));
+    $('#userinfo-drop').html(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
+    $('.showonpdf').toggle(pdfallowed());
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
     listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback

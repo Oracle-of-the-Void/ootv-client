@@ -77,6 +77,7 @@
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
 	  <li id="userinfo-drop">...</li>
+	  <li class="showonpdf" onclick="pdfsettingsdialog();">PDF Print Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#printer"></svg></li>
 	  <li class="showonadmin" onclick="showview('resultadmin');">Admin <svg class="feather"><use xlink:href="res/feather-sprite.svg#tool"></svg></li>
 	  <li onclick="dologout();">Log Out</li>
 	</ul>
@@ -600,7 +601,6 @@ printingprimary
     <dt></dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined</dd>
   </dl>
-  {{if ~pdfallowed}}<button class="iiconic iblue" onclick="pdfsettingsdialog();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#printer"></svg> PDF print settings</button>{{/if}}
 </div>
 </script>
 

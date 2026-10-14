@@ -848,7 +848,7 @@ div.menubar nav li.sortbuttons {
   padding: 0;
 /*  border: 1px solid #888; */
 }
-.showonadmin {
+.showonadmin, .showonpdf {
   display: none;
 }
 
