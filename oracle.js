@@ -236,9 +236,8 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
-    if($('#resultsettings').is(':visible')) {
-	showview('resultabout');
-    }
+    rendersettings(); // logged out it shows only the search settings kept in this browser
+    rendersavedsearches();
     updateviewbuttons();
 }
 function logincallback(session) {
@@ -348,6 +347,8 @@ function userinfocallback() {
     }
     updateviewbuttons();
     applyviewdefaults();
+    rendersavedsearches();
+    applysearchdefault();
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2118,7 +2119,17 @@ function settingspdfsummary(o) {
 }
 function rendersettings() {
   var user = cache_thing("user","data");
+  var searches = searchsettings();
+  var searchctx = {
+    'gamename': dbinfo[database].name, 'loggedin': searchloggedin(),
+    'searchdefault': searches['default'] ? searchsummary(searches['default']) : null,
+    'searches': Object.keys(searches['saved']).sort(searchnamecmp).map(function(name) {
+      return {'name': name, 'summary': searchsummary(searches['saved'][name])};
+    })
+  };
   if(!(user && ("oracle" in user))) {
+    // logged out: only the search settings (kept in this browser)
+    $('#settingsarea').html($.templates("#template-settings").render(searchctx));
     return;
   }
   var saved = savedgamesettings() || {};
@@ -2130,11 +2141,245 @@ function rendersettings() {
   views.push({'part': 'sort', 'label': 'Sort', 'desktop': settingssortname(desktop), 'phone': settingssortname(phone),
               'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search'],
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
-  $('#settingsarea').html($.templates("#template-settings").render({
-    'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0], 'gamename': dbinfo[database].name,
+  $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
+    'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0],
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
-  }));
+  })));
+}
+
+//**********************************************************  Saved searches ****************
+// Per game: a default search (fills the form on a new session and on Reset) and named saved searches
+// (links under the Search button that fill the form). Stored as {default: values, saved: {name: values}},
+// values = {field name: value or [values]} from the search form.
+// Logged in: users.settings[database+'-search'] through /user (its own settings object, so it has its
+// own 4 KB and doesn't crowd the view defaults and folders in settings[database]); keys there can't be
+// ordered (DynamoDB maps), so saved searches show by name. Logged out: this browser's localStorage.
+function searchloggedin() {
+  var user = cache_thing("user","data");
+  return !!(user && ("oracle" in user));
+}
+function searchsettings() {
+  var s = null;
+  if(searchloggedin()) {
+    var settings = cache_thing("user","data").oracle[0].settings;
+    s = settings && settings[database+'-search'];
+  } else {
+    s = cache_thing("searchsaved","data");
+  }
+  s = Object.assign({}, s || {});
+  s['saved'] = Object.assign({}, s['saved'] || {});
+  return s;
+}
+function searchnamecmp(a,b) {
+  return a.localeCompare(b,undefined,{numeric: true, sensitivity: 'base'});
+}
+// write the whole object; done(true) when saved
+function savesearchsettings(s,done) {
+  var store = {};
+  if(s['default'] && Object.keys(s['default']).length) {
+    store['default'] = s['default'];
+  }
+  if(Object.keys(s['saved'] || {}).length) {
+    store['saved'] = s['saved'];
+  }
+  var finish = function(ok) {
+    if(ok) {
+      rendersavedsearches();
+      rendersettings();
+    }
+    if(done) { done(ok); }
+  };
+  if(!searchloggedin()) {
+    cache_thing("searchsaved","data",store);
+    finish(true);
+    return;
+  }
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/user?database="+encodeURIComponent(database+'-search')+"&settings="+encodeURIComponent(JSON.stringify(store)),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      var user = data && data.oracle && data.oracle[0];
+      if(!user || !user.settings || JSON.stringify(user.settings[database+'-search']) !== JSON.stringify(store)) {
+        alert("Couldn't save your searches.");
+        finish(false);
+        return;
+      }
+      cache_thing("user","data",data);
+      finish(true);
+    },
+    error: function(error) {
+      console.log(error);
+      var msg = (error.responseJSON && error.responseJSON.error) || error.statusText || "network error";
+      if(/at most \d+ bytes/.test(msg)) {
+        msg = "there's no room for more saved searches in "+dbinfo[database].name+". Delete some in Settings.";
+      }
+      alert("Couldn't save your searches: "+msg);
+      finish(false);
+    }
+  });
+}
+// the search form's values: what's filled in (not the hidden field types)
+function searchformvalues() {
+  var values = {};
+  $('#searchform').serializeArray().forEach(function(f) {
+    if(f.value === "" || f.value === null || f.name == 'selectsloaded' || f.name.startsWith('type_')) {
+      return;
+    }
+    if(values[f.name] === undefined) {
+      values[f.name] = f.value;
+    } else {
+      values[f.name] = [].concat(values[f.name], f.value);
+    }
+  });
+  return values;
+}
+// clear the form and fill in values (missing fields stay empty)
+function fillsearchform(values) {
+  var form = $('#searchform');
+  form[0].reset();
+  var advanced = false;
+  var setvalues = function() {
+    form.find('input[name], select[name]').each(function() {
+      if(this.type == 'hidden' || values[this.name] === undefined) {
+        return;
+      }
+      var want = [].concat(values[this.name]).map(String);
+      if(this.type == 'checkbox' || this.type == 'radio') {
+        this.checked = want.includes(this.value);
+      } else if(this.multiple) {
+        $(this).val(want);
+      } else {
+        $(this).val(want.join(' '));
+      }
+      advanced = advanced || $(this).closest('dd').hasClass('advanced');
+    });
+  };
+  setvalues();
+  // chained selects (set -> rarity) redraw from their parent, then take their values
+  form.find('select[onchange]').trigger('change');
+  setvalues();
+  form.find('.chosen-select').trigger('chosen:updated');
+  if(advanced) {
+    showadvancedsearch(true);
+  }
+}
+function showadvancedsearch(show) {
+  $('dt.advanced, dd.advanced').toggle(show);
+  $('dt.notadvanced, dd.notadvanced').toggle(!show);
+}
+// a new session (no search in the url) or Reset: the saved default, or an empty form
+function resetsearchform() {
+  var def = searchsettings()['default'];
+  fillsearchform(def || {});
+}
+function searchformblank() {
+  return Object.keys(searchformvalues()).length == 0;
+}
+// the form was drawn, or the user (and their settings) arrived: fill in the default if nothing else did
+function applysearchdefault() {
+  if(!$('#selectsloaded').length || /#(search|quicksearch|quicksearchtitle)=/.test(location.hash) || $('#lastsearchquery').val() || !searchformblank()) {
+    return;
+  }
+  var def = searchsettings()['default'];
+  if(def) {
+    fillsearchform(def);
+  }
+}
+function savesearchdefault(el) {
+  var values = searchformvalues();
+  var s = searchsettings();
+  if(!Object.keys(values).length) {
+    if(!s['default'] || !confirm("The search form is empty. Clear your default search for "+dbinfo[database].name+"?")) {
+      return;
+    }
+    delete s['default'];
+  } else {
+    s['default'] = values;
+  }
+  savesearchsettings(s,function(ok) { if(ok) { flashsaved(el); } });
+}
+function savesearch(el) {
+  var values = searchformvalues();
+  if(!Object.keys(values).length) {
+    alert("Fill in the search form first.");
+    return;
+  }
+  var name = prompt("Save this search as:");
+  if(name === null) { return; }
+  name = name.trim();
+  if(!name) { return; }
+  var s = searchsettings();
+  // same name (ignoring case) replaces the old one
+  Object.keys(s['saved']).forEach(function(old) {
+    if(searchnamecmp(old,name) == 0) { delete s['saved'][old]; }
+  });
+  s['saved'][name] = values;
+  savesearchsettings(s,function(ok) { if(ok) { flashsaved(el); } });
+}
+function flashsaved(el) {
+  $(el).addClass('saved');
+  setTimeout(function() { $(el).removeClass('saved'); }, 2000);
+}
+function deletesavedsearch(name) {
+  var s = searchsettings();
+  if(s['saved'][name] === undefined || !confirm("Delete the saved search \""+name+"\"?")) {
+    return;
+  }
+  delete s['saved'][name];
+  savesearchsettings(s);
+}
+function deleteallsavedsearches() {
+  var s = searchsettings();
+  if(!confirm("Delete all "+Object.keys(s['saved']).length+" saved searches for "+dbinfo[database].name+"?")) {
+    return;
+  }
+  s['saved'] = {};
+  savesearchsettings(s);
+}
+function clearsearchdefault() {
+  var s = searchsettings();
+  if(!confirm("Clear your default search for "+dbinfo[database].name+"?")) {
+    return;
+  }
+  delete s['default'];
+  savesearchsettings(s);
+}
+function usesavedsearch(name) {
+  var values = searchsettings()['saved'][name];
+  if(values) {
+    fillsearchform(values);
+  }
+}
+// the saved searches under the Search button
+function rendersavedsearches() {
+  var names = Object.keys(searchsettings()['saved']).sort(searchnamecmp);
+  $('#savedsearches').html($.templates("#template-savedsearches").render({'names': names}));
+}
+// values in words, using the form's labels: "All: crane; Type: Holding, Region; Gold Cost: 2 to 5"
+function searchsummary(values) {
+  var parts = [], done = {};
+  Object.keys(values).forEach(function(name) {
+    if(done[name]) { return; }
+    var el = $('#searchform [name="'+name+'"]').first();
+    var label = name == 'querystring' ? 'All' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
+    var range = name.match(/^field_(lower|upper)_(.*)/);
+    var text;
+    if(range) {
+      var lo = values['field_lower_'+range[2]], hi = values['field_upper_'+range[2]];
+      done['field_lower_'+range[2]] = done['field_upper_'+range[2]] = true;
+      text = (lo !== undefined && hi !== undefined) ? lo+' to '+hi : (lo !== undefined ? 'at least '+lo : 'at most '+hi);
+    } else if(el.prop('type') == 'checkbox') {
+      text = name.startsWith('require_') ? (el.parent('label').text().trim() || 'yes') : 'yes';
+    } else {
+      text = [].concat(values[name]).map(function(v) { return htmlDecode(String(v)); }).join(', ');
+    }
+    done[name] = true;
+    parts.push(label+': '+text);
+  });
+  return parts.join('; ');
 }
 
 //**********************************************************  PDF print-n-play ****************
@@ -3736,6 +3981,8 @@ function refreshviewdefaults() {
 	    if(JSON.stringify(viewdefaults()) != before) {
 		    applyviewdefaults();
 	    }
+	    rendersavedsearches();
+	    applysearchdefault();
 	  },
 	  error: function(error) { console.log("User refresh failed: "+JSON.stringify(error)); }
   });
@@ -4161,6 +4408,8 @@ function initializeform(db) {
   chosenify();
   $('dd.advanced').hide();
   $('dt.advanced').hide();
+  rendersavedsearches();
+  applysearchdefault();
 }
 
 // a search form select, from the cached values
