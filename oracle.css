@@ -1040,13 +1040,17 @@ div.menubar nav li.sortbuttons {
 
 /* Settings page */
 div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 12px; max-width: 60em; }
-.settingsection { margin: 0 0 18px 0; }
-.settingsection h3 { border-bottom: 1px solid #ccc; margin-bottom: 6px; }
+/* each section is a card, so the sections read apart from the gray buttons inside them */
+.settingsection { margin: 0 0 16px 0; padding: 10px 14px 12px; background: #faf8f2; border: 1px solid #d8d2c2; border-left: 5px solid #575757;
+  border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.settingsection h3 { font-family: "L5R Title"; font-size: 1.4em; font-weight: normal; color: #333; margin: 0 0 8px 0; padding-bottom: 3px; border-bottom: 2px solid #e0c35a; }
+.settingsection p:last-child, .settingsection .settingstable:last-child { margin-bottom: 0; }
 .settingsection dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 6px 0 10px 0; }
 .settingsection dt { font-weight: bold; text-align: right; }
 .settingsection dd { margin: 0; }
 .settingstable { border-collapse: collapse; margin: 6px 0 10px 0; }
 .settingstable th, .settingstable td { padding: 2px 10px 2px 0; text-align: left; }
+.settingstable .button { white-space: nowrap; }
 .settingsection h4 { margin: 10px 0 4px 0; }
 .savedsearchtable td { vertical-align: top; }
 .searchsummary { color: #555; }
