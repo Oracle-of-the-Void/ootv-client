@@ -26,7 +26,8 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] Search form selects. Chosen disables itself on phones, so these are plain
   `<select multiple>`. iOS should show a one-line picker; Chromium draws tall list boxes.
   If they're unusable, consider a compact custom control for the panel.
-- [ ] Search panel: phones start with it open; it opens from the Search Results button when
+- [ ] Search panel: phones start with it open; it opens from the Edit search bar above the results
+  (added 2026-10-15: a tester couldn't find the second tap on the Search Results button) or that button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
   view. Check the page behind it doesn't scroll while the panel is open.
 - [ ] Directory cards view (the phone default; the menubar view buttons switch to the
@@ -46,7 +47,7 @@ Double-size menubar icons, no debug button, start on the search form, full-width
 panel, other views close the panel, separate saved view defaults with "(Mobile)" on the
 save items (`settings[game].mobile`), Visual Spoiler as the phone search default,
 directory scrolls sideways, list quantity beside the +/- buttons (desktop too),
-long-press labels (noted in Help), 1em text symbols kept small, sideways phones get the phone layout, one YouTube link on Help.
+long-press labels (noted in Help), 1em text symbols kept small, sideways phones get the phone layout, Edit search bar above the results (with the result count), back/forward closes the search panel, one YouTube link on Help.
 
 Swipes on card images and Simple List titles (click-drag with a mouse): right +1, left −1, up-right +3, up-left −3,
 with a short toast; going to 0 asks before removing the card. They work in search (Detail, Visual
