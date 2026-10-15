@@ -13,7 +13,7 @@
 ### Needing Authentication
 
 * [/user (GET)](#user)                          -> Verify user account and return user data 
-* [/user (POST)](#user-post)                    -> Change your own first/last name
+* [/user (POST)](#user-post)                    -> Change your own name, add or remove your emails
 * [/import (POST)](#import)                     -> import decks/lists from external files
 * [/list (GET)](#list)                          -> deck/list handling routines
 * [/update (POST)](#update)                     -> database modification routines
@@ -235,15 +235,19 @@ codes:
 ## /user (POST)
 <a id="user-post"></a>
 
-Changes the signed-in user's own `firstname`/`lastname` in `oracle-all-users` (issue #21). Nothing else on the user changes.
-The name shows in the menu bar and on Settings, and `/update` and `/upload` log it as `uname` on card edits from then on.
-
-inputs (JSON body):
+Changes the signed-in user's own row in `oracle-all-users` (issue #21). The body is JSON; `action` picks what to do.
 
 * Header: Authorization (required)
-* firstname (required): trimmed, 1-50 characters
-* lastname (optional): trimmed, 0-50 characters (empty clears it)
-  * neither may contain `< > & "` or control characters
+
+| action | body | does |
+|---|---|---|
+| (none) | `firstname` (required, 1-50 chars), `lastname` (0-50; empty clears it) | sets the name. Shown in the menu bar and Settings; `/update` and `/upload` log it as `uname` on card edits from then on. Neither may contain `< > & "` or control characters. |
+| `addemail` | `email` | emails a 6-digit code to the address (expires in 15 minutes) and sets `emailpending: {email, expires}`. At most one code a minute and 5 a day. 400 if the address is already on the account. |
+| `verifyemail` | `email`, `code` | with the right code, adds an `oracle-all-emails` row (lowercase) and appends the address to `emails`. 5 wrong codes and it's dropped. 409 if the address already belongs to another account (a merge, done by hand). |
+| `cancelemail` | | drops `emailpending` |
+| `removeemail` | `email` | removes the address from `emails` and deletes its `oracle-all-emails` row, then emails the removed address a notice. Not the address in the token (the one you're signed in with). The answer has `warning` if the notice couldn't be queued. |
+
+The emails go out through the `oracle-all-mail` outbox and the `oracle-mailer` Lambda (ootv-search `mailer/`). Only the code's hash is stored, and neither GET nor POST returns it.
 
 outputs:
 
@@ -251,9 +255,11 @@ outputs:
 
 codes:
 
-* 200: saved
-* 400: bad firstname or lastname
-* 404: no user for the token's email
+* 200: done
+* 400: bad input, wrong or expired code, unknown action
+* 404: no user for the token's email; `removeemail` for an address not on the account
+* 409: address belongs to another account, or the user changed while saving
+* 429: asked for codes too often
 
 ## /import
 

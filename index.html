@@ -622,7 +622,22 @@ printingprimary
       <br/><small>Shown at the top of the page, and as your name on card edits you make from now on.</small></dd>
     <dt>Joined</dt><dd>{{formatDate:oracle.insert_date}}</dd>
     <dt>Uid</dt><dd>{{:oracle.uid}}</dd>
-    <dt>Emails</dt><dd>{{for oracle.emails}}{{>#data}}<br/>{{/for}}</dd>
+    <dt>Emails</dt><dd class="profileemails">
+      {{for emaillist}}<div>{{>email}} {{if current}}<small>(signed in now)</small>{{else}}<span class="button gray" data-email="{{>email}}" onclick="removeprofileemail(this);">Remove</span>{{/if}}</div>{{/for}}
+      {{if pending}}
+      <div>Code sent to <b>{{>pending.email}}</b>:
+        <input type="text" class="profileemailcode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" size="8" placeholder="6 digits" aria-label="Verification code"/>
+        <span class="button gray" onclick="verifyprofileemail(this);">Verify</span>
+        <span class="button gray" data-email="{{>pending.email}}" onclick="addprofileemail(this);">Send again</span>
+        <span class="button gray" onclick="cancelprofileemail(this);">Cancel</span></div>
+      {{else}}
+      <div><span class="button gray profileaddemail" onclick="$(this).hide().next().show().find('input').focus();">Add email <svg class="feather"><use xlink:href="res/feather-sprite.svg#plus"></svg></span>
+        <span style="display:none"><input type="email" class="profilenewemail" maxlength="254" placeholder="another address" aria-label="Email address to add"/>
+        <span class="button gray" onclick="addprofileemail(this);">Send code</span>
+        <span class="button gray" onclick="rendersettings();">Cancel</span></span></div>
+      {{/if}}
+      <span class="profileemailstatus"></span>
+      <br/><small>Signing in with any of these reaches this account. A new address gets a code to confirm it; a removed one gets an email saying so.</small></dd>
     <dt>Notifications</dt><dd>{{if oracle.is_no_email>0}}Email Notifications Disabled{{else}}Email Notifications Enabled{{/if}}</dd>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined<br/>{{:folders}} folder{{if folders!=1}}s{{/if}} ({{>gamename}})</dd>
   </dl>

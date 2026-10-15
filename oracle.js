@@ -2190,7 +2190,7 @@ function rendersettings() {
               'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search'],
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
-    'name': username(user), 'oracle': user.oracle[0],
+    'name': username(user), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
     'favorite': favoritegame() || '', 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
@@ -2198,7 +2198,43 @@ function rendersettings() {
 }
 
 //**********************************************************  Profile name ****************
-// POST /user {firstname, lastname} (ootv-client #21) saves the name on the user; it answers like GET /user
+// POST /user (ootv-client #21) changes your own user: {firstname, lastname}, or an email action
+// (addemail, verifyemail, cancelemail, removeemail). It answers like GET /user.
+function postprofile(body, status, done) {
+  $.ajax({
+    type: 'POST',
+    url: apiuri+"/user",
+    contentType: 'application/json',
+    data: JSON.stringify(body),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      // the user is cached per game: put the server's copy in each cached one, keeping its cognito part
+      Object.keys(dbinfo).forEach(function(g) {
+        var key = g+"_user_data";
+        try {
+          var cached = JSON.parse(window.localStorage.getItem(key));
+          if(cached && ("oracle" in cached)) {
+            cached.oracle = data.oracle;
+            window.localStorage.setItem(key, JSON.stringify(cached));
+          }
+        } catch(e) {}
+      });
+      var user = cache_thing("user","data");
+      if(user && ("oracle" in user)) {
+        user.oracle = data.oracle;
+        cache_thing("user","data",user);
+      }
+      $('#loginfo').text(username(user));
+      rendersettings();
+      done(data);
+    },
+    error: function(error) {
+      console.log("Profile save failed: "+JSON.stringify(error));
+      status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
+    }
+  });
+}
 function editprofilename(el) {
   var section = $(el).closest('dd');
   section.find('.profilename').hide();
@@ -2219,40 +2255,64 @@ function saveprofilename(el) {
     return;
   }
   status.text("Saving...");
-  $.ajax({
-    type: 'POST',
-    url: apiuri+"/user",
-    contentType: 'application/json',
-    data: JSON.stringify({'firstname': firstname, 'lastname': lastname}),
-    dataType: 'json',
-    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-    success: function(data) {
-      // the user is cached per game: put the saved name in each cached copy, keeping the rest
-      Object.keys(dbinfo).forEach(function(g) {
-        var key = g+"_user_data";
-        try {
-          var cached = JSON.parse(window.localStorage.getItem(key));
-          if(cached && ("oracle" in cached)) {
-            cached.oracle[0].firstname = data.oracle[0].firstname;
-            cached.oracle[0].lastname = data.oracle[0].lastname;
-            window.localStorage.setItem(key, JSON.stringify(cached));
-          }
-        } catch(e) {}
-      });
-      var user = cache_thing("user","data");
-      if(user && ("oracle" in user)) {
-        user.oracle[0].firstname = data.oracle[0].firstname;
-        user.oracle[0].lastname = data.oracle[0].lastname;
-        cache_thing("user","data",user);
-      }
-      $('#loginfo').text(username(user));
-      rendersettings();
-      $('.profilenamestatus').text("Saved.");
-    },
-    error: function(error) {
-      console.log("Profile name save failed: "+JSON.stringify(error));
-      status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
-    }
+  postprofile({'firstname': firstname, 'lastname': lastname}, status, function() {
+    $('.profilenamestatus').text("Saved.");
+  });
+}
+// the emails for the Profile section: which one you're signed in with, and a code waiting to be entered
+function profileemails(user) {
+  var login = (user.cognito && user.cognito.email || '').toLowerCase();
+  var pending = user.oracle[0].emailpending;
+  return {
+    'emaillist': (user.oracle[0].emails || []).map(function(e) { return {'email': e, 'current': e.toLowerCase() === login}; }),
+    'pending': (pending && pending.expires > Date.now()) ? pending : null
+  };
+}
+function addprofileemail(el) {
+  var section = $(el).closest('dd');
+  var status = section.find('.profileemailstatus');
+  var email = ($(el).data('email') || section.find('.profilenewemail').val() || '').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    status.text("Enter an email address.");
+    return;
+  }
+  status.text("Sending...");
+  postprofile({'action': 'addemail', 'email': email}, status, function() {
+    $('.profileemailstatus').text("Sent. Check that inbox (and its spam folder) for the code.");
+    $('.profileemailcode').focus();
+  });
+}
+function verifyprofileemail(el) {
+  var section = $(el).closest('dd');
+  var status = section.find('.profileemailstatus');
+  var code = section.find('.profileemailcode').val().replace(/\s/g, '');
+  var pending = profileemails(cache_thing("user","data")).pending;
+  if(!/^\d{6}$/.test(code)) {
+    status.text("The code is 6 digits.");
+    return;
+  }
+  if(!pending) {
+    status.text("That code has expired; ask for a new one.");
+    return;
+  }
+  status.text("Checking...");
+  postprofile({'action': 'verifyemail', 'email': pending.email, 'code': code}, status, function() {
+    $('.profileemailstatus').text("Added "+pending.email+".");
+  });
+}
+function cancelprofileemail(el) {
+  var status = $(el).closest('dd').find('.profileemailstatus');
+  postprofile({'action': 'cancelemail'}, status, function() {});
+}
+function removeprofileemail(el) {
+  var status = $(el).closest('dd').find('.profileemailstatus');
+  var email = $(el).data('email');
+  if(!confirm("Remove "+email+" from your account?\n\nSigning in with it won't reach this account any more, and we'll email "+email+" to say it was removed.")) {
+    return;
+  }
+  status.text("Removing...");
+  postprofile({'action': 'removeemail', 'email': email}, status, function(data) {
+    $('.profileemailstatus').text(data.warning || ("Removed "+email+"."));
   });
 }
 
