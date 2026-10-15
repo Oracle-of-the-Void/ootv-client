@@ -18,6 +18,10 @@
 * printing.publisher (optional, array of one string). L5R: Five Rings Publishing Group, Wizards
   of the Coast, Alderac Entertainment Group or Onyx Lives (with printing.publisherurl). The
   l5r "Paper" filter depends on it, so set it on every new printing.
+* printing.notmrp (optional, boolean, default false). true: when a legality search picks which
+  printing of the card to show, this printing is skipped, so it is never the "most recent
+  printing" for an arc or format (e.g. a later expansion reprint that shouldn't stand for the
+  arc). Other searches (a set search) can still show it.
 * NEW: image: hash of images:
  * ```json
 {
