@@ -3747,10 +3747,11 @@ function templatesortprintings(printing) {
     });
 }
 function templatemakelinks() {
-  out = "";
-  for (i=0; i< arguments.length; i++) {
-    out += "<a href=\""+arguments[i]+"\">"+arguments[i]+"</a>";
-  }
+  // card fields are arrays; skip missing/blank urls so a card without one doesn't render "undefined"
+  var out = "";
+  [].concat.apply([],arguments).filter(templatehasval).forEach(function(u) {
+    out += "<a href=\""+u+"\">"+u+"</a>";
+  });
   return out;
 }
 function templateprintingidfromset(set,hashes) {
