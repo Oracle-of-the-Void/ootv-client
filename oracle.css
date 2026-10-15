@@ -318,10 +318,20 @@ div.directorycard.dircardnew {
     color: #1aa329;
     border: 2px dashed #1aa329;
 }
+/* directory table: always the full width. With only folder rows (whose names and buttons are positioned,
+   so they size nothing) it would otherwise shrink to the header labels, and New list would cover Notes. */
+div.directorytable {
+    display: table;
+    width: 100%;
+}
 /* directory table header: New list button with its label, like the cards view tile.
    It sits over the empty header cells of the action columns so it doesn't widen them. */
 div.listheadmiddle.dirnewlistcell {
     position: relative;
+}
+/* ...wide enough together for the button even with no list rows' icons to size them */
+div.directorylistheader > div:nth-last-child(-n+5) {
+    min-width: 15px;
 }
 span.dirnewbuttons {
     position: absolute;
