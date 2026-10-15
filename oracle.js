@@ -336,7 +336,7 @@ function userinfo() {
 }
 function userinfocallback() {
     var info = cache_thing("user","data");
-    $('#loginfo').html(info.cognito.name);
+    $('#loginfo').text(username(info));
 //    $('#userinfo-id').html("Uid: "+info.oracle[0].uid);
 //    $('#userinfo-email').html(info.oracle[0].emails.join("<br />"));
 //    $('#userinfo-joined').html(info.oracle[0].insert_date);
@@ -353,6 +353,12 @@ function userinfocallback() {
     rendersavedsearches();
     applysearchdefault();
     applyfavoritegame();
+}
+// the name to show: the one saved on the user (firstname/lastname, editable on Settings, #21), else the login's
+function username(user) {
+    var o = user && ("oracle" in user) && user.oracle[0];
+    var name = o ? [o.firstname, o.lastname].filter(function(n) { return n; }).join(' ') : '';
+    return name || (user && user.cognito && user.cognito.name) || '';
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2184,11 +2190,70 @@ function rendersettings() {
               'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search'],
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
-    'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0],
+    'name': username(user), 'oracle': user.oracle[0],
     'favorite': favoritegame() || '', 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
   })));
+}
+
+//**********************************************************  Profile name ****************
+// POST /user {firstname, lastname} (ootv-client #21) saves the name on the user; it answers like GET /user
+function editprofilename(el) {
+  var section = $(el).closest('dd');
+  section.find('.profilename').hide();
+  section.find('.profilenameform').show();
+  section.find('.profilefirstname').focus();
+}
+function saveprofilename(el) {
+  var section = $(el).closest('dd');
+  var status = section.find('.profilenamestatus');
+  var firstname = section.find('.profilefirstname').val().trim();
+  var lastname = section.find('.profilelastname').val().trim();
+  if(!firstname) {
+    status.text("First name can't be empty.");
+    return;
+  }
+  if(/[<>&"]/.test(firstname+lastname)) {
+    status.text("Names can't contain < > & or \".");
+    return;
+  }
+  status.text("Saving...");
+  $.ajax({
+    type: 'POST',
+    url: apiuri+"/user",
+    contentType: 'application/json',
+    data: JSON.stringify({'firstname': firstname, 'lastname': lastname}),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      // the user is cached per game: put the saved name in each cached copy, keeping the rest
+      Object.keys(dbinfo).forEach(function(g) {
+        var key = g+"_user_data";
+        try {
+          var cached = JSON.parse(window.localStorage.getItem(key));
+          if(cached && ("oracle" in cached)) {
+            cached.oracle[0].firstname = data.oracle[0].firstname;
+            cached.oracle[0].lastname = data.oracle[0].lastname;
+            window.localStorage.setItem(key, JSON.stringify(cached));
+          }
+        } catch(e) {}
+      });
+      var user = cache_thing("user","data");
+      if(user && ("oracle" in user)) {
+        user.oracle[0].firstname = data.oracle[0].firstname;
+        user.oracle[0].lastname = data.oracle[0].lastname;
+        cache_thing("user","data",user);
+      }
+      $('#loginfo').text(username(user));
+      rendersettings();
+      $('.profilenamestatus').text("Saved.");
+    },
+    error: function(error) {
+      console.log("Profile name save failed: "+JSON.stringify(error));
+      status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
+    }
+  });
 }
 
 //**********************************************************  Favorite game ****************
