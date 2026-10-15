@@ -188,6 +188,9 @@ if(found = window.location.href.match(/([\w_-]+)\.html/)) {
 }
 if(cache_session("database")) {
   database = cache_session("database");
+} else if(cache_session("favoritegame") && !/#game=/.test(location.hash)) {
+  // no game picked in this browser yet: open the logged-in user's favorite (settings.all.game, copied by applyfavoritegame)
+  database = cache_session("favoritegame");
 }
 var labels = {};
 var populatecallback = [];
@@ -349,6 +352,7 @@ function userinfocallback() {
     applyviewdefaults();
     rendersavedsearches();
     applysearchdefault();
+    applyfavoritegame();
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2143,9 +2147,70 @@ function rendersettings() {
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
     'name': user.cognito ? user.cognito.name : '', 'oracle': user.oracle[0],
+    'favorite': favoritegame() || '', 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
   })));
+}
+
+//**********************************************************  Favorite game ****************
+// users.settings.all.game: the game to open when this browser hasn't picked one (no game menu click or
+// #game= url yet: a new browser, or after logging out or Clear Cache). Without one it's L5R, as before.
+// A copy is kept in localStorage (session_favoritegame) so the next page load starts on it.
+function favoritegame() {
+  var user = cache_thing("user","data");
+  var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
+  var game = all && all['game'];
+  return (game && dbinfo[game]) ? game : null;
+}
+function applyfavoritegame() {
+  var game = favoritegame();
+  cache_session("favoritegame", game || "");
+  if(game && game != database && !cache_session("database") && !/#game=/.test(location.hash)) {
+    location.reload(); // first login in this browser: the top of this file now starts on the favorite
+  }
+}
+function savefavoritegame(game,el) {
+  var status = $(el).siblings('.favoritegamestatus');
+  status.text("Saving...");
+  var fail = function(error) {
+    console.log("Favorite game save failed: "+JSON.stringify(error));
+    status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
+  };
+  // settings.all is shared by every game (PDF defaults live there too) and the cached user is per game,
+  // so start from a fresh copy rather than overwrite something saved in another game
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/user",
+    contentType: 'application/json',
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    responseType: 'application/json',
+    success: function(fresh) {
+      var all = Object.assign({}, (fresh && ("oracle" in fresh) && fresh.oracle[0].settings && fresh.oracle[0].settings['all']) || {});
+      if(game) {
+        all['game'] = game;
+      } else {
+        delete all['game'];
+      }
+      $.ajax({
+        type: 'GET',
+        url: apiuri+"/user?database=all&settings="+encodeURIComponent(JSON.stringify(all)),
+        contentType: 'application/json',
+        dataType: 'json',
+        beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+        responseType: 'application/json',
+        success: function(data) {
+          cache_thing("user","data",data);
+          cache_session("favoritegame", favoritegame() || "");
+          rendersettings();
+          $('.favoritegamestatus').text("Saved.");
+        },
+        error: fail
+      });
+    },
+    error: fail
+  });
 }
 
 //**********************************************************  Saved searches ****************
