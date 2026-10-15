@@ -1145,6 +1145,21 @@ span.listqty {
 .phoneonly {
   display: none;
 }
+div#phonesearchbar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin: 4px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: rgba(235, 235, 235, 0.95);
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+  cursor: pointer;
+}
+div#phonesearchbar .numresults {
+  margin-left: auto;
+  color: #555;
+}
 /* phone layout: narrow screens, and phones held sideways; keep in step with narrowscreen() in oracle.js */
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
   .phoneonly {
@@ -1213,6 +1228,14 @@ span.listqty {
   }
   body.mobilesearch div#sidebar {
     display: block !important;
+  }
+  /* Edit search bar above the search results (index.html), opens the panel */
+  body.viewsearch div#phonesearchbar {
+    display: flex;
+  }
+  div#phonesearchbar svg.feather {
+    width: 24px;
+    height: 24px;
   }
   /* the panel is full width, so let the form fields use it instead of the desktop sidebar's pixel widths */
   div#sidebar div.searchinput {
