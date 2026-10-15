@@ -4723,6 +4723,7 @@ function loadloginlog(page) {
   if(page === undefined) { page = 0; }
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
+  $('#discordadmin').empty();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -4751,11 +4752,207 @@ function loadloginlog(page) {
   });
 }
 
+// admin Discord bot settings: oracle-all-discord through /discord (site admins only). One row per
+// guild + channel, channel "*" being the server's own row; see docs/admin/discord-bot.md.
+var discordgames = [], discordcommands = [];
+function loaddiscord(note) {
+  $('#loginlog').empty();
+  $('#admindoc').empty();
+  if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/discord",
+    data: { uid: getuid() },
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(raw) {
+      discordgames = raw.games;
+      discordcommands = raw.commands;
+      renderdiscord(raw.rows);
+      if(note) { $('#discordadmin').prepend($('<p class="discordnote">').text(note)); }
+    },
+    error: function(raw) {
+      console.log(['loaddiscord fail',raw]);
+      $('#discordadmin').text('Could not load the Discord bot settings: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
+    }
+  });
+}
+// the fields a channel filter can use: the game's select fields (printing.publisher, clan, ...)
+function discordfields(game) {
+  if(!game || !searchables[game]) { return []; }
+  return Object.keys(searchables[game]).filter(function(k) {
+    return searchables[game][k] && searchables[game][k].type == 'select';
+  });
+}
+// one line per filter value; a field that isn't a select any more still shows
+function discordfilterrows(game, filters) {
+  var fields = discordfields(game);
+  var rows = [];
+  (filters || []).forEach(function(f) {
+    [].concat(f.values).forEach(function(v) {
+      rows.push({field: f.field, value: v, fields: fields.indexOf(f.field) < 0 ? fields.concat([f.field]) : fields});
+    });
+  });
+  return rows;
+}
+function renderdiscord(rows) {
+  var guilds = {};
+  rows.forEach(function(r) {
+    var g = guilds[r.guild] || (guilds[r.guild] = {guild: r.guild, settings: null, channels: []});
+    var row = $.extend({}, r, {filterrows: discordfilterrows(r.game, r.filters)});
+    if(r.channel == '*') { g.settings = row; } else { g.channels.push(row); }
+  });
+  var label = function(r) { return r.name || r.channel || r.guild; };
+  var list = Object.keys(guilds).map(function(k) {
+    var g = guilds[k];
+    if(!g.settings) { g.settings = {guild: g.guild, channel: '*', name: '', filterrows: [], unsaved: true}; }
+    g.channels.sort(function(a,b) { return label(a).localeCompare(label(b)); });
+    g.newchannel = {guild: g.guild, channel: '', isnew: true, filterrows: []};
+    return g;
+  }).sort(function(a,b) { return label(a.settings).localeCompare(label(b.settings)); });
+  $('#discordadmin').html($.templates("#template-discord").render(
+    {guilds: list, newguild: {guild: '', channel: '*', isnew: true, newguild: true, filterrows: []}},
+    {games: discordgames, commands: discordcommands}));
+}
+function discordgamechange(sel) {
+  var fields = discordfields($(sel).val());
+  $(sel).closest('tr').find('select[name=ffield]').each(function() {
+    var cur = $(this).val();
+    $(this).html($.map(fields.indexOf(cur) < 0 && cur ? fields.concat([cur]) : fields, function(f) {
+      return $('<option>').val(f).text(f).prop('selected', f == cur);
+    }));
+  });
+}
+function discordaddfilter(btn) {
+  var tr = $(btn).closest('tr');
+  var game = tr.find('select[name=game]').val();
+  if(!game) {
+    tr.find('.discordmsg').text('Pick a game first: filters apply to searches in that game.');
+    return;
+  }
+  var fields = discordfields(game);
+  $(btn).before($.templates("#template-discord-filter").render({field: fields.indexOf('printing.publisher') >= 0 ? 'printing.publisher' : fields[0], value: '', fields: fields}));
+}
+// suggestions for a filter value: the field's values from /attributes, once per game and field
+function discordvalues(input) {
+  var tr = $(input).closest('tr');
+  var game = tr.find('select[name=game]').val();
+  var field = $(input).closest('.discordfilter').find('select[name=ffield]').val();
+  if(!game || !field) { return; }
+  var id = 'discordvalues-'+game+'-'+field.replace(/[^\w-]/g,'_');
+  $(input).attr('list', id);
+  if(document.getElementById(id)) { return; }
+  var dl = $('<datalist>').attr('id', id).appendTo('#discordadmin');
+  $.ajax({
+    type: 'POST',
+    url: apiuri+"/attributes",
+    data: { table: game, lookup: field },
+    dataType: 'json',
+    success: function(raw) {
+      var vals = [];
+      [].concat(raw).forEach(function(v) {
+        if(v && typeof v === 'object') { Object.keys(v).forEach(function(k) { vals = vals.concat(v[k]); }); }
+        else { vals.push(v); }
+      });
+      dl.html($.map(vals, function(v) { return $('<option>').val(v); }));
+    }
+  });
+}
+// the row as /discord takes it; IDs stay strings (jQuery .data() would turn them into numbers)
+function discordrowdata(tr) {
+  var row = {
+    guild: tr.attr('data-guild') || $.trim(tr.find('input[name=guild]').val()),
+    channel: tr.attr('data-channel') || $.trim(tr.find('input[name=channel]').val()),
+    name: $.trim(tr.find('input[name=name]').val()),
+    game: tr.find('select[name=game]').val(),
+    filters: []
+  };
+  tr.find('.discordfilter').each(function() {
+    var field = $(this).find('select[name=ffield]').val();
+    var value = $.trim($(this).find('input[name=fvalue]').val());
+    if(!field || !value) { return; }
+    var f = row.filters.find(function(x) { return x.field == field; });
+    if(f) { f.values.push(value); } else { row.filters.push({field: field, values: [value]}); }
+  });
+  if(row.channel == '*') {
+    // every command under its own name is the default, so leave commands out then
+    var commands = {}, defaults = true;
+    discordcommands.forEach(function(c) {
+      var on = tr.find('input[name=cmd_'+c+']').prop('checked');
+      var name = $.trim(tr.find('input[name=cmdname_'+c+']').val()).toLowerCase();
+      if(on && name) { commands[c] = name; }
+      if(!on || name != c) { defaults = false; }
+    });
+    if(!defaults) { row.commands = commands; }
+  }
+  return row;
+}
+function discordpost(tr, data, note) {
+  tr.find('.discordmsg').text('Saving...');
+  data.uid = getuid();
+  $.ajax({
+    type: 'POST',
+    url: apiuri+"/discord",
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function() { loaddiscord(note); },
+    error: function(raw) {
+      console.log(['discordpost fail',raw]);
+      tr.find('.discordmsg').text('Not saved: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
+    }
+  });
+}
+function discordsave(btn) {
+  var tr = $(btn).closest('tr');
+  var row = discordrowdata(tr);
+  var note = 'Saved '+(row.name || row.channel)+'. The bot uses it within 5 minutes.';
+  if(row.channel == '*') {
+    note += ' If this server is new or its commands changed, run scripts/register-commands.js '+row.guild+' in ootv-discord.';
+  }
+  discordpost(tr, {action: 'put', row: row}, note);
+}
+function discorddelete(btn) {
+  var tr = $(btn).closest('tr');
+  var guild = tr.attr('data-guild'), channel = tr.attr('data-channel');
+  var what = channel == '*' ? 'the server default row of '+guild+' (its channel rows stay)' : 'channel '+channel;
+  if(!confirm('Delete '+what+'?')) { return; }
+  discordpost(tr, {action: 'delete', guild: guild, channel: channel}, 'Deleted '+what+'.');
+}
+// how many cards the row's game and filters leave, through the public /search
+function discordtest(btn) {
+  var tr = $(btn).closest('tr');
+  var row = discordrowdata(tr);
+  var out = tr.find('.discordcount');
+  if(!row.game) { out.text('no game: every game'); return; }
+  var data = { table: row.game, querystring: '*', size: 1 };
+  row.filters.forEach(function(f) {
+    var name = f.field.replace(/\./g, '_');
+    data['field_'+name] = f.values;
+    data['type_'+name] = 'select';
+  });
+  out.text('counting...');
+  $.ajax({
+    type: 'POST',
+    url: apiuri+"/search",
+    data: data,
+    traditional: true,
+    dataType: 'json',
+    success: function(raw) {
+      var total = typeof raw.hits.total === 'object' ? raw.hits.total.value : raw.hits.total;
+      out.text(total+' '+row.game+' cards');
+    },
+    error: function(raw) { out.text('search failed: '+raw.status); }
+  });
+}
+
 // admin docs: docs/admin/<name>.md (published by deploy.yml), rendered with marked loaded on demand.
 // Links to another docs/admin .md file open in the same viewer.
 var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js';
 function loadadmindoc(name) {
   $('#loginlog').empty();
+  $('#discordadmin').empty();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))

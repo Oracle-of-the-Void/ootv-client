@@ -19,6 +19,7 @@
 * [/update (POST)](#update)                     -> database modification routines
 * [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
 * [/loginlog (GET)](#loginlog)                 -> sign-in log for the admin page (site admins only)
+* [/discord (GET, POST)](#discord)            -> Discord bot settings for the admin page (site admins only)
 
 ## Note
 
@@ -496,6 +497,30 @@ Output: `{entries, next}`
 
 Data: DynamoDB `oracle-all-logins`, read through its `feed-time` index. Written by the
 `cognito-post-auth` Lambdas in ootv-search.
+
+## /discord
+
+Settings for the ootv-discord bot, for the Admin tab's "Discord bot" view.
+
+Handled by lambda: ootv-search/routes/discord.js
+
+Site admins only, checked as for `/loginlog` (403 otherwise; 404 if the token's email isn't one
+of the uid's).
+
+`GET /discord?uid=<uid>` returns `{rows, games, commands}`: every row of `oracle-all-discord`,
+the games a row can name, and the bot's commands.
+
+`POST /discord` (JSON body):
+* `{uid, action: 'put', row}` replaces the row `row.guild` + `row.channel` and returns `{row}`.
+  * guild: Discord server ID. channel: Discord channel ID, or `*` for the server's own row
+  * name: label (the API can't look Discord names up)
+  * game: default game, or empty to make users pass `game:`
+  * filters: `[{field, values}]`, at most 5, 1–10 values each; needs a game
+  * commands (`*` row only): `{card: 'oracle', search: 'search'}`, the commands registered in
+    that server under those names. Leave it out for every command under its own name.
+* `{uid, action: 'delete', guild, channel}` removes one row.
+
+Bad input returns 400 with `{error}`. Every saved row gets `updated` and `updatedby`.
 
 ## /visit
 
