@@ -247,14 +247,17 @@
   <ul>
     <li><a href="" onclick="editcard(null,null); return false">New Card</a></li>
     <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
+    <li><a href="" onclick="loaddiscord(); return false">Discord bot</a></li>
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
         <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
+        <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
       </ul>
     </li>
   </ul>
   <div id="loginlog"></div>
+  <div id="discordadmin" class="discordadmin"></div>
   <div id="admindoc" class="admindoc"></div>
 </div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
@@ -602,6 +605,65 @@ printingprimary
     <tr><td colspan="5">No logins recorded</td></tr>
     {{/for}}
   </table>
+</script>
+<!-- admin Discord bot settings (/discord, oracle-all-discord): one table per server, the server
+     row first. Names are typed by admins, but escape them with {{>}} all the same. -->
+<script id="template-discord" type="text/jsrender">
+  <p>Settings for the Discord bot. It picks up a change within 5 minutes.
+    A new server, or a change to a server's commands, also needs the bot invited and
+    <code>scripts/register-commands.js</code> run in ootv-discord.
+    <a href="" onclick="loadadmindoc('discord-bot'); return false">How the settings work</a></p>
+  {{for guilds}}
+  <h3>{{if settings.name}}{{>settings.name}}{{else}}Server{{/if}} <span class="discordid">{{>guild}}</span></h3>
+  <table class="discord">
+    <tr><th>Channel</th><th>Name</th><th>Game</th><th>Filters</th><th>Commands</th><th></th></tr>
+    {{include settings tmpl="#template-discord-row"/}}
+    {{for channels tmpl="#template-discord-row"/}}
+    {{include newchannel tmpl="#template-discord-row"/}}
+  </table>
+  {{/for}}
+  <h3>Add a server</h3>
+  <table class="discord">
+    <tr><th>Server ID</th><th>Name</th><th>Default game</th><th>Filters</th><th>Commands</th><th></th></tr>
+    {{include newguild tmpl="#template-discord-row"/}}
+  </table>
+</script>
+<script id="template-discord-row" type="text/jsrender">
+  <tr class="discordrow{{if isnew}} discordnew{{/if}}" data-guild="{{>guild}}" data-channel="{{>channel}}">
+    <td>{{if newguild}}<input name="guild" placeholder="server ID" size="20">
+      {{else channel == '*'}}<b>Server default</b><br><small>channels without a row</small>
+      {{else isnew}}<input name="channel" placeholder="new channel ID" size="20">
+      {{else}}<span class="discordid">{{>channel}}</span>{{/if}}</td>
+    <td><input name="name" value="{{>name}}" placeholder="{{if channel == '*'}}server name{{else}}#channel{{/if}}" size="16"></td>
+    <td><select name="game" onchange="discordgamechange(this)">
+      <option value="">(game: required)</option>
+      {{for ~games ~g=game}}<option value="{{>#data}}"{{if #data == ~g}} selected{{/if}}>{{>#data}}</option>{{/for}}
+    </select></td>
+    <td class="discordfilters">
+      {{for filterrows tmpl="#template-discord-filter"/}}
+      <span class="button gray small" onclick="discordaddfilter(this)">+ filter</span>
+      <span class="discordcount"></span>
+    </td>
+    <td>{{if channel == '*'}}{{for ~commands ~c=commands}}
+      <label><input type="checkbox" name="cmd_{{>#data}}"{{if !~c || ~c[#data]}} checked{{/if}}>
+        /<input name="cmdname_{{>#data}}" value="{{if ~c && ~c[#data]}}{{>~c[#data]}}{{else}}{{>#data}}{{/if}}" size="10"></label><br>
+      {{/for}}{{/if}}</td>
+    <td>
+      <span class="button" onclick="discordsave(this)">{{if isnew}}Add{{else}}Save{{/if}}</span>
+      {{if !isnew && !unsaved}}<span class="button gray" onclick="discorddelete(this)">Delete</span>{{/if}}
+      <span class="button gray" onclick="discordtest(this)" title="How many cards these filters match">Test</span>
+      <div class="discordmsg"></div>
+    </td>
+  </tr>
+</script>
+<script id="template-discord-filter" type="text/jsrender">
+  <div class="discordfilter">
+    <select name="ffield">
+      {{for fields ~f=field}}<option value="{{>#data}}"{{if #data == ~f}} selected{{/if}}>{{>#data}}</option>{{/for}}
+    </select>
+    = <input name="fvalue" value="{{>value}}" size="18" onfocus="discordvalues(this)">
+    <span class="button gray small" onclick="$(this).closest('.discordfilter').remove()">&times;</span>
+  </div>
 </script>
 <script id="template-updatelog-card" type="text/jsrender"><a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:title}}</a></script>
 

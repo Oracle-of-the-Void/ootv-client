@@ -1244,6 +1244,15 @@ span.listqty {
 table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
 table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
 table.loginlog tr.loginlog-failed td { color: #a00; }
+/* admin Discord bot settings */
+.discordadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+table.discord { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 4px 0 16px; }
+table.discord th, table.discord td { padding: 4px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+table.discord tr.discordnew td { background: #f6f6f0; }
+.discordid { font-family: monospace; color: #666; font-size: 90%; }
+.discordfilter { white-space: nowrap; margin-bottom: 2px; }
+.discordmsg { color: #a00; max-width: 20em; }
+.discordnote { background: #eef6ee; padding: 4px 8px; }
 .admindoc { max-width: 60em; }
 .admindoc:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 .admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }
