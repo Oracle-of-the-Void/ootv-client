@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-14
+Last updated: 2026-10-15
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -19,7 +19,7 @@ defined once instead of tagged card by card. Cards never display these values.
   (`{ "add": [names], "remove": [names] }`), edited on the card itself.
 - **Code:** ootv-search `lib/attributeopts.js` (`derivedQuery`). `/attributes` lists the names
   and `/search` expands them. In ootv-client, `derivedprinting()` picks which printing to
-  show.
+  show (see "Which printing is shown").
 - **Deck/list legality menu:** ootv-client `listLegalitySelect` lists `legality.sortregex`,
   then adds each derived name right after the format it starts with (Ivory → Ivory Strict),
   with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
@@ -30,6 +30,18 @@ defined once instead of tagged card by card. Cards never display these values.
   `tagpaper`/`shortpaper`) renders a checkbox that sends `require_legality=Paper`. The API ANDs
   `require_<field>` with the rest of the search; `templatefetch()` then switches to a printing
   that fits it.
+
+
+## Which printing is shown
+
+A legality search (an arc, a format, or Paper) shows the card on one of its printings. Among
+the printings that match, it's the **latest**: the later set in the chronological set order
+(`sortregex` under `printing.set` in the same `oracle-all-structure` item), and on a tie the
+later printing on the card. A derived entry's `prefer` comes first: Ivory Extended shows an
+Ivory printing even when a Twenty Festivals one is later. Printings marked `notmrp: true` are
+skipped, so a later expansion reprint can be kept from standing for its arc. For example,
+Ring of the Void in Jade shows Siege of Sleeping Mountain unless that printing is `notmrp`; then
+it shows Pearl. The Discord bot picks the same way.
 
 ## How a rule works
 
