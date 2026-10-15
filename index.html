@@ -612,7 +612,14 @@ printingprimary
 <section class="settingsection">
   <h3>Profile</h3>
   <dl>
-    <dt>Name</dt><dd>{{>name}}</dd>
+    <dt>Name</dt><dd><span class="profilename">{{>name}} <span class="button gray" onclick="editprofilename(this);">Edit <svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></span></span>
+      <span class="profilenameform" style="display:none">
+        <input type="text" class="profilefirstname" maxlength="50" placeholder="First name" aria-label="First name" value="{{>oracle.firstname}}"/>
+        <input type="text" class="profilelastname" maxlength="50" placeholder="Last name" aria-label="Last name" value="{{>oracle.lastname}}"/>
+        <span class="button gray" onclick="saveprofilename(this);">Save <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span>
+        <span class="button gray" onclick="rendersettings();">Cancel</span>
+      </span> <span class="profilenamestatus"></span>
+      <br/><small>Shown at the top of the page, and as your name on card edits you make from now on.</small></dd>
     <dt>Joined</dt><dd>{{formatDate:oracle.insert_date}}</dd>
     <dt>Uid</dt><dd>{{:oracle.uid}}</dd>
     <dt>Emails</dt><dd>{{for oracle.emails}}{{>#data}}<br/>{{/for}}</dd>

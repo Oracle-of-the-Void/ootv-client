@@ -13,6 +13,7 @@
 ### Needing Authentication
 
 * [/user (GET)](#user)                          -> Verify user account and return user data 
+* [/user (POST)](#user-post)                    -> Change your own first/last name
 * [/import (POST)](#import)                     -> import decks/lists from external files
 * [/list (GET)](#list)                          -> deck/list handling routines
 * [/update (POST)](#update)                     -> database modification routines
@@ -230,6 +231,29 @@ codes:
 * 400: bad database or settings
 * 404: not found
 * other: passed from various actions
+
+## /user (POST)
+<a id="user-post"></a>
+
+Changes the signed-in user's own `firstname`/`lastname` in `oracle-all-users` (issue #21). Nothing else on the user changes.
+The name shows in the menu bar and on Settings, and `/update` and `/upload` log it as `uname` on card edits from then on.
+
+inputs (JSON body):
+
+* Header: Authorization (required)
+* firstname (required): trimmed, 1-50 characters
+* lastname (optional): trimmed, 0-50 characters (empty clears it)
+  * neither may contain `< > & "` or control characters
+
+outputs:
+
+* same shape as GET: {cognito: payload, oracle: [the updated user]}
+
+codes:
+
+* 200: saved
+* 400: bad firstname or lastname
+* 404: no user for the token's email
 
 ## /import
 
