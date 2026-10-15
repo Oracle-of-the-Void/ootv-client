@@ -4194,6 +4194,28 @@ document.addEventListener('visibilitychange', function() {
 });
 setInterval(checkversion, 1800000);
 
+// anonymous visitor count: a random id kept in localStorage, reported to /visit once per
+// UTC day (oracle-all-visits; ootv-search scripts/visitors.sh). No IP or account is stored.
+// Off locally so testing doesn't count.
+function sendvisit() {
+  if(ootvversion == 'dev') return;
+  try {
+    var vid = window.localStorage.getItem('ootv_vid');
+    if(!vid) {
+      vid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0;
+            return (c == 'x' ? r : (r & 3 | 8)).toString(16);
+          });
+      window.localStorage.setItem('ootv_vid', vid);
+    }
+    var today = new Date().toISOString().slice(0, 10);
+    if(window.localStorage.getItem('ootv_vidday') == today) return;
+    window.localStorage.setItem('ootv_vidday', today);
+    $.ajax({url: apiuri + '/visit', data: {vid: vid, game: database, li: auth && auth.isUserSignedIn() ? 1 : 0}});
+  } catch(e) {}
+}
+
 $(document).ready(function(){
   // TODO: doing double-load of lists when startup
   auth = initCognitoSDK();
@@ -4208,6 +4230,7 @@ $(document).ready(function(){
   } else {
 	  logoutcallback();
   }
+  sendvisit();
   // load layout
   (function ($){
 	  $.fn.selector = { split: function() { return ""; }};

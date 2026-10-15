@@ -8,6 +8,7 @@
 * [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
+* [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
 
 ### Needing Authentication
 
@@ -465,3 +466,20 @@ Output: `{entries, next}`
 
 Data: DynamoDB `oracle-all-logins`, read through its `feed-time` index. Written by the
 `cognito-post-auth` Lambdas in ootv-search.
+
+## /visit
+
+Anonymous visitor count. `sendvisit()` in `oracle.js` keeps a random UUID in localStorage
+(`ootv_vid`) and calls this once per browser per UTC day (`ootv_vidday` holds the last day sent).
+It is off locally (`ootvversion == 'dev'`). Count the results with ootv-search `scripts/visitors.sh`.
+
+Handled by lambda: ootv-search/routes/visit.js
+
+Inputs (query string):
+* vid: required, a UUID (400 if it isn't one)
+* game: the current game (`database`)
+* li: 1 when signed in
+
+Writes one `oracle-all-visits` row per vid per day (`vid` + `day`; `time`, `env` (`dev` or `prod`),
+`game`, `loggedin`, `userAgent`). A repeat for the same day is a no-op. No IP is stored.
+Always returns 204 with no body, even when the write fails.
