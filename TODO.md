@@ -1,5 +1,20 @@
 # TODO
 
+
+## Comprehensive card data documentation (noted 2026-10-15)
+
+`docs/data.md` covers only part of the card JSON, and some of it is notes ("not sure if
+technically required"). The card editor edits raw JSON, so it's the only reference an editor
+has for which fields and options exist. Write a full reference:
+
+- every card-level field per game (`templates/<game>.js` searchables and the card templates
+  show which ones are used), with type, whether it's required, and what reads it;
+- every printing field: `printingid`, `set`, `rarity`, `publisher`, `artist`, `legality`,
+  `notmrp`, `image`/`imagehash`, the legacy `printimagehash`, and the rest;
+- card overrides such as `legalityderivedexception` and what each one changes;
+- the `oracle-all-structure` items each game relies on (`attributes`: `sortregex`,
+  `optgroupregex`, `derived`; `template`).
+
 ## Rework the look of directory folders (noted 2026-10-13)
 
 Folders work (#36, PR #264) but they're still butt-ugly and need a design pass. What's

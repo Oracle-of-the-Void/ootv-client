@@ -3690,14 +3690,16 @@ function selectplaintext(val) {
     // cached selects may use spaces where the card data uses &nbsp;, so compare plain text
     return String(val).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;|\u00a0/g," ").trim();
 }
-function sortbyselect(items,key,valuefn) {
-    // sort items into the order of a cached select that is grouped into optgroups, e.g.
-    // legality: [{"Arc":[...]},{"Format":[...]}]   printing.set: [{"Clan War (Imperial)":{"Imperial Edition":[rarities]}}]
-    // older legality caches may be a flat array (same order). Games without arcs cache printing.set
-    // as a plain object in alphabetical order, not chronological, so leave the stored order alone.
+function selectorder(key) {
+    // the values of a cached select in order, as plain text, or null. Selects grouped into optgroups
+    // are flattened, e.g. legality: [{"Arc":[...]},{"Format":[...]}] and printing.set:
+    // [{"Clan War (Imperial)":{"Imperial Edition":[rarities]}}], whose order is the game's sortregex
+    // (oracle-all-structure attributes). Older legality caches may be a flat array (same order).
+    // Games without arcs cache printing.set as a plain object in alphabetical order, not
+    // chronological, so they get null.
     var sel = cache_select(key);
-    if(!Array.isArray(items) || !Array.isArray(sel)) {
-        return items;
+    if(!Array.isArray(sel)) {
+        return null;
     }
     var order = [];
     sel.forEach(function(group) {
@@ -3708,7 +3710,14 @@ function sortbyselect(items,key,valuefn) {
         var vals = group[Object.keys(group)[0]];
         order = order.concat(Array.isArray(vals) ? vals : Object.keys(vals));
     });
-    order = order.map(selectplaintext);
+    return order.map(selectplaintext);
+}
+function sortbyselect(items,key,valuefn) {
+    // sort items into the order of a cached select (selectorder); without one, the stored order
+    var order = selectorder(key);
+    if(!Array.isArray(items) || !order) {
+        return items;
+    }
     var pos = function(item) {
         var i = order.indexOf(selectplaintext(valuefn(item)));
         return i < 0 ? order.length : i;
@@ -3840,6 +3849,52 @@ function templateprintingfromid(id,hashes,data,noarray=true) {
     }
     return ret;
 }
+function printingsetpos(card) {
+    // each printing's position in the chronological set order (selectorder("printing.set"));
+    // sets missing from it go last, and without a cached order every printing is 0
+    var order = selectorder("printing.set");
+    return card.printing.map(function(p) {
+        if(!order) {
+            return 0;
+        }
+        var i = order.indexOf(selectplaintext([].concat(p.setclean || p.set || [""])[0]));
+        return i < 0 ? order.length : i;
+    });
+}
+function latestprinting(card,indices) {
+    // the latest of these printing indices: the later set in the chronological set order, on a tie
+    // the later stored printing; null if there are none
+    var pos = printingsetpos(card);
+    var best = null;
+    indices.forEach(function(i) {
+        if(best === null || pos[i] > pos[best] || (pos[i] == pos[best] && i > best)) {
+            best = i;
+        }
+    });
+    return best;
+}
+function legalityprinting(card,field,value) {
+    // a legality search's printing for a stored value (e.g. Hidden Emperor (Jade)): the latest
+    // printing carrying it, skipping printings marked notmrp; null if none does
+    var indices = [];
+    card.printing.forEach(function(p,i) {
+        if(p.notmrp === true) {
+            return;
+        }
+        if([].concat(p[field] || []).some(function(v) { return selectplaintext(v) == selectplaintext(value); })) {
+            indices.push(i);
+        }
+    });
+    return latestprinting(card,indices);
+}
+function storedprinting(card,att,value) {
+    // the printing a search for a stored value of att shows, or null: for legality the latest
+    // non-notmrp one (legalityprinting), otherwise the last stored printing carrying it
+    if(att == 'legality') {
+        return legalityprinting(card,att,value);
+    }
+    return card.printingreverse[att] && (value in card.printingreverse[att]) ? card.printingreverse[att][value] : null;
+}
 function templatefetch(card,id=false,datarequest={}) {
     pr = card.printingreverse.printingid[card.printingprimary];
     if(id) {
@@ -3868,8 +3923,9 @@ function templatefetch(card,id=false,datarequest={}) {
               }
               for (checkatt of datarequest["field_"+att]) {
                 console.log(checkatt);
-                if(checkatt in card.printingreverse[att]) {
-                    pr = card.printingreverse[att][checkatt];
+                var spr = storedprinting(card,att,checkatt);
+                if(spr !== null) {
+                    pr = spr;
                 } else {
                     // a derived value (e.g. Jade Extended) is on no printing: use one that fits its rule
                     var dpr = derivedprinting(card,att,checkatt);
@@ -3886,8 +3942,10 @@ function templatefetch(card,id=false,datarequest={}) {
             var att = k.replace("require_","").replace("printing_","");
             [].concat(datarequest[k]).forEach(function(v) {
                 if(!printingfits(card,pr,att,v)) {
-                    var dpr = card.printingreverse[att] && (v in card.printingreverse[att]) ?
-                        card.printingreverse[att][v] : derivedprinting(card,att,v);
+                    var dpr = storedprinting(card,att,v);
+                    if(dpr === null) {
+                        dpr = derivedprinting(card,att,v);
+                    }
                     if(dpr !== null && dpr !== undefined) {
                         pr = dpr;
                     }
@@ -3899,9 +3957,10 @@ function templatefetch(card,id=false,datarequest={}) {
     return card.printing[pr];
 }
 function printingfits(card,pr,field,value) {
-    // whether printing index pr carries value, or fits the derived value's rule on its own
+    // whether printing index pr carries value, or fits the derived value's rule on its own;
+    // a printing marked notmrp never fits a legality
     var p = card.printing[pr];
-    if(!p) {
+    if(!p || (field == 'legality' && p.notmrp === true)) {
         return false;
     }
     if([].concat(p[field] || []).some(function(v) { return selectplaintext(v) == selectplaintext(value); })) {
@@ -3913,10 +3972,9 @@ function derivedprinting(card,field,value) {
     // index of a printing that satisfies the derived value's rule, or null. The rules come from
     // /attributes <field>.derived (ootv-search lib/attributeopts.js): every `all` clause and at
     // least one `any` clause; card fields must match the card, `printing` fields the printing.
-    // Among the printings that fit, prefer one carrying a value in the entry's optional `prefer`
-    // list (the arc a format is named after, e.g. Ivory for Ivory Extended), then one carrying a
-    // <field> value the clause lists, the later in the clause's list the better (Jade over
-    // Imperial for Jade Extended); on a tie the later printing, as the stored-value lookup does.
+    // Printings marked notmrp are skipped. Among the printings that fit, prefer one carrying a value
+    // in the entry's optional `prefer` list (the arc a format is named after, e.g. Ivory for Ivory
+    // Extended), then the latest (latestprinting: chronological set order, then stored order).
     var derived = cache_select(field+".derived");
     if(!Array.isArray(derived)) {
         return null;
@@ -3935,31 +3993,24 @@ function derivedprinting(card,field,value) {
     var printingok = function(cl,p) {
         return !cl.printing || Object.keys(cl.printing).every(function(k) { return has(p[k],cl.printing[k]); });
     };
-    var rank = function(cl,p) {
-        // only the derived field itself: printings can carry other card fields (type, text, ...)
-        var r = -1;
-        [].concat(cl[field] || []).forEach(function(v,i) {
-            if(has(p[field],v)) { r = Math.max(r,i); }
-        });
-        return r;
+    var fieldok = function(cl,p) {
+        // a clause without printing fields fits a printing carrying one of its <field> values; only
+        // the derived field itself, since printings can carry other card fields (type, text, ...)
+        return !!cl.printing || has(p[field],cl[field] || []);
     };
     var all = d.all || [];
     var any = (d.any && d.any.length) ? d.any.filter(cardok) : [{}];
     if(!all.every(cardok) || any.length == 0) {
         return null;
     }
-    var best = null, bestrank = -1;
+    var fits = [];
     card.printing.forEach(function(p,i) {
+        if(p.notmrp === true) { return; }
         if(!all.every(function(cl) { return printingok(cl,p); })) { return; }
-        any.forEach(function(cl) {
-            if(!printingok(cl,p)) { return; }
-            var r = cl.printing ? Math.max(rank(cl,p),0) : rank(cl,p);
-            if(r < 0) { return; }
-            if(d.prefer && has(p[field],d.prefer)) { r += 1000; }
-            if(r >= bestrank) { best = i; bestrank = r; }
-        });
+        if(any.some(function(cl) { return printingok(cl,p) && fieldok(cl,p); })) { fits.push(i); }
     });
-    return best;
+    var preferred = d.prefer ? fits.filter(function(i) { return has(card.printing[i][field],d.prefer); }) : [];
+    return latestprinting(card, preferred.length ? preferred : fits);
 }
 function templatefetchimage(card,size,id=false,datarequest={}) {
     console.log(['templatefetchimage',card,size,id,datarequest]);
