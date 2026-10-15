@@ -1,5 +1,23 @@
 # TODO
 
+## Dead legacy image code in oracle.js (noted 2026-10-15)
+
+Found while checking that a card can mix legacy (`printimagehash`) and modern
+(`imagehash` + `image[]`) printings (#47; L5R is moving set by set to the modern layout).
+Mixing is fine: every image is resolved per printing. Nothing reads the following, so remove it:
+
+- `imagehashtourl()` builds `card.icon` (`<imagehash>/card_<cardid>__icon.jpg`) and
+  `card.imageurl` (`<imagehash>/printing_<cardid>_<printingprimary>_`) from the card-level
+  `imagehash`. Nothing reads either; drop both. The per-printing `images[]` it builds for
+  legacy printings is still used (`templatefetchimage`, the PDF code).
+- `templateimagehashfromset()` and `templateimagefromset()`, registered as the
+  `imagehashfromset`/`imagefromset` tags at the top of the file. No template uses them, and
+  `imagehashfromset` would throw on a modern printing (`e.printimagehash[0]`). Also remove the
+  stale commented-out template line under `imagehashtourl` that mentions it.
+
+Once all games are on the modern layout, the legacy branches in `imagehashtourl`,
+`templatefetchimage` and the PDF code can go too (the PDF code has an "OLD STYLE" comment).
+
 
 ## Comprehensive card data documentation (noted 2026-10-15)
 
