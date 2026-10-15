@@ -4790,7 +4790,8 @@ function discordfilterrows(game, filters) {
   var rows = [];
   (filters || []).forEach(function(f) {
     [].concat(f.values).forEach(function(v) {
-      rows.push({field: f.field, value: v, fields: fields.indexOf(f.field) < 0 ? fields.concat([f.field]) : fields});
+      rows.push({field: f.field, value: v, require: f.require === true,
+                 fields: fields.indexOf(f.field) < 0 ? fields.concat([f.field]) : fields});
     });
   });
   return rows;
@@ -4867,12 +4868,15 @@ function discordrowdata(tr) {
     game: tr.find('select[name=game]').val(),
     filters: []
   };
+  // lines for the same field join one filter (any of its values), the required ones another
   tr.find('.discordfilter').each(function() {
     var field = $(this).find('select[name=ffield]').val();
     var value = $.trim($(this).find('input[name=fvalue]').val());
+    var require = $(this).find('input[name=frequire]').prop('checked');
     if(!field || !value) { return; }
-    var f = row.filters.find(function(x) { return x.field == field; });
-    if(f) { f.values.push(value); } else { row.filters.push({field: field, values: [value]}); }
+    var f = row.filters.find(function(x) { return x.field == field && !!x.require == require; });
+    if(f) { f.values.push(value); }
+    else { row.filters.push(require ? {field: field, values: [value], require: true} : {field: field, values: [value]}); }
   });
   if(row.channel == '*') {
     // every command under its own name is the default, so leave commands out then
@@ -4929,6 +4933,10 @@ function discordtest(btn) {
   var data = { table: row.game, querystring: '*', size: 1 };
   row.filters.forEach(function(f) {
     var name = f.field.replace(/\./g, '_');
+    if(f.require) {
+      data['require_'+name] = f.values;
+      return;
+    }
     data['field_'+name] = f.values;
     data['type_'+name] = 'select';
   });
