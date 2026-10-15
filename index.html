@@ -621,6 +621,15 @@ printingprimary
   </dl>
 </section>
 <section class="settingsection">
+  <h3>Favorite game</h3>
+  <p>The game the site opens with when you're logged in and this browser hasn't picked one yet
+    (a new browser, or after logging out or Clear Cache). Picking a game from the menu still sticks in that browser.</p>
+  <select class="favoritegame" onchange="savefavoritegame(this.value,this);">
+    <option value=""{{if !favorite}} selected{{/if}}>No favorite (opens Legend of the Five Rings)</option>
+    {{for games}}<option value="{{:key}}"{{if key==~root.favorite}} selected{{/if}}>{{>name}}</option>{{/for}}
+  </select> <span class="favoritegamestatus"></span>
+</section>
+<section class="settingsection">
   <h3>Saved views ({{>gamename}})</h3>
   <p>The views and sort {{>gamename}} opens with. Phones save their own set; this screen uses the <b>{{if phone}}phone{{else}}desktop{{/if}}</b> set.
     Save copies what the Search, Card and List tabs show right now.</p>
