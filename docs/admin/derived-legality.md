@@ -31,7 +31,6 @@ defined once instead of tagged card by card. Cards never display these values.
   `require_<field>` with the rest of the search; `templatefetch()` then switches to a printing
   that fits it.
 
-
 ## Which printing is shown
 
 A legality search (an arc, a format, or Paper) shows the card on one of its printings. Among
