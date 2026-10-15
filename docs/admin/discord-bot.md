@@ -1,6 +1,6 @@
 # Discord bot settings
 
-Last updated: 2026-10-15 (required filters, paper option)
+Last updated: 2026-10-15 (required filters, command options)
 
 The Oracle Discord bot (`/card` and `/search` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
@@ -42,6 +42,15 @@ When a user adds `game:` with another game, the channel's filters don't apply.
 
 Values come from the field's own list (start typing to see it). Derived values such as Paper
 or Legacy work too, and the bot shows the printing the site would.
+
+## Command options
+
+Besides the card name or query, `/card` and `/search` take the site's search form fields:
+`set`, `rarity`, `type`, `clan`, `keywords`, `text` and `legality`. The list fields
+autocomplete from the game's values. Each game offers the ones its search form has; L5R has all
+seven. They narrow the channel's own filters. On a field the channel already filters, both must
+match: `legality:Jade` in #imperial finds cards legal in both arcs. `/search` can leave out the
+query when an option is given, e.g. `/search clan:Crab type:Stronghold`.
 
 ## The paper option
 
