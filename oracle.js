@@ -4218,27 +4218,7 @@ function sendvisit() {
 
 $(document).ready(function(){
   // TODO: doing double-load of lists when startup
-  auth = initCognitoSDK();
-  var curUrl = window.location.href;
-  if(curUrl.includes('#access_token=') || curUrl.includes('?code=') ) {
-	  auth.parseCognitoWebResponse(curUrl);
-  } else {
-	  auth.parseCognitoWebResponse('');
-  }
-  if(auth.isUserSignedIn() || auth.getSignInUserSession().getRefreshToken().refreshToken!="") {
-	  logincallback(auth.getSession());
-  } else {
-	  logoutcallback();
-  }
-  sendvisit();
-  // load layout
-  (function ($){
-	  $.fn.selector = { split: function() { return ""; }};
-  })(jQuery);
-  
-  $(".ui-layout-center div[id^=result]").hide(); // Hide all content
-  showview('resultabout');
-  
+  // per-game search state first: a cached login (a reload) runs the login callback below at once, and it needs these
   //TODO:  put some stuff in here into functions.   make sure order optimized.
   searchcache[database] = {
 	  'data': {},    'querydata': {},    'querytotal': {},    'queryrequest': {}
@@ -4264,7 +4244,28 @@ $(document).ready(function(){
 	    }
 	  }
   }
-  applysortdefault(); // login ran before the sorts existed
+
+  auth = initCognitoSDK();
+  var curUrl = window.location.href;
+  if(curUrl.includes('#access_token=') || curUrl.includes('?code=') ) {
+	  auth.parseCognitoWebResponse(curUrl);
+  } else {
+	  auth.parseCognitoWebResponse('');
+  }
+  if(auth.isUserSignedIn() || auth.getSignInUserSession().getRefreshToken().refreshToken!="") {
+	  logincallback(auth.getSession());
+  } else {
+	  logoutcallback();
+  }
+  sendvisit();
+  // load layout
+  (function ($){
+	  $.fn.selector = { split: function() { return ""; }};
+  })(jQuery);
+  
+  $(".ui-layout-center div[id^=result]").hide(); // Hide all content
+  showview('resultabout');
+  
   // phones default search results to the Visual Spoiler, unless a saved phone default says otherwise
   if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
 	  templates[database]['default']['search'] = 'visual';
