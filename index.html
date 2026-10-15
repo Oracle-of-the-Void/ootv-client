@@ -662,6 +662,7 @@ printingprimary
       {{for fields ~f=field}}<option value="{{>#data}}"{{if #data == ~f}} selected{{/if}}>{{>#data}}</option>{{/for}}
     </select>
     = <input name="fvalue" value="{{>value}}" size="18" onfocus="discordvalues(this)">
+    <label title="Required: the card must also match this, like the Paper: only checkbox. Without it, lines for the same field match any of their values."><input type="checkbox" name="frequire"{{if require}} checked{{/if}}> required</label>
     <span class="button gray small" onclick="$(this).closest('.discordfilter').remove()">&times;</span>
   </div>
 </script>

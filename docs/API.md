@@ -515,7 +515,8 @@ the games a row can name, and the bot's commands.
   * guild: Discord server ID. channel: Discord channel ID, or `*` for the server's own row
   * name: label (the API can't look Discord names up)
   * game: default game, or empty to make users pass `game:`
-  * filters: `[{field, values}]`, at most 5, 1–10 values each; needs a game
+  * filters: `[{field, values, require}]`, at most 5, 1–10 values each; needs a game. Values
+    are ORed; with `require: true` they must all match (`require_<field>` on `/search`)
   * commands (`*` row only): `{card: 'oracle', search: 'search'}`, the commands registered in
     that server under those names. Leave it out for every command under its own name.
 * `{uid, action: 'delete', guild, channel}` removes one row.
