@@ -4580,11 +4580,8 @@ function urlparser() {
         switch($('#'+param).prop('type')) {
         case 'select-multiple':
           if($('#'+param).val()) {
-            if(Array.isArray($('#'+param).val())) {
-              $('#'+param).val($('#'+param).val().concat([fdata[param]]));
-            } else {
-              $('#'+param).val([$('#'+param).val(),fdata[param]]);
-            }
+            // fdata[param] is a value, or an array of them for a repeated key
+            $('#'+param).val([].concat($('#'+param).val(), fdata[param]));
           } else {
 		        $('#'+param).val(fdata[param]);
           }
@@ -5164,7 +5161,14 @@ function uri2json(uri) {
   return uri.split('&').map(function(i) {
 	  return i.split('=');
   }).reduce(function(memo, i) {
-	  memo[i[0]] = i[1] == '' ? '' : (i[1] == +i[1] ? parseFloat(i[1],10) : decodeURIComponent(i[1]));
+	  var v = i[1] == '' ? '' : (i[1] == +i[1] ? parseFloat(i[1],10) : decodeURIComponent(i[1]));
+	  // a repeated key (two values of a multiple select, e.g. from a Discord bot link) collects
+	  // into an array instead of keeping only the last value
+	  if(i[0] in memo) {
+	    memo[i[0]] = [].concat(memo[i[0]], v);
+	  } else {
+	    memo[i[0]] = v;
+	  }
 	  return memo;
   }, {});
 }
