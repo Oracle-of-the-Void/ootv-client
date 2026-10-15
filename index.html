@@ -48,7 +48,7 @@
 	<ul>
 	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="clearcache();" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
-	  <li class="showonlogin" style="display:none" onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
+	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
     <!-- TODO: make this reload a little more friendly with push/pop history state -->
     <!--	  <li>Settings/whatnot here</li> -->
 
@@ -127,9 +127,11 @@
 <input type="hidden" id="lastprintid" />
 <form id="searchform" method="POST" onsubmit="dosearch(); return false;" action="">
 <dl>
-<dt class="notadvanced"></dt><dd class="searchbutton notadvanced"><span class="button gray" id="advancedbutton" onclick="$('dt.advanced').show(); $('dd.advanced').show(); $('dt.notadvanced').hide(); $('dd.notadvanced').hide();">Advanced</span></dd>
-<dt class="advanced"></dt><dd class="searchbutton advanced"><span class="button gray" id="basicbutton" onclick="$('dt.advanced').hide(); $('dd.advanced').hide(); $('dt.notadvanced').show(); $('dd.notadvanced').show();">Basic</span></dd>
-<dt class="advanced"></dt><dd class="searchbutton"><span class="button gray" id="resetbutton" onclick="$('#searchform')[0].reset(); $('.chosen-select').trigger('chosen:updated');">Reset</span></dd>
+<dt class="notadvanced"></dt><dd class="searchbutton notadvanced"><span class="button gray" id="advancedbutton" onclick="showadvancedsearch(true);">Advanced</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton advanced"><span class="button gray" id="basicbutton" onclick="showadvancedsearch(false);">Basic</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton"><span class="button gray" id="resetbutton" aria-label="Clear the form (back to your default search, if you saved one)" data-balloon-pos="down" onclick="resetsearchform();">Reset</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton advanced"><span class="button gray" id="savesearchbutton" aria-label="Save the form under a name: it's listed under the Search button" data-balloon-pos="down" onclick="savesearch(this);">Save Search</span></dd>
+<dt class="advanced"></dt><dd class="searchbutton advanced"><span class="button gray" id="savedefaultbutton" aria-label="Start new sessions and Reset with this form" data-balloon-pos="down" onclick="savesearchdefault(this);">Save as Default</span></dd>
 
 <div id="searchtop"><dt>All</dt><dd><input type="text" name="querystring" id="qs" autofocus /></dd></div>
 <div id="searchmiddle"></div>
@@ -137,6 +139,7 @@
 <div id="searchbottom">
 <span class="gameinfo-gameshort"></span> <span class="gameinfo-gamelogo15"></span><br />
 <span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></svg></span></span>
+<div id="savedsearches"></div>
 </div></div>
 </form>
 <br clear="all" />
@@ -605,6 +608,7 @@ printingprimary
 <!-- Settings page (showsettings): one section per kind of setting, add new ones here -->
 <script id="template-settings" type="text/x-jsrender">
 <h2>Settings</h2>
+{{if oracle}}
 <section class="settingsection">
   <h3>Profile</h3>
   <dl>
@@ -640,6 +644,40 @@ printingprimary
   <p>{{>gamename}} has PDF printing turned off.</p>
   {{/if}}
 </section>
+{{/if}}
+<section class="settingsection">
+  <h3>Searches ({{>gamename}})</h3>
+  <p>Save these from the search form's Advanced buttons. Each game keeps its own.
+    {{if loggedin}}They're saved to your account.{{else}}You're not logged in, so they're kept in this browser only; Clear Cache deletes them.{{/if}}</p>
+  <h4>Default search</h4>
+  {{if searchdefault}}
+  <p class="searchsummary">{{>searchdefault}}</p>
+  <p>Fills the search form when a new session starts and when you press Reset.</p>
+  <span class="button gray" onclick="clearsearchdefault();">Clear default <svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg></span>
+  {{else}}
+  <p>None: new sessions and Reset start with an empty form.</p>
+  {{/if}}
+  <h4>Saved searches</h4>
+  {{if searches.length}}
+  <table class="settingstable savedsearchtable">
+    {{for searches}}
+    <tr><td><b>{{>name}}</b></td><td class="searchsummary">{{>summary}}</td>
+      <td><span class="button gray" data-name="{{>name}}" onclick="deletesavedsearch(this.getAttribute('data-name'));">Delete <svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></td></tr>
+    {{/for}}
+  </table>
+  <span class="button gray" onclick="deleteallsavedsearches();">Delete all saved searches <svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span>
+  {{else}}
+  <p>None yet.</p>
+  {{/if}}
+</section>
+</script>
+
+<!-- saved searches under the Search button (rendersavedsearches): a click fills the form -->
+<script id="template-savedsearches" type="text/x-jsrender">
+{{if names.length}}
+<div class="savedsearchtitle">Saved searches</div>
+{{for names}}<a href="#" class="savedsearch" data-name="{{>#data}}" onclick="usesavedsearch(this.getAttribute('data-name')); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#bookmark"></svg> {{>#data}}</a>{{/for}}
+{{/if}}
 </script>
 
 <script id="template-listactive" type="text/x-jsrender">
