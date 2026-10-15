@@ -1,6 +1,6 @@
 # Discord bot settings
 
-Last updated: 2026-10-15
+Last updated: 2026-10-15 (required filters, paper option)
 
 The Oracle Discord bot (`/card` and `/search` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
@@ -30,13 +30,24 @@ Each server has a table. Every row is one of these:
 A filter adds a field value to every search in the row's game. For example, `printing.publisher
 = Onyx Lives` makes a channel see only cards with an Onyx Lives printing. The card is then
 shown on that printing (the last one carrying the value), just as the site shows a card
-found by a Publisher search. Several values for one field match any of them. Filters on
-different fields must all match. **Test** counts the cards the row's game and filters leave.
+found by a Publisher search. Several lines for one field match any of their values. Filters
+on different fields must all match. **Test** counts the cards the row's game and filters leave.
+
+Tick **required** on a line when the card must match it on top of everything else, as the
+site's "Paper: only" checkbox does. For example, #ivory has two Legality lines, the Ivory
+Edition and Twenty Festivals arcs (either one), plus `legality = Paper` marked required. Lines
+for the same field without the tick match any of them; required lines must all match.
 
 When a user adds `game:` with another game, the channel's filters don't apply.
 
-Values come from the field's own list (start typing to see it). A derived value such as
-Paper or Legacy filters correctly, but the card is shown on its primary printing.
+Values come from the field's own list (start typing to see it). Derived values such as Paper
+or Legacy work too, and the bot shows the printing the site would.
+
+## The paper option
+
+`/card` and `/search` (or a server's own names for them) take `paper:true` for L5R: only cards
+with a paper printing (FRPG, WotC or AEG), shown on that printing. It adds the same
+requirement as a required `legality = Paper` line, on top of the channel's filters.
 
 ## Commands
 
