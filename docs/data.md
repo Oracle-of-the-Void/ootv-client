@@ -21,7 +21,10 @@
 * printing.notmrp (optional, boolean, default false). true: when a legality search picks which
   printing of the card to show, this printing is skipped, so it is never the "most recent
   printing" for an arc or format (e.g. a later expansion reprint that shouldn't stand for the
-  arc). Other searches (a set search) can still show it.
+  arc). Other searches (a set search) can still show it. Leave it out rather than writing
+  false. To set it, edit the card in the site's card editor, which edits the card's JSON
+  directly: add `"notmrp": true` inside that printing's object. The Discord bot honors it
+  too.
 * NEW: image: hash of images:
  * ```json
 {
