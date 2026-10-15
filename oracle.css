@@ -443,6 +443,10 @@ div.listviewheader .listviewdetails, div.listviewheader .listviewnotes {
     font-family: "Times New Roman",Georgia,Serif;
     font-size: medium;
 }
+div.listmissing {
+    margin: 4px 0;
+    color: #a00;
+}
 div.listheadxl {
     font-size: x-large;
 }

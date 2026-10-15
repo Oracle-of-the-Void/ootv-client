@@ -1633,16 +1633,21 @@ function listprefetch(listids,callback=null) {
     responseType: 'application/json',
       success: function(data) {
 	  console.log(data);
-	  if(Array.isArray(data)) {
-	      data.forEach(function(c) { cache_card(imagehashtourl(c)); });
-	  } else if(typeof data == 'object') {
-	      cache_card(imagehashtourl(data));
-	  }
+	  // cards deleted from the site are left out of the reply (#188); refreshlist flags them
+	  [].concat(data).forEach(function(c) {
+	      if(c && c.cardid) { cache_card(imagehashtourl(c)); }
+	  });
 	  if(callback) {
 	      callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
 	  }
     },
-    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+    error: function(error) {
+	console.log("Epic Fail: "+JSON.stringify(error));
+	// 404 "Card not found": every card fetched was deleted, still show the rest of the list
+	if(error.status == 404 && callback) {
+	    callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
+	}
+    }
   });
 }
 
@@ -1975,11 +1980,14 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	return;
     }
     //console.log(listlist);
+    var missing = [];
     if(listlist.length>0) {
 	listdata = [];
 	listlist.forEach(function(c){
 	    //console.log(c);
-	    if(c.cardid>0) {
+	    if(c.cardid>0 && !cache_card_is(c.cardid)) {
+		missing.push(c); // deleted from the site (#188)
+	    } else if(c.cardid>0) {
 		var card = cache_card_fetch(c.cardid);
 		card.listprinting = c.printing;
 		card.listquantity = c.quantity;
@@ -2039,7 +2047,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+html);
+	    $("#resultlist").html(listheader(listid)+listmissing(listid,missing)+html);
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
@@ -2067,6 +2075,36 @@ function listheader(listid) {
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes});
 }
+// list entries whose card no longer exists (#188), with a link to drop them from the list
+function listmissing(listid,missing) {
+    if(missing.length < 1) {
+	return '';
+    }
+    var rev = cache_thing("list","datareverse");
+    var mine = rev && rev[listid] !== undefined;
+    return '<div class="listmissing">'+(missing.length == 1 ? 'A card' : missing.length+' cards')+
+	' in this list no longer '+(missing.length == 1 ? 'exists' : 'exist')+' on the site (card id '+
+	missing.map(function(c) { return c.cardid; }).join(', ')+').'+
+	(mine ? ' <a href="#" onclick="removemissing(\''+listid+'\'); return false;">Remove from list</a>' : '')+'</div>';
+}
+function removemissing(listid) {
+    var list = cache_thing("list",listid);
+    var items = list.list.Items[0];
+    items.list = items.list.filter(function(c) { return !(c.cardid>0) || cache_card_is(c.cardid); });
+    items.distinctcount = items.list.length;
+    items.totalcount = items.list.reduce(function (total,card) {
+	return total + parseInt(card['quantity']);
+    },0);
+    cache_thing("list",listid,list);
+    $("#lastlistid").val(listid);
+    renderlist(items,false);
+    if(Object.keys(updatepending).length < 1) {
+	savetimeout = setTimeout(savecallback,60*1000);
+    }
+    updatepending[listid]=1;
+    renderlisteditarea(); // update card counts
+}
+
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
     refreshlist(listdata,listlist,sort,listid,listoutput);
