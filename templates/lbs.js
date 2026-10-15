@@ -92,7 +92,8 @@ searchables['lbs'] = {
     "type": { "type": "select",
                       "clickable": true  },
 //    "keywords": { "type": "keyword" },
-//    "clan": { "type": "select" },
+    "faction": { "type": "select",
+                      "clickable": true  },
 //    "legality": { "type": "select" },
     "deck": { "type": "select",
                       "clickable": true  },
@@ -136,6 +137,7 @@ labels['lbs'] = {
     "tagartist":	"Artist",              "shortartist": "Artist",
     "tagnumber":	"Card Number",         "shortnumber": "Number",
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
+    "tagfaction":	"Faction",             "shortfaction": "Faction",
     "tagnotes":		"Notes",               "shortnotes": "Notes"
 };
 
