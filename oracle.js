@@ -3644,6 +3644,7 @@ function showview(view) {
     if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
+    $('body').toggleClass('viewsearch', view == 'resultsearch'); // phones: shows the Edit search bar
     if($('#' + view).is(":visible")) {
 	return;
     }
@@ -4539,6 +4540,8 @@ function addgametolist(db) {
 $(window).on('popstate', function (e) {
   var state = e.originalEvent.state;
   console.log(['popstate',state]);
+  // phones: back/forward shows results or a card, so close the search panel; back to the blank start page opens it, as on load
+  mobilesearchtoggle(narrowscreen() && !location.hash.replace(/#game=[^#]*/,''));
   //	console.log(location.hash);
   if (state !== undefined && state !== null) {
 	  if(state.cardid !== undefined) {
