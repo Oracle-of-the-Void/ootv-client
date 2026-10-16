@@ -874,7 +874,7 @@ printingprimary
 <script id="template-listcards" type="text/x-jsrender">
 <div class="directorycard directorylistitem" id="listitem_{{:listid}}">
   <div class="dircardhead">
-    <span class="dirdraghandle" draggable="true" data-draglist="{{:listid}}" aria-label="Drag to a folder" data-balloon-pos="up-left"><svg class="feather"><use xlink:href="res/feather-sprite.svg#move"></svg></span>
+    <span class="dirdraghandle" draggable="true" data-draglist="{{:listid}}" aria-label="Drag to a folder"><svg class="feather"><use xlink:href="res/feather-sprite.svg#move"></svg></span>
     <div class="dircardname" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button>
     <button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>

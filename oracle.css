@@ -457,6 +457,30 @@ div.dirpathbar .dirpathsep {
 /* drag and drop (lists by their move handle, folders whole) */
 .dirdraghandle {
     cursor: grab;
+    touch-action: none;       /* touch: a drag from the handle moves the list, it doesn't scroll */
+}
+/* touch: a long-press on a folder starts its drag, not a text selection or the link menu */
+div.dirfolderrow, div.dirfoldercard {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+/* touch drag: the dragged list's or folder's name, following the finger */
+div.dirdragghost {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    padding: 4px 10px;
+    max-width: 60vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #1aa329;
+    border-radius: 7px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-family: "L5R Title";
+    font-size: large;
 }
 div.listimage.dirdraghandle svg.feather {
     width: 12px;
@@ -480,7 +504,7 @@ div.dirfolderrow a, div.dirfoldercard a, div.dirfolderrow button, div.dirfolderc
 #resultdir .dirdropover, #resultdir.dirdragging .dirdropover {
     outline: 2px solid #1aa329;
     outline-offset: -2px;
-    background: rgba(26, 163, 41, 0.18);
+    background: rgba(203, 236, 207, 0.97);
 }
 div.listitem.dirfolderrow.dirdropover > div {
     background: rgba(170, 222, 176, 0.95);
