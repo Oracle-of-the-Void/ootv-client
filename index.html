@@ -719,6 +719,16 @@ printingprimary
   </select> <span class="favoritegamestatus"></span>
 </section>
 <section class="settingsection">
+  <h3>Card text (all games)</h3>
+  <p>When a search, a list or a version button shows one printing of a card, its text can be the wording printed
+    on that printing or the card's current (MRP) wording. New sessions start with this; the <b>Showing:</b> button
+    at the top of a card's text flips it for the rest of the session.</p>
+  <select class="textversionsetting" onchange="savetextversion(this.value,this);">
+    <option value="printed"{{if textversion!='mrp'}} selected{{/if}}>Printed version</option>
+    <option value="mrp"{{if textversion=='mrp'}} selected{{/if}}>MRP version</option>
+  </select> <span class="textversionstatus"></span>
+</section>
+<section class="settingsection">
   <h3>Saved views ({{>gamename}})</h3>
   <p>The views and sort {{>gamename}} opens with. Phones save their own set; this screen uses the <b>{{if phone}}phone{{else}}desktop{{/if}}</b> set.
     Save copies what the Search, Card and List tabs show right now.</p>
@@ -969,8 +979,19 @@ printingprimary
 	    <span class="iiconic inegative" onclick="deletecard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
     </span>
     {{/if}}
+    {{include tmpl="#template-textversion" /}}
     <dl>
 </script> <!-- template-card-top -->
+
+<!-- top of a card's text (card view, Detailed search/list) when one printing is shown (bubbleup): flips between
+     its printed wording and the card's MRP wording for the session (toggletextversion); with no wording that
+     differs there is nothing to flip -->
+<script id="template-textversion" type="text/x-jsrender">
+{{if textprinting}}<div class="textversionrow">{{if textdiff && textdiff.length}}<button type="button" class="button gray buttonsmaller textversion" aria-pressed="{{:textversion=='mrp'}}"
+  title="{{if textversion=='mrp'}}Showing the card's current wording. Press for the wording printed on this version.{{else}}Showing the wording printed on this version. Press for the card's current (MRP) wording.{{/if}} Highlighted fields differ between the two."
+  onclick="toggletextversion(this); return false;">Showing: {{if textversion=='mrp'}}MRP{{else}}Printed{{/if}} version</button>{{else}}<span class="button gray buttonsmaller textversion textversionnone"
+  title="This version's printing has no wording of its own that differs from the card's, so both show the same text.">Showing: No printing fields found</span>{{/if}}</div>{{/if}}
+</script>
 
 <script id="template-card-middle" type="text/x-jsrender">
   <dt>Versions</dt><dd>{{for ~sortprintings(printing) ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:setclean}}/{{:rarityclean}}{{if printingid == ~top.printingprimary}} *{{/if}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
