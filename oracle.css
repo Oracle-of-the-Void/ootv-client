@@ -330,7 +330,7 @@ div.listheadmiddle.dirnewlistcell {
     position: relative;
 }
 /* ...wide enough together for the button even with no list rows' icons to size them */
-div.directorylistheader > div:nth-last-child(-n+5) {
+div.directorylistheader > div.diractioncell {
     min-width: 15px;
 }
 span.dirnewbuttons {
@@ -1550,4 +1550,89 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .swipepickwhere {
   color: #666;
   font-size: smaller;
+}
+
+/* Gestures setting "Folder pulldown" off (applyfolderselect in oracle.js) */
+#resultdir.nofolderselect .dirfoldercell {
+  display: none;
+}
+
+/* list directory: Folder/Type/Legality selects stay narrow (the open pulldown is as wide as its options),
+   dates on one line, and the Id last in small print */
+#resultdir select.listselect.dirnarrowselect {
+  width: 7.5em;
+}
+div.listmiddle.dirdate {
+  white-space: nowrap;
+}
+div.listmiddle.dirlistid {
+  font-size: smaller;
+}
+div.listmiddle.dirlistid a {
+  color: #555;
+}
+
+/* list directory names: click opens the list, long press or the pencil renames (dirnameedit in oracle.js) */
+#resultdir .dirlistname:not([contenteditable=true]) {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+#resultdir .dirlistname:not([contenteditable=true]):hover {
+  text-decoration: underline;
+}
+#resultdir .dirlistname[contenteditable=true] {
+  padding: 0 4px;
+}
+button.dirnameedit {
+  height: auto;
+  padding: 0 2px;
+  vertical-align: middle;
+}
+button.dirnameedit svg.feather {
+  width: 12px;
+  height: 12px;
+}
+div.directorycard .dircardhead button.dirnameedit {
+  color: #ddd;
+}
+/* the pencil is for mice: touch has the long press */
+@media (hover: none) {
+  button.dirnameedit {
+    display: none;
+  }
+}
+
+/* list directory table: the ... menu of list actions (View, Duplicate, Upload, downloads, Delete) */
+div.listmiddle.dirmenucell nav li {
+  float: none;
+}
+ul.dirlistmenu {
+  min-width: 15em;
+  font-family: "Times New Roman",Georgia,Serif;
+}
+nav ul.dirlistmenu li {
+  padding: 6px 10px;
+  text-align: left;
+}
+nav ul.dirlistmenu li svg.feather {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+nav ul.dirlistmenu li.dirmenudelete {
+  color: #b00;
+  border-top: solid black 1px;
+}
+div.directorylistheader > div.dirnotescell {
+  min-width: 5em;
+}
+/* cards view: the whole card opens the list */
+#directorycards [id^="listitem_"] {
+  cursor: pointer;
+}
+#directorycards [id^="listitem_"] select, #directorycards [id^="listitem_"] .dircardnotes {
+  cursor: auto;
 }

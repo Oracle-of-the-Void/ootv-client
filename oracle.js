@@ -31,6 +31,16 @@ function formatdate(val) {
     });
 }
 $.views.converters("formatDate", function(val) {return formatdate(val);});
+// short form for the list directory: "Oct 3" this year, "Oct 3, 2025" before
+function formatdateshort(val) {
+    var d = new Date(val);
+    var opts = {day: 'numeric', month: 'short'};
+    if(d.getFullYear() != (new Date()).getFullYear()) {
+	opts.year = 'numeric';
+    }
+    return d.toLocaleDateString('en-US', opts);
+}
+$.views.converters("formatDateShort", function(val) {return formatdateshort(val);});
 function filenamecleaner(val) {
     return val.replace(/[^\-a-z0-9]/gi,'_').toLowerCase().replace(/_{2,}/,'_');
 }
@@ -442,7 +452,7 @@ function listinfoupdate(listid,field,value,failed=null) {
   //    either way, we need to trap pulling new list info if we have pending updates.
   // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
   var message_status = $('#list_modified\\:'+listid);
-  var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURI(value);
+  var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
   console.log(url);
   $.ajax({
 	  type: "GET",
@@ -455,7 +465,7 @@ function listinfoupdate(listid,field,value,failed=null) {
       //message_status.show();
       message_status.text("List Updated");
       //hide the message
-      setTimeout(function(){message_status.text(formatdate(new Date()))},3000);
+      setTimeout(function(){message_status.text(formatdateshort(new Date())).attr('title',formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	    if($("#importlistid").length) {
@@ -541,6 +551,7 @@ function renderdirectory() {
   var view = dirviewstate(), sort = dirsortstate();
   var path = dirpath();
   var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
+  applyfolderselect();
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
   // the open folder's subfolders (by name), each with every folder under it (tree: shown as far as it's
@@ -576,7 +587,7 @@ function renderdirectory() {
   applydirtree();
   updatedirbuttons();
   //acknowledgement message
-  $('#resultdir [contenteditable=true][id^="list_"]').blur(function(){
+  $('#resultdir [contenteditable=true][id^="list_"], #resultdir .dirlistname').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
     var value = $(this).text() ;
 	  //TODO:   update value
@@ -591,6 +602,74 @@ function renderdirectory() {
     $("#listactive"+listid).show();
   });
 }
+
+// List names in the directory: a click or tap opens the list; a long press (or the pencil, shown with a mouse)
+// edits the name in place. Enter or leaving the name saves it (the blur handler in renderdirectory), Escape undoes.
+var dirnamepress = null;
+function dirnameedit(el) {
+  var name = $(el).closest('.directorylistitem').find('.dirlistname')[0];
+  $(name).attr('contenteditable','true').focus();
+  var range = document.createRange();
+  range.selectNodeContents(name);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+$(document).on('pointerdown', '#resultdir .dirlistname:not([contenteditable=true])', function(e) {
+  if(e.button > 0) { return; }
+  var el = this;
+  clearTimeout(dirnamepress && dirnamepress.timer);
+  dirnamepress = {x: e.clientX, y: e.clientY, long: false};
+  dirnamepress.timer = setTimeout(function() { dirnamepress.long = true; dirnameedit(el); }, 500);
+});
+$(document).on('pointermove', function(e) {
+  if(dirnamepress && !dirnamepress.long && Math.hypot(e.clientX - dirnamepress.x, e.clientY - dirnamepress.y) > 10) {
+    clearTimeout(dirnamepress.timer);
+    dirnamepress = null;
+  }
+});
+$(document).on('pointerup pointercancel', function() {
+  if(dirnamepress) { clearTimeout(dirnamepress.timer); }
+});
+$(document).on('click', '#resultdir .dirlistname', function() {
+  var press = dirnamepress;
+  dirnamepress = null;
+  if($(this).attr('contenteditable') == 'true' || (press && press.long)) { return; }  // editing: the click places the caret
+  listinfo(String($(this).data('list')),true);
+});
+// the table's ... menu is placed against the window, so the scrolling directory (phones) can't clip it,
+// and opens upward when there's no room below
+$(document).on('mouseenter click', '#directorytable .dirmenucell nav > ul > li', function() {
+  var li = this, ul = $(li).children('ul');
+  var r = li.getBoundingClientRect();
+  ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});
+  requestAnimationFrame(function() {
+    var h = ul.outerHeight();
+    if(r.bottom + h > window.innerHeight && r.top - h >= 0) {
+      ul.css('top', r.top - h);
+    }
+  });
+});
+// cards view: a press anywhere on a list's card that isn't one of its controls opens the list
+$(document).on('click', '#directorycards [id^="listitem_"]', function(e) {
+  if($(e.target).closest('select, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirlistname, .dirdraghandle').length) { return; }
+  listinfo(this.id.replace('listitem_',''),true);
+});
+$(document).on('contextmenu', '#resultdir .dirlistname:not([contenteditable=true])', function(e) {
+  if(dirnamepress) { e.preventDefault(); }   // the long press is a rename, not the browser's menu
+});
+$(document).on('keydown', '#resultdir .dirlistname[contenteditable=true]', function(e) {
+  if(e.key == 'Enter') {
+    e.preventDefault();
+    this.blur();
+  } else if(e.key == 'Escape') {
+    $(this).text($(document.getElementById(this.id.replace('list_name','list_prev_name'))).text());
+    this.blur();
+  }
+});
+$(document).on('blur', '#resultdir .dirlistname', function() {
+  $(this).removeAttr('contenteditable');
+});
 
 // ***********************  directory folders **************
 // A list's folder is its "folder" field: a path like "Tournament/2026" ('' or missing = top level).
@@ -2711,6 +2790,7 @@ var gestureswitches = [
   ['deckswipemouse', 'Click-drag a card image or Simple List title to change its count (mouse)'],
   ['dirdragtouch', 'Drag lists and folders in the list directory (touch)'],
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
+  ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"]
 ];
 // card swipes, per view: search results change the first active list, the deck/list view the list shown
@@ -2791,13 +2871,19 @@ function savegestures(status, g, done) {
   if(searchloggedin()) {
     saveallsetting('gestures', g, status, function() {
       status.text("Saved.");
+      applyfolderselect();
       if(done) { done(); }
     });
   } else {
     cache_session("gestures", g || {});
     status.text("Saved in this browser.");
+    applyfolderselect();
     if(done) { done(); }
   }
+}
+// the dirfolderselect switch: off hides the list directory's Folder column (table) and Folder select (cards)
+function applyfolderselect() {
+  $('#resultdir').toggleClass('nofolderselect', !gestureon('dirfolderselect'));
 }
 function resetgestures(el) {
   clearTimeout(gesturesavetimer);
