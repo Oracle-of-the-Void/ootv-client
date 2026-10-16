@@ -2324,6 +2324,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	}
 	// the views show each card's listed printing (bubbleup); the text exports below keep the card's own fields
 	var shown = bubbleup(listdata,{'listid':listid});
+	pagetextversion('.listtextversion', shown);
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
 	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown) : shown),listtmpl);
 	} else {
@@ -3737,18 +3738,22 @@ function toggletextversion(el) {
 function searchtextversion(qs) {
   var ids = (qs && searchcache[database]['querydata'][qs]) || [];
   var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs || ''));
-  var shown = bubbleup(ids.map(cache_card_fetch), request);
+  pagetextversion('.searchtextversion', bubbleup(ids.map(cache_card_fetch), request));
+}
+// a page's one Showing: button (search results, list view) into the elements matching sel, from its cards
+// as bubbleup returned them: none when no card shows a picked printing
+function pagetextversion(sel,shown) {
   var page = {'textprinting': shown.some(function(c) { return c && c.textprinting; }),
               'textdiff': shown.some(function(c) { return c && c.textdiff && c.textdiff.length; }) ? [true] : [],
               'textversion': textversionnow()};
-  $('.searchtextversion').html(page.textprinting ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
+  $(sel).html(page.textprinting ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
 }
 // re-render what shows card text in place: the search results and card view (refreshactivelistviews
-// keeps the scroll) and the list on screen
+// keeps the scroll) and the list view
 function redrawtextversion() {
   refreshactivelistviews();
   var listid = $('#lastlistid').val();
-  if(listid && cache_thing("list",listid) && $("#resultlist").is(":visible")) {
+  if(listid && cache_thing("list",listid)) {
     var scrolled = [window, '#maincontent', '#resultlist'].map(function(el) { return [el, $(el).scrollTop()]; });
     renderlist(cache_thing("list",listid).list.Items[0],false);
     scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
@@ -4031,6 +4036,7 @@ function showview(view) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
     $('body').toggleClass('viewsearch', view == 'resultsearch'); // phones: shows the Edit search bar
+    $('body').toggleClass('viewlist', view == 'resultlist'); // the list's Showing: button (menubar, phones above the list)
     if($('#' + view).is(":visible")) {
 	return;
     }

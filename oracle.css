@@ -946,14 +946,17 @@ div.menubar nav li.viewicons {
   width: 15px;
   height: 15px;
 }
-/* the search results' Showing: button: in the menubar while the search view is on screen; phones have
-   #phonetextversion above the results instead */
+/* the search results' and the list view's Showing: buttons (pagetextversion): in the menubar while that view is
+   on screen (body.viewsearch / body.viewlist); phones have #phonetextversion / #phonelisttextversion above it instead */
 div.menubar nav li.textversionmenu {
   padding-top: 5px;
   cursor: default;
 }
-body:not(.viewsearch) li.textversionmenu, div#phonetextversion {
+li.textversionmenu .searchtextversion, li.textversionmenu .listtextversion, div#phonetextversion, div#phonelisttextversion {
   display: none;
+}
+body.viewsearch li.textversionmenu .searchtextversion, body.viewlist li.textversionmenu .listtextversion {
+  display: inline;
 }
 div.menubar nav li.numresultsmenu {
   font-family: "Times New Roman",Georgia,Serif;
@@ -1426,7 +1429,7 @@ div#phonesearchbar .numresults {
   .gameinfo-game .gamename, li.numresultsmenu, li.textversionmenu {
     display: none !important;
   }
-  body.viewsearch div#phonetextversion {
+  body.viewsearch div#phonetextversion, body.viewlist div#phonelisttextversion {
     display: block;
     margin: 0 4px 4px 4px;
   }
