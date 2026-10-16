@@ -838,6 +838,7 @@ function dirdragdone() {
   dirdrag = null;
   dirdropclear();
   $("#resultdir").removeClass("dirdragging");
+  $("#resultdir .dirdragsource").removeClass("dirdragsource");
   if(dirtouch) {
     clearTimeout(dirtouch.timer);
     clearInterval(dirtouch.scroll);
@@ -890,7 +891,12 @@ $(document).on("dragstart",function(e) {
   }
   dt.effectAllowed = "move";
   // marked after the drag image is taken, so the image doesn't carry the drop-target outlines
-  setTimeout(function() { if(dirdrag) { $("#resultdir").addClass("dirdragging"); } },0);
+  setTimeout(function() {
+    if(dirdrag) {
+      $("#resultdir").addClass("dirdragging");
+      el.closest(".directorylistitem, .dirsubfolder").addClass("dirdragsource");
+    }
+  },0);
 });
 $(document).on("dragover",function(e) {
   if(!dirdrag || dirtouch) { return; }
@@ -908,22 +914,34 @@ $(document).on("drop",function(e) {
 $(document).on("dragend",function() {
   if(!dirtouch) { dirdragdone(); }
 });
-// touch drag: a label follows the finger; what's under the finger is the target
+// touch drag: a label above the finger names what's moving and where it would go; what's under the finger
+// is the target. The item being moved fades.
 function dirtouchbegin() {
   if(!dirtouch || dirdrag) { return; }
   dirdrag = dirdragof(dirtouch.el);
   if(window.getSelection) { window.getSelection().removeAllRanges(); }
   var label = dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : foldername(dirdrag.folder);
-  dirtouch.ghost = $('<div class="dirdragghost"></div>').text(label || dirdrag.listid).appendTo("body");
+  dirtouch.ghost = $('<div class="dirdragghost"><div class="dirghostname"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+
+    (dirdrag.listid ? 'move' : 'folder')+'"></svg> <span></span></div><div class="dirghosttarget"></div></div>').appendTo("body");
+  dirtouch.ghost.find(".dirghostname span").text(label || dirdrag.listid);
   $("#resultdir").addClass("dirdragging");
+  dirtouch.el.closest(".directorylistitem, .dirsubfolder").addClass("dirdragsource");
   if(navigator.vibrate) { navigator.vibrate(15); }
   dirtouchmove(dirtouch.x,dirtouch.y);
+}
+function dirtouchover() {
+  var el = dirdroptarget(document.elementFromPoint(dirtouch.x,dirtouch.y));
+  var ok = dirdragover(el), folder = el.attr("data-folder");
+  dirtouch.ghost.toggleClass("dirghostok",ok).find(".dirghosttarget")
+    .text(ok ? "\u2192 "+(folder ? foldername(folder) : "All lists (top level)") : "Drag onto a folder");
 }
 function dirtouchmove(x,y) {
   dirtouch.x = x;
   dirtouch.y = y;
-  dirtouch.ghost.css({"left": x+14, "top": y-44});     // above and beside the finger, so it doesn't hide the target
-  dirdragover(dirdroptarget(document.elementFromPoint(x,y)));
+  // centred above the finger (kept on screen), so it doesn't hide the target
+  var w = dirtouch.ghost.outerWidth();
+  dirtouch.ghost.css({"left": Math.max(6,Math.min(x-w/2,window.innerWidth-w-6)), "top": Math.max(6,y-dirtouch.ghost.outerHeight()-40)});
+  dirtouchover();
   // held near the top or bottom: scroll the directory
   var step = y < 80 ? -14 : (y > window.innerHeight-80 ? 14 : 0);
   clearInterval(dirtouch.scroll);
@@ -932,7 +950,7 @@ function dirtouchmove(x,y) {
       if(!dirtouch) { return; }
       document.getElementById("resultdir").scrollTop += step;
       window.scrollBy(0,step);
-      dirdragover(dirdroptarget(document.elementFromPoint(dirtouch.x,dirtouch.y)));
+      dirtouchover();
     },30);
   }
 }
