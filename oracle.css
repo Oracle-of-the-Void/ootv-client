@@ -1306,18 +1306,22 @@ div#phonesearchbar .numresults {
     height: auto;
   }
   div.dirfoldertop svg.feather, div.dirpathbar button.iiconic svg.feather, div.directorycard .dircardhead > .dirdraghandle svg.feather {
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
   }
   div.dirfoldertop button.dirtoggle, div.dirfoldertop span.dirtoggleblank {
-    width: 34px;
+    width: 42px;
   }
   div.dirsubfolder svg.feather {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
   }
   div.dirsubfolder button.dirtoggle, div.dirsubfolder span.dirtoggleblank {
+    width: 32px;
+  }
+  div.listimage.dirdraghandle svg.feather {
     width: 26px;
+    height: 26px;
   }
   .gameinfo-game .gamename, li.numresultsmenu {
     display: none !important;
