@@ -207,7 +207,8 @@ searchsorts[database] = searchsorts[''];
 // how /search compares text sorts (all case-insensitive); the first is the default
 var sortmodes = {'lex': 'A\u2013Z', 'punct': 'Skip leading punctuation', 'library': 'Library (skip A/An/The)'};
 var activelists = [];
-var savetimeout = '';
+var savetimeout = '';    // fires 15s after the last list edit
+var savecheckpoint = ''; // fires at most 60s after the first unsaved edit
 var missingimage = {"select": '/res/missing-stamp-rot150.png',
                     "details": '/res/missing-stamp-rot150.png',
                     "master": '/res/missing-stamp-rot150.png'
@@ -395,6 +396,10 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	    success: function(data) {
 		    console.log(data);
 		    if(listid) {
+		      if(updatepending[listid] && cache_thing("list",listid)) {
+			// unsaved local edits are newer than the server's copy
+			data = cache_thing("list",listid);
+		      }
 		      if(data.list.Items[0].sort == undefined) {
 			      if(data.list.Items[0].type == 'deck') {
 			        data.list.Items[0].sort = 'deck';
@@ -427,7 +432,8 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	  });
   }
 }
-function listinfoupdate(listid,field,value) {
+// failed: called if the update doesn't go through
+function listinfoupdate(listid,field,value,failed=null) {
   // valid fields:
   //     name=text, notes=text, public=t/f, type=short text, list = JSON.stringify(data)
   //   for the first 4, just do on change
@@ -456,6 +462,11 @@ function listinfoupdate(listid,field,value) {
 		    listid = $("#importlistid").val();
 		    erasemodal();
       }
+      if(field == 'list' && updatepending[listid]) {
+        // edited again while this save was in flight: keep the newer local copy, the next save sends it
+        console.log("keep listid cache, edits pending:"+listid);
+        return;
+      }
       console.log("clear listid cache:"+listid);
 		    cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
         listinfo();
@@ -464,6 +475,9 @@ function listinfoupdate(listid,field,value) {
 	  },
 	  error: function(status) {
 	    console.log(status);
+	    if(failed) {
+		failed();
+	    }
 	  }
   });
 }
@@ -1293,14 +1307,43 @@ function removelist(listid) {
     }
 }
 
+// a list was edited: save 15s after the last edit, and at least every minute while edits keep coming
+function listedited(listid) {
+    updatepending[listid]=1;
+    clearTimeout(savetimeout);
+    savetimeout = setTimeout(savecallback,15*1000);
+    if(!savecheckpoint) {
+	savecheckpoint = setTimeout(savecallback,60*1000);
+    }
+}
 function savecallback() {
     console.log("Saving....");
-    for(listid in updatepending) {
-	      listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
-	      delete updatepending[listid];
-    }
-    renderlisteditarea(); // update card counts
     clearTimeout(savetimeout);
+    clearTimeout(savecheckpoint);
+    savecheckpoint = '';
+    Object.keys(updatepending).forEach(function(listid) {
+	var list = cache_thing("list",listid);
+	delete updatepending[listid];
+	if(!(list && list.list && list.list.Items && list.list.Items[0])) {
+	    console.warn("savecallback: list "+listid+" isn't cached, nothing to save");
+	    return;
+	}
+	var retry = function() {
+	    // keep it pending and try again at the next checkpoint
+	    updatepending[listid]=1;
+	    if(!savecheckpoint) {
+		savecheckpoint = setTimeout(savecallback,60*1000);
+	    }
+	    renderlisteditarea();
+	};
+	try {
+	    listinfoupdate(listid,'list',JSON.stringify(list.list.Items[0].list),retry);
+	} catch(e) {
+	    console.log(e);
+	    retry();
+	}
+    });
+    renderlisteditarea(); // update card counts
 }
 
 // how many of this card (and printing) the list holds, shown beside its +/- buttons (span.listqty)
@@ -1338,10 +1381,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
     $("#lastlistid").val(listid);
     renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
-    if(Object.keys(updatepending).length < 1) {
-	      savetimeout = setTimeout(savecallback,60*1000);
-    }
-    updatepending[listid]=1;
+    listedited(listid);
     renderlisteditarea(); // update card counts
 }
 
@@ -2411,10 +2451,7 @@ function removemissing(listid) {
     cache_thing("list",listid,list);
     $("#lastlistid").val(listid);
     renderlist(items,false);
-    if(Object.keys(updatepending).length < 1) {
-	savetimeout = setTimeout(savecallback,60*1000);
-    }
-    updatepending[listid]=1;
+    listedited(listid);
     renderlisteditarea(); // update card counts
 }
 
