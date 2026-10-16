@@ -1118,7 +1118,8 @@ function renderlisteditarea() {
     }
 }
 
-function activatelist(listid) {
+// done: once the list's cards are loaded (the swipe list picker adds the card then)
+function activatelist(listid, done=null) {
     var index = activelists.indexOf(listid);
     if (index > -1) {
        activelists.splice(index, 1);
@@ -1129,7 +1130,12 @@ function activatelist(listid) {
     saveactivelists();
     renderlisteditarea();
     // after activelists has it: a cached list calls back at once, and the refresh renders its controls
-    listinfo(listid,false,null,refreshactivelistviews);
+    listinfo(listid,false,null,function() {
+	refreshactivelistviews();
+	if(done) {
+	    done();
+	}
+    });
 }
 
 function deactivatelist(listid) {
@@ -1198,7 +1204,8 @@ function refreshactivelistviews() {
     }
 }
 
-function newlist(json=null) {
+// done(listid): after the new list is in the directory
+function newlist(json=null, done=null) {
     // from the directory, a new list goes in the open folder
     if(json === null && dirpath()) {
 	json = {"name": "New List", "list": [], "public": false, "type": "deck", "folder": dirpath()};
@@ -1232,6 +1239,9 @@ function newlist(json=null) {
 	    oldlists.lists.Items.unshift(data.list.Item);
 	    cache_thing("list","data",oldlists);
 	    listinfocallback();
+	    if(done) {
+		done(data.list.Item.listid);
+	    }
 	},
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
     });
@@ -4012,19 +4022,20 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 // swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
 // (swipedefaults: search right +1, left -1, up-right +3; deck/list right +1, left -1, up-right +2; both
 // up-left all copies). Going to 0 asks before removing the card. In the list view it changes the list shown; in
-// search, the first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
+// search, the first active list. With none active (logged in), a swipe that adds asks which list to activate
+// (deckswipepicklist); other swipes do nothing. On touch, a mostly vertical drag still scrolls.
 var deckswipe = null;
 var deckswipedone = 0;
 function deckswipestart(target, x, y, mouse=false) {
     var a = $(target).closest('a.deckswipe');
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
     deckswipe = null;
-    if(listid) {
+    if(listid || (a.length && searchloggedin() && cache_thing("list","data"))) {
 	var g = gesturesettings();
 	var acts = g[a.data('list') ? 'list' : 'search'];
 	var any = Object.keys(acts).some(function(d) { return acts[d][0] != 'off'; });
 	if(any && g['off'].indexOf(mouse ? 'deckswipemouse' : 'deckswipetouch') < 0) {
-	    deckswipe = {a: a, listid: String(listid), acts: acts, x: x, y: y, lock: null};
+	    deckswipe = {a: a, listid: listid ? String(listid) : null, acts: acts, x: x, y: y, lock: null};
 	}
     }
     return !!deckswipe;
@@ -4058,7 +4069,11 @@ function deckswipeend(x, y) {
     var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left
     var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' :
 	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : null;
-    if(dir && s.acts[dir][0] != 'off') {
+    if(dir && s.acts[dir][0] != 'off' && !s.listid) {
+	if(s.acts[dir][0] == 'add' || s.acts[dir][0] == 'set') {
+	    deckswipepicklist(s.a.data('card'), s.a.data('printing') || 0, s.acts[dir]);
+	}
+    } else if(dir && s.acts[dir][0] != 'off') {
 	deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, s.acts[dir], !s.a.data('list') && activelists.length > 1);
     }
 }
@@ -4137,6 +4152,30 @@ function deckswipeapply(listid, cardid, prid, act, named=false) {
     } else {
 	addlistitem(listid, cardid, prid, n);
 	deckswipetoast((n > 0 ? '+' : '\u2212') + Math.abs(n) + ' ' + title + ' (' + (have + n) + ')');
+    }
+}
+// an adding swipe in search with no active list: pick a list (newest modified first), activate it, then add the card
+var deckswipepending = null;
+function deckswipepicklist(cardid, prid, act) {
+    var lists = cache_thing("list","data").lists.Items.slice().sort(function(a,b) { return dirsortkey(b,'modified') - dirsortkey(a,'modified'); });
+    deckswipepending = {cardid: cardid, prid: prid, act: act};
+    var card = cache_card_fetch(cardid);
+    var title = card ? [].concat(card.title).join() : 'card #' + cardid;
+    modal('Add ' + title + ' to which list?',
+	'<p>No list is active. Pick one to activate and add the card to:</p><ul class="swipepicklist">' +
+	'<li onclick="this.onclick=null; newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
+	lists.map(function(list) {
+	    var where = [list.type, listfolder(list)].filter(function(x) { return x; }).join(' \u00b7 ');
+	    return '<li onclick="deckswipepicked(\'' + list.listid + '\');">' + $('<div>').text(list.name || list.listid).html() +
+		(where ? ' <span class="swipepickwhere">' + $('<div>').text(where).html() + '</span>' : '') + '</li>';
+	}).join('') + '</ul>');
+}
+function deckswipepicked(listid) {
+    var p = deckswipepending;
+    deckswipepending = null;
+    nomodal();
+    if(p) {
+	activatelist(String(listid), function() { deckswipeapply(String(listid), p.cardid, p.prid, p.act); });
     }
 }
 function deckswipetoast(html) {
