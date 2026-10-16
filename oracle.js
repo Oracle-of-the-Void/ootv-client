@@ -2661,7 +2661,7 @@ var swipeviews = [['search', 'Swipes in search results'], ['list', 'Swipes in a 
 var swipedirs = [['right', 'Right'], ['upright', 'Up-right'], ['left', 'Left'], ['upleft', 'Up-left']];
 var swipeactions = [['off', 'Nothing'], ['add', 'Add'], ['sub', 'Remove'], ['set', 'Set the count to'], ['zero', 'Remove all copies']];
 var swipedefaults = {
-  'search': {'right': ['add',1], 'upright': ['add',3], 'left': ['sub',1], 'upleft': ['sub',3]},
+  'search': {'right': ['add',1], 'upright': ['add',3], 'left': ['sub',1], 'upleft': ['zero',0]},
   'list': {'right': ['add',1], 'upright': ['add',2], 'left': ['sub',1], 'upleft': ['zero',0]}
 };
 function gesturesettings() {
@@ -3998,7 +3998,7 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 });
 // Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
 // swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
-// (swipedefaults: search right +1, left -1, up-right +3, up-left -3; deck/list right +1, left -1, up-right +2,
+// (swipedefaults: search right +1, left -1, up-right +3; deck/list right +1, left -1, up-right +2; both
 // up-left all copies). Going to 0 asks before removing the card. In the list view it changes the list shown; in
 // search, the first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
 var deckswipe = null;
