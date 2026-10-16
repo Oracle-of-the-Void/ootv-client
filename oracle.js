@@ -3688,7 +3688,7 @@ function bubbleup(data,request=null,prid=null) {
 }
 
 // Showing the printed wording: wrap each field in textdiff (from bubbleup), the ones that differ from the
-// card's, in span.printeddiff, a subtle highlight in the Printed version button's color. The MRP wording
+// card's, in span.printeddiff, a subtle highlight in the Printed text button's color. The MRP wording
 // isn't highlighted. Run it last, right before rendering: list headers group on the plain values. The class
 // is unquoted so a wrapped value can still sit inside a quoted attribute or an onclick string.
 function markprinteddiffs(data) {
