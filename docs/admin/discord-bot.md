@@ -64,7 +64,7 @@ requirement as a required `legality = Paper` line, on top of the channel's filte
 and files an issue on ootv-client: card problems get the game's database label (e.g.
 `l5r database`), site problems get `bug`. Both also get `discord`, and the issue names the
 reporter's Discord account and channel. A card report needs a game, from the channel or from `game:`.
-Each user can file 3 reports an hour. To stop a server filing issues, untick
+Each user can file 3 reports per 15 minutes. To stop a server filing issues, untick
 `oraclebug` in its Commands column and re-register its commands.
 
 ## Commands
