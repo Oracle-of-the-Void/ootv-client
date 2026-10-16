@@ -54,8 +54,11 @@ save items (`settings[game].mobile`), Visual Spoiler as the phone search default
 directory scrolls sideways, list quantity beside the +/- buttons (desktop too),
 long-press labels (noted in Help), 1em text symbols kept small, sideways phones get the phone layout, Edit search bar above the results (with the result count), back/forward closes the search panel, one YouTube link on Help.
 
-Swipes on card images and Simple List titles (click-drag with a mouse): right +1, left −1, up-right +3, up-left −3,
-with a short toast; going to 0 asks before removing the card. They work in search (Detail, Visual
+Swipes on card images and Simple List titles (click-drag with a mouse). By default, search results: right +1,
+left −1, up-right +3, up-left −3; deck/list view: right +1, left −1, up-right +2, up-left removes every copy.
+Settings → Gestures changes what each direction does (add, remove, set the count to, remove all, nothing),
+separately for search and for the deck/list view, and turns each gesture off (deck swipe touch and mouse,
+directory drag touch and mouse, long-press labels; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
 drags still scroll. Tested with emulated touch only: check on a real phone.

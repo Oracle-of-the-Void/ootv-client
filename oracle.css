@@ -1261,6 +1261,8 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
 .settingstable .button { white-space: nowrap; }
 .settingsection h4 { margin: 10px 0 4px 0; }
 .savedsearchtable td { vertical-align: top; }
+.gestureswitch { display: block; margin: 2px 0; }
+.swipetable .swipecount { width: 4em; margin-left: 6px; }
 .searchsummary { color: #555; }
 /* saved searches under the Search button */
 #savedsearches { margin-top: 8px; text-align: left; }
