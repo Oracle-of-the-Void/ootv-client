@@ -987,8 +987,8 @@ printingprimary
      its printed wording and the card's MRP wording for the session (toggletextversion); with no wording that
      differs there is nothing to flip. ~intable: the card view's dl, as a row with an empty label -->
 <script id="template-textversion" type="text/x-jsrender">
-{{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{else}}<div class="textversionrow">{{/if}}{{if textdiff && textdiff.length}}<button type="button" class="button gray buttonsmaller textversion" aria-pressed="{{:textversion=='mrp'}}"
-  title="{{if textversion=='mrp'}}Showing the card's current wording. Press for the wording printed on this version.{{else}}Showing the wording printed on this version. Press for the card's current (MRP) wording.{{/if}} Highlighted fields differ between the two."
+{{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{else}}<div class="textversionrow">{{/if}}{{if textdiff && textdiff.length}}<button type="button" class="button gray buttonsmaller textversion{{if textversion!='mrp'}} textversionprinted{{/if}}" aria-pressed="{{:textversion=='mrp'}}"
+  title="{{if textversion=='mrp'}}Showing the card's current wording. Press for the wording printed on this version.{{else}}Showing the wording printed on this version. Press for the card's current (MRP) wording.{{/if}}{{if textversion!='mrp'}} Highlighted fields differ from the card's current wording.{{/if}}"
   onclick="toggletextversion(this); return false;">Showing: {{if textversion=='mrp'}}MRP{{else}}Printed{{/if}} version</button>{{else}}<span class="button gray buttonsmaller textversion textversionnone"
   title="This version's printing has no wording of its own that differs from the card's, so both show the same text.">Showing: No printing fields found</span>{{/if}}{{if ~intable}}</dd>{{else}}</div>{{/if}}{{/if}}
 </script>
