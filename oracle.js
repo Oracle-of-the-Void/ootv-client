@@ -1218,11 +1218,19 @@ function refreshactivelistviews() {
     }
 }
 
-// done(listid): after the new list is in the directory
+// done(listid): after the new list is in the directory (default: make it active)
 function newlist(json=null, done=null) {
-    // from the directory, a new list goes in the open folder
-    if(json === null && dirpath()) {
-	json = {"name": "New List", "list": [], "public": false, "type": "deck", "folder": dirpath()};
+    // from the directory or the swipe list picker: ask for a name (cancel: no list), and it goes in the open folder
+    if(json === null) {
+	var path = dirpath();
+	var name = prompt("New list"+(path ? " in \""+foldername(path)+"\"" : "")+":", "New List");
+	if(name === null) {
+	    return;
+	}
+	json = {"name": name.trim() || "New List", "list": [], "public": false, "type": "deck"};
+	if(path) {
+	    json.folder = path;
+	}
     }
     /*
     Create new list.   json example:
@@ -1255,6 +1263,8 @@ function newlist(json=null, done=null) {
 	    listinfocallback();
 	    if(done) {
 		done(data.list.Item.listid);
+	    } else {
+		activatelist(String(data.list.Item.listid));
 	    }
 	},
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
@@ -4208,7 +4218,7 @@ function deckswipepicklist(cardid, prid, act) {
     });
     modal('Add ' + title + ' to which list?',
 	'<p>No list is active. Pick one to activate and add the card to:</p><ul class="swipepicklist">' +
-	'<li class="swipepicklistitem" onclick="this.onclick=null; newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
+	'<li class="swipepicklistitem" onclick="newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
 	deckswipepicktree(root) + '</ul>');
 }
 function deckswipepicktree(node) {
