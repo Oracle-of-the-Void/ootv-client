@@ -946,6 +946,15 @@ div.menubar nav li.viewicons {
   width: 15px;
   height: 15px;
 }
+/* the search results' Showing: button: in the menubar while the search view is on screen; phones have
+   #phonetextversion above the results instead */
+div.menubar nav li.textversionmenu {
+  padding-top: 5px;
+  cursor: default;
+}
+body:not(.viewsearch) li.textversionmenu, div#phonetextversion {
+  display: none;
+}
 div.menubar nav li.numresultsmenu {
   font-family: "Times New Roman",Georgia,Serif;
   font-size: medium;
@@ -1414,8 +1423,12 @@ div#phonesearchbar .numresults {
     width: 26px;
     height: 26px;
   }
-  .gameinfo-game .gamename, li.numresultsmenu {
+  .gameinfo-game .gamename, li.numresultsmenu, li.textversionmenu {
     display: none !important;
+  }
+  body.viewsearch div#phonetextversion {
+    display: block;
+    margin: 0 4px 4px 4px;
   }
   div#sidebaropener, .sidebarextras {
     display: none !important;
