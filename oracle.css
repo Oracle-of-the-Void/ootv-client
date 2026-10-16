@@ -458,6 +458,10 @@ div.dirpathbar .dirpathsep {
 .dirdraghandle {
     cursor: grab;
     touch-action: none;       /* touch: a drag from the handle moves the list, it doesn't scroll */
+    -webkit-touch-callout: none;   /* ...and a press on it never selects text or opens the copy menu */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 /* touch: a long-press on a folder starts its drag, not a text selection or the link menu */
 div.dirfolderrow, div.dirfoldercard {
@@ -488,8 +492,18 @@ div.listimage.dirdraghandle svg.feather {
     color: #777;
     vertical-align: middle;
 }
+/* the card's handle: the whole left end of the title bar, top to bottom, set off from the editable name */
 div.directorycard .dircardhead > .dirdraghandle {
     display: flex;
+    align-items: center;
+    align-self: stretch;
+    margin: -4px 0 -4px -6px;
+    padding: 4px 8px 4px 6px;
+    border-right: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 7px 0 0 0;
+}
+div.directorycard .dircardhead > .dirdraghandle:active {
+    background: rgba(255, 255, 255, 0.2);
 }
 div.dirfolderrow, div.dirfoldercard, div.dirsubfolder {
     cursor: grab;

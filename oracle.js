@@ -912,6 +912,7 @@ $(document).on("dragend",function() {
 function dirtouchbegin() {
   if(!dirtouch || dirdrag) { return; }
   dirdrag = dirdragof(dirtouch.el);
+  if(window.getSelection) { window.getSelection().removeAllRanges(); }
   var label = dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : foldername(dirdrag.folder);
   dirtouch.ghost = $('<div class="dirdragghost"></div>').text(label || dirdrag.listid).appendTo("body");
   $("#resultdir").addClass("dirdragging");
@@ -940,10 +941,9 @@ document.addEventListener("touchstart",function(e) {
   var el = dirdragsource(e.target);
   if(!el.length) { return; }
   var t = e.touches[0];
-  dirtouch = {"el": el, "handle": el.is("[data-draglist]"), "x": t.clientX, "y": t.clientY};
-  if(!dirtouch.handle) {
-    dirtouch.timer = setTimeout(dirtouchbegin,400);
-  }
+  dirtouch = {"el": el, "handle": el.is("[data-draglist]"), "x": t.clientX, "y": t.clientY, "x0": t.clientX, "y0": t.clientY};
+  // a handle also starts on a short hold, before the browser's long-press can select text
+  dirtouch.timer = setTimeout(dirtouchbegin,dirtouch.handle ? 150 : 400);
 },{passive: true});
 document.addEventListener("touchmove",function(e) {
   if(!dirtouch) { return; }
@@ -958,6 +958,7 @@ document.addEventListener("touchmove",function(e) {
     dirtouchbegin();
   }
   e.preventDefault();
+  if(Math.hypot(t.clientX-dirtouch.x0,t.clientY-dirtouch.y0) >= 5) { dirtouch.moved = true; }
   dirtouchmove(t.clientX,t.clientY);
 },{passive: false});
 document.addEventListener("touchend",function(e) {
@@ -967,15 +968,22 @@ document.addEventListener("touchend",function(e) {
     dirtouch = null;
     return;
   }
+  if(dirtouch.handle && !dirtouch.moved) {     // held still and let go: a tap (the table's Id cell opens the list)
+    dirdragdone();
+    return;
+  }
   e.preventDefault();     // no click on whatever is under the finger
   dirdropon(dirdroptarget(document.elementFromPoint(dirtouch.x,dirtouch.y)));
 },{passive: false});
 document.addEventListener("touchcancel",function() {
   if(dirtouch) { dirdragdone(); }
 });
-// a long-press on a folder's link mustn't open the browser's link menu
+// a long-press on a handle or folder mustn't select text or open the browser's link or copy menu
 document.addEventListener("contextmenu",function(e) {
   if(dirtouch && dirdragsource(e.target).length) { e.preventDefault(); }
+});
+document.addEventListener("selectstart",function(e) {
+  if(dirtouch) { e.preventDefault(); }
 });
 
 // File lists: folderof(list) gives each list's new folder. One update per list, then the directory is
