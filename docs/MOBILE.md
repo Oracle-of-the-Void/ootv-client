@@ -43,7 +43,8 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 ## Still to do
 
 - [ ] **Menubar height**: with the double-size icons it wraps to three rows (~160px) at
-  390px. Fine for now; could fold the format and size buttons into one dropdown on phones.
+  390px. The format, card size and sort buttons now share one box (`ul.viewblock`), so sort
+  no longer takes a row of its own; folding that box into one dropdown would save another row.
 
 ## Done since the first pass
 
