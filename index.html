@@ -72,7 +72,7 @@
 	</span>
       </li>
       <li class="numresultsmenu"><span class="numresults"></span></li>
-      <li class="textversionmenu"><span class="searchtextversion"></span></li>
+      <li class="textversionmenu"><span class="searchtextversion"></span><span class="listtextversion"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
 	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
@@ -242,6 +242,8 @@
   <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
   </div> <!-- directorytable -->
 </div>
+<!-- phones: the list view's Showing: button (pagetextversion; the menubar has it on desktop) -->
+<div id="phonelisttextversion" class="listtextversion"></div>
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
 <!-- phones: the search form is a slide-over panel; this bar above the results opens it (body.viewsearch, see showview) -->
 <div id="phonesearchbar" onclick="mobilesearchtoggle(true); event.stopPropagation();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg> <b>Edit search</b> <span class="numresults"></span></div>
@@ -986,10 +988,10 @@ printingprimary
     {{include tmpl="#template-textversion" ~intable=true /}}
 </script> <!-- template-card-top -->
 
-<!-- top of a card's text (card view, Detailed list) when one printing is shown (bubbleup): flips between its
-     printed wording and the card's MRP wording for the session (toggletextversion); with no wording that differs
-     there is nothing to flip. ~intable: the card view's dl, as a row with an empty label. Search results have
-     one button for the page instead (searchtextversion). -->
+<!-- top of a card's text in the card view when one printing is shown (bubbleup): flips between its printed
+     wording and the card's MRP wording for the session (toggletextversion); with no wording that differs there
+     is nothing to flip. ~intable: the card view's dl, as a row with an empty label. Search results and lists
+     have one button for the page instead (pagetextversion). -->
 <script id="template-textversion" type="text/x-jsrender">
 {{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</dd>{{else}}<div class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</div>{{/if}}{{/if}}
 </script>
