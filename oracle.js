@@ -5102,6 +5102,8 @@ function loadloginlog(page) {
 // admin Discord bot settings: oracle-all-discord through /discord (site admins only). One row per
 // guild + channel, channel "*" being the server's own row; see docs/admin/discord-bot.md.
 var discordgames = [], discordcommands = [];
+// what each bot command does, shown beside its name (a server can rename them); others show their key
+var discordcommandlabels = {card: 'One card', search: 'Search', oraclebug: 'Bug report'};
 function loaddiscord(note) {
   $('#loginlog').empty();
   $('#admindoc').empty();
@@ -5160,7 +5162,7 @@ function renderdiscord(rows) {
   }).sort(function(a,b) { return label(a.settings).localeCompare(label(b.settings)); });
   $('#discordadmin').html($.templates("#template-discord").render(
     {guilds: list, newguild: {guild: '', channel: '*', isnew: true, newguild: true, filterrows: []}},
-    {games: discordgames, commands: discordcommands}));
+    {games: discordgames, commands: discordcommands, cmdlabels: discordcommandlabels}));
 }
 function discordgamechange(sel) {
   var fields = discordfields($(sel).val());

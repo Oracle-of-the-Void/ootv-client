@@ -1459,6 +1459,7 @@ table.discord th, table.discord td { padding: 4px 8px; border-bottom: 1px solid 
 table.discord tr.discordnew td { background: #f6f6f0; }
 .discordid { font-family: monospace; color: #666; font-size: 90%; }
 .discordfilter { white-space: nowrap; margin-bottom: 2px; }
+.discordcmd { display: inline-block; min-width: 6em; color: #555; }
 .discordmsg { color: #a00; max-width: 20em; }
 .discordnote { background: #eef6ee; padding: 4px 8px; }
 .admindoc { max-width: 60em; }
