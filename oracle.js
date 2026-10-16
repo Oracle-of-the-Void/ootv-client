@@ -336,7 +336,7 @@ function userinfo() {
 }
 function userinfocallback() {
     var info = cache_thing("user","data");
-    $('#loginfo').text(username(info));
+    showloginfo(info);
 //    $('#userinfo-id').html("Uid: "+info.oracle[0].uid);
 //    $('#userinfo-email').html(info.oracle[0].emails.join("<br />"));
 //    $('#userinfo-joined').html(info.oracle[0].insert_date);
@@ -359,6 +359,13 @@ function username(user) {
     var o = user && ("oracle" in user) && user.oracle[0];
     var name = o ? [o.firstname, o.lastname].filter(function(n) { return n; }).join(' ') : '';
     return name || (user && user.cognito && user.cognito.name) || '';
+}
+// the menubar name: in full, and on phones (the .phonehide/.phoneonly swap) just the first name, so it fits
+function showloginfo(user) {
+    var full = username(user);
+    var o = user && ("oracle" in user) && user.oracle[0];
+    var first = (o && o.firstname) || full.split(/\s+/)[0];
+    $('#loginfo').empty().append($('<span class="phonehide">').text(full), $('<span class="phoneonly">').text(first));
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -2225,7 +2232,7 @@ function postprofile(body, status, done) {
         user.oracle = data.oracle;
         cache_thing("user","data",user);
       }
-      $('#loginfo').text(username(user));
+      showloginfo(user);
       rendersettings();
       done(data);
     },

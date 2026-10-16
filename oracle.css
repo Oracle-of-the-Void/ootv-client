@@ -1165,6 +1165,9 @@ div#phonesearchbar .numresults {
   .phoneonly {
     display: inline;
   }
+  .phonehide {
+    display: none;
+  }
   /* the directory table has too many columns for a phone: scroll it sideways inside its view */
   #resultdir {
     overflow-x: auto;
