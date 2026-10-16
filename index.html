@@ -649,7 +649,7 @@ printingprimary
     </td>
     <td>{{if channel == '*'}}{{for ~commands ~c=commands}}
       <label><input type="checkbox" name="cmd_{{>#data}}"{{if !~c || ~c[#data]}} checked{{/if}}>
-        /<input name="cmdname_{{>#data}}" value="{{if ~c && ~c[#data]}}{{>~c[#data]}}{{else}}{{>#data}}{{/if}}" size="10"></label><br>
+        <span class="discordcmd">{{>~cmdlabels[#data] || #data}}</span> /<input name="cmdname_{{>#data}}" value="{{if ~c && ~c[#data]}}{{>~c[#data]}}{{else}}{{>#data}}{{/if}}" size="10"></label><br>
       {{/for}}{{/if}}</td>
     <td>
       <span class="button" onclick="discordsave(this)">{{if isnew}}Add{{else}}Save{{/if}}</span>
