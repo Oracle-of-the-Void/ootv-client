@@ -1294,6 +1294,9 @@ div#phonesearchbar .numresults {
   .phoneonly {
     display: inline;
   }
+  .phonehide {
+    display: none;
+  }
   /* the directory table has too many columns for a phone: scroll it sideways inside its view */
   #resultdir {
     overflow-x: auto;
@@ -1311,10 +1314,18 @@ div#phonesearchbar .numresults {
   div.menubar nav li.viewicons {
     padding-top: 3px;
   }
-  /* menubar icons at double size for fingers (not the icons inside the dropdowns) */
+  /* every icon a quarter bigger than on desktop (17px), and the buttons around them grow to fit */
+  .feather {
+    width: 21px;
+    height: 21px;
+  }
+  button.iiconic {
+    height: auto;
+  }
+  /* menubar icons at about two and a half times the size for fingers (not the icons inside the dropdowns) */
   div.menubar nav > ul > li > svg.feather, div.menubar nav .searchviewgroup svg.feather, .gameinfo-game img {
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
   }
   /* directory cards: their buttons match the menubar icons (not the icons inside the Download dropdown) */
   div.directorycard .dircardhead > button.iiconic, div.directorycard .dircardactions > button.iiconic,
@@ -1323,8 +1334,8 @@ div#phonesearchbar .numresults {
   }
   div.directorycard .dircardhead > button.iiconic svg.feather, div.directorycard .dircardactions > button.iiconic svg.feather,
   div.directorycard .dircardactions nav > ul > li > button.iiconic svg.feather, div.directorycard.dircardnew svg.feather {
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
   }
   div.directorycard .dircardactions {
     gap: 14px;
@@ -1377,8 +1388,8 @@ div#phonesearchbar .numresults {
     display: flex;
   }
   div#phonesearchbar svg.feather {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
   }
   /* the panel is full width, so let the form fields use it instead of the desktop sidebar's pixel widths */
   div#sidebar div.searchinput {
