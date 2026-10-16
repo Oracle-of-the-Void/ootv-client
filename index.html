@@ -787,7 +787,7 @@ printingprimary
 
 <script id="template-lists" type="text/x-jsrender">
 <div class="listitem directorylistitem" id="listitem_{{:listid}}">
-  <div class="listimage" onclick="listinfo('{{:listid}}',true)"; return false;><a aria-label="View List" data-balloon-pos="up-left" href="#" onclick="return false;">{{:listid}}</a></div>
+  <div class="listimage dirdraghandle" draggable="true" data-draglist="{{:listid}}" onclick="listinfo('{{:listid}}',true)"; return false;><svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#move"></svg> <a aria-label="View List (drag to move it into a folder)" data-balloon-pos="up-left" href="#" draggable="false" onclick="return false;">{{:listid}}</a></div>
   <div class="listmiddle" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle"><select class="listselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select></div>
   <div class="listmiddle"><select class="listselect" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
@@ -836,14 +836,18 @@ printingprimary
 </script>
 <!-- directory folders (renderdirectory): the path bar, and the open folder's subfolders, before its lists -->
 <script id="template-dirpath" type="text/x-jsrender">
-{{if path}}<button aria-label="Up a folder" data-balloon-pos="down-left" class="iiconic iblue dirupbutton" onclick="opendirfolder(folderparent(dirpath()));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#corner-left-up"></svg></button>{{/if}}
+{{if path}}<button aria-label="Up a folder" data-balloon-pos="down-left" class="iiconic iblue dirupbutton" data-folder="{{>parent}}" data-dirdrop="1" onclick="opendirfolder(folderparent(dirpath()));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#corner-left-up"></svg></button>{{/if}}
 <svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg>
-{{if path}}<a href="#" onclick="opendirfolder(''); return false;">All lists</a>{{else}}<b>All lists</b>{{/if}}
-{{for crumbs}} <span class="dirpathsep">&rsaquo;</span> {{if !last}}<a href="#" data-folder="{{>folder}}" onclick="opendirfolder(eventfolder(this)); return false;">{{>name}}</a>{{else}}<b>{{>name}}</b>{{/if}}{{/for}}
+{{if path}}<a href="#" draggable="false" data-folder="" data-dirdrop="1" onclick="opendirfolder(''); return false;">All lists</a>{{else}}<b data-folder="" data-dirdrop="1">All lists</b>{{/if}}
+{{for crumbs}} <span class="dirpathsep">&rsaquo;</span> {{if !last}}<a href="#" draggable="false" data-folder="{{>folder}}" data-dirdrop="1" onclick="opendirfolder(eventfolder(this)); return false;">{{>name}}</a>{{else}}<b data-folder="{{>folder}}" data-dirdrop="1">{{>name}}</b>{{/if}}{{/for}}
+</script>
+<!-- a folder's subfolder toggle (applydirtree sets it open/closed), or a blank the same width -->
+<script id="template-dirtoggle" type="text/x-jsrender">
+{{if folders}}<button aria-label="Show subfolders" class="iiconic iblue dirtoggle" onclick="toggledirfolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#chevron-right"></svg></button>{{else}}<span class="dirtoggleblank"></span>{{/if}}
 </script>
 <script id="template-dirfolderrow" type="text/x-jsrender">
-<div class="listitem directorylistitem dirfolderrow" data-folder="{{>folder}}">
-  <div class="listmiddle dirfoldername"><a href="#" class="dirfolderopen" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>name}} <small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></a></div>
+<div class="listitem directorylistitem dirfolderrow{{if depth}} dirtreeitem{{/if}}" data-folder="{{>folder}}" data-dirdrop="1" data-dragfolder="1" draggable="true">
+  <div class="listmiddle dirfoldername"><span style="left: {{:4+depth*24}}px">{{include tmpl="#template-dirtoggle"/}}<a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>name}} <small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></a></span></div>
   <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
   <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
   <div class="listmiddle dirfolderactions"><span>
@@ -853,15 +857,24 @@ printingprimary
 </div>
 </script>
 <script id="template-dirfoldercard" type="text/x-jsrender">
-<div class="directorycard directorylistitem dirfoldercard" data-folder="{{>folder}}">
-  <a href="#" class="dirfolderopen" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> <span class="dirfolderlabel">{{>name}}<br /><small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></span></a>
+<div class="directorycard directorylistitem dirfoldercard" data-folder="{{>folder}}" data-dirdrop="1" data-dragfolder="1" draggable="true">
+  <div class="dirfoldertop">
+  {{include tmpl="#template-dirtoggle"/}}
+  <a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> <span class="dirfolderlabel">{{>name}}<br /><small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></span></a>
   <button aria-label="Rename folder" data-balloon-pos="up" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
   <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="up-right" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
+  </div>
+  {{if tree.length}}<div class="dirfoldertree">
+  {{for tree}}<div class="dirtreeitem dirsubfolder" data-folder="{{>folder}}" data-dirdrop="1" data-dragfolder="1" draggable="true" style="padding-left: {{:(depth-1)*24}}px">
+    {{include tmpl="#template-dirtoggle"/}}<a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>name}} <small>{{:lists}} list{{if lists!=1}}s{{/if}}</small></a>
+  </div>{{/for}}
+  </div>{{/if}}
 </div>
 </script>
 <script id="template-listcards" type="text/x-jsrender">
 <div class="directorycard directorylistitem" id="listitem_{{:listid}}">
   <div class="dircardhead">
+    <span class="dirdraghandle" draggable="true" data-draglist="{{:listid}}" aria-label="Drag to a folder"><svg class="feather"><use xlink:href="res/feather-sprite.svg#move"></svg></span>
     <div class="dircardname" id="list_name:{{:listid}}" contenteditable="true">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button>
     <button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>

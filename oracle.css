@@ -355,11 +355,26 @@ div.listitem.dirfolderrow > div {
 div.dirfolderrow div.dirfoldername, div.dirfolderrow div.dirfolderactions {
     position: relative;
 }
-div.dirfolderrow div.dirfoldername > a {
+div.dirfolderrow div.dirfoldername > span {
     position: absolute;
     left: 4px;
     top: 4px;
     white-space: nowrap;
+}
+/* a folder's tree: the folders under it, indented, a lighter band than the open folder's own subfolders */
+div.listitem.dirfolderrow.dirtreeitem > div {
+    background: rgba(214, 214, 214, 0.95);
+}
+button.dirtoggle, span.dirtoggleblank {
+    display: inline-block;
+    width: 18px;
+    vertical-align: middle;
+}
+button.dirtoggle svg.feather {
+    transition: transform .15s;
+}
+button.dirtoggle.direxpanded svg.feather {
+    transform: rotate(90deg);
 }
 div.dirfolderrow div.dirfolderactions > span {
     position: absolute;
@@ -386,12 +401,30 @@ a.dirfolderopen small {
 }
 /* cards view: a folder is a tile like the lists' (the whole name opens it) */
 div.directorycard.dirfoldercard {
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
     padding: 6px;
     align-self: start;
     background: rgba(185, 185, 185, 0.95);
+}
+div.dirfoldercard div.dirfoldertop {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+/* the card's tree: one line per folder under it (each opens, takes drops, and toggles its own tree) */
+div.dirfoldercard div.dirfoldertree {
+    margin-top: 4px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    padding-top: 2px;
+}
+div.dirfoldercard div.dirsubfolder {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 24px;
+    border-radius: 4px;
+}
+div.dirfoldercard div.dirsubfolder a.dirfolderopen {
+    font-size: medium;
 }
 div.dirfoldercard a.dirfolderopen {
     flex: 1;
@@ -401,7 +434,7 @@ div.dirfoldercard a.dirfolderopen {
     gap: 6px;
     overflow-wrap: anywhere;
 }
-div.dirfoldercard a.dirfolderopen > svg.feather {
+div.dirfoldertop a.dirfolderopen > svg.feather {
     width: 34px;
     height: 34px;
     flex: none;
@@ -420,6 +453,102 @@ div.dirpathbar a, div.dirpathbar a:visited {
 }
 div.dirpathbar .dirpathsep {
     color: #777;
+}
+/* drag and drop (lists by their move handle, folders whole) */
+.dirdraghandle {
+    cursor: grab;
+    touch-action: none;       /* touch: a drag from the handle moves the list, it doesn't scroll */
+    -webkit-touch-callout: none;   /* ...and a press on it never selects text or opens the copy menu */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+/* touch: a long-press on a folder starts its drag, not a text selection or the link menu */
+div.dirfolderrow, div.dirfoldercard {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+/* touch drag: the dragged list's or folder's name, following the finger */
+div.dirdragghost {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    padding: 8px 14px;
+    max-width: 85vw;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.97);
+    border: 3px solid #777;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    font-family: "L5R Title";
+    font-size: x-large;
+}
+div.dirdragghost .dirghostname {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+div.dirdragghost .dirghostname svg.feather {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.15em;
+}
+div.dirdragghost .dirghosttarget {
+    font-family: "Times New Roman",Georgia,Serif;
+    font-size: large;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+div.dirdragghost.dirghostok {
+    border-color: #1aa329;
+}
+div.dirdragghost.dirghostok .dirghosttarget {
+    color: #137a1f;
+    font-weight: bold;
+}
+/* the list or folder being dragged */
+#resultdir .dirdragsource {
+    opacity: 0.4;
+}
+div.listimage.dirdraghandle svg.feather {
+    width: 12px;
+    height: 12px;
+    color: #777;
+    vertical-align: middle;
+}
+/* the card's handle: the whole left end of the title bar, top to bottom, set off from the editable name */
+div.directorycard .dircardhead > .dirdraghandle {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    margin: -4px 0 -4px -6px;
+    padding: 4px 8px 4px 6px;
+    border-right: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 7px 0 0 0;
+}
+div.directorycard .dircardhead > .dirdraghandle:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+div.dirfolderrow, div.dirfoldercard, div.dirsubfolder {
+    cursor: grab;
+}
+div.dirfolderrow a, div.dirfoldercard a, div.dirfolderrow button, div.dirfoldercard button {
+    cursor: pointer;
+}
+#resultdir.dirdragging div.dirfoldercard, #resultdir.dirdragging div.dirsubfolder, #resultdir.dirdragging div.dirpathbar [data-dirdrop] {
+    outline: 1px dashed #777;
+    outline-offset: -1px;
+}
+#resultdir .dirdropover, #resultdir.dirdragging .dirdropover {
+    outline: 2px solid #1aa329;
+    outline-offset: -2px;
+    background: rgba(203, 236, 207, 0.97);
+}
+div.listitem.dirfolderrow.dirdropover > div {
+    background: rgba(170, 222, 176, 0.95);
 }
 div.dirempty .randarea {
     padding: 8px;
@@ -1211,12 +1340,26 @@ div#phonesearchbar .numresults {
   div.directorycard .dircardactions {
     gap: 14px;
   }
-  div.dirfoldercard > button.iiconic, div.dirpathbar button.iiconic {
+  div.dirfoldertop > button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
     height: auto;
   }
-  div.dirfoldercard svg.feather, div.dirpathbar button.iiconic svg.feather {
+  div.dirfoldertop svg.feather, div.dirpathbar button.iiconic svg.feather, div.directorycard .dircardhead > .dirdraghandle svg.feather {
     width: 42px;
     height: 42px;
+  }
+  div.dirfoldertop button.dirtoggle, div.dirfoldertop span.dirtoggleblank {
+    width: 42px;
+  }
+  div.dirsubfolder svg.feather {
+    width: 32px;
+    height: 32px;
+  }
+  div.dirsubfolder button.dirtoggle, div.dirsubfolder span.dirtoggleblank {
+    width: 32px;
+  }
+  div.listimage.dirdraghandle svg.feather {
+    width: 26px;
+    height: 26px;
   }
   .gameinfo-game .gamename, li.numresultsmenu {
     display: none !important;

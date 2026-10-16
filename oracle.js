@@ -529,17 +529,27 @@ function renderdirectory() {
   var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
-  // the open folder's subfolders (by name), then its lists (in the directory sort)
-  var subfolders = folderchildren(path).map(function(folder) {
+  // the open folder's subfolders (by name), each with every folder under it (tree: shown as far as it's
+  // expanded, see applydirtree), then its lists (in the directory sort). depth counts from the open folder.
+  var pathdepth = path ? path.split('/').length : 0;
+  var folderitem = function(folder) {
     var counts = foldercounts(folder);
-    return {"folder": folder, "name": foldername(folder), "lists": counts.lists, "folders": counts.folders};
+    return {"folder": folder, "name": foldername(folder), "lists": counts.lists, "folders": counts.folders,
+            "depth": folder.split('/').length - pathdepth - 1};
+  };
+  var subfolders = folderchildren(path).map(function(folder) {
+    var item = folderitem(folder);
+    item.tree = foldertree(folder).map(folderitem);
+    return item;
   });
+  // the table draws the tree as rows after its folder; a folder card holds its own
+  var folderrows = view == 'cards' ? subfolders : subfolders.reduce(function(rows,item) { return rows.concat([item],item.tree); },[]);
   var lists = sortlists(dir.lists.Items.filter(function(list) { return listfolder(list) == path; }),sort);
-  var html = foldertemplate.render(subfolders) + listtemplate.render(lists,ctx);
+  var html = foldertemplate.render(folderrows) + listtemplate.render(lists,ctx);
   if(!subfolders.length && !lists.length && path) {
-    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or move a list in with its Folder menu.</div></div>';
+    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or drag a list onto a folder (or use its Folder menu).</div></div>';
   }
-  $("#dirpathbar").html($.templates("#template-dirpath").render({"path": path, "crumbs": foldercrumbs(path)})).show();
+  $("#dirpathbar").html($.templates("#template-dirpath").render({"path": path, "parent": folderparent(path), "crumbs": foldercrumbs(path)})).show();
   $(".directorylistitem").remove();
   if(view == 'cards') {
     $("#directorycards").html($.templates("#template-listnewcard").render({})+html).show();
@@ -549,6 +559,7 @@ function renderdirectory() {
     $(html).insertAfter(".directorylistheader");
     $("#directorytable").show();
   }
+  applydirtree();
   updatedirbuttons();
   //acknowledgement message
   $('#resultdir [contenteditable=true][id^="list_"]').blur(function(){
@@ -602,6 +613,10 @@ function dirfolders() {
 function folderchildren(path) {
   return dirfolders().filter(function(folder) { return folderparent(folder) == path; })
     .sort(function(a,b) { return foldercmp(foldername(a),foldername(b)); });
+}
+// every folder under folder, depth first (each folder's subfolders right after it, by name)
+function foldertree(folder) {
+  return folderchildren(folder).reduce(function(all,child) { return all.concat([child],foldertree(child)); },[]);
 }
 function foldercounts(folder) {
   var dir = cache_thing("list","data");
@@ -744,9 +759,271 @@ function movefolders(folder,move,removing) {
     if(!ok) { renderdirectory(); return; }
     var path = dirpath();
     if(infolder(folder,path)) { dirpath(removing && path == folder ? folderparent(folder) : move(path)); }
+    // expanded folders stay expanded under their new paths
+    cache_thing("dir","expanded",direxpanded().filter(function(f) { return !(removing && f == folder); }).map(move));
     updatelistfolders(listids,function(list) { return move(listfolder(list)); });
   });
 }
+// drag a folder into another (or to the top level): like a rename, its subfolders and lists move with it
+function movefolderinto(folder,target) {
+  var moved = newfolderpath(target,foldername(folder));
+  if(!moved) { return; }
+  if(dirfolders().indexOf(moved) > -1 && !confirm("\""+foldername(folder)+"\" already exists in "+
+      (target ? "\""+foldername(target)+"\"" : "the top level")+". Merge the two folders?")) { return; }
+  movefolders(folder,function(path) { return infolder(folder,path) ? moved+path.slice(folder.length) : path; });
+}
+
+// ***********************  directory folder tree **************
+// A folder with subfolders has a toggle that shows them under it (all of them are drawn; applydirtree hides
+// the ones under collapsed folders). The expanded folders are kept per browser and game.
+function direxpanded() {
+  var expanded = cache_thing("dir","expanded");
+  return Array.isArray(expanded) ? expanded : [];
+}
+function setdirexpanded(folder,open) {
+  var expanded = direxpanded().filter(function(f) { return f != folder; });
+  if(open) { expanded.push(folder); }
+  cache_thing("dir","expanded",expanded);
+  applydirtree();
+}
+function toggledirfolder(el) {
+  var folder = eventfolder(el);
+  setdirexpanded(folder,direxpanded().indexOf(folder) < 0);
+}
+// a tree folder shows when every folder between the open one and it is expanded
+function applydirtree() {
+  var expanded = direxpanded(), path = dirpath();
+  $("#resultdir .dirtreeitem[data-folder]").each(function() {
+    var shown = true, up = folderparent(this.getAttribute("data-folder"));
+    while(shown && up && up != path) {
+      shown = expanded.indexOf(up) > -1;
+      up = folderparent(up);
+    }
+    $(this).toggle(shown);
+  });
+  $("#resultdir .dirfoldertree").each(function() {
+    $(this).toggle(expanded.indexOf(eventfolder(this)) > -1);
+  });
+  $("#resultdir .dirtoggle").each(function() {
+    var open = expanded.indexOf(eventfolder(this)) > -1;
+    $(this).toggleClass("direxpanded",open).attr("aria-label",open ? "Hide subfolders" : "Show subfolders");
+  });
+}
+
+// ***********************  directory drag and drop **************
+// Drag a list (by its move handle) or a folder onto a folder (a row, a card, or a folder in an expanded tree)
+// or onto the path bar (All lists = the top level) to move it there. Holding it over a collapsed folder
+// opens that folder's tree. The Folder menu does the same without dragging.
+// Mice use HTML5 drag and drop. Touch has its own drag (Android Chrome doesn't drag from touch): a list
+// drags from its handle straight away, a folder after a long-press, so a swipe across folders still scrolls.
+// Both show the same label by the pointer, naming what's moving and where it would go; the item moved fades.
+var dirdrag = null;            // what's being dragged: {"listid": id} or {"folder": path}
+var dirdragexpand = null;      // timer for opening the folder held over
+var dirtouch = null;           // a touch on something draggable: {el, handle, x, y, timer, scroll}
+var dirghost = null;           // the drag label
+// mouse drags show the label instead of the browser's drag image, which can't change as it moves
+var dirblankimage = new Image();
+dirblankimage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+function dirdragsource(el) {
+  return $(el).closest("#resultdir [data-draglist], #resultdir [data-dragfolder]");
+}
+function dirdroptarget(el) {
+  return $(el).closest("#resultdir [data-dirdrop]");
+}
+function dirdragof(el) {
+  return el.is("[data-draglist]") ? {"listid": el.attr("data-draglist")} : {"folder": el.attr("data-folder")};
+}
+function dirdropok(drag,target) {
+  if(!drag || typeof target != 'string') { return false; }
+  if(drag.listid) {
+    var dir = cache_thing("list","data"), index = cache_thing("list","datareverse")[drag.listid];
+    return !!dir.lists.Items[index] && listfolder(dir.lists.Items[index]) != target;
+  }
+  return target != folderparent(drag.folder) && !infolder(drag.folder,target);
+}
+function dirdropclear() {
+  $("#resultdir .dirdropover").removeClass("dirdropover");
+  clearTimeout(dirdragexpand);
+  dirdragexpand = null;
+}
+function dirdragdone() {
+  dirdrag = null;
+  dirdropclear();
+  $("#resultdir").removeClass("dirdragging");
+  $("#resultdir .dirdragsource").removeClass("dirdragsource");
+  if(dirghost) {
+    dirghost.remove();
+    dirghost = null;
+  }
+  if(dirtouch) {
+    clearTimeout(dirtouch.timer);
+    clearInterval(dirtouch.scroll);
+    dirtouch = null;
+  }
+}
+// start showing the drag: the label, and source (the handle or folder dragged) faded
+function dirghostshow(source) {
+  var label = dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : foldername(dirdrag.folder);
+  dirghost = $('<div class="dirdragghost"><div class="dirghostname"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+
+    (dirdrag.listid ? 'move' : 'folder')+'"></svg> <span></span></div><div class="dirghosttarget"></div></div>').appendTo("body");
+  dirghost.find(".dirghostname span").text(label || dirdrag.listid);
+  $("#resultdir").addClass("dirdragging");
+  source.closest(".directorylistitem, .dirsubfolder").addClass("dirdragsource");
+}
+// the label at the pointer (x,y): above a finger, below and right of a mouse pointer, kept on screen.
+// ok: the folder under the pointer takes the drop.
+function dirghostat(x,y,ok,folder,touch) {
+  if(!dirghost) { return; }
+  dirghost.toggleClass("dirghostok",ok).find(".dirghosttarget")
+    .text(ok ? "\u2192 "+(folder ? foldername(folder) : "All lists (top level)") : "Drag onto a folder");
+  var w = dirghost.outerWidth(), h = dirghost.outerHeight();
+  var left = touch ? x-w/2 : x+16, top = touch ? y-h-40 : y+20;
+  dirghost.css({"left": Math.max(6,Math.min(left,window.innerWidth-w-6)), "top": Math.max(6,Math.min(top,window.innerHeight-h-6))});
+}
+// dragging over el: highlight it if it takes the drop, and open it if it's held there; true when it takes it
+function dirdragover(el) {
+  if(!el.length || !dirdropok(dirdrag,el.attr("data-folder"))) {
+    dirdropclear();
+    return false;
+  }
+  if(el.hasClass("dirdropover")) { return true; }
+  dirdropclear();
+  el.addClass("dirdropover");
+  var folder = el.attr("data-folder");
+  if(el.find(".dirtoggle").filter(function() { return eventfolder(this) == folder; }).length && direxpanded().indexOf(folder) < 0) {
+    dirdragexpand = setTimeout(function() { setdirexpanded(folder,true); },700);
+  }
+  return true;
+}
+// the drop: file the list or move the folder into el's folder
+function dirdropon(el) {
+  var drag = dirdrag, target = el.length ? el.attr("data-folder") : null;
+  dirdragdone();
+  if(!dirdropok(drag,target)) { return; }
+  if(drag.listid) {
+    updatelistfolders([drag.listid],function() { return target; });
+  } else {
+    movefolderinto(drag.folder,target);
+  }
+}
+$(document).on("dragstart",function(e) {
+  var el = dirdragsource(e.target);
+  if(!el.length) { return; }
+  if(dirtouch) {          // iOS drags from touch too: the touch drag below handles it
+    e.preventDefault();
+    return;
+  }
+  var dt = e.originalEvent.dataTransfer;
+  dirdrag = dirdragof(el);
+  if(dt.setDragImage) { dt.setDragImage(dirblankimage,0,0); }
+  dt.setData("text/plain",dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : dirdrag.folder);
+  dt.effectAllowed = "move";
+  var x = e.originalEvent.clientX, y = e.originalEvent.clientY;
+  // after the drag has started, so the browser doesn't snapshot the fading and outlines
+  setTimeout(function() {
+    if(dirdrag && !dirghost) {
+      dirghostshow(el);
+      dirghostat(x,y,false,null);
+    }
+  },0);
+});
+$(document).on("dragover",function(e) {
+  if(!dirdrag || dirtouch) { return; }
+  var el = dirdroptarget(e.target), ok = dirdragover(el);
+  dirghostat(e.originalEvent.clientX,e.originalEvent.clientY,ok,el.attr("data-folder"));
+  if(ok) {
+    e.preventDefault();
+    e.originalEvent.dataTransfer.dropEffect = "move";
+  }
+});
+$(document).on("drop",function(e) {
+  if(!dirdrag || dirtouch) { return; }
+  var el = dirdroptarget(e.target);
+  if(el.length) { e.preventDefault(); }
+  dirdropon(el);
+});
+$(document).on("dragend",function() {
+  if(!dirtouch) { dirdragdone(); }
+});
+// touch drag: what's under the finger is the target
+function dirtouchbegin() {
+  if(!dirtouch || dirdrag) { return; }
+  dirdrag = dirdragof(dirtouch.el);
+  if(window.getSelection) { window.getSelection().removeAllRanges(); }
+  dirghostshow(dirtouch.el);
+  if(navigator.vibrate) { navigator.vibrate(15); }
+  dirtouchmove(dirtouch.x,dirtouch.y);
+}
+function dirtouchover() {
+  var el = dirdroptarget(document.elementFromPoint(dirtouch.x,dirtouch.y));
+  dirghostat(dirtouch.x,dirtouch.y,dirdragover(el),el.attr("data-folder"),true);
+}
+function dirtouchmove(x,y) {
+  dirtouch.x = x;
+  dirtouch.y = y;
+  dirtouchover();
+  // held near the top or bottom: scroll the directory
+  var step = y < 80 ? -14 : (y > window.innerHeight-80 ? 14 : 0);
+  clearInterval(dirtouch.scroll);
+  if(step) {
+    dirtouch.scroll = setInterval(function() {
+      if(!dirtouch) { return; }
+      document.getElementById("resultdir").scrollTop += step;
+      window.scrollBy(0,step);
+      dirtouchover();
+    },30);
+  }
+}
+document.addEventListener("touchstart",function(e) {
+  if(dirdrag || e.touches.length != 1) { return; }
+  var el = dirdragsource(e.target);
+  if(!el.length) { return; }
+  var t = e.touches[0];
+  dirtouch = {"el": el, "handle": el.is("[data-draglist]"), "x": t.clientX, "y": t.clientY, "x0": t.clientX, "y0": t.clientY};
+  // a handle also starts on a short hold, before the browser's long-press can select text
+  dirtouch.timer = setTimeout(dirtouchbegin,dirtouch.handle ? 150 : 400);
+},{passive: true});
+document.addEventListener("touchmove",function(e) {
+  if(!dirtouch) { return; }
+  var t = e.touches[0];
+  if(!dirdrag) {
+    var moved = Math.hypot(t.clientX-dirtouch.x,t.clientY-dirtouch.y);
+    if(!dirtouch.handle) {
+      if(moved > 10) { dirdragdone(); }   // a swipe before the long-press: let it scroll
+      return;
+    }
+    if(moved < 5) { return; }
+    dirtouchbegin();
+  }
+  e.preventDefault();
+  if(Math.hypot(t.clientX-dirtouch.x0,t.clientY-dirtouch.y0) >= 5) { dirtouch.moved = true; }
+  dirtouchmove(t.clientX,t.clientY);
+},{passive: false});
+document.addEventListener("touchend",function(e) {
+  if(!dirtouch) { return; }
+  if(!dirdrag) {
+    clearTimeout(dirtouch.timer);
+    dirtouch = null;
+    return;
+  }
+  if(dirtouch.handle && !dirtouch.moved) {     // held still and let go: a tap (the table's Id cell opens the list)
+    dirdragdone();
+    return;
+  }
+  e.preventDefault();     // no click on whatever is under the finger
+  dirdropon(dirdroptarget(document.elementFromPoint(dirtouch.x,dirtouch.y)));
+},{passive: false});
+document.addEventListener("touchcancel",function() {
+  if(dirtouch) { dirdragdone(); }
+});
+// a long-press on a handle or folder mustn't select text or open the browser's link or copy menu
+document.addEventListener("contextmenu",function(e) {
+  if(dirtouch && dirdragsource(e.target).length) { e.preventDefault(); }
+});
+document.addEventListener("selectstart",function(e) {
+  if(dirtouch) { e.preventDefault(); }
+});
+
 // File lists: folderof(list) gives each list's new folder. One update per list, then the directory is
 // redrawn from the cache (filing doesn't change modified, so the cached directory stays right without a refetch).
 function updatelistfolders(listids,folderof) {
