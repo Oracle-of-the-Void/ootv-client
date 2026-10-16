@@ -4142,21 +4142,39 @@ function deckswipeapply(listid, cardid, prid, act, named=false) {
 	deckswipetoast((n > 0 ? '+' : '\u2212') + Math.abs(n) + ' ' + title + ' (' + (have + n) + ')');
     }
 }
-// an adding swipe in search with no active list: pick a list (newest modified first), activate it, then add the card
+// an adding swipe in search with no active list: pick a list, activate it, then add the card.
+// The picker is a folder tree: folders first (by name, collapsed; a click opens or closes one), then lists (newest modified first).
 var deckswipepending = null;
 function deckswipepicklist(cardid, prid, act) {
     var lists = cache_thing("list","data").lists.Items.slice().sort(function(a,b) { return dirsortkey(b,'modified') - dirsortkey(a,'modified'); });
     deckswipepending = {cardid: cardid, prid: prid, act: act};
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
+    var root = {folders: {}, lists: []};
+    lists.forEach(function(list) {
+	var node = root;
+	listfolder(list).split('/').filter(function(f) { return f; }).forEach(function(f) {
+	    node = node.folders[f] = node.folders[f] || {folders: {}, lists: []};
+	});
+	node.lists.push(list);
+    });
     modal('Add ' + title + ' to which list?',
 	'<p>No list is active. Pick one to activate and add the card to:</p><ul class="swipepicklist">' +
-	'<li onclick="this.onclick=null; newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
-	lists.map(function(list) {
-	    var where = [list.type, listfolder(list)].filter(function(x) { return x; }).join(' \u00b7 ');
-	    return '<li onclick="deckswipepicked(\'' + list.listid + '\');">' + $('<div>').text(list.name || list.listid).html() +
-		(where ? ' <span class="swipepickwhere">' + $('<div>').text(where).html() + '</span>' : '') + '</li>';
-	}).join('') + '</ul>');
+	'<li class="swipepicklistitem" onclick="this.onclick=null; newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
+	deckswipepicktree(root) + '</ul>');
+}
+function deckswipepicktree(node) {
+    var esc = function(t) { return $('<div>').text(t).html(); };
+    return Object.keys(node.folders).sort(foldercmp).map(function(f) {
+	var sub = node.folders[f];
+	return '<li class="swipepickfolder"><div class="swipepicklistitem" onclick="$(this).parent().toggleClass(\'open\');">' +
+	    '<svg class="feather swipepickchevron"><use xlink:href="res/feather-sprite.svg#chevron-right"></svg>' +
+	    '<svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> ' + esc(f) + '</div>' +
+	    '<ul>' + deckswipepicktree(sub) + '</ul></li>';
+    }).join('') + node.lists.map(function(list) {
+	return '<li class="swipepicklistitem" onclick="deckswipepicked(\'' + list.listid + '\');">' + esc(list.name || list.listid) +
+	    (list.type ? ' <span class="swipepickwhere">' + esc(list.type) + '</span>' : '') + '</li>';
+    }).join('');
 }
 function deckswipepicked(listid) {
     var p = deckswipepending;
