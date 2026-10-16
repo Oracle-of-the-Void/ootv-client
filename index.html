@@ -1021,14 +1021,14 @@ printingprimary
 <script id="template-textversion" type="text/x-jsrender">
 {{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</dd>{{else}}<div class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</div>{{/if}}{{/if}}
 </script>
-<!-- the Showing: button itself; ~page: the search results' one button (data: the page's summary). With nothing to
-     flip it's a span: "MRP text" when no card shows a picked printing (search results only, which always show
+<!-- the Showing: button itself; ~page ('search' / 'list'): the page's one button (data: the page's summary). With
+     nothing to flip it's a span: "MRP text" when no card shows a picked printing (only pages, which always show
      the button), "No printing fields found" when one does but none differs; a click explains why (textversionnotip). -->
 <script id="template-textversionbutton" type="text/x-jsrender">
 {{if textdiff && textdiff.length}}<button type="button" class="button gray buttonsmaller textversion{{if textversion!='mrp'}} textversionprinted{{/if}}" aria-pressed="{{:textversion=='mrp'}}"
   title="{{if textversion=='mrp'}}Showing the cards' current wording. Press for the wording printed on {{if ~page}}the versions shown{{else}}this version{{/if}}.{{else}}Showing the wording printed on {{if ~page}}the versions shown{{else}}this version{{/if}}. Press for the cards' current (MRP) wording. Highlighted fields differ from the current wording.{{/if}}"
   onclick="toggletextversion(this); return false;">Showing: {{if textversion=='mrp'}}MRP{{else}}Printed{{/if}} text</button>{{else !textprinting}}<span class="button gray buttonsmaller textversion textversionnone"
-  title="No version is picked for these cards (search on a version's field, like set or rarity, to pick one), so only their current (MRP) wording applies."
+  title="{{if ~page=='list'}}None of these cards was listed with a specific version{{else}}No version is picked for these cards (search on a version's field, like set or rarity, to pick one){{/if}}, so only their current (MRP) wording applies."
   onclick="textversionnotip(this);">Showing: MRP text</span>{{else}}<span class="button gray buttonsmaller textversion textversionnone"
   title="{{if ~page}}None of the versions shown has{{else}}This version's printing has no{{/if}} wording of its own that differs from the card's, so both show the same text."
   onclick="textversionnotip(this);">Showing: No printing fields found</span>{{/if}}
