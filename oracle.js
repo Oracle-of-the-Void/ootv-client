@@ -541,6 +541,7 @@ function renderdirectory() {
   var view = dirviewstate(), sort = dirsortstate();
   var path = dirpath();
   var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
+  applyfolderselect();
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
   // the open folder's subfolders (by name), each with every folder under it (tree: shown as far as it's
@@ -2701,6 +2702,7 @@ var gestureswitches = [
   ['deckswipemouse', 'Click-drag a card image or Simple List title to change its count (mouse)'],
   ['dirdragtouch', 'Drag lists and folders in the list directory (touch)'],
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
+  ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"]
 ];
 // card swipes, per view: search results change the first active list, the deck/list view the list shown
@@ -2781,13 +2783,19 @@ function savegestures(status, g, done) {
   if(searchloggedin()) {
     saveallsetting('gestures', g, status, function() {
       status.text("Saved.");
+      applyfolderselect();
       if(done) { done(); }
     });
   } else {
     cache_session("gestures", g || {});
     status.text("Saved in this browser.");
+    applyfolderselect();
     if(done) { done(); }
   }
+}
+// the dirfolderselect switch: off hides the list directory's Folder column (table) and Folder select (cards)
+function applyfolderselect() {
+  $('#resultdir').toggleClass('nofolderselect', !gestureon('dirfolderselect'));
 }
 function resetgestures(el) {
   clearTimeout(gesturesavetimer);
