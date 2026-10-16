@@ -2307,18 +2307,23 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	createpdf(listdata,listoutput);
 	break;
     default:
+	var listtmpl = {
+		"labels": labels[database],
+		datarequest:{'listid':listid,'sort':sort},
+		"database":database
+	};
+	// the template's vars (visual-premium: imageclass details), and the Deck format's large size
+	var override = getactivetemplateoverride('list');
+	for ( v in override.var?override.var:{}) {
+	    listtmpl[v] = override.var[v];
+	}
+	if(templates[database]['active']['list'] == 'visual-deck' && largeview['list']) {
+	    listtmpl['imageclass'] = 'details';
+	}
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(gameheaderize[sort] != undefined ? gameheaderize[sort](listdata) : listdata,{
-		"labels": labels[database],
-		datarequest:{'listid':listid,'sort':sort},
-		"database":database
-	    });
+	    var html = getactivetemplate('list').render(gameheaderize[sort] != undefined ? gameheaderize[sort](listdata) : listdata,listtmpl);
 	} else {
-	    var html = getactivetemplate('list').render(listdata,{
-		"labels": labels[database],
-		datarequest:{'listid':listid,'sort':sort},
-		"database":database
-	    });
+	    var html = getactivetemplate('list').render(listdata,listtmpl);
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
@@ -4568,14 +4573,20 @@ function setlargeview(large) {
 	  } else {
 	    active[type] = want;
 	  }
+  } else if(type == 'list' && active[type] == 'visual-deck' && currentresulttab() == type) {
+	  activatetemplate(type,'visual-deck'); // the Deck format has no -premium template: renderlist sizes it from largeview
   }
   updatesizebuttons();
 }
-// size buttons follow the view in play; the group hides where the game has no large version
+// size buttons follow the view in play; the group hides where the game has no large version,
+// and on formats without one (Detailed, Simple List, Text). The Deck format (lists) follows the visual size.
 function updatesizebuttons() {
   var type = viewbuttontype();
-  var large = templates[database]['available'][(type == 'card' ? 'card' : 'visual')+'-premium'];
-  $("#sizebuttons").toggle(large !== undefined && large.places.includes(type));
+  var family = (type == 'card') ? 'card' : 'visual';
+  var large = templates[database]['available'][family+'-premium'];
+  var active = (templates[database]['active'][type]||'').replace(/-premium$/,'');
+  var sized = active == family || (type == 'list' && active == 'visual-deck');
+  $("#sizebuttons").toggle(large !== undefined && large.places.includes(type) && sized);
   $("#sizebuttons button[data-size]").each(function() {
 	  $(this).toggleClass("searchviewactive", ($(this).data("size") == 'large') == largeview[type]);
   });
