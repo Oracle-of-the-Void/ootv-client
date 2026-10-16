@@ -1551,3 +1551,8 @@ table.discord tr.discordnew td { background: #f6f6f0; }
   color: #666;
   font-size: smaller;
 }
+
+/* Gestures setting "Folder pulldown" off (applyfolderselect in oracle.js) */
+#resultdir.nofolderselect .dirfoldercell {
+  display: none;
+}
