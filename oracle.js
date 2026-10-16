@@ -3630,7 +3630,7 @@ function bubbleup(data,request=null,prid=null) {
   // printingid, ...), not the ones the card has too, so the card's (MRP) wording shows. A card a printing
   // was picked for gets textprinting (its printingid, so #template-textversion shows the Showing: button),
   // textversion, and textdiff: the fields whose wording differs between the printing and the card (what
-  // the button flips; empty: "No printing fields found"). markprinteddiffs highlights them.
+  // the button flips; empty: "No printing fields found"). markprinteddiffs highlights them in printed mode.
   // note: expects array of cards - for a single card send array of one, and deref
   if(request == null) { request = {}; }
   if(typeof request === "string") {
@@ -3685,15 +3685,16 @@ function bubbleup(data,request=null,prid=null) {
   });
 }
 
-// Wrap each field in textdiff (from bubbleup) in span.printeddiff, a subtle highlight of the wording the
-// Showing: button changes. Run it last, right before rendering: list headers group on the plain values.
-// The class is unquoted so a wrapped value can still sit inside a quoted attribute or an onclick string.
+// Showing the printed wording: wrap each field in textdiff (from bubbleup), the ones that differ from the
+// card's, in span.printeddiff, a subtle highlight in the Printed version button's color. The MRP wording
+// isn't highlighted. Run it last, right before rendering: list headers group on the plain values. The class
+// is unquoted so a wrapped value can still sit inside a quoted attribute or an onclick string.
 function markprinteddiffs(data) {
   var mark = function(v) {
     return (typeof v === "string" && v !== "") || typeof v === "number" ? '<span class=printeddiff>'+v+'</span>' : v;
   };
   return data.map(function(card) {
-    if (!card || !Array.isArray(card.textdiff) || !card.textdiff.length) {
+    if (!card || card.textversion == 'mrp' || !Array.isArray(card.textdiff) || !card.textdiff.length) {
       return card;
     }
     card.textdiff.forEach(function(key) {
