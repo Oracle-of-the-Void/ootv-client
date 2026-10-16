@@ -1511,3 +1511,38 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 #newversion .button { color: #fff; border: solid 1px #7a0a0a; background: linear-gradient(#d23a3a, #9c1414); }
 #newversion .button:hover { background: linear-gradient(#bf2e2e, #851010); }
 #newversion .feather { stroke: #fff; }
+
+/* swipe list picker (deckswipepicklist in oracle.js) */
+.swipepicklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.swipepicklist ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 18px;
+}
+.swipepicklistitem {
+  padding: 8px 6px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}
+.swipepicklistitem:hover {
+  background-color: rgba(0,0,0,0.08);
+}
+.swipepickfolder:not(.open) > ul {
+  display: none;
+}
+.swipepickchevron {
+  transition: transform 0.15s;
+}
+.swipepickfolder.open > div > .swipepickchevron {
+  transform: rotate(90deg);
+}
+.swipepickwhere {
+  color: #666;
+  font-size: smaller;
+}

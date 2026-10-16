@@ -767,6 +767,7 @@ printingprimary
   <label class="gestureswitch"><input type="checkbox" data-gesture="{{:key}}"{{if on}} checked{{/if}} onchange="gesturechanged(this);"/> {{>label}}</label>
   {{/for}}
   <p>A card swipe changes the card's count: in search results on the first active list, in a deck or list on the list shown.
+    With no active list, a swipe that adds asks which list to activate.
     Right and left are within 30&deg; of level; up-right and up-left are 30&ndash;65&deg; above it. Going to 0 asks first.</p>
   {{for gestures.views}}
   <h4>{{>label}}</h4>
