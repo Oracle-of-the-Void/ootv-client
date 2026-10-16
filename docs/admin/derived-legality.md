@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-15
+Last updated: 2026-10-16
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -40,7 +40,13 @@ later printing on the card. A derived entry's `prefer` comes first: Ivory Extend
 Ivory printing even when a Twenty Festivals one is later. Printings marked `notmrp: true` are
 skipped, so a later expansion reprint can be kept from standing for its arc. For example,
 Ring of the Void in Jade shows Siege of Sleeping Mountain unless that printing is `notmrp`; then
-it shows Pearl. The Discord bot picks the same way.
+it shows Pearl. The Discord bot picks the same way, and so does a decklist import's `Legality:` line.
+
+`notmrp` is set on: Siege of Sleeping Mountain, the Promotional–Emperor Rings and full-bleed
+Personalities/Strongholds (2026-10-15), and the Imperial-arc starter-deck reprints (2026-10-16, 315
+printings). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
+honor/gold variants, Isawa Tomo (Time of the Void) and Summon Faeries (Shadowlands, Anvil of Despair,
+Crimson and Jade).
 
 ## How a rule works
 
