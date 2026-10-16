@@ -22,6 +22,17 @@ Notes:
 - Maybe separate touch and mouse switches for deck swipe, since accidental click-drags on
   desktop and accidental swipes on a phone are different annoyances.
 
+### Change the deck swipe amounts by view
+
+Swiping up-left should **add** +2 in the deck/list view and +3 in search results.
+`deckswipeend()` picks the amount from the angle: right +1, up-right (30–65°) +3,
+left -1, up-left (115–150°) -3, the same in every view. The view can be told apart by
+`s.a.data('list')`, which is set on links in the deck/list view and not in search results
+(`deckswipeapply` already uses it). Up-left is -3 today, so making it add leaves no
+gesture for removing more than 1 at a time. Decide what replaces that, e.g. up-right
+-2/-3 or a down-diagonal, then update the comment above `deckswipe` and the swipe list in
+`docs/MOBILE.md`.
+
 ## Dead legacy image code in oracle.js (noted 2026-10-15)
 
 Found while checking that a card can mix legacy (`printimagehash`) and modern
