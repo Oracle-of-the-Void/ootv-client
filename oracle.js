@@ -2348,6 +2348,9 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    a.click();
 	} else {
 	    $("#resultlist").html(listheader(listid)+listmissing(listid,missing)+html);
+	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
+	    // since it rewrites the .listbody html
+	    updates[database]('#resultlist');
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
