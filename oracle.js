@@ -3841,20 +3841,32 @@ function toggletextversion(el) {
   } catch(e) {}
   redrawtextversion();
 }
-// The search results' one Showing: button (menubar on desktop, #phonetextversion on phones): shown when
-// any result loaded so far shows a picked printing; it offers the toggle when any of those differs in wording.
+// The search results' one Showing: button (menubar on desktop, #phonetextversion on phones), on every search:
+// it offers the toggle when any result loaded so far shows a picked printing that differs in wording, and
+// shows "MRP text" when none shows a picked printing.
 function searchtextversion(qs) {
   var ids = (qs && searchcache[database]['querydata'][qs]) || [];
   var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs || ''));
-  pagetextversion('.searchtextversion', bubbleup(ids.map(cache_card_fetch), request));
+  pagetextversion('.searchtextversion', bubbleup(ids.map(cache_card_fetch), request), true);
 }
 // a page's one Showing: button (search results, list view) into the elements matching sel, from its cards
-// as bubbleup returned them: none when no card shows a picked printing
-function pagetextversion(sel,shown) {
+// as bubbleup returned them: when no card shows a picked printing, none, or with always the MRP one
+function pagetextversion(sel,shown,always=false) {
   var page = {'textprinting': shown.some(function(c) { return c && c.textprinting; }),
               'textdiff': shown.some(function(c) { return c && c.textdiff && c.textdiff.length; }) ? [true] : [],
               'textversion': textversionnow()};
-  $(sel).html(page.textprinting ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
+  $(sel).html(page.textprinting || always ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
+}
+// a click on a Showing: button with nothing to flip: its title as a balloon under it for a moment (touch too)
+function textversionnotip(el) {
+  var tip = $(el);
+  var text = tip.attr('title') || tip.data('notiptitle');
+  clearTimeout(tip.data('notiptimer'));
+  tip.data('notiptitle', text).removeAttr('title'); // no native tooltip on top of it
+  tip.attr({'aria-label': text, 'data-balloon-pos': 'down-left', 'data-balloon-length': 'large', 'data-balloon-visible': ''});
+  tip.data('notiptimer', setTimeout(function() {
+    tip.removeAttr('aria-label data-balloon-pos data-balloon-length data-balloon-visible').attr('title', tip.data('notiptitle'));
+  }, 2500));
 }
 // re-render what shows card text in place: the search results and card view (refreshactivelistviews
 // keeps the scroll) and the list view
