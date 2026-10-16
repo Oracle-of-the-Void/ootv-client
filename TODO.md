@@ -1,5 +1,38 @@
 # TODO
 
+## Setting to turn off gestures, all or one at a time (noted 2026-10-15)
+
+Add a toggle on the Settings page (`showsettings()`) to turn off the touch/mouse gestures,
+either all at once or each one separately. The gestures today, all in `oracle.js`:
+
+- **Deck swipe** (`deckswipestart`/`deckswipemove`/`deckswipeend`, plus the `mousedown`
+  click-drag version): swiping or dragging a card image or Simple List title (`a.deckswipe`)
+  changes its count in the active list (right +1, left -1, up-right +3, up-left -3).
+- **Directory drag** (the `touchstart` handler near the folder code): dragging a list by its
+  handle, or a folder after a long-press, to move it.
+- **Tooltip long-press** (`[data-balloon-pos]` `pointerdown`/`contextmenu`): shows a button's
+  label for 1.5 s on touch and blocks the browser's long-press menu.
+
+Notes:
+
+- Store it with the other settings: `settings.all` for logged-in users, so it follows them
+  across devices, and in this browser when logged out (like the search settings).
+- Check the flag at the start of each handler. When a gesture is off, let the browser's
+  default behavior through: scrolling, link drag, the long-press menu.
+- Maybe separate touch and mouse switches for deck swipe, since accidental click-drags on
+  desktop and accidental swipes on a phone are different annoyances.
+
+### Change the deck swipe amounts by view
+
+Swiping up-left should **add** +2 in the deck/list view and +3 in search results.
+`deckswipeend()` picks the amount from the angle: right +1, up-right (30–65°) +3,
+left -1, up-left (115–150°) -3, the same in every view. The view can be told apart by
+`s.a.data('list')`, which is set on links in the deck/list view and not in search results
+(`deckswipeapply` already uses it). Up-left is -3 today, so making it add leaves no
+gesture for removing more than 1 at a time. Decide what replaces that, e.g. up-right
+-2/-3 or a down-diagonal, then update the comment above `deckswipe` and the swipe list in
+`docs/MOBILE.md`.
+
 ## Dead legacy image code in oracle.js (noted 2026-10-15)
 
 Found while checking that a card can mix legacy (`printimagehash`) and modern
