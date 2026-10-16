@@ -12,8 +12,8 @@ defined once instead of tagged card by card. Cards never display these values.
 - **Rules:** DynamoDB `oracle-all-structure`, item `database = l5r`, `key = attributes`, field
   `attributes.legality.derived` (a list, one entry per format).
 - **Menu group:** `attributes.legality.optgroupregex`. The "Format" group regex
-  (`Strict|Extended|Modern|Legacy|BigDeck`) must match every derived format, or the name lands
-  in the wrong group. The "Arc" regex excludes `Strict|Extended`. Filters that aren't formats
+  (`Strict|Extended|Modern|Legacy|BigDeck|Obsidian.*Hand`) must match every derived format, or the name lands
+  in the wrong group. Names hold `&nbsp;`, so match a space with `.*`, not `.`. The "Arc" regex excludes `Strict|Extended`. Filters that aren't formats
   (Paper) go in "Misc" (`Proxy|Unreleased|Paper`).
 - **Per-card overrides:** the card field `legalityderivedexception`
   (`{ "add": [names], "remove": [names] }`), edited on the card itself.
@@ -75,7 +75,7 @@ Exceptions on a card (`legalityderivedexception`) override the rule:
 
 ## Common exclusions
 
-Legacy, Modern and BigDeck share these `none` clauses:
+Legacy, Modern, BigDeck and Obsidian Hand share these `none` clauses:
 
 - legality `Unreleased` or `Not Legal (Proxy)`
 - type Proxy, Other, Clock or Territory (Clock and Territory are Siege board pieces)
@@ -265,6 +265,64 @@ A name on a ban list without "(exp)" means only the non-experienced card. That's
 inexperienced Mirumoto Hakahime is banned. Experienced versions are separate cards; check the
 card's title and keywords for "Experienced".
 
+### Obsidian Hand (11,949)
+
+Source: "The Obsidian Hand Ruleset Quickstart and Primer"
+([ClickUp](https://doc.clickup.com/9016365709/d/h/8cpnmmd-636/014766f3e7c6080), also pinned in
+the Sun and Moon Discord's legacy channel). The Obsidian Hand council's ruleset is the Jade Hand
+Council's post-Ivory Legacy with changes, so the card pool is the Legacy clauses, unchanged, with
+Obsidian Hand's own ban list. No prefer: play uses the most recent printings, which is what the
+search shows anyway.
+
+**Ban list** (`remove: Obsidian Hand`). The primer bans the Jade Hand Legacy cards plus its own
+additions. All 12 of Legacy's removals are on it:
+
+| Card | ID | Type |
+|---|---|---|
+| Gates of the Second City | 11142 | Stronghold |
+| House of the Black Lion | 12637 | Stronghold |
+| Nanashi Mura | 5508 | Stronghold |
+| Shrine of the Spirits | 7215 | Stronghold |
+| The Governor's Estate | 8106 | Stronghold |
+| The High House of Light | 8134 | Stronghold |
+| The Shrine of Lady Sun | 8333 | Stronghold |
+| Gozoku Sensei | 2885 | Sensei |
+| Yodin Sensei | 9480 | Sensei |
+| The Master of Five | 8212 | Event |
+| Hantei | 2964 | Personality |
+| Isawa Tadaka, Seven Thunder (exp 2CW) | 12646 | Personality |
+| Moshi Eihime | 5254 | Personality |
+| Breach of Etiquette | 1128 | Strategy |
+| The Final Wave | 8080 | Strategy |
+| Lies, Lies, Lies... | 4726 | Strategy |
+| Recruiting Drive | 6216 | Strategy |
+| Take the Initiative | 7744 | Strategy |
+| Gaijin Merchant | 2755 | Follower |
+| Koan's Jingasa | 10524 | Item |
+| Koan's Robes | 10525 | Item |
+| Minor Oni Servant | 5063 | Follower |
+| Rise from the Ashes | 6342 | Spell |
+
+"Hantei" is only the card of that exact name (Dawn of the Empire). The other Hantei cards stay
+legal, and so do the other three Isawa Tadakas. The experienced Lies, Lies, Lies... (Shattered
+Empire) isn't in Legacy anyway.
+
+**Cards with the Rank (Kabuto) icon** are banned too. No card field records the icon, so these are
+the Legacy cards with a `:Rank…:` symbol in their text, all from Siege: Clan War and Siege: Heart
+of Darkness (21 cards; the 6 Clocks with one are already out as board pieces): The Dark Naga, The
+Quelsa, The Shakash, The Sleepless One, Doji Nashiko (Demon Bride of Fu Leng), Fu Leng, the Ninth
+Kami, The Hidden Heart of Iuchiban, Junzo's Dark Citadel, Knot of Serpents, Baseless Rage, Brutal
+Strike, Inevitability, Malevolence, Warlord's Command, Compromised Supply Lines, Darkness is
+Inevitable, Fallen in Battle, Insidious Influence, Tactical Retreat, Terrifying Presence and
+Unholy Power.
+
+"Unreleased cards/promos" are covered by the common exclusions.
+
+The primer's other rules don't change the card pool, so they aren't modeled: Starting Holdings
+(only the MRPs of Border Keep and Bamboo Harvesters), Rings as their MRPs, cards once ruled the
+same now counting as different for deck building, and the gameplay rules (Dishonor Victory,
+turn structure, player abilities, Performing).
+
 ## Filters
 
 Derived values that aren't formats. They sit in the Legality menu's "Misc" group, and their
@@ -324,3 +382,4 @@ change up through the DynamoDB stream; no cold start is needed.
   `Legacy`/`Modern`, with the ban exceptions renamed to match.
 - 2026-10-14: Paper (ootv-client #240), after `printing.publisher` was backfilled on 18,197
   printings; `listable: false`; the search API's `require_<field>` and the Paper "only" checkbox (below Pub).
+- 2026-10-16: Obsidian Hand (the Legacy clauses with its own ban list, 44 `remove` exceptions).
