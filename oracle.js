@@ -1218,7 +1218,7 @@ function refreshactivelistviews() {
     }
 }
 
-// done(listid): after the new list is in the directory
+// done(listid): after the new list is in the directory (default: make it active)
 function newlist(json=null, done=null) {
     // from the directory or the swipe list picker: ask for a name (cancel: no list), and it goes in the open folder
     if(json === null) {
@@ -1263,6 +1263,8 @@ function newlist(json=null, done=null) {
 	    listinfocallback();
 	    if(done) {
 		done(data.list.Item.listid);
+	    } else {
+		activatelist(String(data.list.Item.listid));
 	    }
 	},
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
