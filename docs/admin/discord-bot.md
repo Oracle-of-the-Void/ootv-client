@@ -1,8 +1,8 @@
 # Discord bot settings
 
-Last updated: 2026-10-15 (required filters, command options)
+Last updated: 2026-10-15 (/oraclebug bug reports)
 
-The Oracle Discord bot (`/card` and `/search` by default) answers in each server it has been
+The Oracle Discord bot (`/card`, `/search` and `/oraclebug` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
 channel searches, filters that narrow every search in a channel, and which commands a
 server gets under which names. The bot picks up a change within 5 minutes, with no deploy.
@@ -57,6 +57,15 @@ query when an option is given, e.g. `/search clan:Crab type:Stronghold`.
 `/card` and `/search` (or a server's own names for them) take `paper:true` for L5R: only cards
 with a paper printing (FRPG, WotC or AEG), shown on that printing. It adds the same
 requirement as a required `legality = Paper` line, on top of the channel's filters.
+
+## Bug reports (/oraclebug)
+
+`/oraclebug about:card` or `about:site` opens a form based on the site's GitHub issue templates
+and files an issue on ootv-client: card problems get the game's database label (e.g.
+`l5r database`), site problems get `bug`. Both also get `discord`, and the issue names the
+reporter's Discord account and channel. A card report needs a game, from the channel or from `game:`.
+Each user can file 3 reports per 15 minutes. To stop a server filing issues, untick
+`oraclebug` in its Commands column and re-register its commands.
 
 ## Commands
 
