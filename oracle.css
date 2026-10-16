@@ -355,11 +355,26 @@ div.listitem.dirfolderrow > div {
 div.dirfolderrow div.dirfoldername, div.dirfolderrow div.dirfolderactions {
     position: relative;
 }
-div.dirfolderrow div.dirfoldername > a {
+div.dirfolderrow div.dirfoldername > span {
     position: absolute;
     left: 4px;
     top: 4px;
     white-space: nowrap;
+}
+/* a folder's tree: the folders under it, indented, a lighter band than the open folder's own subfolders */
+div.listitem.dirfolderrow.dirtreeitem > div {
+    background: rgba(214, 214, 214, 0.95);
+}
+button.dirtoggle, span.dirtoggleblank {
+    display: inline-block;
+    width: 18px;
+    vertical-align: middle;
+}
+button.dirtoggle svg.feather {
+    transition: transform .15s;
+}
+button.dirtoggle.direxpanded svg.feather {
+    transform: rotate(90deg);
 }
 div.dirfolderrow div.dirfolderactions > span {
     position: absolute;
@@ -386,12 +401,30 @@ a.dirfolderopen small {
 }
 /* cards view: a folder is a tile like the lists' (the whole name opens it) */
 div.directorycard.dirfoldercard {
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
     padding: 6px;
     align-self: start;
     background: rgba(185, 185, 185, 0.95);
+}
+div.dirfoldercard div.dirfoldertop {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+/* the card's tree: one line per folder under it (each opens, takes drops, and toggles its own tree) */
+div.dirfoldercard div.dirfoldertree {
+    margin-top: 4px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    padding-top: 2px;
+}
+div.dirfoldercard div.dirsubfolder {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 24px;
+    border-radius: 4px;
+}
+div.dirfoldercard div.dirsubfolder a.dirfolderopen {
+    font-size: medium;
 }
 div.dirfoldercard a.dirfolderopen {
     flex: 1;
@@ -401,7 +434,7 @@ div.dirfoldercard a.dirfolderopen {
     gap: 6px;
     overflow-wrap: anywhere;
 }
-div.dirfoldercard a.dirfolderopen > svg.feather {
+div.dirfoldertop a.dirfolderopen > svg.feather {
     width: 34px;
     height: 34px;
     flex: none;
@@ -420,6 +453,37 @@ div.dirpathbar a, div.dirpathbar a:visited {
 }
 div.dirpathbar .dirpathsep {
     color: #777;
+}
+/* drag and drop (lists by their move handle, folders whole) */
+.dirdraghandle {
+    cursor: grab;
+}
+div.listimage.dirdraghandle svg.feather {
+    width: 12px;
+    height: 12px;
+    color: #777;
+    vertical-align: middle;
+}
+div.directorycard .dircardhead > .dirdraghandle {
+    display: flex;
+}
+div.dirfolderrow, div.dirfoldercard, div.dirsubfolder {
+    cursor: grab;
+}
+div.dirfolderrow a, div.dirfoldercard a, div.dirfolderrow button, div.dirfoldercard button {
+    cursor: pointer;
+}
+#resultdir.dirdragging div.dirfoldercard, #resultdir.dirdragging div.dirsubfolder, #resultdir.dirdragging div.dirpathbar [data-dirdrop] {
+    outline: 1px dashed #777;
+    outline-offset: -1px;
+}
+#resultdir .dirdropover, #resultdir.dirdragging .dirdropover {
+    outline: 2px solid #1aa329;
+    outline-offset: -2px;
+    background: rgba(26, 163, 41, 0.18);
+}
+div.listitem.dirfolderrow.dirdropover > div {
+    background: rgba(170, 222, 176, 0.95);
 }
 div.dirempty .randarea {
     padding: 8px;
@@ -1200,12 +1264,22 @@ div#phonesearchbar .numresults {
   div.directorycard .dircardactions {
     gap: 14px;
   }
-  div.dirfoldercard > button.iiconic, div.dirpathbar button.iiconic {
+  div.dirfoldertop > button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
     height: auto;
   }
-  div.dirfoldercard svg.feather, div.dirpathbar button.iiconic svg.feather {
+  div.dirfoldertop svg.feather, div.dirpathbar button.iiconic svg.feather, div.directorycard .dircardhead > .dirdraghandle svg.feather {
     width: 34px;
     height: 34px;
+  }
+  div.dirfoldertop button.dirtoggle, div.dirfoldertop span.dirtoggleblank {
+    width: 34px;
+  }
+  div.dirsubfolder svg.feather {
+    width: 26px;
+    height: 26px;
+  }
+  div.dirsubfolder button.dirtoggle, div.dirsubfolder span.dirtoggleblank {
+    width: 26px;
   }
   .gameinfo-game .gamename, li.numresultsmenu {
     display: none !important;
