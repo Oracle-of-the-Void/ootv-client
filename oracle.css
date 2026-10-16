@@ -1520,13 +1520,27 @@ table.discord tr.discordnew td { background: #f6f6f0; }
   max-height: 50vh;
   overflow-y: auto;
 }
-.swipepicklist li {
+.swipepicklist ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 18px;
+}
+.swipepicklistitem {
   padding: 8px 6px;
   border-bottom: 1px solid #ccc;
   cursor: pointer;
 }
-.swipepicklist li:hover {
+.swipepicklistitem:hover {
   background-color: rgba(0,0,0,0.08);
+}
+.swipepickfolder:not(.open) > ul {
+  display: none;
+}
+.swipepickchevron {
+  transition: transform 0.15s;
+}
+.swipepickfolder.open > div > .swipepickchevron {
+  transform: rotate(90deg);
 }
 .swipepickwhere {
   color: #666;
