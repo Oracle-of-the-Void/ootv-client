@@ -31,6 +31,16 @@ function formatdate(val) {
     });
 }
 $.views.converters("formatDate", function(val) {return formatdate(val);});
+// short form for the list directory: "Oct 3" this year, "Oct 3, 2025" before
+function formatdateshort(val) {
+    var d = new Date(val);
+    var opts = {day: 'numeric', month: 'short'};
+    if(d.getFullYear() != (new Date()).getFullYear()) {
+	opts.year = 'numeric';
+    }
+    return d.toLocaleDateString('en-US', opts);
+}
+$.views.converters("formatDateShort", function(val) {return formatdateshort(val);});
 function filenamecleaner(val) {
     return val.replace(/[^\-a-z0-9]/gi,'_').toLowerCase().replace(/_{2,}/,'_');
 }
@@ -455,7 +465,7 @@ function listinfoupdate(listid,field,value,failed=null) {
       //message_status.show();
       message_status.text("List Updated");
       //hide the message
-      setTimeout(function(){message_status.text(formatdate(new Date()))},3000);
+      setTimeout(function(){message_status.text(formatdateshort(new Date())).attr('title',formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	    if($("#importlistid").length) {
