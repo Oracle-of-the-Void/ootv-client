@@ -833,6 +833,28 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
 	background: -moz-linear-gradient(top,  #575757,  #888);
 	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#575757', endColorstr='#888888');
 }
+
+/* Showing: printed / MRP button at the top of a card's text (#template-textversion), and the fields it
+   changes (markprinteddiffs, printed wording only) in a light tint of the Printed button's bluer, greenish gold */
+.textversionrow {
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+.textversionnone {
+  cursor: default;
+  opacity: 0.7;
+}
+.textversionnone:active {
+  top: 0;
+}
+.textversionprinted {
+  color: #c9e65a;
+}
+.printeddiff {
+  background: rgba(201, 230, 90, 0.32);
+  box-shadow: inset 0 -1px 0 rgba(110, 150, 20, 0.6);
+  border-radius: 2px;
+}
 /*   led on off */
 span.noimage { 
 display:none;
@@ -923,6 +945,15 @@ div.menubar nav li.viewicons {
 .gameinfo-game img {
   width: 15px;
   height: 15px;
+}
+/* the search results' Showing: button: in the menubar while the search view is on screen; phones have
+   #phonetextversion above the results instead */
+div.menubar nav li.textversionmenu {
+  padding-top: 5px;
+  cursor: default;
+}
+body:not(.viewsearch) li.textversionmenu, div#phonetextversion {
+  display: none;
 }
 div.menubar nav li.numresultsmenu {
   font-family: "Times New Roman",Georgia,Serif;
@@ -1392,8 +1423,12 @@ div#phonesearchbar .numresults {
     width: 26px;
     height: 26px;
   }
-  .gameinfo-game .gamename, li.numresultsmenu {
+  .gameinfo-game .gamename, li.numresultsmenu, li.textversionmenu {
     display: none !important;
+  }
+  body.viewsearch div#phonetextversion {
+    display: block;
+    margin: 0 4px 4px 4px;
   }
   div#sidebaropener, .sidebarextras {
     display: none !important;

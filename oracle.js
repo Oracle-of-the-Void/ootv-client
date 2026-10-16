@@ -1194,7 +1194,7 @@ function refreshactivelistviews() {
 	scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
     }
     if($("#lastcardid").val()) {
-	docardid($("#lastcardid").val(), $("#lastprintid").val() || null, qs || null, false, false);
+	docardid($("#lastcardid").val(), lastcardprid(), qs || null, false, false);
     }
 }
 
@@ -1996,7 +1996,7 @@ function redrawcardforselect() {
     // on a cold cache the card can render before a select it sorts by arrives (sortlegality,
     // sortprintings); redraw it once the select is cached, if the card view is showing
     if($("#resultcard").is(":visible") && $("#lastcardid").val() && cache_card_is($("#lastcardid").val())) {
-	docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	docardid( $("#lastcardid").val(), lastcardprid(),$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
     }
 }
 
@@ -2193,6 +2193,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  updates[database]('#resultsearch');
   } else {
 	  if(from<1){
+	    $('.searchtextversion').html('');
 	    $("#resultsearch").html(searcherror['loading']);
 	    showsearch();
 	  }
@@ -2236,6 +2237,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      defaultcard(qs);
 		      }
 		    } else {
+      		$('.searchtextversion').html('');
       		$("#resultsearch").html(searcherror['empty']);
 		    }
 	    },
@@ -2320,10 +2322,12 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	if(templates[database]['active']['list'] == 'visual-deck' && largeview['list']) {
 	    listtmpl['imageclass'] = 'details';
 	}
+	// the views show each card's listed printing (bubbleup); the text exports below keep the card's own fields
+	var shown = bubbleup(listdata,{'listid':listid});
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(gameheaderize[sort] != undefined ? gameheaderize[sort](listdata) : listdata,listtmpl);
+	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown) : shown),listtmpl);
 	} else {
-	    var html = getactivetemplate('list').render(listdata,listtmpl);
+	    var html = getactivetemplate('list').render(markprinteddiffs(shown),listtmpl);
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
@@ -2480,7 +2484,7 @@ function rendersettings() {
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
     'name': username(user), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
-    'favorite': favoritegame() || '', 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
+    'favorite': favoritegame() || '', 'textversion': savedtextversion(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
   })));
@@ -2623,14 +2627,28 @@ function applyfavoritegame() {
   }
 }
 function savefavoritegame(game,el) {
-  var status = $(el).siblings('.favoritegamestatus');
+  saveallsetting('game', game || null, $(el).siblings('.favoritegamestatus'), function() {
+    cache_session("favoritegame", favoritegame() || "");
+    rendersettings();
+    $('.favoritegamestatus').text("Saved.");
+  });
+}
+// the Card text setting: which wording (textversionnow) a new session starts with
+function savetextversion(value,el) {
+  saveallsetting('textversion', value == 'mrp' ? 'mrp' : 'printed', $(el).siblings('.textversionstatus'), function() {
+    rendersettings();
+    $('.textversionstatus').text("Saved. New sessions start with it; the Showing: button still flips this one.");
+  });
+}
+// Set (or with value null, remove) one key of users.settings.all. settings.all is shared by every game
+// (PDF defaults live there too) and the cached user is per game, so start from a fresh copy rather than
+// overwrite something saved in another game.
+function saveallsetting(key,value,status,done) {
   status.text("Saving...");
   var fail = function(error) {
-    console.log("Favorite game save failed: "+JSON.stringify(error));
+    console.log("Setting "+key+" save failed: "+JSON.stringify(error));
     status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
   };
-  // settings.all is shared by every game (PDF defaults live there too) and the cached user is per game,
-  // so start from a fresh copy rather than overwrite something saved in another game
   $.ajax({
     type: 'GET',
     url: apiuri+"/user",
@@ -2640,10 +2658,10 @@ function savefavoritegame(game,el) {
     responseType: 'application/json',
     success: function(fresh) {
       var all = Object.assign({}, (fresh && ("oracle" in fresh) && fresh.oracle[0].settings && fresh.oracle[0].settings['all']) || {});
-      if(game) {
-        all['game'] = game;
+      if(value !== null) {
+        all[key] = value;
       } else {
-        delete all['game'];
+        delete all[key];
       }
       $.ajax({
         type: 'GET',
@@ -2654,9 +2672,7 @@ function savefavoritegame(game,el) {
         responseType: 'application/json',
         success: function(data) {
           cache_thing("user","data",data);
-          cache_session("favoritegame", favoritegame() || "");
-          rendersettings();
-          $('.favoritegamestatus').text("Saved.");
+          done(data);
         },
         error: fail
       });
@@ -3585,7 +3601,8 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   // TODO onyx: do something similar to 1578 here.  bring top values up from bottom
   //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
-  var html = getactivetemplate('card').render(bubbleup([carddata],qs,prid)[0],tmpl);
+  var shown = markprinteddiffs(bubbleup([carddata],qs,prid))[0];
+  var html = getactivetemplate('card').render(shown,tmpl);
   $("#resultcard").html(html);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
@@ -3593,7 +3610,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var defpr = prid ? null : templatefetch(carddata,false,qs ? $.deparam(qs) : {})["printingid"];
   var showpr = prid?prid:((defpr>0)?defpr:primary);
   $(".printing:not([data-printingid="+showpr+"])").hide();
-  $("#lastprintid").val(showpr);
+  $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
 
   if(!switchview) {
 	  return;
@@ -3608,60 +3625,139 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 }
 
 function bubbleup(data,request=null,prid=null) {
-  // takes a printingid that matches one of the reverse lookups that is being used in the current query
-  // and displays its text instead of default
-  // prid: use this printing instead of re-matching it from the query (single card view)
+  // Lays one printing's fields over the card's, so the card shows that printing: prid (the card view's
+  // version), else the list's printing (listprinting), else the one a reverse field in the request
+  // matched (field_printing_<att>, field_<att>, require_*: see templatefetch). Other cards come back as
+  // they are. With textversionnow() 'mrp' only the printing's own fields come up (set, rarity,
+  // printingid, ...), not the ones the card has too, so the card's (MRP) wording shows. A card a printing
+  // was picked for gets textprinting (its printingid, so #template-textversion shows the Showing: button),
+  // textversion, and textdiff: the fields whose wording differs between the printing and the card (what
+  // the button flips; empty: "No printing fields found"). markprinteddiffs highlights them in printed mode.
   // note: expects array of cards - for a single card send array of one, and deref
-  // TODO: some of this can be one-time things on activating a database
-  //console.log(data,request);
-  if(request == null) { return data;}
+  if(request == null) { request = {}; }
   if(typeof request === "string") {
     request = $.deparam(request);
-    //console.log(request);
   }
-  const revkeys = Object.keys(data[0].printingreverse);
-  var hasrev = 0;
-  revkeys.forEach(function(key) {
-    if((("field_printing_"+key) in request) || (("field_"+key) in request)) {
-      hasrev=1;
+  var bubblekill = [""];
+  for (key in searchables[database]) {
+    if (
+      typeof searchables[database][key] === "object" &&
+      "nobubbleup" in searchables[database][key]
+    ) {
+      bubblekill.push(key);
     }
-  });
-  if(Object.keys(request).some(function(k) { return k.startsWith("require_"); })) {
-    hasrev=1;
   }
-  // (If the request has rev stuff set)
-  if(hasrev>0) {
-    //console.log("hasrev");
-    //    var bubblekill = ["print.*"];
-    var bubblekill = [""];
-    for (key in searchables[database]) {
-      if (
-        typeof searchables[database][key] === "object" &&
-        "nobubbleup" in searchables[database][key]
-      ) {
-        bubblekill.push(key);
-      }
+  const bkillre = new RegExp("^(" + bubblekill.join("|") + ")$");
+  // fields a printing and its card can differ in that aren't wording
+  const nodiff = ["imagehash", "image", "images", "printimagehash", "printingid", "printing", "printingreverse"];
+  const requirerev = Object.keys(request).some(function(k) { return k.startsWith("require_"); });
+  const mode = textversionnow();
+  return data.map(function(card) {
+    // list headers and deleted cards have no printings
+    if (!card || !card.printingreverse || !Array.isArray(card.printing)) {
+      return card;
     }
-    const bkillre = new RegExp("^(" + bubblekill.join("|") + ")$");
-    // IF reversables are set:
-    // rebuild whole array with structuredClone
-    var newdata = [];
-    for (let i = 0; i < data.length; i++) {
-      newdata[i] = structuredClone(data[i]);
-      var matchedpr = templatefetch(data[i], prid ? prid : false, request);
-      if (matchedpr && matchedpr["printingid"] > 0) {
-        const mkeys = Object.keys(matchedpr).filter(
-          (key) => !key.match(bkillre)
-        );
-        mkeys.forEach(function (key) {
-          newdata[i][key] = matchedpr[key];
+    var hasrev = prid || card.listprinting > 0 || requirerev ||
+        Object.keys(card.printingreverse).some(function(key) {
+          return (("field_printing_"+key) in request) || (("field_"+key) in request);
         });
-      }
+    if (!hasrev) {
+      return card;
     }
-    return newdata;
-  } else {
-    return data;
+    var matchedpr = templatefetch(card, prid ? prid : false, request);
+    if (!(matchedpr && matchedpr["printingid"] > 0)) {
+      return card;
+    }
+    var shown = structuredClone(card);
+    const mkeys = Object.keys(matchedpr).filter(
+      (key) => !key.match(bkillre)
+    );
+    shown.textdiff = mkeys.filter(function (key) {
+      return (key in card) && !nodiff.includes(key) && JSON.stringify(card[key]) !== JSON.stringify(matchedpr[key]);
+    });
+    mkeys.forEach(function (key) {
+      if (mode == 'mrp' && (key in card)) {
+        return;
+      }
+      shown[key] = matchedpr[key];
+    });
+    shown.textprinting = matchedpr["printingid"];
+    shown.textversion = mode;
+    return shown;
+  });
+}
+
+// Showing the printed wording: wrap each field in textdiff (from bubbleup), the ones that differ from the
+// card's, in span.printeddiff, a subtle highlight in the Printed text button's color. The MRP wording
+// isn't highlighted. Run it last, right before rendering: list headers group on the plain values. The class
+// is unquoted so a wrapped value can still sit inside a quoted attribute or an onclick string.
+function markprinteddiffs(data) {
+  var mark = function(v) {
+    return (typeof v === "string" && v !== "") || typeof v === "number" ? '<span class=printeddiff>'+v+'</span>' : v;
+  };
+  return data.map(function(card) {
+    if (!card || card.textversion == 'mrp' || !Array.isArray(card.textdiff) || !card.textdiff.length) {
+      return card;
+    }
+    card.textdiff.forEach(function(key) {
+      card[key] = Array.isArray(card[key]) ? card[key].map(mark) : mark(card[key]);
+    });
+    return card;
+  });
+}
+
+// ******************** PRINTED / MRP TEXT ********************
+// Which wording a card shows when one printing of it is picked (bubbleup): 'printed', that printing's
+// own text, or 'mrp', the card's current text. The Showing: button flips it for the open session
+// (sessionStorage: it lasts through reloads in this tab, not into a new one); a new session starts from
+// the user's settings.all.textversion, else printed.
+function textversionnow() {
+  try {
+    var now = window.sessionStorage.getItem("textversion");
+    if(now == 'printed' || now == 'mrp') {
+      return now;
+    }
+  } catch(e) {}
+  return savedtextversion();
+}
+function savedtextversion() {
+  var user = cache_thing("user","data");
+  var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
+  return (all && all['textversion'] == 'mrp') ? 'mrp' : 'printed';
+}
+function toggletextversion(el) {
+  var next = (textversionnow() == 'mrp') ? 'printed' : 'mrp';
+  try {
+    window.sessionStorage.setItem("textversion", next);
+  } catch(e) {}
+  redrawtextversion();
+}
+// The search results' one Showing: button (menubar on desktop, #phonetextversion on phones): shown when
+// any result loaded so far shows a picked printing; it offers the toggle when any of those differs in wording.
+function searchtextversion(qs) {
+  var ids = (qs && searchcache[database]['querydata'][qs]) || [];
+  var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs || ''));
+  var shown = bubbleup(ids.map(cache_card_fetch), request);
+  var page = {'textprinting': shown.some(function(c) { return c && c.textprinting; }),
+              'textdiff': shown.some(function(c) { return c && c.textdiff && c.textdiff.length; }) ? [true] : [],
+              'textversion': textversionnow()};
+  $('.searchtextversion').html(page.textprinting ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
+}
+// re-render what shows card text in place: the search results and card view (refreshactivelistviews
+// keeps the scroll) and the list on screen
+function redrawtextversion() {
+  refreshactivelistviews();
+  var listid = $('#lastlistid').val();
+  if(listid && cache_thing("list",listid) && $("#resultlist").is(":visible")) {
+    var scrolled = [window, '#maincontent', '#resultlist'].map(function(el) { return [el, $(el).scrollTop()]; });
+    renderlist(cache_thing("list",listid).list.Items[0],false);
+    scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
   }
+}
+// the printing to redraw the card view with: the one shown, when it was picked (a version, the list's
+// printing, a search on a printing field), or null when the card view shows the card's primary printing
+function lastcardprid() {
+  return ($("#lastprintid").val() && $("#lastprintid").data("chosen")) ? $("#lastprintid").val() : null;
 }
 
 function process_keywordlink(data,fieldname,type) {
@@ -3720,7 +3816,7 @@ function rendercards(data,request,querystring) {
   for ( v in override.var?override.var:{}) {
     tmpl[v] = override.var[v];
   }
-  return getactivetemplate('search').render(bubbleup(data,request),tmpl);
+  return getactivetemplate('search').render(markprinteddiffs(bubbleup(data,request)),tmpl);
 }
 
 
@@ -3732,6 +3828,7 @@ function searchpageable(qs) {
 
 // sets up "MORE" and numresultsearchs...   both cached and non-cached searches use it
 function dosearchpostcallback(qs) {
+    searchtextversion(qs);
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
@@ -4348,7 +4445,7 @@ function activatetemplate(type,template) {
   }
   if(type == 'card') {
 	  if( $("#lastcardid").val() ) {
-	    docardid( $("#lastcardid").val(), $("#lastprintid").val()?$("#lastprintid").val():null,$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	    docardid( $("#lastcardid").val(), lastcardprid(),$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
 	  }
   }
   updatemenubar(type);
@@ -5578,10 +5675,15 @@ function scrollforceload() {
 
 function changeprinting(id,prid,qs,title) {
   //    console.log({id,prid,qs,title});
-  $('.printing').hide();
-  $("#lastprintid").val(prid);
-  $('.printing[data-printingid='+prid+']').show();
-  history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title, '#game='+database+',#cardid='+id+',#cnprintingid='+prid);
+  // redraw rather than only show its printing block: the text above follows the version (bubbleup)
+  if(cache_card_is(id)) {
+    docardid(id,prid,qs||null,false,false);
+  } else {
+    $('.printing').hide();
+    $("#lastprintid").val(prid).data("chosen", true);
+    $('.printing[data-printingid='+prid+']').show();
+  }
+  history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title.replace(/<[^>]+>/g,''), '#game='+database+',#cardid='+id+',#cnprintingid='+prid);
   // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
 }
 

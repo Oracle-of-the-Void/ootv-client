@@ -41,6 +41,7 @@
       </div>
       {{/if}}    
       </div>
+     {{if ~datarequest.listid}}{{include tmpl="#template-textversion" /}}{{/if}}
   
      {{:type}} {{if clan}} - {{:clan}}{{/if}}<br />
      {{if force || chi}}
