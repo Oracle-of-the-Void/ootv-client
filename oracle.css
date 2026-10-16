@@ -1094,8 +1094,9 @@ nav ul li ul li:last-child {
 }
 
 /* the format block in the menubar: view buttons (detailed / visual / simple), card size, and sort (filter, whose
-   dropdown is the sort list). It's a list inside the menubar li so the sort dropdowns work as usual; the rules below
-   undo the dropdown styling for the block itself, which is always shown and laid out in a row */
+   dropdown is the sort list), drawn as one box split by thin lines. It's a list inside the menubar li so the sort
+   dropdowns work as usual; the rules below undo the dropdown styling for the block itself, which is always shown
+   and laid out in a row */
 div.menubar nav li.searchviewbuttons {
   padding-top: 3px;
   padding-right: .5rem;
@@ -1104,8 +1105,9 @@ div.menubar nav li.searchviewbuttons > ul.viewblock {
   visibility: visible;
   opacity: 1;
   display: flex;
-  align-items: flex-start;
-  position: static;
+  align-items: stretch;
+  position: relative;
+  top: 0;
   transition: none;
 }
 div.menubar nav ul.viewblock > li {
@@ -1115,8 +1117,23 @@ div.menubar nav ul.viewblock > li {
   background: transparent;
   border: none;
 }
+div.menubar nav li.searchviewbuttons > ul.viewblock {
+  border: 1px solid rgb(128, 128, 128);
+  border-radius: 4px;
+}
+div.menubar nav ul.viewblock .searchviewgroup {
+  border: none;
+}
 div.menubar nav ul.viewblock > li + li > .searchviewgroup {
-  margin-left: 6px;
+  border-left: 1px solid rgb(192, 192, 192);
+  border-radius: 0;
+}
+/* the sort dropdowns hang right below the whole box (no gap, so a mouse can reach them), right-aligned with it */
+div.menubar nav ul.viewblock > li.sortbuttons {
+  position: static;
+}
+div.menubar nav li.searchviewbuttons ul.dropdown {
+  top: 100%;
 }
 .searchviewgroup {
   display: inline-flex;
@@ -1327,26 +1344,6 @@ div#phonesearchbar .numresults {
   }
   div.menubar nav li.viewicons {
     padding-top: 3px;
-  }
-  /* the format block is one box on phones: views, card size and sort side by side, split by thin lines */
-  div.menubar nav li.searchviewbuttons > ul.viewblock {
-    border: 1px solid rgb(128, 128, 128);
-    border-radius: 4px;
-  }
-  div.menubar nav ul.viewblock .searchviewgroup {
-    border: none;
-  }
-  div.menubar nav ul.viewblock > li + li > .searchviewgroup {
-    margin-left: 0;
-    border-left: 1px solid rgb(192, 192, 192);
-    border-radius: 0;
-  }
-  /* the sort dropdowns hang below the whole box, right-aligned with it, so they stay on screen */
-  div.menubar nav ul.viewblock > li.sortbuttons {
-    position: static;
-  }
-  div.menubar nav li.searchviewbuttons ul.dropdown {
-    top: 100%;
   }
   /* every icon a quarter bigger than on desktop (17px), and the buttons around them grow to fit */
   .feather {
