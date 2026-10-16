@@ -474,17 +474,44 @@ div.dirdragghost {
     position: fixed;
     z-index: 10000;
     pointer-events: none;
-    padding: 4px 10px;
-    max-width: 60vw;
+    padding: 8px 14px;
+    max-width: 85vw;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.97);
+    border: 3px solid #777;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    font-family: "L5R Title";
+    font-size: x-large;
+}
+div.dirdragghost .dirghostname {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid #1aa329;
-    border-radius: 7px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    font-family: "L5R Title";
+}
+div.dirdragghost .dirghostname svg.feather {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.15em;
+}
+div.dirdragghost .dirghosttarget {
+    font-family: "Times New Roman",Georgia,Serif;
     font-size: large;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+div.dirdragghost.dirghostok {
+    border-color: #1aa329;
+}
+div.dirdragghost.dirghostok .dirghosttarget {
+    color: #137a1f;
+    font-weight: bold;
+}
+/* the list or folder being dragged */
+#resultdir .dirdragsource {
+    opacity: 0.4;
 }
 div.listimage.dirdraghandle svg.feather {
     width: 12px;
