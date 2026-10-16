@@ -847,6 +847,11 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
 .textversionnone:active {
   top: 0;
 }
+/* its click balloon (textversionnotip) above the cards below it */
+.textversionnone[data-balloon-visible] {
+  position: relative;
+  z-index: 1001;
+}
 .textversionprinted {
   color: #c9e65a;
 }

@@ -2334,7 +2334,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	}
 	// the views show each card's listed printing (bubbleup); the text exports below keep the card's own fields
 	var shown = bubbleup(listdata,{'listid':listid});
-	pagetextversion('.listtextversion', shown);
+	pagetextversion('.listtextversion', shown, 'list');
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
 	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown) : shown),listtmpl);
 	} else {
@@ -3852,20 +3852,19 @@ function toggletextversion(el) {
   redrawtextversion();
 }
 // The search results' one Showing: button (menubar on desktop, #phonetextversion on phones), on every search:
-// it offers the toggle when any result loaded so far shows a picked printing that differs in wording, and
-// shows "MRP text" when none shows a picked printing.
+// it offers the toggle when any result loaded so far shows a picked printing that differs in wording.
 function searchtextversion(qs) {
   var ids = (qs && searchcache[database]['querydata'][qs]) || [];
   var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs || ''));
-  pagetextversion('.searchtextversion', bubbleup(ids.map(cache_card_fetch), request), true);
+  pagetextversion('.searchtextversion', bubbleup(ids.map(cache_card_fetch), request), 'search');
 }
-// a page's one Showing: button (search results, list view) into the elements matching sel, from its cards
-// as bubbleup returned them: when no card shows a picked printing, none, or with always the MRP one
-function pagetextversion(sel,shown,always=false) {
+// a page's one Showing: button (kind: 'search' results or 'list' view) into the elements matching sel, from
+// its cards as bubbleup returned them: "MRP text" when no card shows a picked printing
+function pagetextversion(sel,shown,kind) {
   var page = {'textprinting': shown.some(function(c) { return c && c.textprinting; }),
               'textdiff': shown.some(function(c) { return c && c.textdiff && c.textdiff.length; }) ? [true] : [],
               'textversion': textversionnow()};
-  $(sel).html(page.textprinting || always ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
+  $(sel).html($.templates("#template-textversionbutton").render(page, {'page': kind}));
 }
 // a click on a Showing: button with nothing to flip: its title as a balloon under it for a moment (touch too)
 function textversionnotip(el) {
