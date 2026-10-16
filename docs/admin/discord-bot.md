@@ -1,6 +1,6 @@
 # Discord bot settings
 
-Last updated: 2026-10-15 (/oraclebug bug reports)
+Last updated: 2026-10-16 (/oraclebug: one form, no options)
 
 The Oracle Discord bot (`/card`, `/search` and `/oraclebug` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
@@ -60,10 +60,11 @@ requirement as a required `legality = Paper` line, on top of the channel's filte
 
 ## Bug reports (/oraclebug)
 
-`/oraclebug about:card` or `about:site` opens a form based on the site's GitHub issue templates
-and files an issue on ootv-client: card problems get the game's database label (e.g.
-`l5r database`), site problems get `bug`. Both also get `discord`, and the issue names the
-reporter's Discord account and channel. A card report needs a game, from the channel or from `game:`.
+`/oraclebug` opens a form straight away (title, what's wrong, and optionally a card name, steps
+to reproduce and device) based on the site's GitHub issue templates, and files an issue on
+ootv-client. With a card name in a channel that has a game, it gets that game's database label
+(e.g. `l5r database`) and a link to the card; without a card name it gets `bug`. All get
+`discord`, and the issue names the reporter's Discord account and channel.
 Each user can file 3 reports per 15 minutes. To stop a server filing issues, untick
 `oraclebug` in its Commands column and re-register its commands.
 
