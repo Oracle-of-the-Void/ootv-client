@@ -89,7 +89,10 @@ top level gets published, so keep scratch files out of the repo.
    in sync.
 
 Pushing feature branches and `dev` doesn't need confirmation; pushing or merging to
-`master` does.
+`master` does, **except for `.md`-only changes** (`TODO.md`, `CLAUDE.md`, `docs/**/*.md`).
+Commit those straight to `master` and push without asking or opening a PR, then merge
+`master` into `dev` and push `dev`. If a commit touches any non-`.md` file, the normal
+workflow applies. `docs/admin/*.md` is the one `.md` path that is published to the site.
 
 ## Testing
 
