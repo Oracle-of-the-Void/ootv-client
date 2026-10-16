@@ -360,6 +360,7 @@ Recent Data Updates for Currently Selected Database:<br>
 <ul>
 <li>Not everything is completely set yet, so if you have feedback let me know.
 <li>On a phone, long-press a button icon (in the top menu bar) to see a short name for it.
+<li>With a list active, swipe a card image sideways (or click-drag it with a mouse) to change its count. Settings &rarr; Gestures sets what each direction does, or turns gestures off.
 <li>All search boxes are logically AND'ed together.
 <li>Title is a "match" field.   Individual words are matched against the title.
 <li>Keywords is a "match phrase" field.  The complete phrase is matched.
@@ -758,6 +759,30 @@ printingprimary
   {{/if}}
 </section>
 {{/if}}
+<section class="settingsection gesturesettings">
+  <h3>Gestures (all games)</h3>
+  <p>Turn off a gesture to get the browser's usual behavior back (scrolling, dragging a link, the long-press menu).
+    {{if loggedin}}Saved to your account.{{else}}You're not logged in, so these are kept in this browser only; Clear Cache deletes them.{{/if}}</p>
+  {{for gestures.switches}}
+  <label class="gestureswitch"><input type="checkbox" data-gesture="{{:key}}"{{if on}} checked{{/if}} onchange="gesturechanged(this);"/> {{>label}}</label>
+  {{/for}}
+  <p>A card swipe changes the card's count: in search results on the first active list, in a deck or list on the list shown.
+    Right and left are within 30&deg; of level; up-right and up-left are 30&ndash;65&deg; above it. Going to 0 asks first.</p>
+  {{for gestures.views}}
+  <h4>{{>label}}</h4>
+  <table class="settingstable swipetable" data-view="{{:view}}">
+    {{for rows}}
+    <tr data-dir="{{:dir}}"><td>{{>label}}</td>
+      <td><select aria-label="{{>label}}" onchange="gesturechanged(this);">
+        {{for ~root.gestures.actions ~action=action}}<option value="{{:key}}"{{if key==~action}} selected{{/if}}>{{>label}}</option>{{/for}}
+      </select>
+      <input type="number" class="swipecount" min="1" max="99" value="{{:count}}" aria-label="{{>label}} count" oninput="gesturechanged(this);"{{if action=='off' || action=='zero'}} style="display:none"{{/if}}/></td></tr>
+    {{/for}}
+  </table>
+  {{/for}}
+  <span class="button gray" onclick="resetgestures(this);">Reset gestures to the defaults <svg class="feather"><use xlink:href="res/feather-sprite.svg#rotate-ccw"></svg></span>
+  <span class="gesturestatus"></span>
+</section>
 <section class="settingsection">
   <h3>Searches ({{>gamename}})</h3>
   <p>Save these from the search form's Advanced buttons. Each game keeps its own.

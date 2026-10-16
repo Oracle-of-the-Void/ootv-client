@@ -909,7 +909,7 @@ function dirdropon(el) {
 $(document).on("dragstart",function(e) {
   var el = dirdragsource(e.target);
   if(!el.length) { return; }
-  if(dirtouch) {          // iOS drags from touch too: the touch drag below handles it
+  if(dirtouch || !gestureon('dirdragmouse')) {          // iOS drags from touch too: the touch drag below handles it
     e.preventDefault();
     return;
   }
@@ -977,7 +977,7 @@ function dirtouchmove(x,y) {
 document.addEventListener("touchstart",function(e) {
   if(dirdrag || e.touches.length != 1) { return; }
   var el = dirdragsource(e.target);
-  if(!el.length) { return; }
+  if(!el.length || !gestureon('dirdragtouch')) { return; }
   var t = e.touches[0];
   dirtouch = {"el": el, "handle": el.is("[data-draglist]"), "x": t.clientX, "y": t.clientY, "x0": t.clientX, "y0": t.clientY};
   // a handle also starts on a short hold, before the browser's long-press can select text
@@ -2466,7 +2466,7 @@ function rendersettings() {
   var user = cache_thing("user","data");
   var searches = searchsettings();
   var searchctx = {
-    'gamename': dbinfo[database].name, 'loggedin': searchloggedin(),
+    'gamename': dbinfo[database].name, 'loggedin': searchloggedin(), 'gestures': gesturesettingsctx(),
     'searchdefault': searches['default'] ? searchsummary(searches['default']) : null,
     'searches': Object.keys(searches['saved']).sort(searchnamecmp).map(function(name) {
       return {'name': name, 'summary': searchsummary(searches['saved'][name])};
@@ -2642,6 +2642,111 @@ function savetextversion(value,el) {
   saveallsetting('textversion', value == 'mrp' ? 'mrp' : 'printed', $(el).siblings('.textversionstatus'), function() {
     rendersettings();
     $('.textversionstatus').text("Saved. New sessions start with it; the Showing: button still flips this one.");
+  });
+}
+
+//**********************************************************  Gestures ****************
+// users.settings.all.gestures (logged out: this browser, session_gestures): {off: [switch keys],
+// search: {direction: [action, count]}, list: {...}}. Only what differs from the defaults is stored.
+// Switches: each gesture's handler checks gestureon() and, when it's off, leaves the browser's own behavior alone.
+var gestureswitches = [
+  ['deckswipetouch', 'Swipe a card image or Simple List title to change its count (touch)'],
+  ['deckswipemouse', 'Click-drag a card image or Simple List title to change its count (mouse)'],
+  ['dirdragtouch', 'Drag lists and folders in the list directory (touch)'],
+  ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
+  ['tooltip', "Long-press a button to see its label (touch)"]
+];
+// card swipes, per view: search results change the first active list, the deck/list view the list shown
+var swipeviews = [['search', 'Swipes in search results'], ['list', 'Swipes in a deck or list']];
+var swipedirs = [['right', 'Right'], ['upright', 'Up-right'], ['left', 'Left'], ['upleft', 'Up-left']];
+var swipeactions = [['off', 'Nothing'], ['add', 'Add'], ['sub', 'Remove'], ['set', 'Set the count to'], ['zero', 'Remove all copies']];
+var swipedefaults = {
+  'search': {'right': ['add',1], 'upright': ['add',3], 'left': ['sub',1], 'upleft': ['sub',3]},
+  'list': {'right': ['add',1], 'upright': ['add',2], 'left': ['sub',1], 'upleft': ['zero',0]}
+};
+function gesturesettings() {
+  var g = null;
+  if(searchloggedin()) {
+    var settings = cache_thing("user","data").oracle[0].settings;
+    g = settings && settings['all'] && settings['all']['gestures'];
+  } else {
+    g = cache_session("gestures");
+  }
+  g = g || {};
+  var out = {'off': g['off'] || []};
+  swipeviews.forEach(function(v) {
+    out[v[0]] = Object.assign({}, swipedefaults[v[0]], g[v[0]] || {});
+  });
+  return out;
+}
+function gestureon(key) {
+  return gesturesettings()['off'].indexOf(key) < 0;
+}
+// the Gestures section of Settings
+function gesturesettingsctx() {
+  var g = gesturesettings();
+  return {
+    'switches': gestureswitches.map(function(s) { return {'key': s[0], 'label': s[1], 'on': g['off'].indexOf(s[0]) < 0}; }),
+    'views': swipeviews.map(function(v) {
+      return {'view': v[0], 'label': v[1], 'rows': swipedirs.map(function(d) {
+        var act = g[v[0]][d[0]];
+        return {'dir': d[0], 'label': d[1], 'action': act[0], 'count': act[1] || 1};
+      })};
+    }),
+    'actions': swipeactions.map(function(a) { return {'key': a[0], 'label': a[1]}; })
+  };
+}
+function gesturesfromform(section) {
+  var g = {'off': []};
+  section.find('input[data-gesture]').each(function() {
+    if(!this.checked) {
+      g['off'].push($(this).attr('data-gesture'));
+    }
+  });
+  section.find('table[data-view]').each(function() {
+    var view = $(this).attr('data-view'), acts = {};
+    $(this).find('tr[data-dir]').each(function() {
+      var action = $(this).find('select').val();
+      var count = Math.max(1, Math.min(99, parseInt($(this).find('.swipecount').val(), 10) || 1));
+      acts[$(this).attr('data-dir')] = [action, (action == 'off' || action == 'zero') ? 0 : count];
+    });
+    if(!_.isEqual(acts, swipedefaults[view])) {
+      g[view] = acts;
+    }
+  });
+  if(!g['off'].length) {
+    delete g['off'];
+  }
+  return $.isEmptyObject(g) ? null : g;
+}
+// any change in the section: show the count only where the action takes one, then save shortly after
+var gesturesavetimer = null;
+function gesturechanged(el) {
+  var section = $(el).closest('.gesturesettings');
+  section.find('tr[data-dir]').each(function() {
+    $(this).find('.swipecount').toggle(['add','sub','set'].indexOf($(this).find('select').val()) >= 0);
+  });
+  section.find('.gesturestatus').text('');
+  clearTimeout(gesturesavetimer);
+  gesturesavetimer = setTimeout(function() { savegestures(section.find('.gesturestatus'), gesturesfromform(section)); }, 800);
+}
+function savegestures(status, g, done) {
+  if(searchloggedin()) {
+    saveallsetting('gestures', g, status, function() {
+      status.text("Saved.");
+      if(done) { done(); }
+    });
+  } else {
+    cache_session("gestures", g || {});
+    status.text("Saved in this browser.");
+    if(done) { done(); }
+  }
+}
+function resetgestures(el) {
+  clearTimeout(gesturesavetimer);
+  savegestures($(el).siblings('.gesturestatus'), null, function() {
+    rendersettings();
+    $('.gesturestatus').text("Back to the defaults.");
   });
 }
 // Set (or with value null, remove) one key of users.settings.all. settings.all is shared by every game
@@ -3872,7 +3977,7 @@ $(document).on('click', function(e) {
 // touch: tooltips are hidden (CSS, hover: none) except after a long-press on the button, for 1.5 s
 var balloonpress = null;
 $(document).on('pointerdown', '[data-balloon-pos]', function(e) {
-    if(e.originalEvent.pointerType == 'mouse') {
+    if(e.originalEvent.pointerType == 'mouse' || !gestureon('tooltip')) {
 	return;
     }
     var balloon = $(this);
@@ -3887,20 +3992,29 @@ $(document).on('pointerup pointercancel pointerleave', '[data-balloon-pos]', fun
     clearTimeout(balloonpress);
 });
 $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
-    if(lastpointertype != 'mouse') {
+    if(lastpointertype != 'mouse' && gestureon('tooltip')) {
 	e.preventDefault(); // Android's long-press menu would cover the label
     }
 });
 // Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
-// swipe (touch) or click-drag (mouse) to change the card's count. right +1, left -1, up-right +3, up-left -3.
-// Going to 0 or below asks before removing the card. In the list view it changes the list shown; in search, the
-// first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
+// swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
+// (swipedefaults: search right +1, left -1, up-right +3, up-left -3; deck/list right +1, left -1, up-right +2,
+// up-left all copies). Going to 0 asks before removing the card. In the list view it changes the list shown; in
+// search, the first active list (none active: the image behaves normally). On touch, a mostly vertical drag still scrolls.
 var deckswipe = null;
 var deckswipedone = 0;
-function deckswipestart(target, x, y) {
+function deckswipestart(target, x, y, mouse=false) {
     var a = $(target).closest('a.deckswipe');
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
-    deckswipe = listid ? {a: a, listid: String(listid), x: x, y: y, lock: null} : null;
+    deckswipe = null;
+    if(listid) {
+	var g = gesturesettings();
+	var acts = g[a.data('list') ? 'list' : 'search'];
+	var any = Object.keys(acts).some(function(d) { return acts[d][0] != 'off'; });
+	if(any && g['off'].indexOf(mouse ? 'deckswipemouse' : 'deckswipetouch') < 0) {
+	    deckswipe = {a: a, listid: String(listid), acts: acts, x: x, y: y, lock: null};
+	}
+    }
     return !!deckswipe;
 }
 // returns true while the drag is a swipe (the caller then blocks scrolling)
@@ -3930,10 +4044,10 @@ function deckswipeend(x, y) {
     }
     deckswipedone = Date.now();  // a swipe, even one that changes nothing, mustn't open the card
     var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left
-    var n = (Math.abs(angle) <= 30) ? 1 : (angle > 30 && angle <= 65) ? 3 :
-	(Math.abs(angle) >= 150) ? -1 : (angle >= 115 && angle < 150) ? -3 : 0;
-    if(n != 0) {
-	deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, n, !s.a.data('list') && activelists.length > 1);
+    var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' :
+	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : null;
+    if(dir && s.acts[dir][0] != 'off') {
+	deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, s.acts[dir], !s.a.data('list') && activelists.length > 1);
     }
 }
 document.addEventListener('touchstart', function(e) {
@@ -3956,7 +4070,7 @@ document.addEventListener('touchend', function(e) {
 var deckmousedown = null;
 document.addEventListener('mousedown', function(e) {
     deckmousedown = null;
-    if(e.button == 0 && !e.metaKey && !e.ctrlKey && deckswipestart(e.target, e.clientX, e.clientY)) {
+    if(e.button == 0 && !e.metaKey && !e.ctrlKey && deckswipestart(e.target, e.clientX, e.clientY, true)) {
 	deckmousedown = {x: e.clientX, y: e.clientY};
 	e.preventDefault();
     }
@@ -3977,7 +4091,7 @@ document.addEventListener('mouseup', function(e) {
     }
 });
 document.addEventListener('dragstart', function(e) {
-    if($(e.target).closest('a.deckswipe').length) {
+    if($(e.target).closest('a.deckswipe').length && gestureon('deckswipemouse')) {
 	e.preventDefault();
     }
 });
@@ -3988,14 +4102,19 @@ document.addEventListener('click', function(e) {
 	e.stopPropagation();
     }
 }, true);
-// named: say which list changed (search with more than one active list)
-function deckswipeapply(listid, cardid, prid, n, named=false) {
+// act: [action, count] from swipeactions. named: say which list changed (search with more than one active list)
+function deckswipeapply(listid, cardid, prid, act, named=false) {
     var have = Number(listquantity(listid, cardid, prid)) || 0;
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
     if(named) {
 	var lists = cache_thing("list","data").lists.Items;
 	title += ' \u2192 ' + lists[cache_thing("list","datareverse")[listid]].name;
+    }
+    var n = {'add': act[1], 'sub': -act[1], 'set': act[1] - have, 'zero': -have}[act[0]] || 0;
+    if(n == 0 || (have == 0 && n < 0)) {
+	deckswipetoast(title + ' (' + have + ')');
+	return;
     }
     if(have + n <= 0) {
 	if(!confirm('Remove ' + $('<div>').html(title).text() + ' (' + have + ') from the list?')) {
