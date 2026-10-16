@@ -330,7 +330,7 @@ div.listheadmiddle.dirnewlistcell {
     position: relative;
 }
 /* ...wide enough together for the button even with no list rows' icons to size them */
-div.directorylistheader > div:nth-last-child(-n+5) {
+div.directorylistheader > div.diractioncell {
     min-width: 15px;
 }
 span.dirnewbuttons {
@@ -1555,4 +1555,19 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 /* Gestures setting "Folder pulldown" off (applyfolderselect in oracle.js) */
 #resultdir.nofolderselect .dirfoldercell {
   display: none;
+}
+
+/* list directory: Folder/Type/Legality selects stay narrow (the open pulldown is as wide as its options),
+   dates on one line, and the Id last in small print */
+#resultdir select.listselect.dirnarrowselect {
+  width: 7.5em;
+}
+div.listmiddle.dirdate {
+  white-space: nowrap;
+}
+div.listmiddle.dirlistid {
+  font-size: smaller;
+}
+div.listmiddle.dirlistid a {
+  color: #555;
 }
