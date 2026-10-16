@@ -2193,6 +2193,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  updates[database]('#resultsearch');
   } else {
 	  if(from<1){
+	    $('.searchtextversion').html('');
 	    $("#resultsearch").html(searcherror['loading']);
 	    showsearch();
 	  }
@@ -2236,6 +2237,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      defaultcard(qs);
 		      }
 		    } else {
+      		$('.searchtextversion').html('');
       		$("#resultsearch").html(searcherror['empty']);
 		    }
 	    },
@@ -3730,6 +3732,17 @@ function toggletextversion(el) {
   } catch(e) {}
   redrawtextversion();
 }
+// The search results' one Showing: button (menubar on desktop, #phonetextversion on phones): shown when
+// any result loaded so far shows a picked printing; it offers the toggle when any of those differs in wording.
+function searchtextversion(qs) {
+  var ids = (qs && searchcache[database]['querydata'][qs]) || [];
+  var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs || ''));
+  var shown = bubbleup(ids.map(cache_card_fetch), request);
+  var page = {'textprinting': shown.some(function(c) { return c && c.textprinting; }),
+              'textdiff': shown.some(function(c) { return c && c.textdiff && c.textdiff.length; }) ? [true] : [],
+              'textversion': textversionnow()};
+  $('.searchtextversion').html(page.textprinting ? $.templates("#template-textversionbutton").render(page, {'page': true}) : '');
+}
 // re-render what shows card text in place: the search results and card view (refreshactivelistviews
 // keeps the scroll) and the list on screen
 function redrawtextversion() {
@@ -3815,6 +3828,7 @@ function searchpageable(qs) {
 
 // sets up "MORE" and numresultsearchs...   both cached and non-cached searches use it
 function dosearchpostcallback(qs) {
+    searchtextversion(qs);
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
