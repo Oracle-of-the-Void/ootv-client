@@ -816,9 +816,14 @@ function applydirtree() {
 // opens that folder's tree. The Folder menu does the same without dragging.
 // Mice use HTML5 drag and drop. Touch has its own drag (Android Chrome doesn't drag from touch): a list
 // drags from its handle straight away, a folder after a long-press, so a swipe across folders still scrolls.
+// Both show the same label by the pointer, naming what's moving and where it would go; the item moved fades.
 var dirdrag = null;            // what's being dragged: {"listid": id} or {"folder": path}
 var dirdragexpand = null;      // timer for opening the folder held over
-var dirtouch = null;           // a touch on something draggable: {el, handle, x, y, timer, ghost, scroll}
+var dirtouch = null;           // a touch on something draggable: {el, handle, x, y, timer, scroll}
+var dirghost = null;           // the drag label
+// mouse drags show the label instead of the browser's drag image, which can't change as it moves
+var dirblankimage = new Image();
+dirblankimage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 function dirdragsource(el) {
   return $(el).closest("#resultdir [data-draglist], #resultdir [data-dragfolder]");
 }
@@ -846,12 +851,34 @@ function dirdragdone() {
   dirdropclear();
   $("#resultdir").removeClass("dirdragging");
   $("#resultdir .dirdragsource").removeClass("dirdragsource");
+  if(dirghost) {
+    dirghost.remove();
+    dirghost = null;
+  }
   if(dirtouch) {
     clearTimeout(dirtouch.timer);
     clearInterval(dirtouch.scroll);
-    if(dirtouch.ghost) { dirtouch.ghost.remove(); }
     dirtouch = null;
   }
+}
+// start showing the drag: the label, and source (the handle or folder dragged) faded
+function dirghostshow(source) {
+  var label = dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : foldername(dirdrag.folder);
+  dirghost = $('<div class="dirdragghost"><div class="dirghostname"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+
+    (dirdrag.listid ? 'move' : 'folder')+'"></svg> <span></span></div><div class="dirghosttarget"></div></div>').appendTo("body");
+  dirghost.find(".dirghostname span").text(label || dirdrag.listid);
+  $("#resultdir").addClass("dirdragging");
+  source.closest(".directorylistitem, .dirsubfolder").addClass("dirdragsource");
+}
+// the label at the pointer (x,y): above a finger, below and right of a mouse pointer, kept on screen.
+// ok: the folder under the pointer takes the drop.
+function dirghostat(x,y,ok,folder,touch) {
+  if(!dirghost) { return; }
+  dirghost.toggleClass("dirghostok",ok).find(".dirghosttarget")
+    .text(ok ? "\u2192 "+(folder ? foldername(folder) : "All lists (top level)") : "Drag onto a folder");
+  var w = dirghost.outerWidth(), h = dirghost.outerHeight();
+  var left = touch ? x-w/2 : x+16, top = touch ? y-h-40 : y+20;
+  dirghost.css({"left": Math.max(6,Math.min(left,window.innerWidth-w-6)), "top": Math.max(6,Math.min(top,window.innerHeight-h-6))});
 }
 // dragging over el: highlight it if it takes the drop, and open it if it's held there; true when it takes it
 function dirdragover(el) {
@@ -888,26 +915,23 @@ $(document).on("dragstart",function(e) {
   }
   var dt = e.originalEvent.dataTransfer;
   dirdrag = dirdragof(el);
-  if(dirdrag.listid) {
-    // the drag image is the list's name, not the handle
-    var name = document.getElementById("list_name:"+dirdrag.listid);
-    if(name && dt.setDragImage) { dt.setDragImage(name,10,10); }
-    dt.setData("text/plain",name ? name.textContent : dirdrag.listid);
-  } else {
-    dt.setData("text/plain",dirdrag.folder);
-  }
+  if(dt.setDragImage) { dt.setDragImage(dirblankimage,0,0); }
+  dt.setData("text/plain",dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : dirdrag.folder);
   dt.effectAllowed = "move";
-  // marked after the drag image is taken, so the image doesn't carry the drop-target outlines
+  var x = e.originalEvent.clientX, y = e.originalEvent.clientY;
+  // after the drag has started, so the browser doesn't snapshot the fading and outlines
   setTimeout(function() {
-    if(dirdrag) {
-      $("#resultdir").addClass("dirdragging");
-      el.closest(".directorylistitem, .dirsubfolder").addClass("dirdragsource");
+    if(dirdrag && !dirghost) {
+      dirghostshow(el);
+      dirghostat(x,y,false,null);
     }
   },0);
 });
 $(document).on("dragover",function(e) {
   if(!dirdrag || dirtouch) { return; }
-  if(dirdragover(dirdroptarget(e.target))) {
+  var el = dirdroptarget(e.target), ok = dirdragover(el);
+  dirghostat(e.originalEvent.clientX,e.originalEvent.clientY,ok,el.attr("data-folder"));
+  if(ok) {
     e.preventDefault();
     e.originalEvent.dataTransfer.dropEffect = "move";
   }
@@ -921,33 +945,22 @@ $(document).on("drop",function(e) {
 $(document).on("dragend",function() {
   if(!dirtouch) { dirdragdone(); }
 });
-// touch drag: a label above the finger names what's moving and where it would go; what's under the finger
-// is the target. The item being moved fades.
+// touch drag: what's under the finger is the target
 function dirtouchbegin() {
   if(!dirtouch || dirdrag) { return; }
   dirdrag = dirdragof(dirtouch.el);
   if(window.getSelection) { window.getSelection().removeAllRanges(); }
-  var label = dirdrag.listid ? $(document.getElementById("list_name:"+dirdrag.listid)).text() : foldername(dirdrag.folder);
-  dirtouch.ghost = $('<div class="dirdragghost"><div class="dirghostname"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+
-    (dirdrag.listid ? 'move' : 'folder')+'"></svg> <span></span></div><div class="dirghosttarget"></div></div>').appendTo("body");
-  dirtouch.ghost.find(".dirghostname span").text(label || dirdrag.listid);
-  $("#resultdir").addClass("dirdragging");
-  dirtouch.el.closest(".directorylistitem, .dirsubfolder").addClass("dirdragsource");
+  dirghostshow(dirtouch.el);
   if(navigator.vibrate) { navigator.vibrate(15); }
   dirtouchmove(dirtouch.x,dirtouch.y);
 }
 function dirtouchover() {
   var el = dirdroptarget(document.elementFromPoint(dirtouch.x,dirtouch.y));
-  var ok = dirdragover(el), folder = el.attr("data-folder");
-  dirtouch.ghost.toggleClass("dirghostok",ok).find(".dirghosttarget")
-    .text(ok ? "\u2192 "+(folder ? foldername(folder) : "All lists (top level)") : "Drag onto a folder");
+  dirghostat(dirtouch.x,dirtouch.y,dirdragover(el),el.attr("data-folder"),true);
 }
 function dirtouchmove(x,y) {
   dirtouch.x = x;
   dirtouch.y = y;
-  // centred above the finger (kept on screen), so it doesn't hide the target
-  var w = dirtouch.ghost.outerWidth();
-  dirtouch.ghost.css({"left": Math.max(6,Math.min(x-w/2,window.innerWidth-w-6)), "top": Math.max(6,y-dirtouch.ghost.outerHeight()-40)});
   dirtouchover();
   // held near the top or bottom: scroll the directory
   var step = y < 80 ? -14 : (y > window.innerHeight-80 ? 14 : 0);
