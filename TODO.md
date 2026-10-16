@@ -1,5 +1,27 @@
 # TODO
 
+## Setting to turn off gestures, all or one at a time (noted 2026-10-15)
+
+Add a toggle on the Settings page (`showsettings()`) to turn off the touch/mouse gestures,
+either all at once or each one separately. The gestures today, all in `oracle.js`:
+
+- **Deck swipe** (`deckswipestart`/`deckswipemove`/`deckswipeend`, plus the `mousedown`
+  click-drag version): swiping or dragging a card image or Simple List title (`a.deckswipe`)
+  changes its count in the active list (right +1, left -1, up-right +3, up-left -3).
+- **Directory drag** (the `touchstart` handler near the folder code): dragging a list by its
+  handle, or a folder after a long-press, to move it.
+- **Tooltip long-press** (`[data-balloon-pos]` `pointerdown`/`contextmenu`): shows a button's
+  label for 1.5 s on touch and blocks the browser's long-press menu.
+
+Notes:
+
+- Store it with the other settings: `settings.all` for logged-in users, so it follows them
+  across devices, and in this browser when logged out (like the search settings).
+- Check the flag at the start of each handler. When a gesture is off, let the browser's
+  default behavior through: scrolling, link drag, the long-press menu.
+- Maybe separate touch and mouse switches for deck swipe, since accidental click-drags on
+  desktop and accidental swipes on a phone are different annoyances.
+
 ## Dead legacy image code in oracle.js (noted 2026-10-15)
 
 Found while checking that a card can mix legacy (`printimagehash`) and modern
