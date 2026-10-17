@@ -49,6 +49,9 @@ headerize['pathfinder-pawns'] = {
     }
 };
 
+// "reverse": true marks a field whose search picks the version a card shows (bubbleup).
+// KEEP IN SYNC: searchaddallversioned in oracle.js lists the fields that pick a version for search "Add all to list";
+// a new reverse field (or one dropped) needs it updated too.
 searchables['pathfinder-pawns'] = {
   "quick": { "type": "quick" },
   "title": { "type": "text" },
