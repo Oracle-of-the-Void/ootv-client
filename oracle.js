@@ -4232,6 +4232,32 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid);
+  var drawn = cardhtml(carddata,prid,qs);
+  var shown = drawn.shown;
+  $("#resultcard").html(drawn.html);
+  updates[database]('#resultcard');
+  var primary = $("#printingprimary").val();
+  // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
+  var defpr = prid ? null : templatefetch(carddata,false,qs ? $.deparam(qs) : {})["printingid"];
+  var showpr = prid?prid:((defpr>0)?defpr:primary);
+  $(".printing:not([data-printingid="+showpr+"])").hide();
+  $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
+
+  if(!switchview) {
+	  return;
+  }
+  if($("#resultsearch").is(":visible")) {
+	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
+  } else if($("#resultcard").is(":visible")) {
+	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
+	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
+  }
+  showcard();
+}
+
+// the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
+// (it linkifies carddata in place, as docard always did before picking the printing to show)
+function cardhtml(carddata,prid=null,qs=null) {
   var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
@@ -4312,26 +4338,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
   var shown = markprinteddiffs(bubbleup([carddata],qs,prid))[0];
-  var html = getactivetemplate('card').render(shown,tmpl);
-  $("#resultcard").html(html);
-  updates[database]('#resultcard');
-  var primary = $("#printingprimary").val();
-  // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
-  var defpr = prid ? null : templatefetch(carddata,false,qs ? $.deparam(qs) : {})["printingid"];
-  var showpr = prid?prid:((defpr>0)?defpr:primary);
-  $(".printing:not([data-printingid="+showpr+"])").hide();
-  $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
-
-  if(!switchview) {
-	  return;
-  }
-  if($("#resultsearch").is(":visible")) {
-	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-  } else if($("#resultcard").is(":visible")) {
-	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
-	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-  }
-  showcard();
+  return {"html": getactivetemplate('card').render(shown,tmpl), "shown": shown};
 }
 
 function bubbleup(data,request=null,prid=null) {
