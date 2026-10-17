@@ -27,6 +27,8 @@ Both need the `setimport` permission (or `*`) for the game.
    plan does with it (the new card's cardid, the reprint's card and printing number, including
    changes typed in the reprint list).
    Rows with errors (an empty title, a broken transform) are marked; filter to them with *Show*.
+   The search box takes a title or a row's file name (`3D_039`, or `_03` for 030-039), the
+   names Plan's problems and warnings use.
    Then each row is checked against the live cards (the same matching Plan uses), and marked:
    *new*; *reprint* of a card (marked `Reprint` = 1, or *reprint, not marked*: a live card has the
    same title, experienced level and type, so it's planned as a reprint too); *duplicate* (that
@@ -39,7 +41,8 @@ Both need the `setimport` permission (or `*`) for the game.
    *Register* adds what's missing: a sort pattern at the position you pick, the set added
    to an arc (or a new arc), and the S&M code. The search Lambdas restart so the pulldowns
    pick it up. Changes go to the `oracle-all-structure` item `<game>/attributes` (and `<game>/snm`).
-4. **Images.** *Check the images* lists any files the cards name that aren't uploaded.
+4. **Images.** *Check the images* lists every file the cards name that isn't uploaded: the masters
+   to upload, and any _details/_select missing (re-upload that master).
    *Open the mass image upload* opens the uploader with the stub filled in. Come back with Set
    import afterwards: the import keeps its place.
 5. **Plan.** It reads every live card (read-only) and checks everything `set-import.py plan`
@@ -57,7 +60,8 @@ Both need the `setimport` permission (or `*`) for the game.
    registered, every legality known, every printing given a publisher. A clan or type no live
    card has is a **problem** (usually a typo or a missing profile table entry): fix it, or tick
    *accept* in *New values* if it really is new, and plan again; that list also says whether the
-   site's templates mention the value (icons, sorting). Other new values (deck, rarity, ...) are
+   site's templates mention the value (icons, sorting). New keywords are listed there too, as
+   warnings. Other new values (deck, rarity, ...) are
    warnings. Reprints whose printed text differs from their card are listed in *Text
    differences* with a word diff (the card's text isn't changed; errata is done by hand).
    **Problems** block going live; **warnings** are for you to read.
@@ -154,7 +158,7 @@ Template filters: `pad:<n or param>`, `initials`, `lower`, `upper`.
 | `{"index": n}`, `{"join": sep}`, `{"default": value}` | Pick one element, join a list, fill an empty value |
 | `{"match": regex}` | The first match |
 | `{"wrap": [before, after]}`, `{"prefix": s}`, `{"suffix": s}` | Add text around the value |
-| `l5rkeywords` | L5R keyword line → keywords, bold ones kept as `<b>…</b>` |
+| `l5rkeywords` | L5R keyword line → keywords, bold ones kept as `<b>…</b>`. A line break separates keywords, except `Experienced [N]<br>Name` where Name is a live card's name (or the part of its title before a comma): that's one keyword, `Experienced N Name`, as on live cards. The page reads the live names once (admin `titles`) |
 
 A transform on a list applies to each element. When the engine needs a new transform, add it
 to `setimport-etl.js` in ootv-client. The profiles just name it.

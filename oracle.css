@@ -1528,6 +1528,7 @@ table.massimagelist tr.massimage-failed td { color: #a00; }
 .setimp-badge.setimp-badgedup { background: #e8e8e8; color: #555; }
 .setimp-diffs del { background: #fbe3e0; color: #900; }
 .setimp-diffs ins { background: #e2f4e2; color: #060; }
+.setimp-missing { max-height: 20em; overflow: auto; font-size: 85%; margin: 2px 0 6px; padding: 4px 8px; background: #f6f6f6; }
 .setimp-cardview { border: 1px solid #ddd; border-radius: 4px; padding: 6px; margin: 4px 0; background: #fff; }
 .setimp-cardnote { margin: 0 0 6px; font-size: 90%; color: #555; }
 /* a picture of the Card Details page: its links and buttons would act on the real view */
