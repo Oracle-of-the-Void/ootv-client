@@ -65,7 +65,8 @@ function setimportopen() {
   $('#setimp-setup').html('<h4>1. Setup</h4>Loading import profiles...');
   setimpapi('profiles').then(function(r) {
     setimp.profiles = r.profiles;
-    setimp.pname = r.profiles.length ? r.profiles[0].name : null;
+    // no default: the profile decides how every column is read, so it's always picked
+    setimp.pname = null;
     setimprendersetup();
   }).catch(function(e) {
     $('#setimp-setup').html('<h4>1. Setup</h4><span class="error">'+setimpesc(setimperr(e))+'</span>');
@@ -76,11 +77,8 @@ function setimportopen() {
 function setimpreloadprofiles() {
   setimpapi('profiles').then(function(r) {
     setimp.profiles = r.profiles;
-    if(!setimpprofile()) { setimp.pname = r.profiles.length ? r.profiles[0].name : null; setimp.edited = {}; }
+    if(!setimpprofile()) { setimp.pname = null; }
     setimprendersetup();
-    (setimpprofile() ? setimpprofile().profile.params || [] : []).forEach(d => {
-      if(setimp.edited[d.name]) { $('#setimp-p-'+d.name).val(setimp.params[d.name]); }
-    });
   });
 }
 
@@ -124,11 +122,15 @@ function setimprendersetup() {
     $('#setimp-setup').html(html+'No import profiles for this game yet. <a href="" onclick="importprofilesopen(); return false">Create one in Import profiles</a>.');
     return;
   }
-  html += '<p>Profile <select id="setimp-profile" onchange="setimp.pname = this.value; setimp.edited = {}; setimp.params = {}; setimprendersetup();">'+
+  // switching profiles keeps the answers and the CSV, to compare what two profiles make of the same set
+  html += '<p>Profile <select id="setimp-profile" onchange="setimp.pname = this.value; setimprendersetup();">'+
+          (p ? '' : '<option value="" selected disabled>Choose a profile...</option>')+
           setimp.profiles.map(x => '<option'+(x.name == setimp.pname ? ' selected' : '')+'>'+setimpesc(x.name)+'</option>').join('')+
-          '</select> <small>'+setimpesc(p.description)+' (version '+p.version+') &middot; <a href="" onclick="importprofilesopen(); return false">manage profiles</a></small></p>';
+          '</select> <small>'+(p ? setimpesc(p.description)+' (version '+p.version+') &middot; ' : '')+
+          '<a href="" onclick="importprofilesopen(); return false">manage profiles</a></small></p>';
   html += '<table class="setimp-params">';
-  (p.profile.params || []).forEach(function(d) {
+  if(!p) { html += '<tr><td colspan="2"><small>The profile\'s questions (set name, image stub, ...) appear once it\'s chosen.</small></td></tr>'; }
+  (p ? p.profile.params || [] : []).forEach(function(d) {
     html += '<tr><td><label for="setimp-p-'+setimpesc(d.name)+'">'+setimpesc(d.label || d.name)+(d.required ? ' *' : '')+'</label></td>'+
             '<td><input type="text" id="setimp-p-'+setimpesc(d.name)+'" data-param="'+setimpesc(d.name)+'" size="40"'+
             (d.options ? ' list="setimp-o-'+setimpesc(d.name)+'"' : '')+' oninput="setimpparam(this)" onchange="setimpparam(this, true)" />'+
@@ -140,6 +142,8 @@ function setimprendersetup() {
           (setimp.csv ? ' <small>'+setimpesc(setimp.csv.name)+': '+setimp.csv.rows.length+' rows</small>' : '')+'</td></tr></table>';
   html += '<input type="button" value="Pre-Process Cards" onclick="setimptransform()" /> <span id="setimp-setupstatus"></span>';
   $('#setimp-setup').html(html);
+  if(!p) { return; }
+  (p.profile.params || []).forEach(d => { if(setimp.edited[d.name]) { $('#setimp-p-'+d.name).val(setimp.params[d.name]); } });
   setimpdefaults();
   (p.profile.params || []).filter(d => typeof d.options == 'string' && d.options.indexOf('vocab:') == 0).forEach(function(d) {
     $.ajax({type: 'POST', url: apiuri+"/attributes", contentType: 'application/json', dataType: 'json',
@@ -197,6 +201,7 @@ function setimpreadcsv(input) {
 
 function setimptransform() {
   var p = setimpprofile();
+  if(!p) { setimpstatus('setimp-setupstatus', 'Choose the profile first.', 'error'); return; }
   if(!setimp.csv) { setimpstatus('setimp-setupstatus', 'Choose the CSV first.', 'error'); return; }
   var params = {};
   Object.keys(setimp.params).forEach(function(k) {
@@ -262,7 +267,7 @@ function setimpmatchfromplan(p) {
     if(SETIMP_PROBLEM[o.status]) { rows[f] = o; }
   });
   p.new.forEach(n => { rows[n.file] = {"status": "new", "cardid": n.cardid, "planned": true}; });
-  p.reprints.forEach(r => { rows[r.file] = {"status": "reprint", "cardid": r.cardid, "title": r.title, "how": r.how,
+  p.reprints.forEach(r => { rows[r.file] = {"status": "reprint", "cardid": r.cardid, "title": r.title, "how": r.how, "loose": r.loose,
                                             "printingid": r.printingid, "primary": r.primary, "planned": true}; });
   (p.duplicates || []).forEach(d => { rows[d.file] = {"status": "duplicate", "cardid": d.cardid, "title": d.title, "planned": true}; });
   var counts = {};
@@ -357,7 +362,8 @@ function setimpbadge(c) {
     case 'new': return ' <span class="setimp-badge setimp-badgenew">new'+(m.cardid ? ' '+m.cardid : '')+'</span>';
     case 'reprint': return ' <span class="setimp-badge'+(m.how == 'found' ? ' setimp-badgewarn' : '')+'">'+
                            (m.how == 'found' ? 'reprint, not marked' : m.how == 'picked' ? 'reprint (picked)' : 'reprint')+'</span> of '+
-                           setimpcardlink(m.cardid, m.title)+(m.printingid ? ' as #'+m.printingid+(m.primary ? ' (primary)' : '') : '');
+                           setimpcardlink(m.cardid, m.title)+(m.loose ? ' <small>(punctuation differs)</small>' : '')+
+                           (m.printingid ? ' as #'+m.printingid+(m.primary ? ' (primary)' : '') : '');
     case 'duplicate': return ' <span class="setimp-badge setimp-badgedup">duplicate</span> already on '+setimpcardlink(m.cardid, m.title);
     case 'ambiguous': return ' <span class="setimp-badge setimp-badgeerr">several matches</span> '+m.cands.map(x => setimpcardlink(x.cardid, x.title)).join(', ');
     case 'unmatched': return ' <span class="setimp-badge setimp-badgeerr">marked reprint, no match</span>'+

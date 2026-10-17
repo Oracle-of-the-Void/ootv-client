@@ -1533,7 +1533,8 @@ table.massimagelist tr.massimage-failed td { color: #a00; }
 .setimp-cardviewbody { pointer-events: none; }
 .setimp-cardviewbody > div.listitem { display: table; width: 100%; table-layout: fixed; }
 .setimp-cardviewbody div.listimage { width: 430px; }
-.setimp-cardviewbody img { max-width: 100%; height: auto; }
+/* the card image only: inline symbols (img.inlinesymbolbounded, 1em) keep the site's size */
+.setimp-cardviewbody div.listimage img { max-width: 100%; height: auto; }
 .setimp-noimage { width: 300px; height: 420px; max-width: 100%; display: flex; align-items: center; justify-content: center;
                   text-align: center; border: 2px dashed #bbb; border-radius: 12px; color: #777; font-size: 90%; }
 @media (max-width: 700px) {
