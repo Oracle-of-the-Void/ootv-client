@@ -2181,6 +2181,7 @@ function imagehashtourl(card) {
         card.printingreverse.printingid[card.printing[p].printingid] = p;
     }
     //DONE for onyx: the searchables in l5r.js are the place to specify reverse.. but i want a hidden printing.legality
+    // KEEP IN SYNC: a new reverse field (one more search that picks the version shown) also goes in searchaddallversioned
     for(seakey in searchables[database]) {
         sea = searchables[database][seakey];
         if((typeof sea === 'object') && ('reverse' in sea)) {
@@ -3947,6 +3948,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 }
 
 function bubbleup(data,request=null,prid=null) {
+  // KEEP IN SYNC: a new way of picking the version shown also needs searchaddallversioned (search "Add all to list")
   // Lays one printing's fields over the card's, so the card shows that printing: prid (the card view's
   // version), else the list's printing (listprinting), else the one a reverse field in the request
   // matched (field_printing_<att>, field_<att>, require_*: see templatefetch). Other cards come back as
@@ -4454,6 +4456,16 @@ function searchaddall(qs) {
 function searchaddallmax() {
     return (dbinfo[database] && dbinfo[database].addallmax) || 500;
 }
+// the search fields that pick a version of a card: with none of them in the search, the cards go in without a version.
+// KEEP IN SYNC with the version-picking code: the "reverse" searchables in templates/<game>.js, bubbleup and
+// templatefetch. A new field that changes the version shown goes here too.
+const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist'];
+function searchaddallversion(request) {
+    return Object.keys(request).some(function(key) {
+	var m = key.match(/^(?:field|require)_(?:printing_)?(.*)$/);
+	return m && searchaddallversioned.includes(m[1]) && [].concat(request[key]).some(function(v) { return v !== ''; });
+    });
+}
 // which list, and how many copies of each card: the active lists first, then every list by folder
 function searchaddallpick() {
     var qs = $('#lastsearchquery').val();
@@ -4461,7 +4473,9 @@ function searchaddallpick() {
     var rev = cache_thing("list","datareverse") || {};
     var items = cache_thing("list","data").lists.Items;
     var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); }).map(function(listid) { return items[rev[listid]]; });
+    var request = searchcache[database]['queryrequest'][qs] || $.deparam(qs);
     modal('Add all ' + total.toLocaleString() + ' cards to which list?',
+	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher or artist to add a version).') + '</p>' +
 	'<p><label>Copies of each card <input id="searchaddallcopies" type="number" min="1" step="1" value="1" style="width: 4em;" /></label></p>' +
 	'<ul class="swipepicklist">' +
 	(active.length ? active.map(function(list) { return listpickitem(list, 'searchaddallpicked'); }).join('') + '<li class="swipepicksep">All lists</li>' : '') +
@@ -4479,7 +4493,11 @@ function searchaddallpicked(listid) {
     activatelist(listid, function() {
 	searchaddallfetch(qs, function(ids) {
 	    var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs));
+	    var versioned = searchaddallversion(request);
 	    var items = bubbleup(ids.map(cache_card_fetch), request).map(function(card) {
+		if(!versioned) {
+		    return [card.cardid, 0];
+		}
 		var prid = card.printingid;
 		// games whose search picks no printing: a set search adds that set's, like the result's set row
 		// (printingidfromset, which throws on a printing with no set)
