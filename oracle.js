@@ -3868,12 +3868,12 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
           //console.log(["linkifying",key]);
           carddata[key] = carddata[key].map(function(x){
             //console.log([x,key,searchables[database][key].type]);
-            return process_keywordlink(x,key,searchables[database][key].type);
+            return process_keywordlink(x,key,searchables[database][key].type,carddata.title);
           });
           for (let i=0;i<carddata.printing.length;i++) {
             //console.log(i);
             if(carddata.printing[i][key]) {
-              carddata.printing[i][key] = carddata.printing[i][key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
+              carddata.printing[i][key] = carddata.printing[i][key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type,carddata.title);});
             }
           }
         }
@@ -4061,15 +4061,15 @@ function lastcardprid() {
   return ($("#lastprintid").val() && $("#lastprintid").data("chosen")) ? $("#lastprintid").val() : null;
 }
 
-function process_keywordlink(data,fieldname,type) {
+// title: the card's title, for keywords that link to other versions of the card (see keywordtitle)
+function process_keywordlink(data,fieldname,type,title=null) {
   fieldname = fieldname.replace('.','_');
   var cleandata = data.replace(new RegExp("<[^<]+>","g"),"");
-  // a "Soul of <name>" keyword searches for the card it's the soul of, by title
-  var soul = fieldname == 'keywords' && cleandata.match(/^Soul(?:\s|&nbsp;)+of(?:\s|&nbsp;)+(.+)$/i);
-  if(soul) {
+  var findtitle = fieldname == 'keywords' && keywordtitle(cleandata,title);
+  if(findtitle) {
     fieldname = 'title';
     type = searchables[database]['title'].type;
-    cleandata = soul[1].replace(/&nbsp;/g,' ');
+    cleandata = findtitle;
   }
   return '<a href="" id="'+
     '#search='+
@@ -4079,6 +4079,26 @@ function process_keywordlink(data,fieldname,type) {
         fieldname+'='+encodeURIComponent(cleandata)
     )+
     '" onclick="window.location.hash=this.id; return false;">'+data+'</a>';
+}
+// the title a keyword links to instead of a keyword search, or null:
+//   Soul of <name> [Experienced [n]]  -> <name>, the card it's the soul of
+//   [In]experienced [n] <name>        -> <name>, the card it's a version of
+//   [In]experienced [n]               -> this card's title up to a comma (n may be 2, 3.5, 2KYD, 2CW)
+function keywordtitle(keyword,title) {
+  keyword = keyword.replace(/&nbsp;/g,' ').trim();
+  var soul = keyword.match(/^Soul\s+of\s+(.+?)(?:\s+(?:In)?[Ee]xperienced\b.*)?$/i);
+  if(soul) {
+    return soul[1];
+  }
+  var exp = keyword.match(/^(?:Inexperienced|Experienced)(?:\s+\d+(?:\.\d+)?[A-Z]*)?(?:\s+(.+))?$/);
+  if(!exp) {
+    return null;
+  }
+  if(exp[1]) {
+    return exp[1];
+  }
+  title = [].concat(title || [])[0];
+  return title ? String(title).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;/g,' ').replace(/,.*/,'').trim() || null : null;
 }
 
 // Populate loads qs data back into the form for searching on
