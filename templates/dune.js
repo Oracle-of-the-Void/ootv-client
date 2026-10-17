@@ -7,6 +7,7 @@ dbinfo['dune'] = {
     'name': "Dune CCG",
     'nameshort':'dune',
     'logo': 'dune.png',
+    'addallmax': 347, // search "Add all to list" cap: 15% over the largest set (Eye of the Storm, 301 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/dune/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':'A collectible card game about the Dune movies / books.'

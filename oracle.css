@@ -947,10 +947,10 @@ div.menubar nav li.textversionmenu {
   padding-top: 5px;
   cursor: default;
 }
-li.textversionmenu .searchtextversion, li.textversionmenu .listtextversion, div#phonetextversion, div#phonelisttextversion {
+li.textversionmenu .searchtextversion, li.textversionmenu .searchaddall, li.textversionmenu .listtextversion, div#phonetextversion, div#phonelisttextversion {
   display: none;
 }
-body.viewsearch li.textversionmenu .searchtextversion, body.viewlist li.textversionmenu .listtextversion {
+body.viewsearch li.textversionmenu .searchtextversion, body.viewsearch li.textversionmenu .searchaddall, body.viewlist li.textversionmenu .listtextversion {
   display: inline;
 }
 div.menubar nav li.numresultsmenu {
@@ -1503,7 +1503,7 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 #newversion .button:hover { background: linear-gradient(#bf2e2e, #851010); }
 #newversion .feather { stroke: #fff; }
 
-/* swipe list picker (deckswipepicklist in oracle.js) */
+/* swipe list picker (deckswipepicklist in oracle.js), and search "Add all to list" (searchaddallpick) */
 .swipepicklist {
   list-style: none;
   margin: 0;
@@ -1536,6 +1536,12 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .swipepickwhere {
   color: #666;
   font-size: smaller;
+}
+.swipepicksep {
+  padding: 10px 6px 4px 6px;
+  color: #666;
+  font-size: smaller;
+  border-bottom: 1px solid #ccc;
 }
 
 /* Gestures setting "Folder pulldown" off (applyfolderselect in oracle.js) */
