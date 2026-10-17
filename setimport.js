@@ -420,7 +420,7 @@ function setimprendercards($root) {
   r.cards.forEach(function(c, i) {
     if(!setimpshown(c, f)) { return; }
     var card = c.card || {};
-    var title = (card.title || [''])[0];
+    var title = setimportetl.cardlabel(card);
     if(q && String(title).toLowerCase().indexOf(q) < 0 && c.file.toLowerCase().indexOf(q) < 0) { return; }
     var p = (card.printing || [{}])[0];
     html += '<details class="setimp-card'+(c.errors.length ? ' setimp-haserr' : '')+'" data-i="'+i+'"><summary>'+
@@ -740,7 +740,7 @@ function setimprenderplan() {
                                                  !(p.duplicates || []).some(d => d.file == c.file));
     if(unmatched.length) {
       html += '<p><b>To resolve (no match, or several)</b></p><table class="setimp-table"><tr><th>File</th><th>Title</th><th>Change</th></tr>';
-      unmatched.forEach(c => { html += '<tr><td>'+setimpesc(c.file)+'</td><td>'+(c.card.title || [''])[0]+'</td><td>'+setimpoverride(c.file)+'</td></tr>'; });
+      unmatched.forEach(c => { html += '<tr><td>'+setimpesc(c.file)+'</td><td>'+setimportetl.cardlabel(c.card)+'</td><td>'+setimpoverride(c.file)+'</td></tr>'; });
       html += '</table>';
     }
     html += '</details>';
