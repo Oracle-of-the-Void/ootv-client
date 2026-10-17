@@ -4993,6 +4993,7 @@ function showview(view) {
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
     $('#' + view).fadeIn();
     updateviewbuttons();
+    if(view == 'resultadmin') loadadmininfo();
 }
 function showcard() {
     showview('resultcard');
@@ -5715,6 +5716,34 @@ function checkversion() {
   $.ajax({url: 'version.json', dataType: 'json', cache: false})
     .done(function(data) {
       if(data.version && data.version != ootvversion) $('#newversion').show();
+    });
+}
+// admin page: the live deploy (version.json, stamped by .github/stamp-version.sh) and when this
+// browser cached each of this game's selects (refetched once older than selectmaxage).
+function utcstamp(ms) {
+  return new Date(ms).toISOString().replace('T',' ').replace(/\.\d+Z$/,' UTC');
+}
+function loadadmininfo() {
+  var prefix = database+"_searchselecttime_";
+  var store = (typeof(Storage) !== "undefined") ? window.localStorage : null;
+  var keys = store ? Object.keys(store) : Object.keys(nolocalstore);
+  var rows = keys.filter(function(k) { return k.indexOf(prefix) === 0; }).sort().map(function(k) {
+    var t = JSON.parse(store ? store.getItem(k) : JSON.stringify(nolocalstore[k]));
+    var age = Math.round((Date.now() - t) / 60000);
+    return $('<tr>').append($('<td>').text(k.substr(prefix.length)),
+                            $('<td>').text(t ? utcstamp(t) : 'no time'),
+                            $('<td>').text(t ? age+' min ago'+(Date.now() - t >= selectmaxage ? ' (refetched on next use)' : '') : ''));
+  });
+  var html = $('<p class="admininfo-html">').text('Latest HTML update: loading...');
+  var cached = rows.length ? $('<table>').append(rows) : $('<p>').text('No cached data for '+database+'.');
+  $('#admininfo').empty().append(html, $('<p>').text('Cached data ('+database+', this browser):'), cached);
+  $.ajax({url: 'version.json', dataType: 'json', cache: false})
+    .done(function(data) {
+      html.text('Latest HTML update: '+(data.timestamp || 'unknown')+' ('+data.version+')'+
+                (ootvversion != 'dev' && data.version != ootvversion ? ' - this tab runs '+ootvversion+', reload to update' : ''));
+    })
+    .fail(function() {
+      html.text('Latest HTML update: no version.json (not deployed: local copy)');
     });
 }
 document.addEventListener('visibilitychange', function() {

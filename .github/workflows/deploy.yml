@@ -92,8 +92,3 @@ jobs:
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
             --include 'docs/admin/*'
 
-      - name: Invalidate CloudFront
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ steps.target.outputs.distribution }}" \
-            --paths '/*'
