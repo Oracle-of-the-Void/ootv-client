@@ -1493,6 +1493,17 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .discordcmd { display: inline-block; min-width: 6em; color: #555; }
 .discordmsg { color: #a00; max-width: 20em; }
 .discordnote { background: #eef6ee; padding: 4px 8px; }
+/* admin mass image upload */
+.massimage { max-width: 60em; }
+.massimage:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+#massimagestatus { margin: 8px 0; }
+table.massimagelist { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
+table.massimagelist th, table.massimagelist td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+table.massimagelist tr.massimage-skipped td, table.massimagelist tr.massimage-waiting td { color: #777; }
+table.massimagelist tr.massimage-exists td { color: #a60; }
+table.massimagelist tr.massimage-irregular td { color: #a60; }
+#massimagereport:not(:empty) { margin: 8px 0; padding: 4px 8px; background: #f6f6f0; }
+table.massimagelist tr.massimage-failed td { color: #a00; }
 .admindoc { max-width: 60em; }
 .admindoc:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 .admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }

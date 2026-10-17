@@ -433,7 +433,8 @@ codes:
 
 ## /upload
 
-Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12).
+Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12) and the
+Admin page's mass image upload (no cardid; one call per 3 images, so one updatelog row each).
 The browser PUTs straight to the images bucket, so the files never go through API Gateway.
 
 Handled by lambda: ootv-search/routes/upload.js
@@ -452,6 +453,11 @@ inputs: JSON
   * contentType must match (`image/png` or `image/jpeg`)
 * overwrite (optional)
   * without it, `If-None-Match: *` is signed into the URL and S3 refuses (412) to replace an existing file
+  * with it, each file that already exists is first copied to `<name>.bak-<UTC time>.<ext>` in the same
+    directory and listed in the image trash (`oracle-all-imagetrash`, reason `replaced`). If a copy fails,
+    no URLs are returned.
+* check (optional)
+  * `true`: only report which of the files exist (up to 3000 names; contentType not needed, no updatelog row)
 * cardid, printingid (optional)
   * recorded in the updatelog row (see below)
 
@@ -459,6 +465,13 @@ outputs:
 
 * urls: `[{name, key, url, headers}]`. PUT the file to `url` with exactly `headers`.
 * expires: seconds the URLs are valid (900)
+* backups: `[{name, backup}]`, the copies made with overwrite
+* with check: only `exists: [{name, size, lastmodified}]`
+
+Both clients ask before replacing: the card editor checks and waits for a second press of Upload image,
+and the mass upload lists the files to replace and needs its own tick.
+/update also lists in the image trash every image a card stops pointing at (`updateinstance`,
+`removeinstance`, `remove`; reason `unlinked`).
 
 Each call adds an `upload` row to oracle-all-updatelog: database, uid, uname, timestamp,
 `cardids` (`[cardid]`, or `[]` without one), printingid, imagehash, `files` (names) and overwrite.
