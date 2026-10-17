@@ -430,6 +430,7 @@ function setimpdoplan() {
   setimpapi('plan', {"params": r.params, "profile": r.profile, "overrides": setimp.overrides,
                      "description": $('#setimp-desc').length ? $('#setimp-desc').val() : '',
                      "registration": setimp.registration || null,
+                     "csv": setimp.csv ? {"name": setimp.csv.name, "text": setimp.csv.text} : null,
                      "cards": r.cards.filter(c => c.card).map(c => ({"file": c.file, "reprint": c.reprint, "card": c.card}))})
     .then(function(p) {
       setimp.plan = p;
