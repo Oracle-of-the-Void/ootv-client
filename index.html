@@ -597,15 +597,17 @@ printingprimary
     with <code>_details</code> and <code>_select</code> made the same way as the card editor's image upload.
     Files already named <code>_master</code> keep the name; <code>_details</code>/<code>_select</code> files are skipped.
     No card is changed: point printings at the files with the set import or the card editor.
-    Card images are PNG, with the area outside rounded corners transparent.</p>
+    Card images are PNG, with the area outside rounded corners transparent; JPEG is accepted.
+    Check files lists anything irregular before anything is uploaded.</p>
   <input type="hidden" id="massimagedb" value="{{>database}}" />
-  <p>Stub <input type="text" id="massimagestub" size="12" placeholder="e.g. CRIII" /> the directory, usually the set's initials</p>
-  <p>Folder <input type="file" id="massimagedir" webkitdirectory multiple /><br />
-    or files <input type="file" id="massimagefiles" accept="image/png,image/jpeg" multiple /></p>
-  <p><label><input type="checkbox" id="massimageoverwrite" /> Replace existing files</label></p>
-  <input type="button" id="massimagebutton" value="Upload" onclick="massimagetrigger();" />
+  <p>Stub <input type="text" id="massimagestub" size="12" placeholder="e.g. CRIII" onchange="massimagereset()" /> the directory, usually the set's initials</p>
+  <p>Folder <input type="file" id="massimagedir" webkitdirectory multiple onchange="massimagereset()" /><br />
+    or files <input type="file" id="massimagefiles" accept="image/png,image/jpeg" multiple onchange="massimagereset()" /></p>
+  <p><label><input type="checkbox" id="massimageoverwrite" onchange="massimagereset()" /> Replace existing files (the old ones are kept as backups)</label></p>
+  <input type="button" id="massimagecheck" value="Check files" onclick="massimagecheck();" />
   <input type="button" id="massimagestop" value="Stop" onclick="massimagestop();" style="display: none" />
   <div id="massimagestatus"></div>
+  <div id="massimagereport"></div>
   <table class="massimagelist" id="massimagetable"></table>
 </script>
 <!-- admin login log (/loginlog): name, email, reason come from users, so always escape with {{>}} -->
