@@ -23,13 +23,14 @@ or tests. The files in this directory are exactly what gets served.
   (`card`, `search`). Generic ones (`template-list.html`, `template-text*.html`,
   `template-visual*.html`, `template-pdf.html`) have no game prefix. They are fetched
   at runtime: `"templates/template-" + (generic ? "" : database + "-") + key + ".html"`.
-- The Sun and Moon map (l5r sets and odd printings → S&M edition codes, for the S&M text export
-  and ootv-search's `/import`) lives in the `oracle-all-structure` item `l5r/snm`; `oracle.js`
-  loads it through `/structure` on the first S&M export. `templates/l5r-snm.json` (and
-  ootv-search's `lib/snm/l5r-snm.json`) is the fallback until that item exists. It's generated:
-  rerun `python3 -I docs/snm/snm-map.py` after S&M updates its database (it reads
-  `../SnM/.../database.xml` and the l5r export in `../ootv-backups`), then push it with
-  `python3 docs/snm/snm-push.py --go`. The Admin set import adds a new set's code to the item.
+- Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
+  `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
+  the first S&M export; a printing S&M files under another edition carries its own code in the
+  printing field `snmsetcode` (`docs/data.md`), which wins. No static copy is served.
+  `docs/snm/snm-map.py` rebuilds both into `docs/snm/l5r-snm.json` after S&M updates its
+  database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`); then
+  `python3 docs/snm/snm-push.py --go` writes the set codes and ootv-backups `snm-printings.py`
+  the printing codes. The Admin set import adds a new set's code to the item.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin

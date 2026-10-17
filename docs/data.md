@@ -25,6 +25,12 @@
   false. To set it, edit the card in the site's card editor, which edits the card's JSON
   directly: add `"notmrp": true` inside that printing's object. The Discord bot honors it
   too.
+* printing.snmsetcode (optional, l5r, array of one string). The Sun and Moon edition code the
+  S&M text export writes for this printing, where it differs from its set's code (the
+  `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
+  so S&M shows its default printing. Leave it out when the set's code is right. ootv-search's
+  `/import` reads it back. Bulk values come from `docs/snm/snm-map.py` through
+  ootv-backups `snm-printings.py`; edit one by hand in the card editor.
 * NEW: image: hash of images:
  * ```json
 {
