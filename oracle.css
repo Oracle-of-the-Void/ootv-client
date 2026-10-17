@@ -1524,6 +1524,9 @@ table.massimagelist tr.massimage-failed td { color: #a00; }
 .setimp-meta { color: #666; font-size: 90%; }
 .setimp-badge { font-size: 80%; padding: 0 5px; border-radius: 3px; background: #e6eefa; color: #245; }
 .setimp-badge.setimp-badgeerr { background: #fbe3e0; color: #a00; }
+.setimp-badge.setimp-badgenew { background: #e2f4e2; color: #262; }
+.setimp-badge.setimp-badgewarn { background: #fdf0d0; color: #750; }
+.setimp-badge.setimp-badgedup { background: #e8e8e8; color: #555; }
 .setimp-cardbody { padding: 0 8px 8px 24px; }
 .setimp-raw > summary { color: #666; font-size: 90%; cursor: pointer; }
 .setimport details > summary { cursor: pointer; }

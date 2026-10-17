@@ -224,8 +224,10 @@ function setimptransform() {
   setimp.job = null;
   setimp.meta = null;
   setimp.overrides = {};
+  setimp.match = null;
   setimpstatus('setimp-setupstatus', '');
   setimprenderpreview();
+  setimpmatch();
   setimprenderregister();
   setimprenderimages();
   $('#setimp-plan').html('<h4>5. Plan</h4><p>Checks everything against the live cards (read-only): cardids, reprint matches, '+
@@ -236,17 +238,49 @@ function setimptransform() {
 
 // ---------------------------------------------------------------- 2. preview
 
-function setimprenderpreview() {
+// each row checked against the live cards (the server's classify, as Plan uses it): new, reprint,
+// duplicate (its card already has this set), unmatched or ambiguous
+function setimpmatch() {
   var r = setimp.result;
-  var errs = r.cards.filter(c => c.errors.length).length, reps = r.cards.filter(c => c.reprint).length;
-  var html = '<h4>2. Cards</h4><p><b>'+r.cards.length+' cards</b> from '+setimp.csv.rows.length+' rows: '+
-             (r.cards.length - reps)+' new, '+reps+' marked as reprints'+
-             (errs ? ', <span class="error">'+errs+' with errors</span>' : '')+'.</p>';
+  setimpapi('match', {"params": r.params, "overrides": setimp.overrides,
+                      "cards": r.cards.filter(c => c.card).map(c => ({"file": c.file, "reprint": c.reprint, "card": c.card}))})
+    .then(function(m) {
+      if(setimp.result !== r) { return; }
+      setimp.match = m;
+      setimprenderpreview();
+    }).catch(e => $('#setimp-matchstatus').html('<span class="error">Couldn\'t check against the live cards: '+setimpesc(setimperr(e))+'</span>'));
+}
+
+var SETIMP_PROBLEM = {"unmatched": 1, "ambiguous": 1, "missing": 1};
+
+function setimpsummary() {
+  var r = setimp.result, m = setimp.match;
+  var errs = r.cards.filter(c => c.errors.length).length, marked = r.cards.filter(c => c.reprint).length;
+  var html = '<b>'+r.cards.length+' cards</b> from '+setimp.csv.rows.length+' rows'+
+             (errs ? ', <span class="error">'+errs+' with errors</span>' : '');
+  if(!m) {
+    return html+'; '+marked+' marked Reprint. <span id="setimp-matchstatus">Checking them against the live cards...</span>';
+  }
+  var n = m.counts, parts = [];
+  parts.push((n.new || 0)+' new');
+  parts.push((n.reprint || 0)+' reprints'+(n.found ? ' ('+n.found+' found by title, not marked Reprint)' : ''));
+  if(n.duplicate) { parts.push('<b>'+n.duplicate+' already on the site</b> (duplicates, skipped)'); }
+  var probs = (n.unmatched || 0)+(n.ambiguous || 0)+(n.missing || 0);
+  if(probs) { parts.push('<span class="error">'+probs+' to resolve</span> (no match or several)'); }
+  return html+'. Against the '+m.live+' live cards: '+parts.join(', ')+'.';
+}
+
+function setimprenderpreview() {
+  var r = setimp.result, m = setimp.match;
+  var html = '<h4>2. Cards</h4><p>'+setimpsummary()+'</p>';
   r.errors.forEach(e => { html += '<p class="setimp-warn">'+setimpesc(e.message)+'</p>'; });
+  var f = $('#setimp-filter').val() || '';
+  var opts = [['', 'all'], ['errors', 'with errors'], ['new', 'new cards'], ['reprint', 'reprints']];
+  if(m) { opts.push(['found', 'reprints not marked'], ['duplicate', 'duplicates'], ['problem', 'no match / several']); }
   html += '<p><input type="button" value="Expand all" onclick="setimpexpand(true)" /> <input type="button" value="Collapse all" onclick="setimpexpand(false)" /> '+
-          'Show <select id="setimp-filter" onchange="setimprendercards()"><option value="">all</option><option value="errors">with errors</option>'+
-          '<option value="reprint">reprints</option><option value="new">new cards</option></select> '+
-          '<input type="search" id="setimp-search" placeholder="title" size="16" oninput="setimprendercards()" /> '+
+          'Show <select id="setimp-filter" onchange="setimprendercards()">'+
+          opts.map(o => '<option value="'+o[0]+'"'+(o[0] == f ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
+          '<input type="search" id="setimp-search" placeholder="title" size="16" oninput="setimprendercards()" value="'+setimpesc($('#setimp-search').val() || '')+'" /> '+
           '<input type="button" value="Download out/ (zip)" onclick="setimpdownload()" title="The cards as set-import.py reads them" /></p>'+
           '<div id="setimp-cards" class="setimp-cards"></div>';
   $('#setimp-preview').html(html);
@@ -258,13 +292,45 @@ function setimprenderpreview() {
   setimprendercards();
 }
 
+function setimpcardlink(cardid, title) {
+  return '<a href="#game='+setimp.db+',#cardid='+cardid+'" target="_blank" onclick="event.stopPropagation()">'+cardid+(title ? ' '+title : '')+'</a>';
+}
+
+// the row's badge: what it is against the live cards, or (before that check) whether it's marked Reprint
+function setimpbadge(c) {
+  var m = setimp.match && setimp.match.rows[c.file];
+  if(!m) { return c.reprint ? ' <span class="setimp-badge">marked reprint</span>' : ''; }
+  switch(m.status) {
+    case 'new': return ' <span class="setimp-badge setimp-badgenew">new</span>';
+    case 'reprint': return ' <span class="setimp-badge'+(m.how == 'found' ? ' setimp-badgewarn' : '')+'">'+
+                           (m.how == 'found' ? 'reprint, not marked' : 'reprint')+'</span> of '+setimpcardlink(m.cardid, m.title);
+    case 'duplicate': return ' <span class="setimp-badge setimp-badgedup">duplicate</span> already on '+setimpcardlink(m.cardid, m.title);
+    case 'ambiguous': return ' <span class="setimp-badge setimp-badgeerr">several matches</span> '+m.cands.map(x => setimpcardlink(x.cardid, x.title)).join(', ');
+    case 'unmatched': return ' <span class="setimp-badge setimp-badgeerr">marked reprint, no match</span>'+
+                             (m.near && m.near.length ? ' close: '+m.near.map(x => setimpcardlink(x.cardid, x.title)).join(', ') : '');
+    default: return ' <span class="setimp-badge setimp-badgeerr">'+setimpesc(m.status)+'</span>';
+  }
+}
+
+function setimpshown(c, f) {
+  var m = setimp.match && setimp.match.rows[c.file];
+  var st = m ? m.status : (c.reprint ? 'reprint' : 'new');
+  switch(f) {
+    case 'errors': return c.errors.length > 0;
+    case 'new': return st == 'new';
+    case 'reprint': return st == 'reprint';
+    case 'found': return st == 'reprint' && m.how == 'found';
+    case 'duplicate': return st == 'duplicate';
+    case 'problem': return !!SETIMP_PROBLEM[st];
+  }
+  return true;
+}
+
 function setimprendercards() {
   var r = setimp.result, f = $('#setimp-filter').val(), q = ($('#setimp-search').val() || '').toLowerCase();
   var html = '';
   r.cards.forEach(function(c, i) {
-    if(f == 'errors' && !c.errors.length) { return; }
-    if(f == 'reprint' && !c.reprint) { return; }
-    if(f == 'new' && c.reprint) { return; }
+    if(!setimpshown(c, f)) { return; }
     var card = c.card || {};
     var title = (card.title || [''])[0];
     if(q && String(title).toLowerCase().indexOf(q) < 0) { return; }
@@ -272,7 +338,7 @@ function setimprendercards() {
     html += '<details class="setimp-card'+(c.errors.length ? ' setimp-haserr' : '')+'" data-i="'+i+'"><summary>'+
             '<span class="setimp-file">'+setimpesc(c.file.replace(/\.json$/,''))+'</span> <b>'+title+'</b>'+
             ' <span class="setimp-meta">'+setimpesc([(card.type || []).join(', '), (card.clan || []).join(', '), (p.rarity || []).join(', ')].filter(x => x).join(' · '))+'</span>'+
-            (c.reprint ? ' <span class="setimp-badge">reprint</span>' : '')+
+            setimpbadge(c)+
             (c.errors.length ? ' <span class="setimp-badge setimp-badgeerr">'+c.errors.length+' error'+(c.errors.length == 1 ? '' : 's')+'</span>' : '')+
             '</summary><div class="setimp-cardbody"></div></details>';
   });
@@ -457,7 +523,8 @@ function setimprenderplan() {
   }
   html += '<p class="'+(p.ready ? 'setimp-ok' : 'error')+'"><b>'+(p.ready ? 'Ready to go live' : 'Not ready: '+p.problems.length+' problem'+(p.problems.length == 1 ? '' : 's'))+'</b>'+
           ' &middot; '+p.counts.new+' new cards'+(p.cardids ? ' (cardids '+p.cardids[0]+'-'+p.cardids[1]+')' : '')+', '+
-          p.counts.printings+' reprint printings on '+p.counts.reprinted+' cards, '+p.counts.images+' images</p>';
+          p.counts.printings+' reprint printings on '+p.counts.reprinted+' cards, '+
+          (p.counts.duplicates ? p.counts.duplicates+' duplicates skipped, ' : '')+p.counts.images+' images</p>';
   html += setimplist('problems', p.problems, 'setimp-problems', 50)+setimplist('warnings', p.warnings, 'setimp-warnings', 10)+
           setimplist('notes', p.infos, 'setimp-infos', 0);
   if(!p.fromjob) {
@@ -472,13 +539,24 @@ function setimprenderplan() {
               setimpesc(r.how)+'</td><td>#'+r.printingid+(r.primary ? ' (primary)' : '')+'</td><td>'+setimpoverride(r.file)+'</td></tr>';
     });
     html += '</table>';
-    var unmatched = setimp.result.cards.filter(c => c.reprint && !p.reprints.some(r => r.file == c.file) && !p.new.some(n => n.file == c.file));
+    var unmatched = setimp.result.cards.filter(c => c.card && !p.reprints.some(r => r.file == c.file) && !p.new.some(n => n.file == c.file) &&
+                                                 !(p.duplicates || []).some(d => d.file == c.file));
     if(unmatched.length) {
-      html += '<p><b>Unmatched reprints</b></p><table class="setimp-table"><tr><th>File</th><th>Title</th><th>Change</th></tr>';
+      html += '<p><b>To resolve (no match, or several)</b></p><table class="setimp-table"><tr><th>File</th><th>Title</th><th>Change</th></tr>';
       unmatched.forEach(c => { html += '<tr><td>'+setimpesc(c.file)+'</td><td>'+(c.card.title || [''])[0]+'</td><td>'+setimpoverride(c.file)+'</td></tr>'; });
       html += '</table>';
     }
     html += '</details>';
+    if(p.duplicates && p.duplicates.length) {
+      html += '<details><summary>Duplicates ('+p.duplicates.length+', already on the site: skipped)</summary>'+
+              '<p><small>The card already has a printing in this set, so nothing is written for these rows. '+
+              'To add another printing anyway, type the cardid.</small></p>'+
+              '<table class="setimp-table"><tr><th>File</th><th>Already on</th><th>Change</th></tr>';
+      p.duplicates.forEach(function(d) {
+        html += '<tr><td>'+setimpesc(d.file)+'</td><td>'+setimpcardlink(d.cardid, d.title)+'</td><td>'+setimpoverride(d.file)+'</td></tr>';
+      });
+      html += '</table></details>';
+    }
     html += '<details><summary>New cards ('+p.new.length+')</summary><table class="setimp-table"><tr><th>Cardid</th><th>File</th><th>Title</th><th>Type</th><th>Clan</th><th>Rarity</th><th>Make it a reprint of</th></tr>';
     p.new.forEach(function(n) {
       html += '<tr><td>'+n.cardid+'</td><td>'+setimpesc(n.file)+'</td><td>'+n.title+'</td><td>'+setimpesc(n.type)+'</td><td>'+setimpesc(n.clan)+
