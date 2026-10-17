@@ -3644,42 +3644,35 @@ var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 function snmallowed() {
   return !!(templates[database] && templates[database]['available'] && templates[database]['available']['textsnm']);
 }
-// Sun and Moon set codes for the export: the structure item <game>/snm, else templates/<game>-snm.json
-// (both written by docs/snm/snm-map.py), loaded on the first S&M export. sets: OotV set -> S&M code; printings: "cardid/printingid" -> code
-// where that printing differs ("" = write no set, S&M shows its default printing)
+// Sun and Moon codes for the export, loaded on the first S&M export: a printing's own `snmsetcode`
+// (where S&M files it under another edition; [""] = write no set, S&M shows its default printing),
+// else its set's code from the structure item <game>/snm (sets: OotV set -> S&M code; the set
+// import adds a new set's code there, docs/snm/snm-push.py writes the rest)
 var snmsets = {};
-// The map is the structure item <game>/snm (the set import adds a new set's code there); until
-// that exists, templates/<game>-snm.json.
 function snmsetload(callback) {
   var db = database;
-  var fromfile = function() {
-    $.ajax({
-      url: "templates/"+db+"-snm.json?v="+ootvversion,
-      dataType: "json",
-      success: function(data) { snmsets[db] = data; callback(); },
-      error: function(error) {
-        console.log("Epic Fail: snm sets: "+JSON.stringify(error));
-        snmsets[db] = {'sets': {}, 'printings': {}};
-        callback();
-      }
-    });
-  };
   $.ajax({
     url: apiuri+"/structure?database="+db+"&key=snm",
     dataType: "json",
     success: function(data) {
-      if(!data || !data.sets) { fromfile(); return; }
-      snmsets[db] = {'sets': data.sets, 'printings': data.printings || {}};
+      snmsets[db] = {'sets': (data && data.sets) || {}};
       callback();
     },
-    error: fromfile
+    error: function(error) {
+      console.log("Epic Fail: snm sets: "+JSON.stringify(error));
+      snmsets[db] = {'sets': {}};
+      callback();
+    }
   });
 }
 // {{snmset listprinting printing cardid /}}: "(CODE)", or nothing when S&M has no code for that printing
 function templatesnmset(id,hashes,cardid) {
-  var map = snmsets[database] || {'sets': {}, 'printings': {}};
-  var code = map.printings[cardid+"/"+id];
-  if(code === undefined) {
+  var map = snmsets[database] || {'sets': {}};
+  var p = (hashes || []).find(e => parseInt(e.printingid) == parseInt(id));
+  var code;
+  if(p && p.snmsetcode !== undefined) {
+    code = [].concat(p.snmsetcode)[0] || '';
+  } else {
     code = map.sets[templateprintingfromid(id,hashes,"set")] || '';
   }
   return code ? "("+code+")" : '';

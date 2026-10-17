@@ -30,7 +30,12 @@ Both need the `setimport` permission (or `*`) for the game.
    import afterwards: the import keeps its place.
 5. **Plan.** It reads every live card (read-only) and checks everything `set-import.py plan`
    did. New cards get cardids from the live maximum. Each reprint (`Reprint` = 1) is matched to
-   the card with the same title and experienced level. Every image must be uploaded, the set
+   the card with the same title and experienced level; the titles a card's printings carry count
+   too (an Onyx "Name, Soul of Someone" printing). If that finds nothing, it tries the title
+   without ", Soul of ..." and the name before the first comma, of the same type (shown as
+   *name*). A reprint that still matches nothing lists up to three close titles of the same
+   type ("Militia Training Grounds" → 5056 Militia Training Ground). Rows *not* marked
+   `Reprint` that share a title with a live card are warnings: check those for a missing flag. Every image must be uploaded, the set
    registered, every legality known, every printing given a publisher. It lists values the
    site hasn't seen before (a new clan or type usually means a typo or a missing table
    entry in the profile). **Problems** block going live; **warnings** are for you to read.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build templates/l5r-snm.json (and ootv-search lib/snm/l5r-snm.json): OotV l5r set name -> Sun and Moon edition code.
+"""Build docs/snm/l5r-snm.json: OotV l5r set name -> Sun and Moon edition code, plus per-printing codes.
 
 The Sun and Moon text export writes "2x Card (CODE)". S&M only shows a printing it
 has under that edition, so this script matches every OotV printing against S&M's
@@ -10,13 +10,15 @@ Output:
              Sets missing here (proxies, Oracle of the Void) export with no set.
   printings  "cardid/printingid" -> code, only where the set's code is wrong for that
              printing: the code S&M uses instead, or "" to write no set and let S&M
-             show its default printing.
+             show its default printing. These live on the cards, as the printing field
+             `snmsetcode` (ootv-backups/snm-printings.py writes them).
 
 Usage (paths default to the workspace layout):
   python3 -I docs/snm/snm-map.py [S&M database.xml] [dir of per-card l5r JSON]
 
-The site reads the map from the oracle-all-structure item l5r/snm; push the new file there
-with docs/snm/snm-push.py --go (the files are the fallback until that item exists).
+The file isn't served. The site reads the set codes from the oracle-all-structure item l5r/snm
+(push them with docs/snm/snm-push.py --go) and the printing codes from the cards
+(ootv-backups/snm-printings.py --go).
 """
 import collections, html, json, os, re, sys
 import xml.etree.ElementTree as ET
@@ -26,9 +28,7 @@ WS = os.path.normpath(os.path.join(HERE, '../../..'))
 SNMDB = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     WS, 'SnM/Sun and Moon - Onyx/Sun and Moon_Data/StreamingAssets/Database/database.xml')
 CARDS = sys.argv[2] if len(sys.argv) > 2 else os.path.join(WS, 'ootv-backups/work/cur-l5r/split2')
-OUT = os.path.join(HERE, '../../templates/l5r-snm.json')
-# ootv-search's /import reads its own copy to turn codes back into printings
-SEARCHOUT = os.path.join(WS, 'ootv-search/lib/snm/l5r-snm.json')
+OUT = os.path.join(HERE, 'l5r-snm.json')
 
 # Codes from the S&M Discord list (issue #214) for sets the S&M database files under
 # other editions. Always written, even though the database has no such edition.
@@ -118,9 +118,8 @@ for card in cards:
 
 text = json.dumps({'sets': dict(sorted(sets.items())), 'printings': dict(sorted(printings.items()))},
                   indent=0) + '\n'
-for out in [OUT] + ([SEARCHOUT] if os.path.isdir(os.path.dirname(SEARCHOUT)) else []):
-    open(out, 'w').write(text)
-print("then: python3 docs/snm/snm-push.py --go (the live map is the structure item l5r/snm)")
+open(OUT, 'w').write(text)
 print(f"{len(sets)} sets, {len(printings)} printing overrides "
-      f"({sum(1 for v in printings.values() if not v)} with no set) -> {os.path.relpath(OUT)}"
-      + (f", {os.path.relpath(SEARCHOUT)}" if os.path.isdir(os.path.dirname(SEARCHOUT)) else ''))
+      f"({sum(1 for v in printings.values() if not v)} with no set) -> {os.path.relpath(OUT)}")
+print("then: python3 docs/snm/snm-push.py --go (set codes -> structure item l5r/snm) and")
+print("      ../ootv-backups/snm-printings.py --go (printing codes -> the cards' snmsetcode)")
