@@ -281,6 +281,8 @@ function setimprenderpreview() {
           'Show <select id="setimp-filter" onchange="setimprendercards()">'+
           opts.map(o => '<option value="'+o[0]+'"'+(o[0] == f ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
           '<input type="search" id="setimp-search" placeholder="title" size="16" oninput="setimprendercards()" value="'+setimpesc($('#setimp-search').val() || '')+'" /> '+
+          'View <select id="setimp-view" onchange="setimpsetview(this.value)">'+
+          [['json', 'JSON'], ['card', 'Card details']].map(o => '<option value="'+o[0]+'"'+(o[0] == setimpview() ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
           '<input type="button" value="Download out/ (zip)" onclick="setimpdownload()" title="The cards as set-import.py reads them" /></p>'+
           '<div id="setimp-cards" class="setimp-cards"></div>';
   $('#setimp-preview').html(html);
@@ -345,13 +347,84 @@ function setimprendercards() {
   $('#setimp-cards').html(html || '<p>No cards match.</p>');
 }
 
+// the preview shows each card as JSON or as the Card Details page would (remembered per browser)
+function setimpview() {
+  if(!setimp.view) {
+    try { setimp.view = localStorage.getItem('setimpview') || 'json'; } catch(e) { setimp.view = 'json'; }
+  }
+  return setimp.view;
+}
+
+function setimpsetview(v) {
+  setimp.view = v;
+  try { localStorage.setItem('setimpview', v); } catch(e) {}
+  $('#setimp-cards > details').each(function() {
+    delete this.dataset.drawn;
+    if(this.open) { setimpdrawcard(this); }
+  });
+}
+
 function setimpdrawcard(d) {
   var c = setimp.result.cards[parseInt(d.dataset.i, 10)];
   var html = c.errors.map(e => '<div class="error">'+setimpesc(e)+'</div>').join('');
-  html += '<pre class="setimp-json">'+setimportetl.jsonhtml(c.card || null)+'</pre>';
+  if(setimpview() == 'card' && c.card) {
+    html += '<div class="setimp-cardview" data-cv="'+d.dataset.i+'">Drawing the card...</div>';
+  } else {
+    html += '<pre class="setimp-json">'+setimportetl.jsonhtml(c.card || null)+'</pre>';
+  }
   html += '<details class="setimp-raw"><summary>CSV row '+c.row+'</summary><pre class="setimp-json">'+setimportetl.jsonhtml(setimp.csv.rows[c.row-1])+'</pre></details>';
   $(d).children('.setimp-cardbody').html(html);
   d.dataset.drawn = 1;
+  if(setimpview() == 'card' && c.card) { setimpcardview(c, '.setimp-cardview[data-cv="'+d.dataset.i+'"]'); }
+}
+
+// the row drawn with the Card Details template: a new card on its own; a reprint as the live card
+// with this printing added (the card's own fields stay as they are); a duplicate as the live card
+function setimpcardview(c, sel) {
+  var m = setimp.match && setimp.match.rows[c.file];
+  var newp = JSON.parse(JSON.stringify(c.card.printing[0]));
+  var draw = function(card, pid, note) {
+    try {
+      delete card.updatelog;
+      card = imagehashtourl(card);
+      var out = cardhtml(card, pid, null);
+      var $el = $(sel);
+      $el.html('<p class="setimp-cardnote">'+note+'</p><div class="setimp-cardviewbody">'+out.html+'</div>');
+      // the template's ids belong to the real Card Details view
+      $el.find('[id]').removeAttr('id');
+      updates[database](sel);
+      $el.find('.printing').not('[data-printingid="'+pid+'"]').hide();
+      $el.find('.listimage img').on('error', function() {
+        $(this).replaceWith('<div class="setimp-noimage">'+setimpesc(this.src.split('/').slice(-2).join('/'))+'<br>isn\'t uploaded yet</div>');
+      });
+    } catch(e) {
+      $(sel).html('<div class="error">Couldn\'t draw the card: '+setimpesc(e.message)+'</div>');
+    }
+  };
+  if(m && m.cardid && (m.status == 'reprint' || m.status == 'duplicate')) {
+    var go = function() {
+      var live = cache_card_fetch(m.cardid);
+      if(!live.cardid) { $(sel).html('<div class="error">Card '+m.cardid+' couldn\'t be fetched.</div>'); return; }
+      var link = setimpcardlink(m.cardid, m.title);
+      if(m.status == 'duplicate') {
+        var set = (newp.set || [''])[0];
+        var dup = live.printing.find(p => (p.set || [''])[0] == set) || live.printing[0];
+        draw(live, dup.printingid, 'Already on the site: '+link+' as it is now, at its '+setimpesc(set)+' printing.');
+        return;
+      }
+      var max = live.printing.reduce((a, p) => Math.max(a, parseInt(p.printingid, 10) || 0), 0);
+      newp.printingid = String(max+1);
+      live.printing.push(newp);
+      draw(live, newp.printingid, 'A reprint: '+link+' with this printing added (#'+newp.printingid+'); the card\'s own text isn\'t changed.');
+    };
+    if(cache_card_is(m.cardid)) { go(); } else { listprefetch([m.cardid], [go]); }
+    return;
+  }
+  var card = JSON.parse(JSON.stringify(c.card));
+  card.cardid = card.cardid || 0;
+  card.printing[0].printingid = card.printing[0].printingid || '1';
+  card.printingprimary = card.printingprimary || card.printing[0].printingid;
+  draw(card, card.printing[0].printingid, 'A new card'+(m ? '' : ' (not checked against the live cards yet)')+'; its cardid is given at Plan.');
 }
 
 function setimpexpand(open) {

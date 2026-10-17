@@ -1527,6 +1527,18 @@ table.massimagelist tr.massimage-failed td { color: #a00; }
 .setimp-badge.setimp-badgenew { background: #e2f4e2; color: #262; }
 .setimp-badge.setimp-badgewarn { background: #fdf0d0; color: #750; }
 .setimp-badge.setimp-badgedup { background: #e8e8e8; color: #555; }
+.setimp-cardview { border: 1px solid #ddd; border-radius: 4px; padding: 6px; margin: 4px 0; background: #fff; }
+.setimp-cardnote { margin: 0 0 6px; font-size: 90%; color: #555; }
+/* a picture of the Card Details page: its links and buttons would act on the real view */
+.setimp-cardviewbody { pointer-events: none; }
+.setimp-cardviewbody > div.listitem { display: table; width: 100%; table-layout: fixed; }
+.setimp-cardviewbody div.listimage { width: 430px; }
+.setimp-cardviewbody img { max-width: 100%; height: auto; }
+.setimp-noimage { width: 300px; height: 420px; max-width: 100%; display: flex; align-items: center; justify-content: center;
+                  text-align: center; border: 2px dashed #bbb; border-radius: 12px; color: #777; font-size: 90%; }
+@media (max-width: 700px) {
+  .setimp-cardviewbody > div.listitem, .setimp-cardviewbody div.listimage, .setimp-cardviewbody div.listbody { display: block; width: auto; }
+}
 .setimp-cardbody { padding: 0 8px 8px 24px; }
 .setimp-raw > summary { color: #666; font-size: 90%; cursor: pointer; }
 .setimport details > summary { cursor: pointer; }

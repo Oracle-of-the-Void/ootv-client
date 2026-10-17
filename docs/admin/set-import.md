@@ -18,6 +18,9 @@ Both need the `setimport` permission (or `*`) for the game.
    and `-`, and other characters are dropped as you type.
 2. **Cards.** *Make the cards* runs the profile over every row in the browser. Every card is
    listed, collapsed. Open one to see its JSON (syntax colored) and the CSV row it came from.
+   *View: Card details* shows it the way the Card Details page will instead: a new card on its
+   own, a reprint as the live card with the new printing added (and selected), a duplicate as
+   the live card at its printing in this set. Images not uploaded yet show as a dashed box.
    Rows with errors (an empty title, a broken transform) are marked; filter to them with *Show*.
    Then each row is checked against the live cards (the same matching Plan uses), and marked:
    *new*; *reprint* of a card (marked `Reprint` = 1, or *reprint, not marked*: a live card has the
