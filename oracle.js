@@ -2060,6 +2060,7 @@ function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#admindoc').empty();
+  $('#updatelogpage').empty();
   $('#massimage').show();
   if(massimagerun) { return; }   // keep the form and results of the upload in progress
   massimageplan = null;
@@ -6067,6 +6068,7 @@ function loadloginlog(page) {
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
   $('#discordadmin').empty();
+  $('#updatelogpage').empty();
   $('#massimage').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
@@ -6104,6 +6106,7 @@ var discordcommandlabels = {card: 'One card', search: 'Search', oraclebug: 'Bug 
 function loaddiscord(note) {
   $('#loginlog').empty();
   $('#admindoc').empty();
+  $('#updatelogpage').empty();
   $('#massimage').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
@@ -6308,6 +6311,7 @@ var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min
 function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#updatelogpage').empty();
   $('#massimage').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
@@ -6332,6 +6336,31 @@ function loadadmindoc(name) {
 
 // cards linked per updatelog row; matches FETCH_PER_ROW in ootv-search routes/updatelog.js
 const updatelogshown = 10;
+// /updatelog?fetchcards=true -> one template-updatelog row per log entry, newest first.
+// Caches the fetched cards. A bulkupdate can list thousands of cards: link only the
+// first updatelogshown (the ones the API fetched) and count the rest, so the page
+// doesn't build a link per card. Long card lists (and bulkupdates with a description)
+// start collapsed.
+function updatelogrows(raw, db) {
+  raw.cards.hits.hits.map(x=>x._source).map(imagehashtourl).forEach(function(dataitem) {
+    cache_card(dataitem);
+  });
+  return raw.logs.map(function(uplog) {
+    var printlog = JSON.parse(JSON.stringify(uplog));
+    printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
+    var cardids = printlog.cardids || [];
+    printlog.total = cardids.length;
+    printlog.cards = cardids.slice(0, updatelogshown).map(function(uplogcard) {
+      var card = cache_card_fetch(uplogcard);
+      return { cardid: uplogcard, database: db,
+               title: card.title ? card.title[0] : 'card #'+uplogcard };
+    });
+    printlog.more = printlog.total - printlog.cards.length;
+    printlog.collapse = printlog.total > 5 || !!printlog.description;
+    return printlog;
+  });
+}
+
 function loadupdates(db,start=null) {
   // TODO: set timer for start on max last card
   var req = { 
@@ -6347,29 +6376,8 @@ function loadupdates(db,start=null) {
     responseType: 'application/json',
     success: function(raw) {
       console.log(['loadupdates success',raw]);
-      // stow them in the card cache
-      var cards = raw.cards.hits.hits.map(x=>x._source).map(imagehashtourl);
       var updatelogtemplate = $.templates("#template-updatelog");
-      cards.forEach(function(dataitem) {
-			  cache_card(dataitem);
-		  }); 
-      raw.logs.reverse().forEach(function(uplog) {
-        //console.log(['uplog',uplog]);
-        var printlog = JSON.parse(JSON.stringify(uplog));
-        printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
-        // one block per log row; long card lists (and bulkupdates with a
-        // description) start collapsed. A bulkupdate can list thousands of
-        // cards: link only the first updatelogshown (the ones the API fetched)
-        // and count the rest, so the page doesn't build a link per card.
-        var cardids = printlog.cardids || [];
-        printlog.total = cardids.length;
-        printlog.cards = cardids.slice(0, updatelogshown).map(function(uplogcard) {
-          var card = cache_card_fetch(uplogcard);
-          return { cardid: uplogcard, database: database,
-                   title: card.title ? card.title[0] : 'card #'+uplogcard };
-        });
-        printlog.more = printlog.total - printlog.cards.length;
-        printlog.collapse = printlog.total > 5 || !!printlog.description;
+      updatelogrows(raw, database).reverse().forEach(function(printlog) {
         $('#updatelog').prepend(updatelogtemplate.render(printlog));
       });
     },
@@ -6381,6 +6389,42 @@ function loadupdates(db,start=null) {
     req.data['mintime'] = start;
   }
   $.ajax(req);
+}
+
+// admin update log: this game's whole oracle-all-updatelog, newest first, a page at a time.
+// /updatelog returns at most updatelogpagesize rows; the next page asks for rows older
+// (maxtime) than the oldest one shown. cursors_updatelog[n] is page n's maxtime.
+const updatelogpagesize = 30;
+var cursors_updatelog = [null], page_updatelog = 0;
+function loadupdatelogpage(page) {
+  if(page === undefined) { page = 0; }
+  if(page === 0) { cursors_updatelog = [null]; }
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#admindoc').empty();
+  $('#massimage').hide();
+  $('#updatelogpage').html('Loading the update log...');
+  var db = database;
+  var data = { table: db, limit: updatelogpagesize, fetchcards: true };
+  if(cursors_updatelog[page]) { data.maxtime = cursors_updatelog[page]; }
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/updatelog",
+    data: data,
+    dataType: 'json',
+    success: function(raw) {
+      page_updatelog = page;
+      // a full page may have more behind it; a short one is the end of the log
+      var next = raw.logs.length == updatelogpagesize ? raw.logs[raw.logs.length-1].timestamp : null;
+      cursors_updatelog[page+1] = next;
+      $('#updatelogpage').html($.templates("#template-updatelogpage").render(
+        {rows: updatelogrows(raw, db), next: next, page: page, name: dbinfo[db].name}));
+    },
+    error: function(raw) {
+      console.log(['loadupdatelogpage fail',raw]);
+      $('#updatelogpage').text('Could not load the update log: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
+    }
+  });
 }
 
 function loadselectables(db) {

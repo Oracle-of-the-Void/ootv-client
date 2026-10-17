@@ -252,6 +252,7 @@
     <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
     <li><a href="" onclick="loaddiscord(); return false">Discord bot</a></li>
     <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
+    <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
@@ -264,6 +265,7 @@
   <div id="discordadmin" class="discordadmin"></div>
   <div id="admindoc" class="admindoc"></div>
   <div id="massimage" class="massimage"></div>
+  <div id="updatelogpage" class="updatelogpage"></div>
 </div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
 <div class="resultabout" id="resultabout">
@@ -609,6 +611,22 @@ printingprimary
   <div id="massimagestatus"></div>
   <div id="massimagereport"></div>
   <table class="massimagelist" id="massimagetable"></table>
+</script>
+<!-- admin update log (loadupdatelogpage): the about page's rows, paged -->
+<script id="template-updatelogpage" type="text/jsrender">
+  <h3>Update log: {{>name}}</h3>
+  <div class="loginlog-nav">
+    <span class="button gray" onclick="loadupdatelogpage(0)">Newest</span>
+    {{if page > 0}}<span class="button gray" onclick="loadupdatelogpage(page_updatelog-1)">&laquo; Newer</span>{{/if}}
+    {{if next}}<span class="button gray" onclick="loadupdatelogpage(page_updatelog+1)">Older &raquo;</span>{{/if}}
+    Page {{:page+1}}
+  </div>
+  {{for rows tmpl="#template-updatelog"/}}
+  {{if !rows.length}}<p>No {{if page > 0}}older {{/if}}updates.</p>{{/if}}
+  <div class="loginlog-nav">
+    {{if page > 0}}<span class="button gray" onclick="loadupdatelogpage(page_updatelog-1)">&laquo; Newer</span>{{/if}}
+    {{if next}}<span class="button gray" onclick="loadupdatelogpage(page_updatelog+1)">Older &raquo;</span>{{/if}}
+  </div>
 </script>
 <!-- admin login log (/loginlog): name, email, reason come from users, so always escape with {{>}} -->
 <script id="template-loginlog" type="text/jsrender">
