@@ -2074,6 +2074,7 @@ function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#admindoc').empty();
+  $('#setimport, #importprofiles').hide();
   $('#updatelogpage').empty();
   $('#massimage').show();
   if(massimagerun) { return; }   // keep the form and results of the upload in progress
@@ -2144,6 +2145,21 @@ function massimagerow(item,imageuri) {
   row.attr('class','massimage-'+(item.skip ? 'skipped' : item.result || (item.replace || item.renamed || item.corners ? 'irregular' : 'waiting')))
     .empty().append($('<td>').text(item.file.webkitRelativePath || item.file.name), name, $('<td>').text(notes.join('; ')));
   return row;
+}
+
+// Admin -> Set import / Import profiles: setimport-etl.js and setimport.js load on demand, then
+// setimportopen() or importprofilesopen() (in setimport.js) draws the panel
+function loadsetimport(open) {
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#admindoc').empty();
+  $('#updatelogpage').empty();
+  $('#massimage, #setimport, #importprofiles').hide();
+  var load = f => window.setimportetl && f == 'setimport-etl.js' || window.setimportopen && f == 'setimport.js' ? $.Deferred().resolve() :
+                  $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
+  $.when(load('setimport-etl.js'), load('setimport.js'))
+    .done(function() { window[open](); })
+    .fail(function() { $('#setimport').show().html('<span class="error">Could not load the set import code.</span>'); });
 }
 
 // a changed stub, file choice or Replace tick needs a new check
@@ -3630,27 +3646,35 @@ var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 function snmallowed() {
   return !!(templates[database] && templates[database]['available'] && templates[database]['available']['textsnm']);
 }
-// Sun and Moon set codes for the export: templates/<game>-snm.json (built by docs/snm/snm-map.py),
-// loaded on the first S&M export. sets: OotV set -> S&M code; printings: "cardid/printingid" -> code
-// where that printing differs ("" = write no set, S&M shows its default printing)
+// Sun and Moon codes for the export, loaded on the first S&M export: a printing's own `snmsetcode`
+// (where S&M files it under another edition; [""] = write no set, S&M shows its default printing),
+// else its set's code from the structure item <game>/snm (sets: OotV set -> S&M code; the set
+// import adds a new set's code there, docs/snm/snm-push.py writes the rest)
 var snmsets = {};
 function snmsetload(callback) {
+  var db = database;
   $.ajax({
-    url: "templates/"+database+"-snm.json?v="+ootvversion,
+    url: apiuri+"/structure?database="+db+"&key=snm",
     dataType: "json",
-    success: function(data) { snmsets[database] = data; callback(); },
+    success: function(data) {
+      snmsets[db] = {'sets': (data && data.sets) || {}};
+      callback();
+    },
     error: function(error) {
       console.log("Epic Fail: snm sets: "+JSON.stringify(error));
-      snmsets[database] = {'sets': {}, 'printings': {}};
+      snmsets[db] = {'sets': {}};
       callback();
     }
   });
 }
 // {{snmset listprinting printing cardid /}}: "(CODE)", or nothing when S&M has no code for that printing
 function templatesnmset(id,hashes,cardid) {
-  var map = snmsets[database] || {'sets': {}, 'printings': {}};
-  var code = map.printings[cardid+"/"+id];
-  if(code === undefined) {
+  var map = snmsets[database] || {'sets': {}};
+  var p = (hashes || []).find(e => parseInt(e.printingid) == parseInt(id));
+  var code;
+  if(p && p.snmsetcode !== undefined) {
+    code = [].concat(p.snmsetcode)[0] || '';
+  } else {
     code = map.sets[templateprintingfromid(id,hashes,"set")] || '';
   }
   return code ? "("+code+")" : '';
@@ -4210,6 +4234,32 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid);
+  var drawn = cardhtml(carddata,prid,qs);
+  var shown = drawn.shown;
+  $("#resultcard").html(drawn.html);
+  updates[database]('#resultcard');
+  var primary = $("#printingprimary").val();
+  // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
+  var defpr = prid ? null : templatefetch(carddata,false,qs ? $.deparam(qs) : {})["printingid"];
+  var showpr = prid?prid:((defpr>0)?defpr:primary);
+  $(".printing:not([data-printingid="+showpr+"])").hide();
+  $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
+
+  if(!switchview) {
+	  return;
+  }
+  if($("#resultsearch").is(":visible")) {
+	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
+  } else if($("#resultcard").is(":visible")) {
+	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
+	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
+  }
+  showcard();
+}
+
+// the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
+// (it linkifies carddata in place, as docard always did before picking the printing to show)
+function cardhtml(carddata,prid=null,qs=null) {
   var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
@@ -4290,26 +4340,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
   var shown = markprinteddiffs(bubbleup([carddata],qs,prid))[0];
-  var html = getactivetemplate('card').render(shown,tmpl);
-  $("#resultcard").html(html);
-  updates[database]('#resultcard');
-  var primary = $("#printingprimary").val();
-  // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
-  var defpr = prid ? null : templatefetch(carddata,false,qs ? $.deparam(qs) : {})["printingid"];
-  var showpr = prid?prid:((defpr>0)?defpr:primary);
-  $(".printing:not([data-printingid="+showpr+"])").hide();
-  $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
-
-  if(!switchview) {
-	  return;
-  }
-  if($("#resultsearch").is(":visible")) {
-	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-  } else if($("#resultcard").is(":visible")) {
-	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
-	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-  }
-  showcard();
+  return {"html": getactivetemplate('card').render(shown,tmpl), "shown": shown};
 }
 
 function bubbleup(data,request=null,prid=null) {
@@ -6098,7 +6129,7 @@ function loadloginlog(page) {
   $('#admindoc').empty();
   $('#discordadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -6136,7 +6167,7 @@ function loaddiscord(note) {
   $('#loginlog').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
     type: 'GET',
@@ -6341,7 +6372,7 @@ function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))
@@ -6430,7 +6461,7 @@ function loadupdatelogpage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#admindoc').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));
   updatelogfacetsfill();
   updatelogsearch();

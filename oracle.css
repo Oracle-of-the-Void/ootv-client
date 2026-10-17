@@ -1505,6 +1505,58 @@ table.massimagelist tr.massimage-exists td { color: #a60; }
 table.massimagelist tr.massimage-irregular td { color: #a60; }
 #massimagereport:not(:empty) { margin: 8px 0; padding: 4px 8px; background: #f6f6f0; }
 table.massimagelist tr.massimage-failed td { color: #a00; }
+/* Admin -> Set import / Import profiles (setimport.js) */
+.setimport { max-width: 75em; }
+.setimport:not(:empty) { background: rgba(255,255,255,0.96); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.setimport h4 { margin: 14px 0 4px; padding-top: 8px; border-top: 1px solid #ddd; }
+.setimport .error { color: #a00; }
+.setimp-ok { color: #170; }
+.setimp-warn { color: #a60; }
+.setimp-params td { padding: 2px 8px 2px 0; vertical-align: top; }
+.setimp-table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 6px 0; }
+.setimp-table th, .setimp-table td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+.setimp-cards { max-height: 70vh; overflow: auto; border: 1px solid #ddd; background: #fff; }
+.setimp-card { border-bottom: 1px solid #eee; }
+.setimp-card > summary { padding: 3px 8px; cursor: pointer; }
+.setimp-card > summary:hover { background: #f4f4ec; }
+.setimp-card.setimp-haserr > summary { background: #fff2f0; }
+.setimp-file { font-family: monospace; color: #666; display: inline-block; min-width: 7em; }
+.setimp-meta { color: #666; font-size: 90%; }
+.setimp-badge { font-size: 80%; padding: 0 5px; border-radius: 3px; background: #e6eefa; color: #245; }
+.setimp-badge.setimp-badgeerr { background: #fbe3e0; color: #a00; }
+.setimp-badge.setimp-badgenew { background: #e2f4e2; color: #262; }
+.setimp-badge.setimp-badgewarn { background: #fdf0d0; color: #750; }
+.setimp-badge.setimp-badgedup { background: #e8e8e8; color: #555; }
+.setimp-diffs del { background: #fbe3e0; color: #900; }
+.setimp-diffs ins { background: #e2f4e2; color: #060; }
+.setimp-missing { max-height: 20em; overflow: auto; font-size: 85%; margin: 2px 0 6px; padding: 4px 8px; background: #f6f6f6; }
+.setimp-cardview { border: 1px solid #ddd; border-radius: 4px; padding: 6px; margin: 4px 0; background: #fff; }
+.setimp-cardnote { margin: 0 0 6px; font-size: 90%; color: #555; }
+/* a picture of the Card Details page: its links and buttons would act on the real view */
+.setimp-cardviewbody { pointer-events: none; }
+.setimp-cardviewbody > div.listitem { display: table; width: 100%; table-layout: fixed; }
+.setimp-cardviewbody div.listimage { width: 430px; }
+/* the card image only: inline symbols (img.inlinesymbolbounded, 1em) keep the site's size */
+.setimp-cardviewbody div.listimage img { max-width: 100%; height: auto; }
+.setimp-noimage { width: 300px; height: 420px; max-width: 100%; display: flex; align-items: center; justify-content: center;
+                  text-align: center; border: 2px dashed #bbb; border-radius: 12px; color: #777; font-size: 90%; }
+@media (max-width: 700px) {
+  .setimp-cardviewbody > div.listitem, .setimp-cardviewbody div.listimage, .setimp-cardviewbody div.listbody { display: block; width: auto; }
+}
+.setimp-cardbody { padding: 0 8px 8px 24px; }
+.setimp-raw > summary { color: #666; font-size: 90%; cursor: pointer; }
+.setimport details > summary { cursor: pointer; }
+.setimp-problems > summary { color: #a00; font-weight: bold; }
+.setimp-warnings > summary { color: #a60; }
+.setimp-infos > summary { color: #666; }
+pre.setimp-json { white-space: pre-wrap; word-break: break-word; font-size: 85%; line-height: 1.35; margin: 4px 0;
+                  padding: 6px 8px; background: #fafaf6; border: 1px solid #eee; border-radius: 3px; }
+.json-k { color: #7a3e9d; }
+.json-s { color: #1a6b2f; }
+.json-n { color: #b35c00; }
+.json-l { color: #0b5cad; font-weight: bold; }
+.json-p { color: #888; }
+textarea.setimp-editor { width: 100%; height: 60vh; font-family: monospace; font-size: 85%; box-sizing: border-box; }
 .admindoc { max-width: 60em; }
 .admindoc:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 .admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }

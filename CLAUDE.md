@@ -23,16 +23,23 @@ or tests. The files in this directory are exactly what gets served.
   (`card`, `search`). Generic ones (`template-list.html`, `template-text*.html`,
   `template-visual*.html`, `template-pdf.html`) have no game prefix. They are fetched
   at runtime: `"templates/template-" + (generic ? "" : database + "-") + key + ".html"`.
-- `templates/l5r-snm.json` maps l5r sets (and odd printings) to Sun and Moon edition codes
-  for the S&M text export; `oracle.js` loads it on the first S&M export. It's generated:
-  rerun `python3 -I docs/snm/snm-map.py` after a new set or when S&M updates its
-  database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`).
-  It also writes ootv-search's copy (`lib/snm/l5r-snm.json`, used by `/import`), so
-  commit both repos.
+- Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
+  `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
+  the first S&M export; a printing S&M files under another edition carries its own code in the
+  printing field `snmsetcode` (`docs/data.md`), which wins. No static copy is served.
+  `docs/snm/snm-map.py` rebuilds both into `docs/snm/l5r-snm.json` after S&M updates its
+  database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`); then
+  `python3 docs/snm/snm-push.py --go` writes the set codes and ootv-backups `snm-printings.py`
+  the printing codes. The Admin set import adds a new set's code to the item.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin
   mass image upload (`massimagetrigger`) load it on demand.
+- Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
+  import profile; also run by ootv-import `SCRIPTS/etl-compare.js` under Node) and `setimport.js`
+  (the page). Both load on demand (`loadsetimport`); `setimport-preview.html` is the empty page
+  the card preview's "Open in another window" opens, which `setimport.js` draws into. The server is ootv-search's `ootv-admin`
+  Lambda (`/setimport`) and `/setimportverify`; the admin guide is `docs/admin/set-import.md`.
 - `docs/API.md` is the API contract with ootv-search (routes, inputs, outputs).
   `docs/data.md` describes the card JSON. `oracle.api` holds scratch notes on the search
   request format.
