@@ -70,7 +70,8 @@ or tests. The files in this directory are exactly what gets served.
 
 Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stamps the
 checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
-`var ootvversion` in `index.html` gets the sha, and it writes `version.json`. `.js`, `.css` and
+`var ootvversion` in `index.html` gets the sha, and it writes `version.json` (the sha plus a UTC
+`timestamp`, shown on the admin page with when this browser cached each select). `.js`, `.css` and
 `templates/*` are then served `immutable` for a year, the pages, `version.json` and `docs/admin`
 as `no-cache`, and images for a day. So anything new that `oracle.js` loads at runtime from
 this repo needs `'?v='+ootvversion` on its URL (see the template, snm and pica loads), or
