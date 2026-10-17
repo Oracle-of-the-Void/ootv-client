@@ -248,7 +248,30 @@ function setimpmatch() {
       if(setimp.result !== r) { return; }
       setimp.match = m;
       setimprenderpreview();
-    }).catch(e => $('#setimp-matchstatus').html('<span class="error">Couldn\'t check against the live cards: '+setimpesc(setimperr(e))+'</span>'));
+    }).catch(e => setimproots().forEach($root => $root.find('.setimp-matchstatus').html('<span class="error">Couldn\'t check against the live cards: '+setimpesc(setimperr(e))+'</span>')));
+}
+
+// after a Plan, the preview follows it: each row's status, the cardid a new card gets and the
+// printing a reprint becomes, with the reprint list's changes. Rows Plan couldn't place keep the
+// preview check's status (no match, several).
+function setimpmatchfromplan(p) {
+  if(!setimp.match || p.fromjob || !p.reprints) { return; }
+  var rows = {};
+  Object.keys(setimp.match.rows).forEach(f => {
+    var o = setimp.match.rows[f];
+    if(SETIMP_PROBLEM[o.status]) { rows[f] = o; }
+  });
+  p.new.forEach(n => { rows[n.file] = {"status": "new", "cardid": n.cardid, "planned": true}; });
+  p.reprints.forEach(r => { rows[r.file] = {"status": "reprint", "cardid": r.cardid, "title": r.title, "how": r.how,
+                                            "printingid": r.printingid, "primary": r.primary, "planned": true}; });
+  (p.duplicates || []).forEach(d => { rows[d.file] = {"status": "duplicate", "cardid": d.cardid, "title": d.title, "planned": true}; });
+  var counts = {};
+  Object.values(rows).forEach(o => {
+    counts[o.status] = (counts[o.status] || 0)+1;
+    if(o.status == 'reprint' && o.how == 'found') { counts.found = (counts.found || 0)+1; }
+  });
+  setimp.match = Object.assign({}, setimp.match, {"rows": rows, "counts": counts, "planned": true});
+  setimprenderpreview();
 }
 
 var SETIMP_PROBLEM = {"unmatched": 1, "ambiguous": 1, "missing": 1};
@@ -259,7 +282,7 @@ function setimpsummary() {
   var html = '<b>'+r.cards.length+' cards</b> from '+setimp.csv.rows.length+' rows'+
              (errs ? ', <span class="error">'+errs+' with errors</span>' : '');
   if(!m) {
-    return html+'; '+marked+' marked Reprint. <span id="setimp-matchstatus">Checking them against the live cards...</span>';
+    return html+'; '+marked+' marked Reprint. <span class="setimp-matchstatus">Checking them against the live cards...</span>';
   }
   var n = m.counts, parts = [];
   parts.push((n.new || 0)+' new');
@@ -267,45 +290,74 @@ function setimpsummary() {
   if(n.duplicate) { parts.push('<b>'+n.duplicate+' already on the site</b> (duplicates, skipped)'); }
   var probs = (n.unmatched || 0)+(n.ambiguous || 0)+(n.missing || 0);
   if(probs) { parts.push('<span class="error">'+probs+' to resolve</span> (no match or several)'); }
-  return html+'. Against the '+m.live+' live cards: '+parts.join(', ')+'.';
+  return html+'. '+(m.planned ? 'As of the last Plan' : 'Against the '+m.live+' live cards')+': '+parts.join(', ')+'.';
+}
+
+// The preview is drawn in the page and, once opened, in a window of its own (setimppopupopen) to
+// keep beside Plan; each copy ("root") has its own filter, search and open cards, and both redraw
+// whenever the preview changes. Handlers are bound here, not inline: the window's own globals
+// don't have these functions.
+function setimproots() {
+  var roots = [$('#setimp-preview')];
+  if(setimp.popup && !setimp.popup.closed) { roots.push($(setimp.popup.document).find('#setimp-preview')); }
+  return roots.filter($r => $r.length);
 }
 
 function setimprenderpreview() {
-  var r = setimp.result, m = setimp.match;
+  if(!setimp.result) { return; }
+  setimproots().forEach(setimprenderroot);
+}
+
+function setimprenderroot($root) {
+  var r = setimp.result, m = setimp.match, popup = $root[0].ownerDocument !== document;
   var html = '<h4>2. Cards</h4><p>'+setimpsummary()+'</p>';
   r.errors.forEach(e => { html += '<p class="setimp-warn">'+setimpesc(e.message)+'</p>'; });
-  var f = $('#setimp-filter').val() || '';
+  var f = $root.find('.setimp-filter').val() || '', q = $root.find('.setimp-search').val() || '';
   var opts = [['', 'all'], ['errors', 'with errors'], ['new', 'new cards'], ['reprint', 'reprints']];
   if(m) { opts.push(['found', 'reprints not marked'], ['duplicate', 'duplicates'], ['problem', 'no match / several']); }
-  html += '<p><input type="button" value="Expand all" onclick="setimpexpand(true)" /> <input type="button" value="Collapse all" onclick="setimpexpand(false)" /> '+
-          'Show <select id="setimp-filter" onchange="setimprendercards()">'+
+  html += '<p><input type="button" class="setimp-expand" value="Expand all" /> <input type="button" class="setimp-collapse" value="Collapse all" /> '+
+          'Show <select class="setimp-filter">'+
           opts.map(o => '<option value="'+o[0]+'"'+(o[0] == f ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
-          '<input type="search" id="setimp-search" placeholder="title" size="16" oninput="setimprendercards()" value="'+setimpesc($('#setimp-search').val() || '')+'" /> '+
-          'View <select id="setimp-view" onchange="setimpsetview(this.value)">'+
+          '<input type="search" class="setimp-search" placeholder="title" size="16" value="'+setimpesc(q)+'" /> '+
+          'View <select class="setimp-viewsel">'+
           [['json', 'JSON'], ['card', 'Card details']].map(o => '<option value="'+o[0]+'"'+(o[0] == setimpview() ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
-          '<input type="button" value="Download out/ (zip)" onclick="setimpdownload()" title="The cards as set-import.py reads them" /></p>'+
-          '<div id="setimp-cards" class="setimp-cards"></div>';
-  $('#setimp-preview').html(html);
-  // <details> toggle doesn't bubble: listen in the capture phase, and draw a card's JSON when it's first opened
-  $('#setimp-cards')[0].addEventListener('toggle', function(ev) {
+          (popup ? '<small>(this window follows the import page)</small>' :
+                   '<input type="button" class="setimp-popupbtn" value="Open in another window" title="To keep the cards beside Plan" /> '+
+                   '<input type="button" class="setimp-download" value="Download out/ (zip)" title="The cards as set-import.py reads them" />')+'</p>'+
+          '<div class="setimp-cards"></div>';
+  // keep which cards were open across a redraw
+  var open = $root.find('.setimp-cards > details[open]').map((i, d) => d.dataset.i).get();
+  $root.html(html);
+  $root.find('.setimp-expand').on('click', () => setimpexpand($root, true));
+  $root.find('.setimp-collapse').on('click', () => setimpexpand($root, false));
+  $root.find('.setimp-filter').on('change', () => setimprendercards($root));
+  $root.find('.setimp-search').on('input', () => setimprendercards($root));
+  $root.find('.setimp-viewsel').on('change', function() { setimpsetview(this.value); });
+  $root.find('.setimp-popupbtn').on('click', setimppopupopen);
+  $root.find('.setimp-download').on('click', setimpdownload);
+  // <details> toggle doesn't bubble: listen in the capture phase, and draw a card when it's first opened
+  $root.find('.setimp-cards')[0].addEventListener('toggle', function(ev) {
     var d = ev.target;
     if(d.open && d.dataset && d.dataset.i !== undefined && !d.dataset.drawn) { setimpdrawcard(d); }
   }, true);
-  setimprendercards();
+  setimprendercards($root);
+  open.forEach(i => { var d = $root.find('.setimp-cards > details[data-i="'+i+'"]')[0]; if(d) { d.open = true; } });
 }
 
 function setimpcardlink(cardid, title) {
   return '<a href="#game='+setimp.db+',#cardid='+cardid+'" target="_blank" onclick="event.stopPropagation()">'+cardid+(title ? ' '+title : '')+'</a>';
 }
 
-// the row's badge: what it is against the live cards, or (before that check) whether it's marked Reprint
+// the row's badge: what it is against the live cards (or, after a Plan, in the plan), or (before
+// that check) whether it's marked Reprint
 function setimpbadge(c) {
   var m = setimp.match && setimp.match.rows[c.file];
   if(!m) { return c.reprint ? ' <span class="setimp-badge">marked reprint</span>' : ''; }
   switch(m.status) {
-    case 'new': return ' <span class="setimp-badge setimp-badgenew">new</span>';
+    case 'new': return ' <span class="setimp-badge setimp-badgenew">new'+(m.cardid ? ' '+m.cardid : '')+'</span>';
     case 'reprint': return ' <span class="setimp-badge'+(m.how == 'found' ? ' setimp-badgewarn' : '')+'">'+
-                           (m.how == 'found' ? 'reprint, not marked' : 'reprint')+'</span> of '+setimpcardlink(m.cardid, m.title);
+                           (m.how == 'found' ? 'reprint, not marked' : m.how == 'picked' ? 'reprint (picked)' : 'reprint')+'</span> of '+
+                           setimpcardlink(m.cardid, m.title)+(m.printingid ? ' as #'+m.printingid+(m.primary ? ' (primary)' : '') : '');
     case 'duplicate': return ' <span class="setimp-badge setimp-badgedup">duplicate</span> already on '+setimpcardlink(m.cardid, m.title);
     case 'ambiguous': return ' <span class="setimp-badge setimp-badgeerr">several matches</span> '+m.cands.map(x => setimpcardlink(x.cardid, x.title)).join(', ');
     case 'unmatched': return ' <span class="setimp-badge setimp-badgeerr">marked reprint, no match</span>'+
@@ -328,8 +380,8 @@ function setimpshown(c, f) {
   return true;
 }
 
-function setimprendercards() {
-  var r = setimp.result, f = $('#setimp-filter').val(), q = ($('#setimp-search').val() || '').toLowerCase();
+function setimprendercards($root) {
+  var r = setimp.result, f = $root.find('.setimp-filter').val(), q = ($root.find('.setimp-search').val() || '').toLowerCase();
   var html = '';
   r.cards.forEach(function(c, i) {
     if(!setimpshown(c, f)) { return; }
@@ -344,7 +396,7 @@ function setimprendercards() {
             (c.errors.length ? ' <span class="setimp-badge setimp-badgeerr">'+c.errors.length+' error'+(c.errors.length == 1 ? '' : 's')+'</span>' : '')+
             '</summary><div class="setimp-cardbody"></div></details>';
   });
-  $('#setimp-cards').html(html || '<p>No cards match.</p>');
+  $root.find('.setimp-cards').html(html || '<p>No cards match.</p>');
 }
 
 // the preview shows each card as JSON or as the Card Details page would (remembered per browser)
@@ -358,9 +410,12 @@ function setimpview() {
 function setimpsetview(v) {
   setimp.view = v;
   try { localStorage.setItem('setimpview', v); } catch(e) {}
-  $('#setimp-cards > details').each(function() {
-    delete this.dataset.drawn;
-    if(this.open) { setimpdrawcard(this); }
+  setimproots().forEach(function($root) {
+    $root.find('.setimp-viewsel').val(v);
+    $root.find('.setimp-cards > details').each(function() {
+      delete this.dataset.drawn;
+      if(this.open) { setimpdrawcard(this); }
+    });
   });
 }
 
@@ -368,19 +423,21 @@ function setimpdrawcard(d) {
   var c = setimp.result.cards[parseInt(d.dataset.i, 10)];
   var html = c.errors.map(e => '<div class="error">'+setimpesc(e)+'</div>').join('');
   if(setimpview() == 'card' && c.card) {
-    html += '<div class="setimp-cardview" data-cv="'+d.dataset.i+'">Drawing the card...</div>';
+    html += '<div class="setimp-cardview">Drawing the card...</div>';
   } else {
     html += '<pre class="setimp-json">'+setimportetl.jsonhtml(c.card || null)+'</pre>';
   }
   html += '<details class="setimp-raw"><summary>CSV row '+c.row+'</summary><pre class="setimp-json">'+setimportetl.jsonhtml(setimp.csv.rows[c.row-1])+'</pre></details>';
   $(d).children('.setimp-cardbody').html(html);
   d.dataset.drawn = 1;
-  if(setimpview() == 'card' && c.card) { setimpcardview(c, '.setimp-cardview[data-cv="'+d.dataset.i+'"]'); }
+  if(setimpview() == 'card' && c.card) { setimpcardview(c, $(d).find('.setimp-cardview')[0]); }
 }
 
 // the row drawn with the Card Details template: a new card on its own; a reprint as the live card
-// with this printing added (the card's own fields stay as they are); a duplicate as the live card
-function setimpcardview(c, sel) {
+// with this printing added (the card's own fields stay as they are); a duplicate as the live card.
+// It's drawn in a hidden spot in this page first (the game's updates() works on this document),
+// then moved into el, which may be in the preview window.
+function setimpcardview(c, el) {
   var m = setimp.match && setimp.match.rows[c.file];
   var newp = JSON.parse(JSON.stringify(c.card.printing[0]));
   var draw = function(card, pid, note) {
@@ -388,23 +445,25 @@ function setimpcardview(c, sel) {
       delete card.updatelog;
       card = imagehashtourl(card);
       var out = cardhtml(card, pid, null);
-      var $el = $(sel);
-      $el.html('<p class="setimp-cardnote">'+note+'</p><div class="setimp-cardviewbody">'+out.html+'</div>');
+      var $stage = $('#setimp-stage');
+      if(!$stage.length) { $stage = $('<div id="setimp-stage" style="display: none"></div>').appendTo('body'); }
+      $stage.html('<p class="setimp-cardnote">'+note+'</p><div class="setimp-cardviewbody">'+out.html+'</div>');
       // the template's ids belong to the real Card Details view
-      $el.find('[id]').removeAttr('id');
-      updates[database](sel);
-      $el.find('.printing').not('[data-printingid="'+pid+'"]').hide();
-      $el.find('.listimage img').on('error', function() {
+      $stage.find('[id]').removeAttr('id');
+      updates[database]('#setimp-stage');
+      $stage.find('.printing').not('[data-printingid="'+pid+'"]').hide();
+      $stage.find('.listimage img').on('error', function() {
         $(this).replaceWith('<div class="setimp-noimage">'+setimpesc(this.src.split('/').slice(-2).join('/'))+'<br>isn\'t uploaded yet</div>');
       });
+      $(el).empty().append($stage.children());
     } catch(e) {
-      $(sel).html('<div class="error">Couldn\'t draw the card: '+setimpesc(e.message)+'</div>');
+      $(el).html('<div class="error">Couldn\'t draw the card: '+setimpesc(e.message)+'</div>');
     }
   };
   if(m && m.cardid && (m.status == 'reprint' || m.status == 'duplicate')) {
     var go = function() {
       var live = cache_card_fetch(m.cardid);
-      if(!live.cardid) { $(sel).html('<div class="error">Card '+m.cardid+' couldn\'t be fetched.</div>'); return; }
+      if(!live.cardid) { $(el).html('<div class="error">Card '+m.cardid+' couldn\'t be fetched.</div>'); return; }
       var link = setimpcardlink(m.cardid, m.title);
       if(m.status == 'duplicate') {
         var set = (newp.set || [''])[0];
@@ -413,22 +472,46 @@ function setimpcardview(c, sel) {
         return;
       }
       var max = live.printing.reduce((a, p) => Math.max(a, parseInt(p.printingid, 10) || 0), 0);
-      newp.printingid = String(max+1);
+      newp.printingid = m.printingid || String(max+1);
       live.printing.push(newp);
-      draw(live, newp.printingid, 'A reprint: '+link+' with this printing added (#'+newp.printingid+'); the card\'s own text isn\'t changed.');
+      if(m.primary) { live.printingprimary = newp.printingid; }
+      draw(live, newp.printingid, 'A reprint: '+link+' with this printing added (#'+newp.printingid+(m.primary ? ', primary' : '')+
+                                  '); the card\'s own text isn\'t changed.');
     };
     if(cache_card_is(m.cardid)) { go(); } else { listprefetch([m.cardid], [go]); }
     return;
   }
   var card = JSON.parse(JSON.stringify(c.card));
-  card.cardid = card.cardid || 0;
+  card.cardid = (m && m.cardid) || card.cardid || 0;
   card.printing[0].printingid = card.printing[0].printingid || '1';
   card.printingprimary = card.printingprimary || card.printing[0].printingid;
-  draw(card, card.printing[0].printingid, 'A new card'+(m ? '' : ' (not checked against the live cards yet)')+'; its cardid is given at Plan.');
+  draw(card, card.printing[0].printingid, (m && m.cardid ? 'A new card, cardid '+m.cardid+' in the last Plan.' :
+                                           'A new card'+(m ? '' : ' (not checked against the live cards yet)')+'; its cardid is given at Plan.'));
 }
 
-function setimpexpand(open) {
-  $('#setimp-cards > details').each(function() { this.open = open; });
+function setimpexpand($root, open) {
+  $root.find('.setimp-cards > details').each(function() { this.open = open; });
+}
+
+// the preview in a window of its own (setimport-preview.html: the site's stylesheets and an empty
+// #setimp-preview); when it has loaded (or is reloaded) it calls setimppopupready, which draws in it
+function setimppopupopen() {
+  var w = setimp.popup;
+  if(w && !w.closed) { w.focus(); return; }
+  w = window.open('setimport-preview.html?v='+ootvversion, 'setimppreview', 'width=1000,height=900');
+  if(!w) { alert('The browser blocked the new window: allow pop-ups for this site and try again.'); return; }
+  setimp.popup = w;
+  if(!setimp.popupunload) {
+    setimp.popupunload = true;
+    // the window only works while this page is open
+    window.addEventListener('beforeunload', function() { if(setimp.popup && !setimp.popup.closed) { setimp.popup.close(); } });
+  }
+}
+
+function setimppopupready(w) {
+  setimp.popup = w;
+  w.document.title = 'Set import cards: '+((setimp.result && setimp.result.params) || {}).set;
+  setimprenderpreview();
 }
 
 function setimpdownload() {
@@ -576,6 +659,7 @@ function setimpdoplan() {
       setimp.job = p.job;
       setimp.meta = null;
       setimprenderplan();
+      setimpmatchfromplan(p);
       setimprenderlive();
       setimploadjobs();
     }).catch(e => setimpstatus('setimp-planstatus', setimpesc(setimperr(e)), 'error'));
