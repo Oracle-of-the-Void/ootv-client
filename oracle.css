@@ -1562,7 +1562,12 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 #resultdir select.listselect.dirnarrowselect {
   width: 7.5em;
 }
-div.listmiddle.dirdate {
+#resultdir select.listselect.dirtypeselect {
+  width: 6em;
+}
+/* Created / Modified share a column: side by side, or one above the other when the table is squeezed */
+span.dirdate {
+  display: inline-block;
   white-space: nowrap;
 }
 div.listmiddle.dirlistid {
@@ -1640,4 +1645,5 @@ div.directorylistheader > div.dirnotescell {
 /* list directory table: names read left to right like a list (the other cells stay centered) */
 div.listmiddle.dirnamecell {
   text-align: left;
+  min-width: 9em;
 }
