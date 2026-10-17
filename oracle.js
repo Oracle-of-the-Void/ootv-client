@@ -6399,8 +6399,9 @@ const updatelogshown = 10;
 // /updatelog?fetchcards=true -> one template-updatelog row per log entry, newest first.
 // Caches the fetched cards. A bulkupdate can list thousands of cards: link only the
 // first updatelogshown (the ones the API fetched) and count the rest, so the page
-// doesn't build a link per card. Long card lists (and bulkupdates with a description)
-// start collapsed.
+// doesn't build a link per card. Long card lists (and rows with a description and more
+// than one card) start collapsed; one card is shown inline, no cards (a mass image upload)
+// shows nothing.
 function updatelogrows(raw, db) {
   raw.cards.hits.hits.map(x=>x._source).map(imagehashtourl).forEach(function(dataitem) {
     cache_card(dataitem);
@@ -6416,7 +6417,7 @@ function updatelogrows(raw, db) {
                title: card.title ? card.title[0] : 'card #'+uplogcard };
     });
     printlog.more = printlog.total - printlog.cards.length;
-    printlog.collapse = printlog.total > 5 || !!printlog.description;
+    printlog.collapse = printlog.total > 5 || (printlog.total > 1 && !!printlog.description);
     return printlog;
   });
 }
