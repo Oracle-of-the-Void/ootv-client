@@ -1858,11 +1858,11 @@ function legacyimages(db,cardid,printid,printing) {
 }
 
 // pica (vendored, ~54KB) is only needed here, so load it on first use.
-function loadpica(callback) {
+function loadpica(callback,fail) {
   if(typeof pica !== 'undefined') { callback(); return; }
   $.ajax({url: 'pica.min.js?v='+ootvversion, dataType: 'script', cache: true})
     .done(callback)
-    .fail(function() {
+    .fail(fail || function() {
       $('#editimagestatus').html('<span class="error">Could not load pica.min.js</span>');
       $('#editimagebutton').prop('disabled',false);
     });
@@ -1879,8 +1879,22 @@ function resizeimage(resizer,bitmap,w,h,mime) {
     .then(c => resizer.toBlob(c, mime, 0.92));
 }
 
+// Presigned PUT URLs from /upload for at most 10 files of one directory: [{name, url, headers}].
+// Each call logs an 'upload' row (with cardid, when there is one) to the updatelog.
+function presignimages(db,hash,files,overwrite,cardid,printid) {
+  return Promise.resolve($.ajax({
+    type: "POST",
+    url: apiuri+"/upload",
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
+                          "cardid": cardid, "printingid": printid,
+                          "files": files.map(f => ({"name": f.name, "contentType": f.blob.type}))}),
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  })).then(ret => ret.urls);
+}
+
 // Presigned PUTs from /upload (at most 10 files per request), then the uploads.
-// Each /upload call logs an 'upload' row (with cardid) to the updatelog.
 // files: [{name, blob, legacy}]. A legacy copy that already exists (412) was copied
 // by an earlier attempt and counts as done; any other existing file is an error.
 function uploadimagefiles(db,hash,files,overwrite,cardid,printid) {
@@ -1888,17 +1902,8 @@ function uploadimagefiles(db,hash,files,overwrite,cardid,printid) {
   for (let i = 0; i < files.length; i += 10) { chunks.push(files.slice(i,i+10)); }
   return chunks.reduce(function(prev,chunk) {
     return prev.then(function() {
-      return Promise.resolve($.ajax({
-        type: "POST",
-        url: apiuri+"/upload",
-        contentType: 'application/json',
-        dataType: 'json',
-        data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
-                              "cardid": cardid, "printingid": printid,
-                              "files": chunk.map(f => ({"name": f.name, "contentType": f.blob.type}))}),
-        beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
-      })).then(function(ret) {
-        return Promise.all(ret.urls.map(function(u) {
+      return presignimages(db,hash,chunk,overwrite,cardid,printid).then(function(urls) {
+        return Promise.all(urls.map(function(u) {
           var f = chunk.find(f => f.name == u.name);
           return fetch(u.url, {method: 'PUT', headers: u.headers, body: f.blob}).then(function(r) {
             if(r.status == 412 && f.legacy) { return; }
@@ -2008,6 +2013,162 @@ function uploadimagetrigger() {
       status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
     })
     .finally(function() { $('#editimagebutton').prop('disabled',false); });
+}
+
+// Admin mass image upload: every chosen image goes to imageuri + <stub>/ as <name>_master.<ext>,
+// with _details/_select made the same way as the card editor's upload. No card is changed: the
+// set import (ootv-import set-import.py) or the card editor points printings at the files.
+// Needs updateinstance (or *) on the game; /upload checks that again.
+var massimagerun = null;   // the run in progress: {stop}
+function loadmassimage() {
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#admindoc').empty();
+  $('#massimage').show();
+  if(massimagerun) { return; }   // keep the form and results of the run in progress
+  if(!gamepermission('updateinstance')) {
+    $('#massimage').text('Uploading images needs edit permission on '+dbinfo[database].name+'.');
+    return;
+  }
+  $('#massimage').html($.templates("#template-massimage").render({"database": database, "name": dbinfo[database].name,
+                                                                   "imageuri": dbinfo[database].imageuri}));
+}
+
+// What a chosen file uploads as: name.png -> name_master.png (a name already ending _master keeps it).
+// _details/_select files are skipped, since they're made from the master.
+function massimageitem(file) {
+  var item = {"file": file};
+  var m = /^(.*?)(_master|_details|_select)?\.(png|jpe?g)$/i.exec(file.name);
+  if(file.type != 'image/png' && file.type != 'image/jpeg') { item.skip = 'not a PNG or JPEG'; }
+  else if(!m) { item.skip = 'the extension doesn\'t match the file type'; }
+  else if(m[2] && m[2].toLowerCase() != '_master') { item.skip = 'made from the master, so not uploaded'; }
+  else if(!m[1].match(/^[A-Za-z0-9_.-]+$/)) { item.skip = 'file name: letters, digits, _ . or - only'; }
+  else {
+    var ext = (file.type == 'image/png') ? 'png' : 'jpg';
+    item.names = {"master": m[1]+'_master.'+ext, "details": m[1]+'_details.'+ext, "select": m[1]+'_select.'+ext};
+  }
+  return item;
+}
+
+function massimagerow(item,imageuri) {
+  var row = item.row || (item.row = $('<tr>'));
+  var name = $('<td>');
+  if(item.names && item.result == 'uploaded') {
+    name.append($('<a target="_blank">').attr('href',imageuri+item.names.master).text(item.names.master));
+  } else if(item.names) {
+    name.text(item.names.master);
+  }
+  row.attr('class','massimage-'+(item.skip ? 'skipped' : item.result || 'waiting'))
+    .empty().append($('<td>').text(item.file.webkitRelativePath || item.file.name), name,
+                    $('<td>').text(item.skip || item.message || item.result || 'waiting'));
+  return row;
+}
+
+function massimagestop() {
+  if(massimagerun) { massimagerun.stop = true; }
+  $('#massimagestatus').text('Stopping after the images being uploaded now...');
+}
+
+function massimagetrigger() {
+  var db = $('#massimagedb').val();
+  var stub = $('#massimagestub').val().trim();
+  var overwrite = $('#massimageoverwrite').is(':checked');
+  var imageuri = dbinfo[db].imageuri+stub+'/';
+  var status = function(msg,err) { $('#massimagestatus').html('<span'+(err?' class="error"':'')+'>'+msg+'</span>'); };
+  if(!stub.match(/^[A-Za-z0-9_-]+$/)) { status('Stub: letters, digits, _ or - only.',1); return; }
+  var chosen = Array.from($('#massimagedir')[0].files).concat(Array.from($('#massimagefiles')[0].files))
+    .filter(f => !f.name.startsWith('.'));
+  if(!chosen.length) { status('Choose a folder or some image files first.',1); return; }
+
+  var items = chosen.map(massimageitem);
+  var seen = {};
+  items.forEach(function(item) {
+    if(!item.names) { return; }
+    if(seen[item.names.master]) { item.skip = 'same name as '+(seen[item.names.master].webkitRelativePath || seen[item.names.master].name); delete item.names; }
+    else { seen[item.names.master] = item.file; }
+  });
+  var table = $('#massimagetable').empty().append('<tr><th>File</th><th>Uploaded as</th><th>Result</th></tr>');
+  items.forEach(item => table.append(massimagerow(item,imageuri)));
+  var todo = items.filter(item => !item.skip);
+  if(!todo.length) { status('None of the chosen files can be uploaded (see the list below).',1); return; }
+
+  var run = massimagerun = {"stop": false};
+  $('#massimagebutton, #massimagestub, #massimagedir, #massimagefiles, #massimageoverwrite').prop('disabled',true);
+  $('#massimagestop').show();
+  var done = 0;
+  // 3 images (9 files) per /upload call, its limit being 10 files
+  var groups = [];
+  for (let i = 0; i < todo.length; i += 3) { groups.push(todo.slice(i,i+3)); }
+  var dogroup = function(group) {
+    var files = [];
+    return Promise.all(group.map(function(item) {
+      return createImageBitmap(item.file).then(function(bitmap) {
+        var resizer = pica();
+        var mine = [{"name": item.names.master, "blob": item.file, "item": item, "size": 'master'}];
+        return resizeimage(resizer,bitmap,1000,600,item.file.type)
+          .then(function(b) { mine.push({"name": item.names.details, "blob": b, "item": item, "size": 'details'}); return resizeimage(resizer,bitmap,1000,210,item.file.type); })
+          .then(function(b) { mine.push({"name": item.names.select, "blob": b, "item": item, "size": 'select'}); files = files.concat(mine); })
+          .finally(function() { bitmap.close(); });
+      }).catch(function(e) {
+        item.result = 'failed';
+        item.message = 'could not read or resize the image: '+(e.message || e);
+      });
+    })).then(function() {
+      if(!files.length) { return; }
+      return presignimages(db,stub,files,overwrite,null,null).then(function(urls) {
+        return Promise.all(urls.map(function(u) {
+          var f = files.find(f => f.name == u.name);
+          return fetch(u.url, {method: 'PUT', headers: u.headers, body: f.blob})
+            .then(r => { f.outcome = r.ok ? 'uploaded' : (r.status == 412) ? 'already there' : 'failed ('+r.status+')'; })
+            .catch(e => { f.outcome = 'failed ('+(e.message || e)+')'; });
+        }));
+      });
+    }).then(function() {
+      group.forEach(function(item) {
+        var mine = files.filter(f => f.item === item);
+        if(mine.length) {
+          var outcomes = mine.map(f => f.outcome);
+          if(outcomes.every(o => o == 'uploaded')) { item.result = 'uploaded'; }
+          else if(outcomes.every(o => o == 'already there')) { item.result = 'exists'; item.message = 'already there, not replaced'; }
+          else {
+            item.result = 'failed';
+            item.message = mine.map(f => f.size+': '+f.outcome).join(', ');
+          }
+        }
+        done++;
+        massimagerow(item,imageuri);
+      });
+      status('Uploaded '+done+' of '+todo.length+'...');
+    });
+  };
+
+  status('Uploading...');
+  new Promise(function(resolve,reject) { loadpica(resolve, function() { reject(new Error('Could not load pica.min.js')); }); })
+    .then(function() {
+      return groups.reduce(function(prev,group) {
+        return prev.then(function() { if(!run.stop) { return dogroup(group); } });
+      }, Promise.resolve());
+    })
+    .then(function() {
+      var count = r => todo.filter(item => item.result == r).length;
+      var skipped = items.length - todo.length;
+      var left = todo.filter(item => !item.result).length;
+      status((run.stop ? 'Stopped. ' : 'Done. ')+count('uploaded')+' uploaded to '+htmlEncode(imageuri)+
+             (count('exists') ? ', '+count('exists')+' already there (tick "Replace existing files" to overwrite)' : '')+
+             (count('failed') ? ', '+count('failed')+' failed' : '')+
+             (skipped ? ', '+skipped+' skipped' : '')+
+             (left ? ', '+left+' not started' : '')+'.', count('failed') > 0);
+    })
+    .catch(function(e) {
+      // /upload refused (permission, bad input) or pica didn't load: nothing more can go up
+      status('Error: '+htmlEncode((e.responseJSON && e.responseJSON.error) || e.responseText || e.message || String(e))+
+             '. '+done+' of '+todo.length+' images were done.',1);
+    })
+    .finally(function() {
+      massimagerun = null;
+      $('#massimagebutton, #massimagestub, #massimagedir, #massimagefiles, #massimageoverwrite').prop('disabled',false);
+      $('#massimagestop').hide();
+    });
 }
 
 function setprimary(cardid,printid) {
@@ -5017,14 +5178,18 @@ function viewbuttontype() {
   var tab = currentresulttab();
   return ['search','card','list'].includes(tab) ? tab : 'search';
 }
-// full permissions on this game: groups[database] or groups['*'] allows every operation (same rule as /update)
-function fullgamepermission() {
+// groups[database] or groups['*'] allows this operation (or every one, '*'): same rule as /update
+function gamepermission(op) {
   var user = cache_thing("user","data");
   if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) {
 	  return false;
   }
   var groups = user.oracle[0].groups;
-  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('*'); });
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && (groups[g].includes('*') || groups[g].includes(op)); });
+}
+// full permissions on this game
+function fullgamepermission() {
+  return gamepermission('*');
 }
 // menubar template buttons: show the ones this game has for the view in play, highlight the active one.
 // debug also needs full game permission and the debug tab itself on screen, and isn't offered on phones.
@@ -5728,6 +5893,7 @@ function loadloginlog(page) {
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
   $('#discordadmin').empty();
+  $('#massimage').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -5764,6 +5930,7 @@ var discordcommandlabels = {card: 'One card', search: 'Search', oraclebug: 'Bug 
 function loaddiscord(note) {
   $('#loginlog').empty();
   $('#admindoc').empty();
+  $('#massimage').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
     type: 'GET',
@@ -5967,6 +6134,7 @@ var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min
 function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#massimage').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))

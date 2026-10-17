@@ -433,7 +433,8 @@ codes:
 
 ## /upload
 
-Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12).
+Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12) and the
+Admin page's mass image upload (no cardid; one call per 3 images, so one updatelog row each).
 The browser PUTs straight to the images bucket, so the files never go through API Gateway.
 
 Handled by lambda: ootv-search/routes/upload.js

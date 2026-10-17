@@ -251,6 +251,7 @@
     <li><a href="" onclick="editcard(null,null); return false">New Card</a></li>
     <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
     <li><a href="" onclick="loaddiscord(); return false">Discord bot</a></li>
+    <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
@@ -262,6 +263,7 @@
   <div id="loginlog"></div>
   <div id="discordadmin" class="discordadmin"></div>
   <div id="admindoc" class="admindoc"></div>
+  <div id="massimage" class="massimage"></div>
 </div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
 <div class="resultabout" id="resultabout">
@@ -587,6 +589,24 @@ printingprimary
       {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
     {{/if}}
   </div>
+</script>
+<!-- admin mass image upload (loadmassimage, massimagetrigger): the result rows are built in oracle.js -->
+<script id="template-massimage" type="text/jsrender">
+  <h3>Mass image upload: {{>name}}</h3>
+  <p>Each image goes to <code>{{>imageuri}}<i>stub</i>/</code> as <code><i>name</i>_master.png</code> (or <code>.jpg</code>),
+    with <code>_details</code> and <code>_select</code> made the same way as the card editor's image upload.
+    Files already named <code>_master</code> keep the name; <code>_details</code>/<code>_select</code> files are skipped.
+    No card is changed: point printings at the files with the set import or the card editor.
+    Card images are PNG, with the area outside rounded corners transparent.</p>
+  <input type="hidden" id="massimagedb" value="{{>database}}" />
+  <p>Stub <input type="text" id="massimagestub" size="12" placeholder="e.g. CRIII" /> the directory, usually the set's initials</p>
+  <p>Folder <input type="file" id="massimagedir" webkitdirectory multiple /><br />
+    or files <input type="file" id="massimagefiles" accept="image/png,image/jpeg" multiple /></p>
+  <p><label><input type="checkbox" id="massimageoverwrite" /> Replace existing files</label></p>
+  <input type="button" id="massimagebutton" value="Upload" onclick="massimagetrigger();" />
+  <input type="button" id="massimagestop" value="Stop" onclick="massimagestop();" style="display: none" />
+  <div id="massimagestatus"></div>
+  <table class="massimagelist" id="massimagetable"></table>
 </script>
 <!-- admin login log (/loginlog): name, email, reason come from users, so always escape with {{>}} -->
 <script id="template-loginlog" type="text/jsrender">

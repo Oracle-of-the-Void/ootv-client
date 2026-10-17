@@ -31,7 +31,8 @@ or tests. The files in this directory are exactly what gets served.
   commit both repos.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
-  isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) loads it on demand.
+  isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin
+  mass image upload (`massimagetrigger`) load it on demand.
 - `docs/API.md` is the API contract with ootv-search (routes, inputs, outputs).
   `docs/data.md` describes the card JSON. `oracle.api` holds scratch notes on the search
   request format.
