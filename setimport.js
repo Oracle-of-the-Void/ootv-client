@@ -420,7 +420,7 @@ function setimprendercards($root) {
   r.cards.forEach(function(c, i) {
     if(!setimpshown(c, f)) { return; }
     var card = c.card || {};
-    var title = (card.title || [''])[0];
+    var title = setimportetl.cardlabel(card);
     if(q && String(title).toLowerCase().indexOf(q) < 0 && c.file.toLowerCase().indexOf(q) < 0) { return; }
     var p = (card.printing || [{}])[0];
     html += '<details class="setimp-card'+(c.errors.length ? ' setimp-haserr' : '')+'" data-i="'+i+'"><summary>'+
@@ -546,6 +546,7 @@ function setimppopupready(w) {
   setimp.popup = w;
   w.document.title = 'Set import cards: '+((setimp.result && setimp.result.params) || {}).set;
   setimprenderpreview();
+  setimppopupfocus();
 }
 
 function setimpdownload() {
@@ -708,7 +709,41 @@ function setimpdoplan() {
 function setimplist(kind, items, cls, openmax) {
   if(!items || !items.length) { return ''; }
   return '<details class="'+cls+'"'+(items.length <= openmax ? ' open' : '')+'><summary>'+items.length+' '+kind+'</summary><ul>'+
-         items.map(x => '<li>'+setimpesc(x)+'</li>').join('')+'</ul></details>';
+         items.map(x => '<li>'+setimpfilelinks(setimpesc(x))+'</li>').join('')+'</ul></details>';
+}
+
+// a row's file name (3D_039.json) as a link that shows that card in the preview window
+function setimpfilelink(file, text) {
+  text = setimpesc(text === undefined ? file : text);
+  if(!setimp.result || !setimp.result.cards.some(c => c.file == file)) { return text; }
+  return '<a href="" data-file="'+setimpesc(file)+'" onclick="setimpshowcard(this.dataset.file); return false" '+
+         'title="Show this card in the preview window">'+text+'</a>';
+}
+
+// the file names in an (escaped) message, as links
+function setimpfilelinks(html) {
+  return html.replace(/\b[A-Za-z0-9_-]+\.json\b/g, f => setimpfilelink(f));
+}
+
+// open the preview window (or bring it forward) showing just this row's card, expanded
+function setimpshowcard(file) {
+  setimp.popupfocus = file;
+  if(setimp.popup && !setimp.popup.closed) { setimppopupfocus(); setimp.popup.focus(); }
+  else { setimppopupopen(); }
+}
+
+function setimppopupfocus() {
+  var file = setimp.popupfocus;
+  if(!file || !setimp.popup || setimp.popup.closed) { return; }
+  var $root = $(setimp.popup.document).find('#setimp-preview');
+  // not drawn yet: setimppopupready draws it, then comes back here
+  if(!$root.find('.setimp-cards').length) { return; }
+  setimp.popupfocus = null;
+  $root.find('.setimp-filter').val('');
+  $root.find('.setimp-search').val(file.replace(/\.json$/, ''));
+  setimprendercards($root);
+  var d = $root.find('.setimp-cards > details')[0];
+  if(d) { d.open = true; d.scrollIntoView(); }
 }
 
 function setimprenderplan() {
@@ -732,7 +767,7 @@ function setimprenderplan() {
             '"new" to make it a new card, and tick primary to show the new printing by default. Then plan again.</small></p>'+
             '<table class="setimp-table"><tr><th>File</th><th>Card</th><th>Matched by</th><th>New printing</th><th>Change</th></tr>';
     p.reprints.forEach(function(r) {
-      html += '<tr><td>'+setimpesc(r.file)+'</td><td>'+r.cardid+' <a href="#game='+setimp.db+',#cardid='+r.cardid+'" target="_blank">'+r.title+'</a></td><td>'+
+      html += '<tr><td>'+setimpfilelink(r.file)+'</td><td>'+r.cardid+' <a href="#game='+setimp.db+',#cardid='+r.cardid+'" target="_blank">'+r.title+'</a></td><td>'+
               setimpesc(r.how)+'</td><td>#'+r.printingid+(r.primary ? ' (primary)' : '')+'</td><td>'+setimpoverride(r.file)+'</td></tr>';
     });
     html += '</table>';
@@ -740,7 +775,7 @@ function setimprenderplan() {
                                                  !(p.duplicates || []).some(d => d.file == c.file));
     if(unmatched.length) {
       html += '<p><b>To resolve (no match, or several)</b></p><table class="setimp-table"><tr><th>File</th><th>Title</th><th>Change</th></tr>';
-      unmatched.forEach(c => { html += '<tr><td>'+setimpesc(c.file)+'</td><td>'+(c.card.title || [''])[0]+'</td><td>'+setimpoverride(c.file)+'</td></tr>'; });
+      unmatched.forEach(c => { html += '<tr><td>'+setimpfilelink(c.file)+'</td><td>'+setimportetl.cardlabel(c.card)+'</td><td>'+setimpoverride(c.file)+'</td></tr>'; });
       html += '</table>';
     }
     html += '</details>';
@@ -750,14 +785,14 @@ function setimprenderplan() {
               'To add another printing anyway, type the cardid.</small></p>'+
               '<table class="setimp-table"><tr><th>File</th><th>Already on</th><th>Change</th></tr>';
       p.duplicates.forEach(function(d) {
-        html += '<tr><td>'+setimpesc(d.file)+'</td><td>'+setimpcardlink(d.cardid, d.title)+'</td><td>'+setimpoverride(d.file)+'</td></tr>';
+        html += '<tr><td>'+setimpfilelink(d.file)+'</td><td>'+setimpcardlink(d.cardid, d.title)+'</td><td>'+setimpoverride(d.file)+'</td></tr>';
       });
       html += '</table></details>';
     }
     html += setimpnewvalues(p)+setimptextdiffs(p);
     html += '<details><summary>New cards ('+p.new.length+')</summary><table class="setimp-table"><tr><th>Cardid</th><th>File</th><th>Title</th><th>Type</th><th>Clan</th><th>Rarity</th><th>Make it a reprint of</th></tr>';
     p.new.forEach(function(n) {
-      html += '<tr><td>'+n.cardid+'</td><td>'+setimpesc(n.file)+'</td><td>'+n.title+'</td><td>'+setimpesc(n.type)+'</td><td>'+setimpesc(n.clan)+
+      html += '<tr><td>'+n.cardid+'</td><td>'+setimpfilelink(n.file)+'</td><td>'+n.title+'</td><td>'+setimpesc(n.type)+'</td><td>'+setimpesc(n.clan)+
               '</td><td>'+setimpesc(n.rarity)+'</td><td>'+setimpoverride(n.file)+'</td></tr>';
     });
     html += '</table></details>';
@@ -777,7 +812,7 @@ function setimpnewvalues(p) {
              '<table class="setimp-table"><tr><th>Field</th><th>Value</th><th>Cards</th><th>Really new</th></tr>';
   p.newvalues.forEach(function(v) {
     html += '<tr><td>'+setimpesc(v.kind)+'</td><td><b>'+setimpesc(v.value)+'</b></td><td>'+v.count+': '+
-            setimpesc(v.files.slice(0, 5).map(f => f.replace(/\.json$/, '')).join(', '))+(v.count > 5 ? ', ...' : '')+'</td><td>'+
+            v.files.slice(0, 5).map(f => setimpfilelink(f, f.replace(/\.json$/, ''))).join(', ')+(v.count > 5 ? ', ...' : '')+'</td><td>'+
             (v.strict === false ? '<small>warning only</small>' :
              '<label><input type="checkbox" data-key="'+setimpesc(v.key)+'"'+(setimp.accept[v.key] ? ' checked' : '')+
              ' onchange="if(this.checked) { setimp.accept[this.dataset.key] = 1; } else { delete setimp.accept[this.dataset.key]; }" /> accept</label>')+'</td></tr>';
@@ -794,7 +829,7 @@ function setimptextdiffs(p) {
              'Errata (changing the card) is done by hand in the card editor.</small></p><table class="setimp-table setimp-diffs">'+
              '<tr><th>File</th><th>Card</th><th>Card text → this set</th></tr>';
   p.textdiffs.forEach(function(d) {
-    html += '<tr><td>'+setimpesc(d.file.replace(/\.json$/, ''))+'</td><td>'+setimpcardlink(d.cardid, d.title)+'</td><td>'+
+    html += '<tr><td>'+setimpfilelink(d.file, d.file.replace(/\.json$/, ''))+'</td><td>'+setimpcardlink(d.cardid, d.title)+'</td><td>'+
             setimpworddiff(d.live, d.new)+'</td></tr>';
   });
   return html+'</table></details>';

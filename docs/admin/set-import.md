@@ -64,7 +64,9 @@ Both need the `setimport` permission (or `*`) for the game.
    warnings. Other new values (deck, rarity, ...) are
    warnings. Reprints whose printed text differs from their card are listed in *Text
    differences* with a word diff (the card's text isn't changed; errata is done by hand).
-   **Problems** block going live; **warnings** are for you to read.
+   **Problems** block going live; **warnings** are for you to read. Every row file name in
+   them (`3D_039.json`) and in the lists below is a link: it opens the preview window on just
+   that card, expanded.
    In the reprint list, type a cardid to change a match, `new` to make the row a new card, or
    tick *primary* to show the new printing first. In the new card list, type a cardid to make a
    row a reprint. Then *Plan again*.

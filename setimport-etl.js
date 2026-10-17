@@ -387,6 +387,21 @@
       .replace(/&#39;/g, "'").replace(/[’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim().toLowerCase();
   }
 
+  // a card's name as lists show it, with its experienced level (as the server's cardlabel):
+  // "Hoshi Eisai • Exp 2", "Hida Adokenai • Exp Kuni Adokenai"
+  function cardlabel(card) {
+    card = card || {};
+    var p = (card.printing || [{}])[0] || {};
+    var ft = card.formattedtitle !== undefined ? card.formattedtitle : p.formattedtitle;
+    var all = [].concat(card.keywords || p.keywords || [], Array.isArray(ft) ? ft : [ft || '']);
+    var title = String((card.title || p.title || [''])[0] || '');
+    for(var i = 0; i < all.length; i++) {
+      var m = /Experienced([^<&]*)/.exec(String(all[i]));
+      if(m) { return title+' • Exp'+(m[1].trim() ? ' '+m[1].trim() : ''); }
+    }
+    return title;
+  }
+
   // opts.titles: the live card names (the admin titles action), for transforms that need to know them
   function transform(profile, rows, params, header, opts) {
     var out = [], errors = [];
@@ -499,7 +514,7 @@
   }
 
   var api = {parsecsv: parsecsv, csvobjects: csvobjects, transform: transform, outfile: outfile, render: render,
-             cleanparam: cleanparam, cleankind: cleankind,
+             cleanparam: cleanparam, cleankind: cleankind, cardlabel: cardlabel,
              jsonhtml: jsonhtml, initials: initials, transforms: Object.keys(named).concat(Object.keys(parameterised), Object.keys(whole)),
              rowsteps: Object.keys(rowsteps), cardsteps: Object.keys(cardsteps)};
   if(typeof module !== 'undefined' && module.exports) { module.exports = api; }
