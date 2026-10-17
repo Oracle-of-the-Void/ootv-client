@@ -589,7 +589,8 @@ function renderdirectory() {
   //acknowledgement message
   $('#resultdir [contenteditable=true][id^="list_"], #resultdir .dirlistname').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
-    var value = $(this).text() ;
+    // notes keep their line breaks
+    var value = field_userid[0] == 'list_notes' ? editortext(this) : $(this).text() ;
 	  //TODO:   update value
 	  if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
 	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
@@ -603,6 +604,26 @@ function renderdirectory() {
   });
 }
 
+// The text of a contenteditable box with its line breaks. Browsers store a typed Enter as a newline
+// (white-space: pre-wrap), a <br>, or a new <div> line, and a blank line as <div><br></div>.
+function editortext(el) {
+  var out = '';
+  (function walk(node) {
+    node.childNodes.forEach(function(n) {
+      if(n.nodeType == 3) {
+        out += n.nodeValue;
+      } else if(n.nodeName == 'BR') {
+        out += '\n';
+      } else {
+        var block = /^(DIV|P)$/.test(n.nodeName);
+        if(block && out && !out.endsWith('\n')) { out += '\n'; }
+        walk(n);
+        if(block && !out.endsWith('\n')) { out += '\n'; }
+      }
+    });
+  })(el);
+  return out.replace(/\n+$/,'');
+}
 // List names in the directory: a click or tap opens the list; a long press (or the pencil, shown with a mouse)
 // edits the name in place. Enter or leaving the name saves it (the blur handler in renderdirectory), Escape undoes.
 var dirnamepress = null;
