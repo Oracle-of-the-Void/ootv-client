@@ -16,7 +16,7 @@ Both need the `setimport` permission (or `*`) for the game.
    set name with ordinary spaces; an `&nbsp;` typed there becomes a space, since set names are
    stored with plain spaces. The image stub and Sun and Moon code take only letters, digits, `_`
    and `-`, and other characters are dropped as you type.
-2. **Cards.** *Make the cards* runs the profile over every row in the browser. Every card is
+2. **Cards.** *Pre-Process Cards* runs the profile over every row in the browser. Every card is
    listed, collapsed. Open one to see its JSON (syntax colored) and the CSV row it came from.
    *View: Card details* shows it the way the Card Details page will instead: a new card on its
    own, a reprint as the live card with the new printing added (and selected), a duplicate as

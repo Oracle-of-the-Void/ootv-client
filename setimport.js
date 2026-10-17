@@ -138,7 +138,7 @@ function setimprendersetup() {
   });
   html += '<tr><td>Spreadsheet (CSV)</td><td><input type="file" id="setimp-csv" accept=".csv,text/csv" onchange="setimpreadcsv(this)" />'+
           (setimp.csv ? ' <small>'+setimpesc(setimp.csv.name)+': '+setimp.csv.rows.length+' rows</small>' : '')+'</td></tr></table>';
-  html += '<input type="button" value="Make the cards" onclick="setimptransform()" /> <span id="setimp-setupstatus"></span>';
+  html += '<input type="button" value="Pre-Process Cards" onclick="setimptransform()" /> <span id="setimp-setupstatus"></span>';
   $('#setimp-setup').html(html);
   setimpdefaults();
   (p.profile.params || []).filter(d => typeof d.options == 'string' && d.options.indexOf('vocab:') == 0).forEach(function(d) {
