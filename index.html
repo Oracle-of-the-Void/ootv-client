@@ -227,8 +227,7 @@
     <div class="listheadmiddle">Type</div>
     <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
-    <div class="listheadmiddle">Created</div>
-    <div class="listheadmiddle">Modified</div>
+    <div class="listheadmiddle">Created / Modified</div>
     <div class="listheadmiddle">Public</div>
     <div class="listheadmiddle dirnotescell">Notes</div>
     <div class="listheadmiddle diractioncell"></div>
@@ -830,11 +829,10 @@ printingprimary
   <div class="listimage dirdraghandle" draggable="true" data-draglist="{{:listid}}" aria-label="View List (drag to move it into a folder)" data-balloon-pos="up-left" onclick="listinfo('{{:listid}}',true)"; return false;><svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#move"></svg></div>
   <div class="listmiddle dirnamecell"><button aria-label="Activate List to Add cards from search" data-balloon-pos="up-left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button> <span class="dirlistname" id="list_name:{{:listid}}" data-list="{{:listid}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="up" class="iiconic iblue dirnameedit" onclick="dirnameedit(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button></div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle dirfoldercell"><select class="listselect dirnarrowselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select></div>
-  <div class="listmiddle"><select class="listselect dirnarrowselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
+  <div class="listmiddle"><select class="listselect dirnarrowselect dirtypeselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
   <div class="listmiddle"><select class="listselect dirnarrowselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select></div>
   <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
-  <div class="listmiddle dirdate" title="{{formatDate:createdate}}">{{formatDateShort:createdate}}</div>
-  <div class="listmiddle dirdate" id="list_modified:{{:listid}}" title="{{formatDate:modified}}">{{formatDateShort:modified}}</div>
+  <div class="listmiddle dirdates"><span class="dirdate" title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}} /</span> <span class="dirdate" id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span></div>
   <div class="listmiddle"><select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>No</option><option value="true"{{if public}} selected{{/if}}>Yes</option></select></div><!-- TODO  figure out how to list public lists -->
   <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
 
@@ -881,7 +879,7 @@ printingprimary
 <div class="listitem directorylistitem dirfolderrow{{if depth}} dirtreeitem{{/if}}" data-folder="{{>folder}}" data-dirdrop="1" data-dragfolder="1" draggable="true">
   <div class="listmiddle dirfoldername"><span style="left: {{:4+depth*24}}px">{{include tmpl="#template-dirtoggle"/}}<a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>name}} <small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></a></span></div>
   <div class="listmiddle"></div><div class="listmiddle dirfoldercell"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
-  <div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
+  <div class="listmiddle"></div><div class="listmiddle"></div>
   <div class="listmiddle dirfolderactions"><span>
     <button aria-label="Rename folder" data-balloon-pos="left" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
     <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="left" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
@@ -914,13 +912,13 @@ printingprimary
   <div class="dircardbody">
     <div class="dircardselects">
       <select class="listselect dirfoldercell dirnarrowselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select>
-      <select class="listselect dirnarrowselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
+      <select class="listselect dirnarrowselect dirtypeselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
       <select class="listselect dirnarrowselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
       <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>Private</option><option value="true"{{if public}} selected{{/if}}>Public</option></select>
     </div>
     <div class="dircardmeta">
-      {{if distinctcount>0}}{{:totalcount}} cards ({{:distinctcount}} distinct) &#149; {{/if}}Modified <span id="list_modified:{{:listid}}" title="{{formatDate:modified}}">{{formatDateShort:modified}}</span>
-      <br /><small>Created <span title="{{formatDate:createdate}}">{{formatDateShort:createdate}}</span> &#149; Id <a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></small>
+      {{if distinctcount>0}}{{:totalcount}} cards ({{:distinctcount}} distinct) &#149; {{/if}}Modified <span id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span>
+      <br /><small>Created <span title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}}</span> &#149; Id <a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></small>
     </div>
     <div class="dircardnotes" id="list_notes:{{:listid}}" contenteditable="true" data-placeholder="Notes">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
   </div>

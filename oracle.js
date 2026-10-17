@@ -465,7 +465,7 @@ function listinfoupdate(listid,field,value,failed=null) {
       //message_status.show();
       message_status.text("List Updated");
       //hide the message
-      setTimeout(function(){message_status.text(formatdateshort(new Date())).attr('title',formatdate(new Date()))},3000);
+      setTimeout(function(){message_status.text(formatdateshort(new Date())).attr('title','Modified '+formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	    if($("#importlistid").length) {
