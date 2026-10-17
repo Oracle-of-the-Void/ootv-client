@@ -6444,38 +6444,77 @@ function loadupdates(db,start=null) {
   $.ajax(req);
 }
 
-// admin update log: this game's whole oracle-all-updatelog, newest first, a page at a time.
-// /updatelog returns at most updatelogpagesize rows; the next page asks for rows older
-// (maxtime) than the oldest one shown. cursors_updatelog[n] is page n's maxtime.
+// admin update log: this game's oracle-all-updatelog, newest first, a page at a time, with
+// filters (text, name, operation, date range). /updatelog returns at most updatelogpagesize
+// rows and `next`, the maxtime of the following (older) page; cursors_updatelog[n] is page
+// n's maxtime. The names and operations for the form come once per game (facets).
 const updatelogpagesize = 30;
-var cursors_updatelog = [null], page_updatelog = 0;
-function loadupdatelogpage(page) {
-  if(page === undefined) { page = 0; }
-  if(page === 0) { cursors_updatelog = [null]; }
+var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, updatelogfacets = {};
+function loadupdatelogpage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#admindoc').empty();
   $('#massimage, #setimport, #importprofiles').hide();
-  $('#updatelogpage').html('Loading the update log...');
-  var db = database;
+  $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));
+  updatelogfacetsfill();
+  updatelogsearch();
+}
+
+// the form -> updatelogfilter, then its first page. Dates are local days: from = since that
+// day's midnight, to = through the end of that day (mintime/maxtime are exclusive).
+function updatelogsearch() {
+  var f = {db: database};
+  ['q', 'uname', 'operation'].forEach(function(k) {
+    var v = $.trim($('#updatelog-'+k).val() || '');
+    if(v) { f[k] = v; }
+  });
+  var from = $('#updatelog-from').val(), to = $('#updatelog-to').val();
+  if(from) { f.mintime = new Date(from+'T00:00:00').getTime() - 1; }
+  if(to) { var end = new Date(to+'T00:00:00'); end.setDate(end.getDate()+1); f.maxtime = end.getTime(); }
+  updatelogfilter = f;
+  cursors_updatelog = [f.maxtime || null];
+  updatelogshow(0);
+}
+
+function updatelogclear() {
+  $('#updatelogform input[type=text], #updatelogform input[type=date], #updatelogform select').val('');
+  updatelogsearch();
+}
+
+function updatelogfacetsfill() {
+  var facets = updatelogfacets[database];
+  if(!facets) { return; }
+  $('#updatelog-unames').html(facets.unames.map(u => $('<option>').attr('value', u)));
+  $('#updatelog-operation').append(facets.operations.map(o => $('<option>').attr('value', o).text(o)));
+}
+
+function updatelogshow(page) {
+  var f = updatelogfilter, db = f.db;
+  if(db != database) { loadupdatelogpage(); return; }   // the game changed under the page
+  $('#updatelogresults').html('Loading the update log...');
   var data = { table: db, limit: updatelogpagesize, fetchcards: true };
+  ['q', 'uname', 'operation', 'mintime'].forEach(function(k) { if(f[k]) { data[k] = f[k]; } });
   if(cursors_updatelog[page]) { data.maxtime = cursors_updatelog[page]; }
+  if(!updatelogfacets[db]) { data.facets = true; }
   $.ajax({
     type: 'GET',
     url: apiuri+"/updatelog",
     data: data,
     dataType: 'json',
     success: function(raw) {
+      if(f !== updatelogfilter) { return; }   // a newer search went out meanwhile
+      if(raw.facets && !updatelogfacets[db]) { updatelogfacets[db] = raw.facets; updatelogfacetsfill(); }
       page_updatelog = page;
-      // a full page may have more behind it; a short one is the end of the log
-      var next = raw.logs.length == updatelogpagesize ? raw.logs[raw.logs.length-1].timestamp : null;
+      // an API without `next`: a full page may have more behind it
+      var next = 'next' in raw ? raw.next :
+                 raw.logs.length == updatelogpagesize ? raw.logs[raw.logs.length-1].timestamp : null;
       cursors_updatelog[page+1] = next;
-      $('#updatelogpage').html($.templates("#template-updatelogpage").render(
-        {rows: updatelogrows(raw, db), next: next, page: page, name: dbinfo[db].name}));
+      $('#updatelogresults').html($.templates("#template-updatelogresults").render(
+        {rows: updatelogrows(raw, db), next: next, page: page, filtered: !!(f.q || f.uname || f.operation || f.mintime || f.maxtime)}));
     },
     error: function(raw) {
-      console.log(['loadupdatelogpage fail',raw]);
-      $('#updatelogpage').text('Could not load the update log: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
+      console.log(['updatelogshow fail',raw]);
+      $('#updatelogresults').text('Could not load the update log: '+((raw.responseJSON && raw.responseJSON.error) || raw.status));
     }
   });
 }
