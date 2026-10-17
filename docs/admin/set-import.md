@@ -10,9 +10,10 @@ Both need the `setimport` permission (or `*`) for the game.
 
 ## The steps
 
-1. **Setup.** Pick a profile, fill in the questions it asks (set name, image stub, Sun and Moon
+1. **Setup.** Pick a profile (there's no default), fill in the questions it asks (set name, image stub, Sun and Moon
    code, publisher, ...), and choose the CSV (export the spreadsheet as CSV). Defaults follow the
-   other answers: the image stub starts as the set's initials until you type into it. Type the
+   other answers: the image stub starts as the set's initials until you type into it. Switching
+   profiles keeps your answers and the CSV, so *Pre-Process Cards* can be run with each to compare. Type the
    set name with ordinary spaces; an `&nbsp;` typed there becomes a space, since set names are
    stored with plain spaces. The image stub and Sun and Moon code take only letters, digits, `_`
    and `-`, and other characters are dropped as you type.
@@ -44,9 +45,12 @@ Both need the `setimport` permission (or `*`) for the game.
 5. **Plan.** It reads every live card (read-only) and checks everything `set-import.py plan`
    did. New cards get cardids from the live maximum. Each reprint (`Reprint` = 1) is matched to
    the card with the same title and experienced level; the titles a card's printings carry count
-   too (an Onyx "Name, Soul of Someone" printing). If that finds nothing, it tries the title
-   without ", Soul of ..." and the name before the first comma, of the same type (shown as
-   *name*). A reprint that still matches nothing lists up to three close titles of the same
+   too (an Onyx "Name, Soul of Someone" printing). If that finds nothing, it compares titles
+   with punctuation and spaces ignored ("Well-Scouted Target" is "Well Scouted Target"; the
+   preview says *punctuation differs*), then tries the title without ", Soul of ..." and, for a
+   row marked `Reprint`, the name before the first comma, always of the same type (shown as
+   *name*). All of this applies to rows not marked `Reprint` too, apart from the comma rule:
+   a spreadsheet with no `Reprint` column at all still finds its reprints. A reprint that still matches nothing lists up to three close titles of the same
    type ("Militia Training Grounds" → 5056 Militia Training Ground). Rows *not* marked
    `Reprint` that share a title and type with a live card are planned as reprints of it (*found*;
    type `new` to keep one new). Duplicates (the card already has this set) are skipped and listed. Every image must be uploaded, the set
