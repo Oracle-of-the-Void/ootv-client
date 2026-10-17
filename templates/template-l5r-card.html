@@ -1,5 +1,5 @@
 {{include tmpl="#template-card-top" /}}
-    <dt>{{:~labels.shorttitle}}</dt><dd>{{:title}}</dd>
+    <dt>{{:~labels.shorttitle}}</dt><dd>{{soultitle:title}}</dd>
     {{if ~hasval(type)}}       <dt>{{:~labels.shorttype}}</dt><dd>{{:type}}</dd>  {{/if}}
      {{if force || chi}}
        <dt>{{:~labels.shortforce}}/{{:~labels.shortchi}}</dt><dd><span class="iconic force">{{:force}}</span> <span class="iconic chi">{{:chi}}</span></dd>

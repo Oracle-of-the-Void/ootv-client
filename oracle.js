@@ -45,6 +45,19 @@ function filenamecleaner(val) {
     return val.replace(/[^\-a-z0-9]/gi,'_').toLowerCase().replace(/_{2,}/,'_');
 }
 $.views.converters("filenamecleaner", function(val) {return filenamecleaner(val);});
+// a title naming the card it's the soul of ("Agasha Kyoko, Soul of Isawa Miniko") links the
+// "Soul of ..." part to a title search for that card. Titles that are just a "Soul of" phrase
+// (Soul of Battle, The Soul of Akodo) need a comma or two words before it, so they stay plain.
+function soultitle(val) {
+  return [].concat(val === undefined || val === null ? [] : val).map(function(t) {
+    var m = String(t).match(/^(.+?)((?:,|\s|&nbsp;)+)(Soul(?:\s|&nbsp;)+of(?:\s|&nbsp;)+.+)$/i);
+    if(!m || !(m[2].includes(',') || /\S(?:\s|&nbsp;)+\S/.test(m[1]))) {
+      return t;
+    }
+    return m[1]+m[2]+process_keywordlink(m[3],'keywords',searchables[database]['keywords'].type);
+  }).join(', ');
+}
+$.views.converters("soultitle", soultitle);
 var listtypes = {'deck':'Deck',
 		 'collection':'Collection',
 		 'have':'Have',
@@ -3868,12 +3881,12 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
           //console.log(["linkifying",key]);
           carddata[key] = carddata[key].map(function(x){
             //console.log([x,key,searchables[database][key].type]);
-            return process_keywordlink(x,key,searchables[database][key].type);
+            return process_keywordlink(x,key,searchables[database][key].type,carddata.title);
           });
           for (let i=0;i<carddata.printing.length;i++) {
             //console.log(i);
             if(carddata.printing[i][key]) {
-              carddata.printing[i][key] = carddata.printing[i][key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type);});
+              carddata.printing[i][key] = carddata.printing[i][key].map(function(x){return process_keywordlink(x,key,searchables[database][key].type,carddata.title);});
             }
           }
         }
@@ -4061,9 +4074,16 @@ function lastcardprid() {
   return ($("#lastprintid").val() && $("#lastprintid").data("chosen")) ? $("#lastprintid").val() : null;
 }
 
-function process_keywordlink(data,fieldname,type) {
+// title: the card's title, for keywords that link to other versions of the card (see keywordtitle)
+function process_keywordlink(data,fieldname,type,title=null) {
   fieldname = fieldname.replace('.','_');
   var cleandata = data.replace(new RegExp("<[^<]+>","g"),"");
+  var findtitle = fieldname == 'keywords' && keywordtitle(cleandata,title);
+  if(findtitle) {
+    fieldname = 'title';
+    type = searchables[database]['title'].type;
+    cleandata = findtitle;
+  }
   return '<a href="" id="'+
     '#search='+
     encodeURIComponent(
@@ -4072,6 +4092,26 @@ function process_keywordlink(data,fieldname,type) {
         fieldname+'='+encodeURIComponent(cleandata)
     )+
     '" onclick="window.location.hash=this.id; return false;">'+data+'</a>';
+}
+// the title a keyword links to instead of a keyword search, or null:
+//   Soul of <name> [Experienced [n]]  -> <name>, the card it's the soul of
+//   [In]experienced [n] <name>        -> <name>, the card it's a version of
+//   [In]experienced [n]               -> this card's title up to a comma or bullet (n may be 2, 3.5, 2KYD, 2CW)
+function keywordtitle(keyword,title) {
+  keyword = keyword.replace(/&nbsp;/g,' ').trim();
+  var soul = keyword.match(/^Soul\s+of\s+(.+?)(?:\s+(?:In)?[Ee]xperienced\b.*)?$/i);
+  if(soul) {
+    return soul[1];
+  }
+  var exp = keyword.match(/^(?:Inexperienced|Experienced)(?:\s+\d+(?:\.\d+)?[A-Z]*)?(?:\s+(.+))?$/);
+  if(!exp) {
+    return null;
+  }
+  if(exp[1]) {
+    return exp[1];
+  }
+  title = [].concat(title || [])[0];
+  return title ? String(title).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;/g,' ').replace(/(,|\u2022|&bull;).*/,'').trim() || null : null;
 }
 
 // Populate loads qs data back into the form for searching on
