@@ -465,7 +465,7 @@ function listinfoupdate(listid,field,value,failed=null) {
       //message_status.show();
       message_status.text("List Updated");
       //hide the message
-      setTimeout(function(){message_status.text(formatdateshort(new Date())).attr('title',formatdate(new Date()))},3000);
+      setTimeout(function(){message_status.text(formatdateshort(new Date())).attr('title','Modified '+formatdate(new Date()))},3000);
 	    //            setTimeout(function(){message_status.hide()},3000);
 	    $("#list_prev_"+field).text(value);
 	    if($("#importlistid").length) {
@@ -589,7 +589,8 @@ function renderdirectory() {
   //acknowledgement message
   $('#resultdir [contenteditable=true][id^="list_"], #resultdir .dirlistname').blur(function(){
     var field_userid = $(this).attr("id").split(/:/) ;
-    var value = $(this).text() ;
+    // notes keep their line breaks
+    var value = field_userid[0] == 'list_notes' ? editortext(this) : $(this).text() ;
 	  //TODO:   update value
 	  if($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text() != value) {
 	    //console.log($("#list_prev_"+field_userid[0].replace('list_','')+'\\:'+field_userid[1]).text());
@@ -603,6 +604,26 @@ function renderdirectory() {
   });
 }
 
+// The text of a contenteditable box with its line breaks. Browsers store a typed Enter as a newline
+// (white-space: pre-wrap), a <br>, or a new <div> line, and a blank line as <div><br></div>.
+function editortext(el) {
+  var out = '';
+  (function walk(node) {
+    node.childNodes.forEach(function(n) {
+      if(n.nodeType == 3) {
+        out += n.nodeValue;
+      } else if(n.nodeName == 'BR') {
+        out += '\n';
+      } else {
+        var block = /^(DIV|P)$/.test(n.nodeName);
+        if(block && out && !out.endsWith('\n')) { out += '\n'; }
+        walk(n);
+        if(block && !out.endsWith('\n')) { out += '\n'; }
+      }
+    });
+  })(el);
+  return out.replace(/\n+$/,'');
+}
 // List names in the directory: a click or tap opens the list; a long press (or the pencil, shown with a mouse)
 // edits the name in place. Enter or leaving the name saves it (the blur handler in renderdirectory), Escape undoes.
 var dirnamepress = null;
@@ -637,9 +658,9 @@ $(document).on('click', '#resultdir .dirlistname', function() {
   if($(this).attr('contenteditable') == 'true' || (press && press.long)) { return; }  // editing: the click places the caret
   listinfo(String($(this).data('list')),true);
 });
-// the table's ... menu is placed against the window, so the scrolling directory (phones) can't clip it,
+// the list actions (grid) menu is placed against the window, so the scrolling directory (phones) can't clip it,
 // and opens upward when there's no room below
-$(document).on('mouseenter click', '#directorytable .dirmenucell nav > ul > li', function() {
+$(document).on('click', '#resultdir .dirmenucell nav > ul > li', function() {
   var li = this, ul = $(li).children('ul');
   var r = li.getBoundingClientRect();
   ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});
@@ -649,6 +670,19 @@ $(document).on('mouseenter click', '#directorytable .dirmenucell nav > ul > li',
       ul.css('top', r.top - h);
     }
   });
+});
+// with a mouse, a click opens or closes a grid menu (touch already toggles menus, see menutap); a click on
+// an item or anywhere else closes it
+$(document).on('click', function(e) {
+  if(lastpointertype != 'mouse') {
+    return;
+  }
+  var li = $(e.target).closest('#resultdir .dirmenucell nav > ul > li');
+  var open = li.length && !$(e.target).closest('ul.dirlistmenu').length && !li.hasClass('menuopen');
+  $('#resultdir .dirmenucell li.menuopen').removeClass('menuopen');
+  if(open) {
+    li.addClass('menuopen');
+  }
 });
 // cards view: a press anywhere on a list's card that isn't one of its controls opens the list
 $(document).on('click', '#directorycards [id^="listitem_"]', function(e) {
