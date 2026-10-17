@@ -94,15 +94,17 @@
   //   text: &nbsp; (with or without ;) becomes a space, whitespace runs collapse, ends trimmed. Set
   //         names are stored with plain spaces everywhere (cards, sort patterns, arcs, the S&M map).
   //   id:   only letters, digits, _ and - (image stubs, Sun and Moon codes)
+  //   bool: "yes" or "no" (a "type": "bool" question, a checkbox; yes/true/1/on are yes)
   var CLEANDEFAULT = {set: 'text', imagehash: 'id', snm: 'id'};
   function cleanparam(v, kind) {
     if(v === undefined || v === null) { return v; }
     v = String(v);
     if(kind == 'text') { return v.replace(/&nbsp;?/gi, ' ').replace(/\s+/g, ' ').trim(); }
     if(kind == 'id') { return v.replace(/[^A-Za-z0-9_-]/g, ''); }
+    if(kind == 'bool') { return /^\s*(yes|true|1|on)\s*$/i.test(v) ? 'yes' : 'no'; }
     return v;
   }
-  function cleankind(d) { return d.clean === undefined ? CLEANDEFAULT[d.name] : d.clean; }
+  function cleankind(d) { return d.type == 'bool' ? 'bool' : d.clean === undefined ? CLEANDEFAULT[d.name] : d.clean; }
 
   // "{{name}}" / "{{name|filter:arg}}" against ctx (params, row, card.<field>)
   function render(tmpl, ctx) {
@@ -265,6 +267,7 @@
     if(Array.isArray(v)) { return v.some(x => matches(x, m)); }
     if(v === undefined || v === null) { v = ''; }
     if(typeof m == 'string') { return String(v) === m; }
+    if(typeof m == 'boolean') { return cleanparam(v, 'bool') === (m ? 'yes' : 'no'); }
     if(m && m.test !== undefined) { return rx(m.test, m.flags).test(String(v)); }
     if(m && m.in) { return m.in.indexOf(String(v)) >= 0; }
     throw new Error('bad matcher '+JSON.stringify(m));

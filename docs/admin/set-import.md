@@ -98,7 +98,7 @@ Onyx Lives sets (checked with `ootv-import/SCRIPTS/etl-compare.js`).
 
 | Key | What it is |
 |---|---|
-| `params` | The questions at the start: `{name, label, default, required, pattern, type: "int", options: "vocab:<field>", clean, help}`. `{{name}}` uses an answer anywhere below. `clean: "text"` turns a typed `&nbsp;` into a space and tidies spaces (set names are stored with plain spaces everywhere); `clean: "id"` keeps only letters, digits, `_` and `-`. `set` is `text`, and `imagehash` and `snm` are `id`, unless the profile says otherwise. |
+| `params` | The questions at the start: `{name, label, default, required, pattern, type: "int" or "bool", options: "vocab:<field>", clean, help}`. A `bool` question is a checkbox; its answer is `yes` or `no` (`default: true` ticks it), and a rule tests it with `{"params.<name>": true}`. `{{name}}` uses an answer anywhere below. `clean: "text"` turns a typed `&nbsp;` into a space and tidies spaces (set names are stored with plain spaces everywhere); `clean: "id"` keeps only letters, digits, `_` and `-`. `set` is `text`, and `imagehash` and `snm` are `id`, unless the profile says otherwise. |
 | `tables` | Named lookup tables for the transforms: a list of `[regex, replacement, flags]`, or an object `{value: replacement}`. |
 | `columns` | Column aliases, in order: `{to, from: [alias, ...], do: [...]}`. An alias column that exists replaces `to` (for older spreadsheets with other headers). |
 | `rowsteps` | Named steps that change the row before the fields (`l5rflavorsplit`). |
@@ -124,6 +124,7 @@ Onyx Lives sets (checked with `ootv-import/SCRIPTS/etl-compare.js`).
 - `do`: the transforms, in order.
 - `when` / `unless`: `{source: matcher}`, where the matcher is one of:
   - a string, which must be equal;
+  - `true` or `false`, for a `bool` question's answer (`{"params.strongholdback": true}`);
   - `{"test": regex}`;
   - `{"in": [...]}`;
   - `{"empty": true}` or `{"nonempty": true}`.
@@ -138,7 +139,11 @@ Steps go in `fields` too:
 - `{"step": "copytoprinting", "fields": [...], "except": {field: condition}}` copies card
   fields onto the printing.
 - `{"step": "images", "name": "{{imagehash}}_{{row|pad:imagedigits}}", "extra": [{"when": ..., "suffix": "b"}]}`
-  sets `printing.imagehash` and `printing.image` (`_master`, `_details` and `_select` `.png`).
+  sets `printing.imagehash` and `printing.image` (`_master`, `_details` and `_select` `.png`): one
+  name, plus one more for each `extra` whose condition matches. Strongholds in Ivory, Twenty
+  Festivals and Onyx have a back side (`b`); Three Dynasties' don't. So the L5R profiles ask with
+  a `bool` question `strongholdback` ("Strongholds have a back image (b)"), and the extra's
+  condition is `{"card.type": "Stronghold", "params.strongholdback": true}`.
 
 Template filters: `pad:<n or param>`, `initials`, `lower`, `upper`.
 
