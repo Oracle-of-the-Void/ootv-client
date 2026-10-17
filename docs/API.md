@@ -20,6 +20,8 @@
 * [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
 * [/loginlog (GET)](#loginlog)                 -> sign-in log for the admin page (site admins only)
 * [/discord (GET, POST)](#discord)            -> Discord bot settings for the admin page (site admins only)
+* [/setimport (POST)](#setimport)              -> Admin set import and import profiles (ootv-admin Lambda)
+* [/setimportverify (POST)](#setimportverify)  -> after a set import: the written cards vs search
 
 ## Note
 
@@ -434,7 +436,7 @@ codes:
 ## /upload
 
 Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12) and the
-Admin page's mass image upload (no cardid; one call per 3 images, so one updatelog row each).
+Admin page's mass image upload (no cardid; one call per 3 images, all sharing one updatelog row).
 The browser PUTs straight to the images bucket, so the files never go through API Gateway.
 
 Handled by lambda: ootv-search/routes/upload.js
@@ -460,12 +462,18 @@ inputs: JSON
   * `true`: only report which of the files exist (up to 3000 names; contentType not needed, no updatelog row)
 * cardid, printingid (optional)
   * recorded in the updatelog row (see below)
+* logbatch, logid (optional): one updatelog row for a run of calls (the mass upload)
+  * `logbatch: true` on the first call opens the row; the reply's `logid` is its timestamp
+  * `logid` on the later calls adds their files to that row
+* done (optional, with logid and no files): `{uploaded, failed, existing, replaced}`, the run's outcome,
+  written as the row's description ("uploaded 135 images to l5r/CRIII/")
 
 outputs:
 
 * urls: `[{name, key, url, headers}]`. PUT the file to `url` with exactly `headers`.
 * expires: seconds the URLs are valid (900)
 * backups: `[{name, backup}]`, the copies made with overwrite
+* logid: the timestamp of the updatelog row this call wrote or added to
 * with check: only `exists: [{name, size, lastmodified}]`
 
 Both clients ask before replacing: the card editor checks and waits for a second press of Upload image,
@@ -475,6 +483,8 @@ and the mass upload lists the files to replace and needs its own tick.
 
 Each call adds an `upload` row to oracle-all-updatelog: database, uid, uname, timestamp,
 `cardids` (`[cardid]`, or `[]` without one), printingid, imagehash, `files` (names) and overwrite.
+A batch (logbatch/logid) has one row instead, with `batch: true`, `files` (the `_master` names only),
+`count` (URLs handed out), `backupcount`, and the description and `result` from the done call.
 It records the URLs handed out. The PUTs go straight to S3, so the server can't tell whether
 they succeeded, and files that are uploaded but never saved to a card are still listed.
 
@@ -552,3 +562,48 @@ Inputs (query string):
 Writes one `oracle-all-visits` row per vid per day (`vid` + `day`; `time`, `env` (`dev` or `prod`),
 `game`, `loggedin`, `userAgent`). A repeat for the same day is a no-op. No IP is stored.
 Always returns 204 with no body, even when the write fails.
+
+## /setimport
+
+The Admin page's Set import and Import profiles (`setimport.js`; the admin guide is
+`docs/admin/set-import.md`). Handled by the `ootv-admin` Lambda (ootv-search `admin/`), which
+runs outside the VPC so it can reach the Lambda API (pausing the search stream) and start
+DynamoDB exports. It can't reach Elasticsearch, so the search check is
+[/setimportverify](#setimportverify).
+
+inputs: JSON `{uid, database, action, ...}`, with the Cognito token in `Authorization`. The uid's
+groups must allow `setimport` (or `*`) for the game or for every game.
+
+| action | input | output |
+|---|---|---|
+| `profiles` | | `{profiles: [{name, description, version, updated, uname, profile, history: [{version, updated, uname}]}]}` |
+| `profile` | `name` | one profile, with `history[].profile` (the last 10 versions) |
+| `saveprofile` | `name`, `profile` (JSON), `version` (the one edited; 0 for new) | the saved profile; 409 if it changed meanwhile |
+| `deleteprofile` | `name`, `version` | `{deleted}` |
+| `setup` | | `{sortregex, arcs: [{name, regex}], snm: {sets} or null}` |
+| `check` | `set`, `imagehash`, `snm` | live cards with the set, files in the image directory, sort position, arcs, S&M code |
+| `register` | `set`, optional `position` + `pattern` (sort), `arc` or `newarc: {name, at}`, `snm` | `{changes, coldstart, before, after}` |
+| `plan` | `params`, `profile: {name, version}`, `cards: [{file, reprint, card}]`, `overrides: {file: {cardid or "new", primary}}`, `description`, `registration` | `{job, ready, problems, warnings, infos, counts, cardids, new: [...], reprints: [...]}` |
+| `jobs` | | the last 30 imports of the game |
+| `job` | `job`, optional `rows: true` | the import's state (`status`, `export`, `mapping`, `written`, `conflicts`, ...) |
+| `export` | `job`, optional `fresh` | `{export: {status, snapshot, items, s3}}` |
+| `apply` | `job` | one step: `{status: pausing / applying / resuming / applied, written, left}` or `{blocked: [...]}` |
+| `reindex` | `job`, `cardids` (of this import) | `{sent}`: re-sent to search through dynamo-to-es |
+| `finish` | `job`, `verify` (the check's result) | `{status: "done", eserrors, coldstart}` |
+
+`plan` re-checks the browser's cards (one printing each, of this set and image stub) and stores
+what apply will write in `oracle-all-setimport`. Apply writes only from there. The browser
+calls `apply` until it says `applied`: planned → pausing (stream disable requested) → applying
+(40 writes a call) → resuming (bulkupdate row written, stream re-enabled) → applied. An import
+idle for 10 minutes with the stream paused gets the stream back and the status `interrupted`;
+`apply` continues it.
+
+## /setimportverify
+
+After a set import's apply: compares every card the import wrote with its copy in search, as
+ootv-import's `set-import.py verify` does. Handled by lambda: ootv-search/routes/setimportverify.js
+
+inputs: JSON `{uid, database, job}` with the Cognito token; same permission as /setimport.
+
+outputs: `{checked, matched, mismatched: [{cardid, why}]}`
+

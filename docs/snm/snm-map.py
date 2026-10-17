@@ -14,6 +14,9 @@ Output:
 
 Usage (paths default to the workspace layout):
   python3 -I docs/snm/snm-map.py [S&M database.xml] [dir of per-card l5r JSON]
+
+The site reads the map from the oracle-all-structure item l5r/snm; push the new file there
+with docs/snm/snm-push.py --go (the files are the fallback until that item exists).
 """
 import collections, html, json, os, re, sys
 import xml.etree.ElementTree as ET
@@ -117,6 +120,7 @@ text = json.dumps({'sets': dict(sorted(sets.items())), 'printings': dict(sorted(
                   indent=0) + '\n'
 for out in [OUT] + ([SEARCHOUT] if os.path.isdir(os.path.dirname(SEARCHOUT)) else []):
     open(out, 'w').write(text)
+print("then: python3 docs/snm/snm-push.py --go (the live map is the structure item l5r/snm)")
 print(f"{len(sets)} sets, {len(printings)} printing overrides "
       f"({sum(1 for v in printings.values() if not v)} with no set) -> {os.path.relpath(OUT)}"
       + (f", {os.path.relpath(SEARCHOUT)}" if os.path.isdir(os.path.dirname(SEARCHOUT)) else ''))

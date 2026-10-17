@@ -1882,16 +1882,30 @@ function resizeimage(resizer,bitmap,w,h,mime) {
 // Presigned PUT URLs from /upload for at most 10 files of one directory:
 // {urls: [{name, url, headers}], backups: [{name, backup}]}. With overwrite, the server first copies
 // each file that exists to a backup (<name>.bak-<time>.<ext>, listed in the image trash).
-// Each call logs an 'upload' row (with cardid, when there is one) to the updatelog.
-function presignimages(db,hash,files,overwrite,cardid,printid) {
+// Each call logs an 'upload' row (with cardid, when there is one) to the updatelog, except in a
+// batch: log {logbatch: true} on the first call opens one row (the reply's logid), {logid} on the
+// later ones adds to it, and uploadlogdone() writes the outcome.
+function presignimages(db,hash,files,overwrite,cardid,printid,log) {
   return Promise.resolve($.ajax({
     type: "POST",
     url: apiuri+"/upload",
     contentType: 'application/json',
     dataType: 'json',
-    data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
+    data: JSON.stringify(Object.assign({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
                           "cardid": cardid, "printingid": printid,
-                          "files": files.map(f => ({"name": f.name, "contentType": f.blob.type}))}),
+                          "files": files.map(f => ({"name": f.name, "contentType": f.blob.type}))}, log || {})),
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  }));
+}
+
+// The outcome of a batch of uploads, as its log row's description: done {uploaded, failed, existing, replaced}
+function uploadlogdone(db,hash,logid,done) {
+  return Promise.resolve($.ajax({
+    type: "POST",
+    url: apiuri+"/upload",
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "logid": logid, "done": done}),
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
   }));
 }
@@ -2060,6 +2074,7 @@ function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#admindoc').empty();
+  $('#setimport, #importprofiles').hide();
   $('#massimage').show();
   if(massimagerun) { return; }   // keep the form and results of the upload in progress
   massimageplan = null;
@@ -2129,6 +2144,20 @@ function massimagerow(item,imageuri) {
   row.attr('class','massimage-'+(item.skip ? 'skipped' : item.result || (item.replace || item.renamed || item.corners ? 'irregular' : 'waiting')))
     .empty().append($('<td>').text(item.file.webkitRelativePath || item.file.name), name, $('<td>').text(notes.join('; ')));
   return row;
+}
+
+// Admin -> Set import / Import profiles: setimport-etl.js and setimport.js load on demand, then
+// setimportopen() or importprofilesopen() (in setimport.js) draws the panel
+function loadsetimport(open) {
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#admindoc').empty();
+  $('#massimage, #setimport, #importprofiles').hide();
+  var load = f => window.setimportetl && f == 'setimport-etl.js' || window.setimportopen && f == 'setimport.js' ? $.Deferred().resolve() :
+                  $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
+  $.when(load('setimport-etl.js'), load('setimport.js'))
+    .done(function() { window[open](); })
+    .fail(function() { $('#setimport').show().html('<span class="error">Could not load the set import code.</span>'); });
 }
 
 // a changed stub, file choice or Replace tick needs a new check
@@ -2277,7 +2306,10 @@ function massimageupload() {
     })).then(function() {
       if(!files.length) { return; }
       // replace only in the calls that were confirmed to; elsewhere S3 refuses to overwrite (412)
-      return presignimages(plan.db,plan.stub,files,group.some(i => i.replace),null,null).then(function(ret) {
+      // one updatelog row for the whole run: the first call opens it, the rest add to it
+      var log = run.logid ? {"logid": run.logid} : {"logbatch": true};
+      return presignimages(plan.db,plan.stub,files,group.some(i => i.replace),null,null,log).then(function(ret) {
+        if(ret.logid) { run.logid = ret.logid; }
         (ret.backups || []).forEach(function(b) {
           var f = files.find(f => f.name == b.name);
           if(f) { f.backup = b.backup; }
@@ -2323,6 +2355,11 @@ function massimageupload() {
     .then(function() {
       var count = r => todo.filter(item => item.result == r).length;
       var replaced = todo.filter(item => item.result == 'uploaded' && item.replace).length;
+      if(run.logid) {
+        uploadlogdone(plan.db,plan.stub,run.logid,{"uploaded": count('uploaded'), "failed": count('failed'),
+                                                    "existing": count('exists'), "replaced": replaced})
+          .catch(e => console.log(['uploadlogdone failed',e]));
+      }
       var skipped = plan.items.length - todo.length;
       var left = todo.filter(item => !item.result).length;
       status((run.stop ? 'Stopped. ' : 'Done. ')+count('uploaded')+' uploaded to '+htmlEncode(plan.imageuri)+
@@ -2334,6 +2371,13 @@ function massimageupload() {
     })
     .catch(function(e) {
       // /upload refused (permission, bad input, a backup copy failed) or pica didn't load
+      if(run.logid) {
+        var count = r => todo.filter(item => item.result == r).length;
+        uploadlogdone(plan.db,plan.stub,run.logid,{"uploaded": count('uploaded'), "failed": count('failed'),
+                                                    "existing": count('exists'),
+                                                    "replaced": todo.filter(item => item.result == 'uploaded' && item.replace).length})
+          .catch(e => console.log(['uploadlogdone failed',e]));
+      }
       status('Error: '+htmlEncode((e.responseJSON && e.responseJSON.error) || e.responseText || e.message || String(e))+
              '. '+done+' of '+todo.length+' images were done.',1);
     })
@@ -3600,20 +3644,35 @@ var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
 function snmallowed() {
   return !!(templates[database] && templates[database]['available'] && templates[database]['available']['textsnm']);
 }
-// Sun and Moon set codes for the export: templates/<game>-snm.json (built by docs/snm/snm-map.py),
-// loaded on the first S&M export. sets: OotV set -> S&M code; printings: "cardid/printingid" -> code
+// Sun and Moon set codes for the export: the structure item <game>/snm, else templates/<game>-snm.json
+// (both written by docs/snm/snm-map.py), loaded on the first S&M export. sets: OotV set -> S&M code; printings: "cardid/printingid" -> code
 // where that printing differs ("" = write no set, S&M shows its default printing)
 var snmsets = {};
+// The map is the structure item <game>/snm (the set import adds a new set's code there); until
+// that exists, templates/<game>-snm.json.
 function snmsetload(callback) {
+  var db = database;
+  var fromfile = function() {
+    $.ajax({
+      url: "templates/"+db+"-snm.json?v="+ootvversion,
+      dataType: "json",
+      success: function(data) { snmsets[db] = data; callback(); },
+      error: function(error) {
+        console.log("Epic Fail: snm sets: "+JSON.stringify(error));
+        snmsets[db] = {'sets': {}, 'printings': {}};
+        callback();
+      }
+    });
+  };
   $.ajax({
-    url: "templates/"+database+"-snm.json?v="+ootvversion,
+    url: apiuri+"/structure?database="+db+"&key=snm",
     dataType: "json",
-    success: function(data) { snmsets[database] = data; callback(); },
-    error: function(error) {
-      console.log("Epic Fail: snm sets: "+JSON.stringify(error));
-      snmsets[database] = {'sets': {}, 'printings': {}};
+    success: function(data) {
+      if(!data || !data.sets) { fromfile(); return; }
+      snmsets[db] = {'sets': data.sets, 'printings': data.printings || {}};
       callback();
-    }
+    },
+    error: fromfile
   });
 }
 // {{snmset listprinting printing cardid /}}: "(CODE)", or nothing when S&M has no code for that printing
@@ -6067,7 +6126,7 @@ function loadloginlog(page) {
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
   $('#discordadmin').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -6104,7 +6163,7 @@ var discordcommandlabels = {card: 'One card', search: 'Search', oraclebug: 'Bug 
 function loaddiscord(note) {
   $('#loginlog').empty();
   $('#admindoc').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
     type: 'GET',
@@ -6308,7 +6367,7 @@ var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min
 function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
-  $('#massimage').hide();
+  $('#massimage, #setimport, #importprofiles').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))
