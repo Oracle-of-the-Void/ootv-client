@@ -177,7 +177,13 @@
     nbsp: s => s.replace(/ /g, '&nbsp;'),
     // L5R keywords: "A &#149; B &#149; <b>Unique &#149; Kharmic</b>" -> ["A","B","<b>Unique</b>","<b>Kharmic</b>"]
     // (parse.jq's keyword rule, kept as code)
-    l5rkeywords: function(s) {
+    l5rkeywords: function(s, arg, ctx) {
+      // "Experienced 2<br>Kuni Adokenai" is one keyword when the name after the line break is a live
+      // card (ctx.known, from transform's opts.titles); otherwise the line break separates keywords
+      if(ctx && ctx.known) {
+        s = s.replace(/(Experienced(?: +\d+\w*)?) *<br> *([^<&•]+?)(?= *(?:&#149;|•|<\/b>|<br>|$))/gi,
+                      (all, exp, name) => ctx.known(name) ? exp+' '+name.trim() : all);
+      }
       if(/<b>.*<b>/i.test(s)) { return s.split(/ *&#149; */); }
       s = s.replace(/<b>&#149; /gi, '&#149; <b>').replace(/<br>/gi, ' &#149; ').replace(/<\/b> *$/i, '');
       if(s === '') { return []; }
@@ -372,8 +378,17 @@
   // ---------------------------------------------------------------- run
 
   // rows: CSV objects; params: {name: value}. -> {cards: [{file, row, card, reprint, errors, warnings}], errors}
-  function transform(profile, rows, params, header) {
+  // names as the server's matching compares them (setimport.mjs norm)
+  function namekey(s) {
+    return String(s || '').replace(/<[^>]*>/g, '').replace(/&nbsp;?/gi, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'").replace(/[’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+
+  // opts.titles: the live card names (the admin titles action), for transforms that need to know them
+  function transform(profile, rows, params, header, opts) {
     var out = [], errors = [];
+    var titleset = opts && opts.titles ? new Set(opts.titles) : null;
+    var knownname = titleset ? (name => titleset.has(namekey(name))) : null;
     var p = Object.assign({}, params);
     (profile.params || []).forEach(function(d) {
       if(isempty(p[d.name]) && d.default !== undefined) { p[d.name] = render(d.default, {params: p, temp: {}}); }
@@ -411,7 +426,7 @@
           if(!rowsteps[name]) { throw new Error('unknown row step "'+name+'"'); }
           rowsteps[name](row, typeof s == 'string' ? {} : s);
         });
-        var ctx = {profile: profile, params: p, temp: {}, data: row, row: n,
+        var ctx = {profile: profile, params: p, temp: {}, data: row, row: n, known: knownname,
                    card: {printing: [{}]}};
         (profile.fields || []).forEach(function(rule) {
           try {

@@ -217,8 +217,16 @@ function setimptransform() {
                  (badpat.length ? 'Not valid: '+setimpesc(badpat.join(', '))+'.' : ''), 'error');
     return;
   }
+  // live card names, once per page: the keyword step needs them (Experienced<br>Name)
+  if(!setimp.titles) {
+    setimpstatus('setimp-setupstatus', 'Reading the live card names...');
+    setimpapi('titles').then(r => { setimp.titles = r.titles || []; setimptransform(); })
+      .catch(e => { setimp.titles = []; setimpstatus('setimp-setupstatus', 'Couldn\'t read the live card names ('+setimpesc(setimperr(e))+'): '+
+                                                     'Experienced<br>Name keywords stay split.', 'error'); setimptransform(); });
+    return;
+  }
   try {
-    setimp.result = setimportetl.transform(p.profile, setimp.csv.rows, params, setimp.csv.header);
+    setimp.result = setimportetl.transform(p.profile, setimp.csv.rows, params, setimp.csv.header, {"titles": setimp.titles});
   } catch(e) {
     setimpstatus('setimp-setupstatus', 'The profile failed: '+setimpesc(e.message), 'error');
     return;
@@ -231,7 +239,7 @@ function setimptransform() {
   setimp.overrides = {};
   setimp.accept = {};
   setimp.match = null;
-  setimpstatus('setimp-setupstatus', '');
+  if(!/^Couldn't read/.test($('#setimp-setupstatus').text())) { setimpstatus('setimp-setupstatus', ''); }
   setimprenderpreview();
   setimpmatch();
   setimprenderregister();
@@ -324,7 +332,7 @@ function setimprenderroot($root) {
   html += '<p><input type="button" class="setimp-expand" value="Expand all" /> <input type="button" class="setimp-collapse" value="Collapse all" /> '+
           'Show <select class="setimp-filter">'+
           opts.map(o => '<option value="'+o[0]+'"'+(o[0] == f ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
-          '<input type="search" class="setimp-search" placeholder="title" size="16" value="'+setimpesc(q)+'" /> '+
+          '<input type="search" class="setimp-search" placeholder="title or 3D_039" size="16" value="'+setimpesc(q)+'" /> '+
           'View <select class="setimp-viewsel">'+
           [['json', 'JSON'], ['card', 'Card details']].map(o => '<option value="'+o[0]+'"'+(o[0] == setimpview() ? ' selected' : '')+'>'+o[1]+'</option>').join('')+'</select> '+
           (popup ? '<small>(this window follows the import page)</small>' :
@@ -394,7 +402,7 @@ function setimprendercards($root) {
     if(!setimpshown(c, f)) { return; }
     var card = c.card || {};
     var title = (card.title || [''])[0];
-    if(q && String(title).toLowerCase().indexOf(q) < 0) { return; }
+    if(q && String(title).toLowerCase().indexOf(q) < 0 && c.file.toLowerCase().indexOf(q) < 0) { return; }
     var p = (card.printing || [{}])[0];
     html += '<details class="setimp-card'+(c.errors.length ? ' setimp-haserr' : '')+'" data-i="'+i+'"><summary>'+
             '<span class="setimp-file">'+setimpesc(c.file.replace(/\.json$/,''))+'</span> <b>'+title+'</b>'+
@@ -630,7 +638,7 @@ function setimprenderimages() {
   $('#setimp-images').html('<h4>4. Images</h4><p>The cards name '+setimpimagenames().length+' image files in '+
     setimpesc(dbinfo[setimp.db].imageuri+pr.imagehash)+'/. Upload them with the mass image upload (it makes _details and _select from each _master), '+
     'then come back here with Set import.</p><input type="button" value="Check the images" onclick="setimpimagecheck()" /> '+
-    '<input type="button" value="Open the mass image upload" onclick="setimpimageupload()" /> <span id="setimp-imagestatus"></span>');
+    '<input type="button" value="Open the mass image upload" onclick="setimpimageupload()" /> <div id="setimp-imagestatus"></div>');
 }
 
 function setimpimagecheck() {
@@ -639,8 +647,14 @@ function setimpimagecheck() {
   checkimages(setimp.db, pr.imagehash, names).then(function(exists) {
     var have = new Set(exists.map(e => e.name));
     var miss = names.filter(n => !have.has(n));
-    setimpstatus('setimp-imagestatus', miss.length ? miss.length+' of '+names.length+' missing, e.g. '+setimpesc(miss.slice(0, 6).join(', ')) :
-                 'All '+names.length+' images are there.', miss.length ? 'error' : 'setimp-ok');
+    if(!miss.length) { setimpstatus('setimp-imagestatus', 'All '+names.length+' images are there.', 'setimp-ok'); return; }
+    // every missing file; the masters are the ones to upload (the mass upload makes _details and _select)
+    var masters = miss.filter(n => /_master\./.test(n)), derived = miss.filter(n => !/_master\./.test(n));
+    var list = (label, l) => l.length ? '<details'+(l.length <= 40 ? ' open' : '')+'><summary>'+label+' ('+l.length+')</summary>'+
+                                        '<pre class="setimp-missing">'+setimpesc(l.join('\n'))+'</pre></details>' : '';
+    setimpstatus('setimp-imagestatus', miss.length+' of '+names.length+' missing.', 'error');
+    $('#setimp-imagestatus').append(list('Masters to upload', masters)+
+                                    list('_details / _select missing ('+'made from the master by the mass upload; re-upload its master)', derived));
   }).catch(e => setimpstatus('setimp-imagestatus', setimpesc(setimperr(e)), 'error'));
 }
 
@@ -736,16 +750,19 @@ function setimprenderplan() {
 // table entry); the next Plan sends the accepted ones
 function setimpnewvalues(p) {
   if(!p.newvalues || !p.newvalues.length) { return ''; }
-  var html = '<details'+(p.newvalues.some(v => !v.accepted) ? ' open' : '')+'><summary>New values ('+p.newvalues.length+
-             ' type/clan values no live card has)</summary><p><small>Usually a typo, or a value the profile\'s tables should '+
-             'translate: fix the spreadsheet or the profile and Pre-Process again. If it really is new, tick it and plan again. '+
-             'A value the site\'s templates don\'t mention may also need an icon or sort entry in ootv-client.</small></p>'+
+  var strict = p.newvalues.filter(v => v.strict !== false), blocking = strict.filter(v => !v.accepted).length;
+  var html = '<details'+(blocking ? ' open' : '')+'><summary>New values ('+p.newvalues.length+' no live card has'+
+             (blocking ? ', <span class="error">'+blocking+' type/clan to resolve</span>' : '')+')</summary><p><small>Usually a typo, or a value the profile\'s tables should '+
+             'translate: fix the spreadsheet or the profile and Pre-Process again. A new type or clan blocks going live until it\'s accepted here '+
+             '(tick it, plan again); new keywords are warnings. A value the site\'s templates don\'t mention may also need an icon or sort entry in ootv-client.</small></p>'+
              '<table class="setimp-table"><tr><th>Field</th><th>Value</th><th>Cards</th><th>In the site\'s templates</th><th>Really new</th></tr>';
   p.newvalues.forEach(function(v) {
     html += '<tr><td>'+setimpesc(v.kind)+'</td><td><b>'+setimpesc(v.value)+'</b></td><td>'+v.count+': '+
             setimpesc(v.files.slice(0, 5).map(f => f.replace(/\.json$/, '')).join(', '))+(v.count > 5 ? ', ...' : '')+'</td><td>'+
-            (v.insite ? 'yes' : '<span class="error">no</span>')+'</td><td><label><input type="checkbox" data-key="'+setimpesc(v.key)+'"'+
-            (setimp.accept[v.key] ? ' checked' : '')+' onchange="if(this.checked) { setimp.accept[this.dataset.key] = 1; } else { delete setimp.accept[this.dataset.key]; }" /> accept</label></td></tr>';
+            (v.insite === null ? '' : v.insite ? 'yes' : '<span class="error">no</span>')+'</td><td>'+
+            (v.strict === false ? '<small>warning only</small>' :
+             '<label><input type="checkbox" data-key="'+setimpesc(v.key)+'"'+(setimp.accept[v.key] ? ' checked' : '')+
+             ' onchange="if(this.checked) { setimp.accept[this.dataset.key] = 1; } else { delete setimp.accept[this.dataset.key]; }" /> accept</label>')+'</td></tr>';
   });
   return html+'</table></details>';
 }
@@ -1078,7 +1095,7 @@ function importprofiletest() {
   var params = Object.assign({}, setimp.params);
   if(!params.set) { params.set = 'Test Set'; }
   try {
-    var r = setimportetl.transform(p, setimp.csv.rows, params, setimp.csv.header);
+    var r = setimportetl.transform(p, setimp.csv.rows, params, setimp.csv.header, {"titles": setimp.titles || null});
     var errs = r.cards.filter(c => c.errors.length);
     setimpstatus('impprof-status', 'Ran on '+setimpesc(setimp.csv.name)+': '+r.cards.length+' cards, '+errs.length+' with errors.', errs.length ? 'error' : 'setimp-ok');
     var html = r.errors.map(e => '<p class="setimp-warn">'+setimpesc(e.message)+'</p>').join('');
