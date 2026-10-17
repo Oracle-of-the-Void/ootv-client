@@ -31,8 +31,12 @@ entry all work. Headless Chromium can't stand in for these on iOS:
   already on the results and closes on Search, the arrow, a tap on the results, or switching
   view. Check the page behind it doesn't scroll while the panel is open.
 - [ ] Directory cards view (the phone default; the menubar view buttons switch to the
-  detailed table, which still scrolls sideways): editing the name and notes on a card, the
-  Download dropdown inside a card, the New list tile, and the menubar Sort dropdown.
+  detailed table, which still scrolls sideways): a tap on a card or its name opens the list, a
+  0.5 s long-press on the name renames it (check iOS doesn't select the text or pop its menu
+  instead), notes with line breaks, the ⌘ actions menu in the card's title bar (it opens upward
+  near the bottom of the screen), the New list tile, and the menubar Sort dropdown.
+- [ ] Swipe list picker (added 2026-10-16): with no active list, an adding swipe in search
+  results opens a list picker with collapsible folders and New list (which asks for a name).
 - [ ] Directory drag and drop (added 2026-10-15): long-press a list's move handle or a folder
   and drag it onto a folder, a folder in an expanded tree, or the path bar. It's HTML5 drag and
   drop, which iOS Safari 15+ supports and Android Chrome may not. Where it doesn't work, the
@@ -61,4 +65,11 @@ separately for search and for the deck/list view, and turns each gesture off (de
 directory drag touch and mouse, long-press labels; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
-drags still scroll. Tested with emulated touch only: check on a real phone.
+drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16.
+
+Added 2026-10-16 (emulated touch only; see the checklist above): with no active list, an adding
+swipe in search results asks which list to activate (folder tree, plus New list); a Gestures switch
+hides the directory's Folder pulldown (move lists by dragging only); New list asks for a name and
+makes the list active; in the directory a tap on a name opens the list and a long-press renames it
+(a pencil does it with a mouse); list actions (View, Duplicate, Upload, downloads, Delete) are in a
+⌘ menu by the activate toggle, in the table and the cards; list notes keep their line breaks.
