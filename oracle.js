@@ -1882,16 +1882,30 @@ function resizeimage(resizer,bitmap,w,h,mime) {
 // Presigned PUT URLs from /upload for at most 10 files of one directory:
 // {urls: [{name, url, headers}], backups: [{name, backup}]}. With overwrite, the server first copies
 // each file that exists to a backup (<name>.bak-<time>.<ext>, listed in the image trash).
-// Each call logs an 'upload' row (with cardid, when there is one) to the updatelog.
-function presignimages(db,hash,files,overwrite,cardid,printid) {
+// Each call logs an 'upload' row (with cardid, when there is one) to the updatelog, except in a
+// batch: log {logbatch: true} on the first call opens one row (the reply's logid), {logid} on the
+// later ones adds to it, and uploadlogdone() writes the outcome.
+function presignimages(db,hash,files,overwrite,cardid,printid,log) {
   return Promise.resolve($.ajax({
     type: "POST",
     url: apiuri+"/upload",
     contentType: 'application/json',
     dataType: 'json',
-    data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
+    data: JSON.stringify(Object.assign({"uid": getuid(), "database": db, "imagehash": hash, "overwrite": overwrite,
                           "cardid": cardid, "printingid": printid,
-                          "files": files.map(f => ({"name": f.name, "contentType": f.blob.type}))}),
+                          "files": files.map(f => ({"name": f.name, "contentType": f.blob.type}))}, log || {})),
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  }));
+}
+
+// The outcome of a batch of uploads, as its log row's description: done {uploaded, failed, existing, replaced}
+function uploadlogdone(db,hash,logid,done) {
+  return Promise.resolve($.ajax({
+    type: "POST",
+    url: apiuri+"/upload",
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({"uid": getuid(), "database": db, "imagehash": hash, "logid": logid, "done": done}),
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
   }));
 }
@@ -2278,7 +2292,10 @@ function massimageupload() {
     })).then(function() {
       if(!files.length) { return; }
       // replace only in the calls that were confirmed to; elsewhere S3 refuses to overwrite (412)
-      return presignimages(plan.db,plan.stub,files,group.some(i => i.replace),null,null).then(function(ret) {
+      // one updatelog row for the whole run: the first call opens it, the rest add to it
+      var log = run.logid ? {"logid": run.logid} : {"logbatch": true};
+      return presignimages(plan.db,plan.stub,files,group.some(i => i.replace),null,null,log).then(function(ret) {
+        if(ret.logid) { run.logid = ret.logid; }
         (ret.backups || []).forEach(function(b) {
           var f = files.find(f => f.name == b.name);
           if(f) { f.backup = b.backup; }
@@ -2324,6 +2341,11 @@ function massimageupload() {
     .then(function() {
       var count = r => todo.filter(item => item.result == r).length;
       var replaced = todo.filter(item => item.result == 'uploaded' && item.replace).length;
+      if(run.logid) {
+        uploadlogdone(plan.db,plan.stub,run.logid,{"uploaded": count('uploaded'), "failed": count('failed'),
+                                                    "existing": count('exists'), "replaced": replaced})
+          .catch(e => console.log(['uploadlogdone failed',e]));
+      }
       var skipped = plan.items.length - todo.length;
       var left = todo.filter(item => !item.result).length;
       status((run.stop ? 'Stopped. ' : 'Done. ')+count('uploaded')+' uploaded to '+htmlEncode(plan.imageuri)+
@@ -2335,6 +2357,13 @@ function massimageupload() {
     })
     .catch(function(e) {
       // /upload refused (permission, bad input, a backup copy failed) or pica didn't load
+      if(run.logid) {
+        var count = r => todo.filter(item => item.result == r).length;
+        uploadlogdone(plan.db,plan.stub,run.logid,{"uploaded": count('uploaded'), "failed": count('failed'),
+                                                    "existing": count('exists'),
+                                                    "replaced": todo.filter(item => item.result == 'uploaded' && item.replace).length})
+          .catch(e => console.log(['uploadlogdone failed',e]));
+      }
       status('Error: '+htmlEncode((e.responseJSON && e.responseJSON.error) || e.responseText || e.message || String(e))+
              '. '+done+' of '+todo.length+' images were done.',1);
     })
