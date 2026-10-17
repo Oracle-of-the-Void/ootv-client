@@ -639,7 +639,7 @@ $(document).on('click', '#resultdir .dirlistname', function() {
 });
 // the list actions (grid) menu is placed against the window, so the scrolling directory (phones) can't clip it,
 // and opens upward when there's no room below
-$(document).on('mouseenter click', '#resultdir .dirmenucell nav > ul > li', function() {
+$(document).on('click', '#resultdir .dirmenucell nav > ul > li', function() {
   var li = this, ul = $(li).children('ul');
   var r = li.getBoundingClientRect();
   ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});
@@ -649,6 +649,19 @@ $(document).on('mouseenter click', '#resultdir .dirmenucell nav > ul > li', func
       ul.css('top', r.top - h);
     }
   });
+});
+// with a mouse, a click opens or closes a grid menu (touch already toggles menus, see menutap); a click on
+// an item or anywhere else closes it
+$(document).on('click', function(e) {
+  if(lastpointertype != 'mouse') {
+    return;
+  }
+  var li = $(e.target).closest('#resultdir .dirmenucell nav > ul > li');
+  var open = li.length && !$(e.target).closest('ul.dirlistmenu').length && !li.hasClass('menuopen');
+  $('#resultdir .dirmenucell li.menuopen').removeClass('menuopen');
+  if(open) {
+    li.addClass('menuopen');
+  }
 });
 // cards view: a press anywhere on a list's card that isn't one of its controls opens the list
 $(document).on('click', '#directorycards [id^="listitem_"]', function(e) {

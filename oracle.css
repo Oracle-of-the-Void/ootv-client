@@ -1604,8 +1604,18 @@ div.directorycard .dircardhead button.dirnameedit {
 span.dirmenucell, span.dirmenucell nav, span.dirmenucell nav > ul, span.dirmenucell nav > ul > li {
   display: inline-block;
 }
-div.directorycard .dircardhead .dirmenucell nav > ul > li > button {
-  color: #ddd;
+/* grid menus open on a click, also with a mouse (the site's other menus open on hover): see dirmenuclick in oracle.js */
+#resultdir .dirmenucell nav ul li:hover > ul,
+#resultdir .dirmenucell ul li:focus-within > ul {
+  visibility: hidden;
+  opacity: 0;
+  display: none;
+}
+#resultdir .dirmenucell nav ul li.menuopen > ul {
+  visibility: visible;
+  opacity: 1;
+  display: block;
+  z-index: 4;
 }
 /* the card title bar's white title font doesn't carry into the menu */
 div.directorycard .dircardhead ul.dirlistmenu {
