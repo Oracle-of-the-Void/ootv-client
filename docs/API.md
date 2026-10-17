@@ -39,6 +39,13 @@ inputs:
 * fetchcards (optional)
   * brings back data from the updates:  use to display info on the updates and overwrite local cache entries
   * fetches at most the first 10 cardids of each log row; `cardids` is still complete
+* filters (optional, combined with AND; the admin Update log uses them):
+  * operation -> comma list of exact operations (`update,bulkupdate`)
+  * uname -> case-insensitive part of the maintainer's name
+  * q -> case-insensitive text in the description, name or operation, a cardid, or part of a
+    card title (up to 1000 matching titles are looked up in ES; rows naming any of them match)
+  * a filtered request reads the log 200 rows at a time until `limit` rows match
+* facets (optional) -> also return every maintainer name and operation in this table's log
 
 outputs:
 
@@ -50,7 +57,10 @@ outputs:
   * timestamp  (standard millisecond unix timestamp)
   * uid  (of maintainer)
 * cardids  (array of all cardids in returned results)
-* cards (if fetchcards set) - array of cards in cards.hits.hits
+* next -> pass as maxtime to get the following (older) page; null at the end of the log
+  (an unfiltered page that ends exactly at the end of the log can still return a `next`, whose page is empty)
+* cards (if fetchcards set) - array of cards in cards.hits.hits (empty when no rows came back)
+* facets (if facets set) -> `{unames: [...], operations: [...]}`, sorted
 
 codes:
 

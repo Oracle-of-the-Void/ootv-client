@@ -1480,6 +1480,7 @@ div#phonesearchbar .numresults {
 }
 /* admin login log */
 .loginlog-nav { margin: 10px 0; }
+.updatelogform label { display: inline-block; margin: 0 12px 6px 0; white-space: nowrap; }
 table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
 table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
 table.loginlog tr.loginlog-failed td { color: #a00; }
