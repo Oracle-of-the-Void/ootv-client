@@ -72,7 +72,7 @@
 	</span>
       </li>
       <li class="numresultsmenu"><span class="numresults"></span></li>
-      <li class="textversionmenu"><span class="searchtextversion"></span><span class="listtextversion"></span></li>
+      <li class="textversionmenu"><span class="searchtextversion"></span> <span class="searchaddall"></span><span class="listtextversion"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
 	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
@@ -242,8 +242,8 @@
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
 <!-- phones: the search form is a slide-over panel; this bar above the results opens it (body.viewsearch, see showview) -->
 <div id="phonesearchbar" onclick="mobilesearchtoggle(true); event.stopPropagation();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg> <b>Edit search</b> <span class="numresults"></span></div>
-<!-- phones: the search results' Showing: button (searchtextversion; the menubar has it on desktop) -->
-<div id="phonetextversion" class="searchtextversion"></div>
+<!-- phones: the search results' Showing: and Add all buttons (searchtextversion, searchaddall; the menubar has them on desktop) -->
+<div id="phonetextversion"><span class="searchtextversion"></span> <span class="searchaddall"></span></div>
 <div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet, use the Search area on the left</div></div>
 <div class="resultadmin" id="resultadmin"><div class="randarea" style="text-align: left;">
   <br><br>Need to have:
@@ -356,6 +356,7 @@ Recent Data Updates for Currently Selected Database:<br>
 <li>Not everything is completely set yet, so if you have feedback let me know.
 <li>On a phone, long-press a button icon (in the top menu bar) to see a short name for it.
 <li>With a list active, swipe a card image sideways (or click-drag it with a mouse) to change its count. Settings &rarr; Gestures sets what each direction does, or turns gestures off.
+<li>Logged in, "Add all to list" at the top of the search results puts every card found in a list (each with the version the result shows), up to a little more than the game's largest set.
 <li>All search boxes are logically AND'ed together.
 <li>Title is a "match" field.   Individual words are matched against the title.
 <li>Keywords is a "match phrase" field.  The complete phrase is matched.
