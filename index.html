@@ -254,6 +254,7 @@
     <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
     <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game) &middot;
         <a href="" onclick="loadsetimport('importprofilesopen'); return false">Import profiles</a></li>
+    <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
@@ -269,6 +270,7 @@
   <div id="massimage" class="massimage"></div>
   <div id="setimport" class="setimport"></div>
   <div id="importprofiles" class="setimport"></div>
+  <div id="updatelogpage" class="updatelogpage"></div>
 </div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
 <div class="resultabout" id="resultabout">
@@ -614,6 +616,35 @@ printingprimary
   <div id="massimagestatus"></div>
   <div id="massimagereport"></div>
   <table class="massimagelist" id="massimagetable"></table>
+</script>
+<!-- admin update log (loadupdatelogpage): the filter form; updatelogshow fills #updatelogresults -->
+<script id="template-updatelogpage" type="text/jsrender">
+  <h3>Update log: {{>name}}</h3>
+  <form id="updatelogform" class="updatelogform" onsubmit="updatelogsearch(); return false;">
+    <label>Search <input type="text" id="updatelog-q" size="24" placeholder="card, description, cardid" /></label>
+    <label>By <input type="text" id="updatelog-uname" size="16" list="updatelog-unames" placeholder="anyone" /></label>
+    <datalist id="updatelog-unames"></datalist>
+    <label>Operation <select id="updatelog-operation" onchange="updatelogsearch()"><option value="">any</option></select></label>
+    <label>From <input type="date" id="updatelog-from" /></label>
+    <label>To <input type="date" id="updatelog-to" /></label>
+    <input type="submit" value="Search" />
+    <input type="button" value="Clear" onclick="updatelogclear()" />
+  </form>
+  <div id="updatelogresults"></div>
+</script>
+<script id="template-updatelogresults" type="text/jsrender">
+  <div class="loginlog-nav">
+    {{if page > 0}}<span class="button gray" onclick="updatelogshow(0)">Newest</span>
+    <span class="button gray" onclick="updatelogshow(page_updatelog-1)">&laquo; Newer</span>{{/if}}
+    {{if next}}<span class="button gray" onclick="updatelogshow(page_updatelog+1)">Older &raquo;</span>{{/if}}
+    Page {{:page+1}}
+  </div>
+  {{for rows tmpl="#template-updatelog"/}}
+  {{if !rows.length}}<p>No {{if page > 0}}older {{/if}}updates{{if filtered}} match{{/if}}.</p>{{/if}}
+  {{if rows.length > 10}}<div class="loginlog-nav">
+    {{if page > 0}}<span class="button gray" onclick="updatelogshow(page_updatelog-1)">&laquo; Newer</span>{{/if}}
+    {{if next}}<span class="button gray" onclick="updatelogshow(page_updatelog+1)">Older &raquo;</span>{{/if}}
+  </div>{{/if}}
 </script>
 <!-- admin login log (/loginlog): name, email, reason come from users, so always escape with {{>}} -->
 <script id="template-loginlog" type="text/jsrender">
