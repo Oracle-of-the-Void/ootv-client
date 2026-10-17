@@ -4064,6 +4064,13 @@ function lastcardprid() {
 function process_keywordlink(data,fieldname,type) {
   fieldname = fieldname.replace('.','_');
   var cleandata = data.replace(new RegExp("<[^<]+>","g"),"");
+  // a "Soul of <name>" keyword searches for the card it's the soul of, by title
+  var soul = fieldname == 'keywords' && cleandata.match(/^Soul(?:\s|&nbsp;)+of(?:\s|&nbsp;)+(.+)$/i);
+  if(soul) {
+    fieldname = 'title';
+    type = searchables[database]['title'].type;
+    cleandata = soul[1].replace(/&nbsp;/g,' ');
+  }
   return '<a href="" id="'+
     '#search='+
     encodeURIComponent(
