@@ -19,6 +19,12 @@ Both need the `setimport` permission (or `*`) for the game.
 2. **Cards.** *Make the cards* runs the profile over every row in the browser. Every card is
    listed, collapsed. Open one to see its JSON (syntax colored) and the CSV row it came from.
    Rows with errors (an empty title, a broken transform) are marked; filter to them with *Show*.
+   Then each row is checked against the live cards (the same matching Plan uses), and marked:
+   *new*; *reprint* of a card (marked `Reprint` = 1, or *reprint, not marked*: a live card has the
+   same title, experienced level and type, so it's planned as a reprint too); *duplicate* (that
+   card already has a printing in this set, so the row is skipped); or *no match* / *several
+   matches* for a marked reprint that needs a cardid in Plan's reprint list. Re-running a set
+   that's already live shows every row as a duplicate.
    *Download out/* gives the same cards as files that ootv-import's `set-import.py` reads.
 3. **The set.** *Check the set* says whether live cards already have the set, how many files
    the image directory holds, where the set sorts, its arc and its Sun and Moon code.
@@ -35,7 +41,8 @@ Both need the `setimport` permission (or `*`) for the game.
    without ", Soul of ..." and the name before the first comma, of the same type (shown as
    *name*). A reprint that still matches nothing lists up to three close titles of the same
    type ("Militia Training Grounds" → 5056 Militia Training Ground). Rows *not* marked
-   `Reprint` that share a title with a live card are warnings: check those for a missing flag. Every image must be uploaded, the set
+   `Reprint` that share a title and type with a live card are planned as reprints of it (*found*;
+   type `new` to keep one new). Duplicates (the card already has this set) are skipped and listed. Every image must be uploaded, the set
    registered, every legality known, every printing given a publisher. It lists values the
    site hasn't seen before (a new clan or type usually means a typo or a missing table
    entry in the profile). **Problems** block going live; **warnings** are for you to read.

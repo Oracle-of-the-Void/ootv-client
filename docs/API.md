@@ -583,7 +583,8 @@ groups must allow `setimport` (or `*`) for the game or for every game.
 | `setup` | | `{sortregex, arcs: [{name, regex}], snm: {sets} or null}` |
 | `check` | `set`, `imagehash`, `snm` | live cards with the set, files in the image directory, sort position, arcs, S&M code |
 | `register` | `set`, optional `position` + `pattern` (sort), `arc` or `newarc: {name, at}`, `snm` | `{changes, coldstart, before, after}` |
-| `plan` | `params`, `profile: {name, version}`, `cards: [{file, reprint, card}]`, `overrides: {file: {cardid or "new", primary}}`, `description`, `registration` | `{job, ready, problems, warnings, infos, counts, cardids, new: [...], reprints: [...]}` |
+| `match` | `params`, `cards: [{file, reprint, card}]`, `overrides` | `{set, live, secs, counts, rows: {file: {status, cardid, title, how, cands, near}}}`: status new / reprint / duplicate / unmatched / ambiguous / missing (read-only) |
+| `plan` | `params`, `profile: {name, version}`, `cards: [{file, reprint, card}]`, `overrides: {file: {cardid or "new", primary}}`, `description`, `registration`, `csv: {name, text}` | `{job, ready, problems, warnings, infos, counts, cardids, new: [...], reprints: [...], duplicates: [...]}` |
 | `jobs` | | the last 30 imports of the game |
 | `job` | `job`, optional `rows: true` | the import's state (`status`, `export`, `mapping`, `written`, `conflicts`, ...) |
 | `export` | `job`, optional `fresh` | `{export: {status, snapshot, items, s3}}` |
