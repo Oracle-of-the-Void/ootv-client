@@ -4096,7 +4096,7 @@ function process_keywordlink(data,fieldname,type,title=null) {
 // the title a keyword links to instead of a keyword search, or null:
 //   Soul of <name> [Experienced [n]]  -> <name>, the card it's the soul of
 //   [In]experienced [n] <name>        -> <name>, the card it's a version of
-//   [In]experienced [n]               -> this card's title up to a comma (n may be 2, 3.5, 2KYD, 2CW)
+//   [In]experienced [n]               -> this card's title up to a comma or bullet (n may be 2, 3.5, 2KYD, 2CW)
 function keywordtitle(keyword,title) {
   keyword = keyword.replace(/&nbsp;/g,' ').trim();
   var soul = keyword.match(/^Soul\s+of\s+(.+?)(?:\s+(?:In)?[Ee]xperienced\b.*)?$/i);
@@ -4111,7 +4111,7 @@ function keywordtitle(keyword,title) {
     return exp[1];
   }
   title = [].concat(title || [])[0];
-  return title ? String(title).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;/g,' ').replace(/,.*/,'').trim() || null : null;
+  return title ? String(title).replace(new RegExp("<[^<]+>","g"),"").replace(/&nbsp;/g,' ').replace(/(,|\u2022|&bull;).*/,'').trim() || null : null;
 }
 
 // Populate loads qs data back into the form for searching on
