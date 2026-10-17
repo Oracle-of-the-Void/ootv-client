@@ -2074,8 +2074,8 @@ function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#admindoc').empty();
-  $('#updatelogpage').empty();
   $('#setimport, #importprofiles').hide();
+  $('#updatelogpage').empty();
   $('#massimage').show();
   if(massimagerun) { return; }   // keep the form and results of the upload in progress
   massimageplan = null;
