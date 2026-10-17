@@ -45,6 +45,19 @@ function filenamecleaner(val) {
     return val.replace(/[^\-a-z0-9]/gi,'_').toLowerCase().replace(/_{2,}/,'_');
 }
 $.views.converters("filenamecleaner", function(val) {return filenamecleaner(val);});
+// a title naming the card it's the soul of ("Agasha Kyoko, Soul of Isawa Miniko") links the
+// "Soul of ..." part to a title search for that card. Titles that are just a "Soul of" phrase
+// (Soul of Battle, The Soul of Akodo) need a comma or two words before it, so they stay plain.
+function soultitle(val) {
+  return [].concat(val === undefined || val === null ? [] : val).map(function(t) {
+    var m = String(t).match(/^(.+?)((?:,|\s|&nbsp;)+)(Soul(?:\s|&nbsp;)+of(?:\s|&nbsp;)+.+)$/i);
+    if(!m || !(m[2].includes(',') || /\S(?:\s|&nbsp;)+\S/.test(m[1]))) {
+      return t;
+    }
+    return m[1]+m[2]+process_keywordlink(m[3],'keywords',searchables[database]['keywords'].type);
+  }).join(', ');
+}
+$.views.converters("soultitle", soultitle);
 var listtypes = {'deck':'Deck',
 		 'collection':'Collection',
 		 'have':'Have',
