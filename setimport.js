@@ -229,6 +229,7 @@ function setimptransform() {
   setimp.job = null;
   setimp.meta = null;
   setimp.overrides = {};
+  setimp.accept = {};
   setimp.match = null;
   setimpstatus('setimp-setupstatus', '');
   setimprenderpreview();
@@ -655,7 +656,7 @@ function setimpdoplan() {
   var r = setimp.result;
   setimpstatus('setimp-planstatus', 'Planning (reads every live card; about 10 seconds)...');
   $('#setimp-live').empty();
-  setimpapi('plan', {"params": r.params, "profile": r.profile, "overrides": setimp.overrides,
+  setimpapi('plan', {"params": r.params, "profile": r.profile, "overrides": setimp.overrides, "accept": Object.keys(setimp.accept || {}),
                      "description": $('#setimp-desc').length ? $('#setimp-desc').val() : '',
                      "registration": setimp.registration || null,
                      "csv": setimp.csv ? {"name": setimp.csv.name, "text": setimp.csv.text} : null,
@@ -720,6 +721,7 @@ function setimprenderplan() {
       });
       html += '</table></details>';
     }
+    html += setimpnewvalues(p)+setimptextdiffs(p);
     html += '<details><summary>New cards ('+p.new.length+')</summary><table class="setimp-table"><tr><th>Cardid</th><th>File</th><th>Title</th><th>Type</th><th>Clan</th><th>Rarity</th><th>Make it a reprint of</th></tr>';
     p.new.forEach(function(n) {
       html += '<tr><td>'+n.cardid+'</td><td>'+setimpesc(n.file)+'</td><td>'+n.title+'</td><td>'+setimpesc(n.type)+'</td><td>'+setimpesc(n.clan)+
@@ -728,6 +730,70 @@ function setimprenderplan() {
     html += '</table></details>';
   }
   $('#setimp-plan').html(html);
+}
+
+// new types and clans block Apply until accepted here (they're usually a typo or a missing profile
+// table entry); the next Plan sends the accepted ones
+function setimpnewvalues(p) {
+  if(!p.newvalues || !p.newvalues.length) { return ''; }
+  var html = '<details'+(p.newvalues.some(v => !v.accepted) ? ' open' : '')+'><summary>New values ('+p.newvalues.length+
+             ' type/clan values no live card has)</summary><p><small>Usually a typo, or a value the profile\'s tables should '+
+             'translate: fix the spreadsheet or the profile and Pre-Process again. If it really is new, tick it and plan again. '+
+             'A value the site\'s templates don\'t mention may also need an icon or sort entry in ootv-client.</small></p>'+
+             '<table class="setimp-table"><tr><th>Field</th><th>Value</th><th>Cards</th><th>In the site\'s templates</th><th>Really new</th></tr>';
+  p.newvalues.forEach(function(v) {
+    html += '<tr><td>'+setimpesc(v.kind)+'</td><td><b>'+setimpesc(v.value)+'</b></td><td>'+v.count+': '+
+            setimpesc(v.files.slice(0, 5).map(f => f.replace(/\.json$/, '')).join(', '))+(v.count > 5 ? ', ...' : '')+'</td><td>'+
+            (v.insite ? 'yes' : '<span class="error">no</span>')+'</td><td><label><input type="checkbox" data-key="'+setimpesc(v.key)+'"'+
+            (setimp.accept[v.key] ? ' checked' : '')+' onchange="if(this.checked) { setimp.accept[this.dataset.key] = 1; } else { delete setimp.accept[this.dataset.key]; }" /> accept</label></td></tr>';
+  });
+  return html+'</table></details>';
+}
+
+// reprints whose printed text differs from their card's: a word diff of the text (tags and
+// entities dropped; the check ignores them too)
+function setimptextdiffs(p) {
+  if(!p.textdiffs || !p.textdiffs.length) { return ''; }
+  var html = '<details><summary>Text differences ('+p.textdiffs.length+' reprints)</summary><p><small>The reprint\'s printing keeps its '+
+             'own text; the card\'s text isn\'t changed. <del>struck</del> is only on the card, <ins>underlined</ins> only in this set. '+
+             'Errata (changing the card) is done by hand in the card editor.</small></p><table class="setimp-table setimp-diffs">'+
+             '<tr><th>File</th><th>Card</th><th>Card text → this set</th></tr>';
+  p.textdiffs.forEach(function(d) {
+    html += '<tr><td>'+setimpesc(d.file.replace(/\.json$/, ''))+'</td><td>'+setimpcardlink(d.cardid, d.title)+'</td><td>'+
+            setimpworddiff(d.live, d.new)+'</td></tr>';
+  });
+  return html+'</table></details>';
+}
+
+function setimpplain(h) {
+  var t = document.createElement('textarea');
+  t.innerHTML = String(h || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '');
+  return t.value.replace(/\s+/g, ' ').trim();
+}
+
+function setimpworddiff(a, b) {
+  var x = setimpplain(a).split(' '), y = setimpplain(b).split(' ');
+  // longest common subsequence of words, then walk it
+  var n = x.length, m = y.length, L = [];
+  for(var i = 0; i <= n; i++) { L.push(new Array(m+1).fill(0)); }
+  for(i = n-1; i >= 0; i--) {
+    for(var j = m-1; j >= 0; j--) {
+      L[i][j] = x[i] === y[j] ? L[i+1][j+1]+1 : Math.max(L[i+1][j], L[i][j+1]);
+    }
+  }
+  var out = [], del = [], ins = [];
+  var flush = function() {
+    if(del.length) { out.push('<del>'+setimpesc(del.join(' '))+'</del>'); del = []; }
+    if(ins.length) { out.push('<ins>'+setimpesc(ins.join(' '))+'</ins>'); ins = []; }
+  };
+  i = 0; j = 0;
+  while(i < n || j < m) {
+    if(i < n && j < m && x[i] === y[j]) { flush(); out.push(setimpesc(x[i])); i++; j++; }
+    else if(j < m && (i >= n || L[i][j+1] >= L[i+1][j])) { ins.push(y[j++]); }
+    else { del.push(x[i++]); }
+  }
+  flush();
+  return out.join(' ');
 }
 
 function setimpoverride(file) {
