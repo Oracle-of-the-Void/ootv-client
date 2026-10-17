@@ -1,5 +1,21 @@
 # TODO
 
+## Card corners in the editor's image upload (noted 2026-10-16)
+
+Card images are PNG with the area outside the rounded corners transparent (square-cornered
+Onyx Lives cards excepted; `ootv-import/AI-IMPORT.md` "Card images"). The import pipeline
+holds to that: `set-import.py images` refuses non-PNG and warns when a master's corner pixels
+are opaque. The card editor's upload (`uploadimagetrigger`) does neither: it takes JPEG as
+well as PNG, and uploads whatever it's given, so a scan with white or black corners goes
+live as is. The Admin mass image upload uses the same resize and upload code, so the same
+applies there. Look at:
+
+- warning (or refusing) when a non-Onyx Lives master has opaque corners, as `set-import.py` does;
+- cutting the corners in the browser: an anti-aliased rounded-rectangle mask, inset a few px,
+  on the master before `_details`/`_select` are made (the method in AI-IMPORT.md; the radius
+  would have to come per game, or from the image);
+- saving a JPEG upload as PNG once the corners are cut.
+
 ## Dead legacy image code in oracle.js (noted 2026-10-15)
 
 Found while checking that a card can mix legacy (`printimagehash`) and modern
