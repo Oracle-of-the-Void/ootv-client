@@ -54,9 +54,13 @@ Both need the `setimport` permission (or `*`) for the game.
    type ("Militia Training Grounds" → 5056 Militia Training Ground). Rows *not* marked
    `Reprint` that share a title and type with a live card are planned as reprints of it (*found*;
    type `new` to keep one new). Duplicates (the card already has this set) are skipped and listed. Every image must be uploaded, the set
-   registered, every legality known, every printing given a publisher. It lists values the
-   site hasn't seen before (a new clan or type usually means a typo or a missing table
-   entry in the profile). **Problems** block going live; **warnings** are for you to read.
+   registered, every legality known, every printing given a publisher. A clan or type no live
+   card has is a **problem** (usually a typo or a missing profile table entry): fix it, or tick
+   *accept* in *New values* if it really is new, and plan again; that list also says whether the
+   site's templates mention the value (icons, sorting). Other new values (deck, rarity, ...) are
+   warnings. Reprints whose printed text differs from their card are listed in *Text
+   differences* with a word diff (the card's text isn't changed; errata is done by hand).
+   **Problems** block going live; **warnings** are for you to read.
    In the reprint list, type a cardid to change a match, `new` to make the row a new card, or
    tick *primary* to show the new printing first. In the new card list, type a cardid to make a
    row a reprint. Then *Plan again*.
