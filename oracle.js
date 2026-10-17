@@ -3015,6 +3015,27 @@ function showsettings() {
   rendersettings();
   showview('resultsettings');
 }
+// The page's tabs; a section joins one with data-settingstab. Logged out, only the ones kept in this browser.
+var settingstabs = [['account','Account',true],['display','Display',true],['gestures','Gestures',false],['searches','Searches',false]];
+var settingstab = null; // the tab picked this session, kept through rendersettings() after a save
+function settingstablist(loggedin) {
+  return settingstabs.filter(function(t) { return loggedin || !t[2]; }).map(function(t) { return {'key': t[0], 'label': t[1]}; });
+}
+function showsettingstab(key) {
+  var area = $('#settingsarea');
+  if(!area.find('button[data-settingstab="'+key+'"]').length) {
+    key = area.find('button[data-settingstab]').first().attr('data-settingstab');
+  } else {
+    settingstab = key;
+  }
+  area.find('button[data-settingstab]').each(function() {
+    var on = $(this).attr('data-settingstab') == key;
+    $(this).toggleClass('settingstabactive', on).attr('aria-selected', on ? 'true' : 'false');
+  });
+  area.find('section[data-settingstab]').each(function() {
+    $(this).toggle($(this).attr('data-settingstab') == key);
+  });
+}
 // a saved view's name, or a dash when nothing is saved
 function settingsviewname(key) {
   var available = templates[database]['available'];
@@ -3062,7 +3083,8 @@ function rendersettings() {
   };
   if(!(user && ("oracle" in user))) {
     // logged out: only the search settings (kept in this browser)
-    $('#settingsarea').html($.templates("#template-settings").render(searchctx));
+    $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {'tabs': settingstablist(false)})));
+    showsettingstab(settingstab);
     return;
   }
   var saved = savedgamesettings() || {};
@@ -3078,8 +3100,10 @@ function rendersettings() {
     'name': username(user), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
     'favorite': favoritegame() || '', 'textversion': savedtextversion(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
-    'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions())
+    'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions()),
+    'tabs': settingstablist(true)
   })));
+  showsettingstab(settingstab);
 }
 
 //**********************************************************  Profile name ****************

@@ -732,11 +732,13 @@ printingprimary
 </script>
 <script id="template-updatelog-card" type="text/jsrender"><a href="#game={{:database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},null); } return false;">{{:title}}</a></script>
 
-<!-- Settings page (showsettings): one section per kind of setting, add new ones here -->
+<!-- Settings page (showsettings): one section per kind of setting, add new ones here; data-settingstab
+     puts a section on a tab (settingstabs in oracle.js) -->
 <script id="template-settings" type="text/x-jsrender">
 <h2>Settings</h2>
+<div class="settingstabs" role="tablist">{{for tabs}}<button type="button" role="tab" data-settingstab="{{:key}}" onclick="showsettingstab('{{:key}}');">{{>label}}</button>{{/for}}</div>
 {{if oracle}}
-<section class="settingsection">
+<section data-settingstab="account" class="settingsection">
   <h3>Profile</h3>
   <dl>
     <dt>Name</dt><dd><span class="profilename">{{>name}} <span class="button gray" onclick="editprofilename(this);">Edit <svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></span></span>
@@ -770,7 +772,7 @@ printingprimary
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined<br/>{{:folders}} folder{{if folders!=1}}s{{/if}} ({{>gamename}})</dd>
   </dl>
 </section>
-<section class="settingsection">
+<section data-settingstab="account" class="settingsection">
   <h3>Favorite game</h3>
   <p>The game the site opens with when you're logged in and this browser hasn't picked one yet
     (a new browser, or after logging out or Clear Cache). Picking a game from the menu still sticks in that browser.</p>
@@ -779,7 +781,7 @@ printingprimary
     {{for games}}<option value="{{:key}}"{{if key==~root.favorite}} selected{{/if}}>{{>name}}</option>{{/for}}
   </select> <span class="favoritegamestatus"></span>
 </section>
-<section class="settingsection">
+<section data-settingstab="display" class="settingsection">
   <h3>Card text (all games)</h3>
   <p>When a search, a list or a version button shows one printing of a card, its text can be the wording printed
     on that printing or the card's current (MRP) wording. New sessions start with this; the <b>Showing:</b> button
@@ -789,7 +791,7 @@ printingprimary
     <option value="mrp"{{if textversion=='mrp'}} selected{{/if}}>MRP text</option>
   </select> <span class="textversionstatus"></span>
 </section>
-<section class="settingsection">
+<section data-settingstab="display" class="settingsection">
   <h3>Saved views ({{>gamename}})</h3>
   <p>The views and sort {{>gamename}} opens with. Phones save their own set; this screen uses the <b>{{if phone}}phone{{else}}desktop{{/if}}</b> set.
     Save copies what the Search, Card and List tabs show right now.</p>
@@ -802,7 +804,7 @@ printingprimary
   </table>
   <span class="button gray saveviewdefaults" onclick="saveviewdefaults('all',this);">Save all as default <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span>
 </section>
-<section class="settingsection">
+<section data-settingstab="display" class="settingsection">
   <h3>PDF print (all games)</h3>
   {{if pdfallowed}}
   <p>{{if pdfsaved}}Saved {{formatDate:pdfsaved}}.{{else}}Nothing saved yet: these are the built-in defaults.{{/if}}
@@ -814,7 +816,7 @@ printingprimary
   {{/if}}
 </section>
 {{/if}}
-<section class="settingsection gesturesettings">
+<section data-settingstab="gestures" class="settingsection gesturesettings">
   <h3>Gestures (all games)</h3>
   <p>Turn off a gesture to get the browser's usual behavior back (scrolling, dragging a link, the long-press menu).
     {{if loggedin}}Saved to your account.{{else}}You're not logged in, so these are kept in this browser only; Clear Cache deletes them.{{/if}}</p>
@@ -839,7 +841,7 @@ printingprimary
   <span class="button gray" onclick="resetgestures(this);">Reset gestures to the defaults <svg class="feather"><use xlink:href="res/feather-sprite.svg#rotate-ccw"></svg></span>
   <span class="gesturestatus"></span>
 </section>
-<section class="settingsection">
+<section data-settingstab="searches" class="settingsection">
   <h3>Searches ({{>gamename}})</h3>
   <p>Save these from the search form's Advanced buttons. Each game keeps its own.
     {{if loggedin}}They're saved to your account.{{else}}You're not logged in, so they're kept in this browser only; Clear Cache deletes them.{{/if}}</p>
