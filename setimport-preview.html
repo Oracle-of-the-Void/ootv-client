@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set import cards</title>
+<!-- Admin -> Set import's "Open in another window": the import page (setimport.js, its opener)
+     draws the card preview into #setimp-preview and keeps it current. Nothing runs here but the
+     request to draw. -->
+<link href="chosen.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="balloon.min.css">
+<link href="oracle.css" rel="stylesheet" type="text/css" />
+<style>
+  body { background: #fff; margin: 0; padding: 8px 16px; }
+  .setimp-popup .setimp-cards { max-height: none; }
+</style>
+</head>
+<body class="setimp-popup">
+<div class="setimport"><div id="setimp-preview" class="setimp-section"><p>Waiting for the set import page...</p></div></div>
+<script>
+  try {
+    if (window.opener && window.opener.setimppopupready) { window.opener.setimppopupready(window); }
+    else { document.getElementById('setimp-preview').textContent = 'Open this from Admin -> Set import (Open in another window).'; }
+  } catch (e) {
+    document.getElementById('setimp-preview').textContent = 'The set import page is gone: open the cards again from it.';
+  }
+</script>
+</body>
+</html>

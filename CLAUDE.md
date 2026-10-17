@@ -37,7 +37,8 @@ or tests. The files in this directory are exactly what gets served.
   mass image upload (`massimagetrigger`) load it on demand.
 - Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
   import profile; also run by ootv-import `SCRIPTS/etl-compare.js` under Node) and `setimport.js`
-  (the page). Both load on demand (`loadsetimport`). The server is ootv-search's `ootv-admin`
+  (the page). Both load on demand (`loadsetimport`); `setimport-preview.html` is the empty page
+  the card preview's "Open in another window" opens, which `setimport.js` draws into. The server is ootv-search's `ootv-admin`
   Lambda (`/setimport`) and `/setimportverify`; the admin guide is `docs/admin/set-import.md`.
 - `docs/API.md` is the API contract with ootv-search (routes, inputs, outputs).
   `docs/data.md` describes the card JSON. `oracle.api` holds scratch notes on the search

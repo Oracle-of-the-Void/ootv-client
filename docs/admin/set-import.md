@@ -21,6 +21,10 @@ Both need the `setimport` permission (or `*`) for the game.
    *View: Card details* shows it the way the Card Details page will instead: a new card on its
    own, a reprint as the live card with the new printing added (and selected), a duplicate as
    the live card at its printing in this set. Images not uploaded yet show as a dashed box.
+   *Open in another window* puts the same list in a window of its own, with its own filter and
+   search, to keep beside Plan. It follows the page: after each Plan, every row shows what the
+   plan does with it (the new card's cardid, the reprint's card and printing number, including
+   changes typed in the reprint list).
    Rows with errors (an empty title, a broken transform) are marked; filter to them with *Show*.
    Then each row is checked against the live cards (the same matching Plan uses), and marked:
    *new*; *reprint* of a card (marked `Reprint` = 1, or *reprint, not marked*: a live card has the
