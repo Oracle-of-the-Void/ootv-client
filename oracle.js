@@ -5314,7 +5314,7 @@ $(window).on('popstate', function (e) {
 	    showcard();
 	  }
   } else if(location.hash.match(/#cardid=/) || location.hash.match(/#search=/)) {
-	  urlparser();
+	  urlparser(true);
   } else {
     console.log(['new location',location.hash]);
     console.log(['previous',$('#lastsearchquery').val()]);
@@ -5340,7 +5340,29 @@ $(document).on('keydown', function ( e ) {
     }
 });
 
-function urlparser() {
+// filters a search link keeps from the form: format (legality), publisher, and the require_
+// checkboxes (Paper only). Links from card fields only carry the field clicked.
+var keptsearchfilters = /^(field_legality|field_printing_publisher|require_.*)$/;
+// adds the form's kept filters to a search link's request (values of the same field are combined)
+function keepsearchfilters(fdata) {
+  var values = searchformvalues();
+  for(var name in values) {
+    if(!keptsearchfilters.test(name)) {
+      continue;
+    }
+    var merged = [].concat(fdata[name] === undefined ? [] : fdata[name], values[name]).map(String);
+    merged = merged.filter(function(v, i) { return merged.indexOf(v) == i; });
+    fdata[name] = merged.length == 1 ? merged[0] : merged;
+    var type = $('#searchform [name="'+name.replace(/^field_/,'type_')+'"]').val();
+    if(name.startsWith('field_') && type) {
+      fdata[name.replace(/^field_/,'type_')] = type;
+    }
+  }
+}
+
+// keepfilters: a search link (clicked, or typed in the address bar) keeps the form's kept filters.
+// Page loads and back/forward to a search show that search as it was.
+function urlparser(keepfilters=false) {
   // Load bookmarks / shared urls
   var patt = /#[^#]+/g;
   var matches = location.hash.match(patt);
@@ -5381,40 +5403,20 @@ function urlparser() {
 	  cardfetch(matchstruct["cardid"],typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null);
   } else if(typeof(matchstruct['search']) != 'undefined') {
 	  console.log(["detected search in URL",matchstruct['search']]);
-	  console.log(uri2json(decodeURIComponent(matchstruct['search'])));
-	  populatecallback.push(function() {populate($("#searchform"),uri2json(decodeURIComponent(matchstruct['search'])));});
 	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
-	  for( param in fdata ) {
-	    if(param.match(/^(field_|querystring)/)) {
-        console.log(['yo',$('#'+param).prop('type'),$('#'+param).val(),fdata[param]]);
-        switch($('#'+param).prop('type')) {
-        case 'select-multiple':
-          if($('#'+param).val()) {
-            // fdata[param] is a value, or an array of them for a repeated key
-            $('#'+param).val([].concat($('#'+param).val(), fdata[param]));
-          } else {
-		        $('#'+param).val(fdata[param]);
-          }
-          break;
-        case 'text':
-          if($('#'+param).val()) {
-            $('#'+param).val($('#'+param).val()+" "+fdata[param]);
-          } else {
-		        $('#'+param).val(fdata[param]);
-          }
-          break;
-        default:
-		      $('#'+param).val(fdata[param]);
-        }
-        $('#'+param).trigger("chosen:updated");
-        console.log(['msparam',param]);
-	    }
-	    if(param == 'sort') {
-		    changesort('search',fdata[param],false);
-	    }
+	  if(keepfilters) {
+	    keepsearchfilters(fdata);
+	  }
+	  // the form shows exactly what's searched: cleared, then filled from the url (and the kept filters)
+	  if($('#selectsloaded').length) {
+	    fillsearchform(fdata);
+	  } else {
+	    populatecallback.push(function() {fillsearchform(fdata);});
+	  }
+	  if('sort' in fdata) {
+	    changesort('search',fdata['sort'],false);
 	  }
 	  dosearch(0,fdata);
-	  // TODO this needs to update search and the form.
   } else {
     /*	$(window).on('beforeunload', function(e){
 	      return 'Are you sure you want to leave?';
