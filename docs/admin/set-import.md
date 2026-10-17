@@ -139,3 +139,6 @@ to `setimport-etl.js` in ootv-client. The profiles just name it.
   POST `/setimport`) and ootv-search's `/setimportverify` (the search check).
 - Profiles are `oracle-all-structure` items `<game>` / `import/<name>`. Imports are in
   `oracle-all-setimport`: one `meta` row per import, plus a row per card to write.
+- Every Plan saves the CSV as it was chosen to
+  `s3://reports.oracleofthevoid.com/setimport/<game>/<import id>/<file>` (the import's `csv`
+  field gives the path), so an import can be looked into later.
