@@ -7,6 +7,7 @@ dbinfo['initiald'] = {
     'name': "Initial D CCG",
     'nameshort':'initiald',
     'logo': 'initiald.png',
+    'addallmax': 249, // search "Add all to list" cap: 15% over the largest set (Base, 216 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/initiald/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':'A collectible card game about the Initial D anime series.'
@@ -45,6 +46,9 @@ headerize['initiald'] = {
     }
 };
 
+// "reverse": true marks a field whose search picks the version a card shows (bubbleup).
+// KEEP IN SYNC: searchaddallversioned in oracle.js lists the fields that pick a version for search "Add all to list";
+// a new reverse field (or one dropped) needs it updated too.
 searchables['initiald'] = {
   "quick": { "type": "quick" },
   "title": { "type": "text" },

@@ -10,6 +10,7 @@ dbinfo['lbs'] = {
     'name': "Legend of the Burning Sands",
     'nameshort':"LBS",
     'logo': 'lbs.png',
+    'addallmax': 533, // search "Add all to list" cap: 15% over the largest set (The Awakening, 463 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/lbs/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':''
@@ -78,6 +79,9 @@ headerize['lbs'] = {
     }
 }
 
+// "reverse": true marks a field whose search picks the version a card shows (bubbleup).
+// KEEP IN SYNC: searchaddallversioned in oracle.js lists the fields that pick a version for search "Add all to list";
+// a new reverse field (or one dropped) needs it updated too.
 searchables['lbs'] = {
     "quick": true,
     "title": { "type": "text" },

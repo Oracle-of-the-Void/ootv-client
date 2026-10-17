@@ -1218,6 +1218,7 @@ function listinfocallback() {
   cache_thing("list","datareverse",cache_thing("list","data").lists.Items.reduce((hsh,list,index) => { hsh[list.listid]=index; return hsh;},{}));
   renderdirectory();
   syncactivelists();
+  searchaddall($('#lastsearchquery').val()); // logged in after the search showed
   // nothing in the list view yet: load the first list in the directory behind the scenes
   var lists = cache_thing("list","data").lists.Items;
   if(!$("#lastlistid").val() && lists.length) {
@@ -1495,6 +1496,25 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
+    listitemchange(list,cardid,prid,n,abs);
+    listcounts(list);
+    cache_thing("list",listid,list);
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
+    listitemsdone(listid);
+}
+// many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
+function addlistitems(listid,items,n=1) {
+    var list = cache_thing("list",listid);
+    items.forEach(function(item) {
+	listitemchange(list,item[0],item[1],n,false);
+    });
+    listcounts(list);
+    cache_thing("list",listid,list);
+    listitemsdone(listid);
+    refreshactivelistviews(); // the search results' counts
+}
+// one card's change in a cached list (cache_thing): n copies more (abs: exactly n; null: remove)
+function listitemchange(list,cardid,prid=0,n=1,abs=false) {
     var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
     if(ind<0 && n != null) {
 	list.list.Items[0].list.push({'cardid':cardid,'printing':prid,'quantity':n});
@@ -1509,12 +1529,15 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 	    }
 	}
     }
+}
+function listcounts(list) {
     list.list.Items[0].distinctcount = list.list.Items[0].list.length;
     list.list.Items[0].totalcount = list.list.Items[0].list.reduce(function (total,card) {
 	return total + parseInt(card['quantity']);
     },0);
-    cache_thing("list",listid,list);
-    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
+}
+// after a list changed: show it in the list view, and save it
+function listitemsdone(listid) {
     $("#lastlistid").val(listid);
     renderlist(cache_thing("list",$("#lastlistid").val()).list.Items[0],false);
     listedited(listid);
@@ -2158,6 +2181,7 @@ function imagehashtourl(card) {
         card.printingreverse.printingid[card.printing[p].printingid] = p;
     }
     //DONE for onyx: the searchables in l5r.js are the place to specify reverse.. but i want a hidden printing.legality
+    // KEEP IN SYNC: a new reverse field (one more search that picks the version shown) also goes in searchaddallversioned
     for(seakey in searchables[database]) {
         sea = searchables[database][seakey];
         if((typeof sea === 'object') && ('reverse' in sea)) {
@@ -2379,7 +2403,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  updates[database]('#resultsearch');
   } else {
 	  if(from<1){
-	    $('.searchtextversion').html('');
+	    $('.searchtextversion, .searchaddall').html('');
 	    $("#resultsearch").html(searcherror['loading']);
 	    showsearch();
 	  }
@@ -2423,7 +2447,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      defaultcard(qs);
 		      }
 		    } else {
-      		$('.searchtextversion').html('');
+      		$('.searchtextversion, .searchaddall').html('');
       		$("#resultsearch").html(searcherror['empty']);
 		    }
 	    },
@@ -3924,6 +3948,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 }
 
 function bubbleup(data,request=null,prid=null) {
+  // KEEP IN SYNC: a new way of picking the version shown also needs searchaddallversioned (search "Add all to list")
   // Lays one printing's fields over the card's, so the card shows that printing: prid (the card view's
   // version), else the list's printing (listprinting), else the one a reverse field in the request
   // matched (field_printing_<att>, field_<att>, require_*: see templatefetch). Other cards come back as
@@ -4170,6 +4195,7 @@ function searchpageable(qs) {
 // sets up "MORE" and numresultsearchs...   both cached and non-cached searches use it
 function dosearchpostcallback(qs) {
     searchtextversion(qs);
+    searchaddall(qs);
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
@@ -4364,10 +4390,17 @@ function deckswipeapply(listid, cardid, prid, act, named=false) {
 // The picker is a folder tree: folders first (by name, collapsed; a click opens or closes one), then lists (newest modified first).
 var deckswipepending = null;
 function deckswipepicklist(cardid, prid, act) {
-    var lists = cache_thing("list","data").lists.Items.slice().sort(function(a,b) { return dirsortkey(b,'modified') - dirsortkey(a,'modified'); });
     deckswipepending = {cardid: cardid, prid: prid, act: act};
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
+    modal('Add ' + title + ' to which list?',
+	'<p>No list is active. Pick one to activate and add the card to:</p><ul class="swipepicklist">' +
+	'<li class="swipepicklistitem" onclick="newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
+	deckswipepicktree(listpickroot()) + '</ul>');
+}
+// the user's lists as a folder tree for deckswipepicktree: {folders: {name: node}, lists: [newest modified first]}
+function listpickroot() {
+    var lists = cache_thing("list","data").lists.Items.slice().sort(function(a,b) { return dirsortkey(b,'modified') - dirsortkey(a,'modified'); });
     var root = {folders: {}, lists: []};
     lists.forEach(function(list) {
 	var node = root;
@@ -4376,23 +4409,25 @@ function deckswipepicklist(cardid, prid, act) {
 	});
 	node.lists.push(list);
     });
-    modal('Add ' + title + ' to which list?',
-	'<p>No list is active. Pick one to activate and add the card to:</p><ul class="swipepicklist">' +
-	'<li class="swipepicklistitem" onclick="newlist(null, deckswipepicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
-	deckswipepicktree(root) + '</ul>');
+    return root;
 }
-function deckswipepicktree(node) {
+// pick: the function a click on a list calls with its listid
+function deckswipepicktree(node, pick='deckswipepicked') {
     var esc = function(t) { return $('<div>').text(t).html(); };
     return Object.keys(node.folders).sort(foldercmp).map(function(f) {
 	var sub = node.folders[f];
 	return '<li class="swipepickfolder"><div class="swipepicklistitem" onclick="$(this).parent().toggleClass(\'open\');">' +
 	    '<svg class="feather swipepickchevron"><use xlink:href="res/feather-sprite.svg#chevron-right"></svg>' +
 	    '<svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> ' + esc(f) + '</div>' +
-	    '<ul>' + deckswipepicktree(sub) + '</ul></li>';
+	    '<ul>' + deckswipepicktree(sub, pick) + '</ul></li>';
     }).join('') + node.lists.map(function(list) {
-	return '<li class="swipepicklistitem" onclick="deckswipepicked(\'' + list.listid + '\');">' + esc(list.name || list.listid) +
-	    (list.type ? ' <span class="swipepickwhere">' + esc(list.type) + '</span>' : '') + '</li>';
+	return listpickitem(list, pick);
     }).join('');
+}
+function listpickitem(list, pick) {
+    var esc = function(t) { return $('<div>').text(t).html(); };
+    return '<li class="swipepicklistitem" onclick="' + pick + '(\'' + list.listid + '\');">' + esc(list.name || list.listid) +
+	(list.type ? ' <span class="swipepickwhere">' + esc(list.type) + '</span>' : '') + '</li>';
 }
 function deckswipepicked(listid) {
     var p = deckswipepending;
@@ -4401,6 +4436,126 @@ function deckswipepicked(listid) {
     if(p) {
 	activatelist(String(listid), function() { deckswipeapply(String(listid), p.cardid, p.prid, p.act); });
     }
+}
+// Search results' "Add all to list" (#201): beside the Showing: button (menubar; #phonetextversion on phones), when
+// logged in. Up to dbinfo[database].addallmax cards (15% over the game's largest set, so a whole set fits); past it
+// the button explains why not. Each card goes in with the version its result shows, the printing its + button adds.
+function searchaddall(qs) {
+    var total = (qs && searchcache[database]['querytotal'][qs]) || 0;
+    var max = searchaddallmax();
+    var html = '';
+    if(total > 0 && searchloggedin() && cache_thing("list","data")) {
+	if(total <= max) {
+	    html = '<button type="button" class="button gray buttonsmaller" title="Add every card this search found to a list" onclick="searchaddallpick(); return false;">Add all ' + total.toLocaleString() + ' to list</button>';
+	} else {
+	    html = '<span class="button gray buttonsmaller textversionnone" title="Add all to list takes up to ' + max.toLocaleString() + ' cards (a whole set fits). Narrow the search to add these." onclick="textversionnotip(this);">Add all: too many</span>';
+	}
+    }
+    $('.searchaddall').html(html);
+}
+function searchaddallmax() {
+    return (dbinfo[database] && dbinfo[database].addallmax) || 500;
+}
+// the search fields that pick a version of a card: with none of them in the search, the cards go in without a version.
+// KEEP IN SYNC with the version-picking code: the "reverse" searchables in templates/<game>.js, bubbleup and
+// templatefetch. A new field that changes the version shown goes here too.
+const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist'];
+function searchaddallversion(request) {
+    return Object.keys(request).some(function(key) {
+	var m = key.match(/^(?:field|require)_(?:printing_)?(.*)$/);
+	return m && searchaddallversioned.includes(m[1]) && [].concat(request[key]).some(function(v) { return v !== ''; });
+    });
+}
+// which list, and how many copies of each card: the active lists first, then every list by folder
+function searchaddallpick() {
+    var qs = $('#lastsearchquery').val();
+    var total = searchcache[database]['querytotal'][qs];
+    var rev = cache_thing("list","datareverse") || {};
+    var items = cache_thing("list","data").lists.Items;
+    var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); }).map(function(listid) { return items[rev[listid]]; });
+    var request = searchcache[database]['queryrequest'][qs] || $.deparam(qs);
+    modal('Add all ' + total.toLocaleString() + ' cards to which list?',
+	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher or artist to add a version).') + '</p>' +
+	'<p><label>Copies of each card <input id="searchaddallcopies" type="number" min="1" step="1" value="1" style="width: 4em;" /></label></p>' +
+	'<ul class="swipepicklist">' +
+	(active.length ? active.map(function(list) { return listpickitem(list, 'searchaddallpicked'); }).join('') + '<li class="swipepicksep">All lists</li>' : '') +
+	'<li class="swipepicklistitem" onclick="newlist(null, searchaddallpicked);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg> New list</li>' +
+	deckswipepicktree(listpickroot(), 'searchaddallpicked') + '</ul>');
+}
+function searchaddallpicked(listid) {
+    var copies = parseInt($('#searchaddallcopies').val(), 10);
+    if(!(copies > 0)) {
+	copies = 1;
+    }
+    var qs = $('#lastsearchquery').val();
+    listid = String(listid);
+    modal('Adding to list', '<p class="searchaddallstatus">' + searcherror['loading'] + ' Loading the cards...</p>');
+    activatelist(listid, function() {
+	searchaddallfetch(qs, function(ids) {
+	    var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs));
+	    var versioned = searchaddallversion(request);
+	    var items = bubbleup(ids.map(cache_card_fetch), request).map(function(card) {
+		if(!versioned) {
+		    return [card.cardid, 0];
+		}
+		var prid = card.printingid;
+		// games whose search picks no printing: a set search adds that set's, like the result's set row
+		// (printingidfromset, which throws on a printing with no set)
+		if(!prid && request.field_printing_set && Array.isArray(card.printing)) {
+		    var sets = [].concat(request.field_printing_set);
+		    card.printing.forEach(function(p) {
+			if([].concat(p.set || p.edition || []).some(function(s) { return sets.includes(s); })) {
+			    prid = p.printingid;
+			}
+		    });
+		}
+		return [card.cardid, parseInt([].concat(prid || 0).join(), 10) || 0]; // some games store ["1"]
+	    });
+	    addlistitems(listid, items, copies);
+	    nomodal();
+	    var lists = cache_thing("list","data").lists.Items;
+	    deckswipetoast('Added ' + items.length.toLocaleString() + ' cards' + (copies > 1 ? ' \u00d7' + copies : '') + ' \u2192 ' + $('<div>').text(lists[cache_thing("list","datareverse")[listid]].name).html());
+	});
+    });
+}
+// done(cardids): every card of the search qs, in its order. The pages the results already loaded come from the
+// cache; the rest are fetched 200 at a time (cached, not shown)
+function searchaddallfetch(qs, done) {
+    var ids = (searchcache[database]['querydata'][qs] || []).slice();
+    var total = Math.min(searchcache[database]['querytotal'][qs], searchaddallmax());
+    var next = function() {
+	if(ids.length >= total) {
+	    done(ids);
+	    return;
+	}
+	$('.searchaddallstatus').html(searcherror['loading'] + ' Loading the cards... ' + ids.length.toLocaleString() + ' of ' + total.toLocaleString());
+	var datarequest = $.extend(true, {}, searchcache[database]['queryrequest'][qs]);
+	datarequest['size'] = 200;
+	datarequest['from'] = ids.length;
+	$.ajax({
+	    type: 'POST',
+	    url: apiuri+"/search",
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    data: datarequest,
+	    success: function(raw) {
+		var cards = raw.hits.hits.map(x=>x._source).map(imagehashtourl);
+		if(!cards.length) {
+		    total = ids.length; // the search shrank since: add what there is
+		}
+		cards.forEach(function(card) {
+		    cache_card(card);
+		    ids.push(card.cardid);
+		});
+		next();
+	    },
+	    error: function(error) {
+		console.log(error);
+		$('.searchaddallstatus').html('Loading the cards failed, so nothing was added. Try again.');
+	    }
+	});
+    };
+    next();
 }
 function deckswipetoast(html) {
     var t = $('#deckswipetoast');

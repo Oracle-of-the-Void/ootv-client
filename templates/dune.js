@@ -7,6 +7,7 @@ dbinfo['dune'] = {
     'name': "Dune CCG",
     'nameshort':'dune',
     'logo': 'dune.png',
+    'addallmax': 347, // search "Add all to list" cap: 15% over the largest set (Eye of the Storm, 301 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/dune/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':'A collectible card game about the Dune movies / books.'
@@ -51,6 +52,9 @@ headerize['dune'] = {
     }
 };
 
+// "reverse": true marks a field whose search picks the version a card shows (bubbleup).
+// KEEP IN SYNC: searchaddallversioned in oracle.js lists the fields that pick a version for search "Add all to list";
+// a new reverse field (or one dropped) needs it updated too.
 searchables['dune'] = {
   "quick": { "type": "quick" },
   "title": { "type": "text" },

@@ -7,6 +7,7 @@ dbinfo['warlord'] = {
     'name': "Warlord: Saga of the Storm CCG",
     'nameshort':'warlord',
     'logo': 'warlord.png',
+    'addallmax': 667, // search "Add all to list" cap: 15% over the largest set (CE, 580 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/warlord/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
     'description':'A collectible card game: Warlord: Saga of the Storm'
@@ -45,6 +46,9 @@ headerize['warlord'] = {
     }
 };
 
+// "reverse": true marks a field whose search picks the version a card shows (bubbleup).
+// KEEP IN SYNC: searchaddallversioned in oracle.js lists the fields that pick a version for search "Add all to list";
+// a new reverse field (or one dropped) needs it updated too.
 searchables['warlord'] = {
   "quick": { "type": "quick" },
   "title": { "type": "text" },
