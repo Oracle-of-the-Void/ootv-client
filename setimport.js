@@ -131,6 +131,13 @@ function setimprendersetup() {
   html += '<table class="setimp-params">';
   if(!p) { html += '<tr><td colspan="2"><small>The profile\'s questions (set name, image stub, ...) appear once it\'s chosen.</small></td></tr>'; }
   (p ? p.profile.params || [] : []).forEach(function(d) {
+    // "type": "bool": a checkbox, answered yes or no (a rule's when can test params.<name>)
+    if(d.type == 'bool') {
+      html += '<tr><td><label for="setimp-p-'+setimpesc(d.name)+'">'+setimpesc(d.label || d.name)+'</label></td>'+
+              '<td><input type="checkbox" id="setimp-p-'+setimpesc(d.name)+'" data-param="'+setimpesc(d.name)+'" onchange="setimpparam(this, true)" />'+
+              (d.help ? ' <small>'+setimpesc(d.help)+'</small>' : '')+'</td></tr>';
+      return;
+    }
     html += '<tr><td><label for="setimp-p-'+setimpesc(d.name)+'">'+setimpesc(d.label || d.name)+(d.required ? ' *' : '')+'</label></td>'+
             '<td><input type="text" id="setimp-p-'+setimpesc(d.name)+'" data-param="'+setimpesc(d.name)+'" size="40"'+
             (d.options ? ' list="setimp-o-'+setimpesc(d.name)+'"' : '')+' oninput="setimpparam(this)" onchange="setimpparam(this, true)" />'+
@@ -143,7 +150,7 @@ function setimprendersetup() {
   html += '<input type="button" value="Pre-Process Cards" onclick="setimptransform()" /> <span id="setimp-setupstatus"></span>';
   $('#setimp-setup').html(html);
   if(!p) { return; }
-  (p.profile.params || []).forEach(d => { if(setimp.edited[d.name]) { $('#setimp-p-'+d.name).val(setimp.params[d.name]); } });
+  (p.profile.params || []).forEach(d => { if(setimp.edited[d.name]) { setimpfield(d, setimp.params[d.name]); } });
   setimpdefaults();
   (p.profile.params || []).filter(d => typeof d.options == 'string' && d.options.indexOf('vocab:') == 0).forEach(function(d) {
     $.ajax({type: 'POST', url: apiuri+"/attributes", contentType: 'application/json', dataType: 'json',
@@ -154,9 +161,21 @@ function setimprendersetup() {
 
 // id answers lose other characters as they're typed; text answers (the set name) are tidied when
 // the field is left: &nbsp; becomes a space, never the other way round
+// a question's field shows v (a checkbox for "type": "bool")
+function setimpfield(d, v) {
+  var $f = $('#setimp-p-'+d.name);
+  if(d.type == 'bool') { $f.prop('checked', v === 'yes'); } else { $f.val(v); }
+}
+
 function setimpparam(el, done) {
   var name = $(el).data('param');
   var d = (setimpprofile().profile.params || []).find(x => x.name == name) || {};
+  if(d.type == 'bool') {
+    setimp.params[name] = el.checked ? 'yes' : 'no';
+    setimp.edited[name] = true;
+    setimpdefaults();
+    return;
+  }
   var kind = setimportetl.cleankind(d);
   if(kind == 'id' || (kind && done)) {
     var v = setimportetl.cleanparam(el.value, kind);
@@ -185,7 +204,7 @@ function setimpdefaults() {
     clean[d.name] = v;
     v = setimportetl.cleanparam(v, setimportetl.cleankind(d));
     setimp.params[d.name] = v;
-    $('#setimp-p-'+d.name).val(v);
+    setimpfield(d, v);
   });
 }
 
@@ -207,7 +226,7 @@ function setimptransform() {
   Object.keys(setimp.params).forEach(function(k) {
     var d = (p.profile.params || []).find(x => x.name == k) || {name: k};
     params[k] = setimportetl.cleanparam(String(setimp.params[k]).trim(), setimportetl.cleankind(d));
-    $('#setimp-p-'+k).val(params[k]);
+    setimpfield(d, params[k]);
     setimp.params[k] = params[k];
   });
   var missing = (p.profile.params || []).filter(d => d.required && !params[d.name]).map(d => d.label || d.name);
@@ -754,12 +773,11 @@ function setimpnewvalues(p) {
   var html = '<details'+(blocking ? ' open' : '')+'><summary>New values ('+p.newvalues.length+' no live card has'+
              (blocking ? ', <span class="error">'+blocking+' type/clan to resolve</span>' : '')+')</summary><p><small>Usually a typo, or a value the profile\'s tables should '+
              'translate: fix the spreadsheet or the profile and Pre-Process again. A new type or clan blocks going live until it\'s accepted here '+
-             '(tick it, plan again); new keywords are warnings. A value the site\'s templates don\'t mention may also need an icon or sort entry in ootv-client.</small></p>'+
-             '<table class="setimp-table"><tr><th>Field</th><th>Value</th><th>Cards</th><th>In the site\'s templates</th><th>Really new</th></tr>';
+             '(tick it, plan again); new keywords are warnings.</small></p>'+
+             '<table class="setimp-table"><tr><th>Field</th><th>Value</th><th>Cards</th><th>Really new</th></tr>';
   p.newvalues.forEach(function(v) {
     html += '<tr><td>'+setimpesc(v.kind)+'</td><td><b>'+setimpesc(v.value)+'</b></td><td>'+v.count+': '+
             setimpesc(v.files.slice(0, 5).map(f => f.replace(/\.json$/, '')).join(', '))+(v.count > 5 ? ', ...' : '')+'</td><td>'+
-            (v.insite === null ? '' : v.insite ? 'yes' : '<span class="error">no</span>')+'</td><td>'+
             (v.strict === false ? '<small>warning only</small>' :
              '<label><input type="checkbox" data-key="'+setimpesc(v.key)+'"'+(setimp.accept[v.key] ? ' checked' : '')+
              ' onchange="if(this.checked) { setimp.accept[this.dataset.key] = 1; } else { delete setimp.accept[this.dataset.key]; }" /> accept</label>')+'</td></tr>';
