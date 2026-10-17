@@ -1657,3 +1657,9 @@ div.listmiddle.dirnamecell {
   text-align: left;
   min-width: 9em;
 }
+
+/* list notes keep their line breaks (directory table and cards, list view header) */
+div.listmiddle.dirnotes, div.directorycard .dircardnotes, div.listviewnotes {
+  white-space: pre-wrap;
+  text-align: left;
+}

@@ -853,7 +853,7 @@ printingprimary
   <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
   <div class="listmiddle dirdates"><span class="dirdate" title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}} /</span> <span class="dirdate" id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span></div>
   <div class="listmiddle"><select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>No</option><option value="true"{{if public}} selected{{/if}}>Yes</option></select></div><!-- TODO  figure out how to list public lists -->
-  <div class="listmiddle" id="list_notes:{{:listid}}" contenteditable="true">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
+  <div class="listmiddle dirnotes" id="list_notes:{{:listid}}" contenteditable="true">{{>notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{>notes}}</div>
 
 
 <div class="listmiddle dirlistid"><a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></div>
@@ -923,7 +923,7 @@ printingprimary
       {{if distinctcount>0}}{{:totalcount}} cards ({{:distinctcount}} distinct) &#149; {{/if}}Modified <span id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span>
       <br /><small>Created <span title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}}</span> &#149; Id <a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></small>
     </div>
-    <div class="dircardnotes" id="list_notes:{{:listid}}" contenteditable="true" data-placeholder="Notes">{{:notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{:notes}}</div>
+    <div class="dircardnotes" id="list_notes:{{:listid}}" contenteditable="true" data-placeholder="Notes">{{>notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{>notes}}</div>
   </div>
 </div>
 </script> <!-- template-listcards -->
@@ -940,7 +940,7 @@ printingprimary
     {{if createdate}} &#149; Created {{formatDate:createdate}}{{/if}}
     {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
   </span>
-  {{if notes}}<div class="listviewnotes">{{:notes}}</div>{{/if}}
+  {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
 </div>
 </script>
 
