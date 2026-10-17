@@ -434,7 +434,7 @@ codes:
 ## /upload
 
 Presigned S3 PUT URLs for card images, used by the card editor's image upload (#12) and the
-Admin page's mass image upload (no cardid; one call per 3 images, so one updatelog row each).
+Admin page's mass image upload (no cardid; one call per 3 images, all sharing one updatelog row).
 The browser PUTs straight to the images bucket, so the files never go through API Gateway.
 
 Handled by lambda: ootv-search/routes/upload.js
@@ -460,12 +460,18 @@ inputs: JSON
   * `true`: only report which of the files exist (up to 3000 names; contentType not needed, no updatelog row)
 * cardid, printingid (optional)
   * recorded in the updatelog row (see below)
+* logbatch, logid (optional): one updatelog row for a run of calls (the mass upload)
+  * `logbatch: true` on the first call opens the row; the reply's `logid` is its timestamp
+  * `logid` on the later calls adds their files to that row
+* done (optional, with logid and no files): `{uploaded, failed, existing, replaced}`, the run's outcome,
+  written as the row's description ("uploaded 135 images to l5r/CRIII/")
 
 outputs:
 
 * urls: `[{name, key, url, headers}]`. PUT the file to `url` with exactly `headers`.
 * expires: seconds the URLs are valid (900)
 * backups: `[{name, backup}]`, the copies made with overwrite
+* logid: the timestamp of the updatelog row this call wrote or added to
 * with check: only `exists: [{name, size, lastmodified}]`
 
 Both clients ask before replacing: the card editor checks and waits for a second press of Upload image,
@@ -475,6 +481,8 @@ and the mass upload lists the files to replace and needs its own tick.
 
 Each call adds an `upload` row to oracle-all-updatelog: database, uid, uname, timestamp,
 `cardids` (`[cardid]`, or `[]` without one), printingid, imagehash, `files` (names) and overwrite.
+A batch (logbatch/logid) has one row instead, with `batch: true`, `files` (the `_master` names only),
+`count` (URLs handed out), `backupcount`, and the description and `result` from the done call.
 It records the URLs handed out. The PUTs go straight to S3, so the server can't tell whether
 they succeeded, and files that are uploaded but never saved to a card are still listed.
 
