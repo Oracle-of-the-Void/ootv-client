@@ -131,7 +131,8 @@ function setimprendersetup() {
   (p.profile.params || []).forEach(function(d) {
     html += '<tr><td><label for="setimp-p-'+setimpesc(d.name)+'">'+setimpesc(d.label || d.name)+(d.required ? ' *' : '')+'</label></td>'+
             '<td><input type="text" id="setimp-p-'+setimpesc(d.name)+'" data-param="'+setimpesc(d.name)+'" size="40"'+
-            (d.options ? ' list="setimp-o-'+setimpesc(d.name)+'"' : '')+' oninput="setimpparam(this)" />'+
+            (d.options ? ' list="setimp-o-'+setimpesc(d.name)+'"' : '')+' oninput="setimpparam(this)" onchange="setimpparam(this, true)" />'+
+            (setimportetl.cleankind(d) == 'id' ? ' <small>letters, digits, _ and - only</small>' : '')+
             (d.options ? '<datalist id="setimp-o-'+setimpesc(d.name)+'"></datalist>' : '')+
             (d.help ? ' <small>'+setimpesc(d.help)+'</small>' : '')+'</td></tr>';
   });
@@ -147,10 +148,23 @@ function setimprendersetup() {
   });
 }
 
-function setimpparam(el) {
+// id answers lose other characters as they're typed; text answers (the set name) are tidied when
+// the field is left: &nbsp; becomes a space, never the other way round
+function setimpparam(el, done) {
   var name = $(el).data('param');
+  var d = (setimpprofile().profile.params || []).find(x => x.name == name) || {};
+  var kind = setimportetl.cleankind(d);
+  if(kind == 'id' || (kind && done)) {
+    var v = setimportetl.cleanparam(el.value, kind);
+    if(v !== el.value) {
+      var at = Math.max(0, (el.selectionStart || 0) - (el.value.length - v.length));
+      el.value = v;
+      if(!done) { el.setSelectionRange(at, at); }
+    }
+  }
   setimp.params[name] = el.value;
-  setimp.edited[name] = el.value !== '';
+  // a field being typed in keeps what's typed, even empty; left empty, it goes back to its default
+  setimp.edited[name] = !done || el.value !== '';
   setimpdefaults();
 }
 
@@ -158,9 +172,14 @@ function setimpparam(el) {
 function setimpdefaults() {
   var p = setimpprofile();
   if(!p) { return; }
+  // defaults are worked out from the other answers as they'll be used (cleaned)
+  var clean = {};
+  (p.profile.params || []).forEach(d => { clean[d.name] = setimportetl.cleanparam(setimp.params[d.name], setimportetl.cleankind(d)); });
   (p.profile.params || []).forEach(function(d) {
     if(setimp.edited[d.name]) { return; }
-    var v = d.default === undefined ? '' : setimportetl.render(String(d.default), {params: setimp.params, temp: {}});
+    var v = d.default === undefined ? '' : setimportetl.render(String(d.default), {params: clean, temp: {}});
+    clean[d.name] = v;
+    v = setimportetl.cleanparam(v, setimportetl.cleankind(d));
     setimp.params[d.name] = v;
     $('#setimp-p-'+d.name).val(v);
   });
@@ -179,15 +198,20 @@ function setimpreadcsv(input) {
 function setimptransform() {
   var p = setimpprofile();
   if(!setimp.csv) { setimpstatus('setimp-setupstatus', 'Choose the CSV first.', 'error'); return; }
-  var missing = (p.profile.params || []).filter(d => d.required && !String(setimp.params[d.name] || '').trim()).map(d => d.label || d.name);
-  var badpat = (p.profile.params || []).filter(d => d.pattern && setimp.params[d.name] && !new RegExp(d.pattern).test(setimp.params[d.name])).map(d => d.label || d.name);
+  var params = {};
+  Object.keys(setimp.params).forEach(function(k) {
+    var d = (p.profile.params || []).find(x => x.name == k) || {name: k};
+    params[k] = setimportetl.cleanparam(String(setimp.params[k]).trim(), setimportetl.cleankind(d));
+    $('#setimp-p-'+k).val(params[k]);
+    setimp.params[k] = params[k];
+  });
+  var missing = (p.profile.params || []).filter(d => d.required && !params[d.name]).map(d => d.label || d.name);
+  var badpat = (p.profile.params || []).filter(d => d.pattern && params[d.name] && !new RegExp(d.pattern).test(params[d.name])).map(d => d.label || d.name);
   if(missing.length || badpat.length) {
     setimpstatus('setimp-setupstatus', (missing.length ? 'Needed: '+setimpesc(missing.join(', '))+'. ' : '')+
                  (badpat.length ? 'Not valid: '+setimpesc(badpat.join(', '))+'.' : ''), 'error');
     return;
   }
-  var params = {};
-  Object.keys(setimp.params).forEach(k => { params[k] = String(setimp.params[k]).trim(); });
   try {
     setimp.result = setimportetl.transform(p.profile, setimp.csv.rows, params, setimp.csv.header);
   } catch(e) {
@@ -335,7 +359,8 @@ function setimprendercheck() {
           st.arcs.map(g => '<option'+(c.arcs.length == 0 && g.name == (st.arcs[st.arcs.length - 2] || {}).name ? ' selected' : '')+'>'+setimpesc(g.name)+'</option>').join('')+
           '<option value="+">a new arc...</option></select> <span id="setimp-r-newarc" style="display: none">name <input type="text" id="setimp-r-newarcname" size="24" /></span></td></tr>';
   if(st.snm) {
-    html += '<tr><td>Sun and Moon code</td><td><input type="text" id="setimp-r-snm" size="12" value="'+setimpesc(pr.snm || '')+'" /></td></tr>';
+    html += '<tr><td>Sun and Moon code</td><td><input type="text" id="setimp-r-snm" size="12" value="'+setimpesc(pr.snm || '')+'" '+
+            'oninput="this.value = setimportetl.cleanparam(this.value, \'id\')" /> <small>letters, digits, _ and - only</small></td></tr>';
   }
   html += '</table><input type="button" value="Register" onclick="setimpregister()" /> <span id="setimp-regstatus"></span></details>';
   $('#setimp-checkbody').html(html);

@@ -12,7 +12,10 @@ Both need the `setimport` permission (or `*`) for the game.
 
 1. **Setup.** Pick a profile, fill in the questions it asks (set name, image stub, Sun and Moon
    code, publisher, ...), and choose the CSV (export the spreadsheet as CSV). Defaults follow the
-   other answers: the image stub starts as the set's initials until you type into it.
+   other answers: the image stub starts as the set's initials until you type into it. Type the
+   set name with ordinary spaces; an `&nbsp;` typed there becomes a space, since set names are
+   stored with plain spaces. The image stub and Sun and Moon code take only letters, digits, `_`
+   and `-`, and other characters are dropped as you type.
 2. **Cards.** *Make the cards* runs the profile over every row in the browser. Every card is
    listed, collapsed. Open one to see its JSON (syntax colored) and the CSV row it came from.
    Rows with errors (an empty title, a broken transform) are marked; filter to them with *Show*.
@@ -64,7 +67,7 @@ Onyx Lives sets (checked with `ootv-import/SCRIPTS/etl-compare.js`).
 
 | Key | What it is |
 |---|---|
-| `params` | The questions at the start: `{name, label, default, required, pattern, type: "int", options: "vocab:<field>", help}`. `{{name}}` uses an answer anywhere below. |
+| `params` | The questions at the start: `{name, label, default, required, pattern, type: "int", options: "vocab:<field>", clean, help}`. `{{name}}` uses an answer anywhere below. `clean: "text"` turns a typed `&nbsp;` into a space and tidies spaces (set names are stored with plain spaces everywhere); `clean: "id"` keeps only letters, digits, `_` and `-`. `set` is `text`, and `imagehash` and `snm` are `id`, unless the profile says otherwise. |
 | `tables` | Named lookup tables for the transforms: a list of `[regex, replacement, flags]`, or an object `{value: replacement}`. |
 | `columns` | Column aliases, in order: `{to, from: [alias, ...], do: [...]}`. An alias column that exists replaces `to` (for older spreadsheets with other headers). |
 | `rowsteps` | Named steps that change the row before the fields (`l5rflavorsplit`). |

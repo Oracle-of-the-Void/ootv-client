@@ -90,6 +90,20 @@
     }).join('').replace(/[^A-Za-z0-9_-]/g,'');
   }
 
+  // A param's answer, cleaned by its kind (a param's `clean`; set, imagehash and snm have one by default):
+  //   text: &nbsp; (with or without ;) becomes a space, whitespace runs collapse, ends trimmed. Set
+  //         names are stored with plain spaces everywhere (cards, sort patterns, arcs, the S&M map).
+  //   id:   only letters, digits, _ and - (image stubs, Sun and Moon codes)
+  var CLEANDEFAULT = {set: 'text', imagehash: 'id', snm: 'id'};
+  function cleanparam(v, kind) {
+    if(v === undefined || v === null) { return v; }
+    v = String(v);
+    if(kind == 'text') { return v.replace(/&nbsp;?/gi, ' ').replace(/\s+/g, ' ').trim(); }
+    if(kind == 'id') { return v.replace(/[^A-Za-z0-9_-]/g, ''); }
+    return v;
+  }
+  function cleankind(d) { return d.clean === undefined ? CLEANDEFAULT[d.name] : d.clean; }
+
   // "{{name}}" / "{{name|filter:arg}}" against ctx (params, row, card.<field>)
   function render(tmpl, ctx) {
     if(Array.isArray(tmpl)) { return tmpl.map(t => render(t, ctx)); }
@@ -363,6 +377,7 @@
     var p = Object.assign({}, params);
     (profile.params || []).forEach(function(d) {
       if(isempty(p[d.name]) && d.default !== undefined) { p[d.name] = render(d.default, {params: p, temp: {}}); }
+      p[d.name] = cleanparam(p[d.name], cleankind(d));
       if(d.type == 'int' && !isempty(p[d.name])) { p[d.name] = parseInt(p[d.name], 10); }
     });
     var digits = parseInt(p.imagedigits, 10) || 3;
@@ -466,6 +481,7 @@
   }
 
   var api = {parsecsv: parsecsv, csvobjects: csvobjects, transform: transform, outfile: outfile, render: render,
+             cleanparam: cleanparam, cleankind: cleankind,
              jsonhtml: jsonhtml, initials: initials, transforms: Object.keys(named).concat(Object.keys(parameterised), Object.keys(whole)),
              rowsteps: Object.keys(rowsteps), cardsteps: Object.keys(cardsteps)};
   if(typeof module !== 'undefined' && module.exports) { module.exports = api; }
