@@ -637,9 +637,9 @@ $(document).on('click', '#resultdir .dirlistname', function() {
   if($(this).attr('contenteditable') == 'true' || (press && press.long)) { return; }  // editing: the click places the caret
   listinfo(String($(this).data('list')),true);
 });
-// the table's ... menu is placed against the window, so the scrolling directory (phones) can't clip it,
+// the list actions (grid) menu is placed against the window, so the scrolling directory (phones) can't clip it,
 // and opens upward when there's no room below
-$(document).on('mouseenter click', '#directorytable .dirmenucell nav > ul > li', function() {
+$(document).on('mouseenter click', '#resultdir .dirmenucell nav > ul > li', function() {
   var li = this, ul = $(li).children('ul');
   var r = li.getBoundingClientRect();
   ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});

@@ -295,16 +295,6 @@ div.directorycard .dircardnotes:empty::before {
     content: attr(data-placeholder);
     color: #999;
 }
-div.directorycard .dircardactions {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 6px;
-    border-top: 1px solid #ddd;
-}
-div.directorycard .dircardactions nav ul li {
-    list-style: none;
-}
 div.directorycard.dircardnew {
     align-items: center;
     justify-content: center;
@@ -1400,17 +1390,13 @@ div#phonesearchbar .numresults {
     height: 42px;
   }
   /* directory cards: their buttons match the menubar icons (not the icons inside the Download dropdown) */
-  div.directorycard .dircardhead > button.iiconic, div.directorycard .dircardactions > button.iiconic,
-  div.directorycard .dircardactions nav > ul > li > button.iiconic {
+  div.directorycard .dircardhead > button.iiconic, div.directorycard .dircardhead .dirmenucell nav > ul > li > button.iiconic {
     height: auto;
   }
-  div.directorycard .dircardhead > button.iiconic svg.feather, div.directorycard .dircardactions > button.iiconic svg.feather,
-  div.directorycard .dircardactions nav > ul > li > button.iiconic svg.feather, div.directorycard.dircardnew svg.feather {
+  div.directorycard .dircardhead > button.iiconic svg.feather,
+  div.directorycard .dircardhead .dirmenucell nav > ul > li > button.iiconic svg.feather, div.directorycard.dircardnew svg.feather {
     width: 42px;
     height: 42px;
-  }
-  div.directorycard .dircardactions {
-    gap: 14px;
   }
   div.dirfoldertop > button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
     height: auto;
@@ -1609,9 +1595,23 @@ div.directorycard .dircardhead button.dirnameedit {
   }
 }
 
-/* list directory table: the ... menu of list actions (View, Duplicate, Upload, downloads, Delete) */
-div.listmiddle.dirmenucell nav li {
+/* list directory: the grid menu of list actions (View, Duplicate, Upload, downloads, Delete), table and cards */
+.dirmenucell nav li {
   float: none;
+  list-style: none;
+}
+/* table: the menu sits inline by the activate toggle */
+span.dirmenucell, span.dirmenucell nav, span.dirmenucell nav > ul, span.dirmenucell nav > ul > li {
+  display: inline-block;
+}
+div.directorycard .dircardhead .dirmenucell nav > ul > li > button {
+  color: #ddd;
+}
+/* the card title bar's white title font doesn't carry into the menu */
+div.directorycard .dircardhead ul.dirlistmenu {
+  color: black;
+  font-size: medium;
+  font-weight: normal;
 }
 ul.dirlistmenu {
   min-width: 15em;
@@ -1632,7 +1632,7 @@ nav ul.dirlistmenu li.dirmenudelete {
   border-top: solid black 1px;
 }
 div.directorylistheader > div.dirnotescell {
-  min-width: 5em;
+  min-width: 8em;
 }
 /* cards view: the whole card opens the list */
 #directorycards [id^="listitem_"] {
