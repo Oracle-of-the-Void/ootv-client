@@ -3016,7 +3016,7 @@ function showsettings() {
   showview('resultsettings');
 }
 // The page's tabs; a section joins one with data-settingstab. Logged out, only the ones kept in this browser.
-var settingstabs = [['account','Account',true],['display','Display',true],['gestures','Gestures',false],['searches','Searches',false]];
+var settingstabs = [['account','Account',true],['display','Display',true],['printing','Printing',true],['gestures','Gestures',false],['searches','Searches',false]];
 var settingstab = null; // the tab picked this session, kept through rendersettings() after a save
 function settingstablist(loggedin) {
   return settingstabs.filter(function(t) { return loggedin || !t[2]; }).map(function(t) { return {'key': t[0], 'label': t[1]}; });
