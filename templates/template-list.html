@@ -9,17 +9,19 @@
     </div>
     {{else}}
     <div class="listbodyplain">
-      {{if listquantity}}<span contenteditable="true" class="editquantity" id="clist_quantity:{{:~datarequest.listid}}:{{:cardid}}:{{:listprinting}}:{{:listquantity}}">{{:listquantity}}</span>x{{/if}} 
+      {{if listquantity}}{{if ~listmine}}<span contenteditable="true" class="editquantity" id="clist_quantity:{{:~datarequest.listid}}:{{:cardid}}:{{:listprinting}}:{{:listquantity}}">{{:listquantity}}</span>{{else}}{{:listquantity}}{{/if}}x{{/if}} 
         <a class="deckswipe" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{if ~datarequest.listid}}{{:listprinting||0}}{{else}}{{:printingid||0}}{{/if}}" href="#game={{:~database}},#cardid={{:cardid}}{{if listprinting}},#cnprintingid={{:listprinting}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if listprinting}}{{:listprinting}}{{else}}null{{/if}},'{{:~qs}}'); } return false;">
           {{:formattedtitle?formattedtitle:title}}</a> 
       {{if listprinting}}[{{printingfromid listprinting printing "set" /}} &#149; {{printingfromid listprinting printing "rarity" /}}]{{/if}}
       {{!-- ({{:type}}) --}}
       {{if ~datarequest.listid}}
+      {{if ~listmine}}
       <div class="listmanagement">
 	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
 	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',-1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
 	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}','{{:listprinting}}',null,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
       </div>
+      {{/if}}
       {{else ~activelists && ~activelists.length > 0}}
       {{!-- search results: no list is being shown, so act on the active lists, with each one's count, as the Detail search does --}}
       <div class="listmanagement">

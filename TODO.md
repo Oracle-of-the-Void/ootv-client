@@ -1,5 +1,17 @@
 # TODO
 
+## L5R clan search: Monkey = Toturi's Army, and legality-aware clans (noted 2026-10-18)
+
+Two related changes to how the l5r Clan search works (the `clan` select in
+`templates/l5r.js`, plus whatever ootv-search does with it):
+
+- Make Monkey Clan equivalent to Toturi's Army, so searching either clan finds both.
+- Make the clan search depend on legality: which clans are offered, and what each one
+  matches, should follow the format being searched rather than one fixed list.
+
+Not designed yet. Decide whether the equivalence lives in the card data, the search
+query (ootv-search), or the client, and update `docs/admin/` to match.
+
 ## Dune: use the standard `deck` field (noted 2026-10-18)
 
 Dune keeps a card's deck (Imperial / House) in `decktype`; L5R and LBS use `deck`. The list statistics
