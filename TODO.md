@@ -1,5 +1,36 @@
 # TODO
 
+## HIGH PRIORITY: remove the legacy image layout code, every repo (noted 2026-10-18)
+
+Since 2026-10-18 no printing in any game has `printimagehash` (ootv-backups `modernize-images.py`
+and `fix-noimage-printings.py`; old → new map in ootv-backups `to-trash/redirect-map.tsv.gz`). Every
+image is `imageuri + printing.imagehash + "/" + printing.image[n][size]`, and a printing with no
+scan has no image fields at all. **Never `image: []`:** `templatefetchimage` reads `image[0][size]`
+and would throw. Remove the legacy branches (and keep handling "no image fields"):
+
+- [ ] ootv-client `oracle.js`:
+  - `imagehashtourl()`: the per-printing legacy `images[]` builder, plus `card.icon` and
+    `card.imageurl` from the card-level `imagehash` (nothing reads either; noted 2026-10-15),
+    and the stale commented-out template line under it.
+  - `templatefetchimage()` (the `"images" in prdata` branch) and the PDF/proxy export ("OLD STYLE").
+  - `templateimagehashfromset()` / `templateimagefromset()` and their `imagehashfromset` /
+    `imagefromset` tags: no template uses them, and `imagehashfromset` throws on a modern printing.
+  - The card editor's legacy conversion on upload (#227: the `legacy` count and the files-to-copy
+    helper near "The legacy images of a printing").
+  - `nodiff` can drop `images` and `printimagehash`.
+- [ ] ootv-client `proxy.html` (hard-coded old URL) and the commented legacy path in
+      `templates/template-pdf.html`; `docs/data.md` "image path" (describe the modern layout only).
+- [ ] ootv-search `lib/imagetrash.js`: the `printimagehash` branch of the unlinked-image list.
+- [ ] ootv-discord `src/oracle.js` `imageUrl()`: the `printimagehash` fallback, and its unit test.
+- [ ] ootv-import `parse.jq`: the "old way: imagehash / printing: printimagehash" output.
+- [ ] ootv-backups `corner-icons.py` and `move-printing.py` read **only** `printimagehash`, so they
+      find no images at all now: port them to `imagehash` + `image[]`, don't just trim them.
+- [ ] Decide about the card-level `imagehash` (12,432 l5r and 683 lbs cards; only `card.icon` used it).
+
+Deploys: one ootv-client PR (feature branch → master) and one ootv-search PR (dev → main), each
+needs the user's yes; ootv-discord deploys with its stack. Before deleting the old S3 files, see
+ootv-backups `TODO.md` "redirect old image URLs" (also high priority).
+
 ## L5R clan search: Monkey = Toturi's Army, and legality-aware clans (noted 2026-10-18)
 
 Two related changes to how the l5r Clan search works (the `clan` select in
@@ -39,25 +70,6 @@ applies there. Look at:
   on the master before `_details`/`_select` are made (the method in AI-IMPORT.md; the radius
   would have to come per game, or from the image);
 - saving a JPEG upload as PNG once the corners are cut.
-
-## Dead legacy image code in oracle.js (noted 2026-10-15)
-
-Found while checking that a card can mix legacy (`printimagehash`) and modern
-(`imagehash` + `image[]`) printings (#47; L5R is moving set by set to the modern layout).
-Mixing is fine: every image is resolved per printing. Nothing reads the following, so remove it:
-
-- `imagehashtourl()` builds `card.icon` (`<imagehash>/card_<cardid>__icon.jpg`) and
-  `card.imageurl` (`<imagehash>/printing_<cardid>_<printingprimary>_`) from the card-level
-  `imagehash`. Nothing reads either; drop both. The per-printing `images[]` it builds for
-  legacy printings is still used (`templatefetchimage`, the PDF code).
-- `templateimagehashfromset()` and `templateimagefromset()`, registered as the
-  `imagehashfromset`/`imagefromset` tags at the top of the file. No template uses them, and
-  `imagehashfromset` would throw on a modern printing (`e.printimagehash[0]`). Also remove the
-  stale commented-out template line under `imagehashtourl` that mentions it.
-
-Once all games are on the modern layout, the legacy branches in `imagehashtourl`,
-`templatefetchimage` and the PDF code can go too (the PDF code has an "OLD STYLE" comment).
-
 
 ## Comprehensive card data documentation (noted 2026-10-15)
 
