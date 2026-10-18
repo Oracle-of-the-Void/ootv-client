@@ -686,9 +686,15 @@ function setimpimageupload() {
 
 // ---------------------------------------------------------------- 5. plan
 
+// Plan's buttons are at the top of step 5 and, while it has problems, at the bottom too
+function setimpplanstatus(msg, cls) {
+  setimpstatus('setimp-planstatus', msg, cls);
+  setimpstatus('setimp-planstatus2', msg, cls);
+}
+
 function setimpdoplan() {
   var r = setimp.result;
-  setimpstatus('setimp-planstatus', 'Planning (reads every live card; about 10 seconds)...');
+  setimpplanstatus('Planning (reads every live card; about 10 seconds)...');
   $('#setimp-live').empty();
   setimpapi('plan', {"params": r.params, "profile": r.profile, "overrides": setimp.overrides, "accept": Object.keys(setimp.accept || {}),
                      "description": $('#setimp-desc').length ? $('#setimp-desc').val() : '',
@@ -703,13 +709,33 @@ function setimpdoplan() {
       setimpmatchfromplan(p);
       setimprenderlive();
       setimploadjobs();
-    }).catch(e => setimpstatus('setimp-planstatus', setimpesc(setimperr(e)), 'error'));
+    }).catch(e => setimpplanstatus(setimpesc(setimperr(e)), 'error'));
 }
 
-function setimplist(kind, items, cls, openmax) {
+// extra(item), if given, is html to put after an item (the accept box on a new type/clan problem)
+function setimplist(kind, items, cls, openmax, extra) {
   if(!items || !items.length) { return ''; }
   return '<details class="'+cls+'"'+(items.length <= openmax ? ' open' : '')+'><summary>'+items.length+' '+kind+'</summary><ul>'+
-         items.map(x => '<li>'+setimpfilelinks(setimpesc(x))+'</li>').join('')+'</ul></details>';
+         items.map(x => '<li>'+setimpfilelinks(setimpesc(x))+(extra ? extra(x) : '')+'</li>').join('')+'</ul></details>';
+}
+
+// the accept box for a new type/clan, in the problems list and in New values; ticking either ticks both.
+// The key is "clan\u0000Value": it travels URI-encoded, since the HTML parser turns a NUL in an
+// attribute into U+FFFD
+function setimpacceptbox(key) {
+  return '<label><input type="checkbox" class="setimp-accept" data-key="'+encodeURIComponent(key)+'"'+(setimp.accept[key] ? ' checked' : '')+
+         ' onchange="setimpaccept(this)" /> accept</label>';
+}
+
+function setimpaccept(box) {
+  var key = decodeURIComponent(box.dataset.key);
+  if(box.checked) { setimp.accept[key] = 1; } else { delete setimp.accept[key]; }
+  $('#setimp-plan .setimp-accept').filter((i, b) => b.dataset.key === box.dataset.key).prop('checked', box.checked);
+}
+
+// the new value a problem line is about ('new clan value "Foo" (3 cards, ...)', from the plan), if any
+function setimpproblemvalue(p, line) {
+  return (p.newvalues || []).find(v => v.strict !== false && line.indexOf('new '+v.kind+' value "'+v.value+'" (') === 0);
 }
 
 // a row's file name (3D_039.json) as a link that shows that card in the preview window
@@ -757,7 +783,8 @@ function setimprenderplan() {
           ' &middot; '+p.counts.new+' new cards'+(p.cardids ? ' (cardids '+p.cardids[0]+'-'+p.cardids[1]+')' : '')+', '+
           p.counts.printings+' reprint printings on '+p.counts.reprinted+' cards, '+
           (p.counts.duplicates ? p.counts.duplicates+' duplicates skipped, ' : '')+p.counts.images+' images</p>';
-  html += setimplist('problems', p.problems, 'setimp-problems', 50)+setimplist('warnings', p.warnings, 'setimp-warnings', 10)+
+  var acceptfor = function(line) { var v = setimpproblemvalue(p, line); return v ? ' '+setimpacceptbox(v.key) : ''; };
+  html += setimplist('problems', p.problems, 'setimp-problems', 50, acceptfor)+setimplist('warnings', p.warnings, 'setimp-warnings', 10)+
           setimplist('notes', p.infos, 'setimp-infos', 0);
   if(!p.fromjob) {
     html += '<p>Update log description <input type="text" id="setimp-desc" size="60" value="'+setimpesc(p.description)+'" /></p>';
@@ -797,6 +824,13 @@ function setimprenderplan() {
     });
     html += '</table></details>';
   }
+  html += '<p><b>All problems must be resolved, or accepted (a new type or clan), before going on to step 6.</b> '+
+          'Warnings don\'t block going live, but they can still be real problems: check every one.</p>';
+  if(!p.ready && !p.fromjob) {
+    html += '<p class="error">Fix everything above, then plan again to check that every problem is resolved. '+
+            'Step 6 appears once the plan has no problems.</p>'+
+            '<input type="button" value="Plan again" onclick="setimpdoplan()" /> <span id="setimp-planstatus2"></span>';
+  }
   $('#setimp-plan').html(html);
 }
 
@@ -805,7 +839,7 @@ function setimprenderplan() {
 function setimpnewvalues(p) {
   if(!p.newvalues || !p.newvalues.length) { return ''; }
   var strict = p.newvalues.filter(v => v.strict !== false), blocking = strict.filter(v => !v.accepted).length;
-  var html = '<details'+(blocking ? ' open' : '')+'><summary>New values ('+p.newvalues.length+' no live card has'+
+  var html = '<details open><summary>New values ('+p.newvalues.length+' no live card has'+
              (blocking ? ', <span class="error">'+blocking+' type/clan to resolve</span>' : '')+')</summary><p><small>Usually a typo, or a value the profile\'s tables should '+
              'translate: fix the spreadsheet or the profile and Pre-Process again. A new type or clan blocks going live until it\'s accepted here '+
              '(tick it, plan again); new keywords are warnings.</small></p>'+
@@ -813,17 +847,9 @@ function setimpnewvalues(p) {
   p.newvalues.forEach(function(v) {
     html += '<tr><td>'+setimpesc(v.kind)+'</td><td><b>'+setimpesc(v.value)+'</b></td><td>'+v.count+': '+
             v.files.slice(0, 5).map(f => setimpfilelink(f, f.replace(/\.json$/, ''))).join(', ')+(v.count > 5 ? ', ...' : '')+'</td><td>'+
-            (v.strict === false ? '<small>warning only</small>' :
-             '<label><input type="checkbox" data-key="'+encodeURIComponent(v.key)+'"'+(setimp.accept[v.key] ? ' checked' : '')+
-             ' onchange="setimpaccept(decodeURIComponent(this.dataset.key), this.checked)" /> accept</label>')+'</td></tr>';
+            (v.strict === false ? '<small>warning only</small>' : setimpacceptbox(v.key))+'</td></tr>';
   });
   return html+'</table></details>';
-}
-
-// the key is "clan\u0000Value": it travels URI-encoded, since the HTML parser turns a NUL in an
-// attribute into U+FFFD
-function setimpaccept(key, on) {
-  if(on) { setimp.accept[key] = 1; } else { delete setimp.accept[key]; }
 }
 
 // reprints whose printed text differs from their card's: a word diff of the text (tags and
@@ -891,6 +917,8 @@ function setimpsetoverride(file, cardid, primary) {
 function setimprenderlive() {
   var p = setimp.plan;
   if(!setimp.job) { $('#setimp-live').empty(); return; }
+  // nothing in Go live comes before a clean plan; a job already past planned (resumed) still shows it
+  if(!p.ready && (!setimp.meta || setimp.meta.status == 'planned')) { $('#setimp-live').empty(); return; }
   var html = '<h4>6. Go live</h4><p>Export takes the backup every bulk write needs (5-10 minutes; start it ahead of time). '+
              'Apply pauses the search index stream, writes the cards, puts the stream back and then checks every card in search.</p>'+
              '<div id="setimp-export"></div><div id="setimp-apply"></div><div id="setimp-verify"></div>';
