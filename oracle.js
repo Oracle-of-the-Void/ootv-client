@@ -3010,17 +3010,19 @@ $(document).on('keydown', '#resultlist .listviewname[contenteditable=true]', fun
 
 // ***********************  list statistics **************
 // Derived from the game's config, so every game gets them without its own setup:
-//  - the deck: the first of 'deck' / 'decktype' the game searches on (dbinfo[game].statdeck overrides; false = none)
+//  - the deck: the 'deck' field, when the game searches on one (dbinfo[game].statdeck overrides; false = none)
 //  - the averaged fields: the game's numeric searchables, less per-printing ones (card numbers) and 'number'
 //    (dbinfo[game].statfields, a list of field names, overrides)
 // Each type averages the fields its cards have, so L5R personalities get Force/Chi/HR/Cost/PH and fate cards Focus.
+// A deck's own row averages only fields most of its copies have, and only when it's big enough to mean something.
+var liststatsdeckshare = 0.75; // share of a deck's copies that must have a field for the deck row to show it
+var liststatsdeckmin = 10;     // fewer copies than this (L5R Pre-Game): no averages on the deck row
 function liststatsdeckfield() {
     var info = dbinfo[database] || {};
     if(info.statdeck !== undefined) {
 	return info.statdeck;
     }
-    var s = searchables[database] || {};
-    return ['deck','decktype'].find(function(f) { return s[f]; }) || false;
+    return (searchables[database] || {}).deck ? 'deck' : false;
 }
 function liststatsfields() {
     var info = dbinfo[database] || {};
@@ -3043,8 +3045,8 @@ function liststatsnumber(v) {
 function liststatsround(n) {
     return Math.round(n*10)/10;
 }
-// averages of the fields at least one of the cards has; a field shows on a deck's own row only when most of
-// its copies have it (Focus on the Fate deck, Cost on Dynasty), since there it's a mix of types
+// averages of the fields at least one of the cards has; on a deck's own row (most) only the fields
+// liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types
 function liststatsavgs(cards, fields, most) {
     var copies = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     var out = [];
@@ -3061,7 +3063,7 @@ function liststatsavgs(cards, fields, most) {
 		n += c.qty;
 	    }
 	});
-	if(n > 0 && (!most || n*2 >= copies)) {
+	if(n > 0 && (!most || n >= copies*liststatsdeckshare)) {
 	    var l = labels[database] || {};
 	    out.push({"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f, "avg": liststatsround(sum/n),
 		      "copies": n, "skipped": has-n});
@@ -3104,7 +3106,7 @@ function liststats(listdata) {
 		    "avgs": liststatsavgs(t.cards, fields, false)};
 	});
 	return {"name": d.name, "copies": copies, "distinct": d.cards.length, "pct": liststatspct(copies, total),
-		"avgs": liststatsavgs(d.cards, fields, true), "types": types};
+		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"decks": decks, "open": cache_session("liststatsopen") !== false});

@@ -1,5 +1,16 @@
 # TODO
 
+## Dune: use the standard `deck` field (noted 2026-10-18)
+
+Dune keeps a card's deck (Imperial / House) in `decktype`; L5R and LBS use `deck`. The list statistics
+(`liststatsdeckfield` in `oracle.js`) only group by `deck`, so Dune lists show one ungrouped table until
+it's moved. To move it: copy `decktype` to `deck` on every `oracle-dune` card (a bulk update: export
+first, pause the ES stream, log it; ootv-backups `PROCESSING.md`), then switch `templates/dune.js`
+(`databasesort` deck sort, `searchables`, `labels`) and `template-dune-card.html` /
+`template-dune-search.html` to `deck`, and drop `decktype` once nothing reads it (check ootv-search,
+the import profile in `oracle-all-structure`, and ootv-games `game-dune` scripts). The deck headers
+(`headerize['dune']`) could then group by deck as L5R's do.
+
 ## Card corners in the editor's image upload (noted 2026-10-16)
 
 Card images are PNG with the area outside the rounded corners transparent (square-cornered
