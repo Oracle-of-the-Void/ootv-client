@@ -1,6 +1,6 @@
 # Set import and import profiles
 
-Last updated: 2026-10-17
+Last updated: 2026-10-18
 
 **Admin → Set import (this game)** takes a set's spreadsheet to cards on the live site. It replaces
 `new-set.py`, `proc.sh`/`parse.jq` and `set-import.py` on the jump box (ootv-import STEPS.md).
@@ -71,8 +71,9 @@ Both need the `setimport` permission (or `*`) for the game.
    tick *primary* to show the new printing first. In the new card list, type a cardid to make a
    row a reprint. Then *Plan again*.
 6. **Go live.**
-   - *Start the export* takes the full table backup every bulk write needs (5–10 minutes).
-     Start it a little ahead of time; it's good for 12 hours.
+   - *Start the export* takes a full table backup (5–10 minutes). It's optional: Apply doesn't
+     wait for it, so skip it when the table already has a recent export (one from another bulk
+     write today, say). Without either, there's nothing to roll back to.
    - *Apply* (after ticking the confirmation) pauses the search index stream and writes the
      cards. Each new card gets an `op: new` update log entry; each reprint gets `newinstance`.
      Then it writes one update log row for the whole set (the site's "new set" notice) and

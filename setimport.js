@@ -920,11 +920,13 @@ function setimprefreshjob() {
              (m.conflicts && m.conflicts.length ? ', <span class="error">'+m.conflicts.length+' conflicts</span>' : '')+
              (m.note ? ' <small>('+setimpesc(m.note)+')</small>' : '')+'</p>';
     if(['planned', 'interrupted'].includes(m.status)) {
-      var ok = p.ready && ex && ex.status == 'COMPLETED';
+      // the export is optional: skip it when there's already a recent backup of the table
+      var ok = p.ready, exported = ex && ex.status == 'COMPLETED';
       ah += '<p><label><input type="checkbox" id="setimp-applyok"'+(ok ? '' : ' disabled')+' onchange="$(\'#setimp-applybtn\').prop(\'disabled\', !this.checked)" /> '+
             'Yes, write '+p.counts.new+' new cards and '+p.counts.printings+' reprint printings to the live '+setimpesc(dbinfo[setimp.db].name)+' cards</label> '+
             '<input type="button" id="setimp-applybtn" value="Apply" disabled onclick="setimpapply()" />'+
-            (ok ? '' : ' <small>'+(!p.ready ? 'the plan has problems' : 'needs a completed export')+'</small>')+'</p>';
+            (!ok ? ' <small>the plan has problems</small>' :
+             exported ? '' : ' <small>no export for this import: only Apply if the table has a recent backup</small>')+'</p>';
     } else if(['pausing', 'applying', 'resuming'].includes(m.status) && !setimp.run) {
       ah += '<p><input type="button" value="Continue" onclick="setimpapply()" /> <small>The stream stays paused until the import finishes; '+
             'if nothing happens for 10 minutes it is put back automatically and the import is marked interrupted.</small></p>';
