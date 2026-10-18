@@ -562,6 +562,106 @@ div.listviewheader .listviewdetails, div.listviewheader .listviewnotes {
     font-family: "Times New Roman",Georgia,Serif;
     font-size: medium;
 }
+/* the user's own list: the directory's controls */
+div.listviewheader .listviewtitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+div.listviewheader .listviewtitle .listviewname {
+    overflow-wrap: anywhere;
+}
+div.listviewheader .listviewcontrols {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 0;
+}
+div.listviewheader .listviewcontrols select.listselect {
+    width: auto;
+    max-width: 100%;
+}
+div.listviewheader div.listviewnotes[contenteditable] {
+    min-height: 1.2em;
+    padding: 2px 4px;
+    border: 1px dashed #bbb;
+    border-radius: 4px;
+    overflow-wrap: anywhere;
+}
+div.listviewheader div.listviewnotes[contenteditable]:empty::before {
+    content: attr(data-placeholder);
+    color: #999;
+}
+/* list view statistics (liststats) */
+details.liststats {
+    margin: 4px 0 8px;
+    padding: 4px 6px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 7px;
+    font-family: "Times New Roman",Georgia,Serif;
+}
+details.liststatskw {
+    margin-top: 6px;
+}
+label.liststatscutoff {
+    display: block;
+    margin: 2px 0;
+}
+label.liststatscutoff input {
+    width: 3.5em;
+}
+details.liststats summary {
+    cursor: pointer;
+    font-size: large;
+}
+details.liststats details.liststatskw summary {
+    font-size: medium;
+}
+table.liststatstable {
+    border-collapse: collapse;
+    margin-top: 4px;
+}
+table.liststatstable th, table.liststatstable td {
+    padding: 2px 8px;
+    text-align: right;
+    vertical-align: top;
+}
+table.liststatstable th:first-child, table.liststatstable .liststatsavgs {
+    text-align: left;
+}
+table.liststatstable tbody th {
+    font-weight: normal;
+    padding-left: 1.5em;
+}
+table.liststatstable thead th {
+    border-bottom: 1px solid #bbb;
+}
+table.liststatstable tr.liststatsdeck th, table.liststatstable tr.liststatsdeck td {
+    font-weight: bold;
+    padding-left: 8px;
+    border-top: 1px solid #bbb;
+}
+/* light shading to read across and down: deck rows, alternate rows in each deck (liststatsstripe), and the
+   count columns; they layer, so a striped row over a shaded column is a shade darker */
+table.liststatstable tr.liststatsdeck {
+    background-color: rgba(0, 0, 0, 0.07);
+}
+table.liststatstable tr.liststatsstripe {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+table.liststatstable td:nth-child(even), table.liststatstable thead th:nth-child(even) {
+    background-color: rgba(90, 110, 160, 0.06);
+}
+span.liststatsavg {
+    display: inline-block;
+    margin-right: .8em;
+    white-space: nowrap;
+}
+table.liststatstable tbody tr:not(.liststatsdeck) span.liststatsavg b {
+    font-weight: normal;
+}
 div.listmissing {
     margin: 4px 0;
     color: #a00;
@@ -1686,12 +1786,15 @@ span.dirmenucell, span.dirmenucell nav, span.dirmenucell nav > ul, span.dirmenuc
 }
 /* grid menus open on a click, also with a mouse (the site's other menus open on hover): see dirmenuclick in oracle.js */
 #resultdir .dirmenucell nav ul li:hover > ul,
-#resultdir .dirmenucell ul li:focus-within > ul {
+#resultdir .dirmenucell ul li:focus-within > ul,
+#resultlist .dirmenucell nav ul li:hover > ul,
+#resultlist .dirmenucell ul li:focus-within > ul {
   visibility: hidden;
   opacity: 0;
   display: none;
 }
-#resultdir .dirmenucell nav ul li.menuopen > ul {
+#resultdir .dirmenucell nav ul li.menuopen > ul,
+#resultlist .dirmenucell nav ul li.menuopen > ul {
   visibility: visible;
   opacity: 1;
   display: block;
@@ -1724,8 +1827,8 @@ nav ul.dirlistmenu li.dirmenudelete {
 div.directorylistheader > div.dirnotescell {
   min-width: 8em;
 }
-/* cards view: the whole card opens the list */
-#directorycards [id^="listitem_"] {
+/* the whole card or table row opens the list */
+#directorycards [id^="listitem_"], #directorytable [id^="listitem_"] {
   cursor: pointer;
 }
 #directorycards [id^="listitem_"] select, #directorycards [id^="listitem_"] .dircardnotes {

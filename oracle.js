@@ -746,8 +746,7 @@ function renderdirectory() {
 	  }
   });
   activelists.forEach(function(listid) {
-    $("#listinactive"+listid).hide();
-    $("#listactive"+listid).show();
+    showlisttoggle(listid,true);
   });
 }
 
@@ -805,9 +804,9 @@ $(document).on('click', '#resultdir .dirlistname', function() {
   if($(this).attr('contenteditable') == 'true' || (press && press.long)) { return; }  // editing: the click places the caret
   listinfo(String($(this).data('list')),true);
 });
-// the list actions (grid) menu is placed against the window, so the scrolling directory (phones) can't clip it,
+// the list actions (grid) menu (directory and list view header) is placed against the window, so the scrolling directory (phones) can't clip it,
 // and opens upward when there's no room below
-$(document).on('click', '#resultdir .dirmenucell nav > ul > li', function() {
+$(document).on('click', '#resultdir .dirmenucell nav > ul > li, #resultlist .dirmenucell nav > ul > li', function() {
   var li = this, ul = $(li).children('ul');
   var r = li.getBoundingClientRect();
   ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});
@@ -824,16 +823,16 @@ $(document).on('click', function(e) {
   if(lastpointertype != 'mouse') {
     return;
   }
-  var li = $(e.target).closest('#resultdir .dirmenucell nav > ul > li');
+  var li = $(e.target).closest('#resultdir .dirmenucell nav > ul > li, #resultlist .dirmenucell nav > ul > li');
   var open = li.length && !$(e.target).closest('ul.dirlistmenu').length && !li.hasClass('menuopen');
-  $('#resultdir .dirmenucell li.menuopen').removeClass('menuopen');
+  $('#resultdir .dirmenucell li.menuopen, #resultlist .dirmenucell li.menuopen').removeClass('menuopen');
   if(open) {
     li.addClass('menuopen');
   }
 });
-// cards view: a press anywhere on a list's card that isn't one of its controls opens the list
-$(document).on('click', '#directorycards [id^="listitem_"]', function(e) {
-  if($(e.target).closest('select, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirlistname, .dirdraghandle').length) { return; }
+// a press anywhere on a list's card or table row that isn't one of its controls opens the list
+$(document).on('click', '#directorycards [id^="listitem_"], #directorytable [id^="listitem_"]', function(e) {
+  if($(e.target).closest('select, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirnotes, .dirlistname, .dirdraghandle').length) { return; }
   listinfo(this.id.replace('listitem_',''),true);
 });
 $(document).on('contextmenu', '#resultdir .dirlistname:not([contenteditable=true])', function(e) {
@@ -1393,6 +1392,13 @@ function renderlisteditarea() {
     }
 }
 
+// a list's activate toggle, in the directory and the list view header
+function showlisttoggle(listid,on) {
+    var hdr = $('#resultlist .listviewheader[data-list="'+listid+'"]');
+    $("#listinactive"+listid).add(hdr.find('.listtoggleoff')).toggle(!on);
+    $("#listactive"+listid).add(hdr.find('.listtoggleon')).toggle(on);
+}
+
 // done: once the list's cards are loaded (the swipe list picker adds the card then)
 function activatelist(listid, done=null) {
     var index = activelists.indexOf(listid);
@@ -1400,8 +1406,7 @@ function activatelist(listid, done=null) {
        activelists.splice(index, 1);
     }
     activelists.unshift(listid);
-    $("#listinactive"+listid).hide();
-    $("#listactive"+listid).show();
+    showlisttoggle(listid,true);
     saveactivelists();
     renderlisteditarea();
     // after activelists has it: a cached list calls back at once, and the refresh renders its controls
@@ -1418,8 +1423,7 @@ function deactivatelist(listid) {
     if (index > -1) {
        activelists.splice(index, 1);
     }
-    $("#listactive"+listid).hide();
-    $("#listinactive"+listid).show();
+    showlisttoggle(listid,false);
     saveactivelists();
     renderlisteditarea();
     refreshactivelistviews();
@@ -1447,8 +1451,7 @@ function syncactivelists() {
     var before = activelists.length;
     activelists = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); });
     activelists.forEach(function(listid) {
-	$("#listinactive"+listid).hide();
-	$("#listactive"+listid).show();
+	showlisttoggle(listid,true);
     });
     saveactivelists();
     if(restoring && activelists.length) {
@@ -3072,7 +3075,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+listmissing(listid,missing)+html);
+	    $("#resultlist").html(listheader(listid)+liststats(listdata)+listmissing(listid,missing)+html);
+	    liststatscutoff();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
@@ -3088,20 +3092,270 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
 }
 
-// header line for the list view: the list's details as the directory shows them
+// header for the list view: the list's details as the directory shows them, and its controls when it's the
+// user's own. The list's own item wins over the directory's: an edit refetches the list before the directory.
 function listheader(listid) {
     var meta = null;
     var dir = cache_thing("list","data");
     var rev = cache_thing("list","datareverse");
-    if(dir && rev && rev[listid] !== undefined) {
-	meta = dir.lists.Items[rev[listid]];
-    } else if(cache_thing("list",listid)) {
-	meta = cache_thing("list",listid).list.Items[0];
+    var mine = !!(dir && rev && rev[listid] !== undefined);
+    if(mine) {
+	meta = $.extend({}, dir.lists.Items[rev[listid]]);
+    }
+    if(cache_thing("list",listid)) {
+	meta = $.extend(meta || {}, cache_thing("list",listid).list.Items[0]);
     }
     if(!meta) {
 	return '';
     }
-    return $.templates("#template-listheader").render(meta,{"listtypes": listtypes});
+    return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
+	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed()});
+}
+// list view header: the pencil edits the name in place (shown on touch too: the header has no long press)
+function listheaderrename(el) {
+    var name = $(el).closest('.listviewheader').find('.listviewname')[0];
+    $(name).attr('contenteditable','true').focus();
+    var range = document.createRange();
+    range.selectNodeContents(name);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+// the header's name and notes save when they lose focus, if they changed; Enter ends a name, Escape undoes
+$(document).on('blur', '#resultlist [data-listfield]', function() {
+    var field = $(this).attr('data-listfield');
+    var value = field == 'notes' ? editortext(this) : $(this).text().trim();
+    if(field == 'name') {
+	$(this).removeAttr('contenteditable');
+    }
+    if(value != String($(this).attr('data-prev'))) {
+	$(this).attr('data-prev', value);
+	listinfoupdate(String($(this).attr('data-list')), field, value);
+    }
+});
+$(document).on('keydown', '#resultlist .listviewname[contenteditable=true]', function(e) {
+    if(e.key == 'Enter') {
+	e.preventDefault();
+	this.blur();
+    } else if(e.key == 'Escape') {
+	$(this).text($(this).attr('data-prev'));
+	this.blur();
+    }
+});
+
+// ***********************  list statistics **************
+// Derived from the game's config, so every game gets them without its own setup:
+//  - the deck: the first of 'deck' / 'decktype' the game searches on (dbinfo[game].statdeck overrides; false = none).
+//    'decktype' is only Dune's; drop it once Dune uses 'deck' (TODO.md)
+//  - the averaged fields: the game's numeric searchables, less per-printing ones (card numbers) and 'number'
+//    (dbinfo[game].statfields, a list of field names, overrides)
+// Each type averages the fields its cards have, so L5R personalities get Force/Chi/HR/Cost/PH and fate cards Focus.
+// A deck's own row averages only fields most of its copies have, and only when it's big enough to mean something.
+var liststatsdeckshare = 0.75; // share of a deck's copies that must have a field for the deck row to show it
+var liststatsdeckmin = 10;     // fewer copies than this (L5R Pre-Game): no averages on the deck row
+function liststatsdeckfield() {
+    var info = dbinfo[database] || {};
+    if(info.statdeck !== undefined) {
+	return info.statdeck;
+    }
+    var s = searchables[database] || {};
+    return ['deck','decktype'].find(function(f) { return s[f]; }) || false;
+}
+function liststatsfields() {
+    var info = dbinfo[database] || {};
+    if(info.statfields) {
+	return info.statfields;
+    }
+    var s = searchables[database] || {};
+    return Object.keys(s).filter(function(f) {
+	return s[f] && s[f].type == 'numeric' && f.indexOf('.') < 0 && f != 'number';
+    });
+}
+// a field's number, or null when it has none (blank, '*', 'X', '-'): "+2" and "3&nbsp;" count
+function liststatsnumber(v) {
+    if(v === undefined || v === null) {
+	return null;
+    }
+    var t = String(Array.isArray(v) ? v.join('') : v).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').trim();
+    return /^[+-]?\d+(\.\d+)?$/.test(t) ? parseFloat(t) : null;
+}
+function liststatsround(n) {
+    return Math.round(n*10)/10;
+}
+// averages of the fields at least one of the cards has; on a deck's own row (most) only the fields
+// liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types
+function liststatsavgs(cards, fields, most) {
+    var copies = cards.reduce(function(t,c) { return t + c.qty; }, 0);
+    var out = [];
+    fields.forEach(function(f) {
+	var sum = 0, n = 0, has = 0;
+	cards.forEach(function(c) {
+	    if(c.card[f] === undefined || !String(c.card[f].join ? c.card[f].join('') : c.card[f]).trim()) {
+		return;
+	    }
+	    has += c.qty;
+	    var v = liststatsnumber(c.card[f]);
+	    if(v !== null) {
+		sum += v*c.qty;
+		n += c.qty;
+	    }
+	});
+	if(n > 0 && (!most || n >= copies*liststatsdeckshare)) {
+	    var l = labels[database] || {};
+	    out.push({"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f, "avg": liststatsround(sum/n),
+		      "copies": n, "skipped": has-n});
+	}
+    });
+    return out;
+}
+// keyword analysis: the game's first keyword-type searchable (L5R keywords, 7th Sea trait, Initial D traits) and
+// its 'text' field; dbinfo[game].statkeywords / stattext override (false = no keyword section)
+function liststatskeywordfield() {
+    var info = dbinfo[database] || {};
+    if(info.statkeywords !== undefined) {
+	return info.statkeywords;
+    }
+    var s = searchables[database] || {};
+    return Object.keys(s).find(function(f) { return s[f] && s[f].type == 'keyword' && f.indexOf('.') < 0; }) || false;
+}
+function liststatstextfield() {
+    var info = dbinfo[database] || {};
+    if(info.stattext !== undefined) {
+	return info.stattext;
+    }
+    return (searchables[database] || {}).text ? 'text' : false;
+}
+function liststatsplain(v) {
+    return String(v || '').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
+}
+// each deck's keywords (copies), most copies first, and how many other cards in the whole list
+// name each one in their text (a whole word, as printed, plural allowed; a card's own keywords don't count)
+function liststatskeywords(cards, decks) {
+    var kwfield = liststatskeywordfield();
+    if(!kwfield) {
+	return [];
+    }
+    var textfield = liststatstextfield();
+    var kws = function(c) {
+	var v = c.card[kwfield];
+	return (Array.isArray(v) ? v : (v ? [v] : [])).map(liststatsplain).filter(function(k) { return k; });
+    };
+    var texts = cards.map(function(c) {
+	var v = textfield ? c.card[textfield] : '';
+	return {"c": c, "text": liststatsplain(Array.isArray(v) ? v.join(' ') : v).replace(/\s+/g,' '), "kws": kws(c)};
+    });
+    var escape = function(k) { return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); };
+    var refs = {};
+    var references = function(k) {
+	if(!refs[k]) {
+	    var re = new RegExp('(^|[^A-Za-z0-9])'+escape(k)+'s?(?![A-Za-z0-9])');
+	    var by = texts.filter(function(t) { return t.kws.indexOf(k) < 0 && re.test(t.text); });
+	    refs[k] = {"refcopies": by.reduce(function(n,t) { return n + t.c.qty; }, 0), "refcards": by.length,
+		       "reftitles": by.map(function(t) { return liststatsplain((t.c.card.title || []).join ? t.c.card.title.join(' ') : t.c.card.title); }).join(', ')};
+	}
+	return refs[k];
+    };
+    return decks.map(function(d) {
+	var counts = {};
+	cards.filter(function(c) { return d.match(c); }).forEach(function(c) {
+	    kws(c).forEach(function(k) {
+		if(!counts[k]) {
+		    counts[k] = {"name": k, "copies": 0};
+		}
+		counts[k].copies += c.qty;
+	    });
+	});
+	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], references(k)); });
+	list.sort(function(a,b) { return b.copies - a.copies || a.name.localeCompare(b.name); });
+	return {"name": d.name, "keywords": list};
+    }).filter(function(d) { return d.keywords.length; });
+}
+function liststatspct(part, whole) {
+    return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
+}
+function liststats(listdata) {
+    var cards = listdata.filter(function(c) { return c.cardid > 0; }).map(function(c) {
+	return {"card": c, "qty": parseInt(c.listquantity) || 0};
+    }).filter(function(c) { return c.qty > 0; });
+    var total = cards.reduce(function(t,c) { return t + c.qty; }, 0);
+    if(!cards.length) {
+	return '';
+    }
+    var deckfield = liststatsdeckfield();
+    var fields = liststatsfields();
+    var join = function(v) { return (Array.isArray(v) ? v.join(', ') : String(v || '')).replace(/&nbsp;/g,' ').trim(); };
+    // groups in list order (the list is already in the game's deck sort)
+    var group = function(items, key) {
+	var out = [], index = {};
+	items.forEach(function(c) {
+	    var k = key(c);
+	    if(index[k] === undefined) {
+		index[k] = out.length;
+		out.push({"name": k, "cards": []});
+	    }
+	    out[index[k]].cards.push(c);
+	});
+	return out;
+    };
+    var decks = group(cards, function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; }).map(function(d) {
+	var copies = d.cards.reduce(function(t,c) { return t + c.qty; }, 0);
+	var types = group(d.cards, function(c) { return join(c.card.type) || 'Other'; }).map(function(t) {
+	    var tc = t.cards.reduce(function(s,c) { return s + c.qty; }, 0);
+	    return {"name": t.name, "copies": tc, "pct": liststatspct(tc, copies),
+		    "avgs": liststatsavgs(t.cards, fields, false)};
+	});
+	return {"name": d.name, "copies": copies, "pct": liststatspct(copies, total),
+		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
+    });
+    var deckkey = function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; };
+    var keywords = liststatskeywords(cards, decks.map(function(d) {
+	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
+    }));
+    return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
+	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
+	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+}
+// keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
+// hides, and so does a deck with none left
+function liststatskwcutoff() {
+    var n = parseInt(cache_session("liststatskwcutoff"));
+    return isNaN(n) ? 4 : n;
+}
+function liststatscutoff(value) {
+    if(value !== undefined) {
+	var n = parseInt(value);
+	cache_session("liststatskwcutoff", isNaN(n) ? '' : n); // blank: back to the default
+    }
+    var cutoff = liststatskwcutoff();
+    $('#resultlist details.liststatskw tbody').each(function() {
+	var shown = 0;
+	$(this).find('tr.liststatskwrow').each(function() {
+	    var any = false;
+	    $(this).find('td[data-n]').each(function() {
+		var keep = parseInt($(this).attr('data-n')) >= cutoff;
+		$(this).children('span').toggle(keep);
+		any = any || keep;
+	    });
+	    $(this).toggle(any);
+	    shown += any ? 1 : 0;
+	});
+	$(this).toggle(shown > 0);
+    });
+    liststatsstripe();
+}
+// every other shown row in each deck is shaded (counted here, since the cutoff hides rows)
+function liststatsstripe() {
+    $('#resultlist table.liststatstable tbody').each(function() {
+	var i = 0;
+	$(this).children('tr').not('.liststatsdeck').each(function() {
+	    var shown = $(this).css('display') != 'none';
+	    $(this).toggleClass('liststatsstripe', shown && (i++ % 2 == 1));
+	});
+    });
+}
+// open or closed (the section, and its keyword part), kept per browser
+function liststatstoggle(el) {
+    cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
 }
 // list entries whose card no longer exists (#188), with a link to drop them from the list
 function listmissing(listid,missing) {

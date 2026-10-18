@@ -890,7 +890,7 @@ printingprimary
 <nav role="listmenu"><ul class="menuone">
 <li class="right"><button aria-label="List actions" class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#command"></svg></button>
   <ul class="dirlistmenu">
-  <li onclick="listinfo('{{:listid}}',true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#eye"></svg> View list</li>
+  {{if !~inheader}}<li onclick="listinfo('{{:listid}}',true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#eye"></svg> View list</li>{{/if}}
   <li onclick="duplicatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Duplicate</li>
   <li onclick="importlist('{{:listid}}','{{:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> Upload (import cards into it)</li>
   <li class="sortmodehead">Download</li>
@@ -990,20 +990,79 @@ printingprimary
 </div>
 </script> <!-- template-listcards -->
 
-<!-- list view: the list's directory details as a header line -->
+<!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
+     controls (activate toggle, actions menu, rename, type/legality/public, notes); anyone else's is read only.
+     The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
 <script id="template-listheader" type="text/x-jsrender">
-<div class="listviewheader upperhead">
+<div class="listviewheader upperhead" data-list="{{:listid}}">
+  {{if ~mine}}
+  <div class="listviewtitle">
+    <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
+    <span class="dirmenucell">{{include tmpl="#template-listmenu" ~inheader=true/}}</span>
+    <span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+  </div>
+  <div class="listviewdetails listviewcontrols">
+    <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
+    <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
+    <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>Private</option><option value="true"{{if public}} selected{{/if}}>Public</option></select>
+    <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
+  </div>
+  <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
+  {{else}}
   <span class="listviewname">{{:name}}</span>
   <span class="listviewdetails">
     {{:~listtypes[type] || type}}
     {{if legality}} &#149; {{nbsptospace:legality}}{{/if}}
-    {{if totalcount>0}} &#149; {{:totalcount}} cards ({{:distinctcount}} distinct){{/if}}
-    {{if public}} &#149; Public{{/if}}
+    &#149; {{if public}}Public{{else}}Private{{/if}}
     {{if createdate}} &#149; Created {{formatDate:createdate}}{{/if}}
     {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
   </span>
   {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
+  {{/if}}
 </div>
+</script>
+
+<!-- list view: statistics under the header (liststats in oracle.js). Each deck (the game's deck field, or one
+     unnamed group) with its card types: copies, share of the deck, and the averages of the
+     game's numeric fields the type's cards have (copies weighted). Then, folded, each deck's keywords and how
+     many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
+<script id="template-liststats" type="text/x-jsrender">
+<details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
+  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)</summary>
+  {{if decks.length}}
+  <table class="liststatstable">
+    <thead><tr><th></th><th>Cards</th><th>%</th><th class="liststatsavgs">Averages</th></tr></thead>
+    {{for decks}}
+    <tbody>
+    {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>{{/if}}
+    {{for types}}
+    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
+    {{/for}}
+    </tbody>
+    {{/for}}
+  </table>
+  {{/if}}
+  {{if keywords.length}}
+  <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="event.stopPropagation(); liststatstoggle(this);">
+    <summary>Keywords</summary>
+    <label class="liststatscutoff">Hide counts under <input type="number" min="0" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"></label>
+    <table class="liststatstable">
+      <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
+      {{for keywords ~textfield=textfield}}
+      <tbody>
+      {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
+      {{for keywords}}
+      <tr class="liststatskwrow"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
+      {{/for}}
+      </tbody>
+      {{/for}}
+    </table>
+  </details>
+  {{/if}}
+</details>
+</script>
+<script id="template-liststatsavgs" type="text/x-jsrender">
+{{for avgs}}<span class="liststatsavg" title="{{>label}}: average of {{:copies}} card{{if copies!=1}}s{{/if}}{{if skipped}} ({{:skipped}} with no number, e.g. * or X, left out){{/if}}">{{>short}} <b>{{:avg}}</b></span>{{/for}}
 </script>
 
 <script id="template-card-top" type="text/x-jsrender">
