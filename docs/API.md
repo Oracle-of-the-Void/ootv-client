@@ -339,6 +339,11 @@ inputs:
       directory folder: a path like "Tournament/2026" ('' = top level; trimmed, at most 255 characters).
       Empty folders live in the user's settings[database].folders (see /user settings)
   * if this is set we update that field of the list (updatevalue), and modified, except for folder
+  * saving `list` also adds 1 to the list's `rev` and returns the new one as `rev`
+* baserev (optional, with updatefield=list)
+  * the `rev` the client's edits started from (0 if the list has none yet). The save only goes through if
+    that's still the list's `rev`; otherwise it answers **409** with `list` (the current item, `list.Items[0]`),
+    and the client merges its changes into it and saves again (#337). Without baserev, the last save wins.
   * TODO: when updating 'list' field, we should have a field that has the quantity of cards in it that gets updated as well, so general listing can have that info
 * action (optional)
   * remove
