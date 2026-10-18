@@ -6,14 +6,14 @@
 * title (required unless you set up a visual-only search, meh)
 * type (not technically required, but use this label if you can)
 * printingprimary (required)
-* imagehash (this might be deprecated.... need to set up a new game without it - will save a lot of objects)
-  * use new method below if no imagehash
+* imagehash: obsolete. A card-level directory from the old image layout, left on older l5r and
+  lbs cards; nothing reads it. Don't set it on new cards.
 
 ### printing  (nested)
 
 * printing.set (not sure if technically required, strongly recommended)
 * printing.rarity (not sure if technically required, strongly recommended)
-* printing.imagehash (required)
+* printing.imagehash (the image directory; required with `image`, left out with it when there is no scan)
 * printing.printingid (required)
 * printing.publisher (optional, array of one string). L5R: Five Rings Publishing Group, Wizards
   of the Coast, Alderac Entertainment Group or Onyx Lives (with printing.publisherurl). The
@@ -31,17 +31,19 @@
   so S&M shows its default printing. Leave it out when the set's code is right. ootv-search's
   `/import` reads it back. Bulk values come from `docs/snm/snm-map.py` through
   ootv-backups `snm-printings.py`; edit one by hand in the card editor.
-* NEW: image: hash of images:
+* printing.image (array, one entry per image, front first). Each entry names the files of one image
+  in the printing's `imagehash` directory:
  * ```json
 {
- select: filename,    long side 210px  (other 150 or so)
- details: filename    long side 600px  (other 288 or so)
- master: filename,    no spec yet
- original: filename (optional),
- numeric: filename (optional sizing)
+ "select": filename,    long side 210px  (other 150 or so)
+ "details": filename,   long side 600px  (other 288 or so)
+ "master": filename,    no spec yet
+ "original": filename (optional),
+ "numeric": filename (optional sizing)
 }
 ```
-  * new method is simpler.   just gameurlbase+imagehash+images[size]
+  A printing with no scan has neither `image` nor `imagehash` (never an empty `image: []`: the
+  templates read `image[0]`).
 
 ### optional
 
@@ -49,14 +51,12 @@
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 
 ### image path
-```database/{lookup printimagehash via printingprimary}/printing_{cardid}_{printingid}_select.jpg```
+```{imageuri}{printing.imagehash}/{printing.image[n][size]}```
 
-```database/{hash}/printing_{cardid}_{printingid}_details.jpg```
-```_master.jpg```
-
-```database/{imagehash}/card_{cardid}_icon.jpg```
-
-* note: lbs is using icon, l5r is just using lookup printimagehash via printingprimary
+e.g. `https://images.oracleofthevoid.com/l5r/Promo-Gold/9774_1_details.jpg`. `imageuri` is the
+game's `templates/<game>.js` value. Until 2026-10-18 l5r and lbs printings used an older layout
+(`printimagehash`, files `<hash>/printing_<cardid>_<printingid>_<size>.jpg`, plus a card-level
+`<imagehash>/card_<cardid>__icon.jpg`); no card uses it any more, and the client no longer reads it.
 
 * premium should be using _master, but it's inconsistent?
 

@@ -8,7 +8,8 @@ image is `imageuri + printing.imagehash + "/" + printing.image[n][size]`, and a 
 scan has no image fields at all. **Never `image: []`:** `templatefetchimage` reads `image[0][size]`
 and would throw. Remove the legacy branches (and keep handling "no image fields"):
 
-- [ ] ootv-client `oracle.js`:
+- [x] ootv-client `oracle.js` (branch `legacy-image-cleanup`; `imagehashtourl()` is now `preparecard()`, which
+      only builds `printingreverse`):
   - `imagehashtourl()`: the per-printing legacy `images[]` builder, plus `card.icon` and
     `card.imageurl` from the card-level `imagehash` (nothing reads either; noted 2026-10-15),
     and the stale commented-out template line under it.
@@ -18,7 +19,7 @@ and would throw. Remove the legacy branches (and keep handling "no image fields"
   - The card editor's legacy conversion on upload (#227: the `legacy` count and the files-to-copy
     helper near "The legacy images of a printing").
   - `nodiff` can drop `images` and `printimagehash`.
-- [ ] ootv-client `proxy.html` (hard-coded old URL) and the commented legacy path in
+- [x] ootv-client `proxy.html` (hard-coded old URL) and the commented legacy path in
       `templates/template-pdf.html`; `docs/data.md` "image path" (describe the modern layout only).
 - [ ] ootv-search `lib/imagetrash.js`: the `printimagehash` branch of the unlinked-image list.
 - [ ] ootv-discord `src/oracle.js` `imageUrl()`: the `printimagehash` fallback, and its unit test.

@@ -8,8 +8,6 @@
 
 $.views.settings.allowCode(true);
 $.views.tags("printingidfromset",templateprintingidfromset);
-$.views.tags("imagehashfromset",templateimagehashfromset);
-$.views.tags("imagefromset",templateimagefromset);
 $.views.tags("setfromset",templatesetfromset);
 $.views.tags("printingfromid",templateprintingfromid);
 $.views.tags("snmset",templatesnmset);
@@ -2155,8 +2153,6 @@ function editcardtrigger() {
 // directory and printing.image[] holds {master, details, select} file names, so the URL
 // is imageuri + imagehash + "/" + file. A printing has one directory, so every image of
 // a printing lives in it. Uploads add to image[]; they never drop existing images.
-// Legacy printings (printimagehash, #227) are converted on the way: their files are
-// copied from the old hash directories into the printing's directory.
 function imageuploaddefaults(cardid,printid,printing) {
   var hasimages = !!(printing.image && printing.image.length);
   var hash = (typeof printing.imagehash === 'string') ? printing.imagehash : '';
@@ -2165,7 +2161,7 @@ function imageuploaddefaults(cardid,printid,printing) {
     hash = printing.set[0].replace(/&[a-z]+;|<[^>]*>/gi,' ').split(/\s+/).map(w => w.charAt(0)).join('');
   }
   hash = hash.replace(/[^A-Za-z0-9_-]/g,'');
-  // base name: the first uploaded (not legacy-copied) image's, else <hash>_<number>, else <cardid>_<printid>
+  // base name: the first uploaded (not converted from the old layout) image's, else <hash>_<number>, else <cardid>_<printid>
   var own = hasimages ? printing.image.find(e => e.master && !e.master.startsWith('printing_')) : null;
   var stem = own ? own.master.replace(/_master\.[a-z]+$/i,'')
            : (hash && printing.number && printing.number[0]) ? hash+'_'+String(printing.number[0]).padStart(3,'0')
@@ -2174,24 +2170,7 @@ function imageuploaddefaults(cardid,printid,printing) {
     // another image of the same printing: number it past the ones already there
     stem += '_'+(printing.image.length+1);
   }
-  return {"imagehash": hash, "stem": stem.replace(/[^A-Za-z0-9_.-]/g,''), "locked": hasimages,
-          "legacy": (printing.printimagehash && printing.printimagehash.length) || 0};
-}
-
-// The legacy images of a printing, as files to copy: printimagehash[i] is a directory
-// holding printing_<cardid>_<printingid>_{master,details,select}.jpg. The copies are named
-// the same, with _<i+1> added after the first so directories don't collide.
-function legacyimages(db,cardid,printid,printing) {
-  if(!printing.printimagehash || !printing.printimagehash.length) { return []; }
-  return printing.printimagehash.map(function(dir,i) {
-    var from = 'printing_'+cardid+'_'+printid+'_';
-    var to = 'printing_'+cardid+'_'+printid+'_'+(i ? (i+1)+'_' : '');
-    var sizes = {};
-    for (let size of ['master','details','select']) {
-      sizes[size] = {"url": dbinfo[db].imageuri+dir+'/'+from+size+'.jpg', "name": to+size+'.jpg'};
-    }
-    return sizes;
-  });
+  return {"imagehash": hash, "stem": stem.replace(/[^A-Za-z0-9_.-]/g,''), "locked": hasimages};
 }
 
 // pica (vendored, ~54KB) is only needed here, so load it on first use.
@@ -2262,8 +2241,7 @@ function checkimages(db,hash,names) {
 }
 
 // Presigned PUTs from /upload (at most 10 files per request), then the uploads.
-// files: [{name, blob, legacy}]. A legacy copy that already exists (412) was copied
-// by an earlier attempt and counts as done; any other existing file is an error.
+// files: [{name, blob}]. A file that already exists (412) is an error.
 function uploadimagefiles(db,hash,files,overwrite,cardid,printid) {
   var chunks = [];
   for (let i = 0; i < files.length; i += 10) { chunks.push(files.slice(i,i+10)); }
@@ -2273,7 +2251,6 @@ function uploadimagefiles(db,hash,files,overwrite,cardid,printid) {
         return Promise.all(ret.urls.map(function(u) {
           var f = chunk.find(f => f.name == u.name);
           return fetch(u.url, {method: 'PUT', headers: u.headers, body: f.blob}).then(function(r) {
-            if(r.status == 412 && f.legacy) { return; }
             if(r.status == 412) { throw new Error(u.name+' already exists. Tick "Replace existing files" to overwrite it, or change the file name.'); }
             if(!r.ok) { throw new Error(u.name+': upload failed ('+r.status+')'); }
           });
@@ -2302,21 +2279,17 @@ function uploadimagetrigger() {
   if(existing.length && printing.imagehash && hash != printing.imagehash) {
     status('This instance keeps its images in "'+htmlEncode(printing.imagehash)+'"; new images have to go there too.',1); return;
   }
-  var legacy = legacyimages(db,cardid,printid,printing);
-  if(!file && !legacy.length) { status('Choose an image file first.',1); return; }
-  if(file && file.type != 'image/png' && file.type != 'image/jpeg') { status('The image must be PNG or JPEG.',1); return; }
+  if(!file) { status('Choose an image file first.',1); return; }
+  if(file.type != 'image/png' && file.type != 'image/jpeg') { status('The image must be PNG or JPEG.',1); return; }
   if(!hash.match(/^[A-Za-z0-9_-]+$/)) { status('Directory: letters, digits, _ or - only.',1); return; }
-  if(file && !stem.match(/^[A-Za-z0-9_.-]+$/)) { status('File name: letters, digits, _ . or - only.',1); return; }
-  var names = null;
-  if(file) {
-    var ext = (file.type == 'image/png') ? 'png' : 'jpg';
-    names = {"master": stem+'_master.'+ext, "details": stem+'_details.'+ext, "select": stem+'_select.'+ext};
-    if(!overwrite && existing.some(e => e.master == names.master)) {
-      status('This instance already has '+htmlEncode(names.master)+'. Change the file name, or tick "Replace existing files".',1); return;
-    }
+  if(!stem.match(/^[A-Za-z0-9_.-]+$/)) { status('File name: letters, digits, _ . or - only.',1); return; }
+  var ext = (file.type == 'image/png') ? 'png' : 'jpg';
+  var names = {"master": stem+'_master.'+ext, "details": stem+'_details.'+ext, "select": stem+'_select.'+ext};
+  if(!overwrite && existing.some(e => e.master == names.master)) {
+    status('This instance already has '+htmlEncode(names.master)+'. Change the file name, or tick "Replace existing files".',1); return;
   }
   // Replacing: if any of the files is already there, say so and wait for a second press
-  var confirmkey = (overwrite && names) ? db+'/'+hash+'/'+names.master : null;
+  var confirmkey = overwrite ? db+'/'+hash+'/'+names.master : null;
   if(confirmkey && $('#editimagebutton').data('confirmed') !== confirmkey) {
     $('#editimagebutton').prop('disabled',true);
     status('Checking for existing files...');
@@ -2333,65 +2306,37 @@ function uploadimagetrigger() {
   }
   $('#editimagebutton').removeData('confirmed');
   var files = [];
-  var legacyentries = [];
 
   $('#editimagebutton').prop('disabled',true);
-  status(legacy.length ? 'Copying the old images...' : 'Resizing...');
-  // fetch the legacy files (skipping sizes that don't exist), then make the new sizes
-  Promise.all(legacy.map(function(sizes) {
-    var entry = {};
-    return Promise.all(Object.keys(sizes).map(function(size) {
-      // The card view already loaded these as plain <img>s, and CloudFront answers those with no
-      // CORS header and no Vary: Origin, so the browser's cached copy fails a CORS fetch.
-      // Bypass it, with the same query string the PDF code uses (x-corsworkaround).
-      return fetch(sizes[size].url+'?x-corsworkaround=true', {mode: 'cors', cache: 'no-store'}).catch(function() {
-        throw new Error('Could not read the old image '+sizes[size].url+' (the browser blocked or lost the request), so nothing was uploaded.');
-      }).then(function(r) {
-        if(!r.ok) { return; }
-        return r.blob().then(function(b) {
-          entry[size] = sizes[size].name;
-          files.push({"name": sizes[size].name, "blob": new Blob([b], {type: 'image/jpeg'}), "legacy": true});
-        });
-      });
-    })).then(function() { if(Object.keys(entry).length) { legacyentries.push(entry); } });
-  }))
-    .then(function() {
-      if(!file) { return; }
-      status('Resizing...');
-      return new Promise(function(resolve,reject) { loadpica(resolve); })
-        .then(function() { return createImageBitmap(file); })
-        .then(function(bitmap) {
-          var resizer = pica();
-          files.push({"name": names.master, "blob": file});
-          return resizeimage(resizer,bitmap,1000,600,file.type)
-            .then(function(b) { files.push({"name": names.details, "blob": b}); return resizeimage(resizer,bitmap,1000,210,file.type); })
-            .then(function(b) { files.push({"name": names.select, "blob": b}); });
-        });
+  status('Resizing...');
+  new Promise(function(resolve,reject) { loadpica(resolve); })
+    .then(function() { return createImageBitmap(file); })
+    .then(function(bitmap) {
+      var resizer = pica();
+      files.push({"name": names.master, "blob": file});
+      return resizeimage(resizer,bitmap,1000,600,file.type)
+        .then(function(b) { files.push({"name": names.details, "blob": b}); return resizeimage(resizer,bitmap,1000,210,file.type); })
+        .then(function(b) { files.push({"name": names.select, "blob": b}); });
     })
     .then(function() {
-      if(legacy.length && !legacyentries.length) { throw new Error('None of the old image files could be read, so nothing was changed.'); }
       status('Uploading...');
       return uploadimagefiles(db,hash,files,overwrite,cardid,printid);
     })
     .then(function() {
-      // Old images first, then the existing ones, then the new one (or replace it in place).
+      // The existing images, then the new one (or replace it in place).
       // The user reviews the JSON and presses Update to save.
-      var image = legacyentries.concat(existing);
-      if(names) {
-        var at = image.findIndex(e => e.master == names.master);
-        if(at >= 0) { image[at] = names; } else { image.push(names); }
-      }
+      var image = existing.slice();
+      var at = image.findIndex(e => e.master == names.master);
+      if(at >= 0) { image[at] = names; } else { image.push(names); }
       printing.imagehash = hash;
       printing.image = image;
-      delete printing.printimagehash;
       $('#editcard').val(JSON.stringify(printing,null,2));
       var base = dbinfo[db].imageuri+hash+'/';
       $('#editimagepreview').html(image.map(e => '<img src="'+base+e.select+'?t='+Date.now()+'" />').join(' '));
       $('#editimagehash').prop('readonly',true);
       $('#editimagestem').val(imageuploaddefaults(cardid,printid,printing).stem);
       $('#editimagefile').val('');
-      status((legacyentries.length ? 'Copied '+legacyentries.length+' old image(s). ' : '')+(names ? 'Uploaded '+htmlEncode(names.master)+'. ' : '')+
-             'The image list below now has '+image.length+' image(s): review it and press Update to save.');
+      status('Uploaded '+htmlEncode(names.master)+'. The image list below now has '+image.length+' image(s): review it and press Update to save.');
     })
     .catch(function(e) {
       status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
@@ -2831,7 +2776,7 @@ function cardfetch(cardid,prid=null,qs=null,handler=null) {
     dataType: 'json',
     responseType: 'application/json',
     success: function(data) {
-	    data = imagehashtourl(data);
+	    data = preparecard(data);
 	    cache_card(data);
 	    docard(data,prid,qs);
       if(handler) { handler(); }
@@ -2852,7 +2797,7 @@ function listprefetch(listids,callback=null) {
 	  console.log(data);
 	  // cards deleted from the site are left out of the reply (#188); refreshlist flags them
 	  [].concat(data).forEach(function(c) {
-	      if(c && c.cardid) { cache_card(imagehashtourl(c)); }
+	      if(c && c.cardid) { cache_card(preparecard(c)); }
 	  });
 	  if(callback) {
 	      callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
@@ -2868,32 +2813,9 @@ function listprefetch(listids,callback=null) {
   });
 }
 
-function imagehashtourl(card) {
-    //dbinfo[database].imageuri +
-    if(card.imagehash) {
-	    // TODO:  card.icon is effectively defunct now, right?
-        card.icon = dbinfo[database].imageuri + card.imagehash+'/card_'+card.cardid+'__icon.jpg';
-        card.imageurl = dbinfo[database].imageuri + card.imagehash+'/printing_'+card.cardid+'_'+card.printingprimary+'_';   // then you can add details, select, etc
-    }
-        for(var p = 0; p < card.printing.length; p++) {
-          if(!card.printing[p].images) {
-	          card.printing[p].images = [];
-            stub = 'printing_';
-	          if(card.printing[p].printimagehash) {
-	              for(var h = 0; h < card.printing[p].printimagehash.length; h++) {
-		                card.printing[p].images[h] = dbinfo[database].imageuri + card.printing[p].printimagehash[h] + '/'+stub+card.cardid+'_'+
-                      card.printing[p].printingid+'_'; // then you add details, etc
-	              }
-	          } else {
-              // NOT a problem if using new style
-              if(!card.printing[p].image) {
-	              console.log("Card missing a printimagehash: "+JSON.stringify(card));
-              }
-	          }
-          }
-        }
-        //printing: {{if ~datarequest.field_printing_edition}}{{imagehashfromset ~datarequest.field_printing_edition printing /}}/printing_{{:cardid}}_{{printingidfromset ~datarequest.field_printing_edition printing /}}_select.jpg{{else}}{{:imagehash}}/card_{{:cardid}}__icon.jpg{{/if}}
-    
+// A fetched card, ready for the templates: card.printingreverse maps each reverse searchable's
+// values (and printingid) to the index of the printing that has it.
+function preparecard(card) {
     card.printingreverse = {printingid: {}};
     for(var p = 0; p < card.printing.length; p++) {
         card.printingreverse.printingid[card.printing[p].printingid] = p;
@@ -3147,7 +3069,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 		    // a number from the API; OpenSearch's own shape is {value, relation}
 		    searchcache[database]['querytotal'][qs] = typeof raw.hits.total === 'object' ? raw.hits.total.value : raw.hits.total;
 		    if(dataret.length>0) {
-		      dataret = dataret.map(imagehashtourl);
+		      dataret = dataret.map(preparecard);
 		      var html = rendercards(dataret,datarequest,qs);
 		      if(from > 0) {
 			      $(".moreloading").remove();
@@ -4774,24 +4696,14 @@ function createpdf(data,listoutput='') {
           if(p.image) {
               for(cn = 0; cn < copies; cn++) {
                 if(p.doublesided) {
-  	              for(i of p.image) {  // NEW STYLE
+  	              for(i of p.image) {
                     images.push(newurl(p,i));
                   }
                 } else {
                   images.push(newurl(p,p.image[0]));
                 }
               }
-          } else if(p.images && p.images.length) {
-            for(cn = 0; cn < copies; cn++) {
-              if(p.doublesided) {
-                for(i of p.images) {  // OLD STYLE:  as soon as all games get updated, you can remove this and the code above mentioning printimagehash
-                  images.push(i+size+'.jpg?x-corsworkaround=true'); 
-                }
-              } else {
-                images.push(p.images[0]+size+'.jpg?x-corsworkaround=true');
-              }
-            }
-	        }
+          }
         }
       }
     }
@@ -5072,7 +4984,7 @@ function bubbleup(data,request=null,prid=null) {
   }
   const bkillre = new RegExp("^(" + bubblekill.join("|") + ")$");
   // fields a printing and its card can differ in that aren't wording
-  const nodiff = ["imagehash", "image", "images", "printimagehash", "printingid", "printing", "printingreverse"];
+  const nodiff = ["imagehash", "image", "printingid", "printing", "printingreverse"];
   const requirerev = Object.keys(request).some(function(k) { return k.startsWith("require_"); });
   const mode = textversionnow();
   return data.map(function(card) {
@@ -5641,7 +5553,7 @@ function searchaddallfetch(qs, done) {
 	    dataType: 'json',
 	    data: datarequest,
 	    success: function(raw) {
-		var cards = raw.hits.hits.map(x=>x._source).map(imagehashtourl);
+		var cards = raw.hits.hits.map(x=>x._source).map(preparecard);
 		if(!cards.length) {
 		    total = ids.length; // the search shrank since: add what there is
 		}
@@ -5819,48 +5731,6 @@ function templateprintingidfromset(set,hashes) {
 	} else {
 	    if((e.set||e.edition).includes(set)) {
 		ret=e.printingid;
-	    }
-	}
-    });
-    return ret;
-}
-function templateimagehashfromset(set,hashes) {
-    if(!set) {
-	console.log(["Imagehash issue",set,hashes]);
-	return null;
-    }
-    var ret = '';
-    hashes.forEach(function(e) {
- 	if(Array.isArray(set)) {
-	    set.forEach(function(f) {
-		if((e.set||e.edition).includes(f)) {
-		    ret=e.printimagehash[0];
-		}
-	    });
-	} else {
-	    if((e.set||e.edition).includes(set)) {
-		ret=e.printimagehash[0];
-	    }
-	}
-    });
-    return ret;
-}
-function templateimagefromset(set,hashes) {
-    if(!set) {
-	console.log(["Image issue",set,hashes]);
-	return null;
-    }
-    var ret = '';
-    hashes.forEach(function(e) {
-	if(Array.isArray(set)) {
-	    set.forEach(function(f) {
-		if((e.set||e.edition).includes(f)) {
-		    ret=e.images[0];
-		}
-	    });
-	} else {
-	    if((e.set||e.edition).includes(set)) {
-		ret=e.images[0];
 	    }
 	}
     });
@@ -6076,8 +5946,6 @@ function templatefetchimage(card,size,id=false,datarequest={}) {
             } 
             return missingimage[0];
         }
-    } else if("images" in prdata) {
-        return prdata.images[0]+size+'.jpg';
     } else {
         if(size in missingimage) {
             return missingimage[size];
@@ -7244,7 +7112,7 @@ const updatelogshown = 10;
 // than one card) start collapsed; one card is shown inline, no cards (a mass image upload)
 // shows nothing.
 function updatelogrows(raw, db) {
-  raw.cards.hits.hits.map(x=>x._source).map(imagehashtourl).forEach(function(dataitem) {
+  raw.cards.hits.hits.map(x=>x._source).map(preparecard).forEach(function(dataitem) {
     cache_card(dataitem);
   });
   return raw.logs.map(function(uplog) {

@@ -477,7 +477,7 @@ function setimpcardview(c, el) {
   var draw = function(card, pid, note) {
     try {
       delete card.updatelog;
-      card = imagehashtourl(card);
+      card = preparecard(card);
       var out = cardhtml(card, pid, null);
       var $stage = $('#setimp-stage');
       if(!$stage.length) { $stage = $('<div id="setimp-stage" style="display: none"></div>').appendTo('body'); }
