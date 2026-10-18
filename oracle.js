@@ -534,13 +534,15 @@ function getuid() {
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
-  if(listid && cache_thing("list",listid) != null) {
+  // exports (listoutput: text, Sun and Moon, PDF) skip the cache, so they never use a copy another computer has changed
+  if(listid && !listoutput && cache_thing("list",listid) != null) {
 	  console.log("cached");
 	  $("#lastlistid").val(listid);
 	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
 	  if(done) {
 	    done();
 	  }
+	  listrevalidate(listid);
   } else {
     console.log("listinfo_ajax");
 	  $.ajax({
@@ -553,18 +555,11 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	    success: function(data) {
 		    console.log(data);
 		    if(listid) {
-		      if(updatepending[listid] && cache_thing("list",listid)) {
+		      if(listunsaved(listid) && cache_thing("list",listid)) {
 			// unsaved local edits are newer than the server's copy
 			data = cache_thing("list",listid);
 		      }
-		      if(data.list.Items[0].sort == undefined) {
-			      if(data.list.Items[0].type == 'deck') {
-			        data.list.Items[0].sort = 'deck';
-			        console.log('setting deck');
-			      } else {
-			        data.list.Items[0].sort = '';
-			      }
-		      }
+		      listsortdefault(data);
 		      cache_thing("list",listid,data);
 		      $("#lastlistid").val(listid);
 		      renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
@@ -589,6 +584,66 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	  });
   }
 }
+function listsortdefault(data) {
+  if(data.list.Items[0].sort == undefined) {
+    data.list.Items[0].sort = data.list.Items[0].type == 'deck' ? 'deck' : '';
+  }
+}
+// edits not saved yet, or a save on its way: the local copy is newer than the server's
+var listsaving = {};
+function listunsaved(listid) {
+  return !!(updatepending[listid] || listsaving[listid]);
+}
+// A list shown from its cached copy: fetch the server's copy behind it, and if another computer changed
+// the list (#337), cache it and redraw what shows it. Local edits not yet saved win.
+function listrevalidate(listid) {
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid,
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      var cached = cache_thing("list",listid);
+      if(listunsaved(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
+        return;
+      }
+      listsortdefault(data);
+      if(JSON.stringify(data.list.Items[0]) == JSON.stringify(cached.list.Items[0])) {
+        return;
+      }
+      console.log("list changed elsewhere: "+listid);
+      cache_thing("list",listid,data);
+      if($("#lastlistid").val() == listid) {
+        renderlist(data.list.Items[0],false,null+(outputheaders?'':',noheaders'));
+      }
+      renderlisteditarea();
+      refreshactivelistviews();
+    },
+    error: function(error) { console.log("list refresh failed: "+listid); }
+  });
+}
+// back on this tab (maybe after editing on another computer): refresh the directory and the lists in use
+var listsrevalidated = 0;
+function listsrevalidate() {
+  if(document.hidden || !refreshtoken() || !cache_thing("list","data") || Date.now() - listsrevalidated < 30*1000) {
+    return;
+  }
+  listsrevalidated = Date.now();
+  listinfo();
+  var ids = activelists.slice();
+  var shown = $("#lastlistid").val();
+  if(shown && ids.indexOf(shown) < 0) {
+    ids.push(shown);
+  }
+  ids.forEach(function(listid) {
+    if(cache_thing("list",listid)) {
+      listrevalidate(listid);
+    }
+  });
+}
+document.addEventListener('visibilitychange', listsrevalidate);
+window.addEventListener('focus', listsrevalidate);
+
 // failed: called if the update doesn't go through
 function listinfoupdate(listid,field,value,failed=null) {
   // valid fields:
@@ -601,6 +656,9 @@ function listinfoupdate(listid,field,value,failed=null) {
   var message_status = $('#list_modified\\:'+listid);
   var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
   console.log(url);
+  if(field == 'list') {
+    listsaving[listid] = (listsaving[listid] || 0) + 1;
+  }
   $.ajax({
 	  type: "GET",
 	  url: url,
@@ -636,6 +694,10 @@ function listinfoupdate(listid,field,value,failed=null) {
 		failed();
 	    }
 	  }
+  }).always(function() {
+    if(field == 'list' && !--listsaving[listid]) {
+      delete listsaving[listid];
+    }
   });
 }
 
