@@ -155,8 +155,10 @@ All of:
 
 The set clause is an `all` clause, so the printing shown is a Jade-arc one. It drops 487 Jade
 Extended cards that were never reprinted in the arc: Imperial-only Strategies, Items, Holdings,
-Followers, Regions and Ancestors, and 58 Imperial Personalities still legal in Jade (Akodo Kage,
-Bayushi Kachiko, the Scorpion Clan Coup cards).
+Followers, Regions and Ancestors, and 58 Imperial Personalities (Akodo Kage, Bayushi Kachiko, the
+Scorpion Clan Coup cards). Those Personalities are Jade-legal only through Jade's experienced rule (a
+Personality whose experienced version was printed in Jade counts as Jade). Jade Extended 2000 has no
+such rule, which is what sets it apart from Jade Extended.
 
 ### Legacy (11,981)
 
