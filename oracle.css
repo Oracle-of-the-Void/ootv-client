@@ -669,6 +669,49 @@ div.listmissing {
 div.listheadxl {
     font-size: x-large;
 }
+/* deck/list Table view (template-table, template-listtable): scrolls sideways on its own on a phone */
+div.listtablewrap {
+    overflow-x: auto;
+    max-width: 100%;
+}
+table.listtable {
+    border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-family: "Times New Roman",Georgia,Serif;
+    border-radius: 7px;
+    overflow: hidden;
+}
+table.listtable th, table.listtable td {
+    padding: 2px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+table.listtable thead th {
+    border-bottom: 1px solid #bbb;
+    white-space: nowrap;
+}
+table.listtable .listtableqty, table.listtable .listtablestat {
+    text-align: right;
+    white-space: nowrap;
+}
+table.listtable tr.listtabledeck th, table.listtable tr.listtabletype th {
+    background: #6e6e6e;
+    background: linear-gradient(to bottom, #888, #575757);
+    color: #fff;
+    font-family: "L5R Title";
+    font-weight: normal;
+    font-size: large;
+}
+table.listtable tr.listtabletype th {
+    font-size: medium;
+    padding-left: 1.5em;
+}
+table.listtable tr.listtablestripe {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+table.listtable td.listtablestat:nth-child(odd), table.listtable thead th.listtablestat:nth-child(odd) {
+    background-color: rgba(90, 110, 160, 0.06);
+}
 /* deck view (template-visual-deck): type rows under a deck header */
 div.deckviewtype {
     display: inline-block;
