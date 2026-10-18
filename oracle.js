@@ -3289,7 +3289,7 @@ function liststatstextfield() {
 function liststatsplain(v) {
     return String(v || '').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
 }
-// each deck's keywords (copies and distinct cards), most copies first, and how many other cards in the whole list
+// each deck's keywords (copies), most copies first, and how many other cards in the whole list
 // name each one in their text (a whole word, as printed, plural allowed; a card's own keywords don't count)
 function liststatskeywords(cards, decks) {
     var kwfield = liststatskeywordfield();
@@ -3321,10 +3321,9 @@ function liststatskeywords(cards, decks) {
 	cards.filter(function(c) { return d.match(c); }).forEach(function(c) {
 	    kws(c).forEach(function(k) {
 		if(!counts[k]) {
-		    counts[k] = {"name": k, "copies": 0, "distinct": 0};
+		    counts[k] = {"name": k, "copies": 0};
 		}
 		counts[k].copies += c.qty;
-		counts[k].distinct += 1;
 	    });
 	});
 	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], references(k)); });
@@ -3363,10 +3362,10 @@ function liststats(listdata) {
 	var copies = d.cards.reduce(function(t,c) { return t + c.qty; }, 0);
 	var types = group(d.cards, function(c) { return join(c.card.type) || 'Other'; }).map(function(t) {
 	    var tc = t.cards.reduce(function(s,c) { return s + c.qty; }, 0);
-	    return {"name": t.name, "copies": tc, "distinct": t.cards.length, "pct": liststatspct(tc, copies),
+	    return {"name": t.name, "copies": tc, "pct": liststatspct(tc, copies),
 		    "avgs": liststatsavgs(t.cards, fields, false)};
 	});
-	return {"name": d.name, "copies": copies, "distinct": d.cards.length, "pct": liststatspct(copies, total),
+	return {"name": d.name, "copies": copies, "pct": liststatspct(copies, total),
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
     var deckkey = function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; };
