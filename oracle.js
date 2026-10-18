@@ -534,13 +534,15 @@ function getuid() {
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
-  if(listid && cache_thing("list",listid) != null) {
+  // exports (listoutput: text, Sun and Moon, PDF) skip the cache, so they never use a copy another computer has changed
+  if(listid && !listoutput && cache_thing("list",listid) != null) {
 	  console.log("cached");
 	  $("#lastlistid").val(listid);
 	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
 	  if(done) {
 	    done();
 	  }
+	  listrevalidate(listid);
   } else {
     console.log("listinfo_ajax");
 	  $.ajax({
@@ -553,18 +555,13 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	    success: function(data) {
 		    console.log(data);
 		    if(listid) {
-		      if(updatepending[listid] && cache_thing("list",listid)) {
+		      if(listunsaved(listid) && cache_thing("list",listid)) {
 			// unsaved local edits are newer than the server's copy
 			data = cache_thing("list",listid);
+		      } else {
+			listsetbase(listid,data.list.Items[0].list,data.list.Items[0].rev);
 		      }
-		      if(data.list.Items[0].sort == undefined) {
-			      if(data.list.Items[0].type == 'deck') {
-			        data.list.Items[0].sort = 'deck';
-			        console.log('setting deck');
-			      } else {
-			        data.list.Items[0].sort = '';
-			      }
-		      }
+		      listsortdefault(data);
 		      cache_thing("list",listid,data);
 		      $("#lastlistid").val(listid);
 		      renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
@@ -589,6 +586,121 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	  });
   }
 }
+function listsortdefault(data) {
+  if(data.list.Items[0].sort == undefined) {
+    data.list.Items[0].sort = data.list.Items[0].type == 'deck' ? 'deck' : '';
+  }
+}
+// edits not saved yet, or a save on its way: the local copy is newer than the server's
+var listsaving = {};
+function listunsaved(listid) {
+  return !!(updatepending[listid] || listsaving[listid]);
+}
+// The server's copy local edits started from: when another computer saved first (409), the cards are
+// merged three ways, so both computers' changes are kept.
+function listsetbase(listid,list,rev) {
+  cache_thing("listbase",listid,{"rev": rev || 0, "list": list});
+}
+function listmerge(listid,server) {
+  var local = cache_thing("list",listid);
+  var base = cache_thing("listbase",listid);
+  if(!(server && server.Items && server.Items[0]) || !(local && local.list && local.list.Items && local.list.Items[0])) {
+    return;
+  }
+  var key = function(c) { return c.cardid+'/'+(c.printing||0); };
+  var qty = function(list) {
+    var q = {};
+    (list || []).forEach(function(c) { q[key(c)] = (q[key(c)] || 0) + parseInt(c.quantity); });
+    return q;
+  };
+  // no base (cached before this version): this computer's copy wins, as saves used to
+  var lq = qty(local.list.Items[0].list), bq = base ? qty(base.list) : lq, sq = qty(server.Items[0].list);
+  var merged = [], seen = {};
+  // the server's order first, then cards only this computer added; each count is the server's plus this computer's change
+  server.Items[0].list.concat(local.list.Items[0].list).forEach(function(c) {
+    var k = key(c);
+    if(seen[k]) {
+      return;
+    }
+    seen[k] = 1;
+    var n = base ? (sq[k] || 0) + (lq[k] || 0) - (bq[k] || 0) : (lq[k] || 0);
+    if(n > 0) {
+      merged.push({"cardid": c.cardid, "printing": c.printing || 0, "quantity": n});
+    }
+  });
+  console.log("list changed elsewhere, merged: "+listid);
+  var data = {"list": server};
+  listsortdefault(data);
+  listsetbase(listid,server.Items[0].list,server.Items[0].rev);
+  data.list.Items[0].list = merged;
+  listcounts(data);
+  cache_thing("list",listid,data);
+  $('#list_modified\\:'+listid).text("Merged with changes from another computer");
+  if($("#lastlistid").val() == listid) {
+    renderlist(data.list.Items[0],false,null+(outputheaders?'':',noheaders'));
+  }
+  renderlisteditarea();
+  refreshactivelistviews();
+  // save the merged cards soon
+  updatepending[listid] = 1;
+  clearTimeout(savetimeout);
+  savetimeout = setTimeout(savecallback,1000);
+}
+// A list shown from its cached copy: fetch the server's copy behind it, and if another computer changed
+// the list (#337), cache it and redraw what shows it. Local edits not yet saved win.
+function listrevalidate(listid) {
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid,
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      var cached = cache_thing("list",listid);
+      if(listunsaved(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
+        return;
+      }
+      listsortdefault(data);
+      listsetbase(listid,data.list.Items[0].list,data.list.Items[0].rev);
+      if(JSON.stringify(data.list.Items[0]) == JSON.stringify(cached.list.Items[0])) {
+        return;
+      }
+      console.log("list changed elsewhere: "+listid);
+      cache_thing("list",listid,data);
+      if($("#lastlistid").val() == listid) {
+        renderlist(data.list.Items[0],false,null+(outputheaders?'':',noheaders'));
+      }
+      renderlisteditarea();
+      refreshactivelistviews();
+    },
+    error: function(error) { console.log("list refresh failed: "+listid); }
+  });
+}
+// back on this tab (maybe after editing on another computer): refresh the directory and the lists in use.
+// A tab left on screen checks its lists every 30s too (polling: no directory), for two windows side by side.
+var listsrevalidated = 0;
+function listsrevalidate(polling) {
+  if(document.hidden || !refreshtoken() || !cache_thing("list","data") || Date.now() - listsrevalidated < 5*1000) {
+    return;
+  }
+  listsrevalidated = Date.now();
+  if(polling !== true) {
+    listinfo();
+  }
+  var ids = activelists.slice();
+  var shown = $("#lastlistid").val();
+  if(shown && ids.indexOf(shown) < 0) {
+    ids.push(shown);
+  }
+  ids.forEach(function(listid) {
+    if(cache_thing("list",listid)) {
+      listrevalidate(listid);
+    }
+  });
+}
+document.addEventListener('visibilitychange', listsrevalidate);
+window.addEventListener('focus', listsrevalidate);
+setInterval(function() { listsrevalidate(true); }, 30*1000);
+
 // failed: called if the update doesn't go through
 function listinfoupdate(listid,field,value,failed=null) {
   // valid fields:
@@ -601,6 +713,14 @@ function listinfoupdate(listid,field,value,failed=null) {
   var message_status = $('#list_modified\\:'+listid);
   var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
   console.log(url);
+  var cachedlist = cache_thing("list",listid);
+  if(field == 'list') {
+    listsaving[listid] = (listsaving[listid] || 0) + 1;
+    if(cachedlist && cachedlist.list && cachedlist.list.Items && cachedlist.list.Items[0]) {
+      // save over the version these edits started from; another computer's save since gets a 409 (#337)
+      url += "&baserev="+(cachedlist.list.Items[0].rev || 0);
+    }
+  }
   $.ajax({
 	  type: "GET",
 	  url: url,
@@ -609,6 +729,14 @@ function listinfoupdate(listid,field,value,failed=null) {
 	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
 	  responseType: 'application/json',
 	  success: function(status) {
+      if(field == 'list' && status && status.rev) {
+        listsetbase(listid,JSON.parse(value),status.rev);
+        var saved = cache_thing("list",listid);
+        if(saved && saved.list && saved.list.Items && saved.list.Items[0]) {
+          saved.list.Items[0].rev = status.rev;
+          cache_thing("list",listid,saved);
+        }
+      }
       //message_status.show();
       message_status.text("List Updated");
       //hide the message
@@ -632,10 +760,18 @@ function listinfoupdate(listid,field,value,failed=null) {
 	  },
 	  error: function(status) {
 	    console.log(status);
+	    if(field == 'list' && status.status == 409 && status.responseJSON && status.responseJSON.list) {
+		listmerge(listid,status.responseJSON.list);
+		return;
+	    }
 	    if(failed) {
 		failed();
 	    }
 	  }
+  }).always(function() {
+    if(field == 'list' && !--listsaving[listid]) {
+      delete listsaving[listid];
+    }
   });
 }
 
