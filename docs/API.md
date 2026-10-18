@@ -530,12 +530,9 @@ It records the URLs handed out. The PUTs go straight to S3, so the server can't 
 they succeeded, and files that are uploaded but never saved to a card are still listed.
 
 Afterwards, save the image on the printing with /update `updateinstance`, using the modern layout
-only: `imagehash` plus `image: [{master, details, select}, ...]`, and no `printimagehash` (see data.md).
+(the only one since 2026-10-18): `imagehash` plus `image: [{master, details, select}, ...]` (see data.md).
 A printing has one `imagehash` directory, so every image of the printing goes there, and a new image
-is appended to `image`, not swapped in. The card editor converts a legacy printing on the way: it copies
-`<printimagehash[i]>/printing_<cardid>_<printingid>_{master,details,select}.jpg` byte for byte into the
-directory (adding `_<i+1>` after the first, since legacy directories reuse the same names) and lists
-them first.
+is appended to `image`, not swapped in.
 
 ## /loginlog
 
