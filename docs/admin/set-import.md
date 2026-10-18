@@ -148,6 +148,14 @@ Steps go in `fields` too:
   a `bool` question `strongholdback` ("Strongholds have a back image (b)"), and the extra's
   condition is `{"card.type": "Stronghold", "params.strongholdback": true}`.
 
+Two clean-ups in the L5R profiles (`onyx`, `three-dynasties`):
+
+- The `deck` table puts Sensei, Strongholds and Winds in `Pre-Game`.
+- Game text ends with `{"replace": "boldfix"}`, which fixes bold tags the spreadsheet left
+  unbalanced: a stray `<b>` at the end is dropped (Togashi Hachimon in Three Dynasties), and a
+  `</b>` with no `<b>` before it on its line gets one at the start of that line
+  (`Courtesy:</b>` → `<b>Courtesy:</b>`, House of Virtues). Empty `<b></b>` pairs are removed.
+
 Template filters: `pad:<n or param>`, `initials`, `lower`, `upper`.
 
 ### Transforms
