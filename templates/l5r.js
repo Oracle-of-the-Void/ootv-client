@@ -368,6 +368,7 @@ updates['l5r'] = function (area) {
     replace(/:maho:/g,'<img class="inlinesymbolbounded" src="res/onyx/maho.png" />'). // | onyx symbol: 
     replace(/:thunder:/g,'<img class="inlinesymbolbounded" src="res/onyx/thunder.png" />'). // | onyx symbol: 
     replace(/:shadowlands:/g,'<img class="inlinesymbolbounded" src="res/onyx/shadowlands.png" />'). // | onyx symbol: 
+    replace(/:tengoku:/g,'<img class="inlinesymbolbounded" src="res/onyx/tengoku.png" />'). // | onyx symbol: 
 
     replace(/:air\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bair.png" />'). // | onyx symbol: 
     replace(/:earth\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bearth.png" />'). // | onyx symbol: 
@@ -379,6 +380,7 @@ updates['l5r'] = function (area) {
     replace(/:maho\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bmaho.png" />'). // | onyx symbol: 
     replace(/:thunder\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bthunder.png" />'). // | onyx symbol: 
     replace(/:shadowlands\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/bshadowlands.png" />'). // | onyx symbol: 
+    replace(/:tengoku\+:/g,'<img class="inlinesymbolbounded" src="res/onyx/btengoku.png" />'). // | onyx symbol: 
 
     replace(/:fear:/g,'<img class="inlinesymbolbounded" src="res/onyx/fear.png" />'). // | onyx symbol: 
     replace(/:melee:/g,'<img class="inlinesymbolbounded" src="res/onyx/melee.png" />'). // | onyx symbol: 
