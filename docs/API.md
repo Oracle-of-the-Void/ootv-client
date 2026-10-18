@@ -9,6 +9,7 @@
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
+* [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
 
 ### Needing Authentication
 
@@ -347,7 +348,7 @@ inputs:
   * TODO: when updating 'list' field, we should have a field that has the quantity of cards in it that gets updated as well, so general listing can have that info
 * action (optional)
   * remove
-    * delete that list
+    * delete that list (owner only, 403 otherwise)
 
 outputs:
 
@@ -380,6 +381,29 @@ codes:
 * 404 user not found
 * 403 not owner of list
 * 500 failed to create 64 bit int and not collide with another in 10 tries (new list)  if we start seeing this, we adjust the random generation
+
+## /publiclist
+
+GET, no authentication (ootv-search `routes/publiclist.js`): a list whose `public` is true, for shared
+deck links (`#game=<g>,#listid=N`) opened without logging in. Logged in, `/list` with the listid
+returns another user's public list too.
+
+Call it as a CORS simple request: no `Authorization` or `Content-Type` header (the route has no
+OPTIONS preflight), so don't pass `contentType` to `$.ajax`.
+
+inputs:
+
+* listid (required)
+
+outputs:
+
+* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing)
+
+codes:
+
+* 200 success
+* 400 no listid
+* 404 no such list, or it isn't public (the same answer, so a link doesn't show whether a private list exists)
 
 
 ## /update
