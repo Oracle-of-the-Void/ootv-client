@@ -59,7 +59,8 @@ Both need the `setimport` permission (or `*`) for the game.
    type `new` to keep one new). Duplicates (the card already has this set) are skipped and listed. Every image must be uploaded, the set
    registered, every legality known, every printing given a publisher. A clan or type no live
    card has is a **problem** (usually a typo or a missing profile table entry): fix it, or tick
-   *accept* in *New values* if it really is new, and plan again; that list also says whether the
+   *accept* if it really is new (next to the problem, or in *New values*, which is always open
+   when there are any), and plan again; that list also says whether the
    site's templates mention the value (icons, sorting). New keywords are listed there too, as
    warnings. Other new values (deck, rarity, ...) are
    warnings. HTML tags that don't pair up in any field of a new card or a new printing (a stray
@@ -68,7 +69,10 @@ Both need the `setimport` permission (or `*`) for the game.
    Fix the CSV, or the profile when the spreadsheet does it again and again (see `boldfix`
    below). `<br>` doesn't count. Reprints whose printed text differs from their card are listed in *Text
    differences* with a word diff (the card's text isn't changed; errata is done by hand).
-   **Problems** block going live; **warnings** are for you to read. Every row file name in
+   **Problems** block going live: step 6 doesn't appear until a plan has none. While there are
+   problems, the bottom of step 5 has another *Plan again* button for re-checking once they're
+   fixed. **Warnings** don't block anything, but they can still be real problems: check every
+   one before going live. Every row file name in
    them (`3D_039.json`) and in the lists below is a link: it opens the preview window on just
    that card, expanded.
    In the reprint list, type a cardid to change a match, `new` to make the row a new card, or
