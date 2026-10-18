@@ -246,7 +246,7 @@ Changes the signed-in user's own row in `oracle-all-users` (issue #21). The body
 
 | action | body | does |
 |---|---|---|
-| (none) | `firstname` (required, 1-50 chars), `lastname` (0-50; empty clears it) | sets the name. Shown in the menu bar and Settings; `/update` and `/upload` log it as `uname` on card edits from then on. Neither may contain `< > & "` or control characters. |
+| (none) | `firstname` (required, 1-50 chars), `lastname` (0-50; empty clears it), `displayname` (optional, 0-50; empty clears it, left out leaves it as is) | sets the name. Shown in the menu bar and Settings; `/update` and `/upload` log it as `uname` on card edits from then on. `displayname` is what others see as the owner of your public lists (`ownername`); without one they see your initials. None may contain `< > & "` or control characters. |
 | `addemail` | `email` | emails a 6-digit code to the address (expires in 15 minutes) and sets `emailpending: {email, expires}`. At most one code a minute and 5 a day. 400 if the address is already on the account. |
 | `verifyemail` | `email`, `code` | with the right code, adds an `oracle-all-emails` row (lowercase) and appends the address to `emails`. 5 wrong codes and it's dropped. 409 if the address already belongs to another account (a merge, done by hand). |
 | `cancelemail` | | drops `emailpending` |
@@ -318,7 +318,8 @@ inputs:
   * uid of user to search for lists of.
 * listid (optional)
   * 'new': create new list
-    * json (optional): the whole new item as JSON (name, list, public, type, folder, ...); it replaces the defaults
+    * json (optional): the whole new item as JSON (name, list, public, type, folder, ...); it replaces the defaults.
+      The server's own fields (`source`, `ownername`, `owner`, `listid`, `rev`) are dropped from it
   * '': retrieve metadata for all lists for current user
   * otherwise needs to be a valid listid owned by the user, or set public by another user
 * database (required for 'new' or '' listid)
@@ -340,6 +341,12 @@ inputs:
 * action (optional)
   * remove
     * delete that list (owner only, 403 otherwise)
+  * duplicate
+    * your own list: a copy named "Copy of <name>"
+    * someone else's public list (the list view's "Copy to my lists"): a private copy, with no `folder`, that
+      keeps where it came from in `source: {listid, owner, ownername, name, modified, copied}` (plus the
+      original's own `source` inside it, when that was a copy too). `source` stays even if the original is
+      deleted or made private; only the server writes it
 
 outputs:
 
@@ -358,6 +365,9 @@ outputs:
     * name
     * modified
     * list (array of { {cardid: x, quantity: x, printing: x }, ... } )
+    * source (a copy of someone else's list; see duplicate)
+    * someone else's public list: also `ownername` (their display name, else initials such as "A.L.", else
+      "another player"), and no `folder`. Escape it when showing it
 * listid 'new'
   * same as above, but data is in list.Item (no array... difference between Dynamo and elastic)  TODO: eventually eliminate this difference
   * list initial blank array
@@ -369,7 +379,7 @@ outputs:
 codes:
 
 * 200 success
-* 404 user not found
+* 404 user not found, or no such list
 * 403 not owner of list
 * 500 failed to create 64 bit int and not collide with another in 10 tries (new list)  if we start seeing this, we adjust the random generation
 
@@ -388,7 +398,8 @@ inputs:
 
 outputs:
 
-* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing)
+* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing),
+  with `ownername` (as `/list` gives for someone else's list)
 
 codes:
 
@@ -458,7 +469,7 @@ outputs:
 codes:
 
 * 200 success
-* 404 user not found
+* 404 user not found, or no such list
 * 403 not owner of list
 * 500 database error
 * 500 missing required fields

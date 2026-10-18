@@ -751,6 +751,13 @@ printingprimary
         <br/><small class="profilenamenote">Keep your first name short: phones show only the first name at the top of the page, and shorter fits better.</small>
       </span> <span class="profilenamestatus"></span>
       <br/><small>Shown at the top of the page, and as your name on card edits you make from now on.</small></dd>
+    <dt>Display name</dt><dd><span class="profiledisplayname">{{if oracle.displayname}}{{>oracle.displayname}}{{else}}<i>Not set</i>{{/if}} <span class="button gray" onclick="editprofiledisplayname(this);">Edit <svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></span></span>
+      <span class="profiledisplaynameform" style="display:none">
+        <input type="text" class="profiledisplaynameinput" maxlength="50" placeholder="{{>sharedname}}" aria-label="Display name" value="{{>oracle.displayname}}"/>
+        <span class="button gray" onclick="saveprofiledisplayname(this);">Save <svg class="feather"><use xlink:href="res/feather-sprite.svg#save"></svg></span>
+        <span class="button gray" onclick="rendersettings();">Cancel</span>
+      </span> <span class="profiledisplaynamestatus"></span>
+      <br/><small>Shown to others on the lists you make Public{{if !oracle.displayname}} (now your initials, <b>{{>sharedname}}</b>){{/if}}. Leave it empty to show your initials.</small></dd>
     <dt>Joined</dt><dd>{{formatDate:oracle.insert_date}}</dd>
     <dt>Uid</dt><dd>{{:oracle.uid}}</dd>
     <dt>Emails</dt><dd class="profileemails">
@@ -992,7 +999,9 @@ printingprimary
 </script> <!-- template-listcards -->
 
 <!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
-     controls (activate toggle, actions menu, rename, type/legality/public, notes); anyone else's is read only.
+     controls (activate toggle, actions menu, rename, type/legality/public, notes) and, when it's public, the
+     share link; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
+     the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
@@ -1007,20 +1016,55 @@ printingprimary
     <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
     <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if !public}} selected{{/if}}>Private</option><option value="true"{{if public}} selected{{/if}}>Public</option></select>
     <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
+    {{if public}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
   </div>
+  {{include tmpl="#template-listsource"/}}
   <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
   {{else}}
-  <span class="listviewname">{{:name}}</span>
+  <div class="listviewshared" role="note">
+    <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#eye"></svg>
+    <span class="listviewsharedtext">Shared deck by <b>{{>ownername || 'another player'}}</b> &#149; read only</span>
+    {{if ~loggedin}}<button type="button" class="button gray buttonsmaller" title="Make your own private copy to change. It keeps a note of where it came from." onclick="copysharedlist(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Copy to my lists</button>{{else}}<button type="button" class="button gray buttonsmaller" onclick="dologin(); return false;">Log in to copy it</button>{{/if}}
+  </div>
+  <div class="listviewtitle">
+    <span class="dirmenucell">{{include tmpl="#template-sharedlistmenu"/}}</span>
+    <span class="listviewname">{{>name}}</span>
+  </div>
   <span class="listviewdetails">
     {{:~listtypes[type] || type}}
     {{if legality}} &#149; {{nbsptospace:legality}}{{/if}}
-    &#149; {{if public}}Public{{else}}Private{{/if}}
     {{if createdate}} &#149; Created {{formatDate:createdate}}{{/if}}
     {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
   </span>
+  {{include tmpl="#template-listsource"/}}
   {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
   {{/if}}
 </div>
+</script>
+
+<!-- list header: a copy of someone else's shared deck says where it came from (source, written by the API on
+     Copy to my lists; it stays even if the original is deleted or made private) -->
+<script id="template-listsource" type="text/x-jsrender">
+{{if source}}<div class="listviewsource">Copied {{if source.copied}}{{formatDateShort:source.copied}} {{/if}}from
+  <a href="#game={{:~database}},#listid={{:source.listid}}">{{>source.name}}</a>, shared by {{>source.ownername || 'another player'}}.</div>{{/if}}
+</script>
+
+<!-- shared deck header (someone else's list): its actions; the downloads as template-listmenu has them -->
+<script id="template-sharedlistmenu" type="text/x-jsrender">
+<nav role="listmenu"><ul class="menuone">
+<li class="right"><button aria-label="List actions" class="iiconic iblue"><svg class="feather"><use xlink:href="res/feather-sprite.svg#command"></svg></button>
+  <ul class="dirlistmenu">
+  {{if ~loggedin}}<li onclick="copysharedlist(null,'{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Copy to my lists</li>{{/if}}
+  <li class="sortmodehead">Download</li>
+  {{if ~pdfallowed}}
+  <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</li>
+  <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}_mpc','mpc');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF for MakePlayingCards</li>
+  {{/if}}
+  {{if ~snm}}<li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</li>{{/if}}
+  <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Native Oracle (Tab-delimited)</li>
+  <li onclick="toggleheaders();"><button class="iiconic ipositive toggleheaderson"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button><button style="display:none;" class="iiconic inegative toggleheadersoff"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button> Headers in downloads</li>
+  </ul>
+</li></ul></nav>
 </script>
 
 <!-- list view: statistics under the header (liststats in oracle.js). Each deck (the game's deck field, or one
@@ -1148,13 +1192,14 @@ printingprimary
 
 </script> <!-- template-card-middle -->
 
-<!-- deck/list view, Detail and Visual Spoiler formats (template-<game>-search, template-visual): count and +/- for the list being shown; addlistitem re-renders the list -->
+<!-- deck/list view, Detail and Visual Spoiler formats (template-<game>-search, template-visual): count and +/- for the list being shown; addlistitem re-renders the list.
+     Someone else's shared list (no ~listmine): just the count. -->
 <script id="template-decklistcontrols" type="text/x-jsrender">
      <div class="listmanagement">
-	<span class="listqty" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{:listprinting||0}}">{{:listquantity}}</span>
+	<span class="listqty" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{:listprinting||0}}">{{:listquantity}}</span>{{if ~listmine}}
 	<span class="iiconic ipositive" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></span>
 	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},-1,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#minus-circle"></span>
-	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},null,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+	<span class="iiconic inegative" onclick="addlistitem('{{:~datarequest.listid}}','{{:cardid}}',{{:listprinting||0}},null,false,'{{:~datarequest.sort}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>{{else}}x{{/if}}
      </div>
 </script>
 

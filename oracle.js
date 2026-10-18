@@ -549,12 +549,9 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	  listrevalidate(listid);
   } else {
     console.log("listinfo_ajax");
-	  $.ajax({
+	  $.ajax($.extend(listrequest(listid), {
 	    type: 'GET',
-	    url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
-	    contentType: 'application/json',
 	    dataType: 'json',
-	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
 	    responseType: 'application/json',
 	    success: function(data) {
 		    console.log(data);
@@ -586,9 +583,49 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
           renderlisteditarea();
 		    }
 	    },
-	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
-	  });
+	    error: function(error) {
+		    console.log("Epic Fail: "+JSON.stringify(error));
+		    if(listid && switchview && !listoutput && (error.status == 403 || error.status == 404)) {
+		      listunavailable();
+		    }
+	    }
+	  }));
   }
+}
+// a list's GET: your own lists (and others' public ones) through /list; logged out, a public list through
+// /publiclist, as a CORS simple request (no Content-Type or Authorization: it has no OPTIONS route)
+function listrequest(listid) {
+  if(!listid || listloggedin()) {
+    return {
+      url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
+      contentType: 'application/json',
+      beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+    };
+  }
+  return {url: apiuri+"/publiclist?listid="+encodeURIComponent(listid)};
+}
+function listloggedin() {
+  var user = cache_thing("user","data");
+  return !!(user && ("oracle" in user));
+}
+// the list is the logged-in user's own: in their directory, or owned by them (a list fetched before the
+// directory loaded). Only then does the list view show editing tools (listheader, the card rows' ~listmine).
+function listmine(listid) {
+  if(!listid || !listloggedin()) {
+    return false;
+  }
+  var rev = cache_thing("list","datareverse");
+  if(rev && rev[listid] !== undefined) {
+    return true;
+  }
+  var list = cache_thing("list",listid);
+  return !!(list && list.list && list.list.Items[0] && list.list.Items[0].owner == getuid());
+}
+// a #listid link to a list that's private, deleted or never existed (the API answers all three alike)
+function listunavailable() {
+  $('#resultlist').html('<div class="randarea">This list is private or doesn\'t exist.'+
+    (listloggedin() ? '' : ' If it\'s yours, log in to see it.')+'</div>');
+  showviewkeepurl('resultlist');
 }
 function listsortdefault(data) {
   if(data.list.Items[0].sort == undefined) {
@@ -653,11 +690,9 @@ function listmerge(listid,server) {
 // A list shown from its cached copy: fetch the server's copy behind it, and if another computer changed
 // the list (#337), cache it and redraw what shows it. Local edits not yet saved win.
 function listrevalidate(listid) {
-  $.ajax({
+  $.ajax($.extend(listrequest(listid), {
     type: 'GET',
-    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid,
     dataType: 'json',
-    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
     success: function(data) {
       var cached = cache_thing("list",listid);
       if(listunsaved(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
@@ -677,7 +712,7 @@ function listrevalidate(listid) {
       refreshactivelistviews();
     },
     error: function(error) { console.log("list refresh failed: "+listid); }
-  });
+  }));
 }
 // back on this tab (maybe after editing on another computer): refresh the directory and the lists in use.
 // A tab left on screen checks its lists every 30s too (polling 'visible': no directory), for two windows side
@@ -1683,7 +1718,8 @@ function newlist(json=null, done=null) {
     });
 }
 
-function duplicatelist(listid) {
+// done(item): the new list, once it's in the directory; failed: the copy didn't go through
+function duplicatelist(listid, done=null, failed=null) {
   $.ajax({
     type: 'GET',
     url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate",
@@ -1697,8 +1733,16 @@ function duplicatelist(listid) {
   oldlists.lists.Items.unshift(data.list.Item);
   cache_thing("list","data",oldlists);
   listinfocallback();
+  if(done) {
+    done(data.list.Item);
+  }
     },
-    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+    error: function(error) {
+      console.log("Epic Fail: "+JSON.stringify(error));
+      if(failed) {
+        failed(error);
+      }
+    }
   })
 }
 
@@ -1778,6 +1822,10 @@ function listquantity(listid,cardid,prid=0) {
     return item ? item.quantity : 0;
 }
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
+    if(!listmine(listid)) {
+	console.warn("addlistitem: list "+listid+" isn't yours");
+	return;
+    }
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
@@ -1789,6 +1837,10 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
 function addlistitems(listid,items,n=1) {
+    if(!listmine(listid)) {
+	console.warn("addlistitems: list "+listid+" isn't yours");
+	return;
+    }
     var list = cache_thing("list",listid);
     items.forEach(function(item) {
 	listitemchange(list,item[0],item[1],n,false);
@@ -3188,7 +3240,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	var listtmpl = {
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
-		"database":database
+		"database":database,
+		"listmine": listmine(listid)   // the card rows' count controls, only on your own lists
 	};
 	// the template's vars (visual-premium: imageclass details), and the Deck format's large size
 	var override = getactivetemplateoverride('list');
@@ -3254,8 +3307,8 @@ function listheader(listid) {
     var meta = null;
     var dir = cache_thing("list","data");
     var rev = cache_thing("list","datareverse");
-    var mine = !!(dir && rev && rev[listid] !== undefined);
-    if(mine) {
+    var mine = listmine(listid);
+    if(dir && rev && rev[listid] !== undefined) {
 	meta = $.extend({}, dir.lists.Items[rev[listid]]);
     }
     if(cache_thing("list",listid)) {
@@ -3265,7 +3318,36 @@ function listheader(listid) {
 	return '';
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
-	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed()});
+	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
+	"loggedin": listloggedin(), "database": database});
+}
+// the link that opens a list for anyone (logged out: /publiclist), as the address bar has it
+function sharelink(listid) {
+    return location.origin+location.pathname+statehash({view: 'list', listid: listid});
+}
+function copysharelink(el,listid) {
+    var link = sharelink(listid);
+    var done = function() {
+	$(el).find('.sharelinkstatus').remove();
+	$(el).append($('<span class="sharelinkstatus">').text(' (copied)'));
+	setTimeout(function() { $(el).find('.sharelinkstatus').remove(); }, 2000);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText) {
+	navigator.clipboard.writeText(link).then(done, function() { prompt("Copy this link:", link); });
+    } else {
+	prompt("Copy this link:", link);
+    }
+}
+// Copy to my lists: someone else's shared deck becomes your own private list (the API's duplicate, which
+// records where it came from in source), then opens
+function copysharedlist(el,listid) {
+    $(el).prop('disabled', true);
+    duplicatelist(listid, function(item) {
+	listinfo(String(item.listid), true);
+    }, function() {
+	$(el).prop('disabled', false);
+	alert("Couldn't copy the list. Try again in a moment.");
+    });
 }
 // list view header: the pencil edits the name in place (shown on touch too: the header has no long press)
 function listheaderrename(el) {
@@ -3668,7 +3750,7 @@ function rendersettings() {
               'now': settingssortname({'sort': templates[database]['sort']['search'], 'sortdir': templates[database]['sortdir'] && templates[database]['sortdir']['search'],
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
-    'name': username(user), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
+    'name': username(user), 'sharedname': sharedname(user.oracle[0]), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
     'favorite': favoritegame() || '', 'textversion': savedtextversion(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions()),
@@ -3737,6 +3819,36 @@ function saveprofilename(el) {
   status.text("Saving...");
   postprofile({'firstname': firstname, 'lastname': lastname}, status, function() {
     $('.profilenamestatus').text("Saved.");
+  });
+}
+// the name others see on your public lists: as ootv-search lib/owner.js makes ownername
+function sharedname(o) {
+  if(o && o.displayname) {
+    return o.displayname;
+  }
+  var initials = [o && o.firstname, o && o.lastname].filter(function(n) { return n && n.trim(); })
+    .map(function(n) { return Array.from(n.trim())[0].toUpperCase()+'.'; }).join('');
+  return initials || 'another player';
+}
+function editprofiledisplayname(el) {
+  var section = $(el).closest('dd');
+  section.find('.profiledisplayname').hide();
+  section.find('.profiledisplaynameform').show();
+  section.find('.profiledisplaynameinput').focus();
+}
+// the display name goes with the current first and last name: POST /user's profile action sets all three
+function saveprofiledisplayname(el) {
+  var section = $(el).closest('dd');
+  var status = section.find('.profiledisplaynamestatus');
+  var displayname = section.find('.profiledisplaynameinput').val().trim();
+  if(/[<>&"]/.test(displayname)) {
+    status.text("A display name can't contain < > & or \".");
+    return;
+  }
+  var o = cache_thing("user","data").oracle[0];
+  status.text("Saving...");
+  postprofile({'firstname': o.firstname, 'lastname': o.lastname || '', 'displayname': displayname}, status, function() {
+    $('.profiledisplaynamestatus').text("Saved.");
   });
 }
 // the emails for the Profile section: which one you're signed in with, and a code waiting to be entered
@@ -5248,6 +5360,9 @@ function deckswipestart(target, x, y, mouse=false) {
     var a = $(target).closest('a.deckswipe');
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
     deckswipe = null;
+    if(a.data('list') && !listmine(String(a.data('list')))) {
+	return false;   // someone else's shared deck: read only
+    }
     if(listid || (a.length && searchloggedin() && cache_thing("list","data"))) {
 	var g = gesturesettings();
 	var acts = g[a.data('list') ? 'list' : 'search'];
@@ -6711,9 +6826,7 @@ function urlparser(keepfilters=false) {
 	  } else if(signedin()) {
 	    urlpendinglist = matchstruct['listid'];   // opened by listinfocallback once the directory loads
 	  } else {
-	    // TODO: anonymous read of public lists (ootv-search GET /publiclist)
-	    $('#resultlist').html('<div class="randarea">Log in to see this list.</div>');
-	    showviewkeepurl('resultlist');   // keep the #listid url: nothing is drawn for viewstate() to name
+	    listinfo(matchstruct['listid'],true);   // logged out: a public list, read only (listrequest)
 	  }
   } else if(typeof(matchstruct['view']) != 'undefined') {
 	  if(matchstruct['view'] == 'settings') {

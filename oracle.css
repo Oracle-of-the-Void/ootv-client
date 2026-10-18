@@ -594,6 +594,35 @@ div.listviewheader div.listviewnotes[contenteditable]:empty::before {
     content: attr(data-placeholder);
     color: #999;
 }
+/* someone else's shared deck: who owns it, above everything else, and that it's read only */
+div.listviewheader div.listviewshared {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 0 0 6px;
+    padding: 8px 10px;
+    background: #fff4d6;
+    border: 2px solid #d9a400;
+    border-radius: 6px;
+    color: #3d2e00;
+    font-size: medium;
+}
+div.listviewheader div.listviewshared > svg {
+    flex: none;
+    color: #9a7400;
+}
+div.listviewheader div.listviewshared .listviewsharedtext {
+    flex: 1 1 14em;
+    overflow-wrap: anywhere;
+}
+/* a copy of a shared deck: where it came from */
+div.listviewheader div.listviewsource {
+    margin: 2px 0 4px;
+    color: #666;
+    font-size: small;
+    overflow-wrap: anywhere;
+}
 /* list view statistics (liststats) */
 details.liststats {
     margin: 4px 0 8px;
