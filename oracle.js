@@ -3073,6 +3073,69 @@ function liststatsavgs(cards, fields, most) {
     });
     return out;
 }
+// keyword analysis: the game's first keyword-type searchable (L5R keywords, 7th Sea trait, Initial D traits) and
+// its 'text' field; dbinfo[game].statkeywords / stattext override (false = no keyword section)
+function liststatskeywordfield() {
+    var info = dbinfo[database] || {};
+    if(info.statkeywords !== undefined) {
+	return info.statkeywords;
+    }
+    var s = searchables[database] || {};
+    return Object.keys(s).find(function(f) { return s[f] && s[f].type == 'keyword' && f.indexOf('.') < 0; }) || false;
+}
+function liststatstextfield() {
+    var info = dbinfo[database] || {};
+    if(info.stattext !== undefined) {
+	return info.stattext;
+    }
+    return (searchables[database] || {}).text ? 'text' : false;
+}
+function liststatsplain(v) {
+    return String(v || '').replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').trim();
+}
+// each deck's keywords (copies and distinct cards), most copies first, and how many other cards in the whole list
+// name each one in their text (a whole word, as printed, plural allowed; a card's own keywords don't count)
+function liststatskeywords(cards, decks) {
+    var kwfield = liststatskeywordfield();
+    if(!kwfield) {
+	return [];
+    }
+    var textfield = liststatstextfield();
+    var kws = function(c) {
+	var v = c.card[kwfield];
+	return (Array.isArray(v) ? v : (v ? [v] : [])).map(liststatsplain).filter(function(k) { return k; });
+    };
+    var texts = cards.map(function(c) {
+	var v = textfield ? c.card[textfield] : '';
+	return {"c": c, "text": liststatsplain(Array.isArray(v) ? v.join(' ') : v).replace(/\s+/g,' '), "kws": kws(c)};
+    });
+    var escape = function(k) { return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); };
+    var refs = {};
+    var references = function(k) {
+	if(!refs[k]) {
+	    var re = new RegExp('(^|[^A-Za-z0-9])'+escape(k)+'s?(?![A-Za-z0-9])');
+	    var by = texts.filter(function(t) { return t.kws.indexOf(k) < 0 && re.test(t.text); });
+	    refs[k] = {"refcopies": by.reduce(function(n,t) { return n + t.c.qty; }, 0), "refcards": by.length,
+		       "reftitles": by.map(function(t) { return liststatsplain((t.c.card.title || []).join ? t.c.card.title.join(' ') : t.c.card.title); }).join(', ')};
+	}
+	return refs[k];
+    };
+    return decks.map(function(d) {
+	var counts = {};
+	cards.filter(function(c) { return d.match(c); }).forEach(function(c) {
+	    kws(c).forEach(function(k) {
+		if(!counts[k]) {
+		    counts[k] = {"name": k, "copies": 0, "distinct": 0};
+		}
+		counts[k].copies += c.qty;
+		counts[k].distinct += 1;
+	    });
+	});
+	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], references(k)); });
+	list.sort(function(a,b) { return b.copies - a.copies || a.name.localeCompare(b.name); });
+	return {"name": d.name, "keywords": list};
+    }).filter(function(d) { return d.keywords.length; });
+}
 function liststatspct(part, whole) {
     return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
 }
@@ -3110,12 +3173,17 @@ function liststats(listdata) {
 	return {"name": d.name, "copies": copies, "distinct": d.cards.length, "pct": liststatspct(copies, total),
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
+    var deckkey = function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; };
+    var keywords = liststatskeywords(cards, decks.map(function(d) {
+	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
+    }));
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
-	"decks": decks, "open": cache_session("liststatsopen") !== false});
+	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
+	"kwopen": cache_session("liststatskwopen") === true, "textfield": !!liststatstextfield()});
 }
-// open or closed, kept per browser
+// open or closed (the section, and its keyword part), kept per browser
 function liststatstoggle(el) {
-    cache_session("liststatsopen", el.open);
+    cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
 }
 // list entries whose card no longer exists (#188), with a link to drop them from the list
 function listmissing(listid,missing) {
