@@ -8,7 +8,7 @@ image is `imageuri + printing.imagehash + "/" + printing.image[n][size]`, and a 
 scan has no image fields at all. **Never `image: []`:** `templatefetchimage` reads `image[0][size]`
 and would throw. Remove the legacy branches (and keep handling "no image fields"):
 
-- [x] ootv-client `oracle.js` (branch `legacy-image-cleanup`; `imagehashtourl()` is now `preparecard()`, which
+- [x] ootv-client `oracle.js` (released in PR #346; `imagehashtourl()` is now `preparecard()`, which
       only builds `printingreverse`):
   - `imagehashtourl()`: the per-printing legacy `images[]` builder, plus `card.icon` and
     `card.imageurl` from the card-level `imagehash` (nothing reads either; noted 2026-10-15),
@@ -22,14 +22,16 @@ and would throw. Remove the legacy branches (and keep handling "no image fields"
 - [x] ootv-client `proxy.html` (hard-coded old URL) and the commented legacy path in
       `templates/template-pdf.html`; `docs/data.md` "image path" (describe the modern layout only).
 - [x] ootv-search `lib/imagetrash.js`: the `printimagehash` branch of the unlinked-image list (also
-      `routes/showimage.js`; on search `dev`, released with the next `dev` → `main` PR).
+      `routes/showimage.js`; released in search PR #83).
 - [x] ootv-discord `src/oracle.js` `imageUrl()`: the `printimagehash` fallback, and its unit test
-      (on `main`; live after the next `scripts/deploy.sh`).
+      (deployed 2026-10-18).
 - [x] ootv-import `parse.jq`: the "old way: imagehash / printing: printimagehash" output (only a
       comment; it already wrote the modern layout).
 - [x] ootv-backups `corner-icons.py` and `move-printing.py`: `corner-icons.py` already read
       `image[]` first, so only its fallback went; `move-printing.py` no longer copies files (modern
       names don't depend on the ids).
+All released 2026-10-18; recorded in ootv-claude `DEPRECATED.md`.
+
 - [ ] Decide about the card-level `imagehash` (12,432 l5r and 683 lbs cards; only `card.icon` used it).
 
 Deploys: one ootv-client PR (feature branch → master) and one ootv-search PR (dev → main), each
