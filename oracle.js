@@ -386,6 +386,7 @@ function freshtoken(minleft=0) {
 // an API call answered 401 (the token expired, e.g. the computer slept): refresh the token, or ask the
 // user to log in again in a pop-up, then resend the call. Its own callbacks and promises only see the
 // outcome of the resend, so nothing is lost and the page doesn't reload.
+var authresends = $.Deferred().resolve().promise();
 $.ajaxPrefilter(function(opts, orig, jqxhr) {
     if(orig.authretried || !opts.url || opts.url.indexOf(apiuri) !== 0) {
 	return;
@@ -399,9 +400,13 @@ $.ajaxPrefilter(function(opts, orig, jqxhr) {
 	    return;
 	}
 	(authdead ? loginagain() : freshtoken().catch(loginagain)).then(function() {
-	    $.ajax($.extend({}, orig, {authretried: true, success: null, error: null, complete: null}))
-		.done(function() { result.resolveWith(ctx, arguments); })
-		.fail(function() { result.rejectWith(ctx, arguments); });
+	    // one resend at a time, oldest first, so an older deck save can't land after a newer one
+	    authresends = authresends.then(function() {
+		return $.ajax($.extend({}, orig, {authretried: true, success: null, error: null, complete: null}))
+		    .done(function() { result.resolveWith(ctx, arguments); })
+		    .fail(function() { result.rejectWith(ctx, arguments); })
+		    .catch($.noop);
+	    });
 	}, function() { result.rejectWith(ctx, args); });
     });
     result.promise(jqxhr); // $.ajax attaches success/error and the caller's .done/.then to this
