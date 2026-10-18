@@ -119,8 +119,7 @@ or a template shows up garbled: a `−` in the deck swipe toast came out as `â�
 `deck-swipe`; it now uses `'−'`). Until this is fixed, write non-ASCII characters in
 JS as `\uXXXX` escapes, and in HTML as entities (`&bull;`, `&#149;`).
 
-- [ ] Add `<meta charset="utf-8">` as the first element in `<head>` of `index.html` (and
-      `proxy.html`). Scripts loaded by the page inherit its encoding.
+- [ ] Add `<meta charset="utf-8">` as the first element in `<head>` of `index.html`. Scripts loaded by the page inherit its encoding.
 - [ ] Optionally have the deploy set `Content-Type: ...; charset=utf-8` on `*.html`/`*.js`
       (`aws s3 sync` in `.github/workflows/deploy.yml`, e.g. a second `cp` with
       `--content-type`), so the files don't depend on the meta tag.
@@ -133,8 +132,8 @@ JS as `\uXXXX` escapes, and in HTML as entities (`&bull;`, `&#149;`).
 Proxy Nexus announced L5R support:
 https://www.reddit.com/r/l5r/comments/1tr2web/announcing_proxy_nexus_support_for_l5r/
 
-Not read yet. Go through the post and the site for ideas we could borrow for the proxy
-page (`proxy.html`) and proxy printing in general.
+Not read yet. Go through the post and the site for ideas we could borrow for proxy
+printing (the PDF export; the 2019 `proxy.html` mockup was deleted 2026-10-18).
 
 ## Revisit the hourly select refresh: would CloudFront be cheaper? (noted 2026-10-14)
 
