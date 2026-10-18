@@ -32,7 +32,7 @@
 * Cognito User Pools - Handles all authentication.   API Lambdas that need auth just verify the JWT the browser gets from Cognito.   email is stored from Cognito to match the user stored in DynamoDB
 * API Gateway - API gateway receives API calls and directs them to the appropriate lambda for the call.  It does some sanity checking before Lambda is called as well (auth info is there before passing it, etc.. although Lambda still validates auth)
 * Lambda - mostly running node.js to general reduce number of languages Oracle is coded in.  Handles all of the backend work of user/list/card/database management and search
-  * oracle-verify-jwt (lambda) - Used to verify JWT from Cognito https://github.com/awslabs/aws-support-tools/tree/master/Cognito/decode-verify-jwt
+  * ootv-search (lambda: dev-ootv-search / prod-ootv-search) - one Express app that serves every API route. The JWT signature is checked by API Gateway's Cognito authorizer; the routes only decode it. The old one-Lambda-per-route functions (oracle-fetch, oracle-search, oracle-verify-jwt, ...) were deleted 2026-10-18.
   * aws-dynamodb-to-elasticsearch (python) - Glue between dynamodb and elastic.  https://github.com/vladhoncharenko/aws-dynamodb-to-elasticsearch
   * Most of the rest use AWS SDK   (Note: I probably need to look at these closer and make sure i have all the node.js packages included documented)
 
