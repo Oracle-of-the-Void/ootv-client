@@ -21,11 +21,15 @@ and would throw. Remove the legacy branches (and keep handling "no image fields"
   - `nodiff` can drop `images` and `printimagehash`.
 - [x] ootv-client `proxy.html` (hard-coded old URL) and the commented legacy path in
       `templates/template-pdf.html`; `docs/data.md` "image path" (describe the modern layout only).
-- [ ] ootv-search `lib/imagetrash.js`: the `printimagehash` branch of the unlinked-image list.
-- [ ] ootv-discord `src/oracle.js` `imageUrl()`: the `printimagehash` fallback, and its unit test.
-- [ ] ootv-import `parse.jq`: the "old way: imagehash / printing: printimagehash" output.
-- [ ] ootv-backups `corner-icons.py` and `move-printing.py` read **only** `printimagehash`, so they
-      find no images at all now: port them to `imagehash` + `image[]`, don't just trim them.
+- [x] ootv-search `lib/imagetrash.js`: the `printimagehash` branch of the unlinked-image list (also
+      `routes/showimage.js`; on search `dev`, released with the next `dev` → `main` PR).
+- [x] ootv-discord `src/oracle.js` `imageUrl()`: the `printimagehash` fallback, and its unit test
+      (on `main`; live after the next `scripts/deploy.sh`).
+- [x] ootv-import `parse.jq`: the "old way: imagehash / printing: printimagehash" output (only a
+      comment; it already wrote the modern layout).
+- [x] ootv-backups `corner-icons.py` and `move-printing.py`: `corner-icons.py` already read
+      `image[]` first, so only its fallback went; `move-printing.py` no longer copies files (modern
+      names don't depend on the ids).
 - [ ] Decide about the card-level `imagehash` (12,432 l5r and 683 lbs cards; only `card.icon` used it).
 
 Deploys: one ootv-client PR (feature branch → master) and one ootv-search PR (dev → main), each
