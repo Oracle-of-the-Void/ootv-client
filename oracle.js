@@ -279,7 +279,11 @@ function logincallback(session) {
     if(window.location.href.includes("#access_token") || window.location.href.includes("?code=")) {
 	window.location = location.protocol + '//' + location.host + location.pathname;
     }
-    refreshauthvar = setTimeout(refreshauth,45*60*1000); // refresh every 45 min...   tokens last 1h
+    if(!refreshauthvar) {
+	// check every minute rather than one 45-minute timer: background tabs and sleep delay timers past the 1h expiry
+	refreshauthvar = setInterval(refreshauth,60*1000);
+	document.addEventListener('visibilitychange', function() { if(!document.hidden) refreshauth(); });
+    }
     if(cache_thing("user","data")) {
 	userinfocallback();
 	refreshviewdefaults(); // pick up defaults saved from another tab/device
@@ -330,15 +334,140 @@ function initCognitoSDK() {
     auth.useCodeGrantFlow()
     return auth;
 }
+// refresh the ID token once it has under 10 minutes left
 function refreshauth() {
-    clearTimeout(refreshauthvar);
-    let user = auth.getCachedSession();
-    auth.refreshSession(user.getRefreshToken().getToken());
-    console.log("Session refreshed");
-    refreshauthvar = setTimeout(refreshauth,45*60*1000); // refresh every 45 min...   tokens last 1h
+    if(!authdead && refreshtoken()) {
+	freshtoken(10*60).catch(function() {});
+    }
 }
 function getidtoken() {
     return auth.getCachedSession().idToken.jwtToken;
+}
+function refreshtoken() {
+    try { return auth.getCachedSession().getRefreshToken().getToken(); } catch(e) { return ''; }
+}
+// resolves once the cached ID token has more than minleft seconds left (0: refresh anyway), using the refresh token.
+// Talks to the token endpoint itself: auth.refreshSession re-runs logincallback on success, redirects the page
+// to the login screen when the refresh token is refused, and logs out (clearing localStorage) on a network error.
+var authrefreshing = null;
+var authdead = false; // the refresh token was refused: only logging in again helps
+function freshtoken(minleft=0) {
+    var exp = 0;
+    try { exp = auth.getCachedSession().getIdToken().getExpiration() || 0; } catch(e) {}
+    if(minleft && exp - Date.now()/1000 > minleft) {
+	return $.Deferred().resolve().promise();
+    }
+    if(authrefreshing) {
+	return authrefreshing;
+    }
+    authrefreshing = $.ajax({
+	type: 'POST',
+	url: 'https://' + auth.getAppWebDomain() + '/oauth2/token',
+	data: {grant_type: 'refresh_token', client_id: auth.getClientId(), refresh_token: refreshtoken()}
+    }).then(function(r) {
+	// the same localStorage keys the Cognito SDK reads, so every open tab picks the new tokens up
+	var key = 'CognitoIdentityServiceProvider.' + auth.getClientId() + '.' + auth.getLastUser();
+	localStorage.setItem(key + '.idToken', r.id_token);
+	localStorage.setItem(key + '.accessToken', r.access_token);
+	if(r.refresh_token) {
+	    localStorage.setItem(key + '.refreshToken', r.refresh_token);
+	}
+	auth.signInUserSession = auth.getCachedSession();
+	console.log("Session refreshed");
+    }, function(xhr) {
+	if(xhr.status == 400 || xhr.status == 401) {
+	    authdead = true; // expired or revoked; a network error can be retried
+	}
+	console.log("Session refresh failed: " + xhr.status);
+	return $.Deferred().reject(xhr).promise();
+    }).always(function() { authrefreshing = null; });
+    return authrefreshing;
+}
+// an API call answered 401 (the token expired, e.g. the computer slept): refresh the token, or ask the
+// user to log in again in a pop-up, then resend the call. Its own callbacks and promises only see the
+// outcome of the resend, so nothing is lost and the page doesn't reload.
+$.ajaxPrefilter(function(opts, orig, jqxhr) {
+    if(orig.authretried || !opts.url || opts.url.indexOf(apiuri) !== 0) {
+	return;
+    }
+    var result = $.Deferred();
+    jqxhr.done(function() { result.resolveWith(this, arguments); });
+    jqxhr.fail(function(xhr) {
+	var ctx = this, args = arguments;
+	if(xhr.status != 401 || !refreshtoken()) {
+	    result.rejectWith(ctx, args);
+	    return;
+	}
+	(authdead ? loginagain() : freshtoken().catch(loginagain)).then(function() {
+	    $.ajax($.extend({}, orig, {authretried: true, success: null, error: null, complete: null}))
+		.done(function() { result.resolveWith(ctx, arguments); })
+		.fail(function() { result.rejectWith(ctx, arguments); });
+	}, function() { result.rejectWith(ctx, args); });
+    });
+    result.promise(jqxhr); // $.ajax attaches success/error and the caller's .done/.then to this
+});
+// the "Your login has expired" box; one at a time, shared by every call waiting on it
+var loginwait = null;
+function loginagain() {
+    if(!loginwait) {
+	loginwait = $.Deferred();
+	$('#loginmodal-status').text('');
+	$('#loginmodal').css('display','block');
+    }
+    return loginwait.promise();
+}
+// its Log in button: a click, so the pop-up isn't blocked
+function loginpopup() {
+    var w = window.open(auth.getFQDNSignIn(), 'ootvlogin', 'width=480,height=680');
+    $('#loginmodal-status').text(w ? 'Log in in the new window; this page carries on afterwards.'
+				 : 'The login window was blocked. Allow pop-ups for this site and try again.');
+}
+function logincancel() {
+    $('#loginmodal').css('display','none');
+    if(loginwait) {
+	loginwait.reject();
+	loginwait = null;
+    }
+}
+// the pop-up has stored the new tokens (finishloginpopup)
+function loginpopupdone() {
+    var olduser = auth.username;
+    auth.username = auth.getLastUser();
+    auth.signInUserSession = auth.getCachedSession();
+    authdead = false;
+    $('#loginmodal').css('display','none');
+    if(olduser && auth.username != olduser) {
+	logincancel();
+	window.location = location.protocol + '//' + location.host + location.pathname; // logged in as someone else
+	return;
+    }
+    if(loginwait) {
+	loginwait.resolve();
+	loginwait = null;
+    }
+}
+// this page is the login pop-up, back from the login screen with ?code=
+function isloginpopup() {
+    try {
+	return location.search.includes('code=') && window.opener && window.opener !== window
+	    && window.opener.location.origin == location.origin && typeof window.opener.loginpopupdone == 'function';
+    } catch(e) {
+	return false;
+    }
+}
+function finishloginpopup() {
+    document.body.innerHTML = '<p style="padding:2em">Logging in&hellip;</p>';
+    var popupauth = initCognitoSDK();
+    popupauth.userhandler = {
+	onSuccess: function() {
+	    window.opener.loginpopupdone();
+	    window.close();
+	},
+	onFailure: function(err) {
+	    document.body.innerHTML = '<p style="padding:2em">Login failed: ' + htmlEncode(String(err)) + '<br>Close this window and try again.</p>';
+	}
+    };
+    popupauth.parseCognitoWebResponse(location.href);
 }
 
 //**********************88     ACCOUNT STUFFF ****************88
@@ -5798,6 +5927,10 @@ function sendvisit() {
 }
 
 $(document).ready(function(){
+  if(isloginpopup()) {
+    finishloginpopup();
+    return;
+  }
   // TODO: doing double-load of lists when startup
   // per-game search state first: a cached login (a reload) runs the login callback below at once, and it needs these
   //TODO:  put some stuff in here into functions.   make sure order optimized.
