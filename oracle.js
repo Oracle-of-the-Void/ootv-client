@@ -676,14 +676,15 @@ function listrevalidate(listid) {
   });
 }
 // back on this tab (maybe after editing on another computer): refresh the directory and the lists in use.
-// A tab left on screen checks its lists every 30s too (polling: no directory), for two windows side by side.
+// A tab left on screen checks its lists every 30s too (polling 'visible': no directory), for two windows side
+// by side, and every tab checks them hourly ('hourly'), even in the background.
 var listsrevalidated = 0;
 function listsrevalidate(polling) {
-  if(document.hidden || !refreshtoken() || !cache_thing("list","data") || Date.now() - listsrevalidated < 5*1000) {
+  if((document.hidden && polling !== 'hourly') || !refreshtoken() || !cache_thing("list","data") || Date.now() - listsrevalidated < 5*1000) {
     return;
   }
   listsrevalidated = Date.now();
-  if(polling !== true) {
+  if(polling !== 'visible' && polling !== 'hourly') {
     listinfo();
   }
   var ids = activelists.slice();
@@ -699,7 +700,8 @@ function listsrevalidate(polling) {
 }
 document.addEventListener('visibilitychange', listsrevalidate);
 window.addEventListener('focus', listsrevalidate);
-setInterval(function() { listsrevalidate(true); }, 30*1000);
+setInterval(function() { listsrevalidate('visible'); }, 30*1000);
+setInterval(function() { listsrevalidate('hourly'); }, 60*60*1000);
 
 // failed: called if the update doesn't go through
 function listinfoupdate(listid,field,value,failed=null) {
