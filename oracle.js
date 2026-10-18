@@ -528,6 +528,10 @@ function showloginfo(user) {
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
 }
+// signed in (or able to refresh the session), even before /user has answered
+function signedin() {
+    return auth.isUserSignedIn() || auth.getSignInUserSession().getRefreshToken().refreshToken!="";
+}
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...
@@ -1492,7 +1496,13 @@ function listinfocallback() {
   searchaddall($('#lastsearchquery').val()); // logged in after the search showed
   // nothing in the list view yet: load the first list in the directory behind the scenes
   var lists = cache_thing("list","data").lists.Items;
-  if(!$("#lastlistid").val() && lists.length) {
+  if(urlpendinglist) {
+	  // a #listid link opened before login finished
+	  var listid = urlpendinglist;
+	  urlpendinglist = null;
+	  urlrestoring = 'list';
+	  listinfo(listid,true);
+  } else if(!$("#lastlistid").val() && lists.length) {
 	  listinfo(lists[0].listid,false);
   }
   //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
@@ -3035,7 +3045,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
   searchcache[database]['queryrequest'][qs] = $.extend(true, {}, datarequest);
 
   if(from == 0 && !forcedata) {
-	  history.pushState({'qs': qs}, 'Oracle - Search Results', '#search='+encodeURIComponent(qs));
+	  seturl({'view': 'search', 'qs': qs});
   }
 
   // Note: if from > 0, we are triggering from paging, not from searching
@@ -3568,15 +3578,7 @@ function removemissing(listid) {
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
     refreshlist(listdata,listlist,sort,listid,listoutput);
-    /*
-      // TODO:  put this in url history???
-    if($("#resultsearch").is(":visible")) {
-	history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']);
-    } else if($("#resultcard").is(":visible")) {
-	history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#cardid='+carddata['cardid']);
-    }
-*/
-    showlist();
+    showlist(); // the url (showview)
 }
 
 //**********************************************************  Settings page ****************
@@ -4826,7 +4828,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  console.log("templates not loaded yet");
 	  return;
   }
-  $("#lastcardid").val(carddata.cardid);
+  $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
   var drawn = cardhtml(carddata,prid,qs);
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
@@ -4841,12 +4843,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   if(!switchview) {
 	  return;
   }
-  if($("#resultsearch").is(":visible")) {
-	  history.pushState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-  } else if($("#resultcard").is(":visible")) {
-	  // TODO:   don't replace if new is a cut/paste..... only on cardnext/cardprev (cnprintingid changes not handled here)
-	  history.replaceState({'cardid':carddata['cardid'], 'prid': prid, 'qs': qs}, 'Oracle - '+carddata['title'], '#game='+database+',#cardid='+carddata['cardid']+(prid?',#cnprintingid='+prid:''));
-  }
+  // the url: a new entry from another view, the same one when the card view redraws (prev/next)
   showcard();
 }
 
@@ -5579,12 +5576,14 @@ function showview(view) {
     $('body').toggleClass('viewsearch', view == 'resultsearch'); // phones: shows the Edit search bar
     $('body').toggleClass('viewlist', view == 'resultlist'); // the list's Showing: button (menubar, phones above the list)
     if($('#' + view).is(":visible")) {
+	seturl(viewstate(view.replace(/^result/,'')), true);
 	return;
     }
     $(".ui-layout-center div[id^=result]").hide(); // Hide all content
     $(".viewicons button").removeClass("searchviewactive");
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
     $('#' + view).fadeIn();
+    seturl(viewstate(view.replace(/^result/,'')));
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
 }
@@ -6406,7 +6405,7 @@ $(document).ready(function(){
   } else {
 	  auth.parseCognitoWebResponse('');
   }
-  if(auth.isUserSignedIn() || auth.getSignInUserSession().getRefreshToken().refreshToken!="") {
+  if(signedin()) {
 	  logincallback(auth.getSession());
   } else {
 	  logoutcallback();
@@ -6482,10 +6481,11 @@ $(document).ready(function(){
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
   $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
   
+  urlready = true;
   urlparser();
   // phones start on the search form, unless the url asked for something (beyond the game)
   if(narrowscreen() && !location.hash.replace(/#game=[^#]*/,'')) {
-	  showview('resultsearch');
+	  showviewkeepurl('resultsearch');
 	  mobilesearchtoggle(true);
   }
   for (var k in dbinfo) {
@@ -6512,35 +6512,114 @@ function addgametolist(db) {
 }
 
 
-// This handles history back changes/etc
-//TODO:  will need to do lists here too
+// ****************************** URL / HISTORY ******************************
+// The address bar always says what's on screen, so reload, bookmarks and Back/Forward all land in the
+// same place: #game=<g>, then one of
+//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #view=<dir|help|settings|admin|search|card|list>
+// (the About page is #game alone). Old links (no #game, #quicksearch=, #quicksearchtitle=) still work.
+// seturl() is the only place that calls history.*: showview() calls it for every view switch.
+var urlready = false;      // false until the page's own url has been read (startup draws don't add history)
+var urlrestoring = null;   // view urlparser is drawing: its draw replaces the entry (canonical url) rather than adding one
+var urlpendinglist = null; // a #listid link opened before the directory loaded (listinfocallback opens it)
+
+// '#a=1,#b=2' -> {a: '1', b: '2'} (a repeated key gives an array)
+function parsehash(hash) {
+  var matches = hash.match(/#[^#]+/g);
+  var matchstruct = {};
+  var structpatt = /#(\w+)=?((?:[^,=#])+)?/;
+  if(matches) {
+    for(i=0;i<matches.length;i++) {
+      var matchdetails = structpatt.test(matches[i]);
+      if(typeof(matchstruct[RegExp.$1]) == "undefined") {
+        matchstruct[RegExp.$1] = RegExp.$2;
+      } else if(typeof(matchstruct[RegExp.$1]) == "object") {
+        matchstruct[RegExp.$1].push(RegExp.$2);
+      } else {
+        var oldmatch = matchstruct[RegExp.$1];
+        matchstruct[RegExp.$1] = new Array();
+        matchstruct[RegExp.$1].push(oldmatch);
+        matchstruct[RegExp.$1].push(RegExp.$2);
+      }
+    }
+  }
+  return matchstruct;
+}
+// a url hash -> the page it shows: {view, qs, cardid, prid, listid}
+function hashstate(hash) {
+  var m = parsehash(hash);
+  if(m.search !== undefined) {
+    return {view: 'search', qs: decodeURIComponent(m.search)};
+  } else if(m.quicksearch !== undefined || m.quicksearchtitle !== undefined) {
+    return {view: 'search', qs: null};
+  } else if(m.cardid !== undefined) {
+    return {view: 'card', cardid: m.cardid, prid: m.cnprintingid || null};
+  } else if(m.listid !== undefined) {
+    return {view: 'list', listid: m.listid};
+  } else if(m.view !== undefined) {
+    return {view: m.view};
+  }
+  return {view: 'about'};
+}
+// the page -> its url hash (views without their content, e.g. the card view before any card, are #view=)
+function statehash(state) {
+  var h = '#game='+database;
+  if(state.view == 'search' && state.qs) {
+    return h+',#search='+encodeURIComponent(state.qs);
+  } else if(state.view == 'card' && state.cardid) {
+    return h+',#cardid='+state.cardid+(state.prid ? ',#cnprintingid='+state.prid : '');
+  } else if(state.view == 'list' && state.listid) {
+    return h+',#listid='+state.listid;
+  } else if(state.view == 'about') {
+    return h;
+  }
+  return h+',#view='+state.view;
+}
+// what one of the result views shows now
+function viewstate(view) {
+  if(view == 'search') {
+    return {view: view, qs: $('#lastsearchquery').val() || null};
+  } else if(view == 'card') {
+    // prid: the printing the card was opened on (search row, deck, printing link), not the default one
+    return {view: view, cardid: $('#lastcardid').val() || null, prid: $('#lastcardid').data('prid') || null, qs: $('#lastcardid').data('qs') || null};
+  } else if(view == 'list') {
+    return {view: view, listid: $('#lastlistid').val() || null};
+  }
+  return {view: view};
+}
+// point the address bar at state: a new history entry, or the current one when replace (redrawing the
+// same view, e.g. card prev/next), when the url already says this, or when it's urlparser's draw
+function seturl(state, replace=false) {
+  if(!urlready) {
+    return;
+  }
+  var restoring = urlrestoring;
+  urlrestoring = null;
+  var hash = statehash(state);
+  if(statehash(hashstate(location.hash)) == hash || restoring == state.view) {
+    replace = true;
+  }
+  if(replace) {
+    history.replaceState(state, '', hash);
+  } else {
+    history.pushState(state, '', hash);
+  }
+}
+
+// showview() without touching the url
+function showviewkeepurl(view) {
+  var ready = urlready;
+  urlready = false;
+  showview(view);
+  urlready = ready;
+}
+
+// Back/Forward, and a hash typed in the address bar or set by a link (keyword links): draw what the url says
 $(window).on('popstate', function (e) {
-  var state = e.originalEvent.state;
-  console.log(['popstate',state]);
+  console.log(['popstate',e.originalEvent.state,location.hash]);
   // phones: back/forward shows results or a card, so close the search panel; back to the blank start page opens it, as on load
   mobilesearchtoggle(narrowscreen() && !location.hash.replace(/#game=[^#]*/,''));
-  //	console.log(location.hash);
-  if (state !== undefined && state !== null) {
-	  if(state.cardid !== undefined) {
-	    docardid(state.cardid,state.prid,state.qs,true);
-	  } else if(state.qs !== undefined) {
-      if($('#lastsearchquery').val() == state.qs) {
-	      showsearch();
-      } else {
-        urlparser();
-      }
-	  } else if(state.search !== undefined) {
-      
-	  } else {
-	    showcard();
-	  }
-  } else if(location.hash.match(/#cardid=/) || location.hash.match(/#search=/)) {
-	  urlparser(true);
-  } else {
-    console.log(['new location',location.hash]);
-    console.log(['previous',$('#lastsearchquery').val()]);
-	  showsearch();
-  }
+  // no state: a link or a typed url, which keeps the form's filters (urlparser)
+  urlparser(!e.originalEvent.state);
 });
 
 // Keyboard navigation inside a list of cards
@@ -6585,45 +6664,68 @@ function keepsearchfilters(fdata) {
 // Page loads and back/forward to a search show that search as it was.
 function urlparser(keepfilters=false) {
   // Load bookmarks / shared urls
-  var patt = /#[^#]+/g;
-  var matches = location.hash.match(patt);
-  var matchstruct = {};
-  var structpatt = /#(\w+)=?((?:[^,=#])+)?/;
-  if(matches) {
-    for(i=0;i<matches.length;i++) {
-      var matchdetails = structpatt.test(matches[i]);
-      if(typeof(matchstruct[RegExp.$1]) == "undefined") {
-        matchstruct[RegExp.$1] = RegExp.$2;
-      } else if(typeof(matchstruct[RegExp.$1]) == "object") {
-        matchstruct[RegExp.$1].push(RegExp.$2);
-      } else {
-        var oldmatch = matchstruct[RegExp.$1];
-        matchstruct[RegExp.$1] = new Array();
-        matchstruct[RegExp.$1].push(oldmatch);
-        matchstruct[RegExp.$1].push(RegExp.$2);
-      }
-    }
-  }
+  var matchstruct = parsehash(location.hash);
+  var hstate = history.state || {};
+  urlrestoring = null;
   console.log(['matchstruct',matchstruct]);
   if(typeof(matchstruct["game"]) != "undefined") {
     if((matchstruct["game"] != database) && (matchstruct["game"] != "")) {
       cache_session("database",matchstruct["game"]);
       location.reload();
+      return;
     }
   }
   if(typeof(matchstruct["quicksearch"]) != "undefined") {
     console.log("detected quicksearch");
     $("input#qs").val(decodeURIComponent(matchstruct["quicksearch"]));
+    urlrestoring = 'search';
     dosearch(0,false,true);
   } else if(typeof(matchstruct["quicksearchtitle"]) != "undefined") {
     console.log("detected quicksearchtitle");
     $("input#field_title").val(decodeURIComponent(matchstruct["quicksearchtitle"]));
+    urlrestoring = 'search';
     dosearch(0,false,true);
   } else if(typeof(matchstruct["cardid"]) != "undefined") {
 	  console.log("detected card in URL");
-	  cardfetch(matchstruct["cardid"],typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null);
+	  var cardid = matchstruct["cardid"];
+	  var prid = typeof(matchstruct['cnprintingid']) != 'undefined' ? matchstruct['cnprintingid'] : null;
+	  // the search it was opened from (prev/next) is kept in the history entry, not the url
+	  var qs = hstate.cardid == cardid ? hstate.qs || null : null;
+	  if($('#lastcardid').val() == cardid && String($('#lastcardid').data('prid') || '') == String(prid || '')) {
+	    showcard();   // already drawn
+	  } else {
+	    urlrestoring = 'card';
+	    if(cache_card_is(cardid)) {
+	      docardid(cardid,prid,qs);
+	    } else {
+	      cardfetch(cardid,prid,qs);
+	    }
+	  }
+  } else if(typeof(matchstruct['listid']) != 'undefined') {
+	  console.log(["detected list in URL",matchstruct['listid']]);
+	  urlrestoring = 'list';
+	  if($('#lastlistid').val() == matchstruct['listid'] && cache_thing("list",matchstruct['listid'])) {
+	    showlist();   // already drawn
+	  } else if(cache_thing("user","data")) {
+	    listinfo(matchstruct['listid'],true);
+	  } else if(signedin()) {
+	    urlpendinglist = matchstruct['listid'];   // opened by listinfocallback once the directory loads
+	  } else {
+	    // TODO: anonymous read of public lists (ootv-search GET /publiclist)
+	    $('#resultlist').html('<div class="randarea">Log in to see this list.</div>');
+	    showviewkeepurl('resultlist');   // keep the #listid url: nothing is drawn for viewstate() to name
+	  }
+  } else if(typeof(matchstruct['view']) != 'undefined') {
+	  if(matchstruct['view'] == 'settings') {
+	    showsettings();
+	  } else if($('#result'+matchstruct['view']).length) {
+	    showview('result'+matchstruct['view']);
+	  }
+  } else if(typeof(matchstruct['search']) != 'undefined' && !keepfilters && decodeURIComponent(matchstruct['search']) == $('#lastsearchquery').val()) {
+	  showsearch();   // already drawn
   } else if(typeof(matchstruct['search']) != 'undefined') {
 	  console.log(["detected search in URL",matchstruct['search']]);
+	  urlrestoring = 'search';
 	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
 	  if(keepfilters) {
 	    keepsearchfilters(fdata);
@@ -6639,9 +6741,8 @@ function urlparser(keepfilters=false) {
 	  }
 	  dosearch(0,fdata);
   } else {
-    /*	$(window).on('beforeunload', function(e){
-	      return 'Are you sure you want to leave?';
-	      });    */
+    // nothing asked for: the start page (phones: the search form), left as the blank url it is
+    showviewkeepurl(narrowscreen() ? 'resultsearch' : 'resultabout');
   }
 }
 
@@ -7354,8 +7455,9 @@ function changeprinting(id,prid,qs,title) {
     $('.printing').hide();
     $("#lastprintid").val(prid).data("chosen", true);
     $('.printing[data-printingid='+prid+']').show();
+    $("#lastcardid").data('prid', prid);
   }
-  history.replaceState({'cardidid':id, 'prid': prid, 'qs': qs}, 'Oracle - '+title.replace(/<[^>]+>/g,''), '#game='+database+',#cardid='+id+',#cnprintingid='+prid);
+  seturl(viewstate('card'), true);
   // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
 }
 
