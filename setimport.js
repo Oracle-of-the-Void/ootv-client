@@ -814,10 +814,16 @@ function setimpnewvalues(p) {
     html += '<tr><td>'+setimpesc(v.kind)+'</td><td><b>'+setimpesc(v.value)+'</b></td><td>'+v.count+': '+
             v.files.slice(0, 5).map(f => setimpfilelink(f, f.replace(/\.json$/, ''))).join(', ')+(v.count > 5 ? ', ...' : '')+'</td><td>'+
             (v.strict === false ? '<small>warning only</small>' :
-             '<label><input type="checkbox" data-key="'+setimpesc(v.key)+'"'+(setimp.accept[v.key] ? ' checked' : '')+
-             ' onchange="if(this.checked) { setimp.accept[this.dataset.key] = 1; } else { delete setimp.accept[this.dataset.key]; }" /> accept</label>')+'</td></tr>';
+             '<label><input type="checkbox" data-key="'+encodeURIComponent(v.key)+'"'+(setimp.accept[v.key] ? ' checked' : '')+
+             ' onchange="setimpaccept(decodeURIComponent(this.dataset.key), this.checked)" /> accept</label>')+'</td></tr>';
   });
   return html+'</table></details>';
+}
+
+// the key is "clan\u0000Value": it travels URI-encoded, since the HTML parser turns a NUL in an
+// attribute into U+FFFD
+function setimpaccept(key, on) {
+  if(on) { setimp.accept[key] = 1; } else { delete setimp.accept[key]; }
 }
 
 // reprints whose printed text differs from their card's: a word diff of the text (tags and
