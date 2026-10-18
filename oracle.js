@@ -3138,6 +3138,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    a.click();
 	} else {
 	    $("#resultlist").html(listheader(listid)+liststats(listdata)+listmissing(listid,missing)+html);
+	    liststatscutoff();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
@@ -3374,7 +3375,34 @@ function liststats(listdata) {
     }));
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
-	"kwopen": cache_session("liststatskwopen") === true, "textfield": !!liststatstextfield()});
+	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+}
+// keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
+// hides, and so does a deck with none left
+function liststatskwcutoff() {
+    var n = parseInt(cache_session("liststatskwcutoff"));
+    return isNaN(n) ? 4 : n;
+}
+function liststatscutoff(value) {
+    if(value !== undefined) {
+	var n = parseInt(value);
+	cache_session("liststatskwcutoff", isNaN(n) ? '' : n); // blank: back to the default
+    }
+    var cutoff = liststatskwcutoff();
+    $('#resultlist details.liststatskw tbody').each(function() {
+	var shown = 0;
+	$(this).find('tr.liststatskwrow').each(function() {
+	    var any = false;
+	    $(this).find('td[data-n]').each(function() {
+		var keep = parseInt($(this).attr('data-n')) >= cutoff;
+		$(this).children('span').toggle(keep);
+		any = any || keep;
+	    });
+	    $(this).toggle(any);
+	    shown += any ? 1 : 0;
+	});
+	$(this).toggle(shown > 0);
+    });
 }
 // open or closed (the section, and its keyword part), kept per browser
 function liststatstoggle(el) {

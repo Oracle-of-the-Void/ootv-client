@@ -605,6 +605,13 @@ details.liststats {
 details.liststatskw {
     margin-top: 6px;
 }
+label.liststatscutoff {
+    display: block;
+    margin: 2px 0;
+}
+label.liststatscutoff input {
+    width: 3.5em;
+}
 details.liststats summary {
     cursor: pointer;
     font-size: large;

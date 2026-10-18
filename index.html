@@ -1025,7 +1025,7 @@ printingprimary
 <!-- list view: statistics under the header (liststats in oracle.js). Each deck (the game's deck field, or one
      unnamed group) with its card types: copies, share of the deck, and the averages of the
      game's numeric fields the type's cards have (copies weighted). Then, folded, each deck's keywords and how
-     many other cards name them in their text (liststatskeywords). -->
+     many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
   <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)</summary>
@@ -1045,13 +1045,14 @@ printingprimary
   {{if keywords.length}}
   <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="event.stopPropagation(); liststatstoggle(this);">
     <summary>Keywords</summary>
+    <label class="liststatscutoff">Hide counts under <input type="number" min="0" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"></label>
     <table class="liststatstable">
       <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
       {{for keywords ~textfield=textfield}}
       <tbody>
       {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
       {{for keywords}}
-      <tr><th>{{>name}}</th><td>{{:copies}}</td>{{if ~textfield}}<td class="liststatsavgs"{{if refcards}} title="{{>reftitles}}"{{/if}}>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</td>{{/if}}</tr>
+      <tr class="liststatskwrow"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
       {{/for}}
       </tbody>
       {{/for}}
