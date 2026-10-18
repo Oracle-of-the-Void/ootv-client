@@ -67,7 +67,11 @@ Both need the `setimport` permission (or `*`) for the game.
    `<b>` at the end, a `</b>` with nothing open, `</i>` closing twice) are a **problem** too:
    the line names the row and the fields, e.g. `3D_135.json: unbalanced HTML tags in text (<b>)`.
    Fix the CSV, or the profile when the spreadsheet does it again and again (see `boldfix`
-   below). `<br>` doesn't count. Reprints whose printed text differs from their card are listed in *Text
+   below). `<br>` doesn't count. So is a keyword that reads like game text (it ends in `.`, `!` or `?`,
+   or has `.`/`!`/`?`/`:` followed by more words): The Blackest Storm's sheet put a card's first
+   text line in the Keywords cell after a `<br>`, e.g.
+   `TBS_085.json: keyword reads like game text, move it to the text: "After this Follower enters play, lose 2 Honor."`.
+   Move the line to the game text in the CSV. Reprints whose printed text differs from their card are listed in *Text
    differences* with a word diff (the card's text isn't changed; errata is done by hand).
    **Problems** block going live: step 6 doesn't appear until a plan has none. While there are
    problems, the bottom of step 5 has another *Plan again* button for re-checking once they're
