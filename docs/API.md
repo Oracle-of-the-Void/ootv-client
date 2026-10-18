@@ -597,7 +597,7 @@ groups must allow `setimport` (or `*`) for the game or for every game.
 | `plan` | `params`, `profile: {name, version}`, `cards: [{file, reprint, card}]`, `overrides: {file: {cardid or "new", primary}}`, `description`, `registration`, `csv: {name, text}` | `{job, ready, problems, warnings, infos, counts, cardids, new: [...], reprints: [...], duplicates: [...]}` |
 | `jobs` | | the last 30 imports of the game |
 | `job` | `job`, optional `rows: true` | the import's state (`status`, `export`, `mapping`, `written`, `conflicts`, ...) |
-| `export` | `job`, optional `fresh` | `{export: {status, snapshot, items, s3}}` |
+| `export` | `job`, optional `fresh` | `{export: {status, snapshot, items, s3}}` (optional: `apply` doesn't require one) |
 | `apply` | `job` | one step: `{status: pausing / applying / resuming / applied, written, left}` or `{blocked: [...]}` |
 | `reindex` | `job`, `cardids` (of this import) | `{sent}`: re-sent to search through dynamo-to-es |
 | `finish` | `job`, `verify` (the check's result) | `{status: "done", eserrors, coldstart}` |
