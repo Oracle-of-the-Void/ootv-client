@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-16
+Last updated: 2026-10-17
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -141,6 +141,22 @@ Any of:
   Imperial or Jade
 
 This is its own type-based rule. Don't generalize it to other Extended formats.
+
+### Jade Extended 2000 (1,915)
+
+The Jade Extended rule unchanged, plus:
+
+All of:
+- a printing from a Hidden Emperor (Jade) arc set: Jade Edition, Hidden Emperor 1–6, The Dark
+  Journey Home, Pearl Edition, Siege of Sleeping Mountain, Honor Bound, Ambition's Debt, Fire &
+  Shadow, Top Deck Booster Pack, Heroes of Rokugan, Soul of the Empire, Storms Over Matsu Palace,
+  The War of Spirits, Promotional–Jade and Promotional–CWF (the set menu's "The Hidden
+  Emperor (Jade)" group)
+
+The set clause is an `all` clause, so the printing shown is a Jade-arc one. It drops 487 Jade
+Extended cards that were never reprinted in the arc: Imperial-only Strategies, Items, Holdings,
+Followers, Regions and Ancestors, and 58 Imperial Personalities still legal in Jade (Akodo Kage,
+Bayushi Kachiko, the Scorpion Clan Coup cards).
 
 ### Legacy (11,981)
 
@@ -383,3 +399,4 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-14: Paper (ootv-client #240), after `printing.publisher` was backfilled on 18,197
   printings; `listable: false`; the search API's `require_<field>` and the Paper "only" checkbox (below Pub).
 - 2026-10-16: Obsidian Hand (the Legacy clauses with its own ban list, 44 `remove` exceptions).
+- 2026-10-17: Jade Extended 2000 (Jade Extended limited to cards printed in a Jade-arc set).
