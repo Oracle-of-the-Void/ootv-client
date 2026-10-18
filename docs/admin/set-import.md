@@ -62,7 +62,11 @@ Both need the `setimport` permission (or `*`) for the game.
    *accept* in *New values* if it really is new, and plan again; that list also says whether the
    site's templates mention the value (icons, sorting). New keywords are listed there too, as
    warnings. Other new values (deck, rarity, ...) are
-   warnings. Reprints whose printed text differs from their card are listed in *Text
+   warnings. HTML tags that don't pair up in any field of a new card or a new printing (a stray
+   `<b>` at the end, a `</b>` with nothing open, `</i>` closing twice) are a **problem** too:
+   the line names the row and the fields, e.g. `3D_135.json: unbalanced HTML tags in text (<b>)`.
+   Fix the CSV, or the profile when the spreadsheet does it again and again (see `boldfix`
+   below). `<br>` doesn't count. Reprints whose printed text differs from their card are listed in *Text
    differences* with a word diff (the card's text isn't changed; errata is done by hand).
    **Problems** block going live; **warnings** are for you to read. Every row file name in
    them (`3D_039.json`) and in the lists below is a link: it opens the preview window on just
@@ -148,13 +152,16 @@ Steps go in `fields` too:
   a `bool` question `strongholdback` ("Strongholds have a back image (b)"), and the extra's
   condition is `{"card.type": "Stronghold", "params.strongholdback": true}`.
 
-Two clean-ups in the L5R profiles (`onyx`, `three-dynasties`):
+Clean-ups in the L5R profiles (`onyx`, `three-dynasties`):
 
 - The `deck` table puts Sensei, Strongholds and Winds in `Pre-Game`.
 - Game text ends with `{"replace": "boldfix"}`, which fixes bold tags the spreadsheet left
   unbalanced: a stray `<b>` at the end is dropped (Togashi Hachimon in Three Dynasties), and a
   `</b>` with no `<b>` before it on its line gets one at the start of that line
   (`Courtesy:</b>` → `<b>Courtesy:</b>`, House of Virtues). Empty `<b></b>` pairs are removed.
+- Flavor ends with `{"replace": "italicfix"}`. Flavor is wrapped in `<i>…</i>`, and an attribution
+  whose book title is upright (`- Akodo's </i>Leadership`) would end in a second `</i>`; the fix
+  leaves the title upright with no stray tag.
 
 Template filters: `pad:<n or param>`, `initials`, `lower`, `upper`.
 
