@@ -57,6 +57,7 @@ e.g. `https://images.oracleofthevoid.com/l5r/Promo-Gold/9774_1_details.jpg`. `im
 game's `templates/<game>.js` value. Until 2026-10-18 l5r and lbs printings used an older layout
 (`printimagehash`, files `<hash>/printing_<cardid>_<printingid>_<size>.jpg`, plus a card-level
 `<imagehash>/card_<cardid>__icon.jpg`); no card uses it any more, and the client no longer reads it.
+Details and how to trace an old URL or field: ootv-claude `DEPRECATED.md`.
 
 * premium should be using _master, but it's inconsistent?
 
