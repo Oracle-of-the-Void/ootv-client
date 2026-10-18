@@ -222,6 +222,13 @@ templates['initiald'] = {
 	    'places': [ 'list' ],
 	    'headerizable': true,
 	    'generic': true
+	},
+	'table': {
+	    'longname': 'Table',
+	    'shortname': 'Table',
+	    'places': [ 'list' ],
+	    'headerizable': true,
+	    'generic': true
 	}
     },
     'default': { 

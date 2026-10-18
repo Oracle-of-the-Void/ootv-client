@@ -90,6 +90,7 @@
 	<button aria-label="Simple List" data-balloon-pos="down" data-template="list" onclick="viewbutton('list');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
 	<button aria-label="Text" data-balloon-pos="down" data-template="html" style="display:none" onclick="viewbutton('html');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-text"></svg></button>
 	<button aria-label="Deck" data-balloon-pos="down" data-template="visual-deck" style="display:none" onclick="viewbutton('visual-deck');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
+	<button aria-label="Table" data-balloon-pos="down" data-template="table" style="display:none" onclick="viewbutton('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg></button>
 	<button aria-label="Detailed List" data-balloon-pos="down" data-dirview="table" style="display:none" onclick="setdirview('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
 	<button aria-label="Cards" data-balloon-pos="down" data-dirview="cards" style="display:none" onclick="setdirview('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
@@ -1060,6 +1061,13 @@ printingprimary
   </details>
   {{/if}}
 </details>
+</script>
+<!-- deck/list Table view: the table around template-table's rows (listtablewrap); ~rows is that html -->
+<script id="template-listtable" type="text/x-jsrender">
+<div class="listtablewrap"><table class="listtable">
+  <thead><tr><th class="listtableqty">#</th><th class="listtabletitle">Card</th>{{for tablefields}}<th class="listtablestat" title="{{>label}}">{{>short}}</th>{{/for}}{{if kwfield}}<th class="listtablekw">{{>kwlabel}}</th>{{/if}}</tr></thead>
+  <tbody>{{:~rows}}</tbody>
+</table></div>
 </script>
 <script id="template-liststatsavgs" type="text/x-jsrender">
 {{for avgs}}<span class="liststatsavg" title="{{>label}}: average of {{:copies}} card{{if copies!=1}}s{{/if}}{{if skipped}} ({{:skipped}} with no number, e.g. * or X, left out){{/if}}">{{>short}} <b>{{:avg}}</b></span>{{/for}}
