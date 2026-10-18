@@ -675,14 +675,17 @@ function listrevalidate(listid) {
     error: function(error) { console.log("list refresh failed: "+listid); }
   });
 }
-// back on this tab (maybe after editing on another computer): refresh the directory and the lists in use
+// back on this tab (maybe after editing on another computer): refresh the directory and the lists in use.
+// A tab left on screen checks its lists every 30s too (polling: no directory), for two windows side by side.
 var listsrevalidated = 0;
-function listsrevalidate() {
-  if(document.hidden || !refreshtoken() || !cache_thing("list","data") || Date.now() - listsrevalidated < 30*1000) {
+function listsrevalidate(polling) {
+  if(document.hidden || !refreshtoken() || !cache_thing("list","data") || Date.now() - listsrevalidated < 5*1000) {
     return;
   }
   listsrevalidated = Date.now();
-  listinfo();
+  if(polling !== true) {
+    listinfo();
+  }
   var ids = activelists.slice();
   var shown = $("#lastlistid").val();
   if(shown && ids.indexOf(shown) < 0) {
@@ -696,6 +699,7 @@ function listsrevalidate() {
 }
 document.addEventListener('visibilitychange', listsrevalidate);
 window.addEventListener('focus', listsrevalidate);
+setInterval(function() { listsrevalidate(true); }, 30*1000);
 
 // failed: called if the update doesn't go through
 function listinfoupdate(listid,field,value,failed=null) {
