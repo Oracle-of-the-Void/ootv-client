@@ -3144,7 +3144,8 @@ $(document).on('keydown', '#resultlist .listviewname[contenteditable=true]', fun
 
 // ***********************  list statistics **************
 // Derived from the game's config, so every game gets them without its own setup:
-//  - the deck: the 'deck' field, when the game searches on one (dbinfo[game].statdeck overrides; false = none)
+//  - the deck: the first of 'deck' / 'decktype' the game searches on (dbinfo[game].statdeck overrides; false = none).
+//    'decktype' is only Dune's; drop it once Dune uses 'deck' (TODO.md)
 //  - the averaged fields: the game's numeric searchables, less per-printing ones (card numbers) and 'number'
 //    (dbinfo[game].statfields, a list of field names, overrides)
 // Each type averages the fields its cards have, so L5R personalities get Force/Chi/HR/Cost/PH and fate cards Focus.
@@ -3156,7 +3157,8 @@ function liststatsdeckfield() {
     if(info.statdeck !== undefined) {
 	return info.statdeck;
     }
-    return (searchables[database] || {}).deck ? 'deck' : false;
+    var s = searchables[database] || {};
+    return ['deck','decktype'].find(function(f) { return s[f]; }) || false;
 }
 function liststatsfields() {
     var info = dbinfo[database] || {};
