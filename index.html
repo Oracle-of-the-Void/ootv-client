@@ -1029,7 +1029,7 @@ printingprimary
      many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
-  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)</summary>
+  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatshint"> (Expand for detailed statistics)</span></summary>
   {{if decks.length}}
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th><th>%</th><th class="liststatsavgs">Averages</th></tr></thead>
@@ -1045,7 +1045,7 @@ printingprimary
   {{/if}}
   {{if keywords.length}}
   <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="event.stopPropagation(); liststatstoggle(this);">
-    <summary>Keywords</summary>
+    <summary>Keyword counts<span class="liststatshint"> (expand for details)</span></summary>
     <label class="liststatscutoff">Hide counts under <input type="number" min="0" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"></label>
     <table class="liststatstable">
       <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>

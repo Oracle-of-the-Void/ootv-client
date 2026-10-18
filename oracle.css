@@ -619,6 +619,10 @@ details.liststats summary {
 details.liststats details.liststatskw summary {
     font-size: medium;
 }
+/* "(expand for ...)" only while folded */
+details[open] > summary > .liststatshint {
+    display: none;
+}
 table.liststatstable {
     border-collapse: collapse;
     margin-top: 4px;
