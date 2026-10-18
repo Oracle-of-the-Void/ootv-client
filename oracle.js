@@ -3189,10 +3189,17 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	// the views show each card's listed printing (bubbleup); the text exports below keep the card's own fields
 	var shown = bubbleup(listdata,{'listid':listid});
 	pagetextversion('.listtextversion', shown, 'list');
+	var table = templates[database]['active']['list'] == 'table';
+	if(table) {
+	    $.extend(listtmpl, listtablecolumns(shown));
+	}
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
 	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown) : shown),listtmpl);
 	} else {
 	    var html = getactivetemplate('list').render(markprinteddiffs(shown),listtmpl);
+	}
+	if(table) {
+	    html = listtablewrap(html, listtmpl);
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
@@ -3213,6 +3220,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	} else {
 	    $("#resultlist").html(listheader(listid)+liststats(listdata)+listmissing(listid,missing)+html);
 	    liststatscutoff();
+	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
@@ -3493,6 +3501,41 @@ function liststatsstripe() {
 function liststatstoggle(el) {
     cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
 }
+// ***********************  list Table view (template-table) **************
+// One row per card, in the list's sort (deck/type header rows as the Simple List and Deck views have them).
+// Its stat columns follow the statistics box: the game's averaged fields (liststatsfields), each shown when a
+// card in the list has a number for it; then the keyword field the box analyses (liststatskeywordfield).
+function listtablecolumns(listdata) {
+    var cards = listdata.filter(function(c) { return c.cardid > 0; });
+    var l = labels[database] || {};
+    var fields = liststatsfields().filter(function(f) {
+	return cards.some(function(c) { return liststatsnumber(c[f]) !== null; });
+    }).map(function(f) {
+	return {"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f};
+    });
+    var kwfield = liststatskeywordfield();
+    return {"tablefields": fields, "kwfield": kwfield, "kwlabel": kwfield ? (l['tag'+kwfield] || kwfield) : '',
+	    "tablecols": 2 + fields.length + (kwfield ? 1 : 0),
+	    "tablecell": function(card, f) {
+		var v = card[f];
+		return Array.isArray(v) ? v.join(', ') : (v === undefined || v === null ? '' : v);
+	    }};
+}
+function listtablewrap(rows, cols) {
+    return $.templates("#template-listtable").render(cols, {"rows": rows});
+}
+// every other card row under each header is shaded
+function listtablestripe() {
+    var i = 0;
+    $('#resultlist table.listtable tbody tr').each(function() {
+	if($(this).hasClass('listtablecard')) {
+	    $(this).toggleClass('listtablestripe', i++ % 2 == 1);
+	} else {
+	    i = 0;
+	}
+    });
+}
+
 // list entries whose card no longer exists (#188), with a link to drop them from the list
 function listmissing(listid,missing) {
     if(missing.length < 1) {

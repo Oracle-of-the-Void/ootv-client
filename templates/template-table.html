@@ -1,0 +1,10 @@
+{{!-- deck/list Table view: one row per card. renderlist wraps the rows in the table and its header (listtablewrap);
+     ~tablefields are the stat columns (listtablecolumns), ~kwfield the keyword column --}}
+{{if cardid==0}}<tr class="{{if title}}listtabledeck{{else}}listtabletype{{/if}}"><th colspan="{{:~tablecols}}">{{if title}}{{:title}}{{else}}{{:subtitle}}{{/if}}</th></tr>{{else}}
+<tr class="listtablecard">
+  <td class="listtableqty">{{:listquantity}}</td>
+  <td class="listtabletitle"><a class="deckswipe" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{:listprinting||0}}" href="#game={{:~database}},#cardid={{:cardid}}{{if listprinting}},#cnprintingid={{:listprinting}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if listprinting}}{{:listprinting}}{{else}}null{{/if}}); } return false;">{{:formattedtitle?formattedtitle:title}}</a></td>
+  {{for ~tablefields ~card=#data}}<td class="listtablestat">{{:~tablecell(~card,field)}}</td>{{/for}}
+  {{if ~kwfield}}<td class="listtablekw">{{:~tablecell(#data,~kwfield)}}</td>{{/if}}
+</tr>
+{{/if}}
