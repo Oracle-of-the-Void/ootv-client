@@ -5,7 +5,6 @@
 * [/attributes (POST or GET)](#attributes)     -> Pulls attributes from games (for use in pull-downs)
 * [/oracle-fetch (GET)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
-* [/verify-jwt (POST)](#verify-jwt)            -> For use in authentication
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
@@ -75,7 +74,7 @@ codes:
 Retrieves an array of options suitable for a select pulldown.
 
 
-Handled by lambda: oracle-attributes
+Handled by lambda: ootv-search/routes/attributes.js
 
 
 inputs:
@@ -102,7 +101,7 @@ codes:
 
 Retrieves cards by cardid
 
-Handled by lambda: oracle-fetch/index.js
+Handled by lambda: ootv-search/routes/fetch.js
 
 inputs:
 
@@ -126,7 +125,7 @@ codes:
 
 Searches for cards
 
-Handled by lambda: oracle-search/search.js
+Handled by lambda: ootv-search/routes/search.js
 
 inputs - sent in body querystring:
 
@@ -183,14 +182,6 @@ codes:
 
 * 200: success
 
-## /verify-jwt
-
-I think I was just using this as a tool to help debug auth issues.
-
-Handled by lambda: oracle-verify-jwt/index.js
-
-TODO: Need more documentation here, and to verify if it's in use.
-
 ## /oracle-structure
 
 Pulls information about databases (templates, etc)
@@ -218,7 +209,7 @@ codes:
 
 Pulls user data from DynamoDB based on email in cognito payload (after verifying validity of cognito tokens submitted).  Then return user's entry.
 
-Handled by lambda: oracle-user/index.js
+Handled by lambda: ootv-search/routes/user.js
 
 inputs:
 
@@ -279,7 +270,7 @@ codes:
 
 Handles deck / list importing from text files
 
-Handled by lambda: oracle-search/import.js
+Handled by lambda: ootv-search/routes/import.js
 
 Note: I'm restricting the card search to 1000 results for bounding, this is a number pulled out of a hat and may need adjustment
 
@@ -317,7 +308,7 @@ codes:
 
 Handles deck/card lists
 
-Handled by lambda: oracle-list/index.js
+Handled by lambda: ootv-search/routes/list.js
 
 inputs:
 
@@ -410,7 +401,7 @@ codes:
 
 Handles database manipulation
 
-Handled by lambda: oracle-update/index.js
+Handled by lambda: ootv-search/routes/update.js
 
 inputs:
 
