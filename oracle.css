@@ -624,7 +624,7 @@ table.liststatstable {
     margin-top: 4px;
 }
 table.liststatstable th, table.liststatstable td {
-    padding: 2px 8px 2px 0;
+    padding: 2px 8px;
     text-align: right;
     vertical-align: top;
 }
@@ -633,12 +633,26 @@ table.liststatstable th:first-child, table.liststatstable .liststatsavgs {
 }
 table.liststatstable tbody th {
     font-weight: normal;
-    padding-left: 1em;
+    padding-left: 1.5em;
+}
+table.liststatstable thead th {
+    border-bottom: 1px solid #bbb;
 }
 table.liststatstable tr.liststatsdeck th, table.liststatstable tr.liststatsdeck td {
     font-weight: bold;
-    padding-left: 0;
+    padding-left: 8px;
     border-top: 1px solid #bbb;
+}
+/* light shading to read across and down: deck rows, alternate rows in each deck (liststatsstripe), and the
+   count columns; they layer, so a striped row over a shaded column is a shade darker */
+table.liststatstable tr.liststatsdeck {
+    background-color: rgba(0, 0, 0, 0.07);
+}
+table.liststatstable tr.liststatsstripe {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+table.liststatstable td:nth-child(even), table.liststatstable thead th:nth-child(even) {
+    background-color: rgba(90, 110, 160, 0.06);
 }
 span.liststatsavg {
     display: inline-block;

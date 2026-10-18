@@ -3403,6 +3403,17 @@ function liststatscutoff(value) {
 	});
 	$(this).toggle(shown > 0);
     });
+    liststatsstripe();
+}
+// every other shown row in each deck is shaded (counted here, since the cutoff hides rows)
+function liststatsstripe() {
+    $('#resultlist table.liststatstable tbody').each(function() {
+	var i = 0;
+	$(this).children('tr').not('.liststatsdeck').each(function() {
+	    var shown = $(this).css('display') != 'none';
+	    $(this).toggleClass('liststatsstripe', shown && (i++ % 2 == 1));
+	});
+    });
 }
 // open or closed (the section, and its keyword part), kept per browser
 function liststatstoggle(el) {
