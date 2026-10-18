@@ -602,9 +602,15 @@ details.liststats {
     border-radius: 7px;
     font-family: "Times New Roman",Georgia,Serif;
 }
+details.liststatskw {
+    margin-top: 6px;
+}
 details.liststats summary {
     cursor: pointer;
     font-size: large;
+}
+details.liststats details.liststatskw summary {
+    font-size: medium;
 }
 table.liststatstable {
     border-collapse: collapse;

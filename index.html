@@ -1024,7 +1024,8 @@ printingprimary
 
 <!-- list view: statistics under the header (liststats in oracle.js). Each deck (the game's deck field, or one
      unnamed group) with its card types: copies, distinct cards, share of the deck, and the averages of the
-     game's numeric fields the type's cards have (copies weighted). -->
+     game's numeric fields the type's cards have (copies weighted). Then, folded, each deck's keywords and how
+     many other cards name them in their text (liststatskeywords). -->
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
   <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)</summary>
@@ -1040,6 +1041,22 @@ printingprimary
     </tbody>
     {{/for}}
   </table>
+  {{/if}}
+  {{if keywords.length}}
+  <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="event.stopPropagation(); liststatstoggle(this);">
+    <summary>Keywords</summary>
+    <table class="liststatstable">
+      <thead><tr><th></th><th>Cards</th><th>Distinct</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
+      {{for keywords ~textfield=textfield}}
+      <tbody>
+      {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
+      {{for keywords}}
+      <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:distinct}}</td>{{if ~textfield}}<td class="liststatsavgs"{{if refcards}} title="{{>reftitles}}"{{/if}}>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}} ({{:refcards}} distinct){{/if}}</td>{{/if}}</tr>
+      {{/for}}
+      </tbody>
+      {{/for}}
+    </table>
+  </details>
   {{/if}}
 </details>
 </script>
