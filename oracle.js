@@ -7912,7 +7912,7 @@ function renderpublic(data, append) {
       d.cardslegal.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
     var precon = h.precon ? '<div class="publicprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: '+htmlEncode(h.precon.product || '')+(h.precon.year ? ' ('+htmlEncode(h.precon.year)+')' : '')+'</div>' : '';
     var award = h.award ? '<div class="publicaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> '+htmlEncode(h.award.result || 'Tournament')+': '+htmlEncode(h.award.event || '')+(h.award.year ? ' ('+htmlEncode(h.award.year)+')' : '')+'</div>' : '';
-    return '<div class="directorycard publiccard">'+
+    return '<div class="directorycard publiccard" data-open="list" data-listid="'+h.listid+'">'+
       '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
       '<div class="dircardbody">'+
         award+precon+
@@ -7946,12 +7946,15 @@ function publicgroup(group) {
 }
 // People: a person's public lists by type (Decks first), then pre-constructed and tournament results
 var publictypeplural = {'deck': 'decks', 'collection': 'collections', 'have': 'haves', 'want': 'wants', 'other': 'other lists'};
-function publicgroupcounts(g) {
+// people: counts by type link to that person's lists of the type
+function publicgroupcounts(g, people=false) {
   var parts = [];
   if(g.types) {
     Object.keys(publictypeplural).concat(Object.keys(g.types).filter(function(t) { return !publictypeplural[t]; })).forEach(function(t) {
       var n = g.types[t];
-      if(n) parts.push(n+' '+(n == 1 ? (listtypes[t] || t).toLowerCase() : (publictypeplural[t] || t)));
+      if(!n) return;
+      var text = n+' '+(n == 1 ? (listtypes[t] || t).toLowerCase() : (publictypeplural[t] || t));
+      parts.push(people ? '<a href="" onclick="publicopen({owner: '+parseInt(g.owner)+', type: \''+publicjs(t)+'\'}, this); return false;">'+htmlEncode(text)+'</a>' : htmlEncode(text));
     });
   } else {
     parts.push(g.lists+' '+(g.lists == 1 ? 'deck' : 'decks'));
@@ -7971,21 +7974,25 @@ function renderpublicgroups(data, append) {
   var html = data.groups.map(function(g) {
     var when = g.latest ? String(g.latest).slice(0,10) : '';
     if(people) {
-      return '<div class="directorycard publiccard">'+
-	'<div class="dircardhead"><a class="dircardname" href="" onclick="publicbyowner('+parseInt(g.owner)+',this); return false;">'+htmlEncode(g.ownername || 'another player')+'</a></div>'+
+      var who = g.ownername || 'another player';
+      return '<div class="directorycard publiccard" data-open="owner" data-owner="'+parseInt(g.owner)+'" data-ownername="'+publicattr(who)+'">'+
+	'<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({owner: '+parseInt(g.owner)+'}, this); return false;">'+htmlEncode(who)+'</a></div>'+
 	'<div class="dircardbody">'+
-	  '<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
-	  (g.formats.length ? '<div class="publicformats">Formats: '+g.formats.map(function(f) { return '<span>'+htmlEncode(f.value)+' '+f.count+'</span>'; }).join('')+'</div>' : '')+
+	  '<div class="dircardmeta">'+publicgroupcounts(g, true)+'</div>'+
+	  (g.formats.length ? '<div class="publicformats">Formats: '+g.formats.map(function(f) {
+	    return '<a href="" class="publicformatlink" data-format="'+publicattr(f.value)+'" onclick="publicopen({owner: '+parseInt(g.owner)+', format: $(this).data(\'format\')}, this); return false;">'+htmlEncode(f.value)+' '+f.count+'</a>';
+	  }).join('')+'</div>' : '')+
 	  (when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
 	'</div></div>';
     }
     var src = g.source || {};
     var guessed = (src.name || 0) + (src.cards || 0);
-    return '<div class="directorycard publiccard">'+
-      '<div class="dircardhead"><a class="dircardname" href="" data-format="'+htmlEncode(g.format).replace(/"/g,'&quot;')+'" onclick="publicbyformat(String($(this).data(\'format\'))); return false;">'+(g.format ? htmlEncode(g.format) : 'No format')+'</a></div>'+
+    var fmt = g.format || 'none';
+    return '<div class="directorycard publiccard" data-open="format" data-format="'+publicattr(fmt)+'">'+
+      '<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({format: \''+publicjs(fmt)+'\'}); return false;">'+(g.format ? htmlEncode(g.format) : 'No format')+'</a></div>'+
       '<div class="dircardbody">'+
 	'<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
-	'<div class="dircardmeta">'+g.people+' '+(g.people==1 ? 'person' : 'people')+(guessed ? ' &middot; '+(src.owner || 0)+' set by owner, '+guessed+' guessed' : '')+'</div>'+
+	'<div class="dircardmeta"><a href="" onclick="publicopen({group: \'people\', format: \''+publicjs(fmt)+'\'}); return false;" title="The people with decks in this format">'+g.people+' '+(g.people==1 ? 'person' : 'people')+'</a>'+(guessed ? ' &middot; '+(src.owner || 0)+' set by owner, '+guessed+' guessed' : '')+'</div>'+
 	(when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
       '</div></div>';
   }).join('');
@@ -7995,23 +8002,53 @@ function renderpublicgroups(data, append) {
     $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
   }
 }
-// a format card: that format's lists ("No format": format=none, the lists without one)
-function publicbyformat(format) {
-  $('#publicform [name="group"]').val('');
-  format = format || 'none';
-  var el = $('#publicform [name="format"]');
-  if(!el.find('option').filter(function() { return this.value == format; }).length) {
-    el.append($('<option>').val(format).text(format == 'none' ? 'No format' : format));
+function publicattr(v) {
+  return htmlEncode(String(v)).replace(/"/g,'&quot;');
+}
+// a value inside a single-quoted onclick string, in a double-quoted attribute
+function publicjs(v) {
+  return publicattr(String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+}
+// a drill-down from a People / Formats card: {group, owner, format, type}. el: an element in the person's
+// card (their name labels the owner chip). Anything not given is cleared, except the search box filters.
+function publicopen(o, el=null) {
+  $('#publicform [name="group"]').val(o.group || '');
+  delete publicextra.owner;
+  if(o.owner) {
+    var name = el ? $(el).closest('.publiccard').data('ownername') : '';
+    publicextra.owner = {value: o.owner, label: 'by '+(name || 'one player')};
   }
-  el.val(format);
+  ['format','type'].forEach(function(k) {
+    var el2 = $('#publicform [name="'+k+'"]');
+    var v = o[k] || '';
+    if(v && !el2.find('option').filter(function() { return this.value == v; }).length) {
+      el2.append($('<option>').val(v).text(k == 'format' && v == 'none' ? 'No format' : (k == 'type' ? (listtypes[v] || v) : v)));
+    }
+    el2.val(v);
+  });
   publicsearch(0);
 }
+// a click on a result card outside its links and buttons opens it: the list, the person's lists, the format's decks
+$(document).on('click', '#publicresults .publiccard', function(e) {
+  if($(e.target).closest('a, button, input, select, label').length) {
+    return;
+  }
+  var card = $(this), open = card.data('open');
+  if(open == 'list') {
+    openpubliclist(card.data('listid'));
+  } else if(open == 'owner') {
+    publicopen({owner: card.data('owner')}, this);
+  } else if(open == 'format') {
+    publicopen({format: String(card.data('format'))});
+  }
+});
 function openpubliclist(listid) {
   listinfo(String(listid), true);
 }
+// "by <name>" on a deck card: that person's lists
 function publicbyowner(uid, el) {
   publicextra.owner = {value: uid, label: 'by '+$(el).text()};
-  $('#publicform [name="group"]').val('');   // from the People view: that person's decks
+  $('#publicform [name="group"]').val('');
   publicsearch(0);
 }
 // the card view's link: public lists with this card
