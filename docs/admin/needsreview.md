@@ -29,12 +29,12 @@ number and date).
 
 ## Adding, changing, clearing
 
-Edit the card in the card editor, which edits the card's JSON directly:
+Edit the card in the card editor (`docs/admin/card-editor.md`):
 
-- add a reason: append a string to `needsreview` (create the array if the card has none);
-- settle one: remove its string;
-- settle the last one: set `"needsreview": null`, which removes the field (an empty array works
-  too, but `null` keeps the card clean).
+- add a reason: **+ value** on Needs review (or **Add field** → `needsreview` if the card has none);
+- settle one: its **x**;
+- settle the last one: the **x** on the field itself, which removes the field (in the JSON view,
+  `"needsreview": null` does the same).
 
 Bulk runs (ootv-backups / ootv-import scripts) write it with their other changes, e.g. the L5R
 starter-reprint batches (`starter-batch.py`: the plan's `needsreview` column and `card_updates`).

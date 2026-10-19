@@ -82,8 +82,9 @@ applies there. Look at:
 ## Comprehensive card data documentation (noted 2026-10-15)
 
 `docs/data.md` covers only part of the card JSON, and some of it is notes ("not sure if
-technically required"). The card editor edits raw JSON, so it's the only reference an editor
-has for which fields and options exist. Write a full reference:
+technically required"). The card editor's Add field lists only the fields seen on the game's
+template and on cards loaded this session, with no description, so this is the only reference an
+editor has for which fields and options exist. Write a full reference:
 
 - every card-level field per game (`templates/<game>.js` searchables and the card templates
   show which ones are used), with type, whether it's required, and what reads it;
