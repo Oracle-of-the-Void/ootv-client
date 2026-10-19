@@ -920,7 +920,7 @@ function setimprenderlive() {
   // nothing in Go live comes before a clean plan; a job already past planned (resumed) still shows it
   if(!p.ready && (!setimp.meta || setimp.meta.status == 'planned')) { $('#setimp-live').empty(); return; }
   var html = '<h4>6. Go live</h4><p>Export takes the backup every bulk write needs (5-10 minutes; start it ahead of time). '+
-             'Apply pauses the search index stream, writes the cards, puts the stream back and then checks every card in search.</p>'+
+             'Apply writes the cards and then checks every card in search.</p>'+
              '<div id="setimp-export"></div><div id="setimp-apply"></div><div id="setimp-verify"></div>';
   $('#setimp-live').html(html);
   setimprefreshjob();
@@ -956,8 +956,8 @@ function setimprefreshjob() {
             (!ok ? ' <small>the plan has problems</small>' :
              exported ? '' : ' <small>no export for this import: only Apply if the table has a recent backup</small>')+'</p>';
     } else if(['pausing', 'applying', 'resuming'].includes(m.status) && !setimp.run) {
-      ah += '<p><input type="button" value="Continue" onclick="setimpapply()" /> <small>The stream stays paused until the import finishes; '+
-            'if nothing happens for 10 minutes it is put back automatically and the import is marked interrupted.</small></p>';
+      ah += '<p><input type="button" value="Continue" onclick="setimpapply()" /> <small>The import is still running; '+
+            'if nothing happens for 10 minutes it is marked interrupted.</small></p>';
     }
     ah += '<div id="setimp-applystatus"></div>';
     $('#setimp-apply').html(ah);
@@ -985,8 +985,8 @@ function setimpapply() {
         setimprefreshjob();
         return;
       }
-      var label = {pausing: 'Pausing the search index stream...', applying: 'Writing cards: '+(r.written || 0)+' written'+(r.left ? ', '+r.left+' to go' : ''),
-                   resuming: 'Putting the search index stream back...', interrupted: 'Interrupted: the stream was turned back on; Apply again to continue.',
+      var label = {pausing: 'Starting...', applying: 'Writing cards: '+(r.written || 0)+' written'+(r.left ? ', '+r.left+' to go' : ''),
+                   resuming: 'Finishing...', interrupted: 'Interrupted; Apply again to continue.',
                    applied: 'Written: '+r.written+' cards'+(r.conflicts && r.conflicts.length ? ', '+r.conflicts.length+' conflicts' : '')+'.'}[r.status] || r.status;
       status(label+' <small>('+Math.round((Date.now() - run.start)/1000)+' s)</small>', r.status == 'interrupted' ? 'error' : '');
       if(r.status == 'applied') {
@@ -998,7 +998,7 @@ function setimpapply() {
       setTimeout(step, (r.status == 'pausing' || r.status == 'resuming') ? 3000 : 100);
     }).catch(function(e) {
       if(e.status == 409) { setTimeout(step, 3000); return; }   // the previous call still holds the lock
-      status('Error: '+setimpesc(setimperr(e))+'. Press Continue to retry; the stream is put back after 10 minutes without activity.', 'error');
+      status('Error: '+setimpesc(setimperr(e))+'. Press Continue to retry; after 10 minutes without activity the import is marked interrupted.', 'error');
       setimp.run = null;
       setimprefreshjob();
     });

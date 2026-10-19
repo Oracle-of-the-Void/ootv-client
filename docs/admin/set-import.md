@@ -86,19 +86,17 @@ Both need the `setimport` permission (or `*`) for the game.
    - *Start the export* takes a full table backup (5–10 minutes). It's optional: Apply doesn't
      wait for it, so skip it when the table already has a recent export (one from another bulk
      write today, say). Without either, there's nothing to roll back to.
-   - *Apply* (after ticking the confirmation) pauses the search index stream and writes the
-     cards. Each new card gets an `op: new` update log entry; each reprint gets `newinstance`.
-     Then it writes one update log row for the whole set (the site's "new set" notice) and
-     puts the stream back. Writes are conditional, so a card someone edited since the plan
+   - *Apply* (after ticking the confirmation) writes the cards. Search picks them up as they
+     go in (the search index takes a live stream, so nothing is paused). Each new card gets an `op: new` update log entry; each reprint gets `newinstance`.
+     Then it writes one update log row for the whole set (the site's "new set" notice). Writes are conditional, so a card someone edited since the plan
      is skipped as a conflict, never overwritten.
    - *Verify* compares every written card with its copy in search, waits for the stream to
      catch up, and offers to re-send any that differ. *Finish* records the result and restarts
      the search Lambdas.
 
 Closing the tab mid-way is safe. Open the import again from **Earlier imports** at the top
-and continue. If an import stops while the stream is paused, the stream is put back after
-10 minutes without activity. The import is marked *interrupted* (Apply continues it), and an
-alert goes to the phone.
+and continue. An import that stops mid-way is marked *interrupted* after 10 minutes without
+activity (Apply continues it), and an alert goes to the phone.
 
 ## Import profiles
 
