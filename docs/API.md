@@ -452,11 +452,13 @@ POST (form: `table`, `cardids=1,2,3`), no authentication (ootv-search `routes/ca
 these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
 deck check. Answers `{cardslegal: [...], unknown: <cards not found>}`; 400 without a table or with over 5000 cards.
 
-## /list action=award
+## /list action=award, action=precon
 
 `/list?uid=&database=&listid=N&action=award&award=<json>` sets a tournament result `{event, result, year}` on any list
 (empty `award`: removes it). Moderators only: `groups[<game>]` or `groups['*']` holding `listaward` or `*` (403
 otherwise). Answers `{award}`. Owners can't set it, and a copy doesn't keep it.
+`action=precon&precon={"product": ..., "year": ...}` marks a pre-constructed deck (starter, learn-to-play) the same
+way (`product` required). `/publiclists` takes `precon=1` and returns `precon` and a `precon` facet count.
 
 ## /update
 
