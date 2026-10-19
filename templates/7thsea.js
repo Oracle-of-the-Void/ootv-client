@@ -86,7 +86,8 @@ searchables['7thsea'] = {
                       "clickable": true },
   "notes": { "type": "text", "advanced": true },
   "printing.number": { "type": "numeric", "advanced": true },
-  "errata": { "type": "exists", "advanced": true }
+  "errata": { "type": "exists", "advanced": true },
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 labels['7thsea'] = {
@@ -147,7 +148,8 @@ labels['7thsea'] = {
   "tagerrata": "Errata",
   "shorterrata": "Errata",
   "tagprod": "Produces",
-  "shortprod": "Produces"
+  "shortprod": "Produces",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 /*

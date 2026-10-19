@@ -147,7 +147,8 @@ searchables['l5r'] = {
 		"advanced": true },
     "printing.publisher": {"type": "select", "reverse": true},
     "paper": { "type": "require", "field": "legality", "value": "Paper" },
-    "printing.legality":{"type":"hidden","reverse":true}
+    "printing.legality":{"type":"hidden","reverse":true},
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 labels['l5r'] = {
@@ -179,7 +180,8 @@ labels['l5r'] = {
     "tagmrp":	"MRP",          "shortmrp": "MRP",
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
     "tagnotes":		"Notes",               "shortnotes": "Notes",
-    "tagpublisher": "Publisher",  "shortpublisher": "Pub"
+    "tagpublisher": "Publisher",  "shortpublisher": "Pub",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 /*

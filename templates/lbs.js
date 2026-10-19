@@ -121,7 +121,8 @@ searchables['lbs'] = {
 		  "clickable": "printing" 
 		},
 	"flavor": { "type": "text",
-			"advanced": true }
+			"advanced": true },
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 labels['lbs'] = {
@@ -142,7 +143,8 @@ labels['lbs'] = {
     "tagnumber":	"Card Number",         "shortnumber": "Number",
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
     "tagfaction":	"Faction",             "shortfaction": "Faction",
-    "tagnotes":		"Notes",               "shortnotes": "Notes"
+    "tagnotes":		"Notes",               "shortnotes": "Notes",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 /*

@@ -81,7 +81,8 @@ searchables['warlord'] = {
                       "clickable": true  },
   "errata": { "type": "exists", "advanced": true },
   "challengeLord": { "type": "exists" },
-  "printing.setnumber": { "type": "numeric", "advanced": true }
+  "printing.setnumber": { "type": "numeric", "advanced": true },
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 
@@ -131,7 +132,8 @@ labels['warlord'] = {
   "tagchallengeLord": "Challenge Lords",
   "shortchallengeLord": "Ch Lords",
   "tagsetnumber": "Set Number",
-  "shortsetnumber": "Set #"
+  "shortsetnumber": "Set #",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 

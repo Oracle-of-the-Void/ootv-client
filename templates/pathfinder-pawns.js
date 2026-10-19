@@ -66,7 +66,8 @@ searchables['pathfinder-pawns'] = {
   "sources": { "type": "select", "clickable": true  },
   "notes": { "type": "text", "advanced": true },
   "printing.number": { "type": "numeric", "advanced": true },
-  "printing.artist": { "type": "select", "clickable":true, "reverse": true}
+  "printing.artist": { "type": "select", "clickable":true, "reverse": true},
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 // Disable Device
@@ -109,7 +110,8 @@ labels['pathfinder-pawns'] = {
 "tagnethys":"Reference Link",
 "shortnethys":"Ref",
 "tagartist": "Artist",
-"shortartist": "Artist"
+"shortartist": "Artist",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 /*
