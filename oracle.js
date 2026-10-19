@@ -7811,10 +7811,11 @@ function publicfacetoptions(name, facet, label) {
   var seen = false;
   (facet || []).forEach(function(f) {
     seen = seen || f.value == current;
-    opts += '<option value="'+htmlEncode(f.value).replace(/"/g,'&quot;')+'">'+htmlEncode(f.value)+' ('+f.count+')</option>';
+    var label = (name == 'format' && f.value == 'none') ? 'No format' : htmlEncode(f.value);
+    opts += '<option value="'+htmlEncode(f.value).replace(/"/g,'&quot;')+'">'+label+' ('+f.count+')</option>';
   });
   if(current && !seen) {
-    opts += '<option value="'+htmlEncode(current).replace(/"/g,'&quot;')+'">'+htmlEncode(current)+' (0)</option>';
+    opts += '<option value="'+htmlEncode(current).replace(/"/g,'&quot;')+'">'+(current == 'none' && name == 'format' ? 'No format' : htmlEncode(current)+' (0)')+'</option>';
   }
   el.html(opts).val(current || '');
   el.toggle(!!current || (facet || []).length > 0);
@@ -7911,16 +7912,15 @@ function renderpublicgroups(data) {
   $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
   $("#publicpager").html('');
 }
-// a format card: that format's decks (No format: the lists without one aren't filterable, so just decks)
+// a format card: that format's lists ("No format": format=none, the lists without one)
 function publicbyformat(format) {
   $('#publicform [name="group"]').val('');
-  if(format) {
-    var el = $('#publicform [name="format"]');
-    if(!el.find('option').filter(function() { return this.value == format; }).length) {
-      el.append($('<option>').val(format).text(format));
-    }
-    el.val(format);
+  format = format || 'none';
+  var el = $('#publicform [name="format"]');
+  if(!el.find('option').filter(function() { return this.value == format; }).length) {
+    el.append($('<option>').val(format).text(format == 'none' ? 'No format' : format));
   }
+  el.val(format);
   publicsearch(0);
 }
 function openpubliclist(listid) {
