@@ -3066,7 +3066,8 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 		    console.log(raw);
 		    dataret = raw.hits.hits.map(x=>x._source);
         //		    console.log(dataret);
-		    searchcache[database]['querytotal'][qs] = raw.hits.total;
+		    // a number from the API; OpenSearch's own shape is {value, relation}
+		    searchcache[database]['querytotal'][qs] = typeof raw.hits.total === 'object' ? raw.hits.total.value : raw.hits.total;
 		    if(dataret.length>0) {
 		      dataret = dataret.map(preparecard);
 		      var html = rendercards(dataret,datarequest,qs);
