@@ -1,6 +1,6 @@
 # TODO
 
-## HIGH PRIORITY: remove the legacy image layout code, every repo (noted 2026-10-18)
+## Remove the legacy image layout code, every repo (noted 2026-10-18)
 
 Since 2026-10-18 no printing in any game has `printimagehash` (ootv-backups `modernize-images.py`
 and `fix-noimage-printings.py`; old → new map in ootv-backups `to-trash/redirect-map.tsv.gz`). Every
@@ -32,11 +32,12 @@ and would throw. Remove the legacy branches (and keep handling "no image fields"
       names don't depend on the ids).
 All released 2026-10-18; recorded in ootv-claude `DEPRECATED.md`.
 
-- [ ] Decide about the card-level `imagehash` (12,432 l5r and 683 lbs cards; only `card.icon` used it).
+- [x] Decide about the card-level `imagehash` (12,432 l5r and 683 lbs cards; only `card.icon` used it).
+      Dropped from every card 2026-10-18 (ootv-backups `drop-card-imagehash.py`); #227 closed.
 
 Deploys: one ootv-client PR (feature branch → master) and one ootv-search PR (dev → main), each
 needs the user's yes; ootv-discord deploys with its stack. Before deleting the old S3 files, see
-ootv-backups `TODO.md` "redirect old image URLs" (also high priority).
+ootv-backups `TODO.md` "redirect old image URLs".
 
 ## L5R clan search: Monkey = Toturi's Army, and legality-aware clans (noted 2026-10-18)
 
