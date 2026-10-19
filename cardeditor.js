@@ -435,9 +435,14 @@ function cardeditselect(id) {
   cardeditrender();
 }
 
+// the MRP instance can't be one the MRP lookup skips, so it loses notmrp (docs/data.md)
 function cardeditmrp() {
+  var p = cardeditprinting();
   cardedit.card.printingprimary = cardedit.printid;
+  var had = 'notmrp' in p;
+  delete p.notmrp;
   cardeditrender();
+  if(had) { cardeditstatus('Removed notmrp from this instance, since it is now the MRP one.'); }
 }
 
 function cardeditnewinstance() {
@@ -645,12 +650,94 @@ function cardeditstatus(msg,err) {
   $('#cardeditstatus').html(msg ? '<span'+(err ? ' class="error"' : '')+'>'+msg+'</span>' : '');
 }
 
-function cardeditcommit() {
+// Fields kept on both the card and its saved instances (legality, keywords, text...) where this
+// commit changes one side and leaves the other, which has values, alone:
+// [{field, from ('card' or a printingid), add, remove, targets: [{id, checked}]}].
+// Ticked by default with only one instance, or when the two sides matched before the edit.
+var cardeditsyncskip = ['notes','needsreview','image','imagehash','printingid'];
+function cardeditsyncchecks() {
+  if(!cardedit.base) { return []; }
+  var c = cardedit.card, base = cardedit.base;
+  var vals = v => [].concat(v === undefined || v === null ? [] : v).filter(x => !(typeof x === 'string' && x.trim() === ''));
+  var simple = v => vals(v).every(x => ['string','number'].includes(typeof x));
+  var same = (a,b) => _.isEqual(vals(a).map(String).sort(), vals(b).map(String).sort());
+  var has = (list,x) => list.some(y => String(y) == String(x));
+  var printings = c.printing.filter(p => !cardeditisnew(p.printingid));
+  var sides = [{id: 'card', old: base, now: c}].concat(printings.map(p => ({id: p.printingid, old: base.printing.find(q => q.printingid == p.printingid), now: p})));
+  var out = [];
+  sides.forEach(function(side) {
+    Object.keys(Object.assign({}, side.old, side.now)).filter(k => !cardeditsyncskip.includes(k) && !cardeditmanaged.includes(k)).forEach(function(k) {
+      if(same(side.old[k],side.now[k]) || !simple(side.old[k]) || !simple(side.now[k])) { return; }
+      var add = vals(side.now[k]).filter(x => !has(vals(side.old[k]),x));
+      var remove = vals(side.old[k]).filter(x => !has(vals(side.now[k]),x));
+      // the card against each instance, an instance against the card
+      var targets = sides.filter(o => (o.id == 'card') != (side.id == 'card') && vals(o.old[k]).length && simple(o.old[k]) && same(o.old[k],o.now[k]));
+      if(targets.length && (add.length || remove.length)) {
+        out.push({field: k, from: side.id, add: add, remove: remove,
+                  targets: targets.map(o => ({id: o.id, checked: printings.length == 1 || same(o.old[k],side.old[k])}))});
+      }
+    });
+  });
+  return out;
+}
+
+// make one side's change on another: remove what it removed, add what it added (a value edited
+// in place replaces the old one where it stood); a single string or number takes the new value
+function cardeditsyncapply(check,obj) {
+  var k = check.field;
+  var src = check.from == 'card' ? cardedit.card : cardedit.card.printing.find(p => p.printingid == check.from);
+  if(!Array.isArray(obj[k])) {
+    obj[k] = Array.isArray(src[k]) ? src[k].slice() : src[k];
+    return;
+  }
+  var list = obj[k].slice();
+  var adds = check.add.slice();
+  check.remove.forEach(function(r) {
+    var i = list.findIndex(x => String(x) == String(r));
+    if(i < 0) { return; }
+    if(adds.length) { list[i] = adds.shift(); } else { list.splice(i,1); }
+  });
+  adds.forEach(a => { if(!list.some(x => String(x) == String(a))) { list.push(a); } });
+  obj[k] = list;
+}
+
+function cardeditsyncdialog(checks) {
+  var strip = s => String(s).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ');
+  var show = x => htmlEncode(strip(x).length > 300 ? strip(x).slice(0,297)+'...' : strip(x));
+  var where = id => {
+    if(id == 'card') { return 'the card'; }
+    var p = cardedit.card.printing.find(q => q.printingid == id);
+    return 'instance ('+id+') '+htmlEncode(strip([].concat(p.set || '')[0]))+'/'+htmlEncode(strip([].concat(p.rarity || '')[0]));
+  };
+  var lab = labels[cardedit.db] || {};
+  return '<p>These fields are on both the card and its instances, but this commit changes only one side. Tick where the same change should be made too.</p>'+
+    checks.map((ch,i) => '<div class="cardeditsync"><b>'+htmlEncode(lab['tag'+ch.field] || ch.field)+'</b> on '+where(ch.from)+': '+
+      ch.add.map(x => '<span class="cardeditsyncadd">+ '+show(x)+'</span>').concat(ch.remove.map(x => '<span class="cardeditsyncremove">&minus; '+show(x)+'</span>')).join(' ')+
+      '<br />Also change: '+ch.targets.map(t => '<label><input type="checkbox" class="cardeditsynctick" data-check="'+i+'" data-target="'+t.id+'"'+(t.checked ? ' checked' : '')+' /> '+where(t.id)+'</label>').join(' ')+
+      '</div>').join('')+
+    '<p>Yes commits, with the ticked changes. No goes back to editing.</p>';
+}
+
+// sync: false when the card/instance check has been answered for this commit
+function cardeditcommit(sync=true) {
   if(cardedit.running) { return; }
   if(cardedit.view == 'json' && !cardeditreadjson()) { return; }
   var plan = cardeditplan();
   if(plan.errors.length) { cardeditstatus(plan.errors.map(htmlEncode).join('<br />'),1); return; }
   if(!plan.steps.length) { cardeditstatus('No changes to save.'); return; }
+  var checks = sync ? cardeditsyncchecks() : [];
+  if(checks.length) {
+    cardeditconfirm('Change both?',cardeditsyncdialog(checks), function() {
+      $('#cardeditconfirm-content .cardeditsynctick:checked').each(function() {
+        var ch = checks[$(this).data('check')];
+        var id = String($(this).data('target'));
+        cardeditsyncapply(ch, id == 'card' ? cardedit.card : cardedit.card.printing.find(p => p.printingid == id));
+      });
+      cardeditrender();
+      cardeditcommit(false);
+    });
+    return;
+  }
   if(plan.removed.length) {
     cardeditconfirm('Remove these?','Committing removes:<ul>'+plan.removed.map(r => '<li>'+htmlEncode(r)+'</li>').join('')+'</ul>Go ahead?',
                     () => cardeditrun(plan));
