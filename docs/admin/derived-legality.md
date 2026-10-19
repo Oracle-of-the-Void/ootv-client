@@ -81,6 +81,11 @@ Legacy, Modern, BigDeck and Obsidian Hand share these `none` clauses:
 - type Proxy, Other, Clock or Territory (Clock and Territory are Siege board pieces)
 - any printing with rarity `None`
 
+Stored legality is multi-valued. `Unreleased` is never removed or replaced: a card is unreleased
+for reasons that have nothing to do with playability. Other values go beside it, so an
+unreleased proxy has both `Unreleased` and `Not Legal (Proxy)`. Every proxy has
+`Not Legal (Proxy)` (backfilled 2026-10-18).
+
 ## Formats
 
 Counts are as of the last update. Check the current count by selecting the value in a search.
