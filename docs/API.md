@@ -423,7 +423,9 @@ inputs (a value list can be repeated or comma separated):
 * q: text over list name, notes, owner name and card titles
 * card: lists with a card whose title matches (phrase)
 * cardid: lists with all of these cards; minqty: at least this many copies of each
-* type, clan, format (every one given), stronghold (title), owner (uid)
+* type, clan, stronghold (title), owner (uid)
+* format: the deck's format (`derived.format`: the list's own legality, else inferred, see `derived.formatsource`)
+* cardslegal: formats every card must be legal in (all given); winner=1: lists with a tournament result
 * empty=1: include lists with no cards
 * sort: `modified` (default), `name`, `size`, `created`, `relevance` (the default with q)
 * from, size (at most 50, default 20)
@@ -432,16 +434,29 @@ outputs:
 
 * total, from, size, sort
 * hits[]: `listid, game, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
-  (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `derived`
-  (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, formats[], unknowncards`), and with
+  (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `award {event, result, year}`, `derived`
+  (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
+  `cardslegal[], unknowncards`), and with
   cardid, `card {cardid, quantity}` for the first cardid
-* facets: `type, clan, stronghold, format`, each `[{value, count}]` over the whole result
+* facets: `type, clan, stronghold, format`, each `[{value, count}]` over the whole result; `winner`: a count
 
 codes:
 
 * 200 success
 * 400 no game
 
+
+## /cardslegal
+
+POST (form: `table`, `cardids=1,2,3`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
+these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
+deck check. Answers `{cardslegal: [...], unknown: <cards not found>}`; 400 without a table or with over 5000 cards.
+
+## /list action=award
+
+`/list?uid=&database=&listid=N&action=award&award=<json>` sets a tournament result `{event, result, year}` on any list
+(empty `award`: removes it). Moderators only: `groups[<game>]` or `groups['*']` holding `listaward` or `*` (403
+otherwise). Answers `{award}`. Owners can't set it, and a copy doesn't keep it.
 
 ## /update
 

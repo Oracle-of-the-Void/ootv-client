@@ -3206,7 +3206,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+liststats(listdata)+listmissing(listid,missing)+html);
+	    $("#resultlist").html(listheader(listid)+liststats(listdata,listid)+listmissing(listid,missing)+html);
+	    liststatslegal();
 	    liststatscutoff();
 	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
@@ -3242,7 +3243,39 @@ function listheader(listid) {
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
+	"awardmod": gamepermission('listaward'),
 	"loggedin": listloggedin(), "database": database});
+}
+// a tournament result on a list (award: {event, result, year}), set by moderators (groups 'listaward' or '*');
+// ootv-search /list action=award. Empty event: clear it.
+function listawardedit(listid) {
+    var list = cache_thing("list",listid);
+    var cur = (list && list.list.Items[0].award) || {};
+    var event = prompt("Tournament (event name). Leave empty to remove the result.", cur.event || '');
+    if(event === null) return;
+    var award = '';
+    if(event.trim()) {
+	var result = prompt("Result (e.g. Winner, 2nd place, Top 8)", cur.result || 'Winner');
+	if(result === null) return;
+	var year = prompt("Year", cur.year || '');
+	if(year === null) return;
+	award = JSON.stringify({event: event.trim(), result: result.trim(), year: year.trim()});
+    } else if(!cur.event || !confirm("Remove the tournament result from this list?")) {
+	return;
+    }
+    $.ajax({
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=award&award="+encodeURIComponent(award),
+	contentType: 'application/json',
+	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	success: function(data) {
+	    if(list) {
+		if(data.award) list.list.Items[0].award = data.award; else delete list.list.Items[0].award;
+		cache_thing("list",listid,list);
+	    }
+	    $(".listviewheader[data-list='"+listid+"']").replaceWith(listheader(listid));
+	},
+	error: function(xhr) { alert('Not saved'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : '')); }
+    });
 }
 // the link that opens a list for anyone (logged out: /publiclist), as the address bar has it
 function sharelink(listid) {
@@ -3434,7 +3467,7 @@ function liststatskeywords(cards, decks) {
 function liststatspct(part, whole) {
     return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
 }
-function liststats(listdata) {
+function liststats(listdata,listid=null) {
     var cards = listdata.filter(function(c) { return c.cardid > 0; }).map(function(c) {
 	return {"card": c, "qty": parseInt(c.listquantity) || 0};
     }).filter(function(c) { return c.qty > 0; });
@@ -3472,9 +3505,30 @@ function liststats(listdata) {
     var keywords = liststatskeywords(cards, decks.map(function(d) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
+    var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
+	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
 	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+}
+// the stats block's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
+// not; decks only). Answers are kept per card set for the page's life.
+var liststatslegalcache = {};
+function liststatslegal() {
+    $(".liststatslegal[data-cardids]").each(function() {
+	var el = $(this), ids = el.attr('data-cardids');
+	var show = function(r) {
+	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+htmlEncode(f)+'</span>'; }).join('') :
+		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
+	};
+	if(liststatslegalcache[ids]) {
+	    show(liststatslegalcache[ids]);
+	    return;
+	}
+	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: {table: database, cardids: ids}, dataType: 'json',
+	    success: function(r) { liststatslegalcache[ids] = r; show(r); },
+	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
+    });
 }
 // keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
 // hides, and so does a deck with none left
@@ -7644,6 +7698,9 @@ var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
 var publicextra = {};         // cardid / owner filters, with the label their chip shows
 var publicsearching = false;  // a search is on its way (showview doesn't start another)
+// where a deck's format came from (derived.formatsource), when it isn't the owner's own setting
+var publicformatnote = {'name': ['from the name', 'The owner didn\'t set a format; this one starts the deck\'s name'],
+                        'cards': ['guessed', 'The owner didn\'t set a format; guessed from where all the cards are legal']};
 
 // the form (and extra filters) -> query string, empty fields left out
 function publicquery() {
@@ -7664,6 +7721,7 @@ function publicquery() {
 function publicfillform(qs) {
   var q = uri2json(qs || '');
   $("#publicform")[0].reset();
+  $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   ['q','card','type','clan','format','stronghold','sort'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
@@ -7734,6 +7792,7 @@ function renderpublic(data, page) {
   publicfacetoptions('clan', data.facets.clan, 'Any clan');
   publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
   publicfacetoptions('format', data.facets.format, 'Any format');
+  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
@@ -7747,12 +7806,17 @@ function renderpublic(data, page) {
     if(d.stronghold) meta.push(d.stronghold.title);
     var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
     var when = String(h.modified || h.created || '').slice(0,10);
-    var formats = (d.formats || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">'+
-      d.formats.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+    var format = d.format ? '<div class="dircardmeta">Format: <b>'+htmlEncode(d.format)+'</b>'+
+      (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
+    var formats = (d.cardslegal || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">All cards legal for: '+
+      d.cardslegal.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+    var award = h.award ? '<div class="publicaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> '+htmlEncode(h.award.result || 'Winner')+': '+htmlEncode(h.award.event || '')+(h.award.year ? ' ('+htmlEncode(h.award.year)+')' : '')+'</div>' : '';
     return '<div class="directorycard publiccard">'+
       '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
       '<div class="dircardbody">'+
+        award+
         '<div class="dircardmeta">'+meta.map(htmlEncode).join(' &middot; ')+'</div>'+
+        format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
         '<div class="dircardmeta">by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>'+(when ? ' &middot; '+when : '')+'</div>'+
         formats+

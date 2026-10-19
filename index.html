@@ -249,6 +249,7 @@
     <select name="clan" style="display:none"><option value="">Any clan</option></select>
     <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
     <select name="format" style="display:none"><option value="">Any format</option></select>
+    <label class="publicwinner" title="Lists with a tournament result"><input type="checkbox" name="winner" value="1" onchange="publicsearch(0);"> Tournament results <span id="publicwinnercount"></span></label>
     <select name="sort">
       <option value="">Newest first</option>
       <option value="name">Name</option>
@@ -1024,6 +1025,11 @@ printingprimary
      share link; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
      the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
+<!-- list header: a tournament result (award, set by moderators: listawardedit in oracle.js) -->
+<script id="template-listaward" type="text/x-jsrender">
+{{if award}}<div class="listaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> {{>award.result || 'Winner'}}: {{>award.event}}{{if award.year}} ({{>award.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;">Edit result</button>{{/if}}</div>
+{{else ~awardmod}}<div class="listaward"><button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> Add tournament result</button></div>{{/if}}
+</script>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
   {{if ~mine}}
@@ -1040,6 +1046,7 @@ printingprimary
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
   </div>
   {{include tmpl="#template-listsource"/}}
+  {{include tmpl="#template-listaward"/}}
   <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
   {{else}}
   <div class="listviewshared" role="note">
@@ -1058,6 +1065,7 @@ printingprimary
     {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
   </span>
   {{include tmpl="#template-listsource"/}}
+  {{include tmpl="#template-listaward"/}}
   {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
   {{/if}}
 </div>
@@ -1095,6 +1103,7 @@ printingprimary
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
   <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatshint"> (Expand for detailed statistics)</span></summary>
+  {{if legalids}}<div class="liststatslegal" data-cardids="{{:legalids}}" title="Every card in the list is legal in these formats. The deck itself isn't checked (size, MRPs, ban limits).">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>{{/if}}
   {{if decks.length}}
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th><th>%</th><th class="liststatsavgs">Averages</th></tr></thead>
