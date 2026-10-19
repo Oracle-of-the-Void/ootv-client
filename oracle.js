@@ -6792,7 +6792,7 @@ function urlparser(keepfilters=false) {
 	  var pq = decodeURIComponent(matchstruct['publiclists']);
 	  urlrestoring = 'public';
 	  if(pq !== lastpublicquery) {
-	    publicsearch(publicpageof(pq), pq, true);
+	    publicsearch(0, pq.replace(/(^|&)page=\d+/,''), true);
 	  }
 	  showviewkeepurl('resultpublic');
   } else if(typeof(matchstruct['view']) != 'undefined') {
@@ -7724,8 +7724,15 @@ function generalnomodal(div,event) {
 // for l5r, stronghold, clan and the formats all the deck's cards are legal in). A result opens in the
 // list view like a shared deck link (listinfo: /list when logged in, else /publiclist).
 // The query is the form's fields plus cardid (card view link) and owner ("more by this player").
+// Decks shows only decks; someone's other lists (collections, haves, wants) show under them (an owner filter,
+// from People or "by ..."), where the type select appears. Formats counts decks only (server side).
+// Decks and People load publicpagesize at a time; scrolling to the end loads more (publicloadmore).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
+var publicshown = 0;          // results on screen for it
+var publicmoretotal = 0;      // how many it has in all (more to load while publicshown is less)
+var publicseq = 0;            // each new search's number: answers to an older one (a slow view switch) are dropped
+var publicxhr = null;         // the request on its way (a new search aborts it)
 var publicextra = {};         // cardid / owner filters, with the label their chip shows
 var publicsearching = false;  // a search is on its way (showview doesn't start another)
 // where a deck's format came from (derived.formatsource), when it isn't the owner's own setting
@@ -7746,6 +7753,13 @@ function publicquery() {
     }
   });
   return parts.join('&');
+}
+// what's sent: the query, plus decks only in the Decks view unless it's one person's lists
+function publicrequest(query) {
+  var group = $('#publicform [name="group"]').val() || '';
+  var deckonly = !group && !publicextra.owner;
+  $('#publicform [name="type"]').toggle(!deckonly && group != 'formats');
+  return query.replace(/(^|&)type=[^&]*/g,'') + (deckonly ? (query ? '&' : '')+'type=deck' : '');
 }
 // a query string -> the form and extra filters
 function publicfillform(qs) {
@@ -7772,37 +7786,84 @@ function publicfillform(qs) {
     }
   });
 }
-// search from the form; page: 0-based. qs: run this query instead (url, back/forward). replace: don't add history
+// search from the form (from the first result). qs: run this query instead (url, back/forward). replace: don't add history
 function publicsearch(page=0, qs=null, replace=false) {
   if(qs !== null) {
     publicfillform(qs);
   }
   var query = publicquery();
-  var from = page * publicpagesize;
   $("#publicstatus").text('Searching...');
-  publicsearching = true;
-  $.ajax({
-    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+(query ? '&'+query : '')+'&from='+from+'&size='+publicpagesize,
-    dataType: 'json',
-    success: function(data) {
-      lastpublicquery = query + (page ? (query ? '&' : '')+'page='+page : '');
-      updatepublicbuttons();
-      if(data.groups) {
-	renderpublicgroups(data);
-      } else {
-	renderpublic(data, page);
-      }
-      seturl(viewstate('public'), replace);
-    },
-    error: function(xhr) {
-      $("#publicstatus").text('Search failed'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : ''));
-    },
-    complete: function() { publicsearching = false; }
+  publicseq++;
+  publicfetch(query, 0, function(data) {
+    lastpublicquery = query;
+    publicshown = 0;
+    updatepublicbuttons();
+    $("#publicresults").html('');
+    publicrender(data, false);
+    seturl(viewstate('public'), replace);
   });
 }
-function publicpageof(qs) {
-  var m = String(qs || '').match(/(?:^|&)page=(\d+)/);
-  return m ? parseInt(m[1]) : 0;
+// the next publicpagesize results of the query on screen, added at the end
+function publicloadmore() {
+  if(publicsearching || lastpublicquery === null || publicshown >= publicmoretotal) {
+    return;
+  }
+  $("#publicmore").text('Loading more...');
+  publicfetch(lastpublicquery, publicshown, function(data) { publicrender(data, true); });
+}
+function publicfetch(query, from, done) {
+  var request = publicrequest(query);
+  var seq = publicseq;
+  if(publicxhr) {
+    publicxhr.abort();
+  }
+  publicsearching = true;
+  publicxhr = $.ajax({
+    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+(request ? '&'+request : '')+'&from='+from+'&size='+publicpagesize,
+    dataType: 'json',
+    success: function(data) {
+      if(seq == publicseq) done(data);
+    },
+    error: function(xhr, status) {
+      if(seq == publicseq && status != 'abort') {
+        $("#publicstatus").text('Search failed'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : ''));
+      }
+    },
+    complete: function() {
+      if(seq != publicseq) return;
+      publicxhr = null;
+      publicsearching = false;
+      publicmorecheck();
+    }
+  });
+}
+function publicrender(data, append) {
+  if(data.groups) {
+    renderpublicgroups(data, append);
+    publicshown = data.group == 'people' ? data.from + data.groups.length : data.groups.length;
+    publicmoretotal = data.group == 'people' ? data.groupstotal : data.groups.length;
+  } else {
+    renderpublic(data, append);
+    publicshown = data.from + data.hits.length;
+    publicmoretotal = data.total;
+  }
+  $("#publicmore").html(publicshown < publicmoretotal ?
+    '<button class="button gray" onclick="publicloadmore();">Load more</button>' : '');
+}
+// infinite scroll: the end of the results coming into view loads more
+var publicmoreobserver = null;
+function publicmorecheck() {
+  if(!window.IntersectionObserver || !document.getElementById('publicmore')) {
+    return;
+  }
+  if(!publicmoreobserver) {
+    publicmoreobserver = new IntersectionObserver(function(entries) {
+      if(entries.some(function(e) { return e.isIntersecting; }) && $('#resultpublic').is(':visible')) {
+        publicloadmore();
+      }
+    }, {rootMargin: '400px'});
+    publicmoreobserver.observe(document.getElementById('publicmore'));
+  }
 }
 function publicfacetoptions(name, facet, label) {
   var el = $('#publicform [name="'+name+'"]');
@@ -7820,13 +7881,14 @@ function publicfacetoptions(name, facet, label) {
   el.html(opts).val(current || '');
   el.toggle(!!current || (facet || []).length > 0);
 }
-function renderpublic(data, page) {
+function renderpublic(data, append) {
   publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
   $('#publicform [name="type"] option').each(function() {
     if(this.value && listtypes[this.value]) {
       $(this).text($(this).text().replace(this.value, listtypes[this.value]));
     }
   });
+  $('#publicform [name="type"]').toggle(!!publicextra.owner);   // decks only, unless it's one person's lists
   publicfacetoptions('clan', data.facets.clan, 'Any clan');
   publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
   publicfacetoptions('format', data.facets.format, 'Any format');
@@ -7835,9 +7897,8 @@ function renderpublic(data, page) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
-  var first = data.total ? data.from + 1 : 0;
-  $("#publicstatus").html(chips+' '+(data.total == 1 ? '1 public list' : data.total+' public lists')+
-    (data.total > data.hits.length ? ' (showing '+first+'&ndash;'+(data.from + data.hits.length)+')' : ''));
+  var deckonly = !publicextra.owner;
+  $("#publicstatus").html(chips+' '+data.total+' public '+(deckonly ? (data.total == 1 ? 'deck' : 'decks') : (data.total == 1 ? 'list' : 'lists')));
   var html = data.hits.map(function(h) {
     var d = h.derived || {};
     var meta = [listtypes[h.type] || h.type];
@@ -7863,12 +7924,11 @@ function renderpublic(data, page) {
         (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
       '</div></div>';
   }).join('');
-  $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
-  var pages = Math.ceil(data.total / publicpagesize);
-  $("#publicpager").html(pages > 1 ?
-    (page > 0 ? '<button class="button gray" onclick="publicsearch('+(page-1)+');">&laquo; Previous</button> ' : '')+
-    'Page '+(page+1)+' of '+pages+
-    (page+1 < pages ? ' <button class="button gray" onclick="publicsearch('+(page+1)+');">Next &raquo;</button>' : '') : '');
+  if(append) {
+    $("#publicresults").append(html);
+  } else {
+    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+  }
 }
 // the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), in place
 // of the search ones, as the directory has its own (updatedirbuttons)
@@ -7884,19 +7944,30 @@ function publicgroup(group) {
   $('#publicform [name="group"]').val(group);
   publicsearch(0);
 }
+// People: a person's public lists by type (Decks first), then pre-constructed and tournament results
+var publictypeplural = {'deck': 'decks', 'collection': 'collections', 'have': 'haves', 'want': 'wants', 'other': 'other lists'};
 function publicgroupcounts(g) {
-  var parts = [g.lists+' list'+(g.lists==1?'':'s')+(g.decks != g.lists ? ' ('+g.decks+' deck'+(g.decks==1?'':'s')+')' : '')];
+  var parts = [];
+  if(g.types) {
+    Object.keys(publictypeplural).concat(Object.keys(g.types).filter(function(t) { return !publictypeplural[t]; })).forEach(function(t) {
+      var n = g.types[t];
+      if(n) parts.push(n+' '+(n == 1 ? (listtypes[t] || t).toLowerCase() : (publictypeplural[t] || t)));
+    });
+  } else {
+    parts.push(g.lists+' '+(g.lists == 1 ? 'deck' : 'decks'));
+  }
   if(g.precon) parts.push(g.precon+' pre-constructed');
   if(g.tournament) parts.push(g.tournament+' tournament result'+(g.tournament==1?'':'s')+(g.wins ? ' ('+g.wins+' win'+(g.wins==1?'':'s')+')' : ''));
   return parts.join(' &middot; ');
 }
-function renderpublicgroups(data) {
+function renderpublicgroups(data, append) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
   var people = data.group == 'people';
   $("#publicwinnercount, #publicpreconcount").text('');   // facet counts come with the Decks view only
-  $("#publicstatus").html(chips+' '+data.total+' public lists, '+data.groups.length+(people ? ' people' : ' formats'));
+  $("#publicstatus").html(chips+' '+(people ? data.groupstotal+' people with '+data.total+' public lists' :
+    data.groups.length+' formats over '+data.total+' public decks'));
   var html = data.groups.map(function(g) {
     var when = g.latest ? String(g.latest).slice(0,10) : '';
     if(people) {
@@ -7918,8 +7989,11 @@ function renderpublicgroups(data) {
 	(when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
       '</div></div>';
   }).join('');
-  $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
-  $("#publicpager").html('');
+  if(append) {
+    $("#publicresults").append(html);
+  } else {
+    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+  }
 }
 // a format card: that format's lists ("No format": format=none, the lists without one)
 function publicbyformat(format) {
