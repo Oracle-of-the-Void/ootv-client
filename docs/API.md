@@ -429,9 +429,11 @@ inputs (a value list can be repeated or comma separated):
 * empty=1: include lists with no cards
 * sort: `modified` (default), `name`, `size`, `created`, `relevance` (the default with q)
 * from, size (at most 50, default 20)
-* group: `people` or `formats` returns, instead of hits, `groups[]`: one row per owner (`owner, ownername, formats[]`)
-  or per deck format (`format` ('' for none), `people`, `source {owner, name, cards}`), each with `lists, decks, precon,
-  tournament, wins, latest`, over the same filters (the client's People / Formats views)
+* group: `people` or `formats` returns, instead of hits, `groups[]` over the same filters (the client's People /
+  Formats views). `people`: one row per owner, most lists first, paged with from/size (`groupstotal`: how many owners),
+  each `owner, ownername, types {deck: n, collection: n, ...}, formats[]`. `formats`: every deck format at once (decks
+  only; `format` '' for none), each `format, people, source {owner, name, cards}`. Both: `lists, precon, tournament,
+  wins, latest`.
 
 outputs:
 
