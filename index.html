@@ -280,7 +280,7 @@
   <div id="admininfo" class="admininfo"></div>
   <br>Need to have:
   <ul>
-    <li><a href="" onclick="editcard(null,null); return false">New Card</a></li>
+    <li><a href="" onclick="cardeditor(null,null); return false">New Card</a></li>
     <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
     <li><a href="" onclick="loaddiscord(); return false">Discord bot</a></li>
     <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
@@ -290,6 +290,7 @@
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
+        <li><a href="" onclick="loadadmindoc('card-editor'); return false">Card editor</a></li>
         <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
         <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
         <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
@@ -492,30 +493,6 @@ printingprimary
 
 <div id="all_template">
 
-  <!-- modal template for editing a card -->
-<script id="template-editcard" type="text/jsrender">
-  <form id="editform" enctype="multipart/form-data">
-    <input name="cardid" id="editcardid" type="hidden" value="{{:cardid}}" />
-    <input name="table" id="editcarddb" type="hidden" value="{{:database}}" />
-    <input name="printid" id="editcardprint" type="hidden" value="{{:printid}}" />
-    {{if imageupload}}
-    <fieldset id="editimage">
-      <legend>Image</legend>
-      <input type="file" id="editimagefile" accept="image/png,image/jpeg" /><br />
-      Directory <input type="text" id="editimagehash" size="12" value="{{:imageupload.imagehash}}" {{if imageupload.locked}}readonly title="All images of an instance share its directory"{{/if}} />
-      File name <input type="text" id="editimagestem" size="16" value="{{:imageupload.stem}}" />_master / _details / _select
-      <label><input type="checkbox" id="editimageoverwrite" /> Replace existing files</label><br />
-      <input type="button" id="editimagebutton" value="Upload image" onclick="uploadimagetrigger();" />
-      <div id="editimagestatus"></div>
-      <div id="editimagepreview"></div>
-    </fieldset>
-    {{/if}}
-    <textarea id="editcard" name="editcard" rows="50" cols="100">{{:carddata}}</textarea>
-    <input type="button" id="editcardbutton" value="Update" onclick="editcardtrigger();" />
-    <div id="editcardbuttonafter"></div>
-  </form>
-</script>
-  
 <!-- modal template for importing lists -->
 <script id="template-import" type="text/jsrender">
   <form id="importform" enctype="multipart/form-data">
@@ -1189,11 +1166,9 @@ printingprimary
   <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
     <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a class="cardpubliclists" href="" title="Public lists with this card" onclick="publicwithcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></a> <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
 </div>
-    {{if ~groups && (~groups.database || ~groups["*"])}}
+    {{if ~canedit}}
     <span style="float:right; padding-right: 2px;">
-      <span class="iiconic iyellow" onclick="editcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
-	    <span class="iiconic ipositive" onclick="editcard(''); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span> 
-	    <span class="iiconic inegative" onclick="deletecard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></span>
+      <span class="button gray buttonsmall" title="Edit this card and its instances" onclick="cardeditor({{:cardid}},$('#lastprintid').val()); return false;">Edit<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></svg></span></span>
     </span>
     {{/if}}
     <dl>
@@ -1223,14 +1198,6 @@ printingprimary
 
 <script id="template-card-middle" type="text/x-jsrender">
   <dt>Versions</dt><dd>{{for ~sortprintings(printing) ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:setclean}}/{{:rarityclean}}{{if printingid == ~top.printingprimary}} *{{/if}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
-    {{if ~groups && (~groups.database || ~groups["*"])}}
-    <span style="float:right; padding-right: 2px;">
-      <span class="iiconic iyellow" onclick="setprimary({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></span>
-      <span class="iiconic iyellow" onclick="editcard({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit"></span>
-	    <span class="iiconic ipositive" onclick="editcard({{:cardid}},Number.MAX_SAFE_INTEGER); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></span>
-	    <span class="iiconic inegative" onclick="deletecard({{:cardid}},$('#lastprintid').val()); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></span>
-    </span>
-    {{/if}}
 
 </script> <!-- template-card-middle -->
 
@@ -1295,7 +1262,14 @@ printingprimary
 </div><!-- all_template -->
 </div><!-- main content area -->
 
-<div id="modal" class="modal" onclick="generalnomodal(this,event);"><div class="modal-box"><div class="listhead upperhead"><span id="modal-title">Hi</span><button class="iiconic inegative headsetrar" onclick="nomodal();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></button></div><div class="modal-content" id="modal-content"></div></div></div>
+<div id="modal" class="modal" onclick="generalnomodal(this,event);"><div class="modal-box"><div class="listhead upperhead"><span id="modal-title">Hi</span><button class="iiconic inegative headsetrar" onclick="modalclose();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></button></div><div class="modal-content" id="modal-content"></div></div></div>
+
+<!-- card editor (cardeditor.js) Yes/No: its own box over the editor, which stays open behind it -->
+<div id="cardeditconfirm" class="modal" style="z-index: 15;"><div class="modal-box"><div class="listhead upperhead"><span id="cardeditconfirm-title"></span></div><div class="modal-content">
+  <div id="cardeditconfirm-content"></div><br />
+  <span class="button gray" id="cardeditconfirm-yes">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
+  <span class="button gray" onclick="$('#cardeditconfirm').hide();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
+</div></div></div>
 
 <!-- login expired (loginagain): its own box, so a card edit open in #modal survives -->
 <div id="loginmodal" class="modal" style="z-index: 20;"><div class="modal-box"><div class="listhead upperhead"><span>Your login has expired</span></div><div class="modal-content">

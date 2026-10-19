@@ -1887,28 +1887,6 @@ function importlist(listid=null,name=null) {
     modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed()}));
 }
 
-function deletecard(cardid=null,printid=null) {
-  if(cardid&&printid) {
-    var carddata = cache_card_fetch(cardid);
-    modalconfirm("Delete instance "+printid+" from: "+carddata.title[0],
-                 "Are you sure you want to delete this instance:<br><br>"+
-                 "Card: "+carddata.title[0]+"<br>"+
-                 (carddata.printing[carddata.printingreverse.printingid[printid]].set ? "Set: "+carddata.printing[carddata.printingreverse.printingid[printid]].set : '')+"<br>"+
-                 (carddata.printing[carddata.printingreverse.printingid[printid]].rarity ? "Rarity: "+carddata.printing[carddata.printingreverse.printingid[printid]].rarity : '')+"<br>"+
-                 "<br><br>",
-                 "deletecardtrigger('"+database+"',"+cardid+","+printid+");"
-                );
-  } else if(cardid) {
-    var carddata = cache_card_fetch(cardid);
-    modalconfirm("Delete: "+carddata.title[0],
-                 "Are you sure you want to delete this card:<br><br>"+
-                 "Card: "+carddata.title[0]+"<br>"+
-                 "<br><br>",
-                 "deletecardtrigger('"+database+"',"+cardid+",null);"
-                );
-  }
-}
-
 function deletecardtrigger(database=null,cardid=null,printid=null) {
   var url = apiuri+"/update";
   var requestdata = {
@@ -1949,205 +1927,14 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
   $.ajax(request);
 }
 
-function editcard(cardid=null,printid=null) {
-  if(cardid&&printid) {
-    var carddata = cache_card_fetch(cardid);
-    var title;
-    var printing;
-    if(printid == Number.MAX_SAFE_INTEGER) {
-      title = "Add instance to: "+carddata.title[0];
-      // new printing version
-      var structure = cache_thing("structuretemplate",database);
-      printing = structure.template.printing[0];
-    } else {
-      title = "Edit card information for: "+carddata.title[0]+' - instance '+printid;
-      // edit just a printing version
-      printing = carddata.printing[carddata.printingreverse.printingid[printid]];
-      delete printing.printingid;
-      var imageupload = imageuploaddefaults(cardid,printid,printing);
-    }
-    var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": cardid, "printid": printid, "carddata": htmlEncode(JSON.stringify(printing,null,2)), "database": database, "imageupload": imageupload}));
-  } else if(cardid) {
-    // This edits just the main card data, no instance info
-    var carddata = cache_card_fetch(cardid);
-    delete carddata.printing;
-    delete carddata.printingreverse;
-    delete carddata.printingprimary;
-    delete carddata.cardid;
-    delete carddata.updatelog;
-    delete carddata['@timestamp'];
-    delete carddata['@SequenceNumber'];
-    var title = "Edit card information for: "+carddata.title[0];
-    var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": cardid, "carddata": htmlEncode(JSON.stringify(carddata,null,2)), "database": database}));
-  } else {
-    var structure = cache_thing("structuretemplate",database);
-    var title = "Insert new card";
-    var editcardtemplate = $.templates("#template-editcard");
-    modal(title,editcardtemplate.render({"cardid": "", "carddata": htmlEncode(JSON.stringify(structure.template,null,2)), "database": database}));
-  }    
-}
-
-function editcardtrigger() {
-  // https://github.com/Oracle-of-the-Void/ootv-client/blob/master/docs/API.md#update
-  // authenticated:  /update
-  // Header, uid
-  // cardid, database, data
-  // operation: update (hash of keys to update) - replace contents
-  // printingid + operation: updateinstance (hash of keys to update for printing) - replace contents
-  //    new / newinstance laterz
-  //    remove / removeinstance laterz
-
-  // Note, this one is just doing an edit on main card (so just update)
-
-  var printid = $('#editcardprint').val();
-  var cardid = $('#editcardid').val();
-  var url = apiuri+"/update";
-  var requestdata = {
-    "uid": getuid(),
-    "database": $('#editcarddb').val(),
-    "cardid": cardid,
-    "operation": "update",
-    "printingid": printid,
-    "data": {}
-  };
-  var newdata;
-  var changedata = {};
-  try {
-    newdata = JSON.parse($('#editcard').val());
-  } catch(e) {
-    $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Failed to parse</div>');
-    return;
-  }
-  // TODO:  enforce requirements
-  if (printid) {
-    if(printid == Number.MAX_SAFE_INTEGER) {
-      // new instance
-      requestdata.operation = "newinstance";
-      var structure = cache_thing("structuretemplate",database);
-      for (let def in structure.operation.new.defaultprinting) { 
-        if(!newdata[def]) {
-            newdata[def] = structure.operation.new.defaultprinting[def];
-        }
-      }
-      delete newdata.printingid;
-      requestdata.data = newdata;
-      console.log(["NEW",requestdata]);
-       // TODO HERE
-    } else {
-      // update instance
-      requestdata.operation = "updateinstance";
-      carddata = cache_card_fetch(cardid);
-      printing = carddata.printing[carddata.printingreverse.printingid[printid]];
-      console.log(printing);
-      delete printing.printingid;
-      if(_.isEqual(newdata,printing)) {
-        $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">No Change</div>');
-        return;
-      }
-      console.log(["differences",jsondiff(newdata,printing)]);
-      for (key in newdata) {
-        if(!_.isEqual(newdata[key],printing[key])) {
-          changedata[key] = newdata[key];
-        }
-      }
-      for (key in printing) {
-        if(!(key in newdata)) {
-          changedata[key] = null;
-        }
-      }
-      requestdata.data = changedata;
-    }
-  } else if(cardid) {
-    // update card main
-    // kill things managed in different ways
-    carddata = cache_card_fetch(cardid);
-    delete carddata.printing;
-    delete carddata.printingreverse;
-    delete carddata.printingprimary;
-    delete carddata.cardid;
-    delete carddata.updatelog;
-    delete carddata['@timestamp'];
-    delete carddata['@SequenceNumber'];
-    // make sure nobody "adds" anything restricted.
-    delete newdata.printing;
-    delete newdata.printingreverse;
-    delete newdata.printingprimary;
-    delete newdata.cardid;
-    delete newdata.updatelog;
-    delete newdata['@timestamp'];
-    delete newdata['@SequenceNumber'];
-    if(_.isEqual(newdata,carddata)) {
-      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">No Change</div>');
-      return;
-    }
-    console.log(["differences",jsondiff(newdata,carddata)]);
-    for (key in newdata) {
-      if(!_.isEqual(newdata[key],carddata[key])) {
-        changedata[key] = newdata[key];
-      }
-    }
-    for (key in carddata) {
-      if(!(key in newdata)) {
-        changedata[key] = null;
-      }
-    }
-    requestdata.data = changedata;
-  } else {
-    // NEW
-    requestdata.operation = "new";
-    delete requestdata.cardid;
-    delete requestdata.printingid;
-    // TODO:  enforce "required" things
-    var structure = cache_thing("structuretemplate",database);
-    for (let rem of structure.operation.new.remove) {
-      delete newdata[rem];
-    }
-    for (let def in structure.operation.new.default) {
-      if(!newdata[def]) {
-        newdata[def] = structure.operation.new.default[def];
-      }
-    }
-    for (let i = 0; i< newdata.printing.length ; i++) {
-      for (let def in structure.operation.new.defaultprinting) { 
-        if(!newdata.printing[i][def]) {
-          newdata.printing[i][def] = structure.operation.new.defaultprinting[def];
-        }
-      }
-    }
-    requestdata.data = [newdata];
-    console.log(["NEW",requestdata]);
-  }
-
-  $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updating</div>');
-  $('#editcardbutton').hide();
-  console.log(["updating card data",requestdata]);
-  var request = {
-	  type: "POST",
-	  url: url,
-	  contentType: 'application/json',
-	  dataType: 'json',
-    data: JSON.stringify(requestdata),
-	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-	  responseType: 'application/json',
-	  success: function(status) {
-      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Updated Successfully</div>');
-      console.log(["update ret",status]);
-      if(requestdata.cardid) {
-        cardfetch(requestdata.cardid,status.olddata.printingid?status.olddata.printingid:null,$('#lastsearchquery').val(),nomodal);
-      } else if(status.cardids) {
-        cardfetch(status.cardids[0],null,$('#lastsearchquery').val(),nomodal);
-      }
-	  },
-	  error: function(status) {
-      $('#editcardbuttonafter').replaceWith('<div id="editcardbuttonafter" class="error">Error</div><br /> '+status.responseText);
-	    console.log(status);
-	  }
-  };
-  console.log(["posting",request]);
-  $.ajax(request);
-
+// The card editor (cardeditor.js, loaded on first use): the whole card, every instance and the MRP
+// in one modal, saved together by Commit. No cardid: a new card.
+function cardeditor(cardid=null,printid=null) {
+  var open = function() { cardeditopen(cardid,printid); };
+  if(window.cardeditloaded) { open(); return; }
+  $.ajax({url: 'cardeditor.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(open)
+    .fail(function() { modal('Edit card','<span class="error">Could not load the card editor.</span>'); });
 }
 
 // Card image upload (#12). Images use the modern layout only: printing.imagehash is the
@@ -2266,16 +2053,12 @@ function uploadimagetrigger() {
   var hash = $('#editimagehash').val().trim();
   var stem = $('#editimagestem').val().trim();
   var overwrite = $('#editimageoverwrite').is(':checked');
-  var db = $('#editcarddb').val();
-  var cardid = $('#editcardid').val();
-  var printid = $('#editcardprint').val();
+  // the instance shown in the card editor (cardeditor.js), as edited so far
+  var db = cardedit.db;
+  var cardid = cardedit.cardid;
+  var printid = cardedit.printid;
   var status = function(msg,err) { $('#editimagestatus').html('<span'+(err?' class="error"':'')+'>'+msg+'</span>'); };
-  var printing;
-  try {
-    printing = JSON.parse($('#editcard').val());
-  } catch(e) {
-    status('The instance JSON below does not parse. Fix it before uploading.',1); return;
-  }
+  var printing = cardeditprinting();
   var existing = (printing.image && printing.image.length) ? printing.image : [];
   if(existing.length && printing.imagehash && hash != printing.imagehash) {
     status('This instance keeps its images in "'+htmlEncode(printing.imagehash)+'"; new images have to go there too.',1); return;
@@ -2324,20 +2107,19 @@ function uploadimagetrigger() {
       return uploadimagefiles(db,hash,files,overwrite,cardid,printid);
     })
     .then(function() {
-      // The existing images, then the new one (or replace it in place).
-      // The user reviews the JSON and presses Update to save.
+      // The existing images, then the new one (or replace it in place), in the editor's copy of
+      // the instance: Commit saves it.
       var image = existing.slice();
       var at = image.findIndex(e => e.master == names.master);
       if(at >= 0) { image[at] = names; } else { image.push(names); }
       printing.imagehash = hash;
       printing.image = image;
-      $('#editcard').val(JSON.stringify(printing,null,2));
-      var base = dbinfo[db].imageuri+hash+'/';
-      $('#editimagepreview').html(image.map(e => '<img src="'+base+e.select+'?t='+Date.now()+'" />').join(' '));
-      $('#editimagehash').prop('readonly',true);
-      $('#editimagestem').val(imageuploaddefaults(cardid,printid,printing).stem);
-      $('#editimagefile').val('');
-      status('Uploaded '+htmlEncode(names.master)+'. The image list below now has '+image.length+' image(s): review it and press Update to save.');
+      // redraw the editor (its image list, image fields and the next file name), upload form left open
+      if(cardedit && cardedit.printid == printid && cardedit.view != 'json') {
+        cardeditrender();
+        $('#cardedit .cardeditupload').prop('open',true);
+      }
+      status('Uploaded '+htmlEncode(names.master)+'. The instance now has '+image.length+' image(s): press Commit to save it to the card.');
     })
     .catch(function(e) {
       status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
@@ -2672,39 +2454,6 @@ function massimageupload() {
       massimagecontrols(false);
       $('#massimagestop').hide();
     });
-}
-
-function setprimary(cardid,printid) {
-  if(cardid&&printid) {
-    var url = apiuri+"/update";
-    var requestdata = {
-      "uid": getuid(),
-      "database": database,
-      "cardid": cardid,
-      "operation": "update",
-      "data": {"printingprimary":printid}
-    };
-    console.log(["updating card data",requestdata]);
-    var request = {
-	    type: "POST",
-	    url: url,
-	    contentType: 'application/json',
-	    dataType: 'json',
-      data: JSON.stringify(requestdata),
-	    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
-	    responseType: 'application/json',
-	    success: function(status) {
-        console.log(["update ret",status]);
-        cardfetch(requestdata.cardid,printid,$('#lastsearchquery').val(),nomodal);
-	    },
-	    error: function(status) {
-        alert('Error: '+status.responseText);
-	      console.log(status);
-	    }
-    };
-    console.log(["posting",request]);
-    $.ajax(request);
-  }
 }
 
 function importlisttrigger() {
@@ -4980,7 +4729,8 @@ function cardhtml(carddata,prid=null,qs=null) {
     "dbinfo": dbinfo[database],
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
       cache_thing("user","data").oracle[0].groups : {},
-    "maint": gamepermission('updateinstance')       // needsreview notes are for this game's maintainers
+    "maint": gamepermission('updateinstance'),      // needsreview notes are for this game's maintainers
+    "canedit": cardeditallowed()                    // the card editor's Edit button
   };
   if(carddata.updatelog) {
     carddata['updatelogformatted'] = carddata.updatelog.reverse().map(function(ul){
@@ -6091,6 +5841,10 @@ function gamepermission(op) {
   }
   var groups = user.oracle[0].groups;
   return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && (groups[g].includes('*') || groups[g].includes(op)); });
+}
+// any card-editing permission on this game (the groups list names the /update operations allowed)
+function cardeditallowed() {
+  return ['*','update','updateinstance','newinstance','removeinstance','remove','new'].some(gamepermission);
 }
 // full permissions on this game
 function fullgamepermission() {
@@ -7704,6 +7458,7 @@ function cache_session(thing,selval=null) {
 //**********************************************************  modal window ****************
 
 function modal(title,content) {
+    $('#modal').removeData('guard').removeClass('cardeditmodal');
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
@@ -7711,6 +7466,7 @@ function modal(title,content) {
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
+  $('#modal').removeData('guard').removeClass('cardeditmodal');
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
@@ -7725,9 +7481,18 @@ function erasemodal() {
 function nomodal() {
     $('#modal').css('display','none');
 }
+// the X and a click outside the box: a modal can set a guard (data 'guard') that returns false to stay open
+function modalclose() {
+    var guard = $('#modal').data('guard');
+    if(guard && !guard()) {
+	return;
+    }
+    $('#modal').removeData('guard');
+    nomodal();
+}
 function generalnomodal(div,event) {
     if(event.target == div) {
-	nomodal();
+	modalclose();
     }
 }
 

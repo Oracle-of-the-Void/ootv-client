@@ -34,9 +34,9 @@
   printing of the card to show, this printing is skipped, so it is never the "most recent
   printing" for an arc or format (e.g. a later expansion reprint that shouldn't stand for the
   arc). Other searches (a set search) can still show it. Leave it out rather than writing
-  false. To set it, edit the card in the site's card editor, which edits the card's JSON
-  directly: add `"notmrp": true` inside that printing's object. The Discord bot honors it
-  too.
+  false. To set it, open the printing in the site's card editor and use Add field → `notmrp`
+  (it starts as `true`), or add `"notmrp": true` inside that printing's object in the editor's JSON
+  view. The Discord bot honors it too.
 * printing.snmsetcode (optional, l5r, array of one string). The Sun and Moon edition code the
   S&M text export writes for this printing, where it differs from its set's code (the
   `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
@@ -61,7 +61,7 @@
 
 * needsreview (optional, every game, array of strings): open questions about the card, one plain-text
   reason per entry, shown only to that game's maintainers and searchable with Advanced → Needs review.
-  Set it to `null` in the card editor to remove it. See `docs/admin/needsreview.md`.
+  Remove it with its x in the card editor (or `null` in the JSON view). See `docs/admin/needsreview.md`.
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 
