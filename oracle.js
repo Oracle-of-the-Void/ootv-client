@@ -505,6 +505,7 @@ function userinfocallback() {
       $('.showonadmin').show();
     }
     updateviewbuttons();
+    showmaintonly();
     applyviewdefaults();
     rendersavedsearches();
     applysearchdefault();
@@ -4216,9 +4217,16 @@ function fillsearchform(values) {
     showadvancedsearch(true);
   }
 }
+var advancedshown = false;
 function showadvancedsearch(show) {
+  advancedshown = show;
   $('dt.advanced, dd.advanced').toggle(show);
   $('dt.notadvanced, dd.notadvanced').toggle(!show);
+  showmaintonly();
+}
+// search fields marked "maint" (needsreview): only in Advanced, and only for users who can edit this game
+function showmaintonly() {
+  $('dt.maintonly, dd.maintonly').toggle(advancedshown && gamepermission('updateinstance'));
 }
 // a new session (no search in the url) or Reset: the saved default, or an empty form
 function resetsearchform() {
@@ -4971,7 +4979,8 @@ function cardhtml(carddata,prid=null,qs=null) {
 	  "database": database,
     "dbinfo": dbinfo[database],
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
-      cache_thing("user","data").oracle[0].groups : {}
+      cache_thing("user","data").oracle[0].groups : {},
+    "maint": gamepermission('updateinstance')       // needsreview notes are for this game's maintainers
   };
   if(carddata.updatelog) {
     carddata['updatelogformatted'] = carddata.updatelog.reverse().map(function(ul){
@@ -6832,17 +6841,19 @@ function initializeform(db) {
 	  console.log(["initialize form: ",key,value]);
 	  if(key == "quick") { return ''; }
 	  if(value.type == "hidden") { return ''; }
+	  var cls = [value.advanced?'advanced':'', value.maint?'maintonly':''].filter(c => c).join(' ');
+	  cls = cls ? ' class="'+cls+'"' : '';
 	  if(value.type == "require") {
 	    // a checkbox that sends require_<field>=<value>: ANDed with the rest of the search,
 	    // including the field's own select (ootv-search routes/search.js)
 	    var rname = 'require_'+value.field.replace("printing.","printing_");
-	    return '<dt'+(value.advanced?' class="advanced"':'')+'>'+labels[db]["short"+key]+'</dt><dd'+(value.advanced?' class="advanced"':'')+'>'+
+	    return '<dt'+cls+'>'+labels[db]["short"+key]+'</dt><dd'+cls+'>'+
 	      '<label><input type="checkbox" id="'+rname+'" name="'+rname+'" value="'+value.value+'"> '+labels[db]["tag"+key]+'</label></dd>';
 	  }
 	  var nound = key.replace("printing.","printing_");
 	  var nop = key.replace("printing.","").replace("card",'');
 	  var ret = '<input type="hidden" name="type_'+nound+'" value="'+value.type+'">'+
-	      '<dt'+(value.advanced?' class="advanced"':'')+'>'+labels[db]["short"+nop]+'</dt><dd'+(value.advanced?' class="advanced"':'')+'>';
+	      '<dt'+cls+'>'+labels[db]["short"+nop]+'</dt><dd'+cls+'>';
 	  switch(value.type) {
 	  case "text":
 	    ret += '<input type="text" id="field_'+nound+'" name="field_'+nound+'">';
@@ -6871,6 +6882,8 @@ function initializeform(db) {
   chosenify();
   $('dd.advanced').hide();
   $('dt.advanced').hide();
+  advancedshown = false;
+  showmaintonly();
   rendersavedsearches();
   applysearchdefault();
 }
