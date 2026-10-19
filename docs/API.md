@@ -9,6 +9,7 @@
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
 * [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
+* [/publiclists (GET)](#publiclists)           -> Search every public deck/list (the Public lists view)
 
 ### Needing Authentication
 
@@ -407,6 +408,62 @@ codes:
 * 400 no listid
 * 404 no such list, or it isn't public (the same answer, so a link doesn't show whether a private list exists)
 
+
+## /publiclists
+
+GET, no authentication (ootv-search `routes/publiclists.js`). Searches the public lists index (an OpenSearch
+index of every public list with its cards' titles and, for l5r, the stronghold, clan and the formats all of a
+deck's cards are legal in; ootv-search `CLAUDE.md`, "Public lists search"). The client's Public lists view
+(`#view=public`, `#publiclists=<query>`, `publicsearch()` in `oracle.js`) calls it. Send it as a CORS simple
+request, like `/publiclist`.
+
+inputs (a value list can be repeated or comma separated):
+
+* game (required)
+* q: text over list name, notes, owner name and card titles
+* card: lists with a card whose title matches (phrase)
+* cardid: lists with all of these cards; minqty: at least this many copies of each
+* type, clan, stronghold (title), owner (uid)
+* format: the deck's format (`derived.format`: the list's own legality, else inferred, see `derived.formatsource`)
+* cardslegal: formats every card must be legal in (all given); winner=1: lists with a tournament result
+* empty=1: include lists with no cards
+* sort: `modified` (default), `name`, `size`, `created`, `relevance` (the default with q)
+* from, size (at most 50, default 20)
+* group: `people` or `formats` returns, instead of hits, `groups[]` over the same filters (the client's People /
+  Formats views). `people`: one row per owner, most lists first, paged with from/size (`groupstotal`: how many owners),
+  each `owner, ownername, types {deck: n, collection: n, ...}, formats[]`. `formats`: every deck format at once (decks
+  only; `format` '' for none), each `format, people, source {owner, name, cards}`. Both: `lists, precon, tournament,
+  wins, latest`.
+
+outputs:
+
+* total, from, size, sort
+* hits[]: `listid, game, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
+  (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `award {event, result, year}`, `derived`
+  (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
+  `cardslegal[], unknowncards`), and with
+  cardid, `card {cardid, quantity}` for the first cardid
+* facets: `type, clan, stronghold, format`, each `[{value, count}]` over the whole result; `winner`: a count
+
+codes:
+
+* 200 success
+* 400 no game
+
+
+## /cardslegal
+
+POST (form: `table`, `cardids=1,2,3`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
+these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
+deck check. Answers `{cardslegal: [...], unknown: <cards not found>}`; 400 without a table or with over 5000 cards.
+
+## /list action=award, action=precon
+
+`/list?uid=&database=&listid=N&action=award&award=<json>` sets a tournament result `{event, result, year}` on any list
+(empty `award`: removes it). Moderators only: `groups[<game>]` or `groups['*']` holding `listaward` or `*` (403
+otherwise). Answers `{award}`. Owners can't set it, and a copy doesn't keep it.
+`action=precon&precon={"product": ..., "year": ...}` marks a pre-constructed deck (starter, learn-to-play) the same
+way (`product` required). `/publiclists` takes `precon=1` and returns `precon` and a `precon` facet count.
 
 ## /update
 

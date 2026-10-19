@@ -67,6 +67,7 @@
 	<button aria-label="Card Details" data-balloon-pos="down" data-view="resultcard" onclick="showview('resultcard');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg></button>
 	<button aria-label="List/Deck Directory" data-balloon-pos="down" data-view="resultdir" onclick="showview('resultdir');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></button>
 	<button aria-label="Deck/List Details" data-balloon-pos="down" data-view="resultlist" onclick="showview('resultlist');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+	<button aria-label="Public Lists" data-balloon-pos="down" data-view="resultpublic" onclick="showview('resultpublic');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></button>
 	</span>
 	<span class="searchviewgroup">
 	<button aria-label="Help" data-balloon-pos="down" data-view="resulthelp" onclick="showview('resulthelp');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#help-circle"></svg></button>
@@ -94,6 +95,9 @@
 	<button aria-label="Table" data-balloon-pos="down" data-template="table" style="display:none" onclick="viewbutton('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg></button>
 	<button aria-label="Detailed List" data-balloon-pos="down" data-dirview="table" style="display:none" onclick="setdirview('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
 	<button aria-label="Cards" data-balloon-pos="down" data-dirview="cards" style="display:none" onclick="setdirview('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
+	<button aria-label="Decks" data-balloon-pos="down" data-publicview="" style="display:none" onclick="publicgroup('');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
+	<button aria-label="People" data-balloon-pos="down" data-publicview="people" style="display:none" onclick="publicgroup('people');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#user"></svg></button>
+	<button aria-label="Formats" data-balloon-pos="down" data-publicview="formats" style="display:none" onclick="publicgroup('formats');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span></li>
 	<li class="menunone"><span class="searchviewgroup" id="sizebuttons">
@@ -241,6 +245,31 @@
 </div>
 <!-- phones: the list view's Showing: button (pagetextversion; the menubar has it on desktop) -->
 <div id="phonelisttextversion" class="listtextversion"></div>
+<div class="resultpublic" id="resultpublic">
+  <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
+    <input type="hidden" name="group" value="">
+    <input type="search" name="q" placeholder="Name, notes or player">
+    <input type="search" name="card" placeholder="Contains card (title)">
+    <select name="type"><option value="">Any type</option></select>
+    <select name="clan" style="display:none"><option value="">Any clan</option></select>
+    <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
+    <select name="format" style="display:none"><option value="">Any format</option></select>
+    <label class="publicwinner" title="Pre-constructed decks: starters, learn-to-play"><input type="checkbox" name="precon" value="1" onchange="publicsearch(0);"> Pre-constructed <span id="publicpreconcount"></span></label>
+    <label class="publicwinner" title="Lists with a tournament result"><input type="checkbox" name="winner" value="1" onchange="publicsearch(0);"> Tournament results <span id="publicwinnercount"></span></label>
+    <select name="sort">
+      <option value="">Newest first</option>
+      <option value="name">Name</option>
+      <option value="size">Most cards</option>
+      <option value="created">Recently created</option>
+      <option value="relevance">Best match</option>
+    </select>
+    <button type="submit" class="button gray">Search</button>
+    <button type="button" class="button gray" onclick="publicreset();">Reset</button>
+  </form>
+  <div class="publicstatus" id="publicstatus"></div>
+  <div class="directorycards" id="publicresults"><div class="randarea">Lists other players have made public.</div></div>
+  <div class="publicpager" id="publicmore"></div>
+</div>
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
 <!-- phones: the search form is a slide-over panel; this bar above the results opens it (body.viewsearch, see showview) -->
 <div id="phonesearchbar" onclick="mobilesearchtoggle(true); event.stopPropagation();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg> <b>Edit search</b> <span class="numresults"></span></div>
@@ -1003,6 +1032,13 @@ printingprimary
      share link; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
      the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
+<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
+<script id="template-listaward" type="text/x-jsrender">
+{{if award}}<div class="listaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> {{>award.result || 'Tournament'}}: {{>award.event}}{{if award.year}} ({{>award.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;">Edit result</button>{{/if}}</div>
+{{else ~awardmod}}<div class="listaward"><button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> Add tournament result</button></div>{{/if}}
+{{if precon}}<div class="listprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: {{>precon.product}}{{if precon.year}} ({{>precon.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;">Edit</button>{{/if}}</div>
+{{else ~awardmod}}<div class="listprecon"><button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Mark pre-constructed</button></div>{{/if}}
+</script>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
   {{if ~mine}}
@@ -1013,12 +1049,13 @@ printingprimary
   </div>
   <div class="listviewdetails listviewcontrols">
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
-    <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
+    <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value); $('#resultlist .liststatslegal').attr('data-format',this.value); liststatslegal();">{{listLegalitySelect:legality}}</select>
     <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>Private</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Public</option></select>
     <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
   </div>
   {{include tmpl="#template-listsource"/}}
+  {{include tmpl="#template-listaward"/}}
   <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
   {{else}}
   <div class="listviewshared" role="note">
@@ -1037,6 +1074,7 @@ printingprimary
     {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
   </span>
   {{include tmpl="#template-listsource"/}}
+  {{include tmpl="#template-listaward"/}}
   {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
   {{/if}}
 </div>
@@ -1074,6 +1112,8 @@ printingprimary
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
   <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatshint"> (Expand for detailed statistics)</span></summary>
+  {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>
+  <div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck itself isn't checked (size, MRPs, ban limits).">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>{{/if}}
   {{if decks.length}}
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th><th>%</th><th class="liststatsavgs">Averages</th></tr></thead>
@@ -1146,7 +1186,7 @@ printingprimary
   </div>
   <div class="listbody">
   <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
-    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
+    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a class="cardpubliclists" href="" title="Public lists with this card" onclick="publicwithcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></a> <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
 </div>
     {{if ~groups && (~groups.database || ~groups["*"])}}
     <span style="float:right; padding-right: 2px;">

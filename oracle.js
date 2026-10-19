@@ -3206,7 +3206,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+liststats(listdata)+listmissing(listid,missing)+html);
+	    $("#resultlist").html(listheader(listid)+liststats(listdata,listid)+listmissing(listid,missing)+html);
+	    liststatslegal();
 	    liststatscutoff();
 	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
@@ -3242,7 +3243,55 @@ function listheader(listid) {
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
+	"awardmod": gamepermission('listaward'),
 	"loggedin": listloggedin(), "database": database});
+}
+// moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
+// action=<kind>. award: a tournament result {event, result, year}; precon: a pre-constructed deck
+// (starter, learn-to-play) {product, year}. An empty first answer removes the mark.
+function listmarksave(listid, kind, value) {
+    var list = cache_thing("list",listid);
+    $.ajax({
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action="+kind+"&"+kind+"="+encodeURIComponent(value),
+	contentType: 'application/json',
+	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	success: function(data) {
+	    if(list) {
+		if(data[kind]) list.list.Items[0][kind] = data[kind]; else delete list.list.Items[0][kind];
+		cache_thing("list",listid,list);
+	    }
+	    $(".listviewheader[data-list='"+listid+"']").replaceWith(listheader(listid));
+	},
+	error: function(xhr) { alert('Not saved'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : '')); }
+    });
+}
+function listawardedit(listid) {
+    var list = cache_thing("list",listid);
+    var cur = (list && list.list.Items[0].award) || {};
+    var event = prompt("Tournament (event name). Leave empty to remove the result.", cur.event || '');
+    if(event === null) return;
+    if(!event.trim()) {
+	if(cur.event && confirm("Remove the tournament result from this list?")) listmarksave(listid, 'award', '');
+	return;
+    }
+    var result = prompt("Result (e.g. Winner, 2nd place, Top 8; empty if not known)", cur.event ? (cur.result || '') : 'Winner');
+    if(result === null) return;
+    var year = prompt("Year", cur.year || '');
+    if(year === null) return;
+    listmarksave(listid, 'award', JSON.stringify({event: event.trim(), result: result.trim(), year: year.trim()}));
+}
+function listpreconedit(listid) {
+    var list = cache_thing("list",listid);
+    var cur = (list && list.list.Items[0].precon) || {};
+    var product = prompt("Pre-constructed deck: the product (e.g. Emperor Gempukku Starter, Learn to Play). Leave empty to remove.", cur.product || '');
+    if(product === null) return;
+    if(!product.trim()) {
+	if(cur.product && confirm("Remove the pre-constructed mark from this list?")) listmarksave(listid, 'precon', '');
+	return;
+    }
+    var year = prompt("Year (optional)", cur.year || '');
+    if(year === null) return;
+    listmarksave(listid, 'precon', JSON.stringify({product: product.trim(), year: year.trim()}));
 }
 // the link that opens a list for anyone (logged out: /publiclist), as the address bar has it
 function sharelink(listid) {
@@ -3434,7 +3483,7 @@ function liststatskeywords(cards, decks) {
 function liststatspct(part, whole) {
     return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
 }
-function liststats(listdata) {
+function liststats(listdata,listid=null) {
     var cards = listdata.filter(function(c) { return c.cardid > 0; }).map(function(c) {
 	return {"card": c, "qty": parseInt(c.listquantity) || 0};
     }).filter(function(c) { return c.qty > 0; });
@@ -3472,9 +3521,43 @@ function liststats(listdata) {
     var keywords = liststatskeywords(cards, decks.map(function(d) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
+    var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
+	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
+	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
 	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
 	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+}
+// the stats block's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
+// not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
+// kept per card set and format for the page's life.
+var liststatslegalcache = {};
+function liststatslegal() {
+    $(".liststatslegal[data-cardids]").each(function() {
+	var el = $(this), ids = el.attr('data-cardids'), format = el.attr('data-format') || '';
+	var key = format+'|'+ids;
+	var show = function(r) {
+	    var bad = el.siblings('.liststatsillegal');
+	    if(r.illegal && r.illegal.length) {
+		bad.html('Not legal in '+htmlEncode(r.format)+': '+r.illegal.map(function(c) {
+		    return '<a href="#game='+database+',#cardid='+parseInt(c.cardid)+'">'+htmlEncode(c.title)+'</a>';
+		}).join(', ')).show();
+	    } else {
+		bad.hide();
+	    }
+	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+htmlEncode(f)+'</span>'; }).join('') :
+		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
+	};
+	if(liststatslegalcache[key]) {
+	    show(liststatslegalcache[key]);
+	    return;
+	}
+	var data = {table: database, cardids: ids};
+	if(format) data.format = format;
+	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
+	    success: function(r) { liststatslegalcache[key] = r; show(r); },
+	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
+    });
 }
 // keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
 // hides, and so does a deck with none left
@@ -5614,6 +5697,7 @@ function showview(view) {
     seturl(viewstate(view.replace(/^result/,'')));
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
+    if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
 }
 function showcard() {
     showview('resultcard');
@@ -6021,16 +6105,17 @@ function updateviewbuttons() {
   // The directory has its own view buttons and sort (updatedirbuttons), in place of the search ones.
   var tab = currentresulttab();
   var formatview = ['search','card','list'].includes(tab);
-  if(tab == 'dir') {
+  if(tab == 'dir' || tab == 'public') {
     $("#templatebuttons button[data-template]").hide();
   }
-  $(".searchviewbuttons").toggle(formatview || tab == 'dir');
+  $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
-  if(tab == 'dir') {
+  if(tab == 'dir' || tab == 'public') {
     $("#sizebuttons").hide();
   }
   updatedirbuttons();
+  updatepublicbuttons();
   $("#templatebuttons").toggle($("#templatebuttons button").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
@@ -6499,7 +6584,7 @@ function addgametolist(db) {
 // ****************************** URL / HISTORY ******************************
 // The address bar always says what's on screen, so reload, bookmarks and Back/Forward all land in the
 // same place: #game=<g>, then one of
-//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #view=<dir|help|settings|admin|search|card|list>
+//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #publiclists=<qs> | #view=<dir|public|help|settings|admin|search|card|list>
 // (the About page is #game alone). Old links (no #game, #quicksearch=, #quicksearchtitle=) still work.
 // seturl() is the only place that calls history.*: showview() calls it for every view switch.
 var urlready = false;      // false until the page's own url has been read (startup draws don't add history)
@@ -6539,6 +6624,8 @@ function hashstate(hash) {
     return {view: 'card', cardid: m.cardid, prid: m.cnprintingid || null};
   } else if(m.listid !== undefined) {
     return {view: 'list', listid: m.listid};
+  } else if(m.publiclists !== undefined) {
+    return {view: 'public', pq: decodeURIComponent(m.publiclists)};
   } else if(m.view !== undefined) {
     return {view: m.view};
   }
@@ -6553,6 +6640,8 @@ function statehash(state) {
     return h+',#cardid='+state.cardid+(state.prid ? ',#cnprintingid='+state.prid : '');
   } else if(state.view == 'list' && state.listid) {
     return h+',#listid='+state.listid;
+  } else if(state.view == 'public' && state.pq) {
+    return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'about') {
     return h;
   }
@@ -6567,6 +6656,8 @@ function viewstate(view) {
     return {view: view, cardid: $('#lastcardid').val() || null, prid: $('#lastcardid').data('prid') || null, qs: $('#lastcardid').data('qs') || null};
   } else if(view == 'list') {
     return {view: view, listid: $('#lastlistid').val() || null};
+  } else if(view == 'public') {
+    return {view: view, pq: lastpublicquery || null};
   }
   return {view: view};
 }
@@ -6697,6 +6788,13 @@ function urlparser(keepfilters=false) {
 	  } else {
 	    listinfo(matchstruct['listid'],true);   // logged out: a public list, read only (listrequest)
 	  }
+  } else if(typeof(matchstruct['publiclists']) != 'undefined') {
+	  var pq = decodeURIComponent(matchstruct['publiclists']);
+	  urlrestoring = 'public';
+	  if(pq !== lastpublicquery) {
+	    publicsearch(0, pq.replace(/(^|&)page=\d+/,''), true);
+	  }
+	  showviewkeepurl('resultpublic');
   } else if(typeof(matchstruct['view']) != 'undefined') {
 	  if(matchstruct['view'] == 'settings') {
 	    showsettings();
@@ -7618,4 +7716,356 @@ function generalnomodal(div,event) {
     if(event.target == div) {
 	nomodal();
     }
+}
+
+// ******************** PUBLIC LISTS ********************
+// The Public lists view (#view=public, #publiclists=<query>): every list someone marked public, searched
+// through ootv-search GET /publiclists (an OpenSearch index of the lists with their cards' titles and,
+// for l5r, stronghold, clan and the formats all the deck's cards are legal in). A result opens in the
+// list view like a shared deck link (listinfo: /list when logged in, else /publiclist).
+// The query is the form's fields plus cardid (card view link) and owner ("more by this player").
+// Decks shows only decks; someone's other lists (collections, haves, wants) show under them (an owner filter,
+// from People or "by ..."), where the type select appears. Formats counts decks only (server side).
+// Decks and People load publicpagesize at a time; scrolling to the end loads more (publicloadmore).
+var publicpagesize = 24;
+var lastpublicquery = null;   // the query on screen (null: never searched)
+var publicshown = 0;          // results on screen for it
+var publicmoretotal = 0;      // how many it has in all (more to load while publicshown is less)
+var publicseq = 0;            // each new search's number: answers to an older one (a slow view switch) are dropped
+var publicxhr = null;         // the request on its way (a new search aborts it)
+var publicextra = {};         // cardid / owner filters, with the label their chip shows
+var publicsearching = false;  // a search is on its way (showview doesn't start another)
+// where a deck's format came from (derived.formatsource), when it isn't the owner's own setting
+var publicformatnote = {'name': ['from the name', 'The owner didn\'t set a format; this one starts the deck\'s name'],
+                        'cards': ['guessed', 'The owner didn\'t set a format; guessed from where all the cards are legal']};
+
+// the form (and extra filters) -> query string, empty fields left out
+function publicquery() {
+  var parts = [];
+  $("#publicform").serializeArray().forEach(function(f) {
+    if(f.value.trim() !== '') {
+      parts.push(encodeURIComponent(f.name)+'='+encodeURIComponent(f.value.trim()));
+    }
+  });
+  ['cardid','owner'].forEach(function(k) {
+    if(publicextra[k]) {
+      parts.push(k+'='+encodeURIComponent(publicextra[k].value));
+    }
+  });
+  return parts.join('&');
+}
+// what's sent: the query, plus decks only in the Decks view unless it's one person's lists
+function publicrequest(query) {
+  var group = $('#publicform [name="group"]').val() || '';
+  var deckonly = !group && !publicextra.owner;
+  $('#publicform [name="type"]').toggle(!deckonly && group != 'formats');
+  return query.replace(/(^|&)type=[^&]*/g,'') + (deckonly ? (query ? '&' : '')+'type=deck' : '');
+}
+// a query string -> the form and extra filters
+function publicfillform(qs) {
+  var q = uri2json(qs || '');
+  $("#publicform")[0].reset();
+  $('#publicform [name="winner"]').prop('checked', q.winner == 1);
+  $('#publicform [name="precon"]').prop('checked', q.precon == 1);
+  $('#publicform [name="group"]').val(q.group || '');
+  ['q','card','type','clan','format','stronghold','sort'].forEach(function(k) {
+    var el = $('#publicform [name="'+k+'"]');
+    if(q[k] === undefined) {
+      return;
+    }
+    if(el.is('select') && !el.find('option').filter(function() { return this.value == q[k]; }).length) {
+      el.append($('<option>').val(q[k]).text(q[k]));   // facet options arrive with the results
+    }
+    el.val(q[k]);
+  });
+  ['cardid','owner'].forEach(function(k) {
+    if(q[k] === undefined) {
+      delete publicextra[k];
+    } else if(!publicextra[k] || publicextra[k].value != q[k]) {
+      publicextra[k] = {value: q[k], label: k == 'cardid' ? 'card #'+q[k] : 'one player'};
+    }
+  });
+}
+// search from the form (from the first result). qs: run this query instead (url, back/forward). replace: don't add history
+function publicsearch(page=0, qs=null, replace=false) {
+  if(qs !== null) {
+    publicfillform(qs);
+  }
+  var query = publicquery();
+  $("#publicstatus").text('Searching...');
+  publicseq++;
+  publicfetch(query, 0, function(data) {
+    lastpublicquery = query;
+    publicshown = 0;
+    updatepublicbuttons();
+    $("#publicresults").html('');
+    publicrender(data, false);
+    seturl(viewstate('public'), replace);
+  });
+}
+// the next publicpagesize results of the query on screen, added at the end
+function publicloadmore() {
+  if(publicsearching || lastpublicquery === null || publicshown >= publicmoretotal) {
+    return;
+  }
+  $("#publicmore").text('Loading more...');
+  publicfetch(lastpublicquery, publicshown, function(data) { publicrender(data, true); });
+}
+function publicfetch(query, from, done) {
+  var request = publicrequest(query);
+  var seq = publicseq;
+  if(publicxhr) {
+    publicxhr.abort();
+  }
+  publicsearching = true;
+  publicxhr = $.ajax({
+    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+(request ? '&'+request : '')+'&from='+from+'&size='+publicpagesize,
+    dataType: 'json',
+    success: function(data) {
+      if(seq == publicseq) done(data);
+    },
+    error: function(xhr, status) {
+      if(seq == publicseq && status != 'abort') {
+        $("#publicstatus").text('Search failed'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : ''));
+      }
+    },
+    complete: function() {
+      if(seq != publicseq) return;
+      publicxhr = null;
+      publicsearching = false;
+      publicmorecheck();
+    }
+  });
+}
+function publicrender(data, append) {
+  if(data.groups) {
+    renderpublicgroups(data, append);
+    publicshown = data.group == 'people' ? data.from + data.groups.length : data.groups.length;
+    publicmoretotal = data.group == 'people' ? data.groupstotal : data.groups.length;
+  } else {
+    renderpublic(data, append);
+    publicshown = data.from + data.hits.length;
+    publicmoretotal = data.total;
+  }
+  $("#publicmore").html(publicshown < publicmoretotal ?
+    '<button class="button gray" onclick="publicloadmore();">Load more</button>' : '');
+}
+// infinite scroll: the end of the results coming into view loads more
+var publicmoreobserver = null;
+function publicmorecheck() {
+  if(!window.IntersectionObserver || !document.getElementById('publicmore')) {
+    return;
+  }
+  if(!publicmoreobserver) {
+    publicmoreobserver = new IntersectionObserver(function(entries) {
+      if(entries.some(function(e) { return e.isIntersecting; }) && $('#resultpublic').is(':visible')) {
+        publicloadmore();
+      }
+    }, {rootMargin: '400px'});
+    publicmoreobserver.observe(document.getElementById('publicmore'));
+  }
+}
+function publicfacetoptions(name, facet, label) {
+  var el = $('#publicform [name="'+name+'"]');
+  var current = el.val();
+  var opts = '<option value="">'+label+'</option>';
+  var seen = false;
+  (facet || []).forEach(function(f) {
+    seen = seen || f.value == current;
+    var label = (name == 'format' && f.value == 'none') ? 'No format' : htmlEncode(f.value);
+    opts += '<option value="'+htmlEncode(f.value).replace(/"/g,'&quot;')+'">'+label+' ('+f.count+')</option>';
+  });
+  if(current && !seen) {
+    opts += '<option value="'+htmlEncode(current).replace(/"/g,'&quot;')+'">'+(current == 'none' && name == 'format' ? 'No format' : htmlEncode(current)+' (0)')+'</option>';
+  }
+  el.html(opts).val(current || '');
+  el.toggle(!!current || (facet || []).length > 0);
+}
+function renderpublic(data, append) {
+  publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
+  $('#publicform [name="type"] option').each(function() {
+    if(this.value && listtypes[this.value]) {
+      $(this).text($(this).text().replace(this.value, listtypes[this.value]));
+    }
+  });
+  $('#publicform [name="type"]').toggle(!!publicextra.owner);   // decks only, unless it's one person's lists
+  publicfacetoptions('clan', data.facets.clan, 'Any clan');
+  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
+  publicfacetoptions('format', data.facets.format, 'Any format');
+  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
+  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
+  var chips = Object.keys(publicextra).map(function(k) {
+    return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
+  }).join(' ');
+  var deckonly = !publicextra.owner;
+  $("#publicstatus").html(chips+' '+data.total+' public '+(deckonly ? (data.total == 1 ? 'deck' : 'decks') : (data.total == 1 ? 'list' : 'lists')));
+  var html = data.hits.map(function(h) {
+    var d = h.derived || {};
+    var meta = [listtypes[h.type] || h.type];
+    if(d.clan) meta.push(d.clan);
+    if(d.stronghold) meta.push(d.stronghold.title);
+    var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
+    var when = String(h.modified || h.created || '').slice(0,10);
+    var format = d.format ? '<div class="dircardmeta">Format: <b>'+htmlEncode(d.format)+'</b>'+
+      (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
+    var formats = (d.cardslegal || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">All cards legal for: '+
+      d.cardslegal.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+    var precon = h.precon ? '<div class="publicprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: '+htmlEncode(h.precon.product || '')+(h.precon.year ? ' ('+htmlEncode(h.precon.year)+')' : '')+'</div>' : '';
+    var award = h.award ? '<div class="publicaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> '+htmlEncode(h.award.result || 'Tournament')+': '+htmlEncode(h.award.event || '')+(h.award.year ? ' ('+htmlEncode(h.award.year)+')' : '')+'</div>' : '';
+    return '<div class="directorycard publiccard" data-open="list" data-listid="'+h.listid+'">'+
+      '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
+      '<div class="dircardbody">'+
+        award+precon+
+        '<div class="dircardmeta">'+meta.map(htmlEncode).join(' &middot; ')+'</div>'+
+        format+
+        '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
+        '<div class="dircardmeta">by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>'+(when ? ' &middot; '+when : '')+'</div>'+
+        formats+
+        (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
+      '</div></div>';
+  }).join('');
+  if(append) {
+    $("#publicresults").append(html);
+  } else {
+    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+  }
+}
+// the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), in place
+// of the search ones, as the directory has its own (updatedirbuttons)
+function updatepublicbuttons() {
+  var onpublic = currentresulttab() == 'public';
+  var group = $('#publicform [name="group"]').val() || '';
+  $("#templatebuttons button[data-publicview]").each(function() {
+    $(this).toggle(onpublic).toggleClass("searchviewactive", String($(this).data("publicview")) == group);
+  });
+}
+// the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
+function publicgroup(group) {
+  $('#publicform [name="group"]').val(group);
+  publicsearch(0);
+}
+// People: a person's public lists by type (Decks first), then pre-constructed and tournament results
+var publictypeplural = {'deck': 'decks', 'collection': 'collections', 'have': 'haves', 'want': 'wants', 'other': 'other lists'};
+// people: counts by type link to that person's lists of the type
+function publicgroupcounts(g, people=false) {
+  var parts = [];
+  if(g.types) {
+    Object.keys(publictypeplural).concat(Object.keys(g.types).filter(function(t) { return !publictypeplural[t]; })).forEach(function(t) {
+      var n = g.types[t];
+      if(!n) return;
+      var text = n+' '+(n == 1 ? (listtypes[t] || t).toLowerCase() : (publictypeplural[t] || t));
+      parts.push(people ? '<a href="" onclick="publicopen({owner: '+parseInt(g.owner)+', type: \''+publicjs(t)+'\'}, this); return false;">'+htmlEncode(text)+'</a>' : htmlEncode(text));
+    });
+  } else {
+    parts.push(g.lists+' '+(g.lists == 1 ? 'deck' : 'decks'));
+  }
+  if(g.precon) parts.push(g.precon+' pre-constructed');
+  if(g.tournament) parts.push(g.tournament+' tournament result'+(g.tournament==1?'':'s')+(g.wins ? ' ('+g.wins+' win'+(g.wins==1?'':'s')+')' : ''));
+  return parts.join(' &middot; ');
+}
+function renderpublicgroups(data, append) {
+  var chips = Object.keys(publicextra).map(function(k) {
+    return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
+  }).join(' ');
+  var people = data.group == 'people';
+  $("#publicwinnercount, #publicpreconcount").text('');   // facet counts come with the Decks view only
+  $("#publicstatus").html(chips+' '+(people ? data.groupstotal+' people with '+data.total+' public lists' :
+    data.groups.length+' formats over '+data.total+' public decks'));
+  var html = data.groups.map(function(g) {
+    var when = g.latest ? String(g.latest).slice(0,10) : '';
+    if(people) {
+      var who = g.ownername || 'another player';
+      return '<div class="directorycard publiccard" data-open="owner" data-owner="'+parseInt(g.owner)+'" data-ownername="'+publicattr(who)+'">'+
+	'<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({owner: '+parseInt(g.owner)+'}, this); return false;">'+htmlEncode(who)+'</a></div>'+
+	'<div class="dircardbody">'+
+	  '<div class="dircardmeta">'+publicgroupcounts(g, true)+'</div>'+
+	  (g.formats.length ? '<div class="publicformats">Formats: '+g.formats.map(function(f) {
+	    return '<a href="" class="publicformatlink" data-format="'+publicattr(f.value)+'" onclick="publicopen({owner: '+parseInt(g.owner)+', format: $(this).data(\'format\')}, this); return false;">'+htmlEncode(f.value)+' '+f.count+'</a>';
+	  }).join('')+'</div>' : '')+
+	  (when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
+	'</div></div>';
+    }
+    var src = g.source || {};
+    var guessed = (src.name || 0) + (src.cards || 0);
+    var fmt = g.format || 'none';
+    return '<div class="directorycard publiccard" data-open="format" data-format="'+publicattr(fmt)+'">'+
+      '<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({format: \''+publicjs(fmt)+'\'}); return false;">'+(g.format ? htmlEncode(g.format) : 'No format')+'</a></div>'+
+      '<div class="dircardbody">'+
+	'<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
+	'<div class="dircardmeta"><a href="" onclick="publicopen({group: \'people\', format: \''+publicjs(fmt)+'\'}); return false;" title="The people with decks in this format">'+g.people+' '+(g.people==1 ? 'person' : 'people')+'</a>'+(guessed ? ' &middot; '+(src.owner || 0)+' set by owner, '+guessed+' guessed' : '')+'</div>'+
+	(when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
+      '</div></div>';
+  }).join('');
+  if(append) {
+    $("#publicresults").append(html);
+  } else {
+    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+  }
+}
+function publicattr(v) {
+  return htmlEncode(String(v)).replace(/"/g,'&quot;');
+}
+// a value inside a single-quoted onclick string, in a double-quoted attribute
+function publicjs(v) {
+  return publicattr(String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+}
+// a drill-down from a People / Formats card: {group, owner, format, type}. el: an element in the person's
+// card (their name labels the owner chip). Anything not given is cleared, except the search box filters.
+function publicopen(o, el=null) {
+  $('#publicform [name="group"]').val(o.group || '');
+  delete publicextra.owner;
+  if(o.owner) {
+    var name = el ? $(el).closest('.publiccard').data('ownername') : '';
+    publicextra.owner = {value: o.owner, label: 'by '+(name || 'one player')};
+  }
+  ['format','type'].forEach(function(k) {
+    var el2 = $('#publicform [name="'+k+'"]');
+    var v = o[k] || '';
+    if(v && !el2.find('option').filter(function() { return this.value == v; }).length) {
+      el2.append($('<option>').val(v).text(k == 'format' && v == 'none' ? 'No format' : (k == 'type' ? (listtypes[v] || v) : v)));
+    }
+    el2.val(v);
+  });
+  publicsearch(0);
+}
+// a click on a result card outside its links and buttons opens it: the list, the person's lists, the format's decks
+$(document).on('click', '#publicresults .publiccard', function(e) {
+  if($(e.target).closest('a, button, input, select, label').length) {
+    return;
+  }
+  var card = $(this), open = card.data('open');
+  if(open == 'list') {
+    openpubliclist(card.data('listid'));
+  } else if(open == 'owner') {
+    publicopen({owner: card.data('owner')}, this);
+  } else if(open == 'format') {
+    publicopen({format: String(card.data('format'))});
+  }
+});
+function openpubliclist(listid) {
+  listinfo(String(listid), true);
+}
+// Reset: every filter cleared (form, person, card), staying in the view on screen
+function publicreset() {
+  var group = $('#publicform [name="group"]').val() || '';
+  $("#publicform")[0].reset();
+  $('#publicform select').val('');
+  $('#publicform [name="group"]').val(group);
+  publicextra = {};
+  publicsearch(0);
+}
+// "by <name>" on a deck card: that person's lists
+function publicbyowner(uid, el) {
+  publicextra.owner = {value: uid, label: 'by '+$(el).text()};
+  $('#publicform [name="group"]').val('');
+  publicsearch(0);
+}
+// the card view's link: public lists with this card
+function publicwithcard(cardid) {
+  var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
+  var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
+  publicextra = {cardid: {value: cardid, label: 'with '+title}};
+  $("#publicform")[0].reset();
+  showviewkeepurl('resultpublic');
+  publicsearch(0);
 }
