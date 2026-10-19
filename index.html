@@ -94,6 +94,9 @@
 	<button aria-label="Table" data-balloon-pos="down" data-template="table" style="display:none" onclick="viewbutton('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg></button>
 	<button aria-label="Detailed List" data-balloon-pos="down" data-dirview="table" style="display:none" onclick="setdirview('table');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layout"></svg></button>
 	<button aria-label="Cards" data-balloon-pos="down" data-dirview="cards" style="display:none" onclick="setdirview('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#grid"></svg></button>
+	<button aria-label="Decks" data-balloon-pos="down" data-publicview="" style="display:none" onclick="publicgroup('');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
+	<button aria-label="People" data-balloon-pos="down" data-publicview="people" style="display:none" onclick="publicgroup('people');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#user"></svg></button>
+	<button aria-label="Formats" data-balloon-pos="down" data-publicview="formats" style="display:none" onclick="publicgroup('formats');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span></li>
 	<li class="menunone"><span class="searchviewgroup" id="sizebuttons">
@@ -242,11 +245,6 @@
 <!-- phones: the list view's Showing: button (pagetextversion; the menubar has it on desktop) -->
 <div id="phonelisttextversion" class="listtextversion"></div>
 <div class="resultpublic" id="resultpublic">
-  <div class="publicgroupbuttons" id="publicgroupbuttons">
-    <button type="button" class="button gray buttonsmaller" data-group="" onclick="publicgroup('');">Decks</button>
-    <button type="button" class="button gray buttonsmaller" data-group="people" onclick="publicgroup('people');">People</button>
-    <button type="button" class="button gray buttonsmaller" data-group="formats" onclick="publicgroup('formats');">Formats</button>
-  </div>
   <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
     <input type="hidden" name="group" value="">
     <input type="search" name="q" placeholder="Name, notes or player">

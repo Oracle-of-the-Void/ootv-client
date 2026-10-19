@@ -6105,16 +6105,17 @@ function updateviewbuttons() {
   // The directory has its own view buttons and sort (updatedirbuttons), in place of the search ones.
   var tab = currentresulttab();
   var formatview = ['search','card','list'].includes(tab);
-  if(tab == 'dir') {
+  if(tab == 'dir' || tab == 'public') {
     $("#templatebuttons button[data-template]").hide();
   }
-  $(".searchviewbuttons").toggle(formatview || tab == 'dir');
+  $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
-  if(tab == 'dir') {
+  if(tab == 'dir' || tab == 'public') {
     $("#sizebuttons").hide();
   }
   updatedirbuttons();
+  updatepublicbuttons();
   $("#templatebuttons").toggle($("#templatebuttons button").filter(function() { return this.style.display != 'none'; }).length > 0);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
@@ -7785,8 +7786,7 @@ function publicsearch(page=0, qs=null, replace=false) {
     dataType: 'json',
     success: function(data) {
       lastpublicquery = query + (page ? (query ? '&' : '')+'page='+page : '');
-      var group = $('#publicform [name="group"]').val() || '';
-      $('#publicgroupbuttons button').each(function() { $(this).toggleClass('searchviewactive', $(this).data('group') == group); });
+      updatepublicbuttons();
       if(data.groups) {
 	renderpublicgroups(data);
       } else {
@@ -7869,6 +7869,15 @@ function renderpublic(data, page) {
     (page > 0 ? '<button class="button gray" onclick="publicsearch('+(page-1)+');">&laquo; Previous</button> ' : '')+
     'Page '+(page+1)+' of '+pages+
     (page+1 < pages ? ' <button class="button gray" onclick="publicsearch('+(page+1)+');">Next &raquo;</button>' : '') : '');
+}
+// the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), in place
+// of the search ones, as the directory has its own (updatedirbuttons)
+function updatepublicbuttons() {
+  var onpublic = currentresulttab() == 'public';
+  var group = $('#publicform [name="group"]').val() || '';
+  $("#templatebuttons button[data-publicview]").each(function() {
+    $(this).toggle(onpublic).toggleClass("searchviewactive", String($(this).data("publicview")) == group);
+  });
 }
 // the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
 function publicgroup(group) {
