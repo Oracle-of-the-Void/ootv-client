@@ -8045,6 +8045,15 @@ $(document).on('click', '#publicresults .publiccard', function(e) {
 function openpubliclist(listid) {
   listinfo(String(listid), true);
 }
+// Reset: every filter cleared (form, person, card), staying in the view on screen
+function publicreset() {
+  var group = $('#publicform [name="group"]').val() || '';
+  $("#publicform")[0].reset();
+  $('#publicform select').val('');
+  $('#publicform [name="group"]').val(group);
+  publicextra = {};
+  publicsearch(0);
+}
 // "by <name>" on a deck card: that person's lists
 function publicbyowner(uid, el) {
   publicextra.owner = {value: uid, label: 'by '+$(el).text()};
