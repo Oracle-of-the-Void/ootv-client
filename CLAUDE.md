@@ -11,7 +11,7 @@ or tests. The files in this directory are exactly what gets served.
   and the per-game `templates/<game>.js`.
 - `oracle.js` (~2500 lines, global functions and `var`s) holds all app logic: Cognito
   login, search (`dosearch`), card view (`docard`), lists/decks (`listinfo`,
-  `addlistitem`, `renderlist`), card editing (`editcard*`), PDF proxies (`createpdf`),
+  `addlistitem`, `renderlist`), PDF proxies (`createpdf`),
   URL routing (`urlparser`), and template switching (`activatetemplate`, `changesort`).
   The API base is `apiuri`: `https://api.oracleofthevoid.com` (prod Lambda) on the live
   site, `https://api-dev.oracleofthevoid.com` (dev Lambda) on preview and localhost. Both
@@ -35,6 +35,10 @@ or tests. The files in this directory are exactly what gets served.
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin
   mass image upload (`massimagetrigger`) load it on demand.
+- The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
+  whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
+  calls. Its image upload is `uploadimagetrigger` in `oracle.js`. User guide:
+  `docs/admin/card-editor.md`.
 - Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
   import profile; also run by ootv-import `SCRIPTS/etl-compare.js` under Node) and `setimport.js`
   (the page). Both load on demand (`loadsetimport`); `setimport-preview.html` is the empty page

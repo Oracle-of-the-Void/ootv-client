@@ -2005,3 +2005,54 @@ div.publicprecon svg.feather, div.listprecon svg.feather { width: 16px; height: 
 #publicresults div.publiccard { cursor: pointer; }
 div.publicformats a.publicformatlink { padding: 0 5px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; text-decoration: none; }
 div.publicformats a.publicformatlink:hover { background: #e3f6e5; }
+
+/* Card editor (cardeditor.js) */
+#modal.cardeditmodal .modal-box { width: 960px; max-width: 95vw; min-width: 0; margin-top: 3%; }
+#modal.cardeditmodal .modal-content { padding: 12px 16px; }
+.cardedittop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cardeditviews label { margin-right: 10px; white-space: nowrap; }
+.cardeditsection { border: 1px solid #ccc; border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; }
+.cardeditsection legend { font-weight: bold; }
+.cardeditfields { display: flex; flex-direction: column; }
+/* a row: the card page's row (F/C, HR/Cost/PH), or short fields side by side; long fields take the full width */
+.cardeditrow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px 18px; padding: 3px 0; border-top: 1px solid #eee; }
+.cardeditrow:first-child { border-top: none; }
+.cardeditfield { display: flex; align-items: flex-start; gap: 6px; min-width: 0; max-width: 100%; }
+.cardeditlong, .cardeditfull { flex: 1 1 100%; }
+.cardeditlabel { white-space: nowrap; padding-top: 3px; }
+/* the first field of each row lines up in a label column */
+.cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: 8em; flex: none; text-align: right; }
+.cardeditvals { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 3px 4px; flex: 1; min-width: 0; }
+.cardeditvalue { display: flex; align-items: flex-start; gap: 1px; min-width: 0; max-width: 100%; }
+.cardeditlong .cardeditvalue { flex: 1 1 100%; }
+.cardeditval { flex: 1; min-width: 0; min-height: 1.3em; padding: 2px 4px; border: 1px solid #ccc; border-radius: 3px; background: #fff;
+  font: inherit; box-sizing: border-box; overflow-wrap: anywhere; }
+.cardeditshort .cardeditval { flex: none; min-width: 2.5em; max-width: 100%; }
+input.cardeditval { font-family: monospace; font-size: 0.9em; }
+textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertical; }
+.cardeditval:focus { outline: 2px solid #e0c35a; }
+.cardeditjsonfield { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
+.cardeditbad { border: 2px solid #c00; }
+.cardeditx { cursor: pointer; color: #b00; padding: 0 3px; user-select: none; }
+.cardeditx:hover { background: #fdd; border-radius: 3px; }
+.cardeditaddvalue { cursor: pointer; color: #2a7a2a; font-weight: bold; padding: 0 3px; user-select: none; }
+.cardeditaddvalue:hover { background: #dfd; border-radius: 3px; }
+.cardeditaddrow { padding-top: 8px; border-top: 1px solid #eee; }
+.cardeditversions { margin-bottom: 6px; }
+.cardeditversions .printinglink { cursor: pointer; }
+.cardeditversions .cardeditselected { background: #575757; color: #fff; }
+.cardeditdeleted { color: #b00; margin-bottom: 6px; }
+.cardeditprintingbar { margin: 6px 0; }
+.cardeditmrp { background: #e0c35a; border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
+.cardeditimagelist img { max-height: 120px; margin: 2px; }
+.cardeditnote { color: #666; font-style: italic; margin: 4px 0; }
+.cardeditupload { margin: 4px 0 8px 0; }
+#cardeditjson { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
+.cardeditfoot { position: sticky; bottom: 0; background: rgba(255,255,255,0.95); padding: 6px 0; border-top: 1px solid #ccc; }
+.cardeditlog { margin: 4px 0; padding-left: 18px; }
+#cardeditconfirm .modal-box { margin-top: 10%; }
+@media (max-width: 600px) {
+  .cardeditlong { flex-wrap: wrap; }
+  .cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: auto; text-align: left; }
+  .cardeditrow .cardeditfield.cardeditlong .cardeditlabel { flex: 1 1 100%; }
+}
