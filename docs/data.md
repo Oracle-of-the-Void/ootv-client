@@ -36,7 +36,7 @@
   arc). Other searches (a set search) can still show it. Leave it out rather than writing
   false. To set it, open the printing in the site's card editor and use Add field → `notmrp`
   (it starts as `true`), or add `"notmrp": true` inside that printing's object in the editor's JSON
-  view. The Discord bot honors it too.
+  view. Make MRP in the editor removes it from the printing it picks. The Discord bot honors it too.
 * printing.snmsetcode (optional, l5r, array of one string). The Sun and Moon edition code the
   S&M text export writes for this printing, where it differs from its set's code (the
   `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
