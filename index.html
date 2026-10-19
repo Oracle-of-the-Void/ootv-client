@@ -249,6 +249,7 @@
     <select name="clan" style="display:none"><option value="">Any clan</option></select>
     <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
     <select name="format" style="display:none"><option value="">Any format</option></select>
+    <label class="publicwinner" title="Pre-constructed decks: starters, learn-to-play"><input type="checkbox" name="precon" value="1" onchange="publicsearch(0);"> Pre-constructed <span id="publicpreconcount"></span></label>
     <label class="publicwinner" title="Lists with a tournament result"><input type="checkbox" name="winner" value="1" onchange="publicsearch(0);"> Tournament results <span id="publicwinnercount"></span></label>
     <select name="sort">
       <option value="">Newest first</option>
@@ -1025,10 +1026,12 @@ printingprimary
      share link; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
      the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
-<!-- list header: a tournament result (award, set by moderators: listawardedit in oracle.js) -->
+<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
 <script id="template-listaward" type="text/x-jsrender">
 {{if award}}<div class="listaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> {{>award.result || 'Tournament'}}: {{>award.event}}{{if award.year}} ({{>award.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;">Edit result</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listaward"><button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> Add tournament result</button></div>{{/if}}
+{{if precon}}<div class="listprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: {{>precon.product}}{{if precon.year}} ({{>precon.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;">Edit</button>{{/if}}</div>
+{{else ~awardmod}}<div class="listprecon"><button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Mark pre-constructed</button></div>{{/if}}
 </script>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">

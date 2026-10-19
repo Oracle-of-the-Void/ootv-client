@@ -3246,36 +3246,52 @@ function listheader(listid) {
 	"awardmod": gamepermission('listaward'),
 	"loggedin": listloggedin(), "database": database});
 }
-// a tournament result on a list (award: {event, result, year}), set by moderators (groups 'listaward' or '*');
-// ootv-search /list action=award. Empty event: clear it.
-function listawardedit(listid) {
+// moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
+// action=<kind>. award: a tournament result {event, result, year}; precon: a pre-constructed deck
+// (starter, learn-to-play) {product, year}. An empty first answer removes the mark.
+function listmarksave(listid, kind, value) {
     var list = cache_thing("list",listid);
-    var cur = (list && list.list.Items[0].award) || {};
-    var event = prompt("Tournament (event name). Leave empty to remove the result.", cur.event || '');
-    if(event === null) return;
-    var award = '';
-    if(event.trim()) {
-	var result = prompt("Result (e.g. Winner, 2nd place, Top 8; empty if not known)", cur.event ? (cur.result || '') : 'Winner');
-	if(result === null) return;
-	var year = prompt("Year", cur.year || '');
-	if(year === null) return;
-	award = JSON.stringify({event: event.trim(), result: result.trim(), year: year.trim()});
-    } else if(!cur.event || !confirm("Remove the tournament result from this list?")) {
-	return;
-    }
     $.ajax({
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=award&award="+encodeURIComponent(award),
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action="+kind+"&"+kind+"="+encodeURIComponent(value),
 	contentType: 'application/json',
 	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
 	success: function(data) {
 	    if(list) {
-		if(data.award) list.list.Items[0].award = data.award; else delete list.list.Items[0].award;
+		if(data[kind]) list.list.Items[0][kind] = data[kind]; else delete list.list.Items[0][kind];
 		cache_thing("list",listid,list);
 	    }
 	    $(".listviewheader[data-list='"+listid+"']").replaceWith(listheader(listid));
 	},
 	error: function(xhr) { alert('Not saved'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : '')); }
     });
+}
+function listawardedit(listid) {
+    var list = cache_thing("list",listid);
+    var cur = (list && list.list.Items[0].award) || {};
+    var event = prompt("Tournament (event name). Leave empty to remove the result.", cur.event || '');
+    if(event === null) return;
+    if(!event.trim()) {
+	if(cur.event && confirm("Remove the tournament result from this list?")) listmarksave(listid, 'award', '');
+	return;
+    }
+    var result = prompt("Result (e.g. Winner, 2nd place, Top 8; empty if not known)", cur.event ? (cur.result || '') : 'Winner');
+    if(result === null) return;
+    var year = prompt("Year", cur.year || '');
+    if(year === null) return;
+    listmarksave(listid, 'award', JSON.stringify({event: event.trim(), result: result.trim(), year: year.trim()}));
+}
+function listpreconedit(listid) {
+    var list = cache_thing("list",listid);
+    var cur = (list && list.list.Items[0].precon) || {};
+    var product = prompt("Pre-constructed deck: the product (e.g. Emperor Gempukku Starter, Learn to Play). Leave empty to remove.", cur.product || '');
+    if(product === null) return;
+    if(!product.trim()) {
+	if(cur.product && confirm("Remove the pre-constructed mark from this list?")) listmarksave(listid, 'precon', '');
+	return;
+    }
+    var year = prompt("Year (optional)", cur.year || '');
+    if(year === null) return;
+    listmarksave(listid, 'precon', JSON.stringify({product: product.trim(), year: year.trim()}));
 }
 // the link that opens a list for anyone (logged out: /publiclist), as the address bar has it
 function sharelink(listid) {
@@ -7735,6 +7751,7 @@ function publicfillform(qs) {
   var q = uri2json(qs || '');
   $("#publicform")[0].reset();
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
+  $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   ['q','card','type','clan','format','stronghold','sort'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
@@ -7806,6 +7823,7 @@ function renderpublic(data, page) {
   publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
   publicfacetoptions('format', data.facets.format, 'Any format');
   $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
+  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
@@ -7823,11 +7841,12 @@ function renderpublic(data, page) {
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
     var formats = (d.cardslegal || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">All cards legal for: '+
       d.cardslegal.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+    var precon = h.precon ? '<div class="publicprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: '+htmlEncode(h.precon.product || '')+(h.precon.year ? ' ('+htmlEncode(h.precon.year)+')' : '')+'</div>' : '';
     var award = h.award ? '<div class="publicaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> '+htmlEncode(h.award.result || 'Tournament')+': '+htmlEncode(h.award.event || '')+(h.award.year ? ' ('+htmlEncode(h.award.year)+')' : '')+'</div>' : '';
     return '<div class="directorycard publiccard">'+
       '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
       '<div class="dircardbody">'+
-        award+
+        award+precon+
         '<div class="dircardmeta">'+meta.map(htmlEncode).join(' &middot; ')+'</div>'+
         format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
