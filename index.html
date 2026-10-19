@@ -242,7 +242,13 @@
 <!-- phones: the list view's Showing: button (pagetextversion; the menubar has it on desktop) -->
 <div id="phonelisttextversion" class="listtextversion"></div>
 <div class="resultpublic" id="resultpublic">
+  <div class="publicgroupbuttons" id="publicgroupbuttons">
+    <button type="button" class="button gray buttonsmaller" data-group="" onclick="publicgroup('');">Decks</button>
+    <button type="button" class="button gray buttonsmaller" data-group="people" onclick="publicgroup('people');">People</button>
+    <button type="button" class="button gray buttonsmaller" data-group="formats" onclick="publicgroup('formats');">Formats</button>
+  </div>
   <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
+    <input type="hidden" name="group" value="">
     <input type="search" name="q" placeholder="Name, notes or player">
     <input type="search" name="card" placeholder="Contains card (title)">
     <select name="type"><option value="">Any type</option></select>
