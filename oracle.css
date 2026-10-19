@@ -1996,3 +1996,6 @@ div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
 div.publicprecon, div.listprecon { color: #2a5d8a; font-weight: bold; }
 div.publicprecon svg.feather, div.listprecon svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
+#publicresults div.publiccard { cursor: pointer; }
+div.publicformats a.publicformatlink { padding: 0 5px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; text-decoration: none; }
+div.publicformats a.publicformatlink:hover { background: #e3f6e5; }
