@@ -2013,23 +2013,31 @@ div.publicformats a.publicformatlink:hover { background: #e3f6e5; }
 .cardeditviews label { margin-right: 10px; white-space: nowrap; }
 .cardeditsection { border: 1px solid #ccc; border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; }
 .cardeditsection legend { font-weight: bold; }
-.cardeditfields { width: 100%; border-collapse: collapse; }
-.cardeditfields th { text-align: right; vertical-align: top; white-space: nowrap; padding: 4px 8px 4px 0; width: 1%; font-weight: normal; }
-.cardeditfields td { padding: 2px 0; }
-.cardeditfields tr + tr th, .cardeditfields tr + tr td { border-top: 1px solid #eee; }
-.cardeditfields .cardeditaddrow th { text-align: left; padding-top: 8px; }
-.cardeditkey { color: #888; font-size: 0.85em; }
-.cardeditvalue { display: flex; align-items: flex-start; gap: 4px; margin: 2px 0; }
+.cardeditfields { display: flex; flex-direction: column; }
+/* a row: the card page's row (F/C, HR/Cost/PH), or short fields side by side; long fields take the full width */
+.cardeditrow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px 18px; padding: 3px 0; border-top: 1px solid #eee; }
+.cardeditrow:first-child { border-top: none; }
+.cardeditfield { display: flex; align-items: flex-start; gap: 6px; min-width: 0; max-width: 100%; }
+.cardeditlong, .cardeditfull { flex: 1 1 100%; }
+.cardeditlabel { white-space: nowrap; padding-top: 3px; }
+/* the first field of each row lines up in a label column */
+.cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: 8em; flex: none; text-align: right; }
+.cardeditvals { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 3px 4px; flex: 1; min-width: 0; }
+.cardeditvalue { display: flex; align-items: flex-start; gap: 1px; min-width: 0; max-width: 100%; }
+.cardeditlong .cardeditvalue { flex: 1 1 100%; }
 .cardeditval { flex: 1; min-width: 0; min-height: 1.3em; padding: 2px 4px; border: 1px solid #ccc; border-radius: 3px; background: #fff;
   font: inherit; box-sizing: border-box; overflow-wrap: anywhere; }
+.cardeditshort .cardeditval { flex: none; min-width: 2.5em; max-width: 100%; }
+input.cardeditval { font-family: monospace; font-size: 0.9em; }
 textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertical; }
 .cardeditval:focus { outline: 2px solid #e0c35a; }
 .cardeditjsonfield { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
 .cardeditbad { border: 2px solid #c00; }
 .cardeditx { cursor: pointer; color: #b00; padding: 0 3px; user-select: none; }
 .cardeditx:hover { background: #fdd; border-radius: 3px; }
-.cardeditaddvalue { cursor: pointer; color: #357; font-size: 0.85em; }
-.cardeditaddvalue:hover { text-decoration: underline; }
+.cardeditaddvalue { cursor: pointer; color: #2a7a2a; font-weight: bold; padding: 0 3px; user-select: none; }
+.cardeditaddvalue:hover { background: #dfd; border-radius: 3px; }
+.cardeditaddrow { padding-top: 8px; border-top: 1px solid #eee; }
 .cardeditversions { margin-bottom: 6px; }
 .cardeditversions .printinglink { cursor: pointer; }
 .cardeditversions .cardeditselected { background: #575757; color: #fff; }
@@ -2044,6 +2052,7 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditlog { margin: 4px 0; padding-left: 18px; }
 #cardeditconfirm .modal-box { margin-top: 10%; }
 @media (max-width: 600px) {
-  .cardeditfields th, .cardeditfields td { display: block; width: auto; text-align: left; padding: 2px 0; }
-  .cardeditfields tr + tr td { border-top: none; }
+  .cardeditlong { flex-wrap: wrap; }
+  .cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: auto; text-align: left; }
+  .cardeditrow .cardeditfield.cardeditlong .cardeditlabel { flex: 1 1 100%; }
 }
