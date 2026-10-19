@@ -248,6 +248,7 @@ function cardeditrender() {
   }
   html += '<div class="cardeditfoot"><span id="cardeditsummary"></span> '+
     '<input type="button" id="cardeditcommit" value="Commit" onclick="cardeditcommit();" /> '+
+    '<input type="button" value="Reset" title="Undo every change since the editor opened" onclick="cardeditreset();" /> '+
     '<input type="button" value="Close" onclick="modalclose();" />'+
     '<div id="cardeditstatus"></div></div>';
   $('#cardedit').html(html);
@@ -745,15 +746,17 @@ function cardeditconfirm(title,html,yes) {
   $('#cardeditconfirm').show();
 }
 
+// changes not committed yet: in the JSON view, the box's text counts as an edit too
+function cardeditdirty() {
+  if(cardedit.view == 'json' && $('#cardeditjson').val() != JSON.stringify(cardedit.card,null,2)) { return true; }
+  return cardeditplan().steps.length > 0 || Object.keys(cardedit.invalid).length > 0;
+}
+
 // the modal's guard: closing with unsaved changes asks first. true: close now.
 function cardeditclose() {
   if(!cardedit) { return true; }
   if(cardedit.running) { return false; }
-  if(cardedit.view == 'json') {
-    // whatever is in the box counts as an edit
-    var base = JSON.stringify(cardedit.card,null,2);
-    if($('#cardeditjson').val() == base) { cardedit = null; return true; }
-  } else if(!cardeditplan().steps.length && !Object.keys(cardedit.invalid).length) {
+  if(!cardeditdirty()) {
     cardedit = null;
     return true;
   }
@@ -763,6 +766,18 @@ function cardeditclose() {
     nomodal();
   });
   return false;
+}
+
+// Reset: back to the card as it was when the editor opened (a blank one for a new card), same
+// view and instance; the editor stays open
+function cardeditreset() {
+  if(cardedit.running) { return; }
+  var reset = () => cardeditstart(cardedit.db,cardedit.cardid,cardedit.base,cardedit.printid);
+  if(!cardeditdirty()) {
+    cardeditstatus('No changes to reset.');
+    return;
+  }
+  cardeditconfirm('Reset changes?','Undo every change made since the editor opened? (Images already uploaded stay on the server.)', reset);
 }
 
 window.cardeditloaded = true;
