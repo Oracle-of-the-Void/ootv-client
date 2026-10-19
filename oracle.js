@@ -7885,6 +7885,7 @@ function renderpublicgroups(data) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
   var people = data.group == 'people';
+  $("#publicwinnercount, #publicpreconcount").text('');   // facet counts come with the Decks view only
   $("#publicstatus").html(chips+' '+data.total+' public lists, '+data.groups.length+(people ? ' people' : ' formats'));
   var html = data.groups.map(function(g) {
     var when = g.latest ? String(g.latest).slice(0,10) : '';
