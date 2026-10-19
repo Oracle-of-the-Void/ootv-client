@@ -120,13 +120,22 @@ or a template shows up garbled: a `−` in the deck swipe toast came out as `â�
 `deck-swipe`; it now uses `'−'`). Until this is fixed, write non-ASCII characters in
 JS as `\uXXXX` escapes, and in HTML as entities (`&bull;`, `&#149;`).
 
-- [ ] Add `<meta charset="utf-8">` as the first element in `<head>` of `index.html`. Scripts loaded by the page inherit its encoding.
+- [x] Add `<meta charset="utf-8">` as the first element in `<head>` of `index.html`. Scripts loaded by the page inherit its encoding.
+      (2026-10-18, branch `charset-utf8`.) `setimport-preview.html` already had it.
 - [ ] Optionally have the deploy set `Content-Type: ...; charset=utf-8` on `*.html`/`*.js`
       (`aws s3 sync` in `.github/workflows/deploy.yml`, e.g. a second `cp` with
       `--content-type`), so the files don't depend on the meta tag.
-- [ ] Check that nothing currently relies on the windows-1252 guess: look for non-ASCII
+- [x] Check that nothing currently relies on the windows-1252 guess: look for non-ASCII
       bytes in served files (`LC_ALL=C grep -nP '[^\x00-\x7F]' *.html *.js templates/*`,
       skipping vendored `*.min.js`) and confirm they render the same after the change.
+      (2026-10-18) All non-ASCII bytes are valid UTF-8 (`pdfkit.js`, `setimport-etl.js`,
+      `setimport.js`), so the guess only ever garbled them. Chromium check: master decodes as
+      windows-1252, the branch as UTF-8, no page errors.
+- [ ] Web set import cleanup: on master the browser read `setimport-etl.js` as windows-1252, so
+      `nospec`'s `“ ” – ’ •` and `ΓÇó` patterns never matched (tested: `A • B “q”` came through
+      unchanged; with the meta tag it becomes `A &#149; B "q"`). Cards imported through Admin →
+      Set import since 2026-10-17 may hold raw `•`, curly quotes or en dashes in `text`,
+      `keywords` and the other `nospec` fields. Check those sets once this is released.
 
 ## Look at Proxy Nexus's L5R support for ideas (noted 2026-10-14)
 
