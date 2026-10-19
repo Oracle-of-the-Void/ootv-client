@@ -5614,6 +5614,7 @@ function showview(view) {
     seturl(viewstate(view.replace(/^result/,'')));
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
+    if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
 }
 function showcard() {
     showview('resultcard');
@@ -6499,7 +6500,7 @@ function addgametolist(db) {
 // ****************************** URL / HISTORY ******************************
 // The address bar always says what's on screen, so reload, bookmarks and Back/Forward all land in the
 // same place: #game=<g>, then one of
-//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #view=<dir|help|settings|admin|search|card|list>
+//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #publiclists=<qs> | #view=<dir|public|help|settings|admin|search|card|list>
 // (the About page is #game alone). Old links (no #game, #quicksearch=, #quicksearchtitle=) still work.
 // seturl() is the only place that calls history.*: showview() calls it for every view switch.
 var urlready = false;      // false until the page's own url has been read (startup draws don't add history)
@@ -6539,6 +6540,8 @@ function hashstate(hash) {
     return {view: 'card', cardid: m.cardid, prid: m.cnprintingid || null};
   } else if(m.listid !== undefined) {
     return {view: 'list', listid: m.listid};
+  } else if(m.publiclists !== undefined) {
+    return {view: 'public', pq: decodeURIComponent(m.publiclists)};
   } else if(m.view !== undefined) {
     return {view: m.view};
   }
@@ -6553,6 +6556,8 @@ function statehash(state) {
     return h+',#cardid='+state.cardid+(state.prid ? ',#cnprintingid='+state.prid : '');
   } else if(state.view == 'list' && state.listid) {
     return h+',#listid='+state.listid;
+  } else if(state.view == 'public' && state.pq) {
+    return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'about') {
     return h;
   }
@@ -6567,6 +6572,8 @@ function viewstate(view) {
     return {view: view, cardid: $('#lastcardid').val() || null, prid: $('#lastcardid').data('prid') || null, qs: $('#lastcardid').data('qs') || null};
   } else if(view == 'list') {
     return {view: view, listid: $('#lastlistid').val() || null};
+  } else if(view == 'public') {
+    return {view: view, pq: lastpublicquery || null};
   }
   return {view: view};
 }
@@ -6697,6 +6704,13 @@ function urlparser(keepfilters=false) {
 	  } else {
 	    listinfo(matchstruct['listid'],true);   // logged out: a public list, read only (listrequest)
 	  }
+  } else if(typeof(matchstruct['publiclists']) != 'undefined') {
+	  var pq = decodeURIComponent(matchstruct['publiclists']);
+	  urlrestoring = 'public';
+	  if(pq !== lastpublicquery) {
+	    publicsearch(publicpageof(pq), pq, true);
+	  }
+	  showviewkeepurl('resultpublic');
   } else if(typeof(matchstruct['view']) != 'undefined') {
 	  if(matchstruct['view'] == 'settings') {
 	    showsettings();
@@ -7618,4 +7632,153 @@ function generalnomodal(div,event) {
     if(event.target == div) {
 	nomodal();
     }
+}
+
+// ******************** PUBLIC LISTS ********************
+// The Public lists view (#view=public, #publiclists=<query>): every list someone marked public, searched
+// through ootv-search GET /publiclists (an OpenSearch index of the lists with their cards' titles and,
+// for l5r, stronghold, clan and the formats all the deck's cards are legal in). A result opens in the
+// list view like a shared deck link (listinfo: /list when logged in, else /publiclist).
+// The query is the form's fields plus cardid (card view link) and owner ("more by this player").
+var publicpagesize = 24;
+var lastpublicquery = null;   // the query on screen (null: never searched)
+var publicextra = {};         // cardid / owner filters, with the label their chip shows
+var publicsearching = false;  // a search is on its way (showview doesn't start another)
+
+// the form (and extra filters) -> query string, empty fields left out
+function publicquery() {
+  var parts = [];
+  $("#publicform").serializeArray().forEach(function(f) {
+    if(f.value.trim() !== '') {
+      parts.push(encodeURIComponent(f.name)+'='+encodeURIComponent(f.value.trim()));
+    }
+  });
+  ['cardid','owner'].forEach(function(k) {
+    if(publicextra[k]) {
+      parts.push(k+'='+encodeURIComponent(publicextra[k].value));
+    }
+  });
+  return parts.join('&');
+}
+// a query string -> the form and extra filters
+function publicfillform(qs) {
+  var q = uri2json(qs || '');
+  $("#publicform")[0].reset();
+  ['q','card','type','clan','format','stronghold','sort'].forEach(function(k) {
+    var el = $('#publicform [name="'+k+'"]');
+    if(q[k] === undefined) {
+      return;
+    }
+    if(el.is('select') && !el.find('option').filter(function() { return this.value == q[k]; }).length) {
+      el.append($('<option>').val(q[k]).text(q[k]));   // facet options arrive with the results
+    }
+    el.val(q[k]);
+  });
+  ['cardid','owner'].forEach(function(k) {
+    if(q[k] === undefined) {
+      delete publicextra[k];
+    } else if(!publicextra[k] || publicextra[k].value != q[k]) {
+      publicextra[k] = {value: q[k], label: k == 'cardid' ? 'card #'+q[k] : 'one player'};
+    }
+  });
+}
+// search from the form; page: 0-based. qs: run this query instead (url, back/forward). replace: don't add history
+function publicsearch(page=0, qs=null, replace=false) {
+  if(qs !== null) {
+    publicfillform(qs);
+  }
+  var query = publicquery();
+  var from = page * publicpagesize;
+  $("#publicstatus").text('Searching...');
+  publicsearching = true;
+  $.ajax({
+    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+(query ? '&'+query : '')+'&from='+from+'&size='+publicpagesize,
+    dataType: 'json',
+    success: function(data) {
+      lastpublicquery = query + (page ? (query ? '&' : '')+'page='+page : '');
+      renderpublic(data, page);
+      seturl(viewstate('public'), replace);
+    },
+    error: function(xhr) {
+      $("#publicstatus").text('Search failed'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : ''));
+    },
+    complete: function() { publicsearching = false; }
+  });
+}
+function publicpageof(qs) {
+  var m = String(qs || '').match(/(?:^|&)page=(\d+)/);
+  return m ? parseInt(m[1]) : 0;
+}
+function publicfacetoptions(name, facet, label) {
+  var el = $('#publicform [name="'+name+'"]');
+  var current = el.val();
+  var opts = '<option value="">'+label+'</option>';
+  var seen = false;
+  (facet || []).forEach(function(f) {
+    seen = seen || f.value == current;
+    opts += '<option value="'+htmlEncode(f.value).replace(/"/g,'&quot;')+'">'+htmlEncode(f.value)+' ('+f.count+')</option>';
+  });
+  if(current && !seen) {
+    opts += '<option value="'+htmlEncode(current).replace(/"/g,'&quot;')+'">'+htmlEncode(current)+' (0)</option>';
+  }
+  el.html(opts).val(current || '');
+  el.toggle(!!current || (facet || []).length > 0);
+}
+function renderpublic(data, page) {
+  publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
+  $('#publicform [name="type"] option').each(function() {
+    if(this.value && listtypes[this.value]) {
+      $(this).text($(this).text().replace(this.value, listtypes[this.value]));
+    }
+  });
+  publicfacetoptions('clan', data.facets.clan, 'Any clan');
+  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
+  publicfacetoptions('format', data.facets.format, 'Any format');
+  var chips = Object.keys(publicextra).map(function(k) {
+    return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
+  }).join(' ');
+  var first = data.total ? data.from + 1 : 0;
+  $("#publicstatus").html(chips+' '+(data.total == 1 ? '1 public list' : data.total+' public lists')+
+    (data.total > data.hits.length ? ' (showing '+first+'&ndash;'+(data.from + data.hits.length)+')' : ''));
+  var html = data.hits.map(function(h) {
+    var d = h.derived || {};
+    var meta = [listtypes[h.type] || h.type];
+    if(d.clan) meta.push(d.clan);
+    if(d.stronghold) meta.push(d.stronghold.title);
+    var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
+    var when = String(h.modified || h.created || '').slice(0,10);
+    var formats = (d.formats || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">'+
+      d.formats.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+    return '<div class="directorycard publiccard">'+
+      '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
+      '<div class="dircardbody">'+
+        '<div class="dircardmeta">'+meta.map(htmlEncode).join(' &middot; ')+'</div>'+
+        '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
+        '<div class="dircardmeta">by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>'+(when ? ' &middot; '+when : '')+'</div>'+
+        formats+
+        (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
+      '</div></div>';
+  }).join('');
+  $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+  var pages = Math.ceil(data.total / publicpagesize);
+  $("#publicpager").html(pages > 1 ?
+    (page > 0 ? '<button class="button gray" onclick="publicsearch('+(page-1)+');">&laquo; Previous</button> ' : '')+
+    'Page '+(page+1)+' of '+pages+
+    (page+1 < pages ? ' <button class="button gray" onclick="publicsearch('+(page+1)+');">Next &raquo;</button>' : '') : '');
+}
+function openpubliclist(listid) {
+  listinfo(String(listid), true);
+}
+function publicbyowner(uid, el) {
+  publicextra.owner = {value: uid, label: 'by '+$(el).text()};
+  publicsearch(0);
+}
+// the card view's link: public lists with this card
+function publicwithcard(cardid) {
+  var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
+  var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
+  publicextra = {cardid: {value: cardid, label: 'with '+title}};
+  $("#publicform")[0].reset();
+  showviewkeepurl('resultpublic');
+  publicsearch(0);
 }
