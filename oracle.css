@@ -1986,3 +1986,9 @@ div.publicpager {
     color: #fff;
 }
 a.cardpubliclists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
+span.publicformatsource { color: #777; font-size: small; }
+div.publicaward, div.listaward { color: #8a6d00; font-weight: bold; }
+div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
+label.publicwinner { white-space: nowrap; }
+div.liststatslegal { margin: 4px 0 6px; }
+div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
