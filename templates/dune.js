@@ -83,7 +83,8 @@ searchables['dune'] = {
   "printing.flavor": { "type": "text", "advanced": true },
   "printing.artist": { "type": "text", "advanced": true,
                       "clickable": true  },
-  "errata": { "type": "exists", "advanced": true }
+  "errata": { "type": "exists", "advanced": true },
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 labels['dune'] = {
@@ -130,7 +131,8 @@ labels['dune'] = {
   "tagartist": "Artist",
   "shortartist": "Artist",
   "tagerrata": "Errata",
-  "shorterrata": "Errata"
+  "shorterrata": "Errata",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 

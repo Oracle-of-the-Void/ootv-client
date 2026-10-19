@@ -293,6 +293,7 @@
         <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
         <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
         <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
+        <li><a href="" onclick="loadadmindoc('needsreview'); return false">Needs review notes on cards</a></li>
       </ul>
     </li>
   </ul>
@@ -1197,6 +1198,7 @@ printingprimary
     {{/if}}
     <dl>
     {{include tmpl="#template-textversion" ~intable=true /}}
+    {{if ~maint && ~hasval(needsreview)}}<dt>{{:~labels.shortneedsreview}}</dt><dd class="needsreview">{{for needsreview}}<div>{{:}}</div>{{/for}}</dd>{{/if}}
 </script> <!-- template-card-top -->
 
 <!-- top of a card's text in the card view when one printing is shown (bubbleup): flips between its printed

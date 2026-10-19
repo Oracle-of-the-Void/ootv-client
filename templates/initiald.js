@@ -77,7 +77,8 @@ searchables['initiald'] = {
   "mods": { "type": "numeric", "advanced": true },
   "printing.flavor": { "type": "text", "advanced": true },
   "notes": { "type": "text", "advanced": true },
-  "printing.cardno": { "type": "numeric", "advanced": true }
+  "printing.cardno": { "type": "numeric", "advanced": true },
+  "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
 labels['initiald'] = {
@@ -132,7 +133,8 @@ labels['initiald'] = {
   "tagsetno": "Cards in Set",
   "shortsetno": "In Set",
   "tagcopy": "Copyright",
-  "shortcopy": "Copyright"
+  "shortcopy": "Copyright",
+  "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
 /*

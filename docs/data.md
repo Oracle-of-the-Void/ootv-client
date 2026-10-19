@@ -47,6 +47,9 @@
 
 ### optional
 
+* needsreview (optional, every game, array of strings): open questions about the card, one plain-text
+  reason per entry, shown only to that game's maintainers and searchable with Advanced → Needs review.
+  Set it to `null` in the card editor to remove it. See `docs/admin/needsreview.md`.
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 
