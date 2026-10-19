@@ -13,6 +13,18 @@
 
 * printing.set (not sure if technically required, strongly recommended)
 * printing.rarity (not sure if technically required, strongly recommended)
+  L5R values that need care (decided 2026-10-15 to 2026-10-19, ootv-client #47; details in ootv-import
+  `L5R-STARTER-REPRINTS.md`):
+  * `Starter`: a reprint that came in a set's starter decks, of a card from an earlier set. It's a
+    printing under the set the card shows (its border in the Imperial and Jade arcs, its printed
+    code from Gold on) and has `notmrp`. Exceptions: Hidden Emperor Starter and Scorpion Clan Coup
+    Starter are sets of their own, and every Samurai Edition Banzai starter card belongs to
+    Samurai Edition Banzai whatever code it prints.
+  * `Fixed`: a card that is new in the set and came in its starter or deck. A card that was also in
+    boosters gets both values, e.g. `["Fixed","Uncommon"]` (Soul of the Empire story-back strongholds).
+  * `Stronghold`: a stronghold from before strongholds were printed on cards (it came in the box).
+  * Several values are allowed when one printing covers versions that differ only in typesetting or
+    flavor. A gameplay difference is a separate printing.
 * printing.imagehash (the image directory; required with `image`, left out with it when there is no scan)
 * printing.printingid (required)
 * printing.publisher (optional, array of one string). L5R: Five Rings Publishing Group, Wizards
