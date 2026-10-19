@@ -7752,6 +7752,7 @@ function publicfillform(qs) {
   $("#publicform")[0].reset();
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
+  $('#publicform [name="group"]').val(q.group || '');
   ['q','card','type','clan','format','stronghold','sort'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
@@ -7784,7 +7785,13 @@ function publicsearch(page=0, qs=null, replace=false) {
     dataType: 'json',
     success: function(data) {
       lastpublicquery = query + (page ? (query ? '&' : '')+'page='+page : '');
-      renderpublic(data, page);
+      var group = $('#publicform [name="group"]').val() || '';
+      $('#publicgroupbuttons button').each(function() { $(this).toggleClass('searchviewactive', $(this).data('group') == group); });
+      if(data.groups) {
+	renderpublicgroups(data);
+      } else {
+	renderpublic(data, page);
+      }
       seturl(viewstate('public'), replace);
     },
     error: function(xhr) {
@@ -7862,11 +7869,65 @@ function renderpublic(data, page) {
     'Page '+(page+1)+' of '+pages+
     (page+1 < pages ? ' <button class="button gray" onclick="publicsearch('+(page+1)+');">Next &raquo;</button>' : '') : '');
 }
+// the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
+function publicgroup(group) {
+  $('#publicform [name="group"]').val(group);
+  publicsearch(0);
+}
+function publicgroupcounts(g) {
+  var parts = [g.lists+' list'+(g.lists==1?'':'s')+(g.decks != g.lists ? ' ('+g.decks+' deck'+(g.decks==1?'':'s')+')' : '')];
+  if(g.precon) parts.push(g.precon+' pre-constructed');
+  if(g.tournament) parts.push(g.tournament+' tournament result'+(g.tournament==1?'':'s')+(g.wins ? ' ('+g.wins+' win'+(g.wins==1?'':'s')+')' : ''));
+  return parts.join(' &middot; ');
+}
+function renderpublicgroups(data) {
+  var chips = Object.keys(publicextra).map(function(k) {
+    return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
+  }).join(' ');
+  var people = data.group == 'people';
+  $("#publicstatus").html(chips+' '+data.total+' public lists, '+data.groups.length+(people ? ' people' : ' formats'));
+  var html = data.groups.map(function(g) {
+    var when = g.latest ? String(g.latest).slice(0,10) : '';
+    if(people) {
+      return '<div class="directorycard publiccard">'+
+	'<div class="dircardhead"><a class="dircardname" href="" onclick="publicbyowner('+parseInt(g.owner)+',this); return false;">'+htmlEncode(g.ownername || 'another player')+'</a></div>'+
+	'<div class="dircardbody">'+
+	  '<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
+	  (g.formats.length ? '<div class="publicformats">Formats: '+g.formats.map(function(f) { return '<span>'+htmlEncode(f.value)+' '+f.count+'</span>'; }).join('')+'</div>' : '')+
+	  (when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
+	'</div></div>';
+    }
+    var src = g.source || {};
+    var guessed = (src.name || 0) + (src.cards || 0);
+    return '<div class="directorycard publiccard">'+
+      '<div class="dircardhead"><a class="dircardname" href="" data-format="'+htmlEncode(g.format).replace(/"/g,'&quot;')+'" onclick="publicbyformat(String($(this).data(\'format\'))); return false;">'+(g.format ? htmlEncode(g.format) : 'No format')+'</a></div>'+
+      '<div class="dircardbody">'+
+	'<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
+	'<div class="dircardmeta">'+g.people+' '+(g.people==1 ? 'person' : 'people')+(guessed ? ' &middot; '+(src.owner || 0)+' set by owner, '+guessed+' guessed' : '')+'</div>'+
+	(when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
+      '</div></div>';
+  }).join('');
+  $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+  $("#publicpager").html('');
+}
+// a format card: that format's decks (No format: the lists without one aren't filterable, so just decks)
+function publicbyformat(format) {
+  $('#publicform [name="group"]').val('');
+  if(format) {
+    var el = $('#publicform [name="format"]');
+    if(!el.find('option').filter(function() { return this.value == format; }).length) {
+      el.append($('<option>').val(format).text(format));
+    }
+    el.val(format);
+  }
+  publicsearch(0);
+}
 function openpubliclist(listid) {
   listinfo(String(listid), true);
 }
 function publicbyowner(uid, el) {
   publicextra.owner = {value: uid, label: 'by '+$(el).text()};
+  $('#publicform [name="group"]').val('');   // from the People view: that person's decks
   publicsearch(0);
 }
 // the card view's link: public lists with this card

@@ -429,6 +429,9 @@ inputs (a value list can be repeated or comma separated):
 * empty=1: include lists with no cards
 * sort: `modified` (default), `name`, `size`, `created`, `relevance` (the default with q)
 * from, size (at most 50, default 20)
+* group: `people` or `formats` returns, instead of hits, `groups[]`: one row per owner (`owner, ownername, formats[]`)
+  or per deck format (`format` ('' for none), `people`, `source {owner, name, cards}`), each with `lists, decks, precon,
+  tournament, wins, latest`, over the same filters (the client's People / Formats views)
 
 outputs:
 
