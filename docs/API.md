@@ -9,6 +9,7 @@
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
 * [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
+* [/publiclists (GET)](#publiclists)           -> Search every public deck/list (the Public lists view)
 
 ### Needing Authentication
 
@@ -406,6 +407,40 @@ codes:
 * 200 success
 * 400 no listid
 * 404 no such list, or it isn't public (the same answer, so a link doesn't show whether a private list exists)
+
+
+## /publiclists
+
+GET, no authentication (ootv-search `routes/publiclists.js`). Searches the public lists index (an OpenSearch
+index of every public list with its cards' titles and, for l5r, the stronghold, clan and the formats all of a
+deck's cards are legal in; ootv-search `CLAUDE.md`, "Public lists search"). The client's Public lists view
+(`#view=public`, `#publiclists=<query>`, `publicsearch()` in `oracle.js`) calls it. Send it as a CORS simple
+request, like `/publiclist`.
+
+inputs (a value list can be repeated or comma separated):
+
+* game (required)
+* q: text over list name, notes, owner name and card titles
+* card: lists with a card whose title matches (phrase)
+* cardid: lists with all of these cards; minqty: at least this many copies of each
+* type, clan, format (every one given), stronghold (title), owner (uid)
+* empty=1: include lists with no cards
+* sort: `modified` (default), `name`, `size`, `created`, `relevance` (the default with q)
+* from, size (at most 50, default 20)
+
+outputs:
+
+* total, from, size, sort
+* hits[]: `listid, game, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
+  (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `derived`
+  (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, formats[], unknowncards`), and with
+  cardid, `card {cardid, quantity}` for the first cardid
+* facets: `type, clan, stronghold, format`, each `[{value, count}]` over the whole result
+
+codes:
+
+* 200 success
+* 400 no game
 
 
 ## /update

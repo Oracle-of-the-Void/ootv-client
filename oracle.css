@@ -1922,3 +1922,67 @@ div.listmiddle.dirnotes, div.directorycard .dircardnotes, div.listviewnotes {
   white-space: pre-wrap;
   text-align: left;
 }
+
+/* Public lists view (publicsearch in oracle.js): the form, then directory-style cards */
+#resultpublic {
+    padding: 4px 6px 0 8px;
+}
+form.publicform {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 6px;
+    margin-bottom: 6px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 7px;
+}
+form.publicform input[type=search] {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+form.publicform select {
+    max-width: 100%;
+}
+div.publicstatus {
+    margin: 4px 2px 8px;
+    color: #fff;
+}
+span.publicchip {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: #ddd;
+    color: #000;
+}
+span.publicchip a { text-decoration: none; }
+div.publiccard .dircardhead a.dircardname, div.publiccard .dircardhead a.dircardname:visited {
+    color: #fff;
+    text-decoration: none;
+}
+div.publicformats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 4px 0;
+    font-size: small;
+}
+div.publicformats span {
+    padding: 0 5px;
+    border: 1px solid #1aa329;
+    border-radius: 8px;
+    color: #116b1c;
+}
+div.publicnotes {
+    margin-top: 4px;
+    font-size: small;
+    color: #444;
+    overflow-wrap: anywhere;
+    max-height: 4.5em;
+    overflow: hidden;
+}
+div.publicpager {
+    margin: 10px 2px;
+    color: #fff;
+}
+a.cardpubliclists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }

@@ -66,6 +66,7 @@
 	<button aria-label="Card Details" data-balloon-pos="down" data-view="resultcard" onclick="showview('resultcard');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg></button>
 	<button aria-label="List/Deck Directory" data-balloon-pos="down" data-view="resultdir" onclick="showview('resultdir');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></button>
 	<button aria-label="Deck/List Details" data-balloon-pos="down" data-view="resultlist" onclick="showview('resultlist');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+	<button aria-label="Public Lists" data-balloon-pos="down" data-view="resultpublic" onclick="showview('resultpublic');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></button>
 	</span>
 	<span class="searchviewgroup">
 	<button aria-label="Help" data-balloon-pos="down" data-view="resulthelp" onclick="showview('resulthelp');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#help-circle"></svg></button>
@@ -240,6 +241,27 @@
 </div>
 <!-- phones: the list view's Showing: button (pagetextversion; the menubar has it on desktop) -->
 <div id="phonelisttextversion" class="listtextversion"></div>
+<div class="resultpublic" id="resultpublic">
+  <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
+    <input type="search" name="q" placeholder="Name, notes or player">
+    <input type="search" name="card" placeholder="Contains card (title)">
+    <select name="type"><option value="">Any type</option></select>
+    <select name="clan" style="display:none"><option value="">Any clan</option></select>
+    <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
+    <select name="format" style="display:none"><option value="">Any format</option></select>
+    <select name="sort">
+      <option value="">Newest first</option>
+      <option value="name">Name</option>
+      <option value="size">Most cards</option>
+      <option value="created">Recently created</option>
+      <option value="relevance">Best match</option>
+    </select>
+    <button type="submit" class="button gray">Search</button>
+  </form>
+  <div class="publicstatus" id="publicstatus"></div>
+  <div class="directorycards" id="publicresults"><div class="randarea">Lists other players have made public.</div></div>
+  <div class="publicpager" id="publicpager"></div>
+</div>
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
 <!-- phones: the search form is a slide-over panel; this bar above the results opens it (body.viewsearch, see showview) -->
 <div id="phonesearchbar" onclick="mobilesearchtoggle(true); event.stopPropagation();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg> <b>Edit search</b> <span class="numresults"></span></div>
@@ -1145,7 +1167,7 @@ printingprimary
   </div>
   <div class="listbody">
   <input id="printingprimary" type="hidden" name="printingprimary" value="{{:printingprimary}}">
-    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
+    <div class="listheadxl">{{if ~qs}}<a href="" id="cardprev" onclick="cardprev({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-left-one.png"></a>{{/if}} {{if ~qs}}<a href="" id="cardnext" onclick="cardnext({{:cardid}},'{{addslashes:~qs}}'); return false"><img src="res/symbol-right-one.png"></a>{{/if}} {{:formattedtitle?formattedtitle:title}} <a class="cardpubliclists" href="" title="Public lists with this card" onclick="publicwithcard({{:cardid}}); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></a> <a id="cardclose" class="ex gray button" href="" onclick="window.history.back(); return false;">X</a>
 </div>
     {{if ~groups && (~groups.database || ~groups["*"])}}
     <span style="float:right; padding-right: 2px;">
