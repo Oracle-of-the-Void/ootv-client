@@ -3508,25 +3508,38 @@ function liststats(listdata,listid=null) {
     var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
+	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
 	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
 	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
 // the stats block's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
-// not; decks only). Answers are kept per card set for the page's life.
+// not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
+// kept per card set and format for the page's life.
 var liststatslegalcache = {};
 function liststatslegal() {
     $(".liststatslegal[data-cardids]").each(function() {
-	var el = $(this), ids = el.attr('data-cardids');
+	var el = $(this), ids = el.attr('data-cardids'), format = el.attr('data-format') || '';
+	var key = format+'|'+ids;
 	var show = function(r) {
+	    var bad = el.siblings('.liststatsillegal');
+	    if(r.illegal && r.illegal.length) {
+		bad.html('Not legal in '+htmlEncode(r.format)+': '+r.illegal.map(function(c) {
+		    return '<a href="#game='+database+',#cardid='+parseInt(c.cardid)+'">'+htmlEncode(c.title)+'</a>';
+		}).join(', ')).show();
+	    } else {
+		bad.hide();
+	    }
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
-	if(liststatslegalcache[ids]) {
-	    show(liststatslegalcache[ids]);
+	if(liststatslegalcache[key]) {
+	    show(liststatslegalcache[key]);
 	    return;
 	}
-	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: {table: database, cardids: ids}, dataType: 'json',
-	    success: function(r) { liststatslegalcache[ids] = r; show(r); },
+	var data = {table: database, cardids: ids};
+	if(format) data.format = format;
+	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
+	    success: function(r) { liststatslegalcache[key] = r; show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
 }
