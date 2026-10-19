@@ -23,12 +23,12 @@ function cardeditopen(cardid,printid) {
       modal('Insert new card','<span class="error">The card structure for this game hasn\'t loaded yet. Try again in a moment.</span>');
       return;
     }
-    cardeditstart(database,null,null,printid);
+    cardeditloadorder(database).then(() => cardeditstart(database,null,null,printid));
     return;
   }
   modal('Edit card','Loading the card...');
-  cardeditfetch(database,cardid).then(function(card) {
-    cardeditstart(database,cardid,card,printid);
+  Promise.all([cardeditfetch(database,cardid), cardeditloadorder(database)]).then(function(r) {
+    cardeditstart(database,cardid,r[0],printid);
   }).catch(function(e) {
     $('#modal-content').html('<span class="error">Could not load card '+cardid+': '+htmlEncode(cardediterr(e))+'</span>');
   });
@@ -48,6 +48,30 @@ function cardeditfetch(db,cardid) {
     card.printing.forEach(function(p) { p.printingid = String(p.printingid); });
     return card;
   });
+}
+
+// The order and grouping of the card page (templates/template-<game>-card.html): each <dt>...</dd>
+// row is a group of fields (F/C, HR/Cost/PH, Publisher and its URL), card fields before
+// template-card-middle, printing fields after. Words in the row's {{...}} tags that aren't fields
+// (if, join, converters) are dropped when the order is used. Never fails: no template, no order.
+var cardeditorder = {};
+function cardeditloadorder(db) {
+  if(cardeditorder[db]) { return Promise.resolve(cardeditorder[db]); }
+  return Promise.resolve($.ajax({url: 'templates/template-'+db+'-card.html?v='+ootvversion, dataType: 'text', cache: true}))
+    .then(function(text) {
+      var at = text.indexOf('template-card-middle');
+      var parts = at >= 0 ? [text.slice(0,at), text.slice(at)] : [text, ''];
+      var groups = parts.map(part => (part.match(/<dt>[\s\S]*?<\/dd>/g) || []).map(function(row) {
+        var names = [];
+        (row.match(/\{\{[\s\S]*?\}\}/g) || []).forEach(function(tag) {
+          tag.replace(/~[\w.]+/g,' ').replace(/"[^"]*"|'[^']*'/g,' ').replace(/\.\w+/g,' ')
+             .replace(/[A-Za-z_]\w*/g, function(w) { if(!names.includes(w)) { names.push(w); } return w; });
+        });
+        return names;
+      }));
+      return cardeditorder[db] = {card: groups[0], printing: groups[1]};
+    })
+    .catch(() => cardeditorder[db] = {card: [], printing: []});
 }
 
 function cardediterr(e) {
@@ -102,24 +126,31 @@ function cardeditisnew(id) {
   return !cardedit.base || !cardedit.base.printing.some(p => p.printingid == id);
 }
 
-// the field types this game uses, for Add field: the structure template, then every card in the
-// page's cache. {card: {field: 'array'|'string'|'number'|'boolean'|'object'}, printing: {...}}
+// the fields this game uses, for Add field and the layout: the structure template, then every card in
+// the page's cache. {card: {field: 'array'|'string'|'number'|'boolean'|'object'}, printing: {...},
+// len: {card: {field: longest value, tags stripped}, printing: {...}}, count: values seen, same shape}
 function cardeditknownfields() {
-  var known = {card: {}, printing: {}};
+  var known = {card: {}, printing: {}, len: {card: {}, printing: {}}, count: {card: {}, printing: {}}};
   var kind = v => Array.isArray(v) ? 'array' : (v !== null && typeof v === 'object') ? 'object' : typeof v == 'number' ? 'number' : typeof v == 'boolean' ? 'boolean' : 'string';
-  var add = function(card) {
-    Object.keys(card).filter(k => !cardeditmanaged.includes(k)).forEach(function(k) {
-      if(!(k in known.card)) { known.card[k] = kind(card[k]); }
-    });
-    [].concat(card.printing || []).forEach(function(p) {
-      Object.keys(p || {}).filter(k => k != 'printingid').forEach(function(k) {
-        if(!(k in known.printing)) { known.printing[k] = kind(p[k]); }
-      });
+  var note = function(scope,k,v) {
+    if(!(k in known[scope])) { known[scope][k] = kind(v); }
+    [].concat(v).forEach(function(x) {
+      if(typeof x === 'string' || typeof x === 'number') {
+        known.len[scope][k] = Math.max(known.len[scope][k] || 0, String(x).replace(/<[^>]*>/g,'').replace(/&\w+;/g,' ').length);
+        known.count[scope][k] = (known.count[scope][k] || 0) + 1;
+      }
     });
   };
+  var add = function(card,istemplate) {
+    Object.keys(card).filter(k => !cardeditmanaged.includes(k)).forEach(k => istemplate ? (known.card[k] = known.card[k] || kind(card[k])) : note('card',k,card[k]));
+    [].concat(card.printing || []).forEach(function(p) {
+      Object.keys(p || {}).filter(k => k != 'printingid').forEach(k => istemplate ? (known.printing[k] = known.printing[k] || kind(p[k])) : note('printing',k,p[k]));
+    });
+  };
+  if(searchcache[cardedit.db]) { Object.values(searchcache[cardedit.db].data || {}).forEach(c => add(c,false)); }
+  if(cardedit.base) { add(cardedit.base,false); }
   var structure = cache_thing("structuretemplate",cardedit.db);
-  if(structure && structure.template) { add(structure.template); }
-  if(searchcache[cardedit.db]) { Object.values(searchcache[cardedit.db].data || {}).forEach(add); }
+  if(structure && structure.template) { add(structure.template,true); }  // its values are placeholders, so no lengths
   if(gamepermission('updateinstance') || gamepermission('update')) { known.card.needsreview = known.card.needsreview || 'array'; }
   // fields the page derives for display, not stored
   ['formattedtitlelink','setclean','rarityclean','textprinting','textversion','textdiff','updatelogformatted','listquantity','listprinting']
@@ -127,9 +158,61 @@ function cardeditknownfields() {
   return known;
 }
 
+// a field that fits beside others: numbers and short values, up to 40 characters on every card
+// seen. With fewer than 10 values seen, a field searched as text (card text, flavor) counts as long.
+function cardeditshort(scope,key,v,known) {
+  if(typeof v === 'boolean') { return true; }
+  var simple = x => x === null || ['string','number'].includes(typeof x);
+  if(!(Array.isArray(v) ? v.every(simple) : simple(v))) { return false; }
+  var sea = (searchables[cardedit.db] || {});
+  var s = sea[key] || sea['printing.'+key];
+  if((known.count[scope][key] || 0) < 10 && s && s.type == 'text') { return false; }
+  var now = Math.max(0, ...[].concat(v).map(x => String(x === null ? '' : x).replace(/<[^>]*>/g,'').length));
+  return Math.max(now, known.len[scope][key] || 0) <= 40;
+}
+
+// The fields in rows: needsreview first, then the card page's rows, then the rest. Fields named
+// like each other stay together (every *title*, image with imagehash). A card page row of several
+// fields (F/C, HR/Cost/PH) keeps its own row; short fields on their own share one, up to 4 and
+// as many as fit on a line (roughly: label and values, in characters). A row with a long field
+// in it puts each field on its own line (full), so the labels line up.
+function cardeditrows(scope,keys,obj,known) {
+  var order = (cardeditorder[cardedit.db] || {})[scope] || [];
+  var families = [/title/, /^image/];
+  var placed = {};
+  var groups = [];
+  var family = g => g.concat(...families.filter(re => g.some(k => re.test(k))).map(re => keys.filter(k => re.test(k) && !g.includes(k))));
+  var take = function(g) {
+    g = family(g).filter((k,i,a) => keys.includes(k) && !placed[k] && a.indexOf(k) == i);
+    g.forEach(k => placed[k] = true);
+    if(g.length) { groups.push(g); }
+  };
+  if(scope == 'card') { take(['needsreview']); }
+  order.forEach(take);
+  keys.forEach(k => take([k]));
+  var lab = labels[cardedit.db] || {};
+  var width = k => String(lab['short'+k] || lab['tag'+k] || k).length+3+
+                   [].concat(obj[k]).reduce((n,x) => n+String(x === null ? '' : x).replace(/<[^>]*>/g,'').length+5, 0);
+  var rows = [];
+  groups.forEach(function(g) {
+    var last = rows[rows.length-1];
+    var short = g.every(k => cardeditshort(scope,k,obj[k],known));
+    var single = short && g.length == 1 && g[0] != 'needsreview';
+    if(single && last && last.single && last.keys.length < 4 && last.width+width(g[0]) <= 95) {
+      last.keys = last.keys.concat(g);
+      last.width += width(g[0]);
+    } else {
+      rows.push({keys: g, single: single, width: single ? width(g[0]) : 0, full: !short});
+    }
+  });
+  return rows;
+}
+
+// the card page's short label (F, HR, Text), with the long one and the field's name on hover
 function cardeditlabel(key) {
-  var l = (labels[cardedit.db] || {})['tag'+key];
-  return l ? htmlEncode(l)+' <span class="cardeditkey">'+htmlEncode(key)+'</span>' : htmlEncode(key);
+  var l = labels[cardedit.db] || {};
+  var short = l['short'+key] || l['tag'+key] || key;
+  return '<span title="'+htmlEncode((l['tag'+key] ? l['tag'+key]+': ' : '')+key)+'">'+htmlEncode(short)+'</span>';
 }
 
 // ************* rendering *************
@@ -148,7 +231,7 @@ function cardeditrender() {
   } else {
     var known = cardeditknownfields();
     html += '<fieldset class="cardeditsection"><legend>Card details</legend>'+
-      cardeditfields('card',c,known.card)+'</fieldset>';
+      cardeditfields('card',c,known)+'</fieldset>';
     html += '<fieldset class="cardeditsection"><legend>Printing details</legend>'+cardeditprintings();
     var p = cardeditprinting();
     if(p) {
@@ -159,7 +242,7 @@ function cardeditrender() {
         ' <span class="button gray buttonsmall" onclick="cardeditdeleteprinting();">Delete instance<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></svg></span></span>'+
         '</div>';
       html += cardeditimages(p,isnew);
-      html += cardeditfields('printing',p,known.printing);
+      html += cardeditfields('printing',p,known);
     }
     html += '</fieldset>';
   }
@@ -172,46 +255,56 @@ function cardeditrender() {
   cardeditsummary();
 }
 
-// one row per field: label and x, then its values
+// the fields in rows (cardeditrows), each a label with its x, then its values
 function cardeditfields(scope,obj,known) {
   var keys = Object.keys(obj).filter(k => scope == 'card' ? !cardeditmanaged.includes(k) : k != 'printingid');
-  var html = '<table class="cardeditfields">';
-  keys.forEach(function(key) {
-    html += '<tr data-scope="'+scope+'" data-field="'+htmlEncode(key)+'"><th>'+cardeditlabel(key)+
-      ' <span class="cardeditx" title="Remove this field" onclick="cardeditremovefield(this);">&#x2715;</span></th><td>'+
-      cardeditvalues(scope,key,obj[key])+'</td></tr>';
+  var html = '<div class="cardeditfields">';
+  cardeditrows(scope,keys,obj,known).forEach(function(row) {
+    html += '<div class="cardeditrow">'+row.keys.map(key =>
+      '<div class="cardeditfield '+(cardeditshort(scope,key,obj[key],known) ? 'cardeditshort' : 'cardeditlong')+(row.full ? ' cardeditfull' : '')+'" data-scope="'+scope+'" data-field="'+htmlEncode(key)+'">'+
+      '<span class="cardeditlabel">'+cardeditlabel(key)+'<span class="cardeditx" title="Remove this field" onclick="cardeditremovefield(this);">&#x2715;</span></span>'+
+      '<span class="cardeditvals">'+cardeditvalues(scope,key,obj[key],cardeditshort(scope,key,obj[key],known))+'</span></div>').join('')+
+      '</div>';
   });
-  var missing = Object.keys(known).filter(k => !keys.includes(k)).sort();
-  html += '<tr class="cardeditaddrow"><th colspan="2"><select class="cardeditaddfield" onchange="$(this).next().toggle(this.value == \'\');">'+
-    missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[k]+'">'+htmlEncode(k)+'</option>').join('')+
+  var missing = Object.keys(known[scope]).filter(k => !keys.includes(k)).sort();
+  html += '<div class="cardeditaddrow"><select class="cardeditaddfield" onchange="$(this).next().toggle(this.value == \'\');">'+
+    missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[scope][k]+'">'+htmlEncode(k)+'</option>').join('')+
     '<option value="">Other...</option></select>'+
     '<input type="text" class="cardeditaddname" placeholder="field name" size="14"'+(missing.length ? ' style="display:none"' : '')+' /> '+
     '<span class="button gray buttonsmall" onclick="cardeditaddfield(this,\''+scope+'\');">Add field<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></span></span>'+
-    '</th></tr></table>';
+    '</div></div>';
   return html;
 }
 
-// a list of strings/numbers: one editor per value with an x, then "+ value". A single string or
-// number: one editor. Anything else (image, objects): that field's JSON.
-function cardeditvalues(scope,key,v) {
+// A list of strings/numbers: one editor per value with an x, + after the last one. A single
+// string or number: one editor. true/false: a checkbox. Anything else (image, objects): JSON.
+function cardeditvalues(scope,key,v,short) {
   var simple = x => x === null || ['string','number'].includes(typeof x);
+  var plus = '<span class="cardeditaddvalue" title="Add a value" onclick="cardeditaddvalue(this);">+</span>';
   if(Array.isArray(v) && v.every(simple)) {
-    return v.map((x,i) => '<div class="cardeditvalue">'+cardediteditor(x,i)+
-        '<span class="cardeditx" title="Remove this value" onclick="cardeditremovevalue(this,'+i+');">&#x2715;</span></div>').join('')+
-      '<span class="cardeditaddvalue" onclick="cardeditaddvalue(this);">+ value</span>';
+    if(!v.length) { return plus; }
+    return v.map((x,i) => '<span class="cardeditvalue">'+cardediteditor(x,i,short)+
+        '<span class="cardeditx" title="Remove this value" onclick="cardeditremovevalue(this,'+i+');">&#x2715;</span>'+
+        (i == v.length-1 ? plus : '')+'</span>').join('');
   }
   if(simple(v)) {
-    return '<div class="cardeditvalue">'+cardediteditor(v,-1)+'</div>';
+    return '<span class="cardeditvalue">'+cardediteditor(v,-1,short)+'</span>';
+  }
+  if(typeof v === 'boolean') {
+    return '<label class="cardeditvalue"><input type="checkbox" class="cardeditbool"'+(v ? ' checked' : '')+' onchange="cardeditbool(this);" /> '+v+'</label>';
   }
   var bad = cardedit.invalid[scope+'/'+key];
-  return '<textarea class="cardeditjsonfield'+(bad ? ' cardeditbad' : '')+'" rows="'+Math.min(12,JSON.stringify(v,null,1).split('\n').length)+'"'+
-    ' onchange="cardeditjsonfield(this);">'+htmlEncode(bad ? bad.text : JSON.stringify(v,null,1))+'</textarea>'+
+  return '<span class="cardeditvalue"><textarea class="cardeditjsonfield'+(bad ? ' cardeditbad' : '')+'" rows="'+Math.min(12,JSON.stringify(v,null,1).split('\n').length)+'"'+
+    ' onchange="cardeditjsonfield(this);">'+htmlEncode(bad ? bad.text : JSON.stringify(v,null,1))+'</textarea></span>'+
     (bad ? '<div class="error">'+htmlEncode(bad.message)+'</div>' : '');
 }
 
-function cardediteditor(x,i) {
+function cardediteditor(x,i,short) {
   var s = (x === null || x === undefined) ? '' : String(x);
   if(cardedit.view == 'html') {
+    if(short) {
+      return '<input type="text" class="cardeditval" data-i="'+i+'" size="'+Math.max(3,s.length+1)+'" value="'+htmlEncode(s).replace(/"/g,'&quot;')+'" />';
+    }
     var rows = Math.min(10, Math.max(1, s.split('\n').length, Math.ceil(s.length/70)));
     return '<textarea class="cardeditval" data-i="'+i+'" rows="'+rows+'">'+htmlEncode(s)+'</textarea>';
   }
@@ -268,12 +361,13 @@ function cardeditobj(scope) {
 
 // typing in a value: store it without redrawing, so the cursor stays put
 $(document).on('input', '#cardedit .cardeditval', function() {
-  var row = $(this).closest('tr');
+  var row = $(this).closest('.cardeditfield');
   var obj = cardeditobj(row.data('scope'));
   var key = row.attr('data-field');
   var i = parseInt($(this).data('i'));
   var old = i >= 0 ? obj[key][i] : obj[key];
-  var v = this.tagName == 'TEXTAREA' ? this.value : this.innerHTML;
+  var v = this.isContentEditable ? this.innerHTML : this.value;
+  if(this.tagName == 'INPUT') { this.size = Math.max(3,v.length+1); }
   if(cardedit.view != 'html' && v == '<br>') { v = ''; } // a contenteditable emptied by the browser
   if(typeof old === 'number' && /^-?\d+(\.\d+)?$/.test(v.trim())) { v = Number(v); }
   if(i >= 0) { obj[key][i] = v; } else { obj[key] = v; }
@@ -282,7 +376,7 @@ $(document).on('input', '#cardedit .cardeditval', function() {
 
 // a field whose value is JSON (image, objects): keep the last value that parsed
 function cardeditjsonfield(el) {
-  var row = $(el).closest('tr');
+  var row = $(el).closest('.cardeditfield');
   var key = row.attr('data-field');
   var id = row.data('scope')+'/'+key;
   try {
@@ -294,29 +388,35 @@ function cardeditjsonfield(el) {
   cardeditrender();
 }
 
+function cardeditbool(el) {
+  var row = $(el).closest('.cardeditfield');
+  cardeditobj(row.data('scope'))[row.attr('data-field')] = el.checked;
+  cardeditrender();
+}
+
 function cardeditaddvalue(el) {
-  var row = $(el).closest('tr');
+  var row = $(el).closest('.cardeditfield');
   var obj = cardeditobj(row.data('scope'));
   obj[row.attr('data-field')].push('');
   cardeditrender();
-  $('#cardedit tr[data-scope="'+row.data('scope')+'"][data-field="'+row.attr('data-field')+'"] .cardeditval').last().focus();
+  $('#cardedit .cardeditfield[data-scope="'+row.data('scope')+'"][data-field="'+row.attr('data-field')+'"] .cardeditval').last().focus();
 }
 
 function cardeditremovevalue(el,i) {
-  var row = $(el).closest('tr');
+  var row = $(el).closest('.cardeditfield');
   cardeditobj(row.data('scope'))[row.attr('data-field')].splice(i,1);
   cardeditrender();
 }
 
 function cardeditremovefield(el) {
-  var row = $(el).closest('tr');
+  var row = $(el).closest('.cardeditfield');
   delete cardeditobj(row.data('scope'))[row.attr('data-field')];
   delete cardedit.invalid[row.data('scope')+'/'+row.attr('data-field')];
   cardeditrender();
 }
 
 function cardeditaddfield(el,scope) {
-  var th = $(el).closest('th');
+  var th = $(el).closest('.cardeditaddrow');
   var sel = th.find('.cardeditaddfield');
   var key = sel.val() || th.find('.cardeditaddname').val().trim();
   var kind = sel.val() ? sel.find('option:selected').data('kind') : 'array';
@@ -326,7 +426,7 @@ function cardeditaddfield(el,scope) {
   if(key in obj || (scope == 'card' ? cardeditmanaged.includes(key) : key == 'printingid')) { cardeditstatus(htmlEncode(key)+' is already there, or is managed by the editor.',1); return; }
   obj[key] = kind == 'string' || kind == 'number' ? '' : kind == 'boolean' ? true : kind == 'object' ? {} : [''];
   cardeditrender();
-  $('#cardedit tr[data-scope="'+scope+'"][data-field="'+key+'"] .cardeditval').first().focus();
+  $('#cardedit .cardeditfield[data-scope="'+scope+'"][data-field="'+key+'"] .cardeditval').first().focus();
 }
 
 function cardeditselect(id) {

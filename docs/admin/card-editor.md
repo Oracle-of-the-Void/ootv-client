@@ -22,8 +22,12 @@ outside the box) asks before throwing changes away.
 
 ## Card details and Printing details
 
-- Each field has an **x** to remove it. A list field has an **x** on each value and **+ value**
-  to add an empty one to fill in.
+- Fields follow the card page's order and rows (read from the game's card template), with Needs
+  review first, every `*title*` field next to the title, and fields the page doesn't show at the
+  end. Short fields (values up to about 40 characters on the cards seen) sit side by side. Labels
+  are the card page's short ones; hover for the full name and the field's name in the JSON.
+- Each field has an **x** to remove it. A list field has an **x** on each value and a **+** after
+  the last one to add an empty value to fill in.
 - **Add field** offers the fields this game uses that the card (or instance) doesn't have yet
   (from the game's card template and every card loaded this session), or **Other...** for a new
   name. A list field starts as one empty value, a text field as empty text.
