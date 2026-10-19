@@ -2056,3 +2056,8 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
   .cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: auto; text-align: left; }
   .cardeditrow .cardeditfield.cardeditlong .cardeditlabel { flex: 1 1 100%; }
 }
+.cardeditsync { margin: 6px 0; padding: 4px 6px; border-left: 3px solid #e0c35a; background: #faf8f2; }
+.cardeditsync label { white-space: nowrap; margin-right: 8px; }
+.cardeditsyncadd { color: #2a7a2a; margin-right: 6px; }
+.cardeditsyncremove { color: #b00; margin-right: 6px; }
+#cardeditconfirm .modal-box:has(.cardeditsync) { width: 640px; max-width: 95vw; min-width: 0; }

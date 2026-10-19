@@ -39,7 +39,8 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   too, but a field the card already had is kept even if it ends up as an empty list. To remove
   a field, use its **x**.
 - The version buttons pick the instance shown, as on the card page (`*` marks the MRP instance,
-  `•` an instance with changes). **Make MRP** makes the instance shown the MRP one. **New
+  `•` an instance with changes). **Make MRP** makes the instance shown the MRP one, and removes
+  `notmrp` from it if it has it (the MRP instance can't be one the MRP lookup skips). **New
   instance** adds a blank one (it needs a set). **Delete instance** marks it for deletion, and an
   **undo** link stays until you commit. A card keeps at least one instance.
 - **Upload image** (instances already saved) uploads to S3 straight away, as before, but adds
@@ -48,7 +49,14 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
 
 ## Commit
 
-Commit asks first when anything is being removed (fields, list values, instances) and lists
+Commit first checks fields kept on both the card and its instances (legality, keywords, text...):
+if the commit changes one side and leaves the other alone, while the other has values, it lists
+those and offers to make the same change there too (the values added, removed, or edited in
+place, not a copy, so an instance's own extra values stay). A box is ticked already when the card has only
+one instance, or when both sides held the same values before the edit; notes and needsreview are
+never checked. Yes commits with the ticked changes, No goes back to editing.
+
+Commit then asks when anything is being removed (fields, list values, instances) and lists
 what. It then checks that nobody saved the card since you opened it (if they did, nothing is
 sent, and your edits stay in the editor), and sends the changes as separate `/update` calls,
 one at a time: changed instances, new instances, deleted instances, then the card's own fields
