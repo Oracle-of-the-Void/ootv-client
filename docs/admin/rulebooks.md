@@ -65,6 +65,8 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   `page` is the viewer's page number (the PDF page), not the number printed on the page.
 - `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
+  The viewer hides the download buttons for now (`rulesdownloads = false` in `rules.js`, since
+  2026-10-20); the files are still built and uploaded.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: a remark about the source (kept in `book.json`).
 - `crop`: `[left, top, right, bottom]` in points from the page's top left (US letter is 612 × 792):
