@@ -2086,7 +2086,6 @@ a.rulesbookcard:hover { background: #f1ecdd; }
 .rulesbooksub { color: #555; font-size: .92em; }
 .rulesbookmeta { color: #777; font-size: .82em; margin-top: 2px; }
 .rulesbooknote { color: #777; font-size: .82em; font-style: italic; margin-top: 2px; }
-.rulescredit { color: #777; font-size: .85em; margin-top: 18px; }
 .rulesreader { display: flex; flex-direction: column; }
 .rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
 .rulestop { border-bottom: 1px solid #d8d2c2; }
