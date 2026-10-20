@@ -2103,7 +2103,9 @@ button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-siz
 .rulesspread { display: flex; justify-content: center; align-items: center; min-height: 100%; width: max-content; min-width: 100%; }
 .rulesstage:not(.ruleszoomed) .rulesspread { height: 100%; }
 .rulespage { flex: 0 0 auto; background-size: 100% 100%; background-color: #e8e4da; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
-.rulespage img { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .12s; }
+.rulespage img { display: block; width: 100%; height: 100%; opacity: 0; }
+/* phones cap #maincontent images at 90vw (card images): a zoomed page is much wider than that */
+#maincontent .rulespage img { max-width: none !important; height: 100% !important; }
 .rulespage img.loaded { opacity: 1; }
 .rulesturn { position: absolute; top: 0; bottom: 0; width: 28%; cursor: pointer; z-index: 2; }
 .rulesturnprev { left: 0; cursor: w-resize; }
@@ -2126,6 +2128,9 @@ a.rulesthumb.rulescurrent { background: #e9dfb8; color: black; }
 .rulesresults li a { display: block; color: inherit; text-decoration: none; padding: 4px; border-bottom: 1px solid #e6e0d0; font-size: .9em; }
 .rulesresults li a:hover { background: #f1ecdd; }
 .rulesresults mark { background: #f5dc7a; }
+/* full screen (rulesfullscreen): the reader covers the window */
+body.rulesfull .rulesreader { position: fixed; inset: 0; z-index: 1000; background: #fff; }
+body.rulesfull { overflow: hidden; }
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
   .rulesbooks { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px 8px; }
   .rulescover { height: 150px; }
