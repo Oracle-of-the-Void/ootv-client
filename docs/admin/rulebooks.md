@@ -95,8 +95,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     `Floor Rules` (tournament floor rules, e.g. kempy's `Tournament/` folder). The filter
     bar lists Complete, Addendum and Special first (`RULESTYPES` in `rules.js`), then any other type.
   - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the
-    latest Complete book of its arc, the one to play that arc by). A book can have both, or
-    neither. A new tag needs no site change: it shows up on the filter bar once a book has it.
+    latest Complete book of its arc, the one to play that arc by), and `Fan Made` (not published
+    by AEG, e.g. the War of Honor update to Ivory Edition rules). A book can have any of them, or
+    none. A new tag needs no site change: it shows up on the filter bar once a book has it.
     When a later Complete book joins an arc, move `Last complete rules in arc` to it.
 - `source_note`: where the files came from and how they were made, for us. It stays in the list
   and is never published.
