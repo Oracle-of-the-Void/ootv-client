@@ -2071,3 +2071,82 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditsyncadd { color: #2a7a2a; margin-right: 6px; }
 .cardeditsyncremove { color: #b00; margin-right: 6px; }
 #cardeditconfirm .modal-box:has(.cardeditsync) { width: 640px; max-width: 95vw; min-width: 0; }
+
+/* Rules: the rulebook shelf and page viewer (rules.js) */
+div#rulesarea { background-color: rgba(255, 255, 255, 0.92); border-radius: 7px; font-family: "Times New Roman",Georgia,Serif; }
+.rulesshelf { padding: 6px 16px 14px; }
+.rulesshelf h2 { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-weight: normal; font-size: 1.8em; margin: 4px 0 6px; }
+.rulesshelf h3 { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-weight: normal; font-size: 1.3em; margin: 6px 0 10px; padding-bottom: 3px; border-bottom: 2px solid #e0c35a; }
+.rulesbooks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 14px; }
+a.rulesbookcard { display: flex; flex-direction: column; color: inherit; text-decoration: none; border-radius: 6px; padding: 6px; }
+a.rulesbookcard:hover { background: #f1ecdd; }
+.rulescover { display: flex; align-items: flex-end; justify-content: center; height: 190px; margin-bottom: 6px; }
+.rulescover img { max-width: 100%; max-height: 190px; width: auto; height: auto; box-shadow: 0 2px 6px rgba(0,0,0,.35); background: #ddd; }
+.rulesbooktitle { font-weight: bold; font-size: 1.05em; }
+.rulesbooksub { color: #555; font-size: .92em; }
+.rulesbookmeta { color: #777; font-size: .82em; margin-top: 2px; }
+.rulescredit { color: #777; font-size: .85em; margin-top: 18px; }
+.rulesreader { display: flex; flex-direction: column; }
+.rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
+.rulestop { border-bottom: 1px solid #d8d2c2; }
+.rulesbottom { border-top: 1px solid #d8d2c2; }
+.rulestitle { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rulestitle .rulesbooksub { font-family: "Times New Roman",Georgia,Serif; font-size: .75em; }
+.rulestools { display: flex; gap: 2px; position: relative; }
+.rulestools[data-copied]::after { content: attr(data-copied); position: absolute; right: 0; top: 100%; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: .85em; white-space: nowrap; z-index: 5; }
+button.rulesbtn { padding: 2px 3px; margin: 0; border: 1px solid transparent; border-radius: 3px; background: transparent; color: rgb(96, 96, 96); cursor: pointer; line-height: 0; }
+button.rulesbtn:hover { color: black; border-color: rgb(192, 192, 192); }
+button.rulesbtn.searchviewactive { color: black; border-color: rgb(128, 128, 128); background-color: rgb(224, 224, 224); }
+.rulespageno { white-space: nowrap; margin: 0 4px; }
+.rulespageinput { width: 4.5em; text-align: center; }
+.rulesslider { flex: 1 1 120px; min-width: 80px; margin: 0 8px; }
+.rulesdownloads { display: flex; gap: 4px; }
+.rulesdownloads .button { white-space: nowrap; }
+.rulesdownloads .feather { width: 14px; height: 14px; vertical-align: -2px; }
+.rulesbody { display: flex; min-height: 240px; height: 70vh; position: relative; }
+.rulespanel { flex: 0 0 250px; overflow-y: auto; border-right: 1px solid #d8d2c2; padding: 6px 8px; background: #faf8f2; text-align: left; }
+.rulesstage { flex: 1 1 auto; position: relative; overflow: hidden; background: #4a4a4a; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+.rulesstage.ruleszoomed { overflow: auto; cursor: grab; }
+.rulesstage.rulesdragging { cursor: grabbing; }
+.rulespage img { -webkit-user-drag: none; pointer-events: none; }
+button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-size: .85em; }
+.rulesspread { display: flex; justify-content: center; align-items: center; min-height: 100%; width: max-content; min-width: 100%; }
+.rulesstage:not(.ruleszoomed) .rulesspread { height: 100%; }
+.rulespage { flex: 0 0 auto; background-size: 100% 100%; background-color: #e8e4da; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.rulespage img { display: block; width: 100%; height: 100%; opacity: 0; }
+/* phones cap #maincontent images at 90vw (card images): a zoomed page is much wider than that */
+#maincontent .rulespage img { max-width: none !important; height: 100% !important; }
+.rulespage img.loaded { opacity: 1; }
+.rulesturn { position: absolute; top: 0; bottom: 0; width: 28%; cursor: pointer; z-index: 2; }
+.rulesturnprev { left: 0; cursor: w-resize; }
+.rulesturnnext { right: 0; cursor: e-resize; }
+.ruleszoomed .rulesturn { display: none !important; }
+.rulestoc { list-style: none; margin: 0; padding: 0; }
+.rulestoc li { display: flex; justify-content: space-between; gap: 6px; padding: 2px 4px; border-radius: 3px; }
+.rulestoc li a { color: inherit; text-decoration: none; }
+.rulestoc li a:hover { text-decoration: underline; }
+.rulestoc li.rulescurrent { background: #e9dfb8; }
+.rulestoclevel1 { padding-left: 16px !important; }
+.rulestoclevel2, .rulestoclevel3 { padding-left: 30px !important; font-size: .92em; }
+.rulestocpage { color: #777; }
+.rulesthumbs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+a.rulesthumb { display: flex; flex-direction: column; align-items: center; color: #555; text-decoration: none; font-size: .8em; padding: 3px; border-radius: 4px; }
+a.rulesthumb img { box-shadow: 0 1px 3px rgba(0,0,0,.4); background: #ddd; }
+a.rulesthumb.rulescurrent { background: #e9dfb8; color: black; }
+.rulessearchform input { width: 100%; box-sizing: border-box; }
+.rulesresults ul { list-style: none; margin: 0; padding: 0; }
+.rulesresults li a { display: block; color: inherit; text-decoration: none; padding: 4px; border-bottom: 1px solid #e6e0d0; font-size: .9em; }
+.rulesresults li a:hover { background: #f1ecdd; }
+.rulesresults mark { background: #f5dc7a; }
+/* full screen (rulesfullscreen): the reader covers the window */
+body.rulesfull .rulesreader { position: fixed; inset: 0; z-index: 1000; background: #fff; }
+body.rulesfull { overflow: hidden; }
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  .rulesbooks { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px 8px; }
+  .rulescover { height: 150px; }
+  .rulescover img { max-height: 150px; }
+  .rulespanel { position: absolute; left: 0; top: 0; bottom: 0; width: 85%; max-width: 320px; z-index: 4; box-shadow: 2px 0 8px rgba(0,0,0,.4); }
+  .rulestitle { flex-basis: 100%; order: -1; margin: 2px 0; }
+  .rulesslider { flex-basis: 100%; order: 10; margin: 4px 0; }
+  .rulesturn { width: 33%; }
+}
