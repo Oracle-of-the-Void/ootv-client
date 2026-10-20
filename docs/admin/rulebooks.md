@@ -2,8 +2,11 @@
 
 Last updated: 2026-10-20
 
-The **Rules** button in the menubar (the open book) opens the game's rulebook shelf. Clicking a
-book opens it in the page viewer:
+The **Rules** button in the menubar (the open book) opens the game's rulebook shelf. Above the
+books, filters narrow the shelf by **Type** (one at a time), **Tags** (every tag picked must be on
+the book) and **Arc**; each offers only the values some book has, and the choice is remembered in
+this browser, per game. Each book shows its tags (and its type, unless Complete) under its title.
+Clicking a book opens it in the page viewer:
 
 - **Turning pages**: the arrow keys, Page Up/Down, Space, Home/End; the mouse wheel or a
   two-finger trackpad scroll (one page per notch or swipe; zoomed in, these scroll the page
@@ -33,7 +36,7 @@ book opens it in the page viewer:
 
 **The shelf** is the `oracle-all-structure` item `<game>` / `rulebooks` (read through the public
 `/structure?database=<game>&key=rulebooks`): `books` is a map from each book's id to its title,
-subtitle, year, arc, note, page count, cover size, build time and `order` (its place on the shelf,
+subtitle, year, arc, type, tags, note, page count, cover size, build time and `order` (its place on the shelf,
 from the list below). `upload` writes only the entries of the books it's given, so sessions working
 on different books, each with its own build folder, can't drop or revert each other's books. (Until
 2026-10-20 the shelf was an `index.json` on the bucket, rebuilt from whatever books the uploading
@@ -61,7 +64,8 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
 
 ```json
 {"id": "emperor", "title": "Emperor Edition", "subtitle": "Rulebook", "year": 2012,
- "arc": "Age of Conquest", "pdf": "Rulebook-L5R-Emperor.pdf"}
+ "arc": "Age of Conquest", "type": "Complete", "tags": ["Base set", "Last complete rules in arc"],
+ "pdf": "Rulebook-L5R-Emperor.pdf"}
 ```
 
 - `id` is the book's address on the site (keep it once links are out there).
@@ -82,6 +86,15 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   built, scanned or remastered the file, and only once we can find that person. Today only our
   remasters have one. The shelf has no
   credit line of its own: the list-wide `credit` was dropped on 2026-10-20.
+- `arc`, `type` and `tags` drive the shelf's filters (the text is shown as written, so keep the
+  spelling the same across books):
+  - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
+    `Addendum` (changes on top of a complete book, like the Broken Blades rulesheet) or `Special`
+    (rules for one format, like draft or siege).
+  - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the
+    latest Complete book of its arc, the one to play that arc by). A book can have both, or
+    neither. A new tag needs no site change: it shows up on the filter bar once a book has it.
+    When a later Complete book joins an arc, move `Last complete rules in arc` to it.
 - `source_note`: where the files came from and how they were made, for us. It stays in the list
   and is never published.
 - `crop`: `[left, top, right, bottom]` in points from the page's top left (US letter is 612 × 792):

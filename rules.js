@@ -1,5 +1,5 @@
 // Rules section: the rulebook shelf and page viewer. Loaded on first use by rulesshow() in oracle.js.
-// The shelf is the structure item <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, ...}});
+// The shelf is the structure item <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, type, tags, arc, ...}});
 // each book lives on the images bucket, per game: <imageuri>rulebooks/<id>/book.json, text.json and
 // <NNN>_{select,details,master}.webp per page
 // (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md).
@@ -81,23 +81,121 @@ function rulesdrawshelf() {
       area.html(out);
       return;
     }
-    var last = ruleslastpages();
-    out += '<h3>Rulebooks</h3><div class="rulesbooks">';
-    rulesshelf.books.forEach(function(b) {
-      var cover = rulesbase()+b.id+'/001_select.webp'+(b.built ? '?v='+b.built : '');
-      var at = last[database+'/'+b.id];
-      out += '<a class="rulesbookcard" href="#game='+database+',#rulebook='+b.id+(at > 1 ? ',#page='+at : '')+'" data-book="'+rulesesc(b.id)+'">'+
-        '<span class="rulescover"><img loading="lazy" alt="" src="'+cover+'"'+
-        (b.cover ? ' width="'+b.cover[0]+'" height="'+b.cover[1]+'"' : '')+'></span>'+
-        '<span class="rulesbooktitle">'+rulesesc(b.title)+'</span>'+
-        (b.subtitle ? '<span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '')+
-        '<span class="rulesbookmeta">'+[b.year, b.arc, b.pages+' pages'].filter(x => x).map(rulesesc).join(' &middot; ')+
-        (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span>'+
-        (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
-    });
-    out += '</div>';
+    out += '<h3>Rulebooks</h3>'+rulesfilterbar()+'<div class="rulesbooks"></div>';
     area.html(out+'</div>');
+    rulesdrawbooks();
   });
+}
+
+// ********** shelf filters **********
+// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege), tags
+// (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
+// the choice is kept per game in this browser.
+var RULESTYPES = ['Complete', 'Addendum', 'Special'];   // the order on the bar; other types follow
+var rulesfilter = null;   // {game, type, arc, tags: [...]}
+function rulesfilterload() {
+  if(rulesfilter && rulesfilter.game == database) { return rulesfilter; }
+  var saved = {};
+  try { saved = (JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {})[database] || {}; } catch(e) {}
+  rulesfilter = {game: database, type: saved.type || '', arc: saved.arc || '', tags: saved.tags || []};
+  return rulesfilter;
+}
+function rulesfiltersave() {
+  try {
+    var all = JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {};
+    all[database] = {type: rulesfilter.type, arc: rulesfilter.arc, tags: rulesfilter.tags};
+    localStorage.setItem('rulebookfilter', JSON.stringify(all));
+  } catch(e) {}
+}
+// the values books have, in shelf order (types in RULESTYPES order)
+function rulesfiltervalues() {
+  var types = [], tags = [], arcs = [];
+  rulesshelf.books.forEach(function(b) {
+    if(b.type && !types.includes(b.type)) { types.push(b.type); }
+    (b.tags || []).forEach(function(t) { if(!tags.includes(t)) { tags.push(t); } });
+    if(b.arc && !arcs.includes(b.arc)) { arcs.push(b.arc); }
+  });
+  var rank = function(t) { var i = RULESTYPES.indexOf(t); return i < 0 ? RULESTYPES.length : i; };
+  types.sort(function(a,b) { return rank(a) - rank(b); });
+  return {types: types, tags: tags, arcs: arcs};
+}
+function rulesfilterbar() {
+  var f = rulesfilterload(), v = rulesfiltervalues();
+  // a saved choice no book has any more is dropped
+  if(!v.types.includes(f.type)) { f.type = ''; }
+  if(!v.arcs.includes(f.arc)) { f.arc = ''; }
+  f.tags = f.tags.filter(function(t) { return v.tags.includes(t); });
+  if(!v.types.length && !v.tags.length && v.arcs.length < 2) { return ''; }
+  var pill = function(kind, value, label, on) {
+    return '<button type="button" class="rulespill'+(on ? ' rulespillon' : '')+'" data-kind="'+kind+'" data-value="'+rulesesc(value)+'"'+
+      ' aria-pressed="'+(on ? 'true' : 'false')+'">'+rulesesc(label)+'</button>';
+  };
+  var out = '<div class="rulesfilters">';
+  if(v.types.length) {
+    out += '<span class="rulesfiltergroup"><span class="rulesfilterlabel">Type</span>'+pill('type', '', 'All', !f.type)+
+      v.types.map(function(t) { return pill('type', t, t, f.type == t); }).join('')+'</span>';
+  }
+  if(v.tags.length) {
+    out += '<span class="rulesfiltergroup"><span class="rulesfilterlabel">Tags</span>'+
+      v.tags.map(function(t) { return pill('tag', t, t, f.tags.includes(t)); }).join('')+'</span>';
+  }
+  if(v.arcs.length > 1) {
+    out += '<span class="rulesfiltergroup"><label class="rulesfilterlabel" for="rulesarc">Arc</label>'+
+      '<select id="rulesarc" class="rulesarc"><option value="">All arcs</option>'+
+      v.arcs.map(function(a) { return '<option'+(f.arc == a ? ' selected' : '')+'>'+rulesesc(a)+'</option>'; }).join('')+
+      '</select></span>';
+  }
+  out += '<span class="rulesfiltercount"></span></div>';
+  return out;
+}
+function rulesfilterpass(b) {
+  var f = rulesfilter;
+  return (!f.type || b.type == f.type) && (!f.arc || b.arc == f.arc) &&
+    f.tags.every(function(t) { return (b.tags || []).includes(t); });
+}
+$(document).on('click', '.rulesfilters button.rulespill', function() {
+  var f = rulesfilterload(), kind = $(this).data('kind'), value = String($(this).data('value'));
+  if(kind == 'type') {
+    f.type = f.type == value ? '' : value;
+  } else {
+    f.tags = f.tags.includes(value) ? f.tags.filter(function(t) { return t != value; }) : f.tags.concat([value]);
+  }
+  rulesfiltersave();
+  $('.rulesfilters button.rulespill').each(function() {
+    var k = $(this).data('kind'), val = String($(this).data('value'));
+    var on = k == 'type' ? f.type == val : f.tags.includes(val);
+    $(this).toggleClass('rulespillon', on).attr('aria-pressed', on ? 'true' : 'false');
+  });
+  rulesdrawbooks();
+});
+$(document).on('change', '.rulesfilters select.rulesarc', function() {
+  rulesfilterload().arc = $(this).val();
+  rulesfiltersave();
+  rulesdrawbooks();
+});
+
+function rulesdrawbooks() {
+  var last = ruleslastpages(), out = '', shown = 0;
+  rulesfilterload();
+  rulesshelf.books.forEach(function(b) {
+    if(!rulesfilterpass(b)) { return; }
+    shown++;
+    var cover = rulesbase()+b.id+'/001_select.webp'+(b.built ? '?v='+b.built : '');
+    var at = last[database+'/'+b.id];
+    // the type shows when it isn't the usual Complete
+    var marks = (b.type && b.type != 'Complete' ? [b.type] : []).concat(b.tags || []);
+    out += '<a class="rulesbookcard" href="#game='+database+',#rulebook='+b.id+(at > 1 ? ',#page='+at : '')+'" data-book="'+rulesesc(b.id)+'">'+
+      '<span class="rulescover"><img loading="lazy" alt="" src="'+cover+'"'+
+      (b.cover ? ' width="'+b.cover[0]+'" height="'+b.cover[1]+'"' : '')+'></span>'+
+      '<span class="rulesbooktitle">'+rulesesc(b.title)+'</span>'+
+      (b.subtitle ? '<span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '')+
+      '<span class="rulesbookmeta">'+[b.year, b.arc, b.pages+' pages'].filter(x => x).map(rulesesc).join(' &middot; ')+
+      (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span>'+
+      (marks.length ? '<span class="rulesbookmarks">'+marks.map(function(m) { return '<span class="rulesbookmark">'+rulesesc(m)+'</span>'; }).join('')+'</span>' : '')+
+      (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
+  });
+  $('#rulesarea .rulesbooks').html(shown ? out : '<p class="rulesnomatch">No rulebooks match these filters.</p>');
+  $('#rulesarea .rulesfiltercount').text(shown < rulesshelf.books.length ? shown+' of '+rulesshelf.books.length+' books' : '');
 }
 $(document).on('click', 'a.rulesbookcard', function(e) {
   if(e.ctrlKey || e.metaKey || e.shiftKey || e.button) { return; }  // a new tab keeps the link
