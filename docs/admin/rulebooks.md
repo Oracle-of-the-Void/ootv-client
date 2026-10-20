@@ -133,8 +133,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   built from `game-l5r/rulebook-enhance/samurai/rebuild/Rulebook-L5R-Samurai_preview_pages.pdf`
   (2026-10-20): the spreads cut down the middle by `rulebook-enhance/samurai/split_samurai.py`, 49
   single pages. Crop only, text kept; the original is the second download.
-- The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor,
-  Twenty Festivals basic and advanced.
+- The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
 - Imperial, Jade and Ivory basic have a table of contents so far.
@@ -151,3 +150,8 @@ From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue o
   cover replaced by the later fix `L5R_IE_AdvRulebook_FIX_01.pdf` (`trim_press.py --fix 1=...`), trimmed the
   same way into `game-l5r/rulebook-enhance/ivory/rebuild/Rulebook-L5R-Ivory-adv_rulebook.pdf`. 56 pages, no
   contents page. Kempy's 111-page copy is this book followed by the same text in another layout.
+- **Twenty Festivals** basic and advanced rulebooks (2026-10-20): AEG's print files
+  `press/Twenty_Festivals/Packaging/Rulebooks/L5R_TF_BasicRulebook_PRESS.pdf` and `L5R_TF_AdvRulebook_PRESS.pdf`
+  (2014-09-09), trimmed by `trim_press.py` into `game-l5r/rulebook-enhance/twenty-festivals/rebuild/`. 76 and
+  60 pages, no contents. Kempy's copies are the same exports run through a PDF optimizer (images cut to
+  150 ppi, pages cropped inside the trim), so they aren't offered as downloads.
