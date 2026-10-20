@@ -14,8 +14,11 @@ book opens it in the page viewer:
 - **Zoom**: the − and + buttons (the percentage between them goes back to fit), the + − 0 keys,
   Ctrl+mouse wheel or a trackpad pinch, pinching on a phone, or a double-click / double-tap (2.5x
   there, or back to fit). Zoomed in, drag the page with the mouse or a finger (or scroll); Esc fits
-  it again. Turning the page keeps the zoom, from the page's top left. Up to 800%; past about 2x
-  on a sharp phone screen the 2400 px page image gets soft.
+  it again. Turning the page keeps the zoom, from the page's top left. Up to 800%. Zoomed pages
+  switch to the larger images as needed (2400 px, then 4800 px where the book has them).
+- **Full screen**: the corner button or F. The reader covers the window, and the browser goes full
+  screen where it can (iPhones only allow that for video, so there it just covers the page). Esc or
+  the button again leaves it.
 - **Contents** (only books with a table of contents), **Pages** (thumbnails) and **Search**
   (books with text) open in a panel on the left.
 - **Links**: every page has its own address, `#game=l5r,#rulebook=<id>,#page=<n>`; the link
@@ -33,7 +36,7 @@ Everything is on the images bucket, under the game: `https://images.oracleofthev
 | `index.json` | The shelf: each book's id, title, subtitle, year, arc, page count, in shelf order |
 | `<id>/book.json` | One book: each page's size, the table of contents, downloads, whether it has text |
 | `<id>/text.json` | The text of each page, for the book's search (the PDF's own text, or OCR) |
-| `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp` | Each page: thumbnail (300 px), normal (1400 px) and zoom (2400 px) on the long side |
+| `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp`, `_zoom.webp` | Each page: thumbnail (300 px), normal (1400 px), large (2400 px) and deep zoom (4800 px) on the long side. `_zoom` is only made when the source is that large: every PDF, but not the Jade photos (2048 px). A rescan or remaster at higher resolution gets it on its next build. |
 | `<id>/<id>.pdf` | The download |
 
 A game with no `index.json` shows "No rulebooks yet". Nothing about books is in the site's code,

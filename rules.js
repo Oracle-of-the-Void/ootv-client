@@ -56,6 +56,7 @@ function rulesloadshelf(done) {
     .fail(function() { rulesshelf = {game: database, books: []}; done(); });
 }
 function rulesdrawshelf() {
+  if(rulesisfull()) { rulesfullscreen(false); }
   rulesbook = null;
   rulestext = null;
   $('body').removeClass('rulesreading');
@@ -157,6 +158,7 @@ function rulesdrawreader() {
       '<button class="rulesbtn ruleszoomlabel" onclick="ruleszoomto(1);" aria-label="Fit the page (0)" data-balloon-pos="down">100%</button>'+
       '<button class="rulesbtn" onclick="rulesstepzoom(1);" aria-label="Zoom in (+, Ctrl+wheel, pinch)" data-balloon-pos="down">'+rulesicon('zoom-in')+'</button>'+
       '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
+      '<button class="rulesbtn rulesfullbtn" onclick="rulesfullscreen();" aria-label="Full screen (F)" data-balloon-pos="down-right">'+rulesicon(rulesisfull() ? 'minimize' : 'maximize')+'</button>'+
       '</span>'+
     '</div>'+
     '<div class="rulesbody">'+
@@ -189,7 +191,35 @@ function rulesdrawreader() {
     e.preventDefault();
     ruleszoomto(ruleszoom * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY);   // a wheel notch (100) is about 1.2x
   }, {passive: false});
+  // the phone's own pinch-zoom of the whole page would fight ours (iOS doesn't always honour touch-action: none)
+  var nogesture = function(e) { e.preventDefault(); };
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(t) { stage.addEventListener(t, nogesture, {passive: false}); });
+  stage.addEventListener('touchmove', nogesture, {passive: false});
 }
+
+// Full screen: the reader covers the window (rulesfull), and the browser goes full screen where it can
+// (not iPhones, which only do that for video). Leaving the browser's full screen (Esc) leaves ours.
+function rulesisfull() {
+  return $('body').hasClass('rulesfull');
+}
+function rulesfullscreen(on) {
+  if(on === undefined) { on = !rulesisfull(); }
+  $('body').toggleClass('rulesfull', on);
+  var de = document.documentElement;
+  if(on && !document.fullscreenElement && de.requestFullscreen) {
+    de.requestFullscreen().catch(function() {});
+  } else if(!on && document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(function() {});
+  }
+  $('#rulesarea .rulesfullbtn').html(rulesicon(on ? 'minimize' : 'maximize'));
+  if(rulesbook) {
+    rulessizestage();
+    rulesgo(rulesstate.page, false);
+  }
+}
+$(document).on('fullscreenchange', function() {
+  if(!document.fullscreenElement && rulesisfull()) { rulesfullscreen(false); }
+});
 function rulessize(bytes) {
   return bytes > 1048576 ? (bytes/1048576).toFixed(1)+' MB' : Math.ceil(bytes/1024)+' KB';
 }
@@ -241,7 +271,14 @@ function rulespagesrect() {
   var a = pages.first()[0].getBoundingClientRect(), b = pages.last()[0].getBoundingClientRect();
   return {left: a.left, top: Math.min(a.top, b.top), width: b.right - a.left, height: Math.max(a.bottom, b.bottom) - Math.min(a.top, b.top)};
 }
-// size the pages shown for the stage and the zoom; a page drawn larger than the details image gets the master
+// the image size for a page drawn px device pixels on its long side: the smallest that's sharp enough
+function rulesimagesize(px) {
+  var sizes = rulesbook.sizes;
+  if(px > sizes.master * 1.1 && sizes.zoom) { return 'zoom'; }
+  return px > sizes.details * 1.1 ? 'master' : 'details';
+}
+var rulesimageorder = ['details', 'master', 'zoom'];
+// size the pages shown for the stage and the zoom; a page drawn larger than its image gets the next size up
 function ruleslayout() {
   var stage = $('#rulesarea .rulesstage');
   var r = stage[0].getBoundingClientRect();
@@ -256,8 +293,10 @@ function ruleslayout() {
     var img = $(this).find('img');
     img.attr({width: w, height: h});
     // only ever upgrade, so zooming out doesn't reload a page already drawn
-    if(Math.max(w, h) * dpr > rulesbook.sizes.details * 1.1 && /_details\.webp$/.test(img.attr('src') || '')) {
-      img.attr('src', rulespageurl($(this).data('page'), 'master'));
+    var want = rulesimagesize(Math.max(w, h) * dpr);
+    var have = ((img.attr('src') || '').match(/_([a-z]+)\.webp$/) || [])[1];
+    if(have && rulesimageorder.indexOf(want) > rulesimageorder.indexOf(have)) {
+      img.attr('src', rulespageurl($(this).data('page'), want));
     }
   });
   stage.toggleClass('ruleszoomed', ruleszoom > 1.001);
@@ -280,7 +319,7 @@ function rulesgo(page,url=true) {
   // details first; ruleslayout sizes the pages and moves them to the master when they're drawn large
   stage.find('.rulesspread').html(shown.map(function(p) {
     return '<div class="rulespage" data-page="'+p+'" style="background-image:url('+rulespageurl(p,'select')+')">'+
-      '<img alt="Page '+p+'" src="'+rulespageurl(p,'details')+'" onload="this.classList.add(\'loaded\')"></div>';
+      '<img alt="Page '+p+'" src="'+rulespageurl(p,'details')+'" onload="rulesimageloaded(this)"></div>';
   }).join(''));
   ruleslayout();
   stage.scrollTop(0).scrollLeft(0);   // a turned page keeps the zoom, from its top left
@@ -295,10 +334,15 @@ function rulesgo(page,url=true) {
     seturl(viewstate('rules'), true);
   }
 }
+// the page's image is in: drop the thumbnail drawn under it while it loaded
+function rulesimageloaded(img) {
+  img.classList.add('loaded');
+  img.parentNode.style.backgroundImage = 'none';
+}
 // the neighbouring spreads' images, so turning a page shows it at once
 function rulespreload(shown) {
   var n = rulesbook.pages.length;
-  var size = $('#rulesarea .rulespage img').attr('src').match(/_(details|master)\.webp$/)[1];
+  var size = (($('#rulesarea .rulespage img').attr('src') || '').match(/_([a-z]+)\.webp$/) || [0, 'details'])[1];
   [shown[0]-2, shown[0]-1, shown[shown.length-1]+1, shown[shown.length-1]+2].forEach(function(p) {
     if(p >= 1 && p <= n) {
       (new Image()).src = rulespageurl(p, size);
@@ -310,7 +354,7 @@ function rulessizestage() {
   var stage = $('#rulesarea .rulesstage');
   if(!stage.length || !stage.is(':visible')) { return; }
   var bottom = $('#rulesarea .rulesbottom').outerHeight() || 0;
-  var h = Math.max(240, window.innerHeight - stage.offset().top - bottom - 8);
+  var h = Math.max(240, window.innerHeight - stage[0].getBoundingClientRect().top - bottom - (rulesisfull() ? 0 : 8));
   $('#rulesarea .rulesbody').css('height', h+'px');
 }
 $(window).on('resize', _.debounce(function() {
@@ -435,6 +479,10 @@ $(document).on('keydown', function(e) {
     rulesstepzoom(-1);
   } else if(e.key == '0' || (e.key == 'Escape' && ruleszoom > 1)) {
     ruleszoomto(1);
+  } else if(e.key == 'f' || e.key == 'F') {
+    rulesfullscreen();
+  } else if(e.key == 'Escape' && rulesisfull()) {
+    rulesfullscreen(false);
   } else {
     return;
   }
@@ -465,6 +513,16 @@ var rulesptrs = {};          // pointers down on the stage: id -> {x, y}
 var rulesgesture = null;     // {type: 'pan', x, y, sl, st, moved, touch} or {type: 'pinch', d, x, y}
 var rulesnoclick = false;    // a drag or a double tap just ended: the click that follows doesn't turn the page
 var ruleslasttap = null;     // {t, x, y} of the last tap, for double taps
+// the pinch's transform becomes the real zoom: the point that was under the fingers' start goes where they ended
+function rulespinchend(el, g) {
+  var sp = $(el).find('.rulesspread')[0];
+  sp.style.transform = '';
+  sp.style.transformOrigin = '';
+  ruleszoomto(ruleszoom * g.scale, g.x, g.y);
+  el.scrollLeft -= g.tx;
+  el.scrollTop -= g.ty;
+  g.scale = 1;   // ended: a later finger lift doesn't apply it again
+}
 function rulesturnclick(dir) {
   if(!rulesnoclick) { rulesstep(dir); }
 }
@@ -484,7 +542,11 @@ $(document).on('pointerdown', '#rulesarea .rulesstage', function(ev) {
   if(n == 1) {
     rulespanstart(e, false);
   } else if(n == 2) {
-    rulesgesture = Object.assign({type: 'pinch'}, rulespinchpoints());
+    // the pages are scaled with a transform while the fingers move (cheap, no image swaps), then laid out
+    // once at the new zoom when they lift (rulespinchend)
+    var start = rulespinchpoints(), sp = $(this).find('.rulesspread')[0], r = sp.getBoundingClientRect();
+    rulesgesture = {type: 'pinch', d: start.d, x: start.x, y: start.y, scale: 1, tx: 0, ty: 0};
+    sp.style.transformOrigin = (start.x - r.left)+'px '+(start.y - r.top)+'px';
     $(this).addClass('rulesdragging');
   }
 });
@@ -494,11 +556,13 @@ $(document).on('pointermove', '#rulesarea .rulesstage', function(ev) {
   rulesptrs[e.pointerId] = {x: e.clientX, y: e.clientY};
   var el = this;
   if(rulesgesture.type == 'pinch' && Object.keys(rulesptrs).length == 2) {
-    var now = rulespinchpoints();
-    ruleszoomto(ruleszoom * now.d / rulesgesture.d, now.x, now.y);
-    el.scrollLeft -= now.x - rulesgesture.x;
-    el.scrollTop -= now.y - rulesgesture.y;
-    Object.assign(rulesgesture, now);
+    var g = rulesgesture, now = rulespinchpoints();
+    var z = Math.max(1, Math.min(RULESMAXZOOM, ruleszoom * now.d / g.d));
+    g.scale = z / ruleszoom;
+    g.tx = now.x - g.x;
+    g.ty = now.y - g.y;
+    $(el).find('.rulesspread')[0].style.transform = 'translate('+g.tx+'px,'+g.ty+'px) scale('+g.scale+')';
+    $('#rulesarea .ruleszoomlabel').text(Math.round(z * 100)+'%');
   } else if(rulesgesture.type == 'pan') {
     var dx = e.clientX - rulesgesture.x, dy = e.clientY - rulesgesture.y;
     if(!rulesgesture.moved && Math.hypot(dx, dy) > 6) {
@@ -518,6 +582,9 @@ $(document).on('pointerup pointercancel', '#rulesarea .rulesstage', function(ev)
   delete rulesptrs[e.pointerId];
   var g = rulesgesture;
   $(this).removeClass('rulesdragging');
+  if(g && g.type == 'pinch') {
+    rulespinchend(this, g);
+  }
   if(Object.keys(rulesptrs).length == 1) {
     // one finger left after a pinch: it pans from here, and lifting it isn't a tap
     var rest = Object.values(rulesptrs)[0];
