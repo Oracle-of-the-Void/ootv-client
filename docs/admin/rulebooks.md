@@ -1,6 +1,6 @@
 # Rulebooks (Rules section)
 
-Last updated: 2026-10-19
+Last updated: 2026-10-20
 
 The **Rules** button in the menubar (the open book) opens the game's rulebook shelf. Clicking a
 book opens it in the page viewer:
@@ -65,6 +65,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: a remark about the source (kept in `book.json`).
+- `crop`: `[left, top, right, bottom]` in points from the page's top left (US letter is 612 × 792):
+  only that part of every PDF page is shown, e.g. to drop blank margins (Broken Blades). The
+  download is still the whole PDF.
 
 Then, from ootv-import:
 
@@ -84,9 +87,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
 - **Imperial Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/rebuild/pages-01-64.pdf`,
   2026-10-20), with its own text. The contents come from the bookmarks of the old searchable scan
   (same 64 pages); the original color scan is the second download.
-- **Scorpion Clan Coup** (the `Imperial_(SCC)` file) and **Jade Edition** (phone photos, from
-  `Rulebook-L5R-Jade.zip`) are two-page spreads with OCR text; Jade's download is the text
-  transcription (`Rulebook-L5R-Jade.txt`).
+- **Scorpion Clan Coup**: the retypeset remaster (ootv-games
+  `game-l5r/rulebook-enhance/scc/rebuild/scc-pages-01-71-back.pdf`, 2026-10-20), with its own text: all
+  72 pages, so the two-page view shows the printed spreads. Kempy's scan lacks pp. 2-3, 22, 24, 28,
+  36-37, 47, 49 and 51; those were set from phone photos of the same booklet (the older `L5RRules` copy
+  of `Rulebook-L5R-Imperial_(SCC).pdf`). No contents yet. Kempy's scan is the second download.
+- **Jade Edition** (phone photos, from `Rulebook-L5R-Jade.zip`) is two-page spreads with OCR text;
+  its download is the text transcription (`Rulebook-L5R-Jade.txt`).
 - The rest are the publisher PDFs with their own text: Spirit Wars, Gold learning set, Diamond,
   Lotus, Samurai preview, Celestial 15, Emperor, Twenty Festivals basic and advanced.
 - Only Imperial has a table of contents so far.
