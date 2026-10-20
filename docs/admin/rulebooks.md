@@ -11,7 +11,11 @@ book opens it in the page viewer:
 - **Two pages side by side** when the window is wide enough and the book's pages are portrait
   (page 1 is the cover, then 2-3, 4-5, ...). The columns button turns it off or on (remembered in
   this browser). Books scanned as two-page spreads always show one image at a time.
-- **Zoom**: the magnifier button or double-click; the page then scrolls. Esc goes back.
+- **Zoom**: the − and + buttons (the percentage between them goes back to fit), the + − 0 keys,
+  Ctrl+mouse wheel or a trackpad pinch, pinching on a phone, or a double-click / double-tap (2.5x
+  there, or back to fit). Zoomed in, drag the page with the mouse or a finger (or scroll); Esc fits
+  it again. Turning the page keeps the zoom, from the page's top left. Up to 800%; past about 2x
+  on a sharp phone screen the 2400 px page image gets soft.
 - **Contents** (only books with a table of contents), **Pages** (thumbnails) and **Search**
   (books with text) open in a panel on the left.
 - **Links**: every page has its own address, `#game=l5r,#rulebook=<id>,#page=<n>`; the link

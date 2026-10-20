@@ -10,7 +10,7 @@ var rulesshelf = null;      // index.json, once loaded (false: the game has none
 var rulesbook = null;       // book.json of the open book
 var rulestext = null;       // text.json of the open book, loaded on the first search
 var rulespanel = null;      // side panel shown: 'contents', 'pages', 'search' or null
-var ruleszoom = false;      // the page at full size, scrolled, instead of fitted
+var ruleszoom = 1;          // 1: the page(s) fit the stage; more: larger, dragged or scrolled around (ruleszoomto)
 var rulesloading = null;    // the book id being fetched
 
 function rulesbase() {
@@ -115,7 +115,7 @@ function rulesopenbook(id,page,push=false) {
       if(rulesstate.book != id) { return; }
       rulesbook = book;
       rulestext = null;
-      ruleszoom = false;
+      ruleszoom = 1;
       rulesdrawreader();
       rulesgo(rulesstate.page, false);
     })
@@ -153,15 +153,17 @@ function rulesdrawreader() {
       '<button class="rulesbtn" data-panel="pages" onclick="rulestogglepanel(\'pages\');" aria-label="Pages" data-balloon-pos="down">'+rulesicon('grid')+'</button>'+
       (b.text ? '<button class="rulesbtn" data-panel="search" onclick="rulestogglepanel(\'search\');" aria-label="Search this book" data-balloon-pos="down">'+rulesicon('search')+'</button>' : '')+
       '<button class="rulesbtn rulesspreadbtn" onclick="rulestogglespread();" aria-label="One page / two pages" data-balloon-pos="down">'+rulesicon('columns')+'</button>'+
-      '<button class="rulesbtn ruleszoombtn" onclick="rulestogglezoom();" aria-label="Zoom (double-click the page)" data-balloon-pos="down">'+rulesicon('zoom-in')+'</button>'+
+      '<button class="rulesbtn" onclick="rulesstepzoom(-1);" aria-label="Zoom out (-)" data-balloon-pos="down">'+rulesicon('zoom-out')+'</button>'+
+      '<button class="rulesbtn ruleszoomlabel" onclick="ruleszoomto(1);" aria-label="Fit the page (0)" data-balloon-pos="down">100%</button>'+
+      '<button class="rulesbtn" onclick="rulesstepzoom(1);" aria-label="Zoom in (+, Ctrl+wheel, pinch)" data-balloon-pos="down">'+rulesicon('zoom-in')+'</button>'+
       '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
       '</span>'+
     '</div>'+
     '<div class="rulesbody">'+
       '<div class="rulespanel" style="display:none"></div>'+
       '<div class="rulesstage" tabindex="-1"><div class="rulesspread"></div>'+
-        '<div class="rulesturn rulesturnprev" onclick="rulesstep(-1);" title="Previous page"></div>'+
-        '<div class="rulesturn rulesturnnext" onclick="rulesstep(1);" title="Next page"></div>'+
+        '<div class="rulesturn rulesturnprev" onclick="rulesturnclick(-1);" title="Previous page"></div>'+
+        '<div class="rulesturn rulesturnnext" onclick="rulesturnclick(1);" title="Next page"></div>'+
       '</div>'+
     '</div>'+
     '<div class="rulesbottom">'+
@@ -179,7 +181,14 @@ function rulesdrawreader() {
   rulessizestage();
   // the arrow keys turn pages straight away, not move the cursor in the sidebar's search box
   if($(document.activeElement).is('input, textarea, select')) { document.activeElement.blur(); }
-  $('#rulesarea .rulesstage')[0].focus({preventScroll: true});
+  var stage = $('#rulesarea .rulesstage')[0];
+  stage.focus({preventScroll: true});
+  // Ctrl+wheel (and a trackpad pinch, which arrives as one) zooms at the pointer; jQuery can't make it non-passive
+  stage.addEventListener('wheel', function(e) {
+    if(!e.ctrlKey) { return; }
+    e.preventDefault();
+    ruleszoomto(ruleszoom * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY);   // a wheel notch (100) is about 1.2x
+  }, {passive: false});
 }
 function rulessize(bytes) {
   return bytes > 1048576 ? (bytes/1048576).toFixed(1)+' MB' : Math.ceil(bytes/1024)+' KB';
@@ -205,9 +214,54 @@ function rulestogglespread() {
   try { localStorage.setItem('rulebookspread', rulesspreadon() ? 'off' : 'on'); } catch(e) {}
   rulesgo(rulesstate.page, false);
 }
-function rulestogglezoom() {
-  ruleszoom = !ruleszoom;
-  rulesgo(rulesstate.page, false);
+// zoom: 1 fits the page(s) in the stage, up to RULESMAXZOOM times that. The point at clientX/Y (default: the
+// stage's middle) stays where it is on screen.
+var RULESMAXZOOM = 8;
+function ruleszoomto(z,cx,cy) {
+  var el = $('#rulesarea .rulesstage')[0];
+  if(!el) { return; }
+  z = Math.max(1, Math.min(RULESMAXZOOM, z));
+  var r = el.getBoundingClientRect();
+  if(cx === undefined) { cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
+  // where the point falls on the pages, as a fraction of their extent
+  var before = rulespagesrect();
+  var fx = (cx - before.left) / before.width, fy = (cy - before.top) / before.height;
+  ruleszoom = z;
+  ruleslayout();
+  var after = rulespagesrect();
+  el.scrollLeft += after.left + fx * after.width - cx;
+  el.scrollTop += after.top + fy * after.height - cy;
+}
+function rulesstepzoom(dir) {
+  ruleszoomto(ruleszoom * (dir > 0 ? 1.25 : 0.8));
+}
+// the box around the pages shown, in client coordinates
+function rulespagesrect() {
+  var pages = $('#rulesarea .rulespage');
+  var a = pages.first()[0].getBoundingClientRect(), b = pages.last()[0].getBoundingClientRect();
+  return {left: a.left, top: Math.min(a.top, b.top), width: b.right - a.left, height: Math.max(a.bottom, b.bottom) - Math.min(a.top, b.top)};
+}
+// size the pages shown for the stage and the zoom; a page drawn larger than the details image gets the master
+function ruleslayout() {
+  var stage = $('#rulesarea .rulesstage');
+  var r = stage[0].getBoundingClientRect();
+  var pages = stage.find('.rulespage');
+  var dims = pages.map(function() { return [rulesbook.pages[$(this).data('page')-1]]; }).get();
+  var ratio = dims.reduce((w, d) => w + d[0] / d[1], 0);
+  var h = Math.floor(Math.min(r.height, r.width / ratio) * ruleszoom);
+  var dpr = window.devicePixelRatio || 1;
+  pages.each(function(i) {
+    var w = Math.floor(h * dims[i][0] / dims[i][1]);
+    $(this).css({width: w+'px', height: h+'px'});
+    var img = $(this).find('img');
+    img.attr({width: w, height: h});
+    // only ever upgrade, so zooming out doesn't reload a page already drawn
+    if(Math.max(w, h) * dpr > rulesbook.sizes.details * 1.1 && /_details\.webp$/.test(img.attr('src') || '')) {
+      img.attr('src', rulespageurl($(this).data('page'), 'master'));
+    }
+  });
+  stage.toggleClass('ruleszoomed', ruleszoom > 1.001);
+  $('#rulesarea .ruleszoomlabel').text(Math.round(ruleszoom * 100)+'%');
 }
 
 function rulesstep(dir) {
@@ -223,28 +277,15 @@ function rulesgo(page,url=true) {
   rulessavepage(rulesbook.id, page);
   var shown = rulesshown(page);
   var stage = $('#rulesarea .rulesstage');
-  var spread = stage.find('.rulesspread');
-  var sw = stage.width(), sh = stage.height();
-  var dpr = window.devicePixelRatio || 1;
-  // the pages' total width at the stage's height, then fitted (zoom: as wide as the stage, or the master's size if larger)
-  var ratio = shown.reduce((w, p) => w + rulesbook.pages[p-1][0] / rulesbook.pages[p-1][1], 0);
-  var h = Math.min(sh, sw / ratio);
-  if(ruleszoom) {
-    h = Math.max(sw / ratio, sh * 1.6);
-  }
-  h = Math.floor(h);
-  var html = shown.map(function(p) {
-    var w = Math.floor(h * rulesbook.pages[p-1][0] / rulesbook.pages[p-1][1]);
-    var size = Math.max(w, h) * dpr > rulesbook.sizes.details * 1.1 ? 'master' : 'details';
-    return '<div class="rulespage" data-page="'+p+'" style="width:'+w+'px;height:'+h+'px;background-image:url('+rulespageurl(p,'select')+')">'+
-      '<img alt="Page '+p+'" width="'+w+'" height="'+h+'" src="'+rulespageurl(p,size)+'" onload="this.classList.add(\'loaded\')"></div>';
-  }).join('');
-  spread.html(html);
-  stage.toggleClass('ruleszoomed', ruleszoom);
-  stage.scrollTop(0);
+  // details first; ruleslayout sizes the pages and moves them to the master when they're drawn large
+  stage.find('.rulesspread').html(shown.map(function(p) {
+    return '<div class="rulespage" data-page="'+p+'" style="background-image:url('+rulespageurl(p,'select')+')">'+
+      '<img alt="Page '+p+'" src="'+rulespageurl(p,'details')+'" onload="this.classList.add(\'loaded\')"></div>';
+  }).join(''));
+  ruleslayout();
+  stage.scrollTop(0).scrollLeft(0);   // a turned page keeps the zoom, from its top left
   $('#rulesarea .rulespageinput').val(shown.length > 1 ? shown[0]+'-'+shown[1] : page);
   $('#rulesarea .rulesslider').val(page);
-  $('#rulesarea .ruleszoombtn').toggleClass('searchviewactive', ruleszoom);
   $('#rulesarea .rulesspreadbtn').toggleClass('searchviewactive', shown.length > 1);
   $('#rulesarea .rulesturnprev').toggle(shown[0] > 1);
   $('#rulesarea .rulesturnnext').toggle(shown[shown.length-1] < n);
@@ -381,15 +422,19 @@ function rulescopylink() {
 $(document).on('keydown', function(e) {
   if(!rulesbook || !$('#resultrules').is(':visible') || $(e.target).is('input, textarea, select') || $('.modal-box:visible').length) { return; }
   var keys = {ArrowRight: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, PageUp: -1};
-  if(ruleszoom && (e.key == 'ArrowDown' || e.key == 'ArrowUp' || e.key == ' ')) { return; }   // scroll the zoomed page
+  if(ruleszoom > 1 && (e.key == 'ArrowDown' || e.key == 'ArrowUp' || e.key == ' ')) { return; }   // scroll the zoomed page
   if(keys[e.key]) {
     rulesstep(e.shiftKey && e.key == ' ' ? -1 : keys[e.key]);
   } else if(e.key == 'Home') {
     rulesgo(1);
   } else if(e.key == 'End') {
     rulesgo(rulesbook.pages.length);
-  } else if(e.key == 'Escape' && ruleszoom) {
-    rulestogglezoom();
+  } else if(e.key == '+' || e.key == '=') {
+    rulesstepzoom(1);
+  } else if(e.key == '-') {
+    rulesstepzoom(-1);
+  } else if(e.key == '0' || (e.key == 'Escape' && ruleszoom > 1)) {
+    ruleszoomto(1);
   } else {
     return;
   }
@@ -410,21 +455,95 @@ $(document).on('input', '#rulesarea .rulesslider', function() {
 $(document).on('change', '#rulesarea .rulesslider', function() {
   rulesgo(+$(this).val());
 });
-$(document).on('dblclick', '#rulesarea .rulesspread', function() {
-  rulestogglezoom();
+// Pointer gestures on the stage (mouse, touch and pen alike; touch-action: none leaves them all to us):
+// - one pointer, zoomed in: drag the page around
+// - one finger, not zoomed: swipe left/right to turn
+// - two fingers: pinch to zoom around them (and move them to pan)
+// - a double click or double tap: zoom in there (2.5x), or back to fit
+// - a single click or tap on the left or right side, not zoomed: turn (the .rulesturn areas, rulesturnclick)
+var rulesptrs = {};          // pointers down on the stage: id -> {x, y}
+var rulesgesture = null;     // {type: 'pan', x, y, sl, st, moved, touch} or {type: 'pinch', d, x, y}
+var rulesnoclick = false;    // a drag or a double tap just ended: the click that follows doesn't turn the page
+var ruleslasttap = null;     // {t, x, y} of the last tap, for double taps
+function rulesturnclick(dir) {
+  if(!rulesnoclick) { rulesstep(dir); }
+}
+function rulespinchpoints() {
+  var p = Object.values(rulesptrs);
+  return {d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y), x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2};
+}
+function rulespanstart(e, moved) {
+  var el = $('#rulesarea .rulesstage')[0];
+  rulesgesture = {type: 'pan', x: e.clientX, y: e.clientY, sl: el.scrollLeft, st: el.scrollTop, moved: moved, touch: e.pointerType != 'mouse'};
+}
+$(document).on('pointerdown', '#rulesarea .rulesstage', function(ev) {
+  var e = ev.originalEvent;
+  if(e.pointerType == 'mouse' && e.button != 0) { return; }
+  rulesptrs[e.pointerId] = {x: e.clientX, y: e.clientY};
+  var n = Object.keys(rulesptrs).length;
+  if(n == 1) {
+    rulespanstart(e, false);
+  } else if(n == 2) {
+    rulesgesture = Object.assign({type: 'pinch'}, rulespinchpoints());
+    $(this).addClass('rulesdragging');
+  }
 });
-// swipe left/right to turn (not while zoomed: then a drag scrolls the page)
-var rulestouch = null;
-$(document).on('touchstart', '#rulesarea .rulesstage', function(e) {
-  var t = e.originalEvent.touches;
-  rulestouch = (t.length == 1 && !ruleszoom) ? {x: t[0].clientX, y: t[0].clientY} : null;
+$(document).on('pointermove', '#rulesarea .rulesstage', function(ev) {
+  var e = ev.originalEvent;
+  if(!rulesptrs[e.pointerId] || !rulesgesture) { return; }
+  rulesptrs[e.pointerId] = {x: e.clientX, y: e.clientY};
+  var el = this;
+  if(rulesgesture.type == 'pinch' && Object.keys(rulesptrs).length == 2) {
+    var now = rulespinchpoints();
+    ruleszoomto(ruleszoom * now.d / rulesgesture.d, now.x, now.y);
+    el.scrollLeft -= now.x - rulesgesture.x;
+    el.scrollTop -= now.y - rulesgesture.y;
+    Object.assign(rulesgesture, now);
+  } else if(rulesgesture.type == 'pan') {
+    var dx = e.clientX - rulesgesture.x, dy = e.clientY - rulesgesture.y;
+    if(!rulesgesture.moved && Math.hypot(dx, dy) > 6) {
+      rulesgesture.moved = true;
+      el.setPointerCapture(e.pointerId);   // keep dragging when the pointer leaves the stage
+      if(ruleszoom > 1) { $(el).addClass('rulesdragging'); }
+    }
+    if(rulesgesture.moved && ruleszoom > 1) {
+      el.scrollLeft = rulesgesture.sl - dx;
+      el.scrollTop = rulesgesture.st - dy;
+    }
+  }
 });
-$(document).on('touchend', '#rulesarea .rulesstage', function(e) {
-  if(!rulestouch) { return; }
-  var t = e.originalEvent.changedTouches[0];
-  var dx = t.clientX - rulestouch.x, dy = t.clientY - rulestouch.y;
-  rulestouch = null;
-  if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    rulesstep(dx < 0 ? 1 : -1);
+$(document).on('pointerup pointercancel', '#rulesarea .rulesstage', function(ev) {
+  var e = ev.originalEvent;
+  if(!rulesptrs[e.pointerId]) { return; }
+  delete rulesptrs[e.pointerId];
+  var g = rulesgesture;
+  $(this).removeClass('rulesdragging');
+  if(Object.keys(rulesptrs).length == 1) {
+    // one finger left after a pinch: it pans from here, and lifting it isn't a tap
+    var rest = Object.values(rulesptrs)[0];
+    rulespanstart({clientX: rest.x, clientY: rest.y, pointerType: 'touch'}, true);
+    return;
+  }
+  rulesgesture = null;
+  if(!g || g.type != 'pan' || ev.type == 'pointercancel') { return; }
+  if(g.moved) {
+    rulesnoclick = true;
+    setTimeout(function() { rulesnoclick = false; }, 0);
+    var dx = e.clientX - g.x, dy = e.clientY - g.y;
+    if(g.touch && ruleszoom <= 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      rulesstep(dx < 0 ? 1 : -1);
+    }
+    return;
+  }
+  // a tap or click: the second of two close together zooms. Not on the turn areas, where quick clicks flip pages
+  if($(e.target).hasClass('rulesturn')) { ruleslasttap = null; return; }
+  var t = Date.now(), last = ruleslasttap;
+  if(last && t - last.t < 350 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 30) {
+    ruleslasttap = null;
+    rulesnoclick = true;
+    setTimeout(function() { rulesnoclick = false; }, 0);
+    ruleszoomto(ruleszoom > 1 ? 1 : 2.5, e.clientX, e.clientY);
+  } else {
+    ruleslasttap = {t: t, x: e.clientX, y: e.clientY};
   }
 });
