@@ -89,8 +89,10 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
 - `arc`, `type` and `tags` drive the shelf's filters (the text is shown as written, so keep the
   spelling the same across books):
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
-    `Addendum` (changes on top of a complete book, like the Broken Blades rulesheet) or `Special`
-    (rules for one format, like draft or siege).
+    `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
+    top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
+    `Special` (rules for one format or game mode: War of Honor, Booster Draft, Siege). The filter
+    bar lists Complete, Addendum and Special first (`RULESTYPES` in `rules.js`), then any other type.
   - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the
     latest Complete book of its arc, the one to play that arc by). A book can have both, or
     neither. A new tag needs no site change: it shows up on the filter bar once a book has it.
