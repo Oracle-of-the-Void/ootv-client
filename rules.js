@@ -12,6 +12,7 @@ var rulestext = null;       // text.json of the open book, loaded on the first s
 var rulespanel = null;      // side panel shown: 'contents', 'pages', 'search' or null
 var ruleszoom = 1;          // 1: the page(s) fit the stage; more: larger, dragged or scrolled around (ruleszoomto)
 var rulesloading = null;    // the book id being fetched
+var rulesdownloads = false; // show the book's download buttons (book.json downloads); off for now (2026-10-20)
 
 function rulesbase() {
   return dbinfo[database].imageuri+'rulebooks/';
@@ -141,7 +142,7 @@ function rulesdrawreader() {
   var b = rulesbook, n = b.pages.length;
   if(rulespanel == 'contents' && !(b.toc && b.toc.length)) { rulespanel = null; }
   var title = rulesesc(b.title)+(b.subtitle ? ' <span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '');
-  var dl = (b.downloads || []).map(function(d) {
+  var dl = (rulesdownloads && b.downloads || []).map(function(d) {
     return '<a class="button gray" href="'+rulesbase()+b.id+'/'+encodeURIComponent(d.file)+'" target="_blank" download>'+
       rulesicon('download')+' '+rulesesc(d.label)+(d.bytes ? ' <small>'+rulessize(d.bytes)+'</small>' : '')+'</a>';
   }).join(' ');
