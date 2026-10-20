@@ -96,6 +96,10 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   of `Rulebook-L5R-Imperial_(SCC).pdf`). No contents yet. Kempy's scan is the second download.
 - **Jade Edition** (phone photos, from `Rulebook-L5R-Jade.zip`) is two-page spreads with OCR text;
   its download is the text transcription (`Rulebook-L5R-Jade.txt`).
-- The rest are the publisher PDFs with their own text: Spirit Wars, Gold learning set, Diamond,
-  Lotus, Samurai preview, Celestial 15, Emperor, Twenty Festivals basic and advanced.
+- **Gold Edition**: the publisher PDF shows two-page spreads on a grey mat, so the book is built from
+  `Rulebook-L5R-Gold_pages.pdf` (2026-10-20): the same PDF cut into 88 single pages (cover, inside
+  cover, pp. 1-85, back cover) by ootv-games `game-l5r/rulebook-enhance/gold/split_gold.py`. It's a crop
+  only, so the text layer is kept. The original is the second download.
+- The rest are the publisher PDFs with their own text: Spirit Wars, Diamond, Lotus, Samurai preview,
+  Celestial 15, Emperor, Twenty Festivals basic and advanced.
 - Only Imperial has a table of contents so far.
