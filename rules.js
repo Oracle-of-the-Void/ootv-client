@@ -186,11 +186,16 @@ function rulesdrawreader() {
   if($(document.activeElement).is('input, textarea, select')) { document.activeElement.blur(); }
   var stage = $('#rulesarea .rulesstage')[0];
   stage.focus({preventScroll: true});
-  // Ctrl+wheel (and a trackpad pinch, which arrives as one) zooms at the pointer; jQuery can't make it non-passive
+  // Ctrl+wheel (and a trackpad pinch, which arrives as one) zooms at the pointer; jQuery can't make it non-passive.
+  // Not zoomed, the plain wheel turns pages (rulesturnwheel); zoomed, it scrolls the page.
   stage.addEventListener('wheel', function(e) {
-    if(!e.ctrlKey) { return; }
-    e.preventDefault();
-    ruleszoomto(ruleszoom * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY);   // a wheel notch (100) is about 1.2x
+    if(e.ctrlKey) {
+      e.preventDefault();
+      ruleszoomto(ruleszoom * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY);   // a wheel notch (100) is about 1.2x
+    } else if(ruleszoom <= 1.001) {
+      e.preventDefault();
+      rulesturnwheel(e);
+    }
   }, {passive: false});
   // the phone's own pinch-zoom of the whole page would fight ours (iOS doesn't always honour touch-action: none)
   var nogesture = function(e) { e.preventDefault(); };
@@ -307,6 +312,24 @@ function ruleslayout() {
 function rulesstep(dir) {
   var shown = rulesshown(rulesstate.page);
   rulesgo(dir > 0 ? shown[shown.length-1] + 1 : shown[0] - 1);
+}
+// the wheel, not zoomed: one notch turns one page. A trackpad sends a stream of small deltas (and
+// momentum after the fingers lift), so those add up to one turn, and the rest of the stream is ignored
+// until it pauses; a big delta (a wheel notch) a moment after the last turn turns again.
+var ruleswheel = {acc: 0, last: 0, turned: 0, locked: false};
+function rulesturnwheel(e) {
+  var w = ruleswheel, now = e.timeStamp;
+  if(now - w.last > 200) { w.acc = 0; w.locked = false; }   // a pause ends the gesture
+  w.last = now;
+  var dy = e.deltaY * (e.deltaMode == 1 ? 40 : e.deltaMode == 2 ? 800 : 1);   // lines, pages → pixels
+  var notch = Math.abs(dy) >= 50 && now - w.turned > 250;
+  if(w.locked && !notch) { return; }
+  w.acc += dy;
+  if(Math.abs(w.acc) < 50 && !notch) { return; }
+  rulesstep(w.acc > 0 ? 1 : -1);
+  w.acc = 0;
+  w.locked = true;
+  w.turned = now;
 }
 // show page (and its spread partner); url: the address bar follows (replacing the entry)
 function rulesgo(page,url=true) {
@@ -466,7 +489,7 @@ function rulescopylink() {
 // ********** input: keys, page box, slider, double-click zoom, swipes **********
 $(document).on('keydown', function(e) {
   if(!rulesbook || !$('#resultrules').is(':visible') || $(e.target).is('input, textarea, select') || $('.modal-box:visible').length) { return; }
-  var keys = {ArrowRight: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, PageUp: -1};
+  var keys = {ArrowRight: 1, ArrowDown: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, ArrowUp: -1, PageUp: -1};
   if(ruleszoom > 1 && (e.key == 'ArrowDown' || e.key == 'ArrowUp' || e.key == ' ')) { return; }   // scroll the zoomed page
   if(keys[e.key]) {
     rulesstep(e.shiftKey && e.key == ' ' ? -1 : keys[e.key]);

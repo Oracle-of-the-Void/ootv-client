@@ -5,7 +5,9 @@ Last updated: 2026-10-20
 The **Rules** button in the menubar (the open book) opens the game's rulebook shelf. Clicking a
 book opens it in the page viewer:
 
-- **Turning pages**: the arrow keys, Page Up/Down, Space, Home/End; clicking the left or right
+- **Turning pages**: the arrow keys, Page Up/Down, Space, Home/End; the mouse wheel or a
+  two-finger trackpad scroll (one page per notch or swipe; zoomed in, these scroll the page
+  instead, as do the up/down arrows and Space); clicking the left or right
   side of the page; swiping on a phone; the page box and the slider at the bottom (dragging the
   slider shows each page's thumbnail as you go).
 - **Two pages side by side** when the window is wide enough and the book's pages are portrait
