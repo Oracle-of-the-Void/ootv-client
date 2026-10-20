@@ -101,8 +101,7 @@ SCRIPTS/rulebook-convert.py rulebooks/l5r.json remove jade      # takes a book o
 those, from this checkout's builds, and refuses a book whose shelf entry has a later build time than this
 checkout's copy (another session rebuilt it since; rebuild here, or `--force`). It never deletes. A change to a book's place in the list reaches
 the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is enough). To drop a book,
-`remove` it, take it out of the list, and delete its folder on S3 by hand. Until the site's shelf
-change is released, `upload` and `remove` also write the old `index.json`, from the whole stored shelf.
+`remove` it, take it out of the list, and delete its folder on S3 by hand.
 
 ## The L5R books (2026-10-19)
 
