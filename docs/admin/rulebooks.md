@@ -31,21 +31,28 @@ book opens it in the page viewer:
 
 ## Where the books live
 
-Everything is on the images bucket, under the game: `https://images.oracleofthevoid.com/<game>/rulebooks/`.
+**The shelf** is the `oracle-all-structure` item `<game>` / `rulebooks` (read through the public
+`/structure?database=<game>&key=rulebooks`): `books` is a map from each book's id to its title,
+subtitle, year, arc, note, page count, cover size, build time and `order` (its place on the shelf,
+from the list below). `upload` writes only the entries of the books it's given, so sessions working
+on different books, each with its own build folder, can't drop or revert each other's books. (Until
+2026-10-20 the shelf was an `index.json` on the bucket, rebuilt from whatever books the uploading
+checkout had built; ootv-claude `DEPRECATED.md`.)
+
+Everything else is on the images bucket, under the game: `https://images.oracleofthevoid.com/<game>/rulebooks/`.
 
 | File | What |
 |---|---|
-| `index.json` | The shelf: each book's id, title, subtitle, year, arc, page count, in shelf order |
 | `<id>/book.json` | One book: each page's size, the table of contents, downloads, whether it has text |
 | `<id>/text.json` | The text of each page, for the book's search (the PDF's own text, or OCR) |
 | `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp`, `_zoom.webp` | Each page: thumbnail (300 px), normal (1400 px), large (2400 px) and deep zoom (4800 px) on the long side. `_zoom` is only made when the source is that large: every PDF, but not the Jade photos (2048 px). A rescan or remaster at higher resolution gets it on its next build. |
 | `<id>/<id>.pdf` | The download |
 
-A game with no `index.json` shows "No rulebooks yet". Nothing about books is in the site's code,
-so adding or changing a book needs no site deploy. The JSON is cached for 5 minutes, images and
+A game with no `rulebooks` item shows "No rulebooks yet". Nothing about books is in the site's code,
+so adding or changing a book needs no site deploy. The book JSON is cached for 5 minutes, images and
 PDFs for a day. A rebuilt book's pages keep their file names, so `upload` clears CloudFront's
-copies of `<game>/rulebooks/*`, and the viewer asks for each image with `?v=<built>` (the build time
-in `book.json` / `index.json`) so browsers don't reuse a day-old page either.
+copies of `<game>/rulebooks/<id>/*`, and the viewer asks for each image with `?v=<built>` (the build
+time in `book.json` and the shelf) so browsers don't reuse a day-old page either.
 
 ## Adding or changing books
 
@@ -69,7 +76,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   2026-10-20); the files are still built and uploaded.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: the book's credit line, e.g. "Oracle of the Void Remaster (Don Eisele)" on the Imperial,
-  SCC and Jade remasters. It's published in `book.json` and `index.json`; the viewer shows it under
+  SCC and Jade remasters. It's published in `book.json` and the shelf; the viewer shows it under
   the book on the shelf and in the reader's bottom bar. The books themselves are AEG's, WotC's
   or FRPG's; kempy only collected them from various websites, so a note credits whoever substantively
   built, scanned or remastered the file, and only once we can find that person. Today only our
@@ -85,13 +92,17 @@ Then, from ootv-import:
 
 ```bash
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json build            # every book, or list ids to rebuild some
-SCRIPTS/rulebook-convert.py rulebooks/l5r.json meta             # metadata only (title, note, ...): rewrites built book.json, no rendering
-SCRIPTS/rulebook-convert.py rulebooks/l5r.json upload           # shows a dry run, asks, then syncs to S3
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json meta jade        # metadata only (title, note, ...): rewrites built book.json, no rendering
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json upload jade      # those books only: dry run, asks, syncs to S3, sets their shelf entries
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json remove jade      # takes a book off the shelf
 ```
 
-`build` writes to `build/` (not in git), and rebuilds `index.json` from every built book in the
-list's order. `upload` never deletes; to drop a book, remove it from the list, rebuild and upload
-(it leaves the shelf), and delete its folder on S3 by hand.
+`build` writes to `build/` (not in git). `upload` needs the book ids, and syncs and shelves only
+those, from this checkout's builds, and refuses a book whose shelf entry has a later build time than this
+checkout's copy (another session rebuilt it since; rebuild here, or `--force`). It never deletes. A change to a book's place in the list reaches
+the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is enough). To drop a book,
+`remove` it, take it out of the list, and delete its folder on S3 by hand. Until the site's shelf
+change is released, `upload` and `remove` also write the old `index.json`, from the whole stored shelf.
 
 ## The L5R books (2026-10-19)
 

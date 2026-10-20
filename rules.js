@@ -1,12 +1,13 @@
 // Rules section: the rulebook shelf and page viewer. Loaded on first use by rulesshow() in oracle.js.
-// Books live on the images bucket, per game: <imageuri>rulebooks/index.json (the shelf) and
-// <imageuri>rulebooks/<id>/book.json, text.json and <NNN>_{select,details,master}.webp per page
+// The shelf is the structure item <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, ...}});
+// each book lives on the images bucket, per game: <imageuri>rulebooks/<id>/book.json, text.json and
+// <NNN>_{select,details,master}.webp per page
 // (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md).
 // Urls: #view=rules is the shelf, #rulebook=<id>,#page=<n> a page. Turning pages replaces the
 // history entry, so Back leaves the book rather than stepping through every page.
 window.rulesloaded = true;
 
-var rulesshelf = null;      // index.json, once loaded (false: the game has none)
+var rulesshelf = null;      // the shelf ({game, books: [...] in shelf order}), once loaded
 var rulesbook = null;       // book.json of the open book
 var rulestext = null;       // text.json of the open book, loaded on the first search
 var rulespanel = null;      // side panel shown: 'contents', 'pages', 'search' or null
@@ -53,8 +54,13 @@ function rulesrender() {
 // ********** the shelf **********
 function rulesloadshelf(done) {
   if(rulesshelf !== null && rulesshelf.game == database) { done(); return; }
-  $.ajax({url: rulesbase()+'index.json', dataType: 'json', cache: true})
-    .done(function(data) { rulesshelf = data; rulesshelf.game = database; done(); })
+  $.ajax({url: apiuri+'/structure?database='+database+'&key=rulebooks', dataType: 'json'})
+    .done(function(data) {
+      var books = Object.values((data && data.books) || {});
+      books.sort(function(a,b) { return ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); });
+      rulesshelf = {game: database, books: books};
+      done();
+    })
     .fail(function() { rulesshelf = {game: database, books: []}; done(); });
 }
 function rulesdrawshelf() {
@@ -90,9 +96,6 @@ function rulesdrawshelf() {
         (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
     });
     out += '</div>';
-    if(rulesshelf.credit) {
-      out += '<p class="rulescredit">'+rulesesc(rulesshelf.credit)+'</p>';
-    }
     area.html(out+'</div>');
   });
 }
