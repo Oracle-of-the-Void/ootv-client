@@ -68,7 +68,12 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   The viewer hides the download buttons for now (`rulesdownloads = false` in `rules.js`, since
   2026-10-20); the files are still built and uploaded.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
-- `note`: a remark about the source (kept in `book.json`).
+- `note`: the book's credit line, e.g. "Oracle of the Void Remaster (Don Eisele)" on the Imperial,
+  SCC and Jade remasters. It's published in `book.json`, but the viewer doesn't show it yet. Books from
+  kempy's collection and AEG's files have no note until that wording is decided. The shelf has no
+  credit line of its own: the list-wide `credit` was dropped on 2026-10-20.
+- `source_note`: where the files came from and how they were made, for us. It stays in the list
+  and is never published.
 - `crop`: `[left, top, right, bottom]` in points from the page's top left (US letter is 612 × 792):
   only that part of every PDF page is shown, e.g. to drop blank margins (Broken Blades). The
   download is still the whole PDF.
@@ -77,6 +82,7 @@ Then, from ootv-import:
 
 ```bash
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json build            # every book, or list ids to rebuild some
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json meta             # metadata only (title, note, ...): rewrites built book.json, no rendering
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json upload           # shows a dry run, asks, then syncs to S3
 ```
 
