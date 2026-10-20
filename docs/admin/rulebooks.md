@@ -107,7 +107,7 @@ the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is eno
 
 From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`):
 
-- **Imperial Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/rebuild/pages-01-64.pdf`,
+- **Imperial Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/imperial/rebuild/pages-01-64.pdf`,
   2026-10-20), with its own text. The contents come from the bookmarks of the old searchable scan
   (same 64 pages); the original color scan is the second download.
 - **Scorpion Clan Coup**: the retypeset remaster (ootv-games
