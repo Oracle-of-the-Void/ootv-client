@@ -116,6 +116,9 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   ootv-games `game-l5r/rulebook-enhance/diamond/rebuild/Rulebook-L5R-Diamond_pages.pdf` (2026-10-20): the
   same PDF cut into 112 single pages (cover, pp. 2-111, back) by `rulebook-enhance/diamond/split_diamond.py`,
   frame and white margins cropped. Crop only, so the text layer is kept. The original is the second download.
+  The cover is rebuilt (`rebuild/diamond-cover.png`): the PDF's is a 47 dpi image, so it's a photo of the printed
+  booklet registered onto it and cropped to the printed trim. The strip the photo's stand hid is the PDF image
+  sharpened by Qwen, except the medallion, which is the PDF's own. Steps in `rulebook-enhance/diamond/cover/`.
 - **Samurai Edition** core rules preview: the publisher PDF is mostly two-page spreads, so the book is
   built from `game-l5r/rulebook-enhance/samurai/rebuild/Rulebook-L5R-Samurai_preview_pages.pdf`
   (2026-10-20): the spreads cut down the middle by `rulebook-enhance/samurai/split_samurai.py`, 49
