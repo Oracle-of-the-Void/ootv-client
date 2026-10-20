@@ -85,10 +85,10 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   2026-10-20), with its own text. The contents come from the bookmarks of the old searchable scan
   (same 64 pages); the original color scan is the second download.
 - **Scorpion Clan Coup**: the retypeset remaster (ootv-games
-  `game-l5r/rulebook-enhance/scc/rebuild/scc-pages-01-71-back.pdf`, 2026-10-20), with its own text: 62
-  pages, every page in the scan. Pages 2-3, 22, 24, 28, 36-37, 47, 49 and 51 aren't in the scan, so
-  the viewer's facing pages drift off the printed spreads after p. 21. No contents yet. The original
-  scan (the `Imperial_(SCC)` file) is the second download.
+  `game-l5r/rulebook-enhance/scc/rebuild/scc-pages-01-71-back.pdf`, 2026-10-20), with its own text: all
+  72 pages, so the two-page view shows the printed spreads. Kempy's scan lacks pp. 2-3, 22, 24, 28,
+  36-37, 47, 49 and 51; those were set from phone photos of the same booklet (the older `L5RRules` copy
+  of `Rulebook-L5R-Imperial_(SCC).pdf`). No contents yet. Kempy's scan is the second download.
 - **Jade Edition** (phone photos, from `Rulebook-L5R-Jade.zip`) is two-page spreads with OCR text;
   its download is the text transcription (`Rulebook-L5R-Jade.txt`).
 - The rest are the publisher PDFs with their own text: Spirit Wars, Gold learning set, Diamond,
