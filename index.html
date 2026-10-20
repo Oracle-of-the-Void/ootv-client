@@ -244,7 +244,7 @@
   <div class="directorylistitem out"><div class="randarea">No Lists rendered yet</div></div>
   </div> <!-- directorytable -->
 </div>
-<!-- phones: the list view's Showing: button (pagetextversion; the menubar has it on desktop) -->
+<!-- phones: the list view's text version button (pagetextversion; the menubar has it on desktop) -->
 <div id="phonelisttextversion" class="listtextversion"></div>
 <div class="resultpublic" id="resultpublic">
   <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
@@ -274,7 +274,7 @@
 <div class="resultlist" id="resultlist"><div class="randarea">No list selected, click on Directory</div></div>
 <!-- phones: the search form is a slide-over panel; this bar above the results opens it (body.viewsearch, see showview) -->
 <div id="phonesearchbar" onclick="mobilesearchtoggle(true); event.stopPropagation();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg> <b>Edit search</b> <span class="numresults"></span></div>
-<!-- phones: the search results' Showing: and Add all buttons (searchtextversion, searchaddall; the menubar has them on desktop) -->
+<!-- phones: the search results' text version and Add all buttons (searchtextversion, searchaddall; the menubar has them on desktop) -->
 <div id="phonetextversion"><span class="searchtextversion"></span> <span class="searchaddall"></span></div>
 <div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet, use the Search area on the left</div></div>
 <div class="resultadmin" id="resultadmin"><div class="randarea" style="text-align: left;">
@@ -802,7 +802,7 @@ printingprimary
 <section data-settingstab="display" class="settingsection">
   <h3>Card text (all games)</h3>
   <p>When a search, a list or a version button shows one printing of a card, its text can be the wording printed
-    on that printing or the card's current (MRP) wording. New sessions start with this; the <b>Showing:</b> button
+    on that printing or the card's current (MRP) wording. New sessions start with this; the <b>MRP text</b> / <b>Printed text</b> button
     at the top of a card's text flips it for the rest of the session.</p>
   <select class="textversionsetting" onchange="savetextversion(this.value,this);">
     <option value="printed"{{if textversion!='mrp'}} selected{{/if}}>Printed text</option>
@@ -1186,17 +1186,17 @@ printingprimary
 <script id="template-textversion" type="text/x-jsrender">
 {{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</dd>{{else}}<div class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</div>{{/if}}{{/if}}
 </script>
-<!-- the Showing: button itself; ~page ('search' / 'list'): the page's one button (data: the page's summary). With
+<!-- the text version button itself ("MRP text" / "Printed text"); ~page ('search' / 'list'): the page's one button (data: the page's summary). With
      nothing to flip it's a span: "MRP text" when no card shows a picked printing (only pages, which always show
      the button), "No printing fields found" when one does but none differs; a click explains why (textversionnotip). -->
 <script id="template-textversionbutton" type="text/x-jsrender">
 {{if textdiff && textdiff.length}}<button type="button" class="button gray buttonsmaller textversion{{if textversion!='mrp'}} textversionprinted{{/if}}" aria-pressed="{{:textversion=='mrp'}}"
   title="{{if textversion=='mrp'}}Showing the cards' current wording. Press for the wording printed on {{if ~page}}the versions shown{{else}}this version{{/if}}.{{else}}Showing the wording printed on {{if ~page}}the versions shown{{else}}this version{{/if}}. Press for the cards' current (MRP) wording. Highlighted fields differ from the current wording.{{/if}}"
-  onclick="toggletextversion(this); return false;">Showing: {{if textversion=='mrp'}}MRP{{else}}Printed{{/if}} text</button>{{else !textprinting}}<span class="button gray buttonsmaller textversion textversionnone"
+  onclick="toggletextversion(this); return false;">{{if textversion=='mrp'}}MRP{{else}}Printed{{/if}} text</button>{{else !textprinting}}<span class="button gray buttonsmaller textversion textversionnone"
   title="{{if ~page=='list'}}None of these cards was listed with a specific version{{else}}No version is picked for these cards (search on a version's field, like set or rarity, to pick one){{/if}}, so only their current (MRP) wording applies."
-  onclick="textversionnotip(this);">Showing: MRP text</span>{{else}}<span class="button gray buttonsmaller textversion textversionnone"
+  onclick="textversionnotip(this);">MRP text</span>{{else}}<span class="button gray buttonsmaller textversion textversionnone"
   title="{{if ~page}}None of the versions shown has{{else}}This version's printing has no{{/if}} wording of its own that differs from the card's, so both show the same text."
-  onclick="textversionnotip(this);">Showing: No printing fields found</span>{{/if}}
+  onclick="textversionnotip(this);">No printing fields found</span>{{/if}}
 </script>
 
 <script id="template-card-middle" type="text/x-jsrender">

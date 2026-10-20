@@ -1016,6 +1016,9 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
   cursor: help;
   opacity: 0.7;
 }
+.textversionnone.addalltoomany {
+  opacity: 0.45;
+}
 .textversionnone:active {
   top: 0;
 }
