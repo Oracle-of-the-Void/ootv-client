@@ -65,6 +65,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: a remark about the source (kept in `book.json`).
+- `crop`: `[left, top, right, bottom]` in points from the page's top left (US letter is 612 × 792):
+  only that part of every PDF page is shown, e.g. to drop blank margins (Broken Blades). The
+  download is still the whole PDF.
 
 Then, from ootv-import:
 
