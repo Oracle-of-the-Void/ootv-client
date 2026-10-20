@@ -69,7 +69,8 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   2026-10-20); the files are still built and uploaded.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: the book's credit line, e.g. "Oracle of the Void Remaster (Don Eisele)" on the Imperial,
-  SCC and Jade remasters. It's published in `book.json`, but the viewer doesn't show it yet. Books from
+  SCC and Jade remasters. It's published in `book.json` and `index.json`; the viewer shows it under
+  the book on the shelf and in the reader's bottom bar. Books from
   kempy's collection and AEG's files have no note until that wording is decided. The shelf has no
   credit line of its own: the list-wide `credit` was dropped on 2026-10-20.
 - `source_note`: where the files came from and how they were made, for us. It stays in the list

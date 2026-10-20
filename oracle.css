@@ -2085,6 +2085,7 @@ a.rulesbookcard:hover { background: #f1ecdd; }
 .rulesbooktitle { font-weight: bold; font-size: 1.05em; }
 .rulesbooksub { color: #555; font-size: .92em; }
 .rulesbookmeta { color: #777; font-size: .82em; margin-top: 2px; }
+.rulesbooknote { color: #777; font-size: .82em; font-style: italic; margin-top: 2px; }
 .rulescredit { color: #777; font-size: .85em; margin-top: 18px; }
 .rulesreader { display: flex; flex-direction: column; }
 .rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
@@ -2100,6 +2101,7 @@ button.rulesbtn.searchviewactive { color: black; border-color: rgb(128, 128, 128
 .rulespageno { white-space: nowrap; margin: 0 4px; }
 .rulespageinput { width: 4.5em; text-align: center; }
 .rulesslider { flex: 1 1 120px; min-width: 80px; margin: 0 8px; }
+.rulesnote { color: #777; font-size: .85em; font-style: italic; margin: 0 6px; }
 .rulesdownloads { display: flex; gap: 4px; }
 .rulesdownloads .button { white-space: nowrap; }
 .rulesdownloads .feather { width: 14px; height: 14px; vertical-align: -2px; }
