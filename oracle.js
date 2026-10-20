@@ -182,7 +182,7 @@ const searcherror = {'empty': '<div class="error"><img src="res/splatout-150.png
 		     'more': '<div class="more">More Results (Click to load)</div>',
 		     'moreloading': '<div class="moreloading">Loading <img width=20 src="res/shuriken-150x150.png-animated.gif" /></div>',
 		     'loading': '<img src="res/shuriken-150x150.png-animated.gif" />',
-		     'numresults': 'XXX cards found',
+		     'numresults': 'XXX cards',
 		     'window': '<div class="morelimit">Only the first '+searchwindow.toLocaleString()+' cards can be shown. Narrow the search to see the rest.</div>',
 		     'moreerror': '<div class="morelimit">Loading more results failed.</div>',
 		     'searchmiddle': 'Loading more search terms <img width=25 src="res/shuriken-150x150.png-animated.gif" />'
@@ -517,12 +517,39 @@ function username(user) {
     var name = o ? [o.firstname, o.lastname].filter(function(n) { return n; }).join(' ') : '';
     return name || (user && user.cognito && user.cognito.name) || '';
 }
-// the menubar name: in full, and on phones (the .phonehide/.phoneonly swap) just the first name, so it fits
+// the menubar name: in full, and on phones (the .phonehide/.phoneonly swap) just the first name, so it fits;
+// on a desktop window too narrow for the full menubar (fitmenubar) it drops to the first name as well
 function showloginfo(user) {
     var full = username(user);
     var o = user && ("oracle" in user) && user.oracle[0];
     var first = (o && o.firstname) || full.split(/\s+/)[0];
     $('#loginfo').empty().append($('<span class="phonehide">').text(full), $('<span class="phoneonly">').text(first));
+    fitmenubar();
+}
+// the menubar is one row of floats: while an item is pushed onto a second row, shorten it step by step:
+// first name only, then the game logo without its name (as phones always show them)
+function fitmenubar() {
+    var bar = $('div.menubar');
+    bar.removeClass('nameshort nogamename');
+    if(narrowscreen()) {
+        return;
+    }
+    var steps = ['nameshort', 'nogamename'];
+    for(var i = 0; i < steps.length && menubarwraps(); i++) {
+        bar.addClass(steps[i]);
+    }
+}
+function menubarwraps() {
+    var tops = $('div.menubar nav>ul>li:visible').map(function() { return this.getBoundingClientRect().top; }).get();
+    return tops.length > 1 && Math.max.apply(null, tops) - Math.min.apply(null, tops) > 10;
+}
+$(window).on('resize', fitmenubar);
+// menubar items change width as they fill in (result counts, view buttons), which can make room or take it
+if(window.ResizeObserver) {
+    $(function() {
+        var observer = new ResizeObserver(fitmenubar);
+        $('div.menubar nav>ul>li').each(function() { observer.observe(this); });
+    });
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
@@ -3692,7 +3719,7 @@ function savefavoritegame(game,el) {
 function savetextversion(value,el) {
   saveallsetting('textversion', value == 'mrp' ? 'mrp' : 'printed', $(el).siblings('.textversionstatus'), function() {
     rendersettings();
-    $('.textversionstatus').text("Saved. New sessions start with it; the Showing: button still flips this one.");
+    $('.textversionstatus').text("Saved. New sessions start with it; the MRP/Printed text button still flips this one.");
   });
 }
 
@@ -4807,7 +4834,7 @@ function bubbleup(data,request=null,prid=null) {
   // matched (field_printing_<att>, field_<att>, require_*: see templatefetch). Other cards come back as
   // they are. With textversionnow() 'mrp' only the printing's own fields come up (set, rarity,
   // printingid, ...), not the ones the card has too, so the card's (MRP) wording shows. A card a printing
-  // was picked for gets textprinting (its printingid, so #template-textversion shows the Showing: button),
+  // was picked for gets textprinting (its printingid, so #template-textversion shows the text version button),
   // textversion, and textdiff: the fields whose wording differs between the printing and the card (what
   // the button flips; empty: "No printing fields found"). markprinteddiffs highlights them in printed mode.
   // note: expects array of cards - for a single card send array of one, and deref
@@ -4885,7 +4912,7 @@ function markprinteddiffs(data) {
 
 // ******************** PRINTED / MRP TEXT ********************
 // Which wording a card shows when one printing of it is picked (bubbleup): 'printed', that printing's
-// own text, or 'mrp', the card's current text. The Showing: button flips it for the open session
+// own text, or 'mrp', the card's current text. The text version button flips it for the open session
 // (sessionStorage: it lasts through reloads in this tab, not into a new one); a new session starts from
 // the user's settings.all.textversion, else printed.
 function textversionnow() {
@@ -4909,14 +4936,14 @@ function toggletextversion(el) {
   } catch(e) {}
   redrawtextversion();
 }
-// The search results' one Showing: button (menubar on desktop, #phonetextversion on phones), on every search:
+// The search results' one text version button (menubar on desktop, #phonetextversion on phones), on every search:
 // it offers the toggle when any result loaded so far shows a picked printing that differs in wording.
 function searchtextversion(qs) {
   var ids = (qs && searchcache[database]['querydata'][qs]) || [];
   var request = $.extend(true, {}, searchcache[database]['queryrequest'][qs] || $.deparam(qs || ''));
   pagetextversion('.searchtextversion', bubbleup(ids.map(cache_card_fetch), request), 'search');
 }
-// a page's one Showing: button (kind: 'search' results or 'list' view) into the elements matching sel, from
+// a page's one text version button (kind: 'search' results or 'list' view) into the elements matching sel, from
 // its cards as bubbleup returned them: "MRP text" when no card shows a picked printing
 function pagetextversion(sel,shown,kind) {
   var page = {'textprinting': shown.some(function(c) { return c && c.textprinting; }),
@@ -4924,7 +4951,7 @@ function pagetextversion(sel,shown,kind) {
               'textversion': textversionnow()};
   $(sel).html($.templates("#template-textversionbutton").render(page, {'page': kind}));
 }
-// a click on a Showing: button with nothing to flip: its title as a balloon under it for a moment (touch too)
+// a click on a text version button with nothing to flip: its title as a balloon under it for a moment (touch too)
 function textversionnotip(el) {
   var tip = $(el);
   var text = tip.attr('title') || tip.data('notiptitle');
@@ -5293,9 +5320,9 @@ function deckswipepicked(listid) {
 	activatelist(String(listid), function() { deckswipeapply(String(listid), p.cardid, p.prid, p.act); });
     }
 }
-// Search results' "Add all to list" (#201): beside the Showing: button (menubar; #phonetextversion on phones), when
+// Search results' "Add all to list" (#201): beside the text version button (menubar; #phonetextversion on phones), when
 // logged in. Up to dbinfo[database].addallmax cards (15% over the game's largest set, so a whole set fits); past it
-// the button explains why not. Each card goes in with the version its result shows, the printing its + button adds.
+// the button is dimmed and a click explains why not. Each card goes in with the version its result shows, the printing its + button adds.
 function searchaddall(qs) {
     var total = (qs && searchcache[database]['querytotal'][qs]) || 0;
     var max = searchaddallmax();
@@ -5304,7 +5331,7 @@ function searchaddall(qs) {
 	if(total <= max) {
 	    html = '<button type="button" class="button gray buttonsmaller" title="Add every card this search found to a list" onclick="searchaddallpick(); return false;">Add all ' + total.toLocaleString() + ' to list</button>';
 	} else {
-	    html = '<span class="button gray buttonsmaller textversionnone" title="Add all to list takes up to ' + max.toLocaleString() + ' cards (a whole set fits). Narrow the search to add these." onclick="textversionnotip(this);">Add all: too many</span>';
+	    html = '<span class="button gray buttonsmaller textversionnone addalltoomany" title="Add all to list takes up to ' + max.toLocaleString() + ' cards (a whole set fits). Narrow the search to add these." onclick="textversionnotip(this);">Add all</span>';
 	}
     }
     $('.searchaddall').html(html);
@@ -5444,7 +5471,7 @@ function showview(view) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
     $('body').toggleClass('viewsearch', view == 'resultsearch'); // phones: shows the Edit search bar
-    $('body').toggleClass('viewlist', view == 'resultlist'); // the list's Showing: button (menubar, phones above the list)
+    $('body').toggleClass('viewlist', view == 'resultlist'); // the list's text version button (menubar, phones above the list)
     if($('#' + view).is(":visible")) {
 	seturl(viewstate(view.replace(/^result/,'')), true);
 	return;
