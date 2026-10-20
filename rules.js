@@ -186,6 +186,7 @@ function rulesdrawreader() {
     '</div>'+
     '</div>');
   $('body').addClass('rulesreading');
+  window.scrollTo(0, 0);   // the whole reader on screen, wherever the shelf was scrolled to
   rulesdrawpanel();
   rulessizestage();
   // the arrow keys turn pages straight away, not move the cursor in the sidebar's search box
@@ -384,7 +385,10 @@ function rulessizestage() {
   var stage = $('#rulesarea .rulesstage');
   if(!stage.length || !stage.is(':visible')) { return; }
   var bottom = $('#rulesarea .rulesbottom').outerHeight() || 0;
-  var h = Math.max(240, window.innerHeight - stage[0].getBoundingClientRect().top - bottom - (rulesisfull() ? 0 : 8));
+  // from the stage's place on the page, not on screen: opened from far down the shelf, the window is
+  // scrolled and the stage would come out taller than the window (a fitted page that can't be zoomed out to fit)
+  var top = stage[0].getBoundingClientRect().top + (rulesisfull() ? 0 : window.scrollY);
+  var h = Math.max(240, window.innerHeight - top - bottom - (rulesisfull() ? 0 : 8));
   $('#rulesarea .rulesbody').css('height', h+'px');
 }
 $(window).on('resize', _.debounce(function() {
