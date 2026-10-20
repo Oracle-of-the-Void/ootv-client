@@ -16,8 +16,9 @@ var rulesloading = null;    // the book id being fetched
 function rulesbase() {
   return dbinfo[database].imageuri+'rulebooks/';
 }
+// page images keep their names across rebuilds (cached a day), so ?v=<built> makes browsers fetch a rebuilt book's
 function rulespageurl(n,size) {
-  return rulesbase()+rulesbook.id+'/'+String(n).padStart(3,'0')+'_'+size+'.webp';
+  return rulesbase()+rulesbook.id+'/'+String(n).padStart(3,'0')+'_'+size+'.webp'+(rulesbook.built ? '?v='+rulesbook.built : '');
 }
 function rulesesc(s) {
   return $('<div>').text(s == null ? '' : String(s)).html();
@@ -76,7 +77,7 @@ function rulesdrawshelf() {
     var last = ruleslastpages();
     out += '<h3>Rulebooks</h3><div class="rulesbooks">';
     rulesshelf.books.forEach(function(b) {
-      var cover = rulesbase()+b.id+'/001_select.webp';
+      var cover = rulesbase()+b.id+'/001_select.webp'+(b.built ? '?v='+b.built : '');
       var at = last[database+'/'+b.id];
       out += '<a class="rulesbookcard" href="#game='+database+',#rulebook='+b.id+(at > 1 ? ',#page='+at : '')+'" data-book="'+rulesesc(b.id)+'">'+
         '<span class="rulescover"><img loading="lazy" alt="" src="'+cover+'"'+
@@ -294,7 +295,7 @@ function ruleslayout() {
     img.attr({width: w, height: h});
     // only ever upgrade, so zooming out doesn't reload a page already drawn
     var want = rulesimagesize(Math.max(w, h) * dpr);
-    var have = ((img.attr('src') || '').match(/_([a-z]+)\.webp$/) || [])[1];
+    var have = ((img.attr('src') || '').match(/_([a-z]+)\.webp/) || [])[1];
     if(have && rulesimageorder.indexOf(want) > rulesimageorder.indexOf(have)) {
       img.attr('src', rulespageurl($(this).data('page'), want));
     }
@@ -342,7 +343,7 @@ function rulesimageloaded(img) {
 // the neighbouring spreads' images, so turning a page shows it at once
 function rulespreload(shown) {
   var n = rulesbook.pages.length;
-  var size = (($('#rulesarea .rulespage img').attr('src') || '').match(/_([a-z]+)\.webp$/) || [0, 'details'])[1];
+  var size = (($('#rulesarea .rulespage img').attr('src') || '').match(/_([a-z]+)\.webp/) || [0, 'details'])[1];
   [shown[0]-2, shown[0]-1, shown[shown.length-1]+1, shown[shown.length-1]+2].forEach(function(p) {
     if(p >= 1 && p <= n) {
       (new Image()).src = rulespageurl(p, size);

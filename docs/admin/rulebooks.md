@@ -40,8 +40,10 @@ Everything is on the images bucket, under the game: `https://images.oracleofthev
 | `<id>/<id>.pdf` | The download |
 
 A game with no `index.json` shows "No rulebooks yet". Nothing about books is in the site's code,
-so adding or changing a book needs no site deploy: the JSON is cached for 5 minutes, images and
-PDFs for a day.
+so adding or changing a book needs no site deploy. The JSON is cached for 5 minutes, images and
+PDFs for a day. A rebuilt book's pages keep their file names, so `upload` clears CloudFront's
+copies of `<game>/rulebooks/*`, and the viewer asks for each image with `?v=<built>` (the build time
+in `book.json` / `index.json`) so browsers don't reuse a day-old page either.
 
 ## Adding or changing books
 
