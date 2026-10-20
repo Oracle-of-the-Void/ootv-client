@@ -122,4 +122,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Twenty Festivals basic and advanced.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
-- Only Imperial has a table of contents so far.
+- Imperial, Jade and Ivory basic have a table of contents so far.
+
+From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue of the rest is ootv-import
+`rulebooks/QUEUE.md`):
+
+- **Ivory Edition** basic rulebook (2026-10-20): AEG's print file `L5R_IE_BasicRulebook_FIX_v2.pdf` (the
+  last full export, 2013-12-18: the same text as the earlier `PRESS` file, with the covers fixed), trimmed
+  to its 180 × 252 pt trim box (bleed and crop marks off) by `rulebook-enhance/ivory/trim_press.py` into
+  `game-l5r/rulebook-enhance/ivory/rebuild/Rulebook-L5R-Ivory-basic_rulebook.pdf`. Crop only, text kept.
+  The contents come from the book's own contents page (viewer page = printed page + 2).
