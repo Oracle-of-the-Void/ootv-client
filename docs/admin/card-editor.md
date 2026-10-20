@@ -1,6 +1,6 @@
 # Card editor
 
-Last updated: 2026-10-19
+Last updated: 2026-10-20
 
 The **Edit** button at the top right of a card (shown to anyone with an edit permission on the
 game) opens one editor for the whole card: its own fields, every instance (printing), and which
@@ -15,6 +15,9 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
 - **Regular**: values shown as they appear on the site (bold, links, line breaks) and edited
   in place.
 - **HTML**: the same values as raw text with their tags (`<b>`, `&nbsp;`), for exact edits.
+  Pasting into Regular view keeps bold, italics and line breaks only: colours, highlighting,
+  fonts and links from Word, Google Docs or a web page are dropped (paragraphs become line
+  breaks). Colour or highlighting the browser adds while you type is dropped too.
   Typing in Regular view can change the markup slightly (a browser writes a typed line break as
   `<br>` or `<div>`, and `&#8217;` as `’`), so use HTML view when the markup matters.
 - **JSON**: the whole card as JSON, like the old editor. Instances are in `printing`, and the MRP
@@ -43,6 +46,11 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   `notmrp` from it if it has it (the MRP instance can't be one the MRP lookup skips). **New
   instance** adds a blank one (it needs a set). **Delete instance** marks it for deletion, and an
   **undo** link stays until you commit. A card keeps at least one instance.
+- Click an instance's image to open it at full size in a panel that stays open while you edit,
+  to compare the printed card with the fields. Zoom from the whole card (1x) up to 16x with the
+  slider, **+**/**−**, the mouse wheel (zooms where the pointer is) or a double-click; drag the
+  image to look around, **Fit** to see it all again. Drag the panel's title bar to move it and its
+  bottom-right corner to resize it. It follows the instance you pick.
 - **Upload image** (instances already saved) uploads to S3 straight away, as before, but adds
   the image to the instance only in the editor. Commit to save it on the card.
 - **Delete card** asks, then deletes the card immediately rather than on commit.

@@ -98,6 +98,7 @@ function cardeditstart(db,cardid,base,printid) {
   cardedit.printid = ids.includes(String(printid)) ? String(printid) : (ids.includes(String(card.printingprimary)) ? String(card.printingprimary) : ids[0]);
   modal(base ? 'Edit card: '+[].concat(base.title || '')[0] : 'Insert new card','<div id="cardedit"></div>');
   $('#modal').addClass('cardeditmodal').data('guard',cardeditclose);
+  $('#cardeditzoom').remove();
   cardeditrender();
 }
 
@@ -252,6 +253,7 @@ function cardeditrender() {
     '<input type="button" value="Close" onclick="modalclose();" />'+
     '<div id="cardeditstatus"></div></div>';
   $('#cardedit').html(html);
+  cardeditzoomfollow();
   if(cardedit.view == 'json' && cardedit.jsonerror) { $('#cardeditjsonerror').text(cardedit.jsonerror); }
   cardeditsummary();
 }
@@ -339,7 +341,9 @@ function cardeditprintings() {
 function cardeditimages(p,isnew) {
   var html = '';
   if(p.image && p.image.length && typeof p.imagehash === 'string') {
-    html += '<div class="cardeditimagelist">'+p.image.map(e => '<img src="'+dbinfo[cardedit.db].imageuri+p.imagehash+'/'+(e.select || e.details)+'" />').join(' ')+'</div>';
+    var base = dbinfo[cardedit.db].imageuri+p.imagehash+'/';
+    html += '<div class="cardeditimagelist">'+p.image.map(e => '<img src="'+base+(e.select || e.details)+'" title="Zoom in"'+
+      ' onclick="cardeditzoom(\''+htmlEncode(base+(e.master || e.details || e.select))+'\');" />').join(' ')+'</div>';
   }
   if(isnew) {
     return html+'<div class="cardeditnote">Commit the new instance before uploading its image.</div>';
@@ -367,13 +371,69 @@ $(document).on('input', '#cardedit .cardeditval', function() {
   var key = row.attr('data-field');
   var i = parseInt($(this).data('i'));
   var old = i >= 0 ? obj[key][i] : obj[key];
-  var v = this.isContentEditable ? this.innerHTML : this.value;
+  var v = this.isContentEditable ? cardeditnocolor(this.innerHTML) : this.value;
   if(this.tagName == 'INPUT') { this.size = Math.max(3,v.length+1); }
   if(cardedit.view != 'html' && v == '<br>') { v = ''; } // a contenteditable emptied by the browser
   if(typeof old === 'number' && /^-?\d+(\.\d+)?$/.test(v.trim())) { v = Number(v); }
   if(i >= 0) { obj[key][i] = v; } else { obj[key] = v; }
   cardeditsummary();
 });
+
+// Pasting into a Regular view value keeps bold, italics and line breaks, and nothing else: no
+// colours, highlighting, fonts, sizes, classes or links (Word and Google Docs mark bold/italic
+// with styles, so those become <b>/<i>). Blocks (paragraphs, list items) become <br>.
+$(document).on('paste', '#cardedit .cardeditval[contenteditable]', function(e) {
+  var data = e.originalEvent.clipboardData;
+  if(!data) { return; }
+  e.preventDefault();
+  var html = data.getData('text/html');
+  var clean = html ? cardeditpasteclean(html)
+    : htmlEncode(data.getData('text/plain')).replace(/\r?\n/g,'<br>');
+  document.execCommand('insertHTML', false, clean); // fires input, so the value is stored as typed
+});
+
+var cardeditpastekeep = {B: 'b', STRONG: 'b', I: 'i', EM: 'i', U: 'u', SUP: 'sup', SUB: 'sub'};
+function cardeditpasteclean(html) {
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+  var walk = function(node) {
+    var out = '';
+    node.childNodes.forEach(function(n) {
+      if(n.nodeType == 3) { out += htmlEncode(n.nodeValue.replace(/[\r\n]+/g,' ')); return; }
+      if(n.nodeType != 1 || ['SCRIPT','STYLE','HEAD','META','TITLE'].includes(n.tagName)) { return; }
+      if(n.tagName == 'BR') { out += '<br>'; return; }
+      var inner = walk(n);
+      var st = n.style || {};
+      var tags = [];
+      if(cardeditpastekeep[n.tagName]) { tags.push(cardeditpastekeep[n.tagName]); }
+      // Google Docs wraps everything in <b style="font-weight:normal">
+      if(tags[0] == 'b' && /^(normal|[1-5]00)$/.test(st.fontWeight)) { tags.shift(); }
+      if(!tags.includes('b') && /^(bold|bolder|[6-9]00)$/.test(st.fontWeight)) { tags.push('b'); }
+      if(!tags.includes('i') && st.fontStyle == 'italic') { tags.push('i'); }
+      if(inner.replace(/<br>/g,'').trim()) {
+        tags.forEach(t => inner = '<'+t+'>'+inner+'</'+t+'>');
+      }
+      var block = /^(P|DIV|LI|H[1-6]|TR|BLOCKQUOTE|PRE)$/.test(n.tagName);
+      out += (block && out && !/<br>$/.test(out) ? '<br>' : '')+inner;
+    });
+    return out;
+  };
+  return walk(doc.body).replace(/(<br>)+$/,'');
+}
+
+// colour and highlighting a browser adds while editing (typing where pasted text was, merging
+// lines): drop color/background from style attributes, then spans and fonts left with nothing
+function cardeditnocolor(html) {
+  if(!/style=|<font/i.test(html)) { return html; }
+  var div = document.createElement('div');
+  div.innerHTML = html;
+  div.querySelectorAll('[style]').forEach(function(el) {
+    ['color','background','background-color','background-image'].forEach(p => el.style.removeProperty(p));
+    if(!el.getAttribute('style').trim()) { el.removeAttribute('style'); }
+  });
+  div.querySelectorAll('font').forEach(el => el.removeAttribute('color'));
+  div.querySelectorAll('span:not([style]):not([class]), font:not([face]):not([size]):not([color])').forEach(el => el.replaceWith(...el.childNodes));
+  return div.innerHTML;
+}
 
 // a field whose value is JSON (image, objects): keep the last value that parsed
 function cardeditjsonfield(el) {
@@ -865,6 +925,142 @@ function cardeditreset() {
     return;
   }
   cardeditconfirm('Reset changes?','Undo every change made since the editor opened? (Images already uploaded stay on the server.)', reset);
+}
+
+// ************* image zoom *************
+// A thumbnail opens the instance's _master image in a panel over the page that stays open while
+// fields are edited: drag its title bar to move it, its corner to resize it. The slider, the wheel
+// (at the pointer) and a double-click zoom from fit (1x) to 16x; drag the image to pan. The panel
+// sits inside #modal, so it hides with the editor (CSS: #modal:not(.cardeditmodal)).
+var cardeditzoommax = 16;
+var cardeditzoomstate = null; // {src, fit, zoom, x, y}: scale = fit*zoom, image offset x,y in the box
+
+function cardeditzoom(src) {
+  if(!$('#cardeditzoom').length) {
+    $('#modal').append('<div id="cardeditzoom">'+
+      '<div class="cardeditzoomhead"><b>Image</b> '+
+      '<span class="cardeditzoombtn" title="Zoom out" onclick="cardeditzoomby(1/1.25);">&minus;</span>'+
+      '<input type="range" id="cardeditzoomrange" min="0" max="1000" value="0" title="Zoom" oninput="cardeditzoomset(cardeditzoomfromrange(this.value));" />'+
+      '<span class="cardeditzoombtn" title="Zoom in" onclick="cardeditzoomby(1.25);">+</span> '+
+      '<span id="cardeditzoomlabel">1x</span> '+
+      '<span class="cardeditzoombtn" title="Fit the whole image" onclick="cardeditzoomset(1);">Fit</span>'+
+      '<span class="cardeditx" title="Close" onclick="cardeditzoomclose();">&#x2715;</span></div>'+
+      '<div id="cardeditzoombox"><img id="cardeditzoomimg" alt="" draggable="false" /></div></div>');
+    cardeditzoomwire();
+  }
+  if(cardeditzoomstate && cardeditzoomstate.src == src) { return; }
+  cardeditzoomstate = {src: src, fit: 1, zoom: 1, x: 0, y: 0};
+  $('#cardeditzoomimg').css('visibility','hidden').off('load').on('load', function() {
+    cardeditzoomfit();
+    $(this).css('visibility','visible');
+  }).attr('src',src);
+}
+
+function cardeditzoomclose() {
+  $('#cardeditzoom').remove();
+  cardeditzoomstate = null;
+}
+
+// after a render: an open panel follows the instance shown, unless it already shows one of its images
+function cardeditzoomfollow() {
+  if(!cardeditzoomstate || !$('#cardeditzoom').length) { return; }
+  var srcs = $('#cardedit .cardeditimagelist img').map(function() { return ($(this).attr('onclick').match(/'(.*)'/) || [])[1]; }).get();
+  if(srcs.length && !srcs.includes(cardeditzoomstate.src)) { cardeditzoom(srcs[0]); }
+}
+
+// slider position (0..1000) <-> zoom (1..max), logarithmic so each step is the same ratio
+function cardeditzoomfromrange(v) { return Math.pow(cardeditzoommax, v/1000); }
+function cardeditzoomtorange(z) { return Math.round(1000*Math.log(z)/Math.log(cardeditzoommax)); }
+
+// the scale that fits the whole image in the box, keeping the zoom; recentred at 1x
+function cardeditzoomfit() {
+  var img = $('#cardeditzoomimg')[0], box = $('#cardeditzoombox')[0];
+  if(!cardeditzoomstate || !img || !img.naturalWidth) { return; }
+  var z = cardeditzoomstate.zoom;
+  cardeditzoomstate.fit = Math.min(box.clientWidth/img.naturalWidth, box.clientHeight/img.naturalHeight);
+  cardeditzoomstate.zoom = 0; // force cardeditzoomset to recompute from the centre
+  cardeditzoomset(z);
+}
+
+// zoom to z (clamped), keeping the image point under (px,py) in the box still (default: the centre)
+function cardeditzoomset(z,px,py) {
+  var st = cardeditzoomstate, img = $('#cardeditzoomimg')[0], box = $('#cardeditzoombox')[0];
+  if(!st || !img || !img.naturalWidth) { return; }
+  z = Math.max(1, Math.min(cardeditzoommax, z));
+  var bw = box.clientWidth, bh = box.clientHeight;
+  if(px === undefined) { px = bw/2; py = bh/2; }
+  var w = img.naturalWidth*st.fit*z, h = img.naturalHeight*st.fit*z;
+  if(st.zoom) {
+    var r = z/st.zoom;
+    st.x = px-(px-st.x)*r;
+    st.y = py-(py-st.y)*r;
+  } else {
+    st.x = (bw-w)/2;
+    st.y = (bh-h)/2;
+  }
+  st.zoom = z;
+  cardeditzoomdraw();
+  $('#cardeditzoomrange').val(cardeditzoomtorange(z));
+  $('#cardeditzoomlabel').text((Math.round(z*10)/10)+'x');
+}
+
+function cardeditzoomby(f,px,py) {
+  if(cardeditzoomstate) { cardeditzoomset(cardeditzoomstate.zoom*f,px,py); }
+}
+
+// keep the image covering the box where it's bigger than the box, centred where it's smaller
+function cardeditzoomdraw() {
+  var st = cardeditzoomstate, img = $('#cardeditzoomimg')[0], box = $('#cardeditzoombox')[0];
+  var w = img.naturalWidth*st.fit*st.zoom, h = img.naturalHeight*st.fit*st.zoom;
+  var bw = box.clientWidth, bh = box.clientHeight;
+  st.x = w <= bw ? (bw-w)/2 : Math.min(0, Math.max(bw-w, st.x));
+  st.y = h <= bh ? (bh-h)/2 : Math.min(0, Math.max(bh-h, st.y));
+  $(img).css({width: w+'px', height: h+'px', left: st.x+'px', top: st.y+'px'});
+}
+
+// wheel, double-click and drag-to-pan on the image; drag the head to move the panel; refit on resize
+function cardeditzoomwire() {
+  var panel = $('#cardeditzoom'), box = $('#cardeditzoombox');
+  var at = e => { var o = box[0].getBoundingClientRect(); return [e.clientX-o.left, e.clientY-o.top]; };
+  box.on('wheel', function(e) {
+    e.preventDefault();
+    var p = at(e.originalEvent);
+    cardeditzoomby(e.originalEvent.deltaY < 0 ? 1.15 : 1/1.15, p[0], p[1]);
+  });
+  box.on('dblclick', function(e) {
+    var p = at(e), st = cardeditzoomstate;
+    if(st) { cardeditzoomset(st.zoom >= cardeditzoommax ? 1 : st.zoom*2, p[0], p[1]); }
+  });
+  var drag = null;
+  box.on('pointerdown', function(e) {
+    if(!cardeditzoomstate) { return; }
+    drag = {mode: 'pan', x: e.clientX, y: e.clientY, ox: cardeditzoomstate.x, oy: cardeditzoomstate.y};
+    this.setPointerCapture(e.pointerId);
+    box.addClass('cardeditzoompanning');
+  });
+  panel.find('.cardeditzoomhead').on('pointerdown', function(e) {
+    if($(e.target).closest('input, .cardeditzoombtn, .cardeditx').length) { return; }
+    var o = panel[0].getBoundingClientRect();
+    drag = {mode: 'move', x: e.clientX, y: e.clientY, ox: o.left, oy: o.top};
+    this.setPointerCapture(e.pointerId);
+  });
+  panel.on('pointermove', function(e) {
+    if(!drag) { return; }
+    var dx = e.clientX-drag.x, dy = e.clientY-drag.y;
+    if(drag.mode == 'pan') {
+      cardeditzoomstate.x = drag.ox+dx;
+      cardeditzoomstate.y = drag.oy+dy;
+      cardeditzoomdraw();
+    } else {
+      panel.css({left: Math.max(0, Math.min(window.innerWidth-60, drag.ox+dx))+'px',
+                 top: Math.max(0, Math.min(window.innerHeight-30, drag.oy+dy))+'px', right: 'auto'});
+    }
+  });
+  panel.on('pointerup pointercancel', function() {
+    drag = null;
+    box.removeClass('cardeditzoompanning');
+  });
+  if(window.ResizeObserver) { new ResizeObserver(() => cardeditzoomfit()).observe(box[0]); }
 }
 
 window.cardeditloaded = true;
