@@ -168,3 +168,14 @@ From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue o
   (2014-09-09), trimmed by `trim_press.py` into `game-l5r/rulebook-enhance/twenty-festivals/rebuild/`. 76 and
   60 pages, no contents. Kempy's copies are the same exports run through a PDF optimizer (images cut to
   150 ppi, pages cropped inside the trim), so they aren't offered as downloads.
+- **War of Honor** (2011, 2026-10-20): AEG's print file `WoH rulebook_Final.pdf` (2011-02-18) trimmed by
+  `trim_press.py`, then its reader spreads cut into single pages by `rulebook-enhance/war-of-honor/split_woh.py`:
+  48 pages. Kempy's earlier export (2011-01-06, with deck lists after the back cover) is the second download.
+- **The Currency of War** learn-to-play rulebook and the **Siege: Clan War** booklet (2026-10-20): print files,
+  trimmed by `trim_press.py` into `rulebook-enhance/currency-of-war/` and `siege-clan-war/`. Kempy's copies
+  (TCoW at 150 ppi without its inside covers, Siege three photos) aren't offered.
+- **Rulesheets**, one book each like Broken Blades (2026-10-20): Before the Dawn (print file as is) and, trimmed
+  into `rulebook-enhance/ivory-rulesheets/`, the Ivory Booster Draft sheet (one landscape page; kempy's wiki
+  printout of the same rules is the second download), The New Order, Thunderous Acclaim, Evil Portents and The
+  Blackest Storm.
+- None of the file drop books has a credit `note`. Each one went live only after a check-off.
