@@ -1524,6 +1524,13 @@ span.listqty {
 .phoneonly {
   display: none;
 }
+/* desktop window too narrow for the full menubar: first name only, then no game name (fitmenubar in oracle.js) */
+div.menubar.nameshort #loginfo .phonehide, div.menubar.nogamename .gameinfo-game .gamename {
+  display: none;
+}
+div.menubar.nameshort #loginfo .phoneonly {
+  display: inline;
+}
 div#phonesearchbar {
   display: none;
   align-items: center;
