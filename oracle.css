@@ -2095,8 +2095,11 @@ button.rulesbtn.searchviewactive { color: black; border-color: rgb(128, 128, 128
 .rulesdownloads .feather { width: 14px; height: 14px; vertical-align: -2px; }
 .rulesbody { display: flex; min-height: 240px; height: 70vh; position: relative; }
 .rulespanel { flex: 0 0 250px; overflow-y: auto; border-right: 1px solid #d8d2c2; padding: 6px 8px; background: #faf8f2; text-align: left; }
-.rulesstage { flex: 1 1 auto; position: relative; overflow: hidden; background: #4a4a4a; outline: none; }
-.rulesstage.ruleszoomed { overflow: auto; }
+.rulesstage { flex: 1 1 auto; position: relative; overflow: hidden; background: #4a4a4a; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+.rulesstage.ruleszoomed { overflow: auto; cursor: grab; }
+.rulesstage.rulesdragging { cursor: grabbing; }
+.rulespage img { -webkit-user-drag: none; pointer-events: none; }
+button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-size: .85em; }
 .rulesspread { display: flex; justify-content: center; align-items: center; min-height: 100%; width: max-content; min-width: 100%; }
 .rulesstage:not(.ruleszoomed) .rulesspread { height: 100%; }
 .rulespage { flex: 0 0 auto; background-size: 100% 100%; background-color: #e8e4da; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
