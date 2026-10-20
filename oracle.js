@@ -1927,6 +1927,26 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
   $.ajax(request);
 }
 
+// The Rules section (rules.js, loaded on first use): the rulebook shelf and page viewer.
+// rulesstate is what the url says: the book open (null: the shelf), its page, the book search.
+var rulesstate = {book: null, page: 1, q: ''};
+function rulesshow() {
+  if(window.rulesloaded) { rulesrender(); return; }
+  $('#rulesarea').html('<div class="rulesshelf"><p>Loading&hellip;</p></div>');
+  $.ajax({url: 'rules.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { rulesrender(); })
+    .fail(function() { $('#rulesarea').html('<span class="error">Could not load the rulebooks.</span>'); });
+}
+// the Rules view drawn for rulesstate: showview draws it when the view isn't up yet, else draw it here
+function rulesshowview() {
+  if($('#resultrules').is(':visible')) {
+    seturl(viewstate('rules'), true);
+    rulesshow();
+  } else {
+    showview('resultrules');
+  }
+}
+
 // The card editor (cardeditor.js, loaded on first use): the whole card, every instance and the MRP
 // in one modal, saved together by Commit. No cardid: a new card.
 function cardeditor(cardid=null,printid=null) {
@@ -5456,6 +5476,7 @@ function showview(view) {
     seturl(viewstate(view.replace(/^result/,'')));
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
+    if(view == 'resultrules') rulesshow();
     if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
 }
 function showcard() {
@@ -6389,6 +6410,8 @@ function hashstate(hash) {
     return {view: 'list', listid: m.listid};
   } else if(m.publiclists !== undefined) {
     return {view: 'public', pq: decodeURIComponent(m.publiclists)};
+  } else if(m.rulebook !== undefined) {
+    return {view: 'rules', book: m.rulebook, page: parseInt(m.page, 10) || 1};
   } else if(m.view !== undefined) {
     return {view: m.view};
   }
@@ -6405,6 +6428,8 @@ function statehash(state) {
     return h+',#listid='+state.listid;
   } else if(state.view == 'public' && state.pq) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
+  } else if(state.view == 'rules' && state.book) {
+    return h+',#rulebook='+state.book+(state.page > 1 ? ',#page='+state.page : '');
   } else if(state.view == 'about') {
     return h;
   }
@@ -6421,6 +6446,8 @@ function viewstate(view) {
     return {view: view, listid: $('#lastlistid').val() || null};
   } else if(view == 'public') {
     return {view: view, pq: lastpublicquery || null};
+  } else if(view == 'rules') {
+    return {view: view, book: rulesstate.book, page: rulesstate.page};
   }
   return {view: view};
 }
@@ -6558,8 +6585,17 @@ function urlparser(keepfilters=false) {
 	    publicsearch(0, pq.replace(/(^|&)page=\d+/,''), true);
 	  }
 	  showviewkeepurl('resultpublic');
+  } else if(typeof(matchstruct['rulebook']) != 'undefined') {
+	  rulesstate.book = matchstruct['rulebook'];
+	  rulesstate.page = parseInt(matchstruct['page'], 10) || 1;
+	  urlrestoring = 'rules';
+	  rulesshowview();
   } else if(typeof(matchstruct['view']) != 'undefined') {
-	  if(matchstruct['view'] == 'settings') {
+	  if(matchstruct['view'] == 'rules') {
+	    rulesstate.book = null;
+	    urlrestoring = 'rules';
+	    rulesshowview();
+	  } else if(matchstruct['view'] == 'settings') {
 	    showsettings();
 	  } else if($('#result'+matchstruct['view']).length) {
 	    showview('result'+matchstruct['view']);

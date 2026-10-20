@@ -39,6 +39,11 @@ or tests. The files in this directory are exactly what gets served.
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
   calls. Its image upload is `uploadimagetrigger` in `oracle.js`. User guide:
   `docs/admin/card-editor.md`.
+- The Rules section (menubar book button, `#view=rules`; a page is `#rulebook=<id>,#page=<n>`) is
+  `rules.js`, loaded on first use by `rulesshow()`; `rulesstate` in `oracle.js` is what the url
+  says. The books are static files on the images bucket (`<imageuri>rulebooks/`), built and
+  uploaded by ootv-import `SCRIPTS/rulebook-convert.py`, so adding one needs no deploy. Guide:
+  `docs/admin/rulebooks.md`.
 - Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
   import profile; also run by ootv-import `SCRIPTS/etl-compare.js` under Node) and `setimport.js`
   (the page). Both load on demand (`loadsetimport`); `setimport-preview.html` is the empty page
