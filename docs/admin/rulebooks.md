@@ -134,3 +134,7 @@ From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue o
   to its 180 × 252 pt trim box (bleed and crop marks off) by `rulebook-enhance/ivory/trim_press.py` into
   `game-l5r/rulebook-enhance/ivory/rebuild/Rulebook-L5R-Ivory-basic_rulebook.pdf`. Crop only, text kept.
   The contents come from the book's own contents page (viewer page = printed page + 2).
+- **Ivory Edition** advanced rulebook (2026-10-20): AEG's print file `L5R_IE_AdvRulebook_PRESS.pdf` with its
+  cover replaced by the later fix `L5R_IE_AdvRulebook_FIX_01.pdf` (`trim_press.py --fix 1=...`), trimmed the
+  same way into `game-l5r/rulebook-enhance/ivory/rebuild/Rulebook-L5R-Ivory-adv_rulebook.pdf`. 56 pages, no
+  contents page. Kempy's 111-page copy is this book followed by the same text in another layout.
