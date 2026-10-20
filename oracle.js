@@ -517,12 +517,39 @@ function username(user) {
     var name = o ? [o.firstname, o.lastname].filter(function(n) { return n; }).join(' ') : '';
     return name || (user && user.cognito && user.cognito.name) || '';
 }
-// the menubar name: in full, and on phones (the .phonehide/.phoneonly swap) just the first name, so it fits
+// the menubar name: in full, and on phones (the .phonehide/.phoneonly swap) just the first name, so it fits;
+// on a desktop window too narrow for the full menubar (fitmenubar) it drops to the first name as well
 function showloginfo(user) {
     var full = username(user);
     var o = user && ("oracle" in user) && user.oracle[0];
     var first = (o && o.firstname) || full.split(/\s+/)[0];
     $('#loginfo').empty().append($('<span class="phonehide">').text(full), $('<span class="phoneonly">').text(first));
+    fitmenubar();
+}
+// the menubar is one row of floats: while an item is pushed onto a second row, shorten it step by step:
+// first name only, then the game logo without its name (as phones always show them)
+function fitmenubar() {
+    var bar = $('div.menubar');
+    bar.removeClass('nameshort nogamename');
+    if(narrowscreen()) {
+        return;
+    }
+    var steps = ['nameshort', 'nogamename'];
+    for(var i = 0; i < steps.length && menubarwraps(); i++) {
+        bar.addClass(steps[i]);
+    }
+}
+function menubarwraps() {
+    var tops = $('div.menubar nav>ul>li:visible').map(function() { return this.getBoundingClientRect().top; }).get();
+    return tops.length > 1 && Math.max.apply(null, tops) - Math.min.apply(null, tops) > 10;
+}
+$(window).on('resize', fitmenubar);
+// menubar items change width as they fill in (result counts, view buttons), which can make room or take it
+if(window.ResizeObserver) {
+    $(function() {
+        var observer = new ResizeObserver(fitmenubar);
+        $('div.menubar nav>ul>li').each(function() { observer.observe(this); });
+    });
 }
 function getuid() {
     return cache_thing("user","data").oracle[0].uid;
