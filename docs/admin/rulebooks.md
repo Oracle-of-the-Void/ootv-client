@@ -59,7 +59,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   `{"pdf": "<file>"}` takes the text from another PDF with the same pages.
 - `toc`: a list of `{"title", "page", "level"}`, or `{"pdf": "<file>"}` to take a PDF's bookmarks.
   `page` is the viewer's page number (the PDF page), not the number printed on the page.
-- `downloads`: `[{"file", "label"}]` in place of the default (the source PDF).
+- `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
+  `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
+- File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: a remark about the source (kept in `book.json`).
 
 Then, from ootv-import:
@@ -77,8 +79,9 @@ list's order. `upload` never deletes; to drop a book, remove it from the list, r
 
 From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`):
 
-- **Imperial Edition**: the color scan; its text and contents come from the separate searchable
-  scan of the same 64 pages (`Rulebook-L5R-Imperial_searchable.pdf`, not shown on its own).
+- **Imperial Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/rebuild/pages-01-64.pdf`,
+  2026-10-20), with its own text. The contents come from the bookmarks of the old searchable scan
+  (same 64 pages); the original color scan is the second download.
 - **Scorpion Clan Coup** (the `Imperial_(SCC)` file) and **Jade Edition** (phone photos, from
   `Rulebook-L5R-Jade.zip`) are two-page spreads with OCR text; Jade's download is the text
   transcription (`Rulebook-L5R-Jade.txt`).
