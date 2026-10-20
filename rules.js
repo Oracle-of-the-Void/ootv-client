@@ -86,7 +86,8 @@ function rulesdrawshelf() {
         '<span class="rulesbooktitle">'+rulesesc(b.title)+'</span>'+
         (b.subtitle ? '<span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '')+
         '<span class="rulesbookmeta">'+[b.year, b.arc, b.pages+' pages'].filter(x => x).map(rulesesc).join(' &middot; ')+
-        (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span></a>';
+        (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span>'+
+        (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
     });
     out += '</div>';
     if(rulesshelf.credit) {
@@ -177,6 +178,7 @@ function rulesdrawreader() {
       '<button class="rulesbtn" onclick="rulesstep(1);" aria-label="Next (right arrow)" data-balloon-pos="up">'+rulesicon('chevron-right')+'</button>'+
       '<button class="rulesbtn" onclick="rulesgo('+n+');" aria-label="Last page" data-balloon-pos="up">'+rulesicon('chevrons-right')+'</button>'+
       '<input type="range" class="rulesslider" min="1" max="'+n+'" value="1" aria-label="Flip through">'+
+      (b.note ? '<span class="rulesnote">'+rulesesc(b.note)+'</span>' : '')+
       '<span class="rulesdownloads">'+dl+'</span>'+
     '</div>'+
     '</div>');
