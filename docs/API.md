@@ -506,6 +506,16 @@ inputs:
     * printingid is required
   * remove
     * delete that card:   data stored in oracle-all-updatelog
+  * fields
+    * save field descriptions (`oracle-all-structure` `<database>`/`fields`; database `all` for the
+      ones every game shares; ootv-search `lib/fielddescs.js`). No cardid.
+    * data is `{card: {<field>: text}, printing: {<field>: text}}`, only the descriptions being
+      changed; an empty text removes one
+    * version (required): the item's version when it was loaded, 0 for none yet; 409 if it has
+      moved on since
+    * returns `{message, version, fields, changed}`; each save is kept in the item's `history`
+      (last 50: who, when, old and new text)
+    * read them with `/structure?database=<database>&key=fields`
 
 outputs:
 
