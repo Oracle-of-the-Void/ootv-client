@@ -72,6 +72,11 @@ dd.rulings div {
 #traitpop .traitpopbook { border-left: solid #69c 3px; padding-left: 4px; margin-bottom: 6px; }
 #traitpop .traitpopfoot, .traitwhy { color: #666; font-size: 90%; }
 .traitchoice { border-left: solid #69c 3px; padding-left: 6px; margin-bottom: 8px; }
+/* touch (a long-press): it takes taps, scrolls when long, and has finger-sized Open and Close buttons */
+#traitpop.traitpoptouch { pointer-events: auto; max-height: 88vh; overflow-y: auto; font-size: 100%; padding: 10px 10px 0; }
+#traitpop.traitpoptouch .traitpopopen, #traitpop.traitpoptouch .traitpopclose { display: block; text-align: center;
+  min-height: 44px; line-height: 44px; margin: 6px 0 2px; font-size: 110%; }
+#traitpop.traitpoptouch .traitpopclose { position: sticky; bottom: 0; margin: 10px -10px 0; border-radius: 0 0 4px 4px; }
 /* needsreview notes on a card (maintainers only): one reason per line */
 dd.needsreview div {
   border-left: solid #c90 3px;

@@ -7696,25 +7696,57 @@ function traitcandidates(el) {
   var data = traitsdata[database], legal = $(el).closest('#resultcard').data('traits');
   return (data && legal) ? traitbooks(data, $(el).data('trait'), legal.card, legal.printing) : [];
 }
-// hover: the trait's rule from each of its books
-$(document).on('mouseenter', '#resultcard [data-trait]', function(e) {
-  if(e.originalEvent && e.originalEvent.pointerType && e.originalEvent.pointerType != 'mouse') { return; }
-  var data = traitsdata[database], trait = $(this).data('trait'), books = traitcandidates(this);
+// the trait's rule from each of its books, by el: on hover (mouse), or after a long-press (touch), when it
+// takes taps: an Open button per book and Close (a tap outside closes it too)
+function traitpopshow(el,touch) {
+  var data = traitsdata[database], trait = $(el).data('trait'), books = traitcandidates(el);
   if(!books.length) { return; }
   var pop = $('#traitpop');
   if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
-  pop.html('<div class="traitpophead">'+traitesc(trait)+'</div>'+books.map(function(b) {
+  pop.toggleClass('traitpoptouch', touch).html('<div class="traitpophead">'+traitesc(trait)+'</div>'+books.map(function(b) {
+    var open = touch ? '<span class="button gray traitpopopen" onclick="traitopen(\''+addslashes(b.id)+'\',\''+addslashes(trait)+'\');">Open page '+
+      data.traits[trait][b.id].page+'</span>' : '';
     return '<div class="traitpopbook"><b>'+traitbooktitle(data.books[b.id])+'</b> <span class="traitwhy">'+traitesc(b.why.join(', '))+
-      '</span><div>'+traitesc(data.traits[trait][b.id].text)+'</div></div>';
-  }).join('')+'<div class="traitpopfoot">'+($(this).is('a') ? 'Click &#128214; to open the rulebook' : books.length > 1 ? 'Click to choose a book' : 'Click to open the page')+'</div>');
-  var r = this.getBoundingClientRect(), w = Math.min(420, window.innerWidth - 16);
+      '</span><div>'+traitesc(data.traits[trait][b.id].text)+'</div>'+open+'</div>';
+  }).join('')+(touch ? '<span class="button gray traitpopclose" onclick="$(\'#traitpop\').hide();">Close</span>' :
+    '<div class="traitpopfoot">'+($(el).is('a') ? 'Click &#128214; to open the rulebook' : books.length > 1 ? 'Click to choose a book' : 'Click to open the page')+'</div>'));
+  var r = el.getBoundingClientRect(), w = Math.min(420, window.innerWidth - 16);
+  if(touch) {   // centred on the screen, scrolling inside, so Close is always in reach
+    pop.css({width: w, left: (window.innerWidth - w) / 2, top: '6vh', bottom: 'auto'}).show().scrollTop(0);
+    return;
+  }
   pop.css({width: w, left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: r.bottom + 4, bottom: 'auto'}).show();
   if(r.bottom + 4 + pop.outerHeight() > window.innerHeight && r.top > window.innerHeight / 2) {   // no room below: above it
     pop.css({top: 'auto', bottom: window.innerHeight - r.top + 4});
   }
+}
+$(document).on('mouseenter', '#resultcard [data-trait]', function(e) {
+  if(lastpointertype != 'mouse' || $('#traitpop').hasClass('traitpoptouch') && $('#traitpop').is(':visible')) { return; }
+  traitpopshow(this, false);
 }).on('mouseleave', '#resultcard [data-trait]', function() {
-  $('#traitpop').hide();
+  if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').hide(); }
 });
+// touch: a long-press shows it (instead of the browser's link menu); the tap that ends the press does nothing
+var traitpress = null, traitpressed = 0;
+$(document).on('pointerdown', '#resultcard [data-trait]', function(e) {
+  if(e.originalEvent.pointerType == 'mouse') { return; }
+  var el = this;
+  clearTimeout(traitpress);
+  traitpress = setTimeout(function() { traitpressed = Date.now(); traitpopshow(el, true); }, 500);
+}).on('pointerup pointercancel pointerleave', '#resultcard [data-trait]', function() {
+  clearTimeout(traitpress);
+}).on('contextmenu', '#resultcard [data-trait]', function(e) {
+  if(lastpointertype != 'mouse') { e.preventDefault(); }
+}).on('pointerdown', function(e) {
+  if($('#traitpop').is(':visible') && !$(e.target).closest('#traitpop, #resultcard [data-trait]').length) { $('#traitpop').hide(); }
+});
+document.addEventListener('click', function(e) {   // capture: before a keyword link's own onclick
+  if(Date.now() - traitpressed < 1000) {   // the long-press's own tap, wherever it lands (the popup may be under it)
+    traitpressed = 0;
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, true);
 // click: one book opens at the trait's place; more than one, a choice (each with its text)
 $(document).on('click', '#resultcard .traitbook, #resultcard .traitword', function(e) {
   e.preventDefault();
@@ -7732,6 +7764,7 @@ $(document).on('click', '#resultcard .traitbook, #resultcard .traitword', functi
 });
 function traitopen(book,trait) {
   var place = traitsdata[database].traits[trait][book];
+  $('#traitpop').hide();
   nomodal();
   Object.assign(rulesstate, {book: book, page: place.page, q: ''}, rulesmarkparse({find: encodeURIComponent(place.find)}));
   rulesshowview();
