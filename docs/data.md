@@ -58,8 +58,10 @@ What each field holds is also kept on the site, for the card editor: Admin → F
  "numeric": filename (optional sizing)
 }
 ```
-  A printing with no scan has neither `image` nor `imagehash` (never an empty `image: []`: the
-  templates read `image[0]`).
+  A printing with no scan has neither `image` nor `imagehash` (never an empty `image: []`). Since
+  2026-10-21 the card images and the proxy export skip an empty list, entries that name no file, and
+  an `image` without `imagehash` (`printingimages` in oracle.js: the missing-image stamp, no proxy
+  page) instead of breaking, but leave both fields out all the same.
 * printing.artvec, artmodel, artimage, arthub (machine-made, never edit by hand): the art vector of
   `image[0]` for art search (ootv-claude `ART-MATCHING.md`). `artvec` is a base64 DINOv2 vector
   (768 float16), `artmodel` the model it came from, `artimage` the `details` file it was made from,
