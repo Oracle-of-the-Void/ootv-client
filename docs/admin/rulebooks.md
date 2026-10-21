@@ -1,6 +1,6 @@
 # Rulebooks (Rules section)
 
-Last updated: 2026-10-20
+Last updated: 2026-10-21
 
 The **Rules** button in the menubar (the open book) opens the game's rulebook shelf. Above the
 books, filters narrow the shelf by **Type** (one at a time), **Tags** (every tag picked must be on
@@ -95,8 +95,10 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
 
 - `id` is the book's address on the site (keep it once links are out there).
 - The source is a `pdf`, or a `zip` of page images (taken in file name order).
-- `text`: left out, the PDF's own text; `"ocr"` runs tesseract on each page (scans, photos);
-  `{"pdf": "<file>"}` takes the text from another PDF with the same pages.
+- `text`: left out, the PDF's own text; `"ocr"` runs tesseract on each page (scans, photos, and
+  browser prints whose text layer is gibberish); `{"pdf": "<file>"}` takes the text from another PDF
+  with the same pages. `ocr_psm` sets tesseract's page segmentation mode (default 3); 4 (one column)
+  fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
 - `toc`: a list of `{"title", "page", "level"}`, or `{"pdf": "<file>"}` to take a PDF's bookmarks.
   `page` is the viewer's page number (the PDF page), not the number printed on the page.
 - `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
@@ -117,7 +119,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
     `Special` (rules for one format or game mode: War of Honor, Booster Draft, Siege) or
-    `Floor Rules` (tournament floor rules, e.g. kempy's `Tournament/` folder). The filter
+    `Floor Rules` (tournament floor rules, e.g. kempy's `Tournament/` folder) or `Rulings` (the old
+    FAQs, accumulated rulings and rules archives, errata lists included; their rulings are also on the
+    cards, `rulings.md`). The filter
     bar lists Complete, Addendum and Special first (`RULESTYPES` in `rules.js`), then any other type.
   - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the
     latest Complete book of its arc, the one to play that arc by), and `Fan Made` (not published

@@ -7573,12 +7573,15 @@ $(document).on('click', 'dd.rulings a[href]', function(e) {
   e.preventDefault();
   rulingpopup($(this).attr('href'), $(this).text());
 });
+var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in Rules
 function rulingpopup(href,label) {
   var esc = s => $('<div>').text(s).html();
   var title = esc(label || 'Ruling');
   var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href);
   if(m) {
     var book = decodeURIComponent(m[1]), page = parseInt(m[2],10) || 1;
+    rulingmark = {};
+    href.replace(/#(find|line|at)=([^,#]*)/g, function(all, k, v) { rulingmark[k] = v; });
     var img = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(book)+'/'+String(page).padStart(3,'0')+'_master.webp';
     modal(title,'<div class="rulingview"><img src="'+esc(img)+'" alt="'+title+'"></div>'+
       '<p><span class="button gray" onclick="rulingopenrules(\''+addslashes(book)+'\','+page+');">Open in Rules</span></p>');
@@ -7600,6 +7603,7 @@ function rulingopenrules(book,page) {
   rulesstate.book = book;
   rulesstate.page = page;
   rulesstate.q = '';
+  Object.assign(rulesstate, rulesmarkparse(rulingmark));   // opens zoomed to the ruling's place, marked
   rulesshowview();
 }
 function generalnomodal(div,event) {
