@@ -33,6 +33,10 @@ Clicking a book opens it in the page viewer:
   pages. The browser's own find (Ctrl+F) finds words on the pages shown, in either mode. The
   words are invisible text laid over the page image, from `lines/<NNN>.json`, so a scan's copy is
   only as good as its OCR.
+- **Copy page text** (books with text): the copy button (or the C key) copies the whole text of the
+  page shown, or both pages of a two-page spread, joined the same way. A line that ends early
+  (a heading, a list item, a paragraph's end) keeps its line break; text wrapping around a
+  picture is joined back into its paragraph.
 - **Search** marks the words searched for on the pages shown, while the search panel is open.
 - **Links**: every page has its own address, `#game=l5r,#rulebook=<id>,#page=<n>`; the link
   button copies it. With text selected (select mode), the link button copies a link to that

@@ -270,6 +270,7 @@ function rulesdrawreader() {
       '<button class="rulesbtn" onclick="rulesstepzoom(-1);" aria-label="Zoom out (-)" data-balloon-pos="down">'+rulesicon('zoom-out')+'</button>'+
       '<button class="rulesbtn ruleszoomlabel" onclick="ruleszoomto(1);" aria-label="Fit the page (0)" data-balloon-pos="down">100%</button>'+
       '<button class="rulesbtn" onclick="rulesstepzoom(1);" aria-label="Zoom in (+, Ctrl+wheel, pinch)" data-balloon-pos="down">'+rulesicon('zoom-in')+'</button>'+
+      (b.text ? '<button class="rulesbtn" onclick="rulescopypage();" aria-label="Copy the text of this page (C)" data-balloon-pos="down-right">'+rulesicon('copy')+'</button>' : '')+
       '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page (or to the text selected)" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
       '<button class="rulesbtn rulesfullbtn" onclick="rulesfullscreen();" aria-label="Full screen (F)" data-balloon-pos="down-right">'+rulesicon(rulesisfull() ? 'minimize' : 'maximize')+'</button>'+
       '</span>'+
@@ -698,32 +699,90 @@ function rulesselection() {
   var text = rulesseltext(sel);
   return text ? {page: +start.data('page'), text: text} : null;
 }
-// the selection as text to paste: a line's words joined by spaces, lines of a block into one paragraph (words
-// broken across lines by a hyphen joined again), blocks and pages apart by a blank line, unless the text runs on
-// (no full stop, the next starting in lower case: a block break that isn't a paragraph)
-function rulesseltext(sel) {
-  var range = sel.getRangeAt(0), out = '', last = null;
-  $('#rulesarea .rulestextlayer span').each(function() {
-    if(!range.intersectsNode(this)) { return; }
-    // the words at either end may be selected only in part
-    var word = this.textContent, node = this.firstChild;
-    word = word.substring(node == range.startContainer ? range.startOffset : 0, node == range.endContainer ? range.endOffset : word.length);
-    if(!word) { return; }
-    var line = this.parentNode, page = $(this).closest('.rulespage').data('page');
-    var here = {page: page, block: line.getAttribute('data-block'), line: line.getAttribute('data-line')};
-    var runon = /^[a-z]/.test(word) && /[a-z0-9,;-]$/i.test(out);
+// words as text to paste ([{page, block, line, word}] in reading order): a line's words joined by spaces, lines
+// of a block into one paragraph (words broken across lines by a hyphen joined again), blocks and pages apart by a
+// blank line, unless the text runs on (no full stop, the next starting in lower case: a block break that isn't a
+// paragraph). A line that ended early (a heading, a list item, a paragraph's last line: rulesendedearly) or ends in
+// a number before a capital (contents, indexes) keeps its line break.
+function rulesjoinwords(words) {
+  var out = '', last = null;
+  words.forEach(function(here) {
+    var word = here.word, runon = /^[a-z]/.test(word) && /[a-z0-9,;-]$/i.test(out);
+    var newline = last && (last.page != here.page || last.line != here.line);
     if(!last) {
       out = word;
-    } else if(last.line != here.line && runon && /[a-z]-$/i.test(out)) {
+    } else if(newline && runon && /[a-z]-$/i.test(out)) {
       out = out.slice(0, -1)+word;
     } else if((last.page != here.page || last.block != here.block) && !runon) {
       out += '\n\n'+word;
+    } else if(newline && !runon && (rulesendedearly(last.page, last.line, here.line) || (/[0-9]$/.test(out) && /^[A-Z]/.test(word)))) {
+      out += '\n'+word;
     } else {
       out += ' '+word;
     }
     last = here;
   });
   return out.trim();
+}
+// line i of page ended early: the first word of line j, the next, would have fitted after it, with as much room as
+// line j itself takes. Text wrapping around a picture has lines short for want of room, which this doesn't break.
+function rulesendedearly(page, i, j) {
+  var lines = ruleslines[page];
+  if(!Array.isArray(lines) || !lines[i] || !lines[j] || i == j) { return false; }
+  var a = lines[i][1], b = lines[j][1];
+  var right = function(ws) { return Math.max.apply(null, ws.map(function(w) { return w[2]; })); };
+  var space = a.length > 1 ? Math.max(0, a[1][0] - a[0][2]) : 100;
+  return right(a) + space + (b[0][2] - b[0][0]) < right(b);
+}
+// the selection as text to paste (rulesjoinwords)
+function rulesseltext(sel) {
+  var range = sel.getRangeAt(0), words = [];
+  $('#rulesarea .rulestextlayer span').each(function() {
+    if(!range.intersectsNode(this)) { return; }
+    // the words at either end may be selected only in part
+    var word = this.textContent, node = this.firstChild;
+    word = word.substring(node == range.startContainer ? range.startOffset : 0, node == range.endContainer ? range.endOffset : word.length);
+    if(!word) { return; }
+    var line = this.parentNode;
+    words.push({page: $(this).closest('.rulespage').data('page'), block: line.getAttribute('data-block'), line: line.getAttribute('data-line'), word: word});
+  });
+  return rulesjoinwords(words);
+}
+// the whole text of the page(s) shown, to the clipboard: from the word boxes where the book has them (paragraphs
+// joined as a selection copies), else text.json as extracted
+function rulescopypage() {
+  var shown = rulesshown(rulesstate.page), id = rulesbook.id;
+  var copy = function(text) {
+    if(!text) { rulesflash('No text on this page'); return; }
+    var label = shown.length > 1 ? 'Text of pages '+shown.join('-')+' copied' : 'Page text copied';
+    if(navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() { rulesflash(label); }, function() { prompt('Page text', text); });
+    } else {
+      prompt('Page text', text);
+    }
+  };
+  if(rulesbook.lines) {
+    var pages = {}, left = shown.length;
+    shown.forEach(function(p) {
+      rulesloadlines(p, function(lines) {
+        pages[p] = lines;
+        if(--left) { return; }
+        var words = [];
+        shown.forEach(function(q) {
+          pages[q].forEach(function(line, i) {
+            line[1].forEach(function(w) { words.push({page: q, block: line[0], line: i, word: w[4]}); });
+          });
+        });
+        copy(rulesjoinwords(words));
+      });
+    });
+    return;
+  }
+  var fromtext = function() { copy(shown.map(function(p) { return (rulestext[p-1] || '').trim(); }).filter(t => t).join('\n\n')); };
+  if(rulestext) { fromtext(); return; }
+  $.ajax({url: rulesbase()+id+'/text.json', dataType: 'json', cache: true})
+    .done(function(t) { if(rulesbook && rulesbook.id == id) { rulestext = t; fromtext(); } })
+    .fail(function() { rulesflash('Could not load the text'); });
 }
 $(document).on('copy', function(e) {
   var sel = window.getSelection();
@@ -873,6 +932,8 @@ $(document).on('keydown', function(e) {
     rulesfullscreen();
   } else if((e.key == 't' || e.key == 'T') && rulesbook.lines) {
     rulestoggleselect();
+  } else if((e.key == 'c' || e.key == 'C') && rulesbook.text) {
+    rulescopypage();
   } else if(e.key == 'Escape' && rulesisfull()) {
     rulesfullscreen(false);
   } else {
