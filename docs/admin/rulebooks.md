@@ -63,7 +63,9 @@ define them. A trait in the **Keywords** gets a book (📖) after it, and the fi
 names a trait it gets a dotted underline. Hovering either one (or the keyword) shows the rule's text
 from each of the trait's books; clicking the book or the underlined word opens the book at the
 definition, marked (a `#find` link). When the trait has more than one book, the click shows them all
-with their text instead, to pick one.
+with their text instead, to pick one. On a phone or tablet, a long-press on the trait (or its keyword)
+shows the same text in a panel with a large **Open page** button per book and **Close** (tapping
+outside it closes it too); a plain tap works as a click.
 
 A trait's books on a card, each shown once, in shelf order:
 
