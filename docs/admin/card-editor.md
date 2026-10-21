@@ -1,6 +1,6 @@
 # Card editor
 
-Last updated: 2026-10-20
+Last updated: 2026-10-21
 
 The **Edit** button at the top right of a card (shown to anyone with an edit permission on the
 game) opens one editor for the whole card: its own fields, every instance (printing), and which
@@ -42,7 +42,10 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   too, but a field the card already had is kept even if it ends up as an empty list. To remove
   a field, use its **x**.
 - The version buttons pick the instance shown, as on the card page (`*` marks the MRP instance,
-  `•` an instance with changes). **Make MRP** makes the instance shown the MRP one, and removes
+  `•` an instance with changes). **‹** and **›** on either side of them step to the previous and
+  next instance, and so do **Alt+,** and **Alt+.** (the < and > keys), even while typing in a
+  value, or the **←** and **→** arrows when no value has the cursor. Changes stay when you move
+  between instances. **Make MRP** makes the instance shown the MRP one, and removes
   `notmrp` from it if it has it (the MRP instance can't be one the MRP lookup skips). **New
   instance** adds a blank one (it needs a set). **Delete instance** marks it for deletion, and an
   **undo** link stays until you commit. A card keeps at least one instance.

@@ -6551,7 +6551,8 @@ $(window).on('popstate', function (e) {
 // Keyboard navigation inside a list of cards
 $(document).on('keydown', function ( e ) {
     if(e.target.nodeName=='BODY') {
-	if($("#resultcard").is(":visible")) {
+	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it
+	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible"))) {
 	    if(e.key == "ArrowRight") {
 		$("#cardnext").click();
 	    }

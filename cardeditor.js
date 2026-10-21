@@ -322,14 +322,17 @@ function cardeditprintings() {
   var clean = x => [].concat(x || [''])[0];
   var strip = s => String(s === undefined || s === null ? '' : s).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ');
   var c = cardedit.card;
-  var saved = templatesortprintings(c.printing.filter(p => !cardeditisnew(p.printingid)));
-  var list = saved.concat(c.printing.filter(p => cardeditisnew(p.printingid)));
+  var list = cardeditsorted();
+  var at = list.findIndex(p => p.printingid == cardedit.printid);
   var changed = cardeditchangedprintings();
-  var html = '<div class="cardeditversions">'+list.map(p =>
+  var step = (d,label,title) => '<span class="button gray buttonsmall cardeditstep'+(at+d < 0 || at+d >= list.length ? ' cardeditstepoff' : '')+'"'+
+    ' title="'+title+'" onclick="cardeditstep('+d+');">'+label+'</span>';
+  var html = '<div class="cardeditversions">'+step(-1,'&lsaquo;','Previous instance (Alt+, or &larr;)')+' '+list.map(p =>
     '<span class="printinglink gray button buttonsmall'+(p.printingid == cardedit.printid ? ' cardeditselected' : '')+'" data-id="'+p.printingid+'"'+
     ' onclick="cardeditselect(\''+p.printingid+'\');">('+(cardeditisnew(p.printingid) ? 'new' : htmlEncode(p.printingid))+') '+
     htmlEncode(strip(clean(p.set)))+'/'+htmlEncode(strip(clean(p.rarity)))+(p.printingid == c.printingprimary ? ' *' : '')+
     '<span class="cardeditdot" title="Changed">'+(changed.includes(p.printingid) ? ' &bull;' : '')+'</span></span>').join(' ')+
+    ' '+step(1,'&rsaquo;','Next instance (Alt+. or &rarr;)')+
     ' <span class="button gray buttonsmall" onclick="cardeditnewinstance();">New instance<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></svg></span></span></div>';
   var deleted = cardedit.base ? cardedit.base.printing.filter(p => !c.printing.some(q => q.printingid == p.printingid)) : [];
   if(deleted.length) {
@@ -502,6 +505,37 @@ function cardeditselect(id) {
   cardedit.printid = id;
   cardeditrender();
 }
+
+// the instances in the order of the version buttons: saved ones as the card page sorts them, new ones last
+function cardeditsorted() {
+  var c = cardedit.card;
+  return templatesortprintings(c.printing.filter(p => !cardeditisnew(p.printingid)))
+    .concat(c.printing.filter(p => cardeditisnew(p.printingid)));
+}
+
+// previous (-1) or next (1) instance; stops at the first and last
+function cardeditstep(d) {
+  if(!cardedit || cardedit.view == 'json' || cardedit.running) { return; }
+  var list = cardeditsorted();
+  var p = list[list.findIndex(q => q.printingid == cardedit.printid)+d];
+  if(p) { cardeditselect(p.printingid); }
+}
+
+// Alt+, / Alt+. (the < > keys) step through instances from anywhere in the editor, even while
+// typing in a value; plain left/right arrows do it when no field has the focus, as on the card page
+$(document).on('keydown', function(e) {
+  if(!cardedit || !$('#modal').hasClass('cardeditmodal') || !$('#modal').is(':visible') || $('#cardeditconfirm').is(':visible')) { return; }
+  if(e.ctrlKey || e.metaKey) { return; }
+  var d = 0;
+  if(e.altKey && !e.shiftKey) {
+    d = e.code == 'Comma' ? -1 : e.code == 'Period' ? 1 : 0;
+  } else if(!e.altKey && !e.shiftKey && !$(e.target).is('input, textarea, select, [contenteditable=true]')) {
+    d = e.key == 'ArrowLeft' ? -1 : e.key == 'ArrowRight' ? 1 : 0;
+  }
+  if(!d) { return; }
+  e.preventDefault();
+  cardeditstep(d);
+});
 
 // the MRP instance can't be one the MRP lookup skips, so it loses notmrp (docs/data.md)
 function cardeditmrp() {
