@@ -62,6 +62,10 @@
 * needsreview (optional, every game, array of strings): open questions about the card, one plain-text
   reason per entry, shown only to that game's maintainers and searchable with Advanced → Needs review.
   Remove it with its x in the card editor (or `null` in the JSON view). See `docs/admin/needsreview.md`.
+* ruling (optional, every game, array of HTML strings): official rulings about the card, one per
+  entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
+  in a popup (a Rules shelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
+  any other page in a small window). See `docs/admin/rulings.md`.
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 

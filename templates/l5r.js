@@ -148,6 +148,7 @@ searchables['l5r'] = {
     "printing.publisher": {"type": "select", "reverse": true},
     "paper": { "type": "require", "field": "legality", "value": "Paper" },
     "printing.legality":{"type":"hidden","reverse":true},
+  "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -181,6 +182,7 @@ labels['l5r'] = {
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
     "tagnotes":		"Notes",               "shortnotes": "Notes",
     "tagpublisher": "Publisher",  "shortpublisher": "Pub",
+  "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
