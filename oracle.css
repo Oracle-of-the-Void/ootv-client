@@ -63,6 +63,15 @@ dd.rulings div {
 #modal.rulingmodal .rulingview { max-height: 75vh; overflow: auto; text-align: center; }
 #modal.rulingmodal .rulingview img { max-width: 100%; }
 #modal.rulingmodal iframe.rulingview { width: 100%; height: 75vh; border: 0; }
+/* trait links (traitsmark): a book after a keyword, a dotted line under a trait named in the text, the rule on hover */
+#resultcard .traitbook { cursor: pointer; font-size: 85%; }
+#resultcard .traitword { cursor: pointer; border-bottom: dotted #69c 1px; }
+#traitpop { display: none; position: fixed; z-index: 100000; box-sizing: border-box; background: #fff; color: #000; border: solid #69c 1px;
+  border-radius: 4px; padding: 6px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25); font-size: 90%; pointer-events: none; }
+#traitpop .traitpophead { font-weight: bold; margin-bottom: 4px; }
+#traitpop .traitpopbook { border-left: solid #69c 3px; padding-left: 4px; margin-bottom: 6px; }
+#traitpop .traitpopfoot, .traitwhy { color: #666; font-size: 90%; }
+.traitchoice { border-left: solid #69c 3px; padding-left: 6px; margin-bottom: 8px; }
 /* needsreview notes on a card (maintainers only): one reason per line */
 dd.needsreview div {
   border-left: solid #c90 3px;

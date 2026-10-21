@@ -4749,6 +4749,9 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
+  // legalities for the trait links, before cardhtml linkifies them
+  var legality = {card: [].concat(carddata.legality || []), printing: {}};
+  (carddata.printing || []).forEach(function(p) { legality.printing[p.printingid] = [].concat(p.legality || []); });
   var drawn = cardhtml(carddata,prid,qs);
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
@@ -4759,6 +4762,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var showpr = prid?prid:((defpr>0)?defpr:primary);
   $(".printing:not([data-printingid="+showpr+"])").hide();
   $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
+  traitsmark('#resultcard', carddata.cardid, legality.card, legality.printing[showpr] || []);
 
   if(!switchview) {
 	  return;
@@ -7604,6 +7608,132 @@ function rulingopenrules(book,page) {
   rulesstate.page = page;
   rulesstate.q = '';
   Object.assign(rulesstate, rulesmarkparse(rulingmark));   // opens zoomed to the ruling's place, marked
+  rulesshowview();
+}
+
+// ******************** TRAIT LINKS ********************
+// Traits with rules (Cavalry, Kharmic, ...) in Card Details lead to where the rulebooks on the Rules shelf
+// define them: hovering one shows the rule's text, clicking it opens the book at that place (or, with more
+// than one book, a choice of them). From the structure item <game>/traits (ootv-import SCRIPTS/rulebook-traits.py,
+// docs/admin/rulebooks.md "Trait links"): books {<id>: {title, year, arc, order}}, editions {<legality>: [book
+// ids, the one to prefer first]}, traits {<trait>: {<book id>: {page, find, text}}}.
+// A trait's books on a card: the edition of the printing shown, the newest book that defines it, and the last
+// complete rules of each arc whose bug the card has; one book only once.
+var traitsdata = {};   // game -> the traits item, false when it has none, or the pending request
+function traitsload(done) {
+  var game = database, have = traitsdata[game];
+  if(have === undefined) {
+    have = traitsdata[game] = $.ajax({url: apiuri+'/structure?database='+game+'&key=traits', dataType: 'json'})
+      .then(function(data) { traitsdata[game] = (data && data.traits) ? data : false; },
+            function() { traitsdata[game] = false; });
+  }
+  if(have && have.then) { have.always(function() { done(traitsdata[game]); }); } else { done(have); }
+}
+// the trait a keyword or a word in the text is, or null: tags and &nbsp; dropped, a number after Experienced
+// dropped (Experienced 2, Experienced 3KYD), a plural's s dropped
+function traitname(data,word) {
+  var w = selectplaintext(word).replace(/^(Experienced)\s+\d.*$/, '$1');
+  return data.traits[w] ? w : (/s$/.test(w) && data.traits[w.slice(0,-1)]) ? w.slice(0,-1) : null;
+}
+// the books for trait on a card with these legalities (plain or with &nbsp;): [{id, why: [...]}] in book order
+function traitbooks(data,trait,cardlegality,printlegality) {
+  var defined = data.traits[trait] || {}, out = {};
+  var add = function(id, why) {
+    if(!defined[id]) { return; }
+    (out[id] = out[id] || {id: id, why: []}).why.push(why);
+  };
+  var edition = function(legality) {
+    return (data.editions[selectplaintext(legality)] || []).find(function(id) { return defined[id]; });
+  };
+  printlegality.forEach(function(l) { add(edition(l), 'this printing'); });
+  var newest = Object.keys(defined).sort(function(a,b) { return (data.books[b].order ?? 0) - (data.books[a].order ?? 0); })[0];
+  add(newest, 'newest rules');
+  cardlegality.forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
+  return Object.values(out).sort(function(a,b) { return (data.books[a.id].order ?? 0) - (data.books[b.id].order ?? 0); });
+}
+// mark the traits in a card's keywords (a book after each) and the first time each is named in its text
+function traitsmark(scope,cardid,cardlegality,printlegality) {
+  traitsload(function(data) {
+    var area = $(scope);
+    if(!data || $("#lastcardid").val() != cardid) { return; }
+    area.data('traits', {card: cardlegality, printing: printlegality});
+    if(area.find('[data-trait]').length) { return; }   // already marked (the card drawn once, two calls)
+    area.find('dd.cardkeywords a').each(function() {
+      var trait = traitname(data, $(this).html());
+      if(trait) {
+        $(this).attr('data-trait', trait).after(' <span class="traitbook" data-trait="'+trait+'" title="">&#128214;</span>');
+      }
+    });
+    var names = Object.keys(data.traits).sort(function(a,b) { return b.length - a.length; });
+    var re = new RegExp('\\b('+names.map(function(n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|')+')s?\\b', 'g');
+    area.find('dd.cardtext').each(function() {
+      var seen = {}, nodes = [], walk = document.createTreeWalker(this, NodeFilter.SHOW_TEXT);
+      while(walk.nextNode()) {
+        if(!$(walk.currentNode).closest('a').length) { nodes.push(walk.currentNode); }
+      }
+      nodes.forEach(function(node) {
+        var text = node.nodeValue, html = '', last = 0, m;
+        re.lastIndex = 0;
+        while((m = re.exec(text))) {
+          if(seen[m[1]]) { continue; }
+          seen[m[1]] = true;
+          html += $('<div>').text(text.slice(last, m.index)).html()+'<span class="traitword" data-trait="'+m[1]+'">'+$('<div>').text(m[0]).html()+'</span>';
+          last = m.index + m[0].length;
+        }
+        if(last) { $(node).replaceWith(html+$('<div>').text(text.slice(last)).html()); }
+      });
+    });
+  });
+}
+function traitesc(s) {
+  return $('<div>').text(s == null ? '' : String(s)).html();
+}
+function traitbooktitle(book) {
+  return traitesc(book.title)+(book.subtitle ? ' '+traitesc(book.subtitle) : '')+(book.year ? ' ('+book.year+')' : '');
+}
+// the books for a marked trait in the card shown
+function traitcandidates(el) {
+  var data = traitsdata[database], legal = $(el).closest('#resultcard').data('traits');
+  return (data && legal) ? traitbooks(data, $(el).data('trait'), legal.card, legal.printing) : [];
+}
+// hover: the trait's rule from each of its books
+$(document).on('mouseenter', '#resultcard [data-trait]', function(e) {
+  if(e.originalEvent && e.originalEvent.pointerType && e.originalEvent.pointerType != 'mouse') { return; }
+  var data = traitsdata[database], trait = $(this).data('trait'), books = traitcandidates(this);
+  if(!books.length) { return; }
+  var pop = $('#traitpop');
+  if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
+  pop.html('<div class="traitpophead">'+traitesc(trait)+'</div>'+books.map(function(b) {
+    return '<div class="traitpopbook"><b>'+traitbooktitle(data.books[b.id])+'</b> <span class="traitwhy">'+traitesc(b.why.join(', '))+
+      '</span><div>'+traitesc(data.traits[trait][b.id].text)+'</div></div>';
+  }).join('')+'<div class="traitpopfoot">'+($(this).is('a') ? 'Click &#128214; to open the rulebook' : books.length > 1 ? 'Click to choose a book' : 'Click to open the page')+'</div>');
+  var r = this.getBoundingClientRect(), w = Math.min(420, window.innerWidth - 16);
+  pop.css({width: w, left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: r.bottom + 4, bottom: 'auto'}).show();
+  if(r.bottom + 4 + pop.outerHeight() > window.innerHeight && r.top > window.innerHeight / 2) {   // no room below: above it
+    pop.css({top: 'auto', bottom: window.innerHeight - r.top + 4});
+  }
+}).on('mouseleave', '#resultcard [data-trait]', function() {
+  $('#traitpop').hide();
+});
+// click: one book opens at the trait's place; more than one, a choice (each with its text)
+$(document).on('click', '#resultcard .traitbook, #resultcard .traitword', function(e) {
+  e.preventDefault();
+  $('#traitpop').hide();
+  var data = traitsdata[database], trait = $(this).data('trait'), books = traitcandidates(this);
+  if(books.length == 1) {
+    traitopen(books[0].id, trait);
+  } else if(books.length) {
+    modal(traitesc(trait)+' in the rulebooks', books.map(function(b) {
+      return '<div class="traitchoice"><p><span class="button gray" onclick="traitopen(\''+addslashes(b.id)+'\',\''+addslashes(trait)+'\');">'+
+        traitbooktitle(data.books[b.id])+', page '+data.traits[trait][b.id].page+'</span></p><p class="traitwhy">'+traitesc(b.why.join(', '))+
+        '</p><p>'+traitesc(data.traits[trait][b.id].text)+'</p></div>';
+    }).join(''));
+  }
+});
+function traitopen(book,trait) {
+  var place = traitsdata[database].traits[trait][book];
+  nomodal();
+  Object.assign(rulesstate, {book: book, page: place.page, q: ''}, rulesmarkparse({find: encodeURIComponent(place.find)}));
   rulesshowview();
 }
 function generalnomodal(div,event) {
