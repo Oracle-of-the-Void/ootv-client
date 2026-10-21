@@ -684,7 +684,7 @@ groups must allow `setimport` (or `*`) for the game or for every game.
 | `job` | `job`, optional `rows: true` | the import's state (`status`, `export`, `mapping`, `written`, `conflicts`, ...) |
 | `export` | `job`, optional `fresh` | `{export: {status, snapshot, items, s3}}` (optional: `apply` doesn't require one) |
 | `apply` | `job` | one step: `{status: pausing / applying / resuming / applied, written, left}` or `{blocked: [...]}` |
-| `reindex` | `job`, `cardids` (of this import) | `{sent}`: re-sent to search through dynamo-to-es |
+| `reindex` | `job`, `cardids` (of this import) | `{sent}`: re-sent to search through dynamo-to-os |
 | `finish` | `job`, `verify` (the check's result) | `{status: "done", eserrors, coldstart}` |
 
 `plan` re-checks the browser's cards (one printing each, of this set and image stub) and stores
