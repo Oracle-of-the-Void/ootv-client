@@ -67,6 +67,7 @@ searchables['pathfinder-pawns'] = {
   "notes": { "type": "text", "advanced": true },
   "printing.number": { "type": "numeric", "advanced": true },
   "printing.artist": { "type": "select", "clickable":true, "reverse": true},
+  "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -111,6 +112,7 @@ labels['pathfinder-pawns'] = {
 "shortnethys":"Ref",
 "tagartist": "Artist",
 "shortartist": "Artist",
+  "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 

@@ -82,6 +82,7 @@ searchables['warlord'] = {
   "errata": { "type": "exists", "advanced": true },
   "challengeLord": { "type": "exists" },
   "printing.setnumber": { "type": "numeric", "advanced": true },
+  "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -133,6 +134,7 @@ labels['warlord'] = {
   "shortchallengeLord": "Ch Lords",
   "tagsetnumber": "Set Number",
   "shortsetnumber": "Set #",
+  "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
