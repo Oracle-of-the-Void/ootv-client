@@ -2058,6 +2058,9 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditaddvalue { cursor: pointer; color: #2a7a2a; font-weight: bold; padding: 0 3px; user-select: none; }
 .cardeditaddvalue:hover { background: #dfd; border-radius: 3px; }
 .cardeditaddrow { padding-top: 8px; border-top: 1px solid #eee; }
+.cardeditadddesc { color: #555; font-size: 0.9em; margin-top: 3px; white-space: pre-line; }
+.cardeditadddesc:empty { display: none; }
+.cardeditdesc { text-decoration: underline dotted #999; cursor: help; }
 .cardeditversions { margin-bottom: 6px; }
 .cardeditversions .printinglink { cursor: pointer; }
 .cardeditversions .cardeditselected { background: #575757; color: #fff; }
@@ -2202,3 +2205,14 @@ body.rulesfull { overflow: hidden; }
   .rulesslider { flex-basis: 100%; order: 10; margin: 4px 0; }
   .rulesturn { width: 33%; }
 }
+
+/* Admin → Field descriptions (loadfielddescs in oracle.js) */
+.fielddescs label { margin-right: 12px; white-space: nowrap; }
+.fielddescsnote { color: #555; }
+.fielddescstable { border-collapse: collapse; width: 100%; margin-bottom: 12px; }
+.fielddescstable th, .fielddescstable td { border-top: 1px solid #ddd; padding: 3px 6px; vertical-align: top; text-align: left; }
+.fielddescstable td:first-child { white-space: nowrap; }
+.fielddescstable td:nth-child(2) { color: #555; white-space: nowrap; }
+.fielddescstable td:last-child { width: 70%; }
+.fielddescstext { width: 100%; box-sizing: border-box; font-family: inherit; resize: vertical; }
+.fielddescstext::placeholder { color: #999; }

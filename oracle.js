@@ -2193,6 +2193,7 @@ var massimageplan = null;   // the checked files waiting for Upload: {db, stub, 
 function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#fielddescs').empty();
   $('#admindoc').empty();
   $('#setimport, #importprofiles').hide();
   $('#updatelogpage').empty();
@@ -2272,6 +2273,7 @@ function massimagerow(item,imageuri) {
 function loadsetimport(open) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#fielddescs').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
@@ -6802,6 +6804,7 @@ function loadloginlog(page) {
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
   $('#discordadmin').empty();
+  $('#fielddescs').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#loginlog').html('Loading login log...');
@@ -7045,6 +7048,7 @@ var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min
 function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#fielddescs').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#admindoc').text('Loading '+name+'...');
@@ -7126,6 +7130,144 @@ function loadupdates(db,start=null) {
   $.ajax(req);
 }
 
+// ************* field descriptions *************
+// What each card and printing field holds (ootv-search lib/fielddescs.js): the oracle-all-structure
+// item <game>/fields, and all/fields for the fields every game shares; a game's own text wins.
+// The card editor shows them (label hover, Add field); Admin → Field descriptions edits them.
+// fielddescs[db] = {game: item or null, all: item or null}
+var fielddescs = {};
+function fielddescsload(db,fresh=false) {
+  if(fielddescs[db] && !fresh) { return Promise.resolve(fielddescs[db]); }
+  var get = d => Promise.resolve($.ajax({url: apiuri+"/structure?database="+d+"&key=fields", dataType: 'json', cache: false}))
+    .catch(() => null);  // 404 until the first description is saved
+  return Promise.all([get(db), get('all')]).then(r => fielddescs[db] = {game: r[0], all: r[1]});
+}
+// a field's description: the game's own, else the shared one ('' for none). scope: card or printing
+function fielddesc(db,scope,key,which) {
+  var d = fielddescs[db];
+  var pick = it => (it && it.fields && it.fields[scope] && it.fields[scope][key]) || '';
+  if(!d) { return ''; }
+  return which ? pick(d[which]) : (pick(d.game) || pick(d.all));
+}
+// saving needs the fields (or full) permission on the game, or on every game for the shared ones
+function fielddescsallowed(target) {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) { return false; }
+  var groups = user.oracle[0].groups;
+  return (target == 'all' ? ['*'] : [target,'*']).some(g => Array.isArray(groups[g]) && (groups[g].includes('*') || groups[g].includes('fields')));
+}
+
+// the fields a game uses: those described, its card template, its search fields and the cards
+// loaded this session. {card: [...], printing: [...]}, sorted.
+function fielddescsknown(db) {
+  var known = {card: new Set(), printing: new Set()};
+  var skip = {card: ['cardid','printing','printingreverse','printingprimary','updatelog','@timestamp','@SequenceNumber'],
+              printing: ['printingid','artvec','artmodel','artimage','arthub','artvector']};
+  var add = function(card) {
+    Object.keys(card || {}).forEach(k => known.card.add(k));
+    [].concat((card && card.printing) || []).forEach(p => Object.keys(p || {}).forEach(k => known.printing.add(k)));
+  };
+  var d = fielddescs[db] || {};
+  [d.game, d.all].forEach(it => ['card','printing'].forEach(s => Object.keys((it && it.fields && it.fields[s]) || {}).forEach(k => known[s].add(k))));
+  var structure = cache_thing("structuretemplate",db);
+  if(structure && structure.template) { add(structure.template); }
+  Object.keys(searchables[db] || {}).filter(k => typeof searchables[db][k] === 'object')
+    .forEach(k => k.startsWith('printing.') ? known.printing.add(k.slice(9)) : known.card.add(k));
+  if(searchcache[db]) { Object.values(searchcache[db].data || {}).forEach(add); }
+  var out = {};
+  ['card','printing'].forEach(s => out[s] = [...known[s]].filter(k => !skip[s].includes(k)).sort((a,b) => a.localeCompare(b)));
+  return out;
+}
+
+// Admin → Field descriptions: this game's descriptions, or the shared ones (target 'all')
+var fielddescsview = {target: null, only: false};
+function loadfielddescs(target) {
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#admindoc').empty();
+  $('#updatelogpage').empty();
+  $('#massimage, #setimport, #importprofiles').hide();
+  fielddescsview.target = target || database;
+  $('#fielddescs').text('Loading field descriptions...');
+  fielddescsload(database,true).then(fielddescsshow);
+}
+
+function fielddescsshow() {
+  var target = fielddescsview.target, shared = target == 'all';
+  var d = fielddescs[database];
+  var item = shared ? d.all : d.game;
+  var known = fielddescsknown(database);
+  var lab = labels[database] || {};
+  var allowed = fielddescsallowed(target);
+  var html = '<h3>Field descriptions</h3>'+
+    '<p><label><input type="radio" name="fielddescstarget" value="'+database+'"'+(shared ? '' : ' checked')+' onchange="loadfielddescs(this.value);" /> '+
+    htmlEncode(dbinfo[database].name)+'</label> '+
+    '<label><input type="radio" name="fielddescstarget" value="all"'+(shared ? ' checked' : '')+' onchange="loadfielddescs(this.value);" /> Shared by every game</label> '+
+    '<label><input type="checkbox" id="fielddescsonly"'+(fielddescsview.only ? ' checked' : '')+' onchange="fielddescsview.only = this.checked; fielddescsfilter();" /> only fields with no description</label> '+
+    '<a href="" onclick="loadadmindoc(\'field-descriptions\'); return false">How these work</a></p>'+
+    '<p class="fielddescsnote">'+(item ? 'Version '+item.version+', saved '+htmlEncode(new Date(item.updated).toLocaleString())+' by '+htmlEncode(item.uname) : 'None saved yet.')+
+    (shared ? ' A game\'s own description replaces the shared one.' : ' An empty box uses the shared description, shown greyed.')+
+    (allowed ? '' : ' <b>Saving needs the fields (or full) permission on '+(shared ? 'every game' : htmlEncode(dbinfo[database].name))+'.</b>')+'</p>';
+  [['card','Card fields'],['printing','Printing (instance) fields']].forEach(function(s) {
+    html += '<h4>'+s[1]+'</h4><table class="fielddescstable"><tr><th>Field</th><th>Card page label</th><th>Description</th></tr>'+
+      known[s[0]].map(function(k) {
+        var own = fielddesc(database,s[0],k,shared ? 'all' : 'game');
+        var fallback = shared ? '' : fielddesc(database,s[0],k,'all');
+        var label = [lab['short'+k], lab['tag'+k]].filter((x,i,a) => x && a.indexOf(x) == i).join(' / ');
+        return '<tr data-scope="'+s[0]+'" data-field="'+htmlEncode(k)+'"><td><code>'+htmlEncode(k)+'</code></td><td>'+htmlEncode(label)+'</td>'+
+          '<td><textarea class="fielddescstext" rows="'+Math.max(1,Math.ceil((own || fallback).length/90))+'"'+
+          ' data-old="'+htmlEncode(own).replace(/"/g,'&quot;')+'" placeholder="'+htmlEncode(fallback).replace(/"/g,'&quot;')+'"'+
+          (allowed ? '' : ' readonly')+'>'+htmlEncode(own)+'</textarea></td></tr>';
+      }).join('')+'</table>';
+  });
+  html += '<p>'+(allowed ? '<input type="button" value="Save" onclick="fielddescssave();" /> ' : '')+
+    '<span id="fielddescsstatus"></span></p>';
+  $('#fielddescs').html(html);
+  fielddescsfilter();
+}
+
+function fielddescsfilter() {
+  $('#fielddescs tr[data-field]').each(function() {
+    var t = $(this).find('textarea');
+    $(this).toggle(!fielddescsview.only || !(t.val().trim() || t.attr('placeholder')));
+  });
+}
+
+function fielddescssave() {
+  var target = fielddescsview.target;
+  var d = fielddescs[database];
+  var item = target == 'all' ? d.all : d.game;
+  var data = {}, n = 0;
+  $('#fielddescs tr[data-field]').each(function() {
+    var t = $(this).find('textarea');
+    if(t.val().trim() == t.attr('data-old')) { return; }
+    var s = $(this).attr('data-scope');
+    (data[s] = data[s] || {})[$(this).attr('data-field')] = t.val().trim();
+    n++;
+  });
+  if(!n) { $('#fielddescsstatus').text('No changes to save.'); return; }
+  $('#fielddescsstatus').text('Saving '+n+' description'+(n == 1 ? '' : 's')+'...');
+  $.ajax({
+    type: "POST",
+    url: apiuri+"/update",
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({uid: getuid(), database: target, operation: 'fields', version: item ? item.version : 0, data: data}),
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function() {
+      fielddescsload(database,true).then(function() {
+        fielddescsshow();
+        $('#fielddescsstatus').text('Saved '+n+' description'+(n == 1 ? '' : 's')+'.');
+      });
+    },
+    error: function(raw) {
+      var msg = (raw.responseJSON && raw.responseJSON.error) || raw.status;
+      $('#fielddescsstatus').html('<span class="error">Not saved: '+htmlEncode(String(msg))+'</span>'+
+        (raw.status == 409 ? ' Copy your text, then <a href="" onclick="loadfielddescs(fielddescsview.target); return false">reload</a>.' : ''));
+    }
+  });
+}
+
 // admin update log: this game's oracle-all-updatelog, newest first, a page at a time, with
 // filters (text, name, operation, date range). /updatelog returns at most updatelogpagesize
 // rows and `next`, the maxtime of the following (older) page; cursors_updatelog[n] is page
@@ -7135,6 +7277,7 @@ var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, update
 function loadupdatelogpage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#fielddescs').empty();
   $('#admindoc').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));

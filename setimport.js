@@ -1078,6 +1078,7 @@ var impprof = {db: null, list: null, editing: null};
 function importprofilesopen() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#fielddescs').empty();
   $('#admindoc').empty();
   $('#massimage, #setimport').hide();
   $('#importprofiles').show();

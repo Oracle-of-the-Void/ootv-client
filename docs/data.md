@@ -1,5 +1,9 @@
 ## Notes on data for new databases
 
+What each field holds is also kept on the site, for the card editor: Admin → Field descriptions
+(`oracle-all-structure` `<game>/fields`, and `all/fields` for the shared ones; see
+`docs/admin/field-descriptions.md`). Describe a new field there as well as here.
+
 ### json top:
 
 * cardid (absolutely required and unique)

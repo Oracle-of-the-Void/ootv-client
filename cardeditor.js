@@ -26,11 +26,11 @@ function cardeditopen(cardid,printid) {
       modal('Insert new card','<span class="error">The card structure for this game hasn\'t loaded yet. Try again in a moment.</span>');
       return;
     }
-    cardeditloadorder(database).then(() => cardeditstart(database,null,null,printid));
+    Promise.all([cardeditloadorder(database), fielddescsload(database)]).then(() => cardeditstart(database,null,null,printid));
     return;
   }
   modal('Edit card','Loading the card...');
-  Promise.all([cardeditfetch(database,cardid), cardeditloadorder(database)]).then(function(r) {
+  Promise.all([cardeditfetch(database,cardid), cardeditloadorder(database), fielddescsload(database)]).then(function(r) {
     cardeditstart(database,cardid,r[0],printid);
   }).catch(function(e) {
     $('#modal-content').html('<span class="error">Could not load card '+cardid+': '+htmlEncode(cardediterr(e))+'</span>');
@@ -212,11 +212,13 @@ function cardeditrows(scope,keys,obj,known) {
   return rows;
 }
 
-// the card page's short label (F, HR, Text), with the long one and the field's name on hover
-function cardeditlabel(key) {
+// the card page's short label (F, HR, Text), with the long one, the field's name and its
+// description (Admin → Field descriptions, fielddesc in oracle.js) on hover
+function cardeditlabel(scope,key) {
   var l = labels[cardedit.db] || {};
   var short = l['short'+key] || l['tag'+key] || key;
-  return '<span title="'+htmlEncode((l['tag'+key] ? l['tag'+key]+': ' : '')+key)+'">'+htmlEncode(short)+'</span>';
+  var desc = fielddesc(cardedit.db,scope,key);
+  return '<span'+(desc ? ' class="cardeditdesc"' : '')+' title="'+htmlEncode((l['tag'+key] ? l['tag'+key]+': ' : '')+key+(desc ? '\n\n'+desc : '')).replace(/"/g,'&quot;')+'">'+htmlEncode(short)+'</span>';
 }
 
 // ************* rendering *************
@@ -268,16 +270,17 @@ function cardeditfields(scope,obj,known) {
   cardeditrows(scope,keys,obj,known).forEach(function(row) {
     html += '<div class="cardeditrow">'+row.keys.map(key =>
       '<div class="cardeditfield '+(cardeditshort(scope,key,obj[key],known) ? 'cardeditshort' : 'cardeditlong')+(row.full ? ' cardeditfull' : '')+'" data-scope="'+scope+'" data-field="'+htmlEncode(key)+'">'+
-      '<span class="cardeditlabel">'+cardeditlabel(key)+'<span class="cardeditx" title="Remove this field" onclick="cardeditremovefield(this);">&#x2715;</span></span>'+
+      '<span class="cardeditlabel">'+cardeditlabel(scope,key)+'<span class="cardeditx" title="Remove this field" onclick="cardeditremovefield(this);">&#x2715;</span></span>'+
       '<span class="cardeditvals">'+cardeditvalues(scope,key,obj[key],cardeditshort(scope,key,obj[key],known))+'</span></div>').join('')+
       '</div>';
   });
   var missing = Object.keys(known[scope]).filter(k => !keys.includes(k)).sort();
-  html += '<div class="cardeditaddrow"><select class="cardeditaddfield" onchange="$(this).next().toggle(this.value == \'\');">'+
-    missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[scope][k]+'">'+htmlEncode(k)+'</option>').join('')+
+  html += '<div class="cardeditaddrow"><select class="cardeditaddfield" onchange="$(this).next().toggle(this.value == \'\'); $(this).siblings(\'.cardeditadddesc\').text(fielddesc(cardedit.db,\''+scope+'\',this.value));">'+
+    missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[scope][k]+'" title="'+htmlEncode(fielddesc(cardedit.db,scope,k)).replace(/"/g,'&quot;')+'">'+htmlEncode(k)+'</option>').join('')+
     '<option value="">Other...</option></select>'+
     '<input type="text" class="cardeditaddname" placeholder="field name" size="14"'+(missing.length ? ' style="display:none"' : '')+' /> '+
     '<span class="button gray buttonsmall" onclick="cardeditaddfield(this,\''+scope+'\');">Add field<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></span></span>'+
+    '<div class="cardeditadddesc">'+htmlEncode(missing.length ? fielddesc(cardedit.db,scope,missing[0]) : '')+'</div>'+
     '</div></div>';
   return html;
 }
