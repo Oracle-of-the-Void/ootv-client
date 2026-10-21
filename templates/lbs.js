@@ -122,6 +122,7 @@ searchables['lbs'] = {
 		},
 	"flavor": { "type": "text",
 			"advanced": true },
+  "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -144,6 +145,7 @@ labels['lbs'] = {
     "tagdeck":		"Deck",                "shortdeck":  "Deck",
     "tagfaction":	"Faction",             "shortfaction": "Faction",
     "tagnotes":		"Notes",               "shortnotes": "Notes",
+  "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 

@@ -78,6 +78,7 @@ searchables['initiald'] = {
   "printing.flavor": { "type": "text", "advanced": true },
   "notes": { "type": "text", "advanced": true },
   "printing.cardno": { "type": "numeric", "advanced": true },
+  "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -134,6 +135,7 @@ labels['initiald'] = {
   "shortsetno": "In Set",
   "tagcopy": "Copyright",
   "shortcopy": "Copyright",
+  "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 

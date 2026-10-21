@@ -84,6 +84,7 @@ searchables['dune'] = {
   "printing.artist": { "type": "text", "advanced": true,
                       "clickable": true  },
   "errata": { "type": "exists", "advanced": true },
+  "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -132,6 +133,7 @@ labels['dune'] = {
   "shortartist": "Artist",
   "tagerrata": "Errata",
   "shorterrata": "Errata",
+  "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 

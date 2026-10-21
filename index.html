@@ -297,6 +297,7 @@
         <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
         <li><a href="" onclick="loadadmindoc('needsreview'); return false">Needs review notes on cards</a></li>
         <li><a href="" onclick="loadadmindoc('rulebooks'); return false">Rulebooks (Rules section)</a></li>
+        <li><a href="" onclick="loadadmindoc('rulings'); return false">Rulings on cards</a></li>
       </ul>
     </li>
   </ul>
@@ -1200,6 +1201,7 @@ printingprimary
 </script>
 
 <script id="template-card-middle" type="text/x-jsrender">
+  {{if ~hasval(ruling)}}<dt>{{:~labels.shortruling}}</dt><dd class="rulings">{{for ruling}}<div>{{:}}</div>{{/for}}</dd>{{/if}}
   <dt>Versions</dt><dd>{{for ~sortprintings(printing) ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:setclean}}/{{:rarityclean}}{{if printingid == ~top.printingprimary}} *{{/if}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
 
 </script> <!-- template-card-middle -->

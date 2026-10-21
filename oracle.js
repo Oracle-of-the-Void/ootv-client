@@ -7521,7 +7521,7 @@ function cache_session(thing,selval=null) {
 //**********************************************************  modal window ****************
 
 function modal(title,content) {
-    $('#modal').removeData('guard').removeClass('cardeditmodal');
+    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal');
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
@@ -7529,7 +7529,7 @@ function modal(title,content) {
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
-  $('#modal').removeData('guard').removeClass('cardeditmodal');
+  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal');
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
@@ -7552,6 +7552,44 @@ function modalclose() {
     }
     $('#modal').removeData('guard');
     nomodal();
+}
+// Links in a card's rulings (the card-level "ruling" field, card details): a rulebook page on the
+// Rules shelf (#rulebook=<id>,#page=<n>), an image or a PDF opens in the modal; any other page opens
+// in a small window of its own, since most sites refuse to load inside another page.
+// Ctrl/Cmd/Shift-click leaves the browser to open it as usual.
+$(document).on('click', 'dd.rulings a[href]', function(e) {
+  if(e.metaKey || e.ctrlKey || e.shiftKey || e.button) { return; }
+  e.preventDefault();
+  rulingpopup($(this).attr('href'), $(this).text());
+});
+function rulingpopup(href,label) {
+  var esc = s => $('<div>').text(s).html();
+  var title = esc(label || 'Ruling');
+  var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href);
+  if(m) {
+    var book = decodeURIComponent(m[1]), page = parseInt(m[2],10) || 1;
+    var img = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(book)+'/'+String(page).padStart(3,'0')+'_master.webp';
+    modal(title,'<div class="rulingview"><img src="'+esc(img)+'" alt="'+title+'"></div>'+
+      '<p><span class="button gray" onclick="rulingopenrules(\''+addslashes(book)+'\','+page+');">Open in Rules</span></p>');
+  } else if(/\.(png|jpe?g|gif|webp)(\?|$)/i.test(href)) {
+    modal(title,'<div class="rulingview"><img src="'+esc(href)+'" alt="'+title+'"></div>'+
+      '<p><a class="button gray" href="'+esc(href)+'" target="_blank" rel="noopener">Open in a new tab</a></p>');
+  } else if(/\.pdf(#|\?|$)/i.test(href)) {
+    modal(title,'<iframe class="rulingview" src="'+esc(href)+'"></iframe>'+
+      '<p><a class="button gray" href="'+esc(href)+'" target="_blank" rel="noopener">Open in a new tab</a></p>');
+  } else {
+    var w = window.open(href, 'ootvruling', 'popup,width=900,height=700');
+    if(w) { w.focus(); } else { window.open(href, '_blank', 'noopener'); }
+    return;
+  }
+  $('#modal').addClass('rulingmodal');
+}
+function rulingopenrules(book,page) {
+  nomodal();
+  rulesstate.book = book;
+  rulesstate.page = page;
+  rulesstate.q = '';
+  rulesshowview();
 }
 function generalnomodal(div,event) {
     if(event.target == div) {
