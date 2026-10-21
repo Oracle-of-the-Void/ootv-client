@@ -56,6 +56,12 @@
 ```
   A printing with no scan has neither `image` nor `imagehash` (never an empty `image: []`: the
   templates read `image[0]`).
+* printing.artvec, artmodel, artimage, arthub (machine-made, never edit by hand): the art vector of
+  `image[0]` for art search (ootv-claude `ART-MATCHING.md`). `artvec` is a base64 DINOv2 vector
+  (768 float16), `artmodel` the model it came from, `artimage` the `details` file it was made from,
+  `arthub: true` marks placeholder art that matches too many cards. The API never sends `artvec` to
+  the browser, the card editor hides all four, and an edit that changes the image drops them until
+  the vectors are recomputed. In OpenSearch `artvec` becomes `printing.artvector` (k-NN, not in `_source`).
 
 ### optional
 
