@@ -2061,6 +2061,8 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditversions { margin-bottom: 6px; }
 .cardeditversions .printinglink { cursor: pointer; }
 .cardeditversions .cardeditselected { background: #575757; color: #fff; }
+.cardeditstep { cursor: pointer; font-weight: bold; }
+.cardeditstepoff { opacity: 0.35; cursor: default; }
 .cardeditdeleted { color: #b00; margin-bottom: 6px; }
 .cardeditprintingbar { margin: 6px 0; }
 .cardeditmrp { background: #e0c35a; border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
