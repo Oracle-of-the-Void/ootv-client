@@ -347,6 +347,11 @@ function cardeditimages(p,isnew) {
     var base = dbinfo[cardedit.db].imageuri+p.imagehash+'/';
     html += '<div class="cardeditimagelist">'+p.image.map(e => '<img src="'+base+(e.select || e.details)+'" title="Zoom in"'+
       ' onclick="cardeditzoom(\''+htmlEncode(base+(e.master || e.details || e.select))+'\');" />').join(' ')+'</div>';
+    if(!isnew) {
+      // cards whose art looks like this printing's (its stored art vector), in a new tab so edits here stay
+      html += '<div class="cardeditnote"><a href="'+htmlEncode(artsimilarurl(cardedit.cardid,p.printingid))+'" target="_blank"'+
+        ' title="Cards whose art looks like this instance\'s image, most alike first (a new tab)">Find similar art</a></div>';
+    }
   }
   if(isnew) {
     return html+'<div class="cardeditnote">Commit the new instance before uploading its image.</div>';

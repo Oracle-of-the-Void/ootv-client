@@ -2869,7 +2869,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	    data: datarequest,
 	    success: function(raw) {
 		    console.log(raw);
-		    dataret = raw.hits.hits.map(x=>x._source);
+		    dataret = raw.hits.hits.map(artsimilarhit.bind(null, datarequest));
         //		    console.log(dataret);
 		    // a number from the API; OpenSearch's own shape is {value, relation}
 		    searchcache[database]['querytotal'][qs] = typeof raw.hits.total === 'object' ? raw.hits.total.value : raw.hits.total;
@@ -4121,12 +4121,34 @@ function rendersavedsearches() {
   $('#savedsearches').html($.templates("#template-savedsearches").render({'names': names}));
 }
 // values in words, using the form's labels: "All: crane; Type: Holding, Region; Gold Cost: 2 to 5"
+// A search hit -> its card. For a similar-art search (artlike=<cardid>_<printingid>, ootv-search
+// routes/search.js) remember which printing matched and how closely (score = 1 + cosine), keyed
+// by the artlike value, so the result shows that printing (templatefetch).
+function artsimilarhit(datarequest,hit) {
+  var card = hit._source;
+  if(datarequest && datarequest.artlike && hit.inner_hits && hit.inner_hits.printing) {
+    var inner = hit.inner_hits.printing.hits.hits[0];
+    var pid = inner && inner.fields && inner.fields['printing.printingid'] ? String(inner.fields['printing.printingid'][0]) : null;
+    if(pid) {
+      card.artprinting = Object.assign({}, card.artprinting, {[datarequest.artlike]: pid});
+      card.artscore = Object.assign({}, card.artscore, {[datarequest.artlike]: Math.round((hit._score - 1) * 1000) / 1000});
+    }
+  }
+  return card;
+}
+
+// the url of a search for cards whose art looks like this printing's (the card editor links it)
+function artsimilarurl(cardid,printingid) {
+  var qs = $.param({'table': database, 'artlike': cardid+'_'+printingid});
+  return location.pathname+statehash({'view': 'search', 'qs': qs});
+}
+
 function searchsummary(values) {
   var parts = [], done = {};
   Object.keys(values).forEach(function(name) {
     if(done[name]) { return; }
     var el = $('#searchform [name="'+name+'"]').first();
-    var label = name == 'querystring' ? 'All' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
+    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
     var range = name.match(/^field_(lower|upper)_(.*)/);
     var text;
     if(range) {
@@ -5721,6 +5743,9 @@ function templatefetch(card,id=false,datarequest={}) {
         pr = card.printingreverse.printingid[id];
     } else if(('listprinting' in card) && card.listprinting>0) {
         pr = card.printingreverse.printingid[card.listprinting];
+    } else if(datarequest && datarequest.artlike && card.artprinting && card.artprinting[datarequest.artlike] in card.printingreverse.printingid) {
+        // a similar-art search shows the printing whose art matched (artsimilarhit)
+        pr = card.printingreverse.printingid[card.artprinting[datarequest.artlike]];
     } else if(typeof datarequest === 'object') {
         //console.log("onyx deb 1");
         for(att in card.printingreverse) {
