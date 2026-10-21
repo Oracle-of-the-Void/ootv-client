@@ -15,6 +15,9 @@ var cardedit = null;
 
 // card keys the editor doesn't show as fields: managed by the API, or by the printing section
 var cardeditmanaged = ['cardid','printing','printingreverse','printingprimary','updatelog','@timestamp','@SequenceNumber'];
+// printing keys made by the art vector job (ootv-claude ART-MATCHING.md): kept out of the editor's copies
+// of the card, so a save never sends them and the API's merge leaves the stored values alone
+var cardeditartfields = ['artvec','artmodel','artimage','arthub','artvector'];
 
 function cardeditopen(cardid,printid) {
   if(!cardid) {
@@ -45,7 +48,7 @@ function cardeditfetch(db,cardid) {
     card = [].concat(card)[0];
     if(!card || !card.cardid) { throw new Error('card not found'); }
     ['updatelog','@timestamp','@SequenceNumber','printingreverse'].forEach(k => delete card[k]);
-    card.printing.forEach(function(p) { p.printingid = String(p.printingid); });
+    card.printing.forEach(function(p) { p.printingid = String(p.printingid); cardeditartfields.forEach(k => delete p[k]); });
     return card;
   });
 }
@@ -145,7 +148,7 @@ function cardeditknownfields() {
   var add = function(card,istemplate) {
     Object.keys(card).filter(k => !cardeditmanaged.includes(k)).forEach(k => istemplate ? (known.card[k] = known.card[k] || kind(card[k])) : note('card',k,card[k]));
     [].concat(card.printing || []).forEach(function(p) {
-      Object.keys(p || {}).filter(k => k != 'printingid').forEach(k => istemplate ? (known.printing[k] = known.printing[k] || kind(p[k])) : note('printing',k,p[k]));
+      Object.keys(p || {}).filter(k => k != 'printingid' && !cardeditartfields.includes(k)).forEach(k => istemplate ? (known.printing[k] = known.printing[k] || kind(p[k])) : note('printing',k,p[k]));
     });
   };
   if(searchcache[cardedit.db]) { Object.values(searchcache[cardedit.db].data || {}).forEach(c => add(c,false)); }
@@ -580,6 +583,7 @@ function cardeditreadjson() {
   c.printingprimary = String(c.printingprimary);
   if(!seen[c.printingprimary]) { c.printingprimary = c.printing[0].printingid; }
   ['cardid','updatelog','printingreverse','@timestamp','@SequenceNumber'].forEach(k => delete c[k]);
+  c.printing.forEach(p => cardeditartfields.forEach(k => delete p[k]));
   cardedit.card = c;
   cardedit.jsonerror = null;
   if(!seen[cardedit.printid]) { cardedit.printid = c.printingprimary; }
