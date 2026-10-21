@@ -21,8 +21,8 @@
      {{/if}}
 
     {{if ~hasval(clan)}}       <dt>{{:~labels.shortclan}}</dt><dd>{{:clan}}</dd>  {{/if}}
-    {{if ~hasval(keywords)}}       <dt>{{:~labels.shortkeywords}}</dt><dd>{{:keywords.join(" &#149; ")}}{{if ~hasval(iconised)}} {{:iconised.join(" ")}}{{/if}}</dd>  {{/if}}
-    {{if ~hasval(text)}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
+    {{if ~hasval(keywords)}}       <dt>{{:~labels.shortkeywords}}</dt><dd class="cardkeywords">{{:keywords.join(" &#149; ")}}{{if ~hasval(iconised)}} {{:iconised.join(" ")}}{{/if}}</dd>  {{/if}}
+    {{if ~hasval(text)}}       <dt>{{:~labels.shorttext}}</dt><dd class="cardtext">{{:text}}</dd>  {{/if}}
     {{if ~hasval(focus)}}       <dt>{{:~labels.shortfocus}}</dt><dd>{{:focus}}</dd>  {{/if}}
     {{if ~hasval(legality)}}       <dt>{{:~labels.shortlegality}}</dt><dd>{{:~sortlegality(legality).join(" &#149; ")}}</dd>  {{/if}}
 	 {{if ~hasval(legaldate)}}       <dt>{{:~labels.shortlegaldate}}</dt><dd>{{:legaldate}}</dd>  {{/if}}
