@@ -1,5 +1,19 @@
 # TODO
 
+## HIGH PRIORITY: link traits to the rulebooks (noted 2026-10-20)
+
+Keywords and traits with special rules (e.g. Cavalry, Ninja, Kharmic, Shadowlands, Experienced)
+should link to where a rulebook defines them, so a card's text leads to the rule. Same idea as
+[#94](https://github.com/Oracle-of-the-Void/ootv-client/issues/94) (hover text on traits with the
+rules text), with the Rules shelf as the source.
+
+- [ ] Decide with the user: link (`#rulebook=<id>,#page=<n>`, opening the page popup the `ruling`
+      links use) or hover text, or both; and which book per trait (the edition the card was
+      printed in, or the latest complete rules).
+- [ ] Build the trait → book/page table (per game, probably in `oracle-all-structure`), using the
+      rulebook text layer (`lines/<NNN>.json`) to find the pages.
+- [ ] Mark up traits in card text at display time (not in the card data).
+
 ## Remove the legacy image layout code, every repo (noted 2026-10-18)
 
 Since 2026-10-18 no printing in any game has `printimagehash` (ootv-backups `modernize-images.py`
