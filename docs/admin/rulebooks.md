@@ -26,10 +26,30 @@ Clicking a book opens it in the page viewer:
   the button again leaves it.
 - **Contents** (only books with a table of contents), **Pages** (thumbnails) and **Search**
   (books with text) open in a panel on the left.
+- **Selecting and copying text** (books with text): the T button (or the T key) turns on select
+  mode. Then dragging selects text on the page instead of turning or dragging it (on a phone,
+  long-press to select), and Ctrl+C / Copy copies it as plain text: lines joined into
+  paragraphs, words broken across lines by a hyphen joined again. T again goes back to turning
+  pages. The browser's own find (Ctrl+F) finds words on the pages shown, in either mode. The
+  words are invisible text laid over the page image, from `lines/<NNN>.json`, so a scan's copy is
+  only as good as its OCR.
+- **Search** marks the words searched for on the pages shown, while the search panel is open.
 - **Links**: every page has its own address, `#game=l5r,#rulebook=<id>,#page=<n>`; the link
-  button copies it. `#game=l5r,#view=rules` is the shelf. Turning pages doesn't add browser
-  history, so Back leaves the book. The shelf remembers the last page read in each book (this
-  browser only).
+  button copies it. With text selected (select mode), the link button copies a link to that
+  text instead. A link can point at a place on the page, which opens zoomed to the page's
+  width, scrolled to it and marked:
+  - `#page=<n>,#find=<words>`: the first place on the page with these words (letters and
+    digits only count, so spaces, line breaks, hyphens and punctuation don't matter). Without
+    `#page`, the first page of the book that has them. Links copied from a selection use its
+    first dozen words.
+  - `#page=<n>,#line=<n>`: the page's nth line of text, in its reading order (on two-column
+    pages, usually down one column then the next).
+  - `#page=<n>,#at=<percent>`: that far down the page (`#at=40`), for pages with no text.
+
+  `#find` survives a rebuilt book best; line numbers can shift when the text changes. Turning
+  the page drops the place. `#game=l5r,#view=rules` is the shelf. Turning pages doesn't add
+  browser history, so Back leaves the book. The shelf remembers the last page read in each book
+  (this browser only).
 - **Downloads**: the original PDF (or whatever the book lists) at the bottom right.
 
 ## Where the books live
@@ -48,6 +68,7 @@ Everything else is on the images bucket, under the game: `https://images.oracleo
 |---|---|
 | `<id>/book.json` | One book: each page's size, the table of contents, downloads, whether it has text |
 | `<id>/text.json` | The text of each page, for the book's search (the PDF's own text, or OCR) |
+| `<id>/lines/<NNN>.json` | Each page's words and where they are on it, for selecting and copying, `#find` and `#line` links: `[[block, [[x0, y0, x1, y1, word], ...]], ...]`, a line per entry in reading order, boxes in 1/10000ths of the page from its top left (`pdftotext -bbox-layout`, or tesseract's word boxes). `book.json` has `lines: true` when the book has them |
 | `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp`, `_zoom.webp` | Each page: thumbnail (300 px), normal (1400 px), large (2400 px) and deep zoom (4800 px) on the long side. `_zoom` is only made when the source is that large: every PDF, but not the Jade photos (2048 px). A rescan or remaster at higher resolution gets it on its next build. |
 | `<id>/<id>.pdf` | The download |
 
@@ -110,6 +131,7 @@ Then, from ootv-import:
 ```bash
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json build            # every book, or list ids to rebuild some
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json meta jade        # metadata only (title, note, ...): rewrites built book.json, no rendering
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json lines jade --out build-lines   # word boxes only, for a book already live (below)
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json upload jade      # those books only: dry run, asks, syncs to S3, sets their shelf entries
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json remove jade      # takes a book off the shelf
 ```
@@ -119,6 +141,12 @@ those, from this checkout's builds, and refuses a book whose shelf entry has a l
 checkout's copy (another session rebuilt it since; rebuild here, or `--force`). It never deletes. A change to a book's place in the list reaches
 the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is enough). To drop a book,
 `remove` it, take it out of the list, and delete its folder on S3 by hand.
+
+`build` writes `lines/` along with the rest. `lines` is for books built before it did (before
+2026-10-20): it takes each book's live `book.json`, writes it with `lines: true` and `lines/` to
+`--out`, and `upload <id> --out build-lines` then sends only those (the page images aren't
+touched). Give it a folder without other builds of the book: it refuses one holding a
+different build's page images. OCR'd books are OCR'd again from their live `_master` pages.
 
 ## The L5R books (2026-10-19)
 

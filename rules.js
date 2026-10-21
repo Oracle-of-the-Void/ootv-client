@@ -1,15 +1,19 @@
 // Rules section: the rulebook shelf and page viewer. Loaded on first use by rulesshow() in oracle.js.
 // The shelf is the structure item <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, type, tags, arc, ...}});
-// each book lives on the images bucket, per game: <imageuri>rulebooks/<id>/book.json, text.json and
-// <NNN>_{select,details,master}.webp per page
+// each book lives on the images bucket, per game: <imageuri>rulebooks/<id>/book.json, text.json,
+// <NNN>_{select,details,master}.webp per page and lines/<NNN>.json (the page's words and their boxes)
 // (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md).
-// Urls: #view=rules is the shelf, #rulebook=<id>,#page=<n> a page. Turning pages replaces the
-// history entry, so Back leaves the book rather than stepping through every page.
+// Urls: #view=rules is the shelf, #rulebook=<id>,#page=<n> a page, and #find=<phrase> (without #page: its
+// first page), #line=<n> or #at=<percent> a place on it, zoomed to the page's width. Turning pages replaces
+// the history entry, so Back leaves the book rather than stepping through every page.
 window.rulesloaded = true;
 
 var rulesshelf = null;      // the shelf ({game, books: [...] in shelf order}), once loaded
 var rulesbook = null;       // book.json of the open book
 var rulestext = null;       // text.json of the open book, loaded on the first search
+var ruleslines = {};        // page -> lines/<NNN>.json of the open book ([[block, [[x0, y0, x1, y1, word], ...]], ...]), or a request
+var rulesselect = false;    // select mode: the text layer takes the mouse and fingers (selecting, copying) instead of turning and dragging
+var rulesmarkzoomed = '';   // the mark (rulesmarkkey) last zoomed to, so redrawing the page doesn't zoom again
 var rulespanel = null;      // side panel shown: 'contents', 'pages', 'search' or null
 var ruleszoom = 1;          // 1: the page(s) fit the stage; more: larger, dragged or scrolled around (ruleszoomto)
 var rulesloading = null;    // the book id being fetched
@@ -206,9 +210,11 @@ $(document).on('click', 'a.rulesbookcard', function(e) {
 
 // ********** a book **********
 function rulesopenbook(id,page,push=false) {
+  if(push || rulesstate.book != id) { ruleslines = {}; }
   rulesstate.book = id;
-  rulesstate.page = page || 1;
+  rulesstate.page = page ?? 1;
   if(push) {
+    rulesclearmark();
     seturl(viewstate('rules'));
   }
   if(rulesloading == id) { return; }
@@ -220,6 +226,7 @@ function rulesopenbook(id,page,push=false) {
       if(rulesstate.book != id) { return; }
       rulesbook = book;
       rulestext = null;
+      ruleslines = {};
       ruleszoom = 1;
       rulesdrawreader();
       rulesgo(rulesstate.page, false);
@@ -233,6 +240,7 @@ function rulesopenbook(id,page,push=false) {
 function rulesclosebook() {
   rulesstate.book = null;
   rulesstate.page = 1;
+  rulesclearmark();
   seturl(viewstate('rules'));
   rulesdrawshelf();
 }
@@ -257,17 +265,18 @@ function rulesdrawreader() {
       (b.toc && b.toc.length ? '<button class="rulesbtn" data-panel="contents" onclick="rulestogglepanel(\'contents\');" aria-label="Contents" data-balloon-pos="down">'+rulesicon('list')+'</button>' : '')+
       '<button class="rulesbtn" data-panel="pages" onclick="rulestogglepanel(\'pages\');" aria-label="Pages" data-balloon-pos="down">'+rulesicon('grid')+'</button>'+
       (b.text ? '<button class="rulesbtn" data-panel="search" onclick="rulestogglepanel(\'search\');" aria-label="Search this book" data-balloon-pos="down">'+rulesicon('search')+'</button>' : '')+
+      (b.lines ? '<button class="rulesbtn rulesselectbtn'+(rulesselect ? ' searchviewactive' : '')+'" onclick="rulestoggleselect();" aria-label="Select text to copy or link (T)" data-balloon-pos="down">'+rulesicon('type')+'</button>' : '')+
       '<button class="rulesbtn rulesspreadbtn" onclick="rulestogglespread();" aria-label="One page / two pages" data-balloon-pos="down">'+rulesicon('columns')+'</button>'+
       '<button class="rulesbtn" onclick="rulesstepzoom(-1);" aria-label="Zoom out (-)" data-balloon-pos="down">'+rulesicon('zoom-out')+'</button>'+
       '<button class="rulesbtn ruleszoomlabel" onclick="ruleszoomto(1);" aria-label="Fit the page (0)" data-balloon-pos="down">100%</button>'+
       '<button class="rulesbtn" onclick="rulesstepzoom(1);" aria-label="Zoom in (+, Ctrl+wheel, pinch)" data-balloon-pos="down">'+rulesicon('zoom-in')+'</button>'+
-      '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
+      '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page (or to the text selected)" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
       '<button class="rulesbtn rulesfullbtn" onclick="rulesfullscreen();" aria-label="Full screen (F)" data-balloon-pos="down-right">'+rulesicon(rulesisfull() ? 'minimize' : 'maximize')+'</button>'+
       '</span>'+
     '</div>'+
     '<div class="rulesbody">'+
       '<div class="rulespanel" style="display:none"></div>'+
-      '<div class="rulesstage" tabindex="-1"><div class="rulesspread"></div>'+
+      '<div class="rulesstage'+(rulesselect && b.lines ? ' rulesselecting' : '')+'" tabindex="-1"><div class="rulesspread"></div>'+
         '<div class="rulesturn rulesturnprev" onclick="rulesturnclick(-1);" title="Previous page"></div>'+
         '<div class="rulesturn rulesturnnext" onclick="rulesturnclick(1);" title="Next page"></div>'+
       '</div>'+
@@ -305,7 +314,7 @@ function rulesdrawreader() {
   // the phone's own pinch-zoom of the whole page would fight ours (iOS doesn't always honour touch-action: none)
   var nogesture = function(e) { e.preventDefault(); };
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(t) { stage.addEventListener(t, nogesture, {passive: false}); });
-  stage.addEventListener('touchmove', nogesture, {passive: false});
+  stage.addEventListener('touchmove', function(e) { if(!rulesselecting()) { e.preventDefault(); } }, {passive: false});
 }
 
 // Full screen: the reader covers the window (rulesfull), and the browser goes full screen where it can
@@ -439,8 +448,10 @@ function rulesturnwheel(e) {
 // show page (and its spread partner); url: the address bar follows (replacing the entry)
 function rulesgo(page,url=true) {
   if(!rulesbook) { return; }
+  if(page === 0 && rulesstate.find) { rulesfindpage(url); return; }   // #find without #page: its first page
   var n = rulesbook.pages.length;
   page = Math.max(1, Math.min(n, parseInt(page, 10) || 1));
+  if(page != rulesstate.page) { rulesclearmark(); }   // the place marked was on the page left
   rulesstate.page = page;
   rulessavepage(rulesbook.id, page);
   var shown = rulesshown(page);
@@ -452,6 +463,7 @@ function rulesgo(page,url=true) {
   }).join(''));
   ruleslayout();
   stage.scrollTop(0).scrollLeft(0);   // a turned page keeps the zoom, from its top left
+  rulesdrawtext(shown);
   $('#rulesarea .rulespageinput').val(shown.length > 1 ? shown[0]+'-'+shown[1] : page);
   $('#rulesarea .rulesslider').val(page);
   $('#rulesarea .rulesspreadbtn').toggleClass('searchviewactive', shown.length > 1);
@@ -496,6 +508,232 @@ $(window).on('resize', _.debounce(function() {
   }
 }, 150));
 
+// ********** the text layer: selecting, copying, finding, marked places **********
+// Each page's words (lines/<NNN>.json) are laid over its image as transparent text, one span per word on its
+// box, sized in the page's own units (cqh) so it follows every zoom without redrawing. The browser's find
+// (Ctrl+F) sees it always; in select mode (rulesselect) it also takes the mouse and fingers, to select and copy.
+function rulesselecting() {
+  return rulesselect && !!(rulesbook && rulesbook.lines);
+}
+function rulestoggleselect() {
+  rulesselect = !rulesselect;
+  if(!rulesselect) { window.getSelection().removeAllRanges(); }
+  $('#rulesarea .rulesstage').toggleClass('rulesselecting', rulesselecting());
+  $('#rulesarea .rulesselectbtn').toggleClass('searchviewactive', rulesselect);
+  if(rulesselect) { rulesflash('Select text to copy it, or copy a link to it'); }
+}
+// the page's lines, loaded once per book; done(lines) gets null when the page has none
+function rulesloadlines(page, done) {
+  var have = ruleslines[page];
+  if(Array.isArray(have)) { done(have); return; }
+  var id = rulesbook.id;
+  if(!have) {
+    have = ruleslines[page] = $.ajax({url: rulesbase()+id+'/lines/'+String(page).padStart(3, '0')+'.json', dataType: 'json', cache: true})
+      .done(function(lines) { if(rulesbook && rulesbook.id == id) { ruleslines[page] = lines; } })
+      .fail(function() { if(rulesbook && rulesbook.id == id) { ruleslines[page] = []; } });
+  }
+  have.always(function() { if(rulesbook && rulesbook.id == id) { done(ruleslines[page] || []); } });
+}
+// how wide a word comes out at font-size 1px, to stretch it across its box
+var rulesmeasure = null;
+function ruleswordwidth(word) {
+  if(!rulesmeasure) {
+    rulesmeasure = document.createElement('canvas').getContext('2d');
+    rulesmeasure.font = '100px sans-serif';
+  }
+  return rulesmeasure.measureText(word).width / 100;
+}
+function rulesdrawtext(shown) {
+  if(!rulesbook.lines) { rulesmarkplace(); return; }
+  var left = shown.length;
+  shown.forEach(function(p) {
+    rulesloadlines(p, function(lines) {
+      var el = $('#rulesarea .rulespage[data-page="'+p+'"]');
+      if(el.length && !el.find('.rulestextlayer').length) {
+        var d = rulesbook.pages[p-1], aspect = d[0] / d[1];
+        // spaces between the words: the copied text and the browser's find see words, not one long run
+        el.append('<div class="rulestextlayer">'+lines.map(function(line, i) {
+          return '<div class="rulesline" data-line="'+i+'" data-block="'+line[0]+'">'+line[1].map(function(w, j) {
+            var bw = (w[2] - w[0]) / 10000, bh = (w[3] - w[1]) / 10000;
+            var fs = bh * 100 * 0.85, width = ruleswordwidth(w[4]) * fs / 100 / aspect;   // in page widths
+            var sx = width > 0 ? bw / width : 1;
+            return '<span data-word="'+j+'" style="left:'+(w[0] / 100)+'%;top:'+(w[1] / 100)+'%;font-size:'+fs.toFixed(3)+'cqh;'+
+              'line-height:'+(bh * 100).toFixed(3)+'cqh;transform:scaleX('+sx.toFixed(4)+')">'+rulesesc(w[4])+'</span>';
+          }).join(' ')+'</div>';
+        }).join('')+'</div>');
+      }
+      if(--left == 0) {
+        rulesdrawmarks();
+        rulesmarkplace();
+      }
+    });
+  });
+}
+function rulesclearmark() {
+  rulesstate.find = '';
+  rulesstate.line = 0;
+  rulesstate.at = 0;
+  rulesmarkzoomed = '';
+}
+function rulesmarkkey() {
+  return rulesstate.book+'/'+rulesstate.page+'/'+(rulesstate.find || '')+'/'+rulesstate.line+'/'+rulesstate.at;
+}
+// letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
+function rulesnorm(s) {
+  return s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
+}
+// the words of a page's lines that spell q (rulesnorm'd): [[line, word], ...], or [] when it isn't there
+function rulesfindwords(lines, q) {
+  var chars = '', at = [];
+  lines.forEach(function(line, i) {
+    line[1].forEach(function(w, j) {
+      var n = rulesnorm(w[4]);
+      chars += n;
+      for(var k = 0; k < n.length; k++) { at.push([i, j]); }
+    });
+  });
+  var from = q ? chars.indexOf(q) : -1;
+  if(from < 0) { return []; }
+  var out = [];
+  for(var k = from; k < from + q.length; k++) {
+    var last = out[out.length-1];
+    if(!last || last[0] != at[k][0] || last[1] != at[k][1]) { out.push(at[k]); }
+  }
+  return out;
+}
+// #find without #page: the first page with the phrase (from text.json), then the page as usual
+function rulesfindpage(url) {
+  var q = rulesnorm(rulesstate.find), id = rulesbook.id;
+  var go = function() {
+    var page = (rulestext || []).findIndex(function(t) { return rulesnorm(t).indexOf(q) >= 0; }) + 1;
+    if(!page) {
+      var find = rulesstate.find;
+      rulesclearmark();
+      rulesgo(1, url);
+      rulesflash('"'+find+'" isn\'t in this book');
+      return;
+    }
+    rulesstate.page = page;
+    rulesgo(page);   // the address bar gets the page, so the link copied from it opens there at once
+  };
+  if(rulestext || !rulesbook.text) { go(); return; }
+  $.ajax({url: rulesbase()+id+'/text.json', dataType: 'json', cache: true})
+    .done(function(t) { if(rulesbook && rulesbook.id == id) { rulestext = t; go(); } })
+    .fail(function() { if(rulesbook && rulesbook.id == id) { rulestext = []; go(); } });
+}
+// the boxes to mark on each page shown: the place linked to (find, line) and the words searched for
+function rulesdrawmarks() {
+  var stage = $('#rulesarea .rulesstage');
+  stage.find('.rulesmark').remove();
+  var words = rulessearchwords();
+  stage.find('.rulespage').each(function() {
+    var page = +$(this).data('page'), lines = ruleslines[page];
+    if(!Array.isArray(lines)) { return; }
+    var boxes = [];
+    if(page == rulesstate.page) {
+      // one band per line, around its words in the place
+      var bands = {};
+      rulesplacewords(lines).forEach(function(lw) {
+        var w = lines[lw[0]][1][lw[1]], band = bands[lw[0]];
+        bands[lw[0]] = band ? [Math.min(band[0], w[0]), Math.min(band[1], w[1]), Math.max(band[2], w[2]), Math.max(band[3], w[3])] : w.slice(0, 4);
+      });
+      Object.values(bands).forEach(function(band) { boxes.push(['rulesmarkplace', band]); });
+    }
+    if(words.length) {
+      lines.forEach(function(line) {
+        line[1].forEach(function(w) {
+          var low = w[4].toLowerCase();
+          if(words.some(function(q) { return low.indexOf(q) >= 0; })) { boxes.push(['rulesmarksearch', w]); }
+        });
+      });
+    }
+    $(this).append(boxes.map(function(b) {
+      var w = b[1];
+      return '<div class="rulesmark '+b[0]+'" style="left:'+(w[0] / 100)+'%;top:'+(w[1] / 100)+'%;width:'+((w[2] - w[0]) / 100)+
+        '%;height:'+((w[3] - w[1]) / 100)+'%"></div>';
+    }).join(''));
+  });
+}
+// the words of the marked place (#find, #line) on its page: [[line, word], ...]
+function rulesplacewords(lines) {
+  if(rulesstate.find) {
+    return rulesfindwords(lines, rulesnorm(rulesstate.find));
+  } else if(rulesstate.line && lines[rulesstate.line-1]) {
+    return lines[rulesstate.line-1][1].map(function(w, j) { return [rulesstate.line-1, j]; });
+  }
+  return [];
+}
+// zoom to the marked page's width and scroll the place into view, a third of the way down; once per mark,
+// so a redraw (a resize, the panel) doesn't undo the reader's own zooming
+function rulesmarkplace() {
+  if(!(rulesstate.find || rulesstate.line || rulesstate.at) || rulesmarkzoomed == rulesmarkkey()) { return; }
+  var y = null, lines = ruleslines[rulesstate.page];
+  if(rulesstate.at) {
+    y = rulesstate.at / 100;
+  } else if(Array.isArray(lines)) {
+    var lw = rulesplacewords(lines);
+    if(lw.length) {
+      y = lines[lw[0][0]][1][lw[0][1]][1] / 10000;
+    }
+  }
+  rulesmarkzoomed = rulesmarkkey();
+  if(y === null) {
+    rulesflash(rulesstate.find ? '"'+rulesstate.find+'" isn\'t on this page' : 'No line '+rulesstate.line+' on this page');
+    return;
+  }
+  var el = $('#rulesarea .rulesstage')[0], page = $('#rulesarea .rulespage[data-page="'+rulesstate.page+'"]')[0];
+  if(!el || !page) { return; }
+  var r = el.getBoundingClientRect();
+  ruleszoomto(ruleszoom * el.clientWidth / page.getBoundingClientRect().width);
+  var p = page.getBoundingClientRect();
+  el.scrollLeft += p.left - r.left;
+  el.scrollTop += p.top + y * p.height - r.top - el.clientHeight / 3;
+}
+// the text selected on the pages: {page, text} (the page it starts on), or null
+function rulesselection() {
+  var sel = window.getSelection();
+  if(!sel || sel.isCollapsed || !sel.rangeCount) { return null; }
+  var start = $(sel.getRangeAt(0).startContainer).closest('.rulespage');
+  if(!start.length || !start.closest('#rulesarea').length) { return null; }
+  var text = rulesseltext(sel);
+  return text ? {page: +start.data('page'), text: text} : null;
+}
+// the selection as text to paste: a line's words joined by spaces, lines of a block into one paragraph (words
+// broken across lines by a hyphen joined again), blocks and pages apart by a blank line, unless the text runs on
+// (no full stop, the next starting in lower case: a block break that isn't a paragraph)
+function rulesseltext(sel) {
+  var range = sel.getRangeAt(0), out = '', last = null;
+  $('#rulesarea .rulestextlayer span').each(function() {
+    if(!range.intersectsNode(this)) { return; }
+    // the words at either end may be selected only in part
+    var word = this.textContent, node = this.firstChild;
+    word = word.substring(node == range.startContainer ? range.startOffset : 0, node == range.endContainer ? range.endOffset : word.length);
+    if(!word) { return; }
+    var line = this.parentNode, page = $(this).closest('.rulespage').data('page');
+    var here = {page: page, block: line.getAttribute('data-block'), line: line.getAttribute('data-line')};
+    var runon = /^[a-z]/.test(word) && /[a-z0-9,;-]$/i.test(out);
+    if(!last) {
+      out = word;
+    } else if(last.line != here.line && runon && /[a-z]-$/i.test(out)) {
+      out = out.slice(0, -1)+word;
+    } else if((last.page != here.page || last.block != here.block) && !runon) {
+      out += '\n\n'+word;
+    } else {
+      out += ' '+word;
+    }
+    last = here;
+  });
+  return out.trim();
+}
+$(document).on('copy', function(e) {
+  var sel = window.getSelection();
+  if(!sel || sel.isCollapsed || !$(sel.anchorNode).closest('#rulesarea .rulestextlayer').length) { return; }
+  var text = rulesseltext(sel);
+  if(!text) { return; }
+  e.originalEvent.clipboardData.setData('text/plain', text);
+  e.preventDefault();
+});
+
 // ********** the side panel: contents, page thumbnails, search **********
 function rulestogglepanel(which) {
   rulespanel = rulespanel == which ? null : which;
@@ -530,8 +768,10 @@ function rulesdrawpanel() {
   }
   panel.html(out).show();
   if(rulespanel == 'search' && rulesstate.q) { rulessearch(); }
+  rulesdrawmarks();
 }
 function rulespanelgo(page) {
+  rulesclearmark();
   if(narrowscreen()) {   // the panel covers the page on phones
     rulespanel = null;
     rulesdrawpanel();
@@ -552,13 +792,17 @@ function rulesmarkpanel(shown) {
     if(last.length) { last[0].scrollIntoView({block: 'nearest'}); }
   }
 }
+// the words searched for, while the search panel is open (marked on the pages shown too)
+function rulessearchwords() {
+  return rulespanel == 'search' && (rulesstate.q || '').length >= 2 ? rulesstate.q.toLowerCase().split(/\s+/).filter(w => w) : [];
+}
 function rulessearch() {
   var q = $('#rulesarea .rulessearch').val().trim();
   rulesstate.q = q;
   var res = $('#rulesarea .rulesresults');
-  if(q.length < 2) { res.empty(); return; }
+  if(q.length < 2) { res.empty(); rulesdrawmarks(); return; }
   var run = function() {
-    var words = q.toLowerCase().split(/\s+/).filter(w => w);
+    var words = rulessearchwords();
     var hits = [];
     rulestext.forEach(function(t, i) {
       var low = t.toLowerCase();
@@ -574,6 +818,7 @@ function rulessearch() {
       }
     });
     res.html(hits.length ? '<p>'+hits.length+' page'+(hits.length == 1 ? '' : 's')+'</p><ul>'+hits.join('')+'</ul>' : '<p>No pages match.</p>');
+    rulesdrawmarks();
   };
   if(rulestext) { run(); return; }
   res.html('<p>Loading the text&hellip;</p>');
@@ -584,19 +829,32 @@ function rulessearch() {
 }
 $(document).on('input', '#rulesarea .rulessearch', _.debounce(rulessearch, 250));
 
+// a link to the page shown (with its marked place), or with text selected on a page, to that text (#find=)
 function rulescopylink() {
-  var url = location.href.split('#')[0]+statehash(viewstate('rules'));
-  var done = function() { $('#rulesarea .rulestools').attr('data-copied', 'Link copied'); setTimeout(function() { $('#rulesarea .rulestools').removeAttr('data-copied'); }, 1500); };
-  if(navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(done, function() { prompt('Link to this page', url); });
-  } else {
-    prompt('Link to this page', url);
+  var state = viewstate('rules'), sel = rulesselection();
+  if(sel) {
+    // the first dozen words find it; more would only break on a rebuilt book's small differences
+    Object.assign(state, {page: sel.page, find: sel.text.split(/\s+/).slice(0, 12).join(' '), line: 0, at: 0});
   }
+  var url = location.href.split('#')[0]+statehash(state);
+  var label = sel ? 'Link to this text' : 'Link to this page';
+  var done = function() { rulesflash(sel ? 'Link to the text copied' : 'Link copied'); };
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(done, function() { prompt(label, url); });
+  } else {
+    prompt(label, url);
+  }
+}
+function rulesflash(msg) {
+  var tools = $('#rulesarea .rulestools').attr('data-copied', msg);
+  clearTimeout(rulesflash.timer);
+  rulesflash.timer = setTimeout(function() { tools.removeAttr('data-copied'); }, msg.length > 20 ? 2500 : 1500);
 }
 
 // ********** input: keys, page box, slider, double-click zoom, swipes **********
 $(document).on('keydown', function(e) {
   if(!rulesbook || !$('#resultrules').is(':visible') || $(e.target).is('input, textarea, select') || $('.modal-box:visible').length) { return; }
+  if(e.ctrlKey || e.metaKey || e.altKey) { return; }   // the browser's own: Ctrl+F finds in the text layer, Ctrl+C copies
   var keys = {ArrowRight: 1, ArrowDown: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, ArrowUp: -1, PageUp: -1};
   if(ruleszoom > 1 && (e.key == 'ArrowDown' || e.key == 'ArrowUp' || e.key == ' ')) { return; }   // scroll the zoomed page
   if(keys[e.key]) {
@@ -613,6 +871,8 @@ $(document).on('keydown', function(e) {
     ruleszoomto(1);
   } else if(e.key == 'f' || e.key == 'F') {
     rulesfullscreen();
+  } else if((e.key == 't' || e.key == 'T') && rulesbook.lines) {
+    rulestoggleselect();
   } else if(e.key == 'Escape' && rulesisfull()) {
     rulesfullscreen(false);
   } else {
@@ -669,6 +929,8 @@ function rulespanstart(e, moved) {
 $(document).on('pointerdown', '#rulesarea .rulesstage', function(ev) {
   var e = ev.originalEvent;
   if(e.pointerType == 'mouse' && e.button != 0) { return; }
+  // selecting text: a mouse or pen drags a selection, and fingers are the browser's (scroll, long-press to select)
+  if(rulesselecting()) { return; }
   rulesptrs[e.pointerId] = {x: e.clientX, y: e.clientY};
   var n = Object.keys(rulesptrs).length;
   if(n == 1) {

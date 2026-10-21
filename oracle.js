@@ -1955,8 +1955,16 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
 }
 
 // The Rules section (rules.js, loaded on first use): the rulebook shelf and page viewer.
-// rulesstate is what the url says: the book open (null: the shelf), its page, the book search.
-var rulesstate = {book: null, page: 1, q: ''};
+// rulesstate is what the url says: the book open (null: the shelf), its page (0: the first page with find),
+// the book search, and a place on the page to zoom to: find (a phrase), line (its number) or at (percent down).
+var rulesstate = {book: null, page: 1, q: '', find: '', line: 0, at: 0};
+// the place on the page from a url's #find=, #line=, #at= (rulesmarkhash: back into one)
+function rulesmarkparse(m) {
+  return {find: m.find ? decodeURIComponent(m.find) : '', line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0)};
+}
+function rulesmarkhash(state) {
+  return state.find ? ',#find='+encodeURIComponent(state.find) : state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '';
+}
 function rulesshow() {
   if(window.rulesloaded) { rulesrender(); return; }
   $('#rulesarea').html('<div class="rulesshelf"><p>Loading&hellip;</p></div>');
@@ -6438,7 +6446,8 @@ function hashstate(hash) {
   } else if(m.publiclists !== undefined) {
     return {view: 'public', pq: decodeURIComponent(m.publiclists)};
   } else if(m.rulebook !== undefined) {
-    return {view: 'rules', book: m.rulebook, page: parseInt(m.page, 10) || 1};
+    var mark = rulesmarkparse(m);
+    return Object.assign({view: 'rules', book: m.rulebook, page: parseInt(m.page, 10) || (mark.find ? 0 : 1)}, mark);
   } else if(m.view !== undefined) {
     return {view: m.view};
   }
@@ -6456,7 +6465,7 @@ function statehash(state) {
   } else if(state.view == 'public' && state.pq) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
-    return h+',#rulebook='+state.book+(state.page > 1 ? ',#page='+state.page : '');
+    return h+',#rulebook='+state.book+(state.page > 1 || (state.page == 1 && state.find) ? ',#page='+state.page : '')+rulesmarkhash(state);
   } else if(state.view == 'about') {
     return h;
   }
@@ -6474,7 +6483,7 @@ function viewstate(view) {
   } else if(view == 'public') {
     return {view: view, pq: lastpublicquery || null};
   } else if(view == 'rules') {
-    return {view: view, book: rulesstate.book, page: rulesstate.page};
+    return {view: view, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at};
   }
   return {view: view};
 }
@@ -6613,8 +6622,10 @@ function urlparser(keepfilters=false) {
 	  }
 	  showviewkeepurl('resultpublic');
   } else if(typeof(matchstruct['rulebook']) != 'undefined') {
+	  var rulesmark = rulesmarkparse(matchstruct);
 	  rulesstate.book = matchstruct['rulebook'];
-	  rulesstate.page = parseInt(matchstruct['page'], 10) || 1;
+	  rulesstate.page = parseInt(matchstruct['page'], 10) || (rulesmark.find ? 0 : 1);
+	  Object.assign(rulesstate, rulesmark);
 	  urlrestoring = 'rules';
 	  rulesshowview();
   } else if(typeof(matchstruct['view']) != 'undefined') {
