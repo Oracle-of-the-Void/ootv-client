@@ -152,7 +152,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
 
 ```json
 {"id": "emperor", "title": "Emperor Edition", "subtitle": "Rulebook", "year": 2012,
- "arc": "Age of Conquest", "type": "Complete", "tags": ["Base set", "Last complete rules in arc"],
+ "arc": "Age of Conquest (Emperor)", "type": "Complete", "tags": ["Base set", "Last complete rules in arc"],
  "pdf": "Rulebook-L5R-Emperor.pdf"}
 ```
 
@@ -178,7 +178,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   credit line of its own: the list-wide `credit` was dropped on 2026-10-20.
 - `arc`, `type` and `tags` drive the shelf's filters (the text is shown as written, so keep the
   spelling the same across books):
-  - `arc`: the arc the book belongs to, or `Multi-Arc` for formats played with cards from many arcs
+  - `arc`: the arc the book belongs to, named as the card legalities name it, with the edition people
+    call it by in parentheses (`Hidden Emperor (Jade)`, `A Brother's Destiny (Twenty Festivals)`; since
+    2026-10-22), or `Multi-Arc` for formats played with cards from many arcs
     (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...; their type is `Multi-Arc` too, or a
     list with it, e.g. `["Rulings", "Multi-Arc"]` for a format's FAQ). Multi-Arc books come last on
     the shelf (by year among themselves), and so does Multi-Arc in the Arc filter (2026-10-22).
