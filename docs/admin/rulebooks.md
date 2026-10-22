@@ -1,6 +1,6 @@
 # Rulebooks (Rules section)
 
-Last updated: 2026-10-21
+Last updated: 2026-10-22
 
 The **Rules** button in the menubar (the open book) opens the game's rulebook shelf, oldest book
 first (by year). Above the
@@ -64,7 +64,10 @@ define them. A trait in the **Keywords** gets a book (📖) after it, and the fi
 names a trait it gets a dotted underline. Hovering either one (or the keyword) shows the rule's text
 from each of the trait's books; clicking the book or the underlined word opens the book at the
 definition, marked (a `#find` link). When the trait has more than one book, the click shows them all
-with their text instead, to pick one. On a phone or tablet, a long-press on the trait (or its keyword)
+with their text instead, to pick one. A keyword's number doesn't matter (Experienced 2 and Yu 3 link to
+Experienced and Yu), and a trait inside a name (Utaku Yu-Pan) isn't marked. Fan-made books (shelf tag
+**Fan Made**, e.g. the Onyx Lives datasheets) carry a **Fan Made** mark after their title, so AEG's rules
+and the fan rules that changed them can be told apart. On a phone or tablet, a long-press on the trait (or its keyword)
 shows the same text in a panel with a large **Open page** button per book and **Close** (tapping
 outside it closes it too); a plain tap works as a click.
 
@@ -102,8 +105,12 @@ python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json --upload   # and pu
 ```
 
 The site reads the item when Card Details first opens, so a change needs no deploy (only a reload).
-Floor rules, AEG's addenda and Special books (War of Honor) aren't searched; the Onyx Lives datasheets
-are (2026-10-21). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
+Floor rules and Special books (War of Honor) aren't searched. AEG's addenda mostly aren't either, except
+the three that define traits (2026-10-22): Broken Blades (Yu, under Four Winds), The New Order (Courtesy,
+Invest, Unstoppable, under Ivory Edition, first) and The Blackest Storm (Sincerity, under Twenty
+Festivals, first). The Onyx Lives datasheets are searched (2026-10-21). Two per-book options in the JSON
+help with rulesheets: `narrow` (a heading over a narrow column, whose first line looks like a heading
+too) and `hover` (keep more than 420 characters, where the rule comes after an introduction). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
 sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
 back in the hover text from the other books' words.
 
