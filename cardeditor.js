@@ -246,9 +246,9 @@ function cardeditrender() {
       var list = cardeditsorted(), at = list.findIndex(q => q.printingid == p.printingid);
       var step = (d,img,title) => '<a href="" class="cardeditstep'+(at+d < 0 || at+d >= list.length ? ' cardeditstepoff' : '')+'" title="'+title+'"'+
         ' onclick="cardeditstep('+d+'); return false;"><img src="res/symbol-'+img+'-one.png" alt="'+title+'" /></a>';
-      html += '<div class="cardeditprintingbar">'+step(-1,'left','Previous instance (&larr;, or Alt+, while typing)')+
+      html += '<div class="cardeditprintingbar">'+step(-1,'left','Previous instance (&larr;)')+
         '<b>'+(isnew ? 'New instance' : 'Instance '+htmlEncode(p.printingid))+'</b> <span class="cardeditstepcount">('+(at+1)+' of '+list.length+')</span>'+
-        step(1,'right','Next instance (&rarr;, or Alt+. while typing)')+
+        step(1,'right','Next instance (&rarr;)')+
         (p.printingid == c.printingprimary ? ' <span class="cardeditmrp">MRP</span>'
           : ' <span class="button gray buttonsmall" onclick="cardeditmrp();">Make MRP<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg></span></span>')+
         ' <span class="button gray buttonsmall" onclick="cardeditdeleteprinting();">Delete instance<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></svg></span></span>'+
@@ -526,17 +526,11 @@ function cardeditstep(d) {
   if(p) { cardeditselect(p.printingid); }
 }
 
-// Alt+, / Alt+. (the < > keys) step through instances from anywhere in the editor, even while
-// typing in a value; plain left/right arrows do it when no field has the focus, as on the card page
+// the left/right arrows step through instances when no field has the focus, as on the card page
 $(document).on('keydown', function(e) {
   if(!cardedit || !$('#modal').hasClass('cardeditmodal') || !$('#modal').is(':visible') || $('#cardeditconfirm').is(':visible')) { return; }
-  if(e.ctrlKey || e.metaKey) { return; }
-  var d = 0;
-  if(e.altKey && !e.shiftKey) {
-    d = e.code == 'Comma' ? -1 : e.code == 'Period' ? 1 : 0;
-  } else if(!e.altKey && !e.shiftKey && !$(e.target).is('input, textarea, select, [contenteditable=true]')) {
-    d = e.key == 'ArrowLeft' ? -1 : e.key == 'ArrowRight' ? 1 : 0;
-  }
+  if(e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || $(e.target).is('input, textarea, select, [contenteditable=true]')) { return; }
+  var d = e.key == 'ArrowLeft' ? -1 : e.key == 'ArrowRight' ? 1 : 0;
   if(!d) { return; }
   e.preventDefault();
   cardeditstep(d);
