@@ -97,10 +97,11 @@ function rulesdrawshelf() {
 }
 
 // ********** shelf filters **********
-// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege), or a list of
+// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege, Play Variant: a
+// house-rule way to play, like solitaire or 2-vs-1), or a list of
 // them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
 // the choice is kept per game in this browser.
-var RULESTYPES = ['Complete', 'Addendum', 'Special'];   // the order on the bar; other types follow
+var RULESTYPES = ['Complete', 'Addendum', 'Special', 'Play Variant'];   // the order on the bar; other types follow
 var RULESMULTIARC = 'Multi-Arc';   // the arc of formats spanning arcs: its books, and its choice on the bar, come last
 var rulesfilter = null;   // {game, type, arc, tags: [...]}
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }

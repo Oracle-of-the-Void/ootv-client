@@ -196,10 +196,12 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
     `Special` (rules for one format or game mode: War of Honor, Booster Draft, Siege) or
+    `Play Variant` (a house-rule way to play rather than a format with its own deck or tournament
+    rules: solitaire, 2-vs-1, epic multiplayer with a map, koku ante; since 2026-10-22) or
     `Floor Rules` (tournament floor rules, e.g. kempy's `Tournament/` folder) or `Rulings` (the old
     FAQs, accumulated rulings and rules archives, errata lists included; their rulings are also on the
     cards, `rulings.md`). The filter
-    bar lists Complete, Addendum and Special first (`RULESTYPES` in `rules.js`), then any other type.
+    bar lists Complete, Addendum, Special and Play Variant first (`RULESTYPES` in `rules.js`), then any other type.
     A book that is more than one takes a list, e.g. `"type": ["Complete", "Rulings"]` for the Samurai
     Edition Comprehensive Rules (complete rules with card rulings): it shows under each type's filter.
   - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the
