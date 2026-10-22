@@ -178,6 +178,9 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   credit line of its own: the list-wide `credit` was dropped on 2026-10-20.
 - `arc`, `type` and `tags` drive the shelf's filters (the text is shown as written, so keep the
   spelling the same across books):
+  - `arc`: the arc the book belongs to, or `Multi-Arc` for formats played with cards from many arcs
+    (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...). Multi-Arc books come last on
+    the shelf (by year among themselves), and so does Multi-Arc in the Arc filter (2026-10-22).
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
