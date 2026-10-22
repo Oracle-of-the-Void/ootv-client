@@ -22,6 +22,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      actions: read
 
     steps:
       - name: Select target
@@ -45,13 +46,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # a late run (GitHub delays push events during incidents) mustn't put old code over a newer deploy
+      - name: Still the newest?
+        id: newest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/skip-stale.sh
+
       - name: Configure AWS credentials
+        if: steps.newest.outputs.current == 'true'
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ github.ref_name == 'master' && secrets.AWS_ROLE_ARN_PROD || secrets.AWS_ROLE_ARN_DEV }}
           aws-region: ${{ env.REGION }}
 
       - name: Stamp version
+        if: steps.newest.outputs.current == 'true'
         run: .github/stamp-version.sh "${GITHUB_SHA::12}"
 
       # Caching (see .github/stamp-version.sh):
@@ -63,6 +73,7 @@ jobs:
       # then keep that for a year. So: upload assets, invalidate and wait, and only then
       # upload the pages that point at the new URLs.
       - name: Sync to S3
+        if: steps.newest.outputs.current == 'true'
         env:
           BUCKET: ${{ steps.target.outputs.bucket }}
           DISTRIBUTION: ${{ steps.target.outputs.distribution }}
