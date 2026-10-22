@@ -175,6 +175,8 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     FAQs, accumulated rulings and rules archives, errata lists included; their rulings are also on the
     cards, `rulings.md`). The filter
     bar lists Complete, Addendum and Special first (`RULESTYPES` in `rules.js`), then any other type.
+    A book that is more than one takes a list, e.g. `"type": ["Complete", "Rulings"]` for the Samurai
+    Edition Comprehensive Rules (complete rules with card rulings): it shows under each type's filter.
   - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the
     latest Complete book of its arc, the one to play that arc by), and `Fan Made` (not published
     by AEG, e.g. the War of Honor update to Ivory Edition rules). A book can have any of them, or
