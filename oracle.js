@@ -4199,7 +4199,18 @@ function artsimilarhit(datarequest,hit) {
 }
 
 // Search by photo (artphoto.js, loaded on first use; ootv-search artembed/ and POST /artphoto): the
-// Photo button is a label around a file input, so the picker opens straight from the click
+// Photo button is a label around a file input, so the picker opens straight from the click.
+// Only for a logged-in user with a permission on this game (any operation in groups[database] or
+// groups['*']); Patreon privileges are to come (ootv-claude projects/patreon-privileges.md). Keep it
+// the same as the API's check, ootv-search artembed/app.py allowed().
+function artphotoallowed() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) {
+    return false;
+  }
+  var groups = user.oracle[0].groups || {};
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].length > 0; });
+}
 function artphotostart(input) {
   var go = function() { artphotofile(input); };
   if(typeof artphotofile === 'function') {
@@ -6046,6 +6057,7 @@ function updateviewbuttons() {
     $("#templatebuttons button[data-template]").hide();
   }
   $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
+  $(".artphotobutton").toggle(artphotoallowed());     // search by photo: logged in, with a permission on this game
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
   if(tab == 'dir' || tab == 'public') {
