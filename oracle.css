@@ -2082,6 +2082,7 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditaddvalue { cursor: pointer; color: #2a7a2a; font-weight: bold; padding: 0 3px; user-select: none; }
 .cardeditaddvalue:hover { background: #dfd; border-radius: 3px; }
 .cardeditaddrow { padding-top: 8px; border-top: 1px solid #eee; }
+.cardeditaddfield { max-width: 26em; }
 .cardeditadddesc { color: #555; font-size: 0.9em; margin-top: 3px; white-space: pre-line; }
 .cardeditadddesc:empty { display: none; }
 .cardeditdesc { text-decoration: underline dotted #999; cursor: help; }

@@ -281,8 +281,13 @@ function cardeditfields(scope,obj,known) {
       '</div>';
   });
   var missing = Object.keys(known[scope]).filter(k => !keys.includes(k)).sort();
+  // wider screens: each field's description in the list itself (cut to a line), so it can be read before picking
+  var inlist = function(k) {
+    var d = narrowscreen() ? '' : fielddesc(cardedit.db,scope,k).replace(/<[^>]*>/g,'').replace(/\s+/g,' ');
+    return d ? k+' — '+(d.length > 110 ? d.slice(0,109).replace(/\s+\S*$/,'')+'…' : d) : k;
+  };
   html += '<div class="cardeditaddrow"><select class="cardeditaddfield" onchange="$(this).next().toggle(this.value == \'\'); $(this).siblings(\'.cardeditadddesc\').text(fielddesc(cardedit.db,\''+scope+'\',this.value));">'+
-    missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[scope][k]+'" title="'+htmlEncode(fielddesc(cardedit.db,scope,k)).replace(/"/g,'&quot;')+'">'+htmlEncode(k)+'</option>').join('')+
+    missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[scope][k]+'" title="'+htmlEncode(fielddesc(cardedit.db,scope,k)).replace(/"/g,'&quot;')+'">'+htmlEncode(inlist(k))+'</option>').join('')+
     '<option value="">Other...</option></select>'+
     '<input type="text" class="cardeditaddname" placeholder="field name" size="14"'+(missing.length ? ' style="display:none"' : '')+' /> '+
     '<span class="button gray buttonsmall" onclick="cardeditaddfield(this,\''+scope+'\');">Add field<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#plus-circle"></svg></span></span>'+

@@ -36,7 +36,8 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   the last one to add an empty value to fill in.
 - **Add field** offers the fields this game uses that the card (or instance) doesn't have yet
   (from the game's card template and every card loaded this session), or **Other...** for a new
-  name. The field picked shows its description under the menu. A list field starts as one empty value, a text field as empty text.
+  name. On a wider screen the menu lists each field with its description
+  (cut to a line); the field picked shows its full description under the menu. A list field starts as one empty value, a text field as empty text.
 - Fields holding structured data (`image`, true/false flags such as `notmrp`) are edited as JSON
   in their own box. A true/false field added with Add field starts as `true`.
   If the box doesn't parse it turns red and the field keeps its last good value.
