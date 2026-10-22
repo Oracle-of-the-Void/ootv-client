@@ -7842,19 +7842,32 @@ $(document).on('click', 'dd.rulings a[href]', function(e) {
   $('#traitpop').hide();
   rulingpopup($(this).attr('href'), $(this).text());
 });
-$(document).on('mouseenter', 'dd.rulings a[href*="#rulebook="]', function() {
-  if(lastpointertype != 'mouse') { return; }
-  var el = this, l = rulinglink($(el).attr('href')), w = Math.min(560, window.innerWidth - 16);
+$(document).on('mouseenter', '#resultcard dd.rulings a[href*="#rulebook="]', function() {
+  if(lastpointertype != 'mouse' || $('#traitpop').hasClass('traitpoptouch') && $('#traitpop').is(':visible')) { return; }
+  rulingpeek(this, false);
+}).on('mouseleave', '#resultcard dd.rulings a[href*="#rulebook="]', function() {
+  if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').removeData('ruling').hide(); }
+});
+// the place a ruling's rulebook link points at, in the trait popup: by el on hover (mouse), or after a long-press
+// (touch), centred, with Open page and Close (as traitpopshow)
+function rulingpeek(el,touch) {
+  var l = rulinglink($(el).attr('href')), label = $(el).text(), w = Math.min(touch ? 420 : 560, window.innerWidth - 16);
   var pop = $('#traitpop');
   if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
-  pop.removeClass('traitpoptouch').data('ruling', el).html('<div class="traitpophead">'+$('<div>').text($(el).text()).html()+'</div>'+
+  pop.toggleClass('traitpoptouch', touch).data('ruling', el).html('<div class="traitpophead">'+$('<div>').text(label).html()+'</div>'+
     '<div class="rulingview rulingpeek"><div class="rulingpage"><img src="'+rulingpageurl(l, 'master')+'" alt=""></div></div>'+
-    '<div class="traitpopfoot">Click to open the page</div>');
-  popnear(pop, el, w);
-  rulingshowplace(pop.find('.rulingview'), l, true, function() { if(pop.data('ruling') == el) { popnear(pop, el, w); } });
-}).on('mouseleave', 'dd.rulings a[href*="#rulebook="]', function() {
-  $('#traitpop').removeData('ruling').hide();
-});
+    (touch ? '<span class="button gray traitpopopen">Open page '+l.page+'</span><span class="button gray traitpopclose" onclick="$(\'#traitpop\').hide();">Close</span>' :
+      '<div class="traitpopfoot">Click to open the page</div>'));
+  if(touch) {
+    pop.find('.traitpopopen').on('click', function() { pop.hide(); rulingpopup($(el).attr('href'), label); });
+  }
+  var place = function() {
+    if(pop.data('ruling') != el) { return; }
+    if(touch) { pop.css({width: w, left: (window.innerWidth - w) / 2, top: '6vh', bottom: 'auto'}).show(); } else { popnear(pop, el, w); }
+  };
+  place();
+  rulingshowplace(pop.find('.rulingview'), l, true, place);
+}
 var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in Rules
 // a ruling's rulebook link: {book, page, mark: {find, line, at} as written in the link}, or null
 function rulinglink(href) {
@@ -8065,19 +8078,24 @@ $(document).on('mouseenter', '#resultcard [data-trait]', function(e) {
 }).on('mouseleave', '#resultcard [data-trait]', function() {
   if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').hide(); }
 });
-// touch: a long-press shows it (instead of the browser's link menu); the tap that ends the press does nothing
+// touch: a long-press shows it (instead of the browser's link menu); the tap that ends the press does nothing.
+// The same for a ruling's rulebook link (rulingpeek)
+var POPTARGETS = '#resultcard [data-trait], #resultcard dd.rulings a[href*="#rulebook="]';
+function poptargetshow(el,touch) {
+  if($(el).is('[data-trait]')) { traitpopshow(el, touch); } else { rulingpeek(el, touch); }
+}
 var traitpress = null, traitpressed = 0;
-$(document).on('pointerdown', '#resultcard [data-trait]', function(e) {
+$(document).on('pointerdown', POPTARGETS, function(e) {
   if(e.originalEvent.pointerType == 'mouse') { return; }
   var el = this;
   clearTimeout(traitpress);
-  traitpress = setTimeout(function() { traitpressed = Date.now(); traitpopshow(el, true); }, 500);
-}).on('pointerup pointercancel pointerleave', '#resultcard [data-trait]', function() {
+  traitpress = setTimeout(function() { traitpressed = Date.now(); poptargetshow(el, true); }, 500);
+}).on('pointerup pointercancel pointerleave', POPTARGETS, function() {
   clearTimeout(traitpress);
-}).on('contextmenu', '#resultcard [data-trait]', function(e) {
+}).on('contextmenu', POPTARGETS, function(e) {
   if(lastpointertype != 'mouse') { e.preventDefault(); }
 }).on('pointerdown', function(e) {
-  if($('#traitpop').is(':visible') && !$(e.target).closest('#traitpop, #resultcard [data-trait]').length) { $('#traitpop').hide(); }
+  if($('#traitpop').is(':visible') && !$(e.target).closest('#traitpop, '+POPTARGETS).length) { $('#traitpop').hide(); }
 });
 document.addEventListener('click', function(e) {   // capture: before a keyword link's own onclick
   if(Date.now() - traitpressed < 1000) {   // the long-press's own tap, wherever it lands (the popup may be under it)
