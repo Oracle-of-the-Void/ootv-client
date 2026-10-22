@@ -3761,7 +3761,8 @@ var gestureswitches = [
   ['dirdragtouch', 'Drag lists and folders in the list directory (touch)'],
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
   ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
-  ['tooltip', "Long-press a button to see its label (touch)"]
+  ['tooltip', "Long-press a button to see its label (touch)"],
+  ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)']
 ];
 // card swipes, per view: search results change the first active list, the deck/list view the list shown
 var swipeviews = [['search', 'Swipes in search results'], ['list', 'Swipes in a deck or list']];
@@ -6564,6 +6565,42 @@ $(document).on('keydown', function ( e ) {
 	    }
 	}
 	console.log(e);
+    }
+});
+
+// Touch: a sideways swipe on the card view goes to the next (swipe left) or previous (swipe right) result,
+// the same as the arrow keys. Passive, so a vertical drag still scrolls; skipped when pinch-zoomed, over a form
+// field, inside something that scrolls sideways, or with the card editor or a modal open.
+var cardswipe = null;
+document.addEventListener('touchstart', function(e) {
+    cardswipe = null;
+    if(e.touches.length != 1 || !$("#resultcard").is(":visible") || $("#modal").is(":visible") || !gestureon('cardswipetouch')) {
+	return;
+    }
+    if(window.visualViewport && window.visualViewport.scale > 1.05) {
+	return;
+    }
+    var t = $(e.target);
+    if(!t.closest('#resultcard').length || t.closest('input, select, textarea, [contenteditable=true]').length) {
+	return;
+    }
+    for(var el = e.target; el && el.id != 'resultcard'; el = el.parentElement) {
+	if(el.scrollWidth > el.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(el).overflowX)) {
+	    return;
+	}
+    }
+    cardswipe = {x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now()};
+}, {passive: true});
+document.addEventListener('touchcancel', function() { cardswipe = null; });
+document.addEventListener('touchend', function(e) {
+    var s = cardswipe;
+    cardswipe = null;
+    if(!s || e.touches.length || Date.now() - s.t > 800) {
+	return;
+    }
+    var dx = e.changedTouches[0].clientX - s.x, dy = e.changedTouches[0].clientY - s.y;
+    if(Math.abs(dx) >= 60 && Math.abs(dx) > 2*Math.abs(dy) && !String(window.getSelection() || '')) {
+	$(dx < 0 ? "#cardnext" : "#cardprev").click();
     }
 });
 
