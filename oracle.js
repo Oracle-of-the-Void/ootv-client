@@ -8054,6 +8054,11 @@ function traitbooktitle(book) {
   return traitesc(book.title)+(book.subtitle ? ' '+traitesc(book.subtitle) : '')+(book.year ? ' ('+book.year+')' : '')+
     (traitfanmade(book) ? ' <span class="traitfan">Fan Made</span>' : '');
 }
+// why a book is listed: "this printing" as a mark first (like Fan Made), the other reasons after it
+function traitwhy(why) {
+  var rest = why.filter(function(w) { return w != 'this printing'; });
+  return (rest.length < why.length ? '<span class="traitprint">this printing</span>'+(rest.length ? ' ' : '') : '')+traitesc(rest.join(', '));
+}
 // the books for a marked trait in the card shown
 function traitcandidates(el) {
   var data = traitsdata[database], legal = $(el).closest('#resultcard').data('traits');
@@ -8069,7 +8074,7 @@ function traitpopshow(el,touch) {
   pop.toggleClass('traitpoptouch', touch).html('<div class="traitpophead">'+traitesc(trait)+'</div>'+books.map(function(b) {
     var open = touch ? '<span class="button gray traitpopopen" onclick="traitopen(\''+addslashes(b.id)+'\',\''+addslashes(trait)+'\');">Open page '+
       data.traits[trait][b.id].page+'</span>' : '';
-    return '<div class="traitpopbook"><b>'+traitbooktitle(data.books[b.id])+'</b> <span class="traitwhy">'+traitesc(b.why.join(', '))+
+    return '<div class="traitpopbook"><b>'+traitbooktitle(data.books[b.id])+'</b> <span class="traitwhy">'+traitwhy(b.why)+
       '</span><div>'+traitesc(data.traits[trait][b.id].text)+'</div>'+open+'</div>';
   }).join('')+(touch ? '<span class="button gray traitpopclose" onclick="$(\'#traitpop\').hide();">Close</span>' :
     '<div class="traitpopfoot">'+($(el).is('a') ? 'Click &#128214; to open the rulebook' : books.length > 1 ? 'Click to choose a book' : 'Click to open the page')+'</div>'));
@@ -8130,7 +8135,7 @@ $(document).on('click', '#resultcard .traitbook, #resultcard .traitword', functi
   } else if(books.length) {
     modal(traitesc(trait)+' in the rulebooks', books.map(function(b) {
       return '<div class="traitchoice"><p><span class="button gray" onclick="traitopen(\''+addslashes(b.id)+'\',\''+addslashes(trait)+'\');">'+
-        traitbooktitle(data.books[b.id])+', page '+data.traits[trait][b.id].page+'</span></p><p class="traitwhy">'+traitesc(b.why.join(', '))+
+        traitbooktitle(data.books[b.id])+', page '+data.traits[trait][b.id].page+'</span></p><p class="traitwhy">'+traitwhy(b.why)+
         '</p><p>'+traitesc(data.traits[trait][b.id].text)+'</p></div>';
     }).join(''));
   }
