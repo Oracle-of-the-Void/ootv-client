@@ -4612,14 +4612,15 @@ function createpdf(data,listoutput='') {
       var copies = (o.quantity == 'spoiler') ? 1 : card.listquantity;
       for(p of (card.printing || [])) {
         if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
-          if(p.image) {
+          var pimages = printingimages(p).filter(i => i[size] || i.details);  // no usable scan: no page for it
+          if(pimages.length) {
               for(cn = 0; cn < copies; cn++) {
                 if(p.doublesided) {
-  	              for(i of p.image) {
+  	              for(i of pimages) {
                     images.push(newurl(p,i));
                   }
                 } else {
-                  images.push(newurl(p,p.image[0]));
+                  images.push(newurl(p,pimages[0]));
                 }
               }
           }
@@ -5859,13 +5860,21 @@ function derivedprinting(card,field,value) {
     var preferred = d.prefer ? fits.filter(function(i) { return has(card.printing[i][field],d.prefer); }) : [];
     return latestprinting(card, preferred.length ? preferred : fits);
 }
+// a printing's usable image entries: objects naming at least one file, and only with an imagehash.
+// A printing with no scan should have neither field (docs/data.md), but an empty image: [], an
+// entry that isn't an object, or a missing imagehash gives [] here instead of breaking the caller.
+function printingimages(p) {
+    if(!p || typeof p.imagehash !== 'string' || !Array.isArray(p.image)) { return []; }
+    return p.image.filter(e => e && typeof e === 'object' && ['select','details','master'].some(k => typeof e[k] === 'string' && e[k]));
+}
 function templatefetchimage(card,size,id=false,datarequest={}) {
     console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);
-    if("image" in prdata) {
+    var front = printingimages(prdata)[0];
+    if(front) {
         //dbinfo[database].imageuri + hash + image
-        if(size in prdata.image[0]) {
-            return dbinfo[database].imageuri + prdata.imagehash + "/"+ prdata.image[0][size];
+        if(typeof front[size] === 'string' && front[size]) {
+            return dbinfo[database].imageuri + prdata.imagehash + "/"+ front[size];
         } else {
             if(size in missingimage) {
                 return missingimage[size];
