@@ -236,7 +236,7 @@ function cardeditrender() {
     var known = cardeditknownfields();
     html += '<fieldset class="cardeditsection"><legend>Card details</legend>'+
       cardeditfields('card',c,known)+'</fieldset>';
-    html += '<fieldset class="cardeditsection"><legend>Printing details</legend>'+cardeditprintings();
+    html += '<fieldset class="cardeditsection" id="cardeditprintingsection"><legend>Printing details</legend>'+cardeditprintings();
     var p = cardeditprinting();
     if(p) {
       var isnew = cardeditisnew(p.printingid);
@@ -531,6 +531,34 @@ $(document).on('keydown', function(e) {
   if(!d) { return; }
   e.preventDefault();
   cardeditstep(d);
+});
+
+// Touch: a sideways swipe on Printing details goes to the next (swipe left) or previous (swipe right)
+// instance, like the card view's swipe through results (oracle.js cardswipe, #372). Passive, so a vertical
+// drag still scrolls; skipped when pinch-zoomed, over a form field or value, inside something that scrolls
+// sideways, in the image zoom panel, with a confirm box up, or with the Gestures switch off.
+var cardeditswipe = null;
+document.addEventListener('touchstart', function(e) {
+  cardeditswipe = null;
+  if(e.touches.length != 1 || !cardedit || cardedit.view == 'json' || !$('#modal').hasClass('cardeditmodal') ||
+     $('#cardeditconfirm').is(':visible') || !gestureon('editswipetouch')) { return; }
+  if(window.visualViewport && window.visualViewport.scale > 1.05) { return; }
+  var t = $(e.target);
+  if(!t.closest('#cardeditprintingsection').length || t.closest('input, select, textarea, [contenteditable=true], #cardeditzoom').length) { return; }
+  for(var el = e.target; el && el.id != 'cardeditprintingsection'; el = el.parentElement) {
+    if(el.scrollWidth > el.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(el).overflowX)) { return; }
+  }
+  cardeditswipe = {x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now()};
+}, {passive: true});
+document.addEventListener('touchcancel', function() { cardeditswipe = null; });
+document.addEventListener('touchend', function(e) {
+  var s = cardeditswipe;
+  cardeditswipe = null;
+  if(!s || e.touches.length || Date.now() - s.t > 800) { return; }
+  var dx = e.changedTouches[0].clientX - s.x, dy = e.changedTouches[0].clientY - s.y;
+  if(Math.abs(dx) >= 60 && Math.abs(dx) > 2*Math.abs(dy) && !String(window.getSelection() || '')) {
+    cardeditstep(dx < 0 ? 1 : -1);
+  }
 });
 
 // the MRP instance can't be one the MRP lookup skips, so it loses notmrp (docs/data.md)

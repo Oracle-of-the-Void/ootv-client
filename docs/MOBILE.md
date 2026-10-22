@@ -73,6 +73,11 @@ like the arrow keys (Gestures switch `cardswipetouch`; skipped when pinch-zoomed
 something that scrolls sideways, or with a modal open). The ◀ ▶ buttons get finger-sized tap targets.
 Visual Spoiler (the phone default) used to open cards without the search, so the buttons never showed.
 
+Card editor (2026-10-21, emulated touch only): a sideways swipe on Printing details goes to the next
+(left) or previous (right) instance, the same rules as the card view's swipe (Gestures switch
+`editswipetouch`; also skipped over a value box, in the image zoom panel, in the JSON view and with a
+confirm box up). The ◀ ▶ arrows beside "Instance N (i of n)" are 36px tap targets.
+
 Added 2026-10-16 (emulated touch only; see the checklist above): with no active list, an adding
 swipe in search results asks which list to activate (folder tree, plus New list); a Gestures switch
 hides the directory's Folder pulldown (move lists by dragging only); New list asks for a name and

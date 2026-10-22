@@ -3762,7 +3762,8 @@ var gestureswitches = [
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
   ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"],
-  ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)']
+  ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)'],
+  ['editswipetouch', "Swipe the card editor's Printing details sideways for the previous/next instance (touch)"]
 ];
 // card swipes, per view: search results change the first active list, the deck/list view the list shown
 var swipeviews = [['search', 'Swipes in search results'], ['list', 'Swipes in a deck or list']];
