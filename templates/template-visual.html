@@ -2,7 +2,7 @@
 {{!-- deck view, or search results while editing decks: each image on a card with deck controls below, as the Detail format does --}}
 <div class="visualcard">
 {{/if}}
-<a class="deckswipe" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{if ~datarequest.listid}}{{:listprinting||0}}{{else}}{{:printingid||0}}{{/if}}" href="#game={{:~database}},#cardid={{:cardid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}}); } return false;">
+<a class="deckswipe" data-list="{{:~datarequest.listid}}" data-card="{{:cardid}}" data-printing="{{if ~datarequest.listid}}{{:listprinting||0}}{{else}}{{:printingid||0}}{{/if}}" href="#game={{:~database}},#cardid={{:cardid}}{{if printingid}},#cnprintingid={{:printingid}}{{/if}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { docardid({{:cardid}},{{if printingid}}{{:printingid}}{{else}}null{{/if}},'{{addslashes:~qs}}'); } return false;">
 <img src="
 {{if ~imageclass}}
 {{fetchimage #view.data ~imageclass listprinting ~datarequest /}}
