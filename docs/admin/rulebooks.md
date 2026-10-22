@@ -75,7 +75,9 @@ A trait's books on a card, each shown once, in shelf order:
 
 An edition's book is the first of its books (below) that defines the trait; its "Last complete rules in
 arc" book comes first where there is one (Scorpion Clan Coup before Imperial, The Spirit Wars before
-Jade). Onyx, Shattered Empire and Three Dynasties have no books on the shelf yet, so their bugs add none.
+Jade). Onyx Edition and Shattered Empire go to Onyx Lives' Onyx/ShE Rules Datasheet, then AEG's 20F
+Comprehensive Rules it builds on; Three Dynasties to the Three Dynasties Rules Datasheet, then those two.
+Words that older books use for something else (Honor, Duty, Elite) only link to the Onyx Lives sheets.
 
 The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 `/structure?database=<game>&key=traits`; a game without one shows no trait links), which ootv-import
@@ -99,7 +101,10 @@ python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json --upload   # and pu
 ```
 
 The site reads the item when Card Details first opens, so a change needs no deploy (only a reload).
-Floor rules, addenda and Special books (War of Honor) aren't searched.
+Floor rules, AEG's addenda and Special books (War of Honor) aren't searched; the Onyx Lives datasheets
+are (2026-10-21). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
+sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
+back in the hover text from the other books' words.
 
 ## Where the books live
 
