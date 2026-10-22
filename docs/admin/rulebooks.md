@@ -68,7 +68,8 @@ definition, marked (a `#find` link). When the trait has more than one book, the 
 with their text instead, to pick one. A keyword's number doesn't matter (Experienced 2 and Yu 3 link to
 Experienced and Yu), and a trait inside a name (Utaku Yu-Pan) isn't marked. Fan-made books (shelf tag
 **Fan Made**, e.g. the Onyx Lives datasheets) carry a **Fan Made** mark after their title, so AEG's rules
-and the fan rules that changed them can be told apart. On a phone or tablet, a long-press on the trait (or its keyword)
+and the fan rules that changed them can be told apart. The book for the printing shown carries a highlighted **this printing** mark, so the rules
+of the edition in hand stand out from the other books listed. On a phone or tablet, a long-press on the trait (or its keyword)
 shows the same text in a panel with a large **Open page** button per book and **Close** (tapping
 outside it closes it too); a plain tap works as a click.
 
