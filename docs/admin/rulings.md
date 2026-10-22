@@ -33,7 +33,7 @@ Ctrl/Cmd-click opens any of them in a new tab instead.
 
 ## Imported rulings
 
-Most L5R rulings came from the old FAQs, accumulated rulings, rules archives and errata lists
+Most L5R and LBS rulings came from the old FAQs, accumulated rulings, rules archives and errata lists
 (1997 to 2007), which are on the Rules shelf as type **Rulings** (`rulebooks.md`). They were
 put on the cards in bulk (ootv-backups `add-rulings.py`; the plan and how it was made are in
 ootv-claude `RULINGS-IMPORT.md`):
@@ -49,7 +49,14 @@ ootv-claude `RULINGS-IMPORT.md`):
   (an "(Experienced)" or "(non-Experienced)" heading picks those versions). When that's still
   more than one card, each also gets a `needsreview` note saying so: check which card the
   rulings are about and remove them from the others.
-- Rulings on general rules topics (Costs, Timing, Tokens...) stay in the books, not on cards.
+- The FAQs' questions and answers (1997 to 2004) are rulings too: the question and its answer
+  (`Q: ... A: ...`) go to each card the question names. A question about a title several cards
+  share gets the same `needsreview` note.
+- Rulings on general rules topics (Costs, Timing, Tokens...) and questions that name no card stay
+  in the books, not on cards.
+- LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
+  a few words carry scanning slips, like "Ifyou"). LBS has two cards for a few titles (Eyla the
+  Protector, Hole in the Sky, The Weight of Dreams): both got the rulings and a `needsreview` note.
 
 ## Adding, changing, removing
 
