@@ -1,5 +1,6 @@
 // Search by photo (loaded on first use by artphotostart in oracle.js; docs/admin/art-search.md).
 //
+// Logged-in users with a permission on the game only (artphotoallowed in oracle.js; the API checks too).
 // The photo is shrunk here (long side ARTPHOTO_LONG px, re-encoded as JPEG, so it is upright and
 // small) and sent to POST /artphoto (ootv-search artembed/), which finds and straightens the card,
 // embeds its art in every orientation and answers an id plus the outlines it tried. The search is
@@ -9,7 +10,7 @@
 // and search again.
 
 var ARTPHOTO_LONG = 1600;
-var artphotostate = null;   // {id, canvas, size: [w, h], cards: [[[x, y] x4]], previews: [dataurl], crops: [[card, rotation]], card, rot}
+var artphotostate = null;   // {id, canvas, size: [w, h], cards: [[[x, y] x4]], previews: [dataurl], crops: [[card, rotation]], card, rot, left: {day, minute}}
 
 function artphotofile(input) {
   var file = input.files && input.files[0];
@@ -41,15 +42,16 @@ function artphotofile(input) {
 // photo (+ corners the user set, in the canvas's pixels) -> /artphoto -> the search
 function artphotosend(canvas, corners) {
   modal('Search by photo', '<p>Looking for the card…</p>');
-  var body = {table: database, image: canvas.toDataURL('image/jpeg', 0.88)};
+  var body = {uid: getuid(), table: database, image: canvas.toDataURL('image/jpeg', 0.88)};
   if(corners) {
     body.corners = corners;
   }
   $.ajax({type: 'POST', url: apiuri+'/artphoto', contentType: 'application/json', dataType: 'json',
+          beforeSend: function(xhr) { xhr.setRequestHeader('Authorization', getidtoken()); },
           data: JSON.stringify(body)})
     .done(function(r) {
       artphotostate = {id: r.id, canvas: canvas, size: r.size, cards: r.cards || [], previews: r.previews || [],
-                       crops: r.crops || [], card: 0, rot: 0};
+                       crops: r.crops || [], card: 0, rot: 0, left: r.left || {}};
       nomodal();
       var fdata = {table: database, artphoto: r.id};
       fillsearchform(fdata);
@@ -57,7 +59,8 @@ function artphotosend(canvas, corners) {
       dosearch(0, fdata);
     })
     .fail(function(xhr) {
-      var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+      var msg = (xhr.responseJSON && xhr.responseJSON.message && xhr.status != 401) ? xhr.responseJSON.message :
+        xhr.status == 401 ? 'Your login has expired: log in again, then try the photo again.' :
         (xhr.status == 429 || xhr.status == 503 ? 'The photo search is busy. Try again in a moment.' : 'The photo search failed. Try again in a moment.');
       modal('Search by photo', '<p>'+htmlEncode(msg)+'</p>');
     });
@@ -83,6 +86,9 @@ function artphotoresults(id, match) {
       'For a better match, <span class="button gray" onclick="artphotoedit();">mark the card\'s corners</span></div>';
   } else {
     html += '<div class="artphotonote">Cards whose art looks most like a photo (the photo isn\'t kept; its search lasts a week).</div>';
+  }
+  if(st && st.left && st.left.day !== undefined) {
+    html += '<div class="artphotoleft">'+st.left.day+' photo search'+(st.left.day == 1 ? '' : 'es')+' left today</div>';
   }
   html += '</div>';
   $('#resultsearch .artphotopanel').remove();
