@@ -1965,6 +1965,52 @@ function rulesmarkparse(m) {
 function rulesmarkhash(state) {
   return state.find ? ',#find='+encodeURIComponent(state.find) : state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '';
 }
+// letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
+function rulesnorm(s) {
+  return s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
+}
+// the words of a page's lines that spell q (rulesnorm'd): [[line, word], ...], or [] when it isn't there
+function rulesfindwords(lines, q) {
+  var chars = '', at = [];
+  lines.forEach(function(line, i) {
+    line[1].forEach(function(w, j) {
+      var n = rulesnorm(w[4]);
+      chars += n;
+      for(var k = 0; k < n.length; k++) { at.push([i, j]); }
+    });
+  });
+  var from = q ? chars.indexOf(q) : -1;
+  if(from < 0) { return []; }
+  var out = [];
+  for(var k = from; k < from + q.length; k++) {
+    var last = out[out.length-1];
+    if(!last || last[0] != at[k][0] || last[1] != at[k][1]) { out.push(at[k]); }
+  }
+  return out;
+}
+// the words of a place (mark: {find, line}, as rulesmarkparse gives) on a page's lines: [[line, word], ...]
+function rulesmarkwords(lines, mark) {
+  if(mark.find) {
+    return rulesfindwords(lines, rulesnorm(mark.find));
+  } else if(mark.line && lines[mark.line-1]) {
+    return lines[mark.line-1][1].map(function(w, j) { return [mark.line-1, j]; });
+  }
+  return [];
+}
+// one band per line around those words: [[x0, y0, x1, y1], ...] in 1/10000ths of the page
+function rulesmarkbands(lines, words) {
+  var bands = {};
+  words.forEach(function(lw) {
+    var w = lines[lw[0]][1][lw[1]], band = bands[lw[0]];
+    bands[lw[0]] = band ? [Math.min(band[0], w[0]), Math.min(band[1], w[1]), Math.max(band[2], w[2]), Math.max(band[3], w[3])] : w.slice(0, 4);
+  });
+  return Object.values(bands);
+}
+// a mark over a page (in a box the page fills), from a box in 1/10000ths of it
+function rulesmarkdiv(cls, w) {
+  return '<div class="rulesmark '+cls+'" style="left:'+(w[0] / 100)+'%;top:'+(w[1] / 100)+'%;width:'+((w[2] - w[0]) / 100)+
+    '%;height:'+((w[3] - w[1]) / 100)+'%"></div>';
+}
 function rulesshow() {
   if(window.rulesloaded) { rulesrender(); return; }
   $('#rulesarea').html('<div class="rulesshelf"><p>Loading&hellip;</p></div>');
@@ -7787,24 +7833,95 @@ function modalclose() {
 // Links in a card's rulings (the card-level "ruling" field, card details): a rulebook page on the
 // Rules shelf (#rulebook=<id>,#page=<n>), an image or a PDF opens in the modal; any other page opens
 // in a small window of its own, since most sites refuse to load inside another page.
-// Ctrl/Cmd/Shift-click leaves the browser to open it as usual.
+// Ctrl/Cmd/Shift-click leaves the browser to open it as usual. A rulebook page opens scrolled to the ruling's
+// place on it (#find, #line, #at, matched as the Rules viewer does), marked; hovering the link (mouse) shows
+// that place in a small popup, like the trait links.
 $(document).on('click', 'dd.rulings a[href]', function(e) {
   if(e.metaKey || e.ctrlKey || e.shiftKey || e.button) { return; }
   e.preventDefault();
+  $('#traitpop').hide();
   rulingpopup($(this).attr('href'), $(this).text());
 });
+$(document).on('mouseenter', 'dd.rulings a[href*="#rulebook="]', function() {
+  if(lastpointertype != 'mouse') { return; }
+  var el = this, l = rulinglink($(el).attr('href')), w = Math.min(560, window.innerWidth - 16);
+  var pop = $('#traitpop');
+  if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
+  pop.removeClass('traitpoptouch').data('ruling', el).html('<div class="traitpophead">'+$('<div>').text($(el).text()).html()+'</div>'+
+    '<div class="rulingview rulingpeek"><div class="rulingpage"><img src="'+rulingpageurl(l, 'master')+'" alt=""></div></div>'+
+    '<div class="traitpopfoot">Click to open the page</div>');
+  popnear(pop, el, w);
+  rulingshowplace(pop.find('.rulingview'), l, true, function() { if(pop.data('ruling') == el) { popnear(pop, el, w); } });
+}).on('mouseleave', 'dd.rulings a[href*="#rulebook="]', function() {
+  $('#traitpop').removeData('ruling').hide();
+});
 var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in Rules
+// a ruling's rulebook link: {book, page, mark: {find, line, at} as written in the link}, or null
+function rulinglink(href) {
+  var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href || '');
+  if(!m) { return null; }
+  var mark = {};
+  href.replace(/#(find|line|at)=([^,#]*)/g, function(all, k, v) { mark[k] = v; });
+  return {book: decodeURIComponent(m[1]), page: parseInt(m[2],10) || 1, mark: mark};
+}
+function rulingpageurl(l,size) {
+  return dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/'+String(l.page).padStart(3,'0')+'_'+size+'.webp';
+}
+// the place a link points at on its page: done({y, bands, x: [left, right] of its lines}) in 1/10000ths of the
+// page, or done(null)
+var rulinglines = {};   // lines/<NNN>.json url -> its request
+function rulingplace(l,done) {
+  var mark = rulesmarkparse(l.mark);
+  if(mark.at) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
+  if(!mark.find && !mark.line) { done(null); return; }
+  var url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/lines/'+String(l.page).padStart(3,'0')+'.json';
+  rulinglines[url] = rulinglines[url] || $.ajax({url: url, dataType: 'json', cache: true});
+  rulinglines[url].done(function(lines) {
+    var words = rulesmarkwords(lines, mark);
+    if(!words.length) { done(null); return; }
+    var whole = [];   // every word of the lines the place is on
+    words.forEach(function(lw) { lines[lw[0]][1].forEach(function(w, j) { whole.push([lw[0], j]); }); });
+    var full = rulesmarkbands(lines, whole);
+    done({y: lines[words[0][0]][1][words[0][1]][1], bands: rulesmarkbands(lines, words),
+          x: [Math.min.apply(null, full.map(b => b[0])), Math.max.apply(null, full.map(b => b[2]))]});
+  }).fail(function() { done(null); });
+}
+// mark the place in view (.rulingview holding .rulingpage > img) and scroll it a third of the way down; peek (the
+// hover popup): zoomed to the width of the place's lines, a short window onto it. done() once drawn
+function rulingshowplace(view,l,peek,done) {
+  var img = view.find('img');
+  rulingplace(l, function(place) {
+    var tries = 0;
+    var draw = function() {
+      if(!place || !view.closest('body').length) { if(done) { done(); } return; }
+      var page = view.find('.rulingpage');
+      if(!page.height() || !view.innerHeight()) {   // not laid out yet (the modal still opening)
+        if(++tries < 40) { setTimeout(draw, 50); }
+        return;
+      }
+      page.find('.rulesmark').remove();
+      page.append(place.bands.map(function(b) { return rulesmarkdiv('rulesmarkplace', b); }).join(''));
+      if(peek) {   // the lines' width (plus a margin) fills the popup, at most 2x
+        var span = Math.min(1, Math.max(.5, (place.x[1] - place.x[0]) / 10000 + .06));
+        page.css('width', (100 / span)+'%');
+        view.scrollLeft(Math.max(0, (place.x[0] / 10000 - .03) * page.width()));
+      }
+      view.scrollTop(place.y / 10000 * page.height() - view.innerHeight() / 3);
+      if(done) { done(); }
+    };
+    if(img[0].complete && img[0].naturalWidth) { draw(); } else { img.one('load', draw); }
+  });
+}
 function rulingpopup(href,label) {
   var esc = s => $('<div>').text(s).html();
   var title = esc(label || 'Ruling');
-  var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href);
-  if(m) {
-    var book = decodeURIComponent(m[1]), page = parseInt(m[2],10) || 1;
-    rulingmark = {};
-    href.replace(/#(find|line|at)=([^,#]*)/g, function(all, k, v) { rulingmark[k] = v; });
-    var img = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(book)+'/'+String(page).padStart(3,'0')+'_master.webp';
-    modal(title,'<div class="rulingview"><img src="'+esc(img)+'" alt="'+title+'"></div>'+
-      '<p><span class="button gray" onclick="rulingopenrules(\''+addslashes(book)+'\','+page+');">Open in Rules</span></p>');
+  var l = rulinglink(href);
+  if(l) {
+    rulingmark = l.mark;
+    modal(title,'<div class="rulingview"><div class="rulingpage"><img src="'+esc(rulingpageurl(l, 'master'))+'" alt="'+title+'"></div></div>'+
+      '<p><span class="button gray" onclick="rulingopenrules(\''+addslashes(l.book)+'\','+l.page+');">Open in Rules</span></p>');
+    $('#modal').addClass('rulingmodal');   // first: it makes the view scroll
+    rulingshowplace($('#modal .rulingview'), l, false);
   } else if(/\.(png|jpe?g|gif|webp)(\?|$)/i.test(href)) {
     modal(title,'<div class="rulingview"><img src="'+esc(href)+'" alt="'+title+'"></div>'+
       '<p><a class="button gray" href="'+esc(href)+'" target="_blank" rel="noopener">Open in a new tab</a></p>');
@@ -7927,11 +8044,16 @@ function traitpopshow(el,touch) {
       '</span><div>'+traitesc(data.traits[trait][b.id].text)+'</div>'+open+'</div>';
   }).join('')+(touch ? '<span class="button gray traitpopclose" onclick="$(\'#traitpop\').hide();">Close</span>' :
     '<div class="traitpopfoot">'+($(el).is('a') ? 'Click &#128214; to open the rulebook' : books.length > 1 ? 'Click to choose a book' : 'Click to open the page')+'</div>'));
-  var r = el.getBoundingClientRect(), w = Math.min(420, window.innerWidth - 16);
+  var w = Math.min(420, window.innerWidth - 16);
   if(touch) {   // centred on the screen, scrolling inside, so Close is always in reach
     pop.css({width: w, left: (window.innerWidth - w) / 2, top: '6vh', bottom: 'auto'}).show().scrollTop(0);
     return;
   }
+  popnear(pop, el, w);
+}
+// show a hover popup w wide under el, or above it when there's no room below
+function popnear(pop,el,w) {
+  var r = el.getBoundingClientRect();
   pop.css({width: w, left: Math.max(8, Math.min(r.left, window.innerWidth - w - 8)), top: r.bottom + 4, bottom: 'auto'}).show();
   if(r.bottom + 4 + pop.outerHeight() > window.innerHeight && r.top > window.innerHeight / 2) {   // no room below: above it
     pop.css({top: 'auto', bottom: window.innerHeight - r.top + 4});

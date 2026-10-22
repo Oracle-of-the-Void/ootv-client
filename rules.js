@@ -583,29 +583,6 @@ function rulesclearmark() {
 function rulesmarkkey() {
   return rulesstate.book+'/'+rulesstate.page+'/'+(rulesstate.find || '')+'/'+rulesstate.line+'/'+rulesstate.at;
 }
-// letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
-function rulesnorm(s) {
-  return s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
-}
-// the words of a page's lines that spell q (rulesnorm'd): [[line, word], ...], or [] when it isn't there
-function rulesfindwords(lines, q) {
-  var chars = '', at = [];
-  lines.forEach(function(line, i) {
-    line[1].forEach(function(w, j) {
-      var n = rulesnorm(w[4]);
-      chars += n;
-      for(var k = 0; k < n.length; k++) { at.push([i, j]); }
-    });
-  });
-  var from = q ? chars.indexOf(q) : -1;
-  if(from < 0) { return []; }
-  var out = [];
-  for(var k = from; k < from + q.length; k++) {
-    var last = out[out.length-1];
-    if(!last || last[0] != at[k][0] || last[1] != at[k][1]) { out.push(at[k]); }
-  }
-  return out;
-}
 // #find without #page: the first page with the phrase (from text.json), then the page as usual
 function rulesfindpage(url) {
   var q = rulesnorm(rulesstate.find), id = rulesbook.id;
@@ -636,13 +613,7 @@ function rulesdrawmarks() {
     if(!Array.isArray(lines)) { return; }
     var boxes = [];
     if(page == rulesstate.page) {
-      // one band per line, around its words in the place
-      var bands = {};
-      rulesplacewords(lines).forEach(function(lw) {
-        var w = lines[lw[0]][1][lw[1]], band = bands[lw[0]];
-        bands[lw[0]] = band ? [Math.min(band[0], w[0]), Math.min(band[1], w[1]), Math.max(band[2], w[2]), Math.max(band[3], w[3])] : w.slice(0, 4);
-      });
-      Object.values(bands).forEach(function(band) { boxes.push(['rulesmarkplace', band]); });
+      rulesmarkbands(lines, rulesplacewords(lines)).forEach(function(band) { boxes.push(['rulesmarkplace', band]); });
     }
     if(words.length) {
       lines.forEach(function(line) {
@@ -652,21 +623,12 @@ function rulesdrawmarks() {
         });
       });
     }
-    $(this).append(boxes.map(function(b) {
-      var w = b[1];
-      return '<div class="rulesmark '+b[0]+'" style="left:'+(w[0] / 100)+'%;top:'+(w[1] / 100)+'%;width:'+((w[2] - w[0]) / 100)+
-        '%;height:'+((w[3] - w[1]) / 100)+'%"></div>';
-    }).join(''));
+    $(this).append(boxes.map(function(b) { return rulesmarkdiv(b[0], b[1]); }).join(''));
   });
 }
 // the words of the marked place (#find, #line) on its page: [[line, word], ...]
 function rulesplacewords(lines) {
-  if(rulesstate.find) {
-    return rulesfindwords(lines, rulesnorm(rulesstate.find));
-  } else if(rulesstate.line && lines[rulesstate.line-1]) {
-    return lines[rulesstate.line-1][1].map(function(w, j) { return [rulesstate.line-1, j]; });
-  }
-  return [];
+  return rulesmarkwords(lines, rulesstate);
 }
 // zoom to the marked page's width and scroll the place into view, a third of the way down; once per mark,
 // so a redraw (a resize, the panel) doesn't undo the reader's own zooming
