@@ -236,11 +236,17 @@ function cardeditrender() {
     var known = cardeditknownfields();
     html += '<fieldset class="cardeditsection"><legend>Card details</legend>'+
       cardeditfields('card',c,known)+'</fieldset>';
-    html += '<fieldset class="cardeditsection"><legend>Printing details</legend>'+cardeditprintings();
+    html += '<fieldset class="cardeditsection" id="cardeditprintingsection"><legend>Printing details</legend>'+cardeditprintings();
     var p = cardeditprinting();
     if(p) {
       var isnew = cardeditisnew(p.printingid);
-      html += '<div class="cardeditprintingbar"><b>'+(isnew ? 'New instance' : 'Instance '+htmlEncode(p.printingid))+'</b>'+
+      // previous/next instance: the card page's arrows (#cardprev/#cardnext), either side of the heading
+      var list = cardeditsorted(), at = list.findIndex(q => q.printingid == p.printingid);
+      var step = (d,img,title) => '<a href="" class="cardeditstep'+(at+d < 0 || at+d >= list.length ? ' cardeditstepoff' : '')+'" title="'+title+'"'+
+        ' onclick="cardeditstep('+d+'); return false;"><img src="res/symbol-'+img+'-one.png" alt="'+title+'" /></a>';
+      html += '<div class="cardeditprintingbar">'+step(-1,'left','Previous instance (&larr;)')+
+        '<b>'+(isnew ? 'New instance' : 'Instance '+htmlEncode(p.printingid))+'</b> <span class="cardeditstepcount">('+(at+1)+' of '+list.length+')</span>'+
+        step(1,'right','Next instance (&rarr;)')+
         (p.printingid == c.printingprimary ? ' <span class="cardeditmrp">MRP</span>'
           : ' <span class="button gray buttonsmall" onclick="cardeditmrp();">Make MRP<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg></span></span>')+
         ' <span class="button gray buttonsmall" onclick="cardeditdeleteprinting();">Delete instance<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></svg></span></span>'+
@@ -323,16 +329,12 @@ function cardeditprintings() {
   var strip = s => String(s === undefined || s === null ? '' : s).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ');
   var c = cardedit.card;
   var list = cardeditsorted();
-  var at = list.findIndex(p => p.printingid == cardedit.printid);
   var changed = cardeditchangedprintings();
-  var step = (d,label,title) => '<span class="button gray buttonsmall cardeditstep'+(at+d < 0 || at+d >= list.length ? ' cardeditstepoff' : '')+'"'+
-    ' title="'+title+'" onclick="cardeditstep('+d+');">'+label+'</span>';
-  var html = '<div class="cardeditversions">'+step(-1,'&lsaquo;','Previous instance (Alt+, or &larr;)')+' '+list.map(p =>
+  var html = '<div class="cardeditversions">'+list.map(p =>
     '<span class="printinglink gray button buttonsmall'+(p.printingid == cardedit.printid ? ' cardeditselected' : '')+'" data-id="'+p.printingid+'"'+
     ' onclick="cardeditselect(\''+p.printingid+'\');">('+(cardeditisnew(p.printingid) ? 'new' : htmlEncode(p.printingid))+') '+
     htmlEncode(strip(clean(p.set)))+'/'+htmlEncode(strip(clean(p.rarity)))+(p.printingid == c.printingprimary ? ' *' : '')+
     '<span class="cardeditdot" title="Changed">'+(changed.includes(p.printingid) ? ' &bull;' : '')+'</span></span>').join(' ')+
-    ' '+step(1,'&rsaquo;','Next instance (Alt+. or &rarr;)')+
     ' <span class="button gray buttonsmall" onclick="cardeditnewinstance();">New instance<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></svg></span></span></div>';
   var deleted = cardedit.base ? cardedit.base.printing.filter(p => !c.printing.some(q => q.printingid == p.printingid)) : [];
   if(deleted.length) {
@@ -521,20 +523,42 @@ function cardeditstep(d) {
   if(p) { cardeditselect(p.printingid); }
 }
 
-// Alt+, / Alt+. (the < > keys) step through instances from anywhere in the editor, even while
-// typing in a value; plain left/right arrows do it when no field has the focus, as on the card page
+// the left/right arrows step through instances when no field has the focus, as on the card page
 $(document).on('keydown', function(e) {
   if(!cardedit || !$('#modal').hasClass('cardeditmodal') || !$('#modal').is(':visible') || $('#cardeditconfirm').is(':visible')) { return; }
-  if(e.ctrlKey || e.metaKey) { return; }
-  var d = 0;
-  if(e.altKey && !e.shiftKey) {
-    d = e.code == 'Comma' ? -1 : e.code == 'Period' ? 1 : 0;
-  } else if(!e.altKey && !e.shiftKey && !$(e.target).is('input, textarea, select, [contenteditable=true]')) {
-    d = e.key == 'ArrowLeft' ? -1 : e.key == 'ArrowRight' ? 1 : 0;
-  }
+  if(e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || $(e.target).is('input, textarea, select, [contenteditable=true]')) { return; }
+  var d = e.key == 'ArrowLeft' ? -1 : e.key == 'ArrowRight' ? 1 : 0;
   if(!d) { return; }
   e.preventDefault();
   cardeditstep(d);
+});
+
+// Touch: a sideways swipe on Printing details goes to the next (swipe left) or previous (swipe right)
+// instance, like the card view's swipe through results (oracle.js cardswipe, #372). Passive, so a vertical
+// drag still scrolls; skipped when pinch-zoomed, over a form field or value, inside something that scrolls
+// sideways, in the image zoom panel, with a confirm box up, or with the Gestures switch off.
+var cardeditswipe = null;
+document.addEventListener('touchstart', function(e) {
+  cardeditswipe = null;
+  if(e.touches.length != 1 || !cardedit || cardedit.view == 'json' || !$('#modal').hasClass('cardeditmodal') ||
+     $('#cardeditconfirm').is(':visible') || !gestureon('editswipetouch')) { return; }
+  if(window.visualViewport && window.visualViewport.scale > 1.05) { return; }
+  var t = $(e.target);
+  if(!t.closest('#cardeditprintingsection').length || t.closest('input, select, textarea, [contenteditable=true], #cardeditzoom').length) { return; }
+  for(var el = e.target; el && el.id != 'cardeditprintingsection'; el = el.parentElement) {
+    if(el.scrollWidth > el.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(el).overflowX)) { return; }
+  }
+  cardeditswipe = {x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now()};
+}, {passive: true});
+document.addEventListener('touchcancel', function() { cardeditswipe = null; });
+document.addEventListener('touchend', function(e) {
+  var s = cardeditswipe;
+  cardeditswipe = null;
+  if(!s || e.touches.length || Date.now() - s.t > 800) { return; }
+  var dx = e.changedTouches[0].clientX - s.x, dy = e.changedTouches[0].clientY - s.y;
+  if(Math.abs(dx) >= 60 && Math.abs(dx) > 2*Math.abs(dy) && !String(window.getSelection() || '')) {
+    cardeditstep(dx < 0 ? 1 : -1);
+  }
 });
 
 // the MRP instance can't be one the MRP lookup skips, so it loses notmrp (docs/data.md)

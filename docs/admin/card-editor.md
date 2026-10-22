@@ -42,9 +42,11 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   too, but a field the card already had is kept even if it ends up as an empty list. To remove
   a field, use its **x**.
 - The version buttons pick the instance shown, as on the card page (`*` marks the MRP instance,
-  `•` an instance with changes). **‹** and **›** on either side of them step to the previous and
-  next instance, and so do **Alt+,** and **Alt+.** (the < and > keys), even while typing in a
-  value, or the **←** and **→** arrows when no value has the cursor. Changes stay when you move
+  `•` an instance with changes). The arrows either side of the instance's heading
+  ("Instance 3 (1 of 3)", the card page's arrows) step to the previous and next instance, as do
+  the **←** and **→** keys when no value has the cursor. On a phone or tablet, swipe Printing details
+  sideways (left for the next instance, right for the previous); start the swipe outside a value
+  box, e.g. on a label, the heading or the image. Settings → Gestures can turn the swipe off. Changes stay when you move
   between instances. **Make MRP** makes the instance shown the MRP one, and removes
   `notmrp` from it if it has it (the MRP instance can't be one the MRP lookup skips). **New
   instance** adds a blank one (it needs a set). **Delete instance** marks it for deletion, and an
