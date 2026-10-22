@@ -2061,10 +2061,12 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditversions { margin-bottom: 6px; }
 .cardeditversions .printinglink { cursor: pointer; }
 .cardeditversions .cardeditselected { background: #575757; color: #fff; }
-.cardeditstep { cursor: pointer; font-weight: bold; }
-.cardeditstepoff { opacity: 0.35; cursor: default; }
+.cardeditprintingbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0; }
+.cardeditstep { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; cursor: pointer; }
+.cardeditstep img { width: 23px; height: auto; }
+.cardeditstepoff { opacity: 0.3; cursor: default; pointer-events: none; }
+.cardeditstepcount { color: #666; font-size: 0.9em; }
 .cardeditdeleted { color: #b00; margin-bottom: 6px; }
-.cardeditprintingbar { margin: 6px 0; }
 .cardeditmrp { background: #e0c35a; border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
 .cardeditimagelist img { max-height: 120px; margin: 2px; cursor: zoom-in; }
 #cardeditzoom { position: fixed; top: 60px; right: 16px; z-index: 12; width: 440px; height: 640px; min-width: 240px; min-height: 200px;
