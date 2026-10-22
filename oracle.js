@@ -2894,6 +2894,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	    defaultcard(qs);
 	  }
 	  updates[database]('#resultsearch');
+	  if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
+	    artphotoresults(datarequest.artphoto, null);
+	  }
   } else {
 	  if(from<1){
 	    $('.searchtextversion, .searchaddall').html('');
@@ -2932,6 +2935,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      searchcache[database]['querydata'][qs] = [];
 		      }
 		      updates[database]('#resultsearch');
+		      if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
+		        artphotoresults(datarequest.artphoto, raw.artphoto);    // the photo and its matched outline above the results
+		      }
 		      dataret.forEach(function(dataitem) {
 			      searchcache[database]['querydata'][qs].push(dataitem.cardid);
 			      cache_card(dataitem);
@@ -4171,20 +4177,37 @@ function rendersavedsearches() {
   $('#savedsearches').html($.templates("#template-savedsearches").render({'names': names}));
 }
 // values in words, using the form's labels: "All: crane; Type: Holding, Region; Gold Cost: 2 to 5"
-// A search hit -> its card. For a similar-art search (artlike=<cardid>_<printingid>, ootv-search
-// routes/search.js) remember which printing matched and how closely (score = 1 + cosine), keyed
-// by the artlike value, so the result shows that printing (templatefetch).
+// the key of an art search (similar art: artlike=<cardid>_<printingid>; a photo: artphoto=<id>), or null
+function artsearchkey(datarequest) {
+  return datarequest ? (datarequest.artlike || datarequest.artphoto || null) : null;
+}
+
+// A search hit -> its card. For an art search (artlike or artphoto, ootv-search routes/search.js)
+// remember which printing matched and how closely (score = 1 + cosine), keyed by the search's
+// artlike/artphoto value, so the result shows that printing (templatefetch).
 function artsimilarhit(datarequest,hit) {
-  var card = hit._source;
-  if(datarequest && datarequest.artlike && hit.inner_hits && hit.inner_hits.printing) {
+  var card = hit._source, key = artsearchkey(datarequest);
+  if(key && hit.inner_hits && hit.inner_hits.printing) {
     var inner = hit.inner_hits.printing.hits.hits[0];
     var pid = inner && inner.fields && inner.fields['printing.printingid'] ? String(inner.fields['printing.printingid'][0]) : null;
     if(pid) {
-      card.artprinting = Object.assign({}, card.artprinting, {[datarequest.artlike]: pid});
-      card.artscore = Object.assign({}, card.artscore, {[datarequest.artlike]: Math.round((hit._score - 1) * 1000) / 1000});
+      card.artprinting = Object.assign({}, card.artprinting, {[key]: pid});
+      card.artscore = Object.assign({}, card.artscore, {[key]: Math.round((hit._score - 1) * 1000) / 1000});
     }
   }
   return card;
+}
+
+// Search by photo (artphoto.js, loaded on first use; ootv-search artembed/ and POST /artphoto): the
+// Photo button is a label around a file input, so the picker opens straight from the click
+function artphotostart(input) {
+  var go = function() { artphotofile(input); };
+  if(typeof artphotofile === 'function') {
+    return go();
+  }
+  modal('Search by photo', '<p>Loading…</p>');
+  $.ajax({url: 'artphoto.js?v='+ootvversion, dataType: 'script', cache: true}).done(go)
+    .fail(function() { modal('Search by photo', '<p>The photo search could not be loaded. Reload the page and try again.</p>'); });
 }
 
 // the url of a search for cards whose art looks like this printing's (the card editor links it)
@@ -4198,13 +4221,15 @@ function searchsummary(values) {
   Object.keys(values).forEach(function(name) {
     if(done[name]) { return; }
     var el = $('#searchform [name="'+name+'"]').first();
-    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
+    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : name == 'artphoto' ? 'Photo' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
     var range = name.match(/^field_(lower|upper)_(.*)/);
     var text;
     if(range) {
       var lo = values['field_lower_'+range[2]], hi = values['field_upper_'+range[2]];
       done['field_lower_'+range[2]] = done['field_upper_'+range[2]] = true;
       text = (lo !== undefined && hi !== undefined) ? lo+' to '+hi : (lo !== undefined ? 'at least '+lo : 'at most '+hi);
+    } else if(name == 'artphoto') {
+      text = 'your photo';
     } else if(el.prop('type') == 'checkbox') {
       text = name.startsWith('require_') ? (el.parent('label').text().trim() || 'yes') : 'yes';
     } else {
@@ -5803,9 +5828,9 @@ function templatefetch(card,id=false,datarequest={}) {
         pr = card.printingreverse.printingid[id];
     } else if(('listprinting' in card) && card.listprinting>0) {
         pr = card.printingreverse.printingid[card.listprinting];
-    } else if(datarequest && datarequest.artlike && card.artprinting && card.artprinting[datarequest.artlike] in card.printingreverse.printingid) {
-        // a similar-art search shows the printing whose art matched (artsimilarhit)
-        pr = card.printingreverse.printingid[card.artprinting[datarequest.artlike]];
+    } else if(artsearchkey(datarequest) && card.artprinting && card.artprinting[artsearchkey(datarequest)] in card.printingreverse.printingid) {
+        // an art search (similar art, a photo) shows the printing whose art matched (artsimilarhit)
+        pr = card.printingreverse.printingid[card.artprinting[artsearchkey(datarequest)]];
     } else if(typeof datarequest === 'object') {
         //console.log("onyx deb 1");
         for(att in card.printingreverse) {
@@ -7803,7 +7828,7 @@ function cache_session(thing,selval=null) {
 //**********************************************************  modal window ****************
 
 function modal(title,content) {
-    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal');
+    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal artphotomodal');
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
@@ -7811,7 +7836,7 @@ function modal(title,content) {
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
-  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal');
+  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal artphotomodal');
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
