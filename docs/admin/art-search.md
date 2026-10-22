@@ -26,6 +26,49 @@ Uses:
 - wrong or duplicate images: an image that matches a different card's art closely.
 - reprints: finding every printing of a painting across sets.
 
+## Search by photo
+
+The **Photo** button under the search form takes a photo of a card, or a picture of its art, and
+searches the current game for the cards whose art looks most like it.
+
+Who gets it: a logged-in account with any permission on the game (an entry under the game, or
+under `*`, in the user's groups in the user editor). The button is hidden for everyone else, and
+the API refuses them too. Patreon supporters are meant to get it as well once Patreon privileges
+exist (ootv-claude `projects/patreon-privileges.md`). A result link can be opened by anyone: it
+only searches with the stored fingerprints.
+
+Each person has a daily and a per-minute allowance by level, set in the structure table
+(`oracle-all-structure`, database `all`, key `artphoto`, field `limits`; the API rereads it every
+5 minutes):
+
+| Level | Who | Per day | Per minute |
+|---|---|---|---|
+| `admin` | full permission (`*`) on the game or on `*` | 500 | 10 |
+| `maintainer` | any other permission on the game | 100 | 5 |
+
+Correcting the outline counts as a search. Over the limit, the page says so and when it resets
+(the next minute, or midnight UTC); under the results it shows how many are left today. Patreon
+tiers will be more levels in the same list.
+The page shrinks the photo and sends it to the API (`POST /artphoto`, the `ootv-artembed`
+Lambda in ootv-search `artembed/`), which:
+
+1. looks for the card in the photo (up to three card-shaped outlines, since on a busy table the
+   best-shaped one isn't always the card) and straightens it;
+2. cuts the game's art box out of it in every way up it can be (a card photographed sideways
+   or upside down still matches);
+3. turns each piece into an art vector, the same kind the instances have.
+
+The search keeps each card's best match over all the pieces. It is an ordinary search link
+(`#search=table=l5r&artphoto=<id>`) that works for a week; the photo itself is never stored,
+only its vectors. Above the results the page shows the card it found, turned the way it
+matched, and **Adjust the outline**: drag the four corners onto the card and search again, for
+when the wrong part of the photo was used. When no card outline is found (a pawn, a picture of
+the art alone) the whole picture is searched.
+
+Tested on synthetic photos of real cards (tilted, rotated, any lighting, on plain and busy
+backgrounds): the right card first 91-99% of the time depending on the game; real photos taken
+on the card slinger all matched.
+
 ## Placeholder art
 
 Images that match the art on five or more other cards (the 2023 fan sets' brush-and-blade and
