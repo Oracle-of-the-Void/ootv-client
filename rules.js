@@ -61,9 +61,11 @@ function rulesloadshelf(done) {
   $.ajax({url: apiuri+'/structure?database='+database+'&key=rulebooks', dataType: 'json'})
     .done(function(data) {
       var books = Object.values((data && data.books) || {});
-      // by date: the book's year, then its place in the list (order) within a year
+      // by date: the book's year, then its place in the list (order) within a year; books of the Multi-Arc
+      // formats (Legacy, Modern, Obsidian Hand, ...: cards from many arcs) come last, by date among themselves
       books.sort(function(a,b) {
-        return ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+        return ((a.arc == RULESMULTIARC) - (b.arc == RULESMULTIARC)) ||
+          ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
       });
       rulesshelf = {game: database, books: books};
       done();
@@ -95,10 +97,13 @@ function rulesdrawshelf() {
 }
 
 // ********** shelf filters **********
-// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege), or a list of
+// Each book has a type (Complete, Addendum, Special: rules for one format, Play Variant: another way to play, like
+// draft, siege or War of Honor, Multi-Arc: a format with cards from many arcs, like Legacy), or a list of
 // them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
 // the choice is kept per game in this browser.
-var RULESTYPES = ['Complete', 'Addendum', 'Special'];   // the order on the bar; other types follow
+var RULESMULTIARC = 'Multi-Arc';   // formats spanning arcs: both their arc and their type. Their books, and the arc's
+                                   // choice in the Arc filter, come last
+var RULESTYPES = ['Complete', 'Addendum', 'Special', 'Play Variant', RULESMULTIARC];   // the order on the bar; other types follow
 var rulesfilter = null;   // {game, type, arc, tags: [...]}
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
 function rulesfilterload() {
