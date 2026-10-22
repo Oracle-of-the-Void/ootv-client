@@ -159,7 +159,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   2026-10-20); the files are still built and uploaded.
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: the book's credit line, e.g. "Oracle of the Void Remaster (Don Eisele)" on the Imperial,
-  SCC and Jade remasters. It's published in `book.json` and the shelf; the viewer shows it under
+  SCC, Jade and Pearl remasters. It's published in `book.json` and the shelf; the viewer shows it under
   the book on the shelf and in the reader's bottom bar. The books themselves are AEG's, WotC's
   or FRPG's; kempy only collected them from various websites, so a note credits whoever substantively
   built, scanned or remastered the file, and only once we can find that person. Today only our
@@ -196,7 +196,12 @@ SCRIPTS/rulebook-convert.py rulebooks/l5r.json upload jade      # those books on
 SCRIPTS/rulebook-convert.py rulebooks/l5r.json remove jade      # takes a book off the shelf
 ```
 
-`build` writes to `build/` (not in git). `upload` needs the book ids, and syncs and shelves only
+`build` writes to `build/` (not in git). Building from a scratch worktree (the usual way, on a branch: the
+list's relative `source` path doesn't reach from there), pass the source folder: `build pearl --source
+<workspace>/ootv-games/game-l5r/kempy-l5rrules/Rulebooks`. A remaster whose full-quality join is very large (Pearl,
+169 MB of art) renders its pages from that file but lists a smaller copy as the download (ghostscript `pdfwrite`
+with JPEG at quality 90 and no downsampling: same resolution, 12 MB). After an upload, check `book.json`, a page
+image and the download over HTTPS, then merge the list change so `main` holds the live shelf order. `upload` needs the book ids, and syncs and shelves only
 those, from this checkout's builds, and refuses a book whose shelf entry has a later build time than this
 checkout's copy (another session rebuilt it since; rebuild here, or `--force`). It never deletes. A change to a book's place in the list reaches
 the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is enough). To drop a book,
@@ -220,8 +225,15 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   72 pages, so the two-page view shows the printed spreads. Kempy's scan lacks pp. 2-3, 22, 24, 28,
   36-37, 47, 49 and 51; those were set from phone photos of the same booklet (the older `L5RRules` copy
   of `Rulebook-L5R-Imperial_(SCC).pdf`). No contents yet. Kempy's scan is the second download.
-- **Jade Edition** (phone photos, from `Rulebook-L5R-Jade.zip`) is two-page spreads with OCR text;
-  its download is the text transcription (`Rulebook-L5R-Jade.txt`).
+- **Jade Edition**: the retypeset remaster (ootv-games
+  `game-l5r/rulebook-enhance/jade/rebuild/jade-pages-01-71-back.pdf`, 2026-10-20), from phone photos of every
+  spread (`Rulebook-L5R-Jade.zip`), with its own text and contents. Downloads: the PDF, the original photos and
+  the text transcription (`Rulebook-L5R-Jade.txt`).
+- **Pearl Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/pearl/rebuild/`, 2026-10-21),
+  from kempy's phone photos of every spread (`Trashcan/Rulebook-L5R-PE-rulebook.zip`, the only copy): all 88
+  pages, cover to the Turn Sequence back cover, the art the photos' own. The contents follow the printed table
+  of contents. The pages render from the full-quality join (`pearl-pages-01-88.pdf`, 169 MB); the PDF download is
+  the same pages with JPEG images (`pearl-rulebook.pdf`, 12 MB). The original photos zip is the second download.
 - **Gold Edition**: the publisher PDF shows two-page spreads on a grey mat, so the book is built from
   `game-l5r/rulebook-enhance/gold/rebuild/Rulebook-L5R-Gold_pages.pdf` (2026-10-20): the same PDF cut
   into 88 single pages (cover, inside cover, pp. 1-85, back cover) by ootv-games
@@ -241,7 +253,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
-- Imperial, Jade and Ivory basic have a table of contents so far.
+- Imperial, Jade, Pearl and Ivory basic have a table of contents so far.
 
 From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue of the rest is ootv-import
 `rulebooks/QUEUE.md`):
