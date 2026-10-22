@@ -56,6 +56,56 @@ Clicking a book opens it in the page viewer:
   (this browser only).
 - **Downloads**: the original PDF (or whatever the book lists) at the bottom right.
 
+## Trait links
+
+In Card Details, traits with rules (Cavalry, Kharmic, Shugenja, ...) lead to where the rulebooks
+define them. A trait in the **Keywords** gets a book (📖) after it, and the first time the **Text**
+names a trait it gets a dotted underline. Hovering either one (or the keyword) shows the rule's text
+from each of the trait's books; clicking the book or the underlined word opens the book at the
+definition, marked (a `#find` link). When the trait has more than one book, the click shows them all
+with their text instead, to pick one. On a phone or tablet, a long-press on the trait (or its keyword)
+shows the same text in a panel with a large **Open page** button per book and **Close** (tapping
+outside it closes it too); a plain tap works as a click.
+
+A trait's books on a card, each shown once, in shelf order:
+
+- the edition of **the printing shown**: its legality (arc and edition) → that edition's book;
+- **the newest book** that defines the trait;
+- for **each arc bug the card has** (its legalities), that edition's book.
+
+An edition's book is the first of its books (below) that defines the trait; its "Last complete rules in
+arc" book comes first where there is one (Scorpion Clan Coup before Imperial, The Spirit Wars before
+Jade). Onyx Edition and Shattered Empire go to Onyx Lives' Onyx/ShE Rules Datasheet, then AEG's 20F
+Comprehensive Rules it builds on; Three Dynasties to the Three Dynasties Rules Datasheet, then those two.
+Words that older books use for something else (Honor, Duty, Elite) only link to the Onyx Lives sheets.
+
+The links come from the `oracle-all-structure` item `<game>` / `traits` (public
+`/structure?database=<game>&key=traits`; a game without one shows no trait links), which ootv-import
+`SCRIPTS/rulebook-traits.py` builds from `rulebooks/<game>-traits.json`:
+
+- `books`: the pages of each book to look in (its glossary and keyword sections), with two layout hints
+  for glossaries whose entries have no gap between them;
+- `editions`: each legality → its books, the one to prefer first;
+- `traits`: the traits to look for.
+
+The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for
+each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" with the text under it).
+The item holds, per trait and book, the page, the `#find` phrase (the entry's first line) and up to
+420 characters of the definition for the hover text. A trait that a book only explains in its main
+text (not a glossary entry) isn't linked to that book. After changing the JSON or rebuilding a
+book, run it again:
+
+```
+python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json            # writes build-traits/l5r-traits.json, prints what it found
+python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json --upload   # and puts the structure item
+```
+
+The site reads the item when Card Details first opens, so a change needs no deploy (only a reload).
+Floor rules, AEG's addenda and Special books (War of Honor) aren't searched; the Onyx Lives datasheets
+are (2026-10-21). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
+sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
+back in the hover text from the other books' words.
+
 ## Where the books live
 
 **The shelf** is the `oracle-all-structure` item `<game>` / `rulebooks` (read through the public

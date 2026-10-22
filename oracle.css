@@ -63,6 +63,20 @@ dd.rulings div {
 #modal.rulingmodal .rulingview { max-height: 75vh; overflow: auto; text-align: center; }
 #modal.rulingmodal .rulingview img { max-width: 100%; }
 #modal.rulingmodal iframe.rulingview { width: 100%; height: 75vh; border: 0; }
+/* trait links (traitsmark): a book after a keyword, a dotted line under a trait named in the text, the rule on hover */
+#resultcard .traitbook { cursor: pointer; font-size: 85%; }
+#resultcard .traitword { cursor: pointer; border-bottom: dotted #69c 1px; }
+#traitpop { display: none; position: fixed; z-index: 100000; box-sizing: border-box; background: #fff; color: #000; border: solid #69c 1px;
+  border-radius: 4px; padding: 6px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25); font-size: 90%; pointer-events: none; }
+#traitpop .traitpophead { font-weight: bold; margin-bottom: 4px; }
+#traitpop .traitpopbook { border-left: solid #69c 3px; padding-left: 4px; margin-bottom: 6px; }
+#traitpop .traitpopfoot, .traitwhy { color: #666; font-size: 90%; }
+.traitchoice { border-left: solid #69c 3px; padding-left: 6px; margin-bottom: 8px; }
+/* touch (a long-press): it takes taps, scrolls when long, and has finger-sized Open and Close buttons */
+#traitpop.traitpoptouch { pointer-events: auto; max-height: 88vh; overflow-y: auto; font-size: 100%; padding: 10px 10px 0; }
+#traitpop.traitpoptouch .traitpopopen, #traitpop.traitpoptouch .traitpopclose { display: block; text-align: center;
+  min-height: 44px; line-height: 44px; margin: 6px 0 2px; font-size: 110%; }
+#traitpop.traitpoptouch .traitpopclose { position: sticky; bottom: 0; margin: 10px -10px 0; border-radius: 0 0 4px 4px; }
 /* needsreview notes on a card (maintainers only): one reason per line */
 dd.needsreview div {
   border-left: solid #c90 3px;
