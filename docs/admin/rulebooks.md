@@ -73,11 +73,20 @@ outside it closes it too); a plain tap works as a click.
 
 A trait's books on a card, each shown once, in shelf order:
 
-- the edition of **the printing shown**: its legality (arc and edition) → that edition's book;
+- the edition of **the printing shown**: its legality (arc and edition), and the arc its set was printed
+  in → that edition's book;
 - **the newest book** that defines the trait;
 - when that newest book is fan-made (the Onyx Lives datasheets changed several rules: Sincerity, Yu),
   also **the newest AEG book** that defines it, so the original rule shows beside the fan one;
-- for **each arc bug the card has** (its legalities), that edition's book.
+- for **each arc bug the card has** (its legalities, and the arc each of its printings' sets was printed
+  in), that edition's book.
+
+The printed arc counts even where legality leaves it out, so the rules of the arc a card was printed in
+always show: a card banned from an arc (Moto Chagatai, banned from Samurai Edition but reprinted in
+Samurai Edition Banzai), and printings that have no legality (the 1,000 Years of Darkness KYD cards). The
+set → arc map is `sets` in the traits item (below); Celestial Edition 15th Anniversary, the proxies,
+Siege: Heart of Darkness and Oracle of the Void are left out on purpose, so they still go by legality only.
+Legality itself isn't changed.
 
 An edition's book is the first of its books (below) that defines the trait; its "Last complete rules in
 arc" book comes first where there is one (Scorpion Clan Coup before Imperial, The Spirit Wars before
@@ -92,6 +101,7 @@ The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 - `books`: the pages of each book to look in (its glossary and keyword sections), with two layout hints
   for glossaries whose entries have no gap between them;
 - `editions`: each legality → its books, the one to prefer first;
+- `sets`: each set (as `printing.set` has it) → the arc it was released in (in the config: arc → its sets);
 - `traits`: the traits to look for.
 
 The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for

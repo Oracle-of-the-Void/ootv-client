@@ -4822,9 +4822,13 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
-  // legalities for the trait links, before cardhtml linkifies them
-  var legality = {card: [].concat(carddata.legality || []), printing: {}};
-  (carddata.printing || []).forEach(function(p) { legality.printing[p.printingid] = [].concat(p.legality || []); });
+  // legalities and sets for the trait links, before cardhtml linkifies them
+  var legality = {card: [].concat(carddata.legality || []), printing: {}, set: {}, sets: []};
+  (carddata.printing || []).forEach(function(p) {
+    legality.printing[p.printingid] = [].concat(p.legality || []);
+    legality.set[p.printingid] = [].concat(p.set || []);
+    legality.sets = legality.sets.concat(p.set || []);
+  });
   var drawn = cardhtml(carddata,prid,qs);
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
@@ -4835,7 +4839,8 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var showpr = prid?prid:((defpr>0)?defpr:primary);
   $(".printing:not([data-printingid="+showpr+"])").hide();
   $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
-  traitsmark('#resultcard', carddata.cardid, legality.card, legality.printing[showpr] || []);
+  traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
+    set: legality.set[showpr] || [], sets: legality.sets});
 
   if(!switchview) {
 	  return;
@@ -7962,9 +7967,10 @@ function rulingopenrules(book,page) {
 // define them: hovering one shows the rule's text, clicking it opens the book at that place (or, with more
 // than one book, a choice of them). From the structure item <game>/traits (ootv-import SCRIPTS/rulebook-traits.py,
 // docs/admin/rulebooks.md "Trait links"): books {<id>: {title, year, arc, order}}, editions {<legality>: [book
-// ids, the one to prefer first]}, traits {<trait>: {<book id>: {page, find, text}}}.
+// ids, the one to prefer first]}, sets {<printing.set>: <legality>}, traits {<trait>: {<book id>: {page, find, text}}}.
 // A trait's books on a card: the edition of the printing shown, the newest book that defines it, and the last
-// complete rules of each arc whose bug the card has; one book only once.
+// complete rules of each arc whose bug the card has; one book only once. A printing's arc is its legality and the
+// arc its set was printed in (sets), so a printing with no legality there (a ban, KYD cards) still gets that arc's book.
 var traitsdata = {};   // game -> the traits item, false when it has none, or the pending request
 function traitsload(done) {
   var game = database, have = traitsdata[game];
@@ -7985,8 +7991,9 @@ function traitname(data,word) {
 function traitfanmade(book) {
   return (book.tags || []).indexOf('Fan Made') >= 0;
 }
-// the books for trait on a card with these legalities (plain or with &nbsp;): [{id, why: [...]}] in book order
-function traitbooks(data,trait,cardlegality,printlegality) {
+// the books for trait on a card: legal {card, printing: legalities (plain or with &nbsp;), set: the shown printing's
+// sets, sets: every printing's}: [{id, why: [...]}] in book order
+function traitbooks(data,trait,legal) {
   var defined = data.traits[trait] || {}, out = {};
   var add = function(id, why) {
     if(!defined[id]) { return; }
@@ -7996,21 +8003,22 @@ function traitbooks(data,trait,cardlegality,printlegality) {
   var edition = function(legality) {
     return (data.editions[selectplaintext(legality)] || []).find(function(id) { return defined[id]; });
   };
-  printlegality.forEach(function(l) { add(edition(l), 'this printing'); });
+  var printed = function(sets) { return sets.map(function(s) { return (data.sets || {})[s]; }).filter(Boolean); };
+  legal.printing.concat(printed(legal.set)).forEach(function(l) { add(edition(l), 'this printing'); });
   var bynewest = Object.keys(defined).sort(function(a,b) { return (data.books[b].order ?? 0) - (data.books[a].order ?? 0); });
   add(bynewest[0], 'newest rules');
   if(traitfanmade(data.books[bynewest[0]])) {   // the fan rules changed AEG's: show AEG's newest beside them
     add(bynewest.find(function(id) { return !traitfanmade(data.books[id]); }), 'newest AEG rules');
   }
-  cardlegality.forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
+  legal.card.concat(printed(legal.sets)).forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
   return Object.values(out).sort(function(a,b) { return (data.books[a.id].order ?? 0) - (data.books[b.id].order ?? 0); });
 }
 // mark the traits in a card's keywords (a book after each) and the first time each is named in its text
-function traitsmark(scope,cardid,cardlegality,printlegality) {
+function traitsmark(scope,cardid,legal) {
   traitsload(function(data) {
     var area = $(scope);
     if(!data || $("#lastcardid").val() != cardid) { return; }
-    area.data('traits', {card: cardlegality, printing: printlegality});
+    area.data('traits', legal);
     if(area.find('[data-trait]').length) { return; }   // already marked (the card drawn once, two calls)
     area.find('dd.cardkeywords a').each(function() {
       var trait = traitname(data, $(this).html());
@@ -8049,7 +8057,7 @@ function traitbooktitle(book) {
 // the books for a marked trait in the card shown
 function traitcandidates(el) {
   var data = traitsdata[database], legal = $(el).closest('#resultcard').data('traits');
-  return (data && legal) ? traitbooks(data, $(el).data('trait'), legal.card, legal.printing) : [];
+  return (data && legal) ? traitbooks(data, $(el).data('trait'), legal) : [];
 }
 // the trait's rule from each of its books, by el: on hover (mouse), or after a long-press (touch), when it
 // takes taps: an Open button per book and Close (a tap outside closes it too)
