@@ -97,8 +97,8 @@ function rulesdrawshelf() {
 }
 
 // ********** shelf filters **********
-// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege, Play Variant: a
-// house-rule way to play, like solitaire or 2-vs-1), or a list of
+// Each book has a type (Complete, Addendum, Special: rules for one format, like War of Honor or Legacy, Play
+// Variant: another way to play, like draft, siege or multiplayer), or a list of
 // them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
 // the choice is kept per game in this browser.
 var RULESTYPES = ['Complete', 'Addendum', 'Special', 'Play Variant'];   // the order on the bar; other types follow
