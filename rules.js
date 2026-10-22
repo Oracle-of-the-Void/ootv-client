@@ -95,11 +95,12 @@ function rulesdrawshelf() {
 }
 
 // ********** shelf filters **********
-// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege), tags
-// (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
+// Each book has a type (Complete, Addendum, Special: rules for one format, like draft or siege), or a list of
+// them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
 // the choice is kept per game in this browser.
 var RULESTYPES = ['Complete', 'Addendum', 'Special'];   // the order on the bar; other types follow
 var rulesfilter = null;   // {game, type, arc, tags: [...]}
+function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
 function rulesfilterload() {
   if(rulesfilter && rulesfilter.game == database) { return rulesfilter; }
   var saved = {};
@@ -118,7 +119,7 @@ function rulesfiltersave() {
 function rulesfiltervalues() {
   var types = [], tags = [], arcs = [];
   rulesshelf.books.forEach(function(b) {
-    if(b.type && !types.includes(b.type)) { types.push(b.type); }
+    rulesbooktypes(b).forEach(function(t) { if(!types.includes(t)) { types.push(t); } });
     (b.tags || []).forEach(function(t) { if(!tags.includes(t)) { tags.push(t); } });
     if(b.arc && !arcs.includes(b.arc)) { arcs.push(b.arc); }
   });
@@ -157,7 +158,7 @@ function rulesfilterbar() {
 }
 function rulesfilterpass(b) {
   var f = rulesfilter;
-  return (!f.type || b.type == f.type) && (!f.arc || b.arc == f.arc) &&
+  return (!f.type || rulesbooktypes(b).includes(f.type)) && (!f.arc || b.arc == f.arc) &&
     f.tags.every(function(t) { return (b.tags || []).includes(t); });
 }
 $(document).on('click', '.rulesfilters button.rulespill', function() {
@@ -189,8 +190,8 @@ function rulesdrawbooks() {
     shown++;
     var cover = rulesbase()+b.id+'/001_select.webp'+(b.built ? '?v='+b.built : '');
     var at = last[database+'/'+b.id];
-    // the type shows when it isn't the usual Complete
-    var marks = (b.type && b.type != 'Complete' ? [b.type] : []).concat(b.tags || []);
+    // the types show, except the usual Complete
+    var marks = rulesbooktypes(b).filter(function(t) { return t != 'Complete'; }).concat(b.tags || []);
     out += '<a class="rulesbookcard" href="#game='+database+',#rulebook='+b.id+(at > 1 ? ',#page='+at : '')+'" data-book="'+rulesesc(b.id)+'">'+
       '<span class="rulescover"><img loading="lazy" alt="" src="'+cover+'"'+
       (b.cover ? ' width="'+b.cover[0]+'" height="'+b.cover[1]+'"' : '')+'></span>'+
