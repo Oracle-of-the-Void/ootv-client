@@ -1674,6 +1674,16 @@ div#phonesearchbar .numresults {
   .modal-box {
     width: 95%;
   }
+  /* card view prev/next: finger-sized tap targets around the small arrow images */
+  #cardprev, #cardnext {
+    display: inline-block;
+    padding: 6px 8px;
+    vertical-align: middle;
+  }
+  #cardprev img, #cardnext img {
+    width: 26px !important;
+    height: auto;
+  }
   /* card view (template-card-top, all games): image above the details instead of beside them */
   #resultcard div.listitem, #resultcard div.listimage, #resultcard div.listbody {
     display: block;
