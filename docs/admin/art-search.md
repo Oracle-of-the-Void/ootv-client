@@ -1,7 +1,9 @@
 # Similar art
 
-Every L5R instance with an image has an art vector: a fingerprint of the painting in its
-`image[0]`, made by an image model (DINOv2) from the art box of the card. Cards whose vectors
+Every instance with an image has an art vector, in every game (L5R since 2026-10-21, the other
+games since 2026-10-22): a fingerprint of the painting in its `image[0]`, made by an image model
+(DINOv2) from the art box of the card (set per game, and per card type where a game's frames
+differ; a Pathfinder pawn uses the whole pawn). Search compares vectors within one game only. Cards whose vectors
 are close have art that looks alike: the same painting in another frame, a reprint, a crop,
 and to a lesser degree the same artist's style.
 
@@ -34,11 +36,12 @@ out of the results.
 
 The vectors belong to the image they were made from. Pointing an instance at a different image
 file in the editor clears its vector, so it drops out of similar-art searches until the vectors
-are rebuilt with ootv-backups `art-vectors.py`, which only redoes the instances that need it.
-New sets and new instances need the same run.
+are rebuilt with ootv-backups `art-vectors.py --game <game>`, which only redoes the instances that
+need it. New sets and new instances need the same run.
 
 Replacing an image file under the same name (the mass image upload, or the editor's upload with
-"Replace existing files") does **not** clear the vector: the old one stays until the vectors
-are rebuilt from fresh downloads. Mention it when you do that, so the rebuild gets done.
+"Replace existing files") does **not** clear the vector: the old one stays in search until the
+next `art-vectors.py` run, which notices the changed file and redoes it. Mention it when you do
+that, so the run gets done.
 
 Design and history: ootv-claude `ART-MATCHING.md`.
