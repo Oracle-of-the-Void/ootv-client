@@ -184,9 +184,10 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
-    `Special` (rules for one format or game mode: War of Honor, Booster Draft, Siege) or
-    `Play Variant` (a house-rule way to play rather than a format with its own deck or tournament
-    rules: solitaire, 2-vs-1, epic multiplayer with a map, koku ante; since 2026-10-22) or
+    `Special` (rules for one format: War of Honor, and the constructed formats Legacy, Modern,
+    Obsidian Hand and the like) or
+    `Play Variant` (another way to play the game: booster draft, sealed deck, Suicide, Siege,
+    multiplayer, solitaire, 2-vs-1, koku ante; since 2026-10-22) or
     `Floor Rules` (tournament floor rules, e.g. kempy's `Tournament/` folder) or `Rulings` (the old
     FAQs, accumulated rulings and rules archives, errata lists included; their rulings are also on the
     cards, `rulings.md`). The filter
