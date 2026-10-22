@@ -62,7 +62,8 @@ Clicking a book opens it in the page viewer:
 In Card Details, traits with rules (Cavalry, Kharmic, Shugenja, ...) lead to where the rulebooks
 define them. A trait in the **Keywords** gets a book (📖) after it, and the first time the **Text**
 names a trait it gets a dotted underline. Hovering either one (or the keyword) shows the rule's text
-from each of the trait's books; clicking the book or the underlined word opens the book at the
+from each of the trait's books (a long rule is whole only for the printing's own book, and cut to a few
+sentences for the others, so the popup fits the screen; the click and the long-press show them all whole); clicking the book or the underlined word opens the book at the
 definition, marked (a `#find` link). When the trait has more than one book, the click shows them all
 with their text instead, to pick one. A keyword's number doesn't matter (Experienced 2 and Yu 3 link to
 Experienced and Yu), and a trait inside a name (Utaku Yu-Pan) isn't marked. Fan-made books (shelf tag
@@ -105,12 +106,17 @@ The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 - `traits`: the traits to look for.
 
 The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for
-each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it).
+each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it,
+"Shadowlands card A card ...").
 The item holds, per trait and book, the page, the `#find` phrase (the entry's first line) and up to
 420 characters of the definition for the hover text. A trait that a book only explains in its main
 text (not a glossary entry) is linked to it only when the JSON's `places` names the page and the words
-its sentence starts with (Samurai Edition's and Celestial's Cavalry, 2026-10-22); the definition is that
-sentence and the rest of its paragraph. After changing the JSON or rebuilding a
+its sentence starts with; the definition is that sentence and the rest of its paragraph. Since 2026-10-22
+these cover Cavalry (Samurai Edition, Celestial), Unique (Imperial, Scorpion Clan Coup, Jade, The Spirit
+Wars), Experienced (Scorpion Clan Coup, Jade, The Spirit Wars, Gold, Diamond), Naval, Shadowlands and Yu
+(Diamond), found by a sweep of the rules keywords on many cards in an arc against that arc's books. The
+keywords still unlinked for some arcs (Nonhuman, Political, Courtier, Samurai...) are ones those books
+give no rule for. The top-level `hover` keeps a trait's whole rule in every book (Yu: 1200 characters). After changing the JSON or rebuilding a
 book, run it again:
 
 ```
@@ -124,7 +130,8 @@ the three that define traits (2026-10-22): Broken Blades (Yu, under Four Winds),
 Invest, Unstoppable, under Ivory Edition, first) and The Blackest Storm (Sincerity, under Twenty
 Festivals, first). The Onyx Lives datasheets are searched (2026-10-21). Two per-book options in the JSON
 help with rulesheets: `narrow` (a heading over a narrow column, whose first line looks like a heading
-too) and `hover` (keep more than 420 characters, where the rule comes after an introduction). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
+too) and `hover` (keep more than 420 characters, where the rule comes after an introduction); `stop` ends
+a definition at a heading the layout hints miss (the Onyx datasheet's "Boldface Keywords"). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
 sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
 back in the hover text from the other books' words.
 
