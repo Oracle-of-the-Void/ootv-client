@@ -24,7 +24,7 @@ On the card's details page, **Rulings** sits above **Versions**. Clicking a link
 
 | Link | Opens |
 |---|---|
-| A rulebook page on the Rules shelf: `#rulebook=<id>,#page=<n>` (copy it from the Rules viewer's address bar, without the `#game=` part), optionally with a place on the page: `,#find=<words>`, `,#line=<n>` or `,#at=<percent>` (`rulebooks.md`; with text selected, the viewer's link button copies a `#find` link) | that page's image in a popup on the site, with **Open in Rules** to go to the book at that page, zoomed to the place and marked when the link has one |
+| A rulebook page on the Rules shelf: `#rulebook=<id>,#page=<n>` (copy it from the Rules viewer's address bar, without the `#game=` part), optionally with a place on the page: `,#find=<words>`, `,#line=<n>` or `,#at=<percent>` (`rulebooks.md`; with text selected, the viewer's link button copies a `#find` link) | that page's image in a popup on the site, scrolled to the place and marked when the link has one, with **Open in Rules** to go to the book at that page, zoomed to the place. Hovering the link (mouse), or a long-press on it (touch), shows that place in a small popup, as the trait links do |
 | An image (`.png`, `.jpg`, `.gif`, `.webp`), e.g. a screenshot of a ruling uploaded to the images bucket | the image in a popup on the site |
 | A PDF (`.pdf`) | the PDF in a popup on the site, with **Open in a new tab** |
 | Any other page (AEG's old rulings pages, forum posts, Wayback copies) | a small separate browser window, because most sites refuse to load inside another page |
