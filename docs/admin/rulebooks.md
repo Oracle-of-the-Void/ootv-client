@@ -197,19 +197,21 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
 - `arc`, `type` and `tags` drive the shelf's filters (the text is shown as written, so keep the
   spelling the same across books):
   - `arc`: the arc the book belongs to, or `Multi-Arc` for formats played with cards from many arcs
-    (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...). Multi-Arc books come last on
+    (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...; their type is `Multi-Arc` too, or a
+    list with it, e.g. `["Rulings", "Multi-Arc"]` for a format's FAQ). Multi-Arc books come last on
     the shelf (by year among themselves), and so does Multi-Arc in the Arc filter (2026-10-22).
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
-    `Special` (rules for one format: War of Honor, and the constructed formats Legacy, Modern,
-    Obsidian Hand and the like) or
-    `Play Variant` (another way to play the game: booster draft, sealed deck, Suicide, Siege,
-    multiplayer, solitaire, 2-vs-1, koku ante; since 2026-10-22) or
+    `Special` (rules for one format of its own, like Bushi) or
+    `Play Variant` (another way to play the game: War of Honor, booster draft, sealed deck, Suicide,
+    Siege, multiplayer, solitaire, 2-vs-1, koku ante; since 2026-10-22) or `Multi-Arc` (a format played
+    with cards from many arcs: Legacy, Modern, Obsidian Hand, EternaL5R, Big Deck, ...; these books also
+    have the arc `Multi-Arc`, below; since 2026-10-22) or
     `Floor Rules` (tournament floor rules, e.g. kempy's `Tournament/` folder) or `Rulings` (the old
     FAQs, accumulated rulings and rules archives, errata lists included; their rulings are also on the
     cards, `rulings.md`). The filter
-    bar lists Complete, Addendum, Special and Play Variant first (`RULESTYPES` in `rules.js`), then any other type.
+    bar lists Complete, Addendum, Special, Play Variant and Multi-Arc first (`RULESTYPES` in `rules.js`), then any other type.
     A book that is more than one takes a list, e.g. `"type": ["Complete", "Rulings"]` for the Samurai
     Edition Comprehensive Rules (complete rules with card rulings): it shows under each type's filter.
   - `tags`: `Base set` (the rulebook of an arc's base set) and `Last complete rules in arc` (the

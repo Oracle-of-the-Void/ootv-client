@@ -97,12 +97,13 @@ function rulesdrawshelf() {
 }
 
 // ********** shelf filters **********
-// Each book has a type (Complete, Addendum, Special: rules for one format, like War of Honor or Legacy, Play
-// Variant: another way to play, like draft, siege or multiplayer), or a list of
+// Each book has a type (Complete, Addendum, Special: rules for one format, Play Variant: another way to play, like
+// draft, siege or War of Honor, Multi-Arc: a format with cards from many arcs, like Legacy), or a list of
 // them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
 // the choice is kept per game in this browser.
-var RULESTYPES = ['Complete', 'Addendum', 'Special', 'Play Variant'];   // the order on the bar; other types follow
-var RULESMULTIARC = 'Multi-Arc';   // the arc of formats spanning arcs: its books, and its choice on the bar, come last
+var RULESMULTIARC = 'Multi-Arc';   // formats spanning arcs: both their arc and their type. Their books, and the arc's
+                                   // choice in the Arc filter, come last
+var RULESTYPES = ['Complete', 'Addendum', 'Special', 'Play Variant', RULESMULTIARC];   // the order on the bar; other types follow
 var rulesfilter = null;   // {game, type, arc, tags: [...]}
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
 function rulesfilterload() {
