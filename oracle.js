@@ -7640,7 +7640,8 @@ function traitbooks(data,trait,cardlegality,printlegality) {
   var defined = data.traits[trait] || {}, out = {};
   var add = function(id, why) {
     if(!defined[id]) { return; }
-    (out[id] = out[id] || {id: id, why: []}).why.push(why);
+    out[id] = out[id] || {id: id, why: []};
+    if(out[id].why.indexOf(why) < 0) { out[id].why.push(why); }
   };
   var edition = function(legality) {
     return (data.editions[selectplaintext(legality)] || []).find(function(id) { return defined[id]; });
