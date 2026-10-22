@@ -288,10 +288,12 @@
     <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game) &middot;
         <a href="" onclick="loadsetimport('importprofilesopen'); return false">Import profiles</a></li>
     <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
+    <li><a href="" onclick="loadfielddescs(); return false">Field descriptions</a> (this game, or shared)</li>
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
         <li><a href="" onclick="loadadmindoc('card-editor'); return false">Card editor</a></li>
+        <li><a href="" onclick="loadadmindoc('field-descriptions'); return false">Field descriptions</a></li>
         <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
         <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
         <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
@@ -309,6 +311,7 @@
   <div id="setimport" class="setimport"></div>
   <div id="importprofiles" class="setimport"></div>
   <div id="updatelogpage" class="updatelogpage"></div>
+  <div id="fielddescs" class="fielddescs"></div>
 </div></div>
 <div class="resultrules" id="resultrules"><div class="rulesarea" id="rulesarea"></div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>

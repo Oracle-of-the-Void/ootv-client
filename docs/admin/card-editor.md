@@ -29,12 +29,14 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
 - Fields follow the card page's order and rows (read from the game's card template), with Needs
   review first, every `*title*` field next to the title, and fields the page doesn't show at the
   end. Short fields (values up to about 40 characters on the cards seen) sit side by side. Labels
-  are the card page's short ones; hover for the full name and the field's name in the JSON.
+  are the card page's short ones; hover for the full name, the field's name in the JSON and what
+  the field holds. A label with a dotted underline has a description
+  ([Field descriptions](field-descriptions.md)).
 - Each field has an **x** to remove it. A list field has an **x** on each value and a **+** after
   the last one to add an empty value to fill in.
 - **Add field** offers the fields this game uses that the card (or instance) doesn't have yet
   (from the game's card template and every card loaded this session), or **Other...** for a new
-  name. A list field starts as one empty value, a text field as empty text.
+  name. The field picked shows its description under the menu. A list field starts as one empty value, a text field as empty text.
 - Fields holding structured data (`image`, true/false flags such as `notmrp`) are edited as JSON
   in their own box. A true/false field added with Add field starts as `true`.
   If the box doesn't parse it turns red and the field keeps its last good value.
