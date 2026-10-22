@@ -75,6 +75,7 @@ dd.rulings div {
 #traitpop .traitpopbook { border-left: solid #69c 3px; padding-left: 4px; margin-bottom: 6px; }
 #traitpop .traitpopfoot, .traitwhy { color: #666; font-size: 90%; }
 .traitfan { color: #a50; border: solid #a50 1px; border-radius: 3px; padding: 0 3px; font-size: 80%; font-weight: normal; white-space: nowrap; }
+.traitprint { color: #fff; background: #2a6e3f; border-radius: 3px; padding: 0 4px; font-size: 85%; font-weight: bold; white-space: nowrap; }
 .traitchoice { border-left: solid #69c 3px; padding-left: 6px; margin-bottom: 8px; }
 /* touch (a long-press): it takes taps, scrolls when long, and has finger-sized Open and Close buttons */
 #traitpop.traitpoptouch { pointer-events: auto; max-height: 88vh; overflow-y: auto; font-size: 100%; padding: 10px 10px 0; }
