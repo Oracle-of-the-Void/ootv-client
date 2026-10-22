@@ -26,6 +26,30 @@ Uses:
 - wrong or duplicate images: an image that matches a different card's art closely.
 - reprints: finding every printing of a painting across sets.
 
+## Search by photo (public)
+
+The **Photo** button under the search form (everyone, no login) takes a photo of a card, or a
+picture of its art, and searches the current game for the cards whose art looks most like it.
+The page shrinks the photo and sends it to the API (`POST /artphoto`, the `ootv-artembed`
+Lambda in ootv-search `artembed/`), which:
+
+1. looks for the card in the photo (up to three card-shaped outlines, since on a busy table the
+   best-shaped one isn't always the card) and straightens it;
+2. cuts the game's art box out of it in every way up it can be (a card photographed sideways
+   or upside down still matches);
+3. turns each piece into an art vector, the same kind the instances have.
+
+The search keeps each card's best match over all the pieces. It is an ordinary search link
+(`#search=table=l5r&artphoto=<id>`) that works for a week; the photo itself is never stored,
+only its vectors. Above the results the page shows the card it found, turned the way it
+matched, and **Adjust the outline**: drag the four corners onto the card and search again, for
+when the wrong part of the photo was used. When no card outline is found (a pawn, a picture of
+the art alone) the whole picture is searched.
+
+Tested on synthetic photos of real cards (tilted, rotated, any lighting, on plain and busy
+backgrounds): the right card first 91-99% of the time depending on the game; real photos taken
+on the card slinger all matched.
+
 ## Placeholder art
 
 Images that match the art on five or more other cards (the 2023 fan sets' brush-and-blade and
