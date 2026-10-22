@@ -8059,18 +8059,26 @@ function traitcandidates(el) {
   var data = traitsdata[database], legal = $(el).closest('#resultcard').data('traits');
   return (data && legal) ? traitbooks(data, $(el).data('trait'), legal) : [];
 }
+// a rule cut for the hover, at the last sentence end before about 420 characters (as rulebook-traits.py does)
+function traitshort(text) {
+  if(text.length <= 420) { return text; }
+  var cut = text.slice(0, 420), i = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('.) '));
+  return i > 120 ? cut.slice(0, i + 1)+' …' : cut.replace(/\s+\S*$/, '')+'…';
+}
 // the trait's rule from each of its books, by el: on hover (mouse), or after a long-press (touch), when it
 // takes taps: an Open button per book and Close (a tap outside closes it too)
 function traitpopshow(el,touch) {
   var data = traitsdata[database], trait = $(el).data('trait'), books = traitcandidates(el);
   if(!books.length) { return; }
+  // on hover, only the printing's own book (else the first) shows a long rule whole, so the popup fits the screen
+  var whole = touch ? null : (books.find(function(b) { return b.why.indexOf('this printing') >= 0; }) || books[0]).id;
   var pop = $('#traitpop');
   if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
   pop.toggleClass('traitpoptouch', touch).html('<div class="traitpophead">'+traitesc(trait)+'</div>'+books.map(function(b) {
     var open = touch ? '<span class="button gray traitpopopen" onclick="traitopen(\''+addslashes(b.id)+'\',\''+addslashes(trait)+'\');">Open page '+
       data.traits[trait][b.id].page+'</span>' : '';
     return '<div class="traitpopbook"><b>'+traitbooktitle(data.books[b.id])+'</b> <span class="traitwhy">'+traitesc(b.why.join(', '))+
-      '</span><div>'+traitesc(data.traits[trait][b.id].text)+'</div>'+open+'</div>';
+      '</span><div>'+traitesc(touch || b.id == whole ? data.traits[trait][b.id].text : traitshort(data.traits[trait][b.id].text))+'</div>'+open+'</div>';
   }).join('')+(touch ? '<span class="button gray traitpopclose" onclick="$(\'#traitpop\').hide();">Close</span>' :
     '<div class="traitpopfoot">'+($(el).is('a') ? 'Click &#128214; to open the rulebook' : books.length > 1 ? 'Click to choose a book' : 'Click to open the page')+'</div>'));
   var w = Math.min(420, window.innerWidth - 16);
