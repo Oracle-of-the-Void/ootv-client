@@ -67,6 +67,12 @@ Spoiler and Simple List, on the first active list; the toast names the list when
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
 drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16.
 
+Card view (2026-10-21, [#372](https://github.com/Oracle-of-the-Void/ootv-client/issues/372), emulated touch only):
+a sideways swipe on a card opened from a search goes to the next (left) or previous (right) result,
+like the arrow keys (Gestures switch `cardswipetouch`; skipped when pinch-zoomed, over a form field, in
+something that scrolls sideways, or with a modal open). The ◀ ▶ buttons get finger-sized tap targets.
+Visual Spoiler (the phone default) used to open cards without the search, so the buttons never showed.
+
 Added 2026-10-16 (emulated touch only; see the checklist above): with no active list, an adding
 swipe in search results asks which list to activate (folder tree, plus New list); a Gestures switch
 hides the directory's Folder pulldown (move lists by dragging only); New list asks for a name and
