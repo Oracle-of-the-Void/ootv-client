@@ -7982,6 +7982,9 @@ function traitname(data,word) {
   if(data.traits[base]) { w = base; }
   return data.traits[w] ? w : (/s$/.test(w) && data.traits[w.slice(0,-1)]) ? w.slice(0,-1) : null;
 }
+function traitfanmade(book) {
+  return (book.tags || []).indexOf('Fan Made') >= 0;
+}
 // the books for trait on a card with these legalities (plain or with &nbsp;): [{id, why: [...]}] in book order
 function traitbooks(data,trait,cardlegality,printlegality) {
   var defined = data.traits[trait] || {}, out = {};
@@ -7994,8 +7997,11 @@ function traitbooks(data,trait,cardlegality,printlegality) {
     return (data.editions[selectplaintext(legality)] || []).find(function(id) { return defined[id]; });
   };
   printlegality.forEach(function(l) { add(edition(l), 'this printing'); });
-  var newest = Object.keys(defined).sort(function(a,b) { return (data.books[b].order ?? 0) - (data.books[a].order ?? 0); })[0];
-  add(newest, 'newest rules');
+  var bynewest = Object.keys(defined).sort(function(a,b) { return (data.books[b].order ?? 0) - (data.books[a].order ?? 0); });
+  add(bynewest[0], 'newest rules');
+  if(traitfanmade(data.books[bynewest[0]])) {   // the fan rules changed AEG's: show AEG's newest beside them
+    add(bynewest.find(function(id) { return !traitfanmade(data.books[id]); }), 'newest AEG rules');
+  }
   cardlegality.forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
   return Object.values(out).sort(function(a,b) { return (data.books[a.id].order ?? 0) - (data.books[b.id].order ?? 0); });
 }
@@ -8038,7 +8044,7 @@ function traitesc(s) {
 }
 function traitbooktitle(book) {
   return traitesc(book.title)+(book.subtitle ? ' '+traitesc(book.subtitle) : '')+(book.year ? ' ('+book.year+')' : '')+
-    ((book.tags || []).indexOf('Fan Made') >= 0 ? ' <span class="traitfan">Fan Made</span>' : '');
+    (traitfanmade(book) ? ' <span class="traitfan">Fan Made</span>' : '');
 }
 // the books for a marked trait in the card shown
 function traitcandidates(el) {
