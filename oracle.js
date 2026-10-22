@@ -7975,11 +7975,15 @@ function traitsload(done) {
   }
   if(have && have.then) { have.always(function() { done(traitsdata[game]); }); } else { done(have); }
 }
-// the trait a keyword or a word in the text is, or null: tags and &nbsp; dropped, a number after Experienced
-// dropped (Experienced 2, Experienced 3KYD), a plural's s dropped
+// the trait a keyword or a word in the text is, or null: tags and &nbsp; dropped, a number after the trait
+// dropped (Experienced 2, Experienced 3KYD, Yu 3, Yu *), a plural's s dropped
 function traitname(data,word) {
-  var w = selectplaintext(word).replace(/^(Experienced)\s+\d.*$/, '$1');
+  var w = selectplaintext(word), base = w.replace(/\s+(\d|\*).*$/, '');
+  if(data.traits[base]) { w = base; }
   return data.traits[w] ? w : (/s$/.test(w) && data.traits[w.slice(0,-1)]) ? w.slice(0,-1) : null;
+}
+function traitfanmade(book) {
+  return (book.tags || []).indexOf('Fan Made') >= 0;
 }
 // the books for trait on a card with these legalities (plain or with &nbsp;): [{id, why: [...]}] in book order
 function traitbooks(data,trait,cardlegality,printlegality) {
@@ -7993,8 +7997,11 @@ function traitbooks(data,trait,cardlegality,printlegality) {
     return (data.editions[selectplaintext(legality)] || []).find(function(id) { return defined[id]; });
   };
   printlegality.forEach(function(l) { add(edition(l), 'this printing'); });
-  var newest = Object.keys(defined).sort(function(a,b) { return (data.books[b].order ?? 0) - (data.books[a].order ?? 0); })[0];
-  add(newest, 'newest rules');
+  var bynewest = Object.keys(defined).sort(function(a,b) { return (data.books[b].order ?? 0) - (data.books[a].order ?? 0); });
+  add(bynewest[0], 'newest rules');
+  if(traitfanmade(data.books[bynewest[0]])) {   // the fan rules changed AEG's: show AEG's newest beside them
+    add(bynewest.find(function(id) { return !traitfanmade(data.books[id]); }), 'newest AEG rules');
+  }
   cardlegality.forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
   return Object.values(out).sort(function(a,b) { return (data.books[a.id].order ?? 0) - (data.books[b.id].order ?? 0); });
 }
@@ -8012,7 +8019,7 @@ function traitsmark(scope,cardid,cardlegality,printlegality) {
       }
     });
     var names = Object.keys(data.traits).sort(function(a,b) { return b.length - a.length; });
-    var re = new RegExp('\\b('+names.map(function(n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|')+')s?\\b', 'g');
+    var re = new RegExp('\\b('+names.map(function(n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|')+')s?\\b(?![-\u2010\u2011]\\w)', 'g');   // not part of a name (Utaku Yu-Pan)
     area.find('dd.cardtext').each(function() {
       var seen = {}, nodes = [], walk = document.createTreeWalker(this, NodeFilter.SHOW_TEXT);
       while(walk.nextNode()) {
@@ -8036,7 +8043,8 @@ function traitesc(s) {
   return $('<div>').text(s == null ? '' : String(s)).html();
 }
 function traitbooktitle(book) {
-  return traitesc(book.title)+(book.subtitle ? ' '+traitesc(book.subtitle) : '')+(book.year ? ' ('+book.year+')' : '');
+  return traitesc(book.title)+(book.subtitle ? ' '+traitesc(book.subtitle) : '')+(book.year ? ' ('+book.year+')' : '')+
+    (traitfanmade(book) ? ' <span class="traitfan">Fan Made</span>' : '');
 }
 // the books for a marked trait in the card shown
 function traitcandidates(el) {
