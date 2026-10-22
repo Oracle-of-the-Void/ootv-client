@@ -167,6 +167,8 @@ such rule, which is what sets it apart from Jade Extended.
 
 ### Legacy (11,981)
 
+Rules shelf: [Legacy Format](https://oracleofthevoid.com/#game=l5r,#rulebook=aeg-legacy-format) (AEG's rules wiki, May 2015).
+
 Legacy counts any card *printed* in its era, whether or not it carries a bug. It started as the
 trial "Legacy (derived)" next to a stored `Legacy` value on the cards. Once the two matched card
 for card, the stored value was dropped and the derived entry took the name (2026-10-13).
@@ -207,6 +209,8 @@ No prefer: the MRPs stop before The Blackest Storm, so there's nothing to prefer
 The ban list is closed: these are all of Legacy's bans.
 
 ### Modern (6,367)
+
+Rules shelf: [Modern Format Comprehensive Rules](https://oracleofthevoid.com/#game=l5r,#rulebook=modern) (forum, November 2014) and the [L5R Modern FAQ](https://oracleofthevoid.com/#game=l5r,#rulebook=modern-faq-2015) (March 2015).
 
 Like Legacy, it started as the trial "Modern (derived)", and the stored `Modern` value was
 synced to it, then dropped (2026-10-13). Modern is **not** a subset of Legacy. Legacy counts any card printed in its era, while a Modern
@@ -256,6 +260,8 @@ exceptions.
 
 ### BigDeck (11,973)
 
+Rules shelf: [Big Deck, Tanuki Edition](https://oracleofthevoid.com/#game=l5r,#rulebook=big-deck).
+
 The Legacy clauses, unchanged, with BigDeck's own ban list (July 5th, 2016). Legacy's
 bans don't apply here.
 
@@ -289,6 +295,8 @@ inexperienced Mirumoto Hakahime is banned. Experienced versions are separate car
 card's title and keywords for "Experienced".
 
 ### Obsidian Hand (11,949)
+
+Rules shelf: [The Obsidian Hand](https://oracleofthevoid.com/#game=l5r,#rulebook=obsidian-hand) (the current ClickUp docs), the [2016 ruleset v.01](https://oracleofthevoid.com/#game=l5r,#rulebook=obsidian-hand-2016) and the [group queries 2016–2024](https://oracleofthevoid.com/#game=l5r,#rulebook=obsidian-hand-queries-2024).
 
 Source: "The Obsidian Hand Ruleset Quickstart and Primer"
 ([ClickUp](https://doc.clickup.com/9016365709/d/h/8cpnmmd-636/014766f3e7c6080), also pinned in
