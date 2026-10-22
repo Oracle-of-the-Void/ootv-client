@@ -75,6 +75,8 @@ A trait's books on a card, each shown once, in shelf order:
 
 - the edition of **the printing shown**: its legality (arc and edition) → that edition's book;
 - **the newest book** that defines the trait;
+- when that newest book is fan-made (the Onyx Lives datasheets changed several rules: Sincerity, Yu),
+  also **the newest AEG book** that defines it, so the original rule shows beside the fan one;
 - for **each arc bug the card has** (its legalities), that edition's book.
 
 An edition's book is the first of its books (below) that defines the trait; its "Last complete rules in
@@ -93,7 +95,7 @@ The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 - `traits`: the traits to look for.
 
 The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for
-each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" with the text under it).
+each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it).
 The item holds, per trait and book, the page, the `#find` phrase (the entry's first line) and up to
 420 characters of the definition for the hover text. A trait that a book only explains in its main
 text (not a glossary entry) isn't linked to that book. After changing the JSON or rebuilding a
