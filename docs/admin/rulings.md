@@ -43,6 +43,10 @@ ootv-claude `RULINGS-IMPORT.md`):
   page marked at the ruling (`#find=` with its first words).
 - Errata, text changes and most recent printings (`Reads, "..."`) start with `Erratum:`. They
   are meant to take over from the card-level `erratum` field in time.
+- Onyx Lives errata: each dated note in a card's `erratum` field that links an Onyx Lives
+  announcement is also an `Erratum:` ruling, linked to that announcement and named for its date
+  (`The Onyx Lives Project, 13 Aug 2024`), newest first. The `erratum` notes themselves stay. New
+  Onyx errata: add both until the `erratum` field is retired.
 - The newest document comes first. A ruling repeated in later archives (often reworded) is
   only kept from the newest one.
 - A ruling goes to every card with the heading's title that was printed by the document's date
