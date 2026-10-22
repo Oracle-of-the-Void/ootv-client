@@ -98,7 +98,9 @@ The script reads the books' live `lines/` text and finds, in each book, the firs
 each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it).
 The item holds, per trait and book, the page, the `#find` phrase (the entry's first line) and up to
 420 characters of the definition for the hover text. A trait that a book only explains in its main
-text (not a glossary entry) isn't linked to that book. After changing the JSON or rebuilding a
+text (not a glossary entry) is linked to it only when the JSON's `places` names the page and the words
+its sentence starts with (Samurai Edition's and Celestial's Cavalry, 2026-10-22); the definition is that
+sentence and the rest of its paragraph. After changing the JSON or rebuilding a
 book, run it again:
 
 ```
