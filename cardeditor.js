@@ -242,7 +242,13 @@ function cardeditrender() {
     var p = cardeditprinting();
     if(p) {
       var isnew = cardeditisnew(p.printingid);
-      html += '<div class="cardeditprintingbar"><b>'+(isnew ? 'New instance' : 'Instance '+htmlEncode(p.printingid))+'</b>'+
+      // previous/next instance: the card page's arrows (#cardprev/#cardnext), either side of the heading
+      var list = cardeditsorted(), at = list.findIndex(q => q.printingid == p.printingid);
+      var step = (d,img,title) => '<a href="" class="cardeditstep'+(at+d < 0 || at+d >= list.length ? ' cardeditstepoff' : '')+'" title="'+title+'"'+
+        ' onclick="cardeditstep('+d+'); return false;"><img src="res/symbol-'+img+'-one.png" alt="'+title+'" /></a>';
+      html += '<div class="cardeditprintingbar">'+step(-1,'left','Previous instance (&larr;, or Alt+, while typing)')+
+        '<b>'+(isnew ? 'New instance' : 'Instance '+htmlEncode(p.printingid))+'</b> <span class="cardeditstepcount">('+(at+1)+' of '+list.length+')</span>'+
+        step(1,'right','Next instance (&rarr;, or Alt+. while typing)')+
         (p.printingid == c.printingprimary ? ' <span class="cardeditmrp">MRP</span>'
           : ' <span class="button gray buttonsmall" onclick="cardeditmrp();">Make MRP<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg></span></span>')+
         ' <span class="button gray buttonsmall" onclick="cardeditdeleteprinting();">Delete instance<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></svg></span></span>'+
@@ -326,16 +332,12 @@ function cardeditprintings() {
   var strip = s => String(s === undefined || s === null ? '' : s).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ');
   var c = cardedit.card;
   var list = cardeditsorted();
-  var at = list.findIndex(p => p.printingid == cardedit.printid);
   var changed = cardeditchangedprintings();
-  var step = (d,label,title) => '<span class="button gray buttonsmall cardeditstep'+(at+d < 0 || at+d >= list.length ? ' cardeditstepoff' : '')+'"'+
-    ' title="'+title+'" onclick="cardeditstep('+d+');">'+label+'</span>';
-  var html = '<div class="cardeditversions">'+step(-1,'&lsaquo;','Previous instance (Alt+, or &larr;)')+' '+list.map(p =>
+  var html = '<div class="cardeditversions">'+list.map(p =>
     '<span class="printinglink gray button buttonsmall'+(p.printingid == cardedit.printid ? ' cardeditselected' : '')+'" data-id="'+p.printingid+'"'+
     ' onclick="cardeditselect(\''+p.printingid+'\');">('+(cardeditisnew(p.printingid) ? 'new' : htmlEncode(p.printingid))+') '+
     htmlEncode(strip(clean(p.set)))+'/'+htmlEncode(strip(clean(p.rarity)))+(p.printingid == c.printingprimary ? ' *' : '')+
     '<span class="cardeditdot" title="Changed">'+(changed.includes(p.printingid) ? ' &bull;' : '')+'</span></span>').join(' ')+
-    ' '+step(1,'&rsaquo;','Next instance (Alt+. or &rarr;)')+
     ' <span class="button gray buttonsmall" onclick="cardeditnewinstance();">New instance<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-plus"></svg></span></span></div>';
   var deleted = cardedit.base ? cardedit.base.printing.filter(p => !c.printing.some(q => q.printingid == p.printingid)) : [];
   if(deleted.length) {
