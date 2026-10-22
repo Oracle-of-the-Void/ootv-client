@@ -2,7 +2,8 @@
 
 Last updated: 2026-10-21
 
-The **Rules** button in the menubar (the open book) opens the game's rulebook shelf. Above the
+The **Rules** button in the menubar (the open book) opens the game's rulebook shelf, oldest book
+first (by year). Above the
 books, filters narrow the shelf by **Type** (one at a time), **Tags** (every tag picked must be on
 the book) and **Arc**; each offers only the values some book has, and the choice is remembered in
 this browser, per game. Each book shows its tags (and its type, unless Complete) under its title.
@@ -110,8 +111,9 @@ back in the hover text from the other books' words.
 
 **The shelf** is the `oracle-all-structure` item `<game>` / `rulebooks` (read through the public
 `/structure?database=<game>&key=rulebooks`): `books` is a map from each book's id to its title,
-subtitle, year, arc, type, tags, note, page count, cover size, build time and `order` (its place on the shelf,
-from the list below). `upload` writes only the entries of the books it's given, so sessions working
+subtitle, year, arc, type, tags, note, page count, cover size, build time and `order` (its place in
+the list below). The shelf shows the books by date: by `year`, and within a year in list order (since
+2026-10-21; before that, list order only), so a book added at the end of the list still lands among its year's. `upload` writes only the entries of the books it's given, so sessions working
 on different books, each with its own build folder, can't drop or revert each other's books. (Until
 2026-10-20 the shelf was an `index.json` on the bucket, rebuilt from whatever books the uploading
 checkout had built; ootv-claude `DEPRECATED.md`.)

@@ -8,7 +8,7 @@
 // the history entry, so Back leaves the book rather than stepping through every page.
 window.rulesloaded = true;
 
-var rulesshelf = null;      // the shelf ({game, books: [...] in shelf order}), once loaded
+var rulesshelf = null;      // the shelf ({game, books: [...] by date: year, then order}), once loaded
 var rulesbook = null;       // book.json of the open book
 var rulestext = null;       // text.json of the open book, loaded on the first search
 var ruleslines = {};        // page -> lines/<NNN>.json of the open book ([[block, [[x0, y0, x1, y1, word], ...]], ...]), or a request
@@ -61,7 +61,10 @@ function rulesloadshelf(done) {
   $.ajax({url: apiuri+'/structure?database='+database+'&key=rulebooks', dataType: 'json'})
     .done(function(data) {
       var books = Object.values((data && data.books) || {});
-      books.sort(function(a,b) { return ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); });
+      // by date: the book's year, then its place in the list (order) within a year
+      books.sort(function(a,b) {
+        return ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+      });
       rulesshelf = {game: database, books: books};
       done();
     })
