@@ -2272,7 +2272,7 @@ function loadmassimage() {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
-  $('#setimport, #importprofiles').hide();
+  $('#setimport, #importprofiles, #artcheck').hide();
   $('#updatelogpage').empty();
   $('#massimage').show();
   if(massimagerun) { return; }   // keep the form and results of the upload in progress
@@ -2356,12 +2356,43 @@ function loadsetimport(open) {
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var load = f => window.setimportetl && f == 'setimport-etl.js' || window.setimportopen && f == 'setimport.js' ? $.Deferred().resolve() :
                   $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
   $.when(load('setimport-etl.js'), load('setimport.js'))
     .done(function() { window[open](); })
     .fail(function() { $('#setimport').show().html('<span class="error">Could not load the set import code.</span>'); });
+}
+
+// Admin -> Artist check (artcheck.js, loaded on demand): a style vote and a signature read for one
+// printing, done by a LAN worker (ootv-claude ARTIST-CHECK.md). cardid/printingid fill the form.
+function artcheckload() {
+  return window.artcheckopen ? $.Deferred().resolve() : $.ajax({url: 'artcheck.js?v='+ootvversion, dataType: 'script', cache: true});
+}
+
+function loadartcheck(cardid, printingid) {
+  showadmintab('data');
+  $('#artistsadmin').empty();
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#admindoc').empty();
+  $('#updatelogpage').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  $('#artcheck').show();
+  if(!gamepermission('artcheck')) {
+    $('#artcheck').text('The artist check needs the artcheck permission on '+dbinfo[database].name+'.');
+    return;
+  }
+  artcheckload().done(function() { artcheckopen(cardid, printingid); })
+    .fail(function() { $('#artcheck').html('<span class="error">Could not load the artist check code.</span>'); });
+}
+
+// the card editor's "Check artist": the result drawn into #target under the printing
+function artcheckinline(target, cardid, printingid) {
+  artcheckload().done(function() { artcheckrun(target, cardid, printingid); })
+    .fail(function() { $('#'+target).html('<span class="error">Could not load the artist check code.</span>'); });
 }
 
 // a changed stub, file choice or Replace tick needs a new check
@@ -7417,7 +7448,7 @@ function loadloginlog(page) {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -7457,7 +7488,7 @@ function loaddiscord(note) {
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
     type: 'GET',
@@ -7669,7 +7700,7 @@ function loadadmindoc(name) {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))
@@ -7826,7 +7857,7 @@ function loadgameconfigadmin(which) {
 function loadartistsadmin(name) {
   showadmintab('data');
   $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
   $('#artistsadmin').text('Loading the artist editor...');
@@ -7852,7 +7883,7 @@ function loadfielddescs(target) {
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#gameconfigadmin, #templatesadmin').empty();
   fielddescsview.target = target || database;
   $('#fielddescs').text('Loading field descriptions...');
@@ -7974,7 +8005,7 @@ function loadupdatelogpage() {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));
   updatelogfacetsfill();
   updatelogsearch();
