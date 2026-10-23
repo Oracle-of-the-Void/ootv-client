@@ -531,7 +531,7 @@ inputs:
     * save the master templates (`all`/`templates`: `standard`, `views`, `partials`); database `all`; data and
       version as for `gameconfig`
     * site admins only: full permission on every game (`*` in `groups['*']`)
-    * `changed` lists `views.<view>` for each view that changed
+    * `changed` lists `views.<view>` for each view and `partials.<name>` for each partial that changed
 
 outputs:
 
