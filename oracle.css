@@ -617,7 +617,8 @@ div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
 dl.helpfields dd { margin-left: 16px; }
-.helpq { font-size: 70%; font-weight: bold; color: #369; vertical-align: super; line-height: 1; margin-left: 1px;
+.helpq { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #369; vertical-align: super;
+  line-height: 1; margin-left: 2px;
   cursor: help; user-select: none; }
 /* a label with a "?" (dt::after adds its colon): the colon first, then the "?" */
 dt:has(> .helpq) { display: flex; justify-content: flex-end; align-items: baseline; }
