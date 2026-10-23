@@ -155,7 +155,7 @@ function cardeditknownfields() {
   if(cardedit.base) { add(cardedit.base,false); }
   var structure = cache_thing("structuretemplate",cardedit.db);
   if(structure && structure.template) { add(structure.template,true); }  // its values are placeholders, so no lengths
-  if(gamepermission('updateinstance') || gamepermission('update')) { known.card.needsreview = known.card.needsreview || 'array'; known.card.ruling = known.card.ruling || 'array'; }
+  if(gamepermission('updateinstance') || gamepermission('update')) { known.card.needsreview = known.card.needsreview || 'array'; known.card.ruling = known.card.ruling || 'array'; known.card.rulingref = known.card.rulingref || 'array'; }
   // fields the page derives for display, not stored
   ['formattedtitlelink','setclean','rarityclean','textprinting','textversion','textdiff','updatelogformatted','listquantity','listprinting']
     .forEach(function(k) { delete known.card[k]; delete known.printing[k]; });

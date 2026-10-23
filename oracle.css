@@ -97,6 +97,12 @@ dd.rulings div {
 #traitpop.traitpoptouch .traitpopopen, #traitpop.traitpoptouch .traitpopclose { display: block; text-align: center;
   min-height: 44px; line-height: 44px; margin: 6px 0 2px; font-size: 110%; }
 #traitpop.traitpoptouch .traitpopclose { position: sticky; bottom: 0; margin: 10px -10px 0; border-radius: 0 0 4px 4px; }
+/* Rules Q&A on a card (rulingrefs): a button with the count; the list in the modal, each answer clickable */
+dd.rulingrefs .rulingrefbutton svg.feather { width: 14px; height: 14px; vertical-align: -2px; }
+#modal.rulingrefmodal .rulingreflist { max-height: 75vh; overflow: auto; text-align: left; }
+#modal.rulingrefmodal .rulingref { border-left: solid #69c 3px; padding: 6px 8px; margin-bottom: 6px; cursor: pointer; }
+#modal.rulingrefmodal .rulingref:hover { background: rgba(102,153,204,0.12); }
+#modal.rulingrefmodal .rulingref a { display: block; margin-top: 2px; font-size: 90%; }
 /* needsreview notes on a card (maintainers only): one reason per line */
 dd.needsreview div {
   border-left: solid #c90 3px;
