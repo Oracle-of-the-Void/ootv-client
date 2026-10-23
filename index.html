@@ -272,49 +272,67 @@
 <!-- phones: the search results' text version and Add all buttons (searchtextversion, searchaddall; the menubar has them on desktop) -->
 <div id="phonetextversion"><span class="searchtextversion"></span> <span class="searchaddall"></span></div>
 <div class="resultsearch" id="resultsearch"><div class="randarea">No Searches performed yet, use the Search area on the left</div></div>
-<div class="resultadmin" id="resultadmin"><div class="randarea" style="text-align: left;">
-  <div id="admininfo" class="admininfo"></div>
-  <br>Need to have:
-  <ul>
-    <li><a href="" onclick="cardeditor(null,null); return false">New Card</a></li>
-    <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
-    <li><a href="" onclick="loaddiscord(); return false">Discord bot</a></li>
-    <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
-    <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game) &middot;
-        <a href="" onclick="loadsetimport('importprofilesopen'); return false">Import profiles</a></li>
-    <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
-    <li><a href="" onclick="loadartistsadmin(); return false">Artists</a> (links and notes in the artist modal; every game)</li>
-    <li><a href="" onclick="loadfielddescs(); return false">Fields</a> (descriptions and the field list: labels, search, show; this game, or shared)</li>
-    <li><a href="" onclick="loadgameconfigadmin('game'); return false">Game config</a> (this game: card page rows, sort, views, symbols) &middot;
-        <a href="" onclick="loadgameconfigadmin('templates'); return false">Templates</a> (every game; site admins)</li>
-    <li>Reporting</li>
-    <li>Docs (docs/admin/*.md; add a link here for each new document)
-      <ul>
-        <li><a href="" onclick="loadadmindoc('card-editor'); return false">Card editor</a></li>
-        <li><a href="" onclick="loadadmindoc('field-descriptions'); return false">Fields (descriptions and settings)</a></li>
-        <li><a href="" onclick="loadadmindoc('game-config'); return false">Game config and templates</a></li>
-        <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
-        <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
-        <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
-        <li><a href="" onclick="loadadmindoc('needsreview'); return false">Needs review notes on cards</a></li>
-        <li><a href="" onclick="loadadmindoc('rulebooks'); return false">Bookshelf (rulebooks, newsletters)</a></li>
-        <li><a href="" onclick="loadadmindoc('rulings'); return false">Rulings on cards</a></li>
-        <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
-        <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
-      </ul>
-    </li>
-  </ul>
-  <div id="loginlog"></div>
-  <div id="discordadmin" class="discordadmin"></div>
-  <div id="artistsadmin" class="discordadmin artistsadmin"></div>
-  <div id="admindoc" class="admindoc"></div>
-  <div id="massimage" class="massimage"></div>
-  <div id="setimport" class="setimport"></div>
-  <div id="importprofiles" class="setimport"></div>
-  <div id="updatelogpage" class="updatelogpage"></div>
-  <div id="fielddescs" class="fielddescs"></div>
-  <div id="gameconfigadmin" class="fielddescs gcadmin"></div>
-  <div id="templatesadmin" class="fielddescs gcadmin"></div>
+<div class="resultadmin" id="resultadmin"><div class="randarea adminarea" style="text-align: left;">
+  <!-- tabs (showadmintab in oracle.js): each data-admintab div holds a tab's links and its panels;
+       a loader calls showadmintab for its own tab, so opening a panel from elsewhere lands on it -->
+  <div class="settingstabs admintabs" role="tablist">
+    <button type="button" role="tab" data-admintab="data" onclick="showadmintab('data');">Data</button>
+    <button type="button" role="tab" data-admintab="config" onclick="showadmintab('config');">Config</button>
+    <button type="button" role="tab" data-admintab="audit" onclick="showadmintab('audit');">Audit</button>
+    <button type="button" role="tab" data-admintab="docs" onclick="showadmintab('docs');">Documentation</button>
+  </div>
+  <div data-admintab="data">
+    <ul class="adminlinks">
+      <li><a href="" onclick="cardeditor(null,null); return false">New Card</a></li>
+      <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
+      <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game)</li>
+      <li><a href="" onclick="loadartistsadmin(); return false">Artists</a> (links and notes in the artist modal; every game)</li>
+    </ul>
+    <div id="artistsadmin" class="discordadmin artistsadmin"></div>
+    <div id="massimage" class="massimage"></div>
+    <div id="setimport" class="setimport"></div>
+  </div>
+  <div data-admintab="config">
+    <ul class="adminlinks">
+      <li><a href="" onclick="loadfielddescs(); return false">Fields</a> (descriptions and the field list: labels, search, show; this game, or shared)</li>
+      <li><a href="" onclick="loadgameconfigadmin('game'); return false">Game config</a> (this game: card page rows, sort, views, symbols) &middot;
+          <a href="" onclick="loadgameconfigadmin('templates'); return false">Templates</a> (every game; site admins)</li>
+      <li><a href="" onclick="loadsetimport('importprofilesopen'); return false">Import profiles</a> (this game; used by Set import)</li>
+      <li><a href="" onclick="loaddiscord(); return false">Discord bot</a></li>
+    </ul>
+    <div id="fielddescs" class="fielddescs"></div>
+    <div id="gameconfigadmin" class="fielddescs gcadmin"></div>
+    <div id="templatesadmin" class="fielddescs gcadmin"></div>
+    <div id="importprofiles" class="setimport"></div>
+    <div id="discordadmin" class="discordadmin"></div>
+  </div>
+  <div data-admintab="audit">
+    <ul class="adminlinks">
+      <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
+      <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
+      <li>Reporting</li>
+    </ul>
+    <div id="admininfo" class="admininfo"></div>
+    <div id="updatelogpage" class="updatelogpage"></div>
+    <div id="loginlog"></div>
+  </div>
+  <div data-admintab="docs">
+    <!-- docs/admin/*.md; add a link here for each new document -->
+    <ul class="adminlinks">
+      <li><a href="" onclick="loadadmindoc('card-editor'); return false">Card editor</a></li>
+      <li><a href="" onclick="loadadmindoc('field-descriptions'); return false">Fields (descriptions and settings)</a></li>
+      <li><a href="" onclick="loadadmindoc('game-config'); return false">Game config and templates</a></li>
+      <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
+      <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
+      <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
+      <li><a href="" onclick="loadadmindoc('needsreview'); return false">Needs review notes on cards</a></li>
+      <li><a href="" onclick="loadadmindoc('rulebooks'); return false">Bookshelf (rulebooks, newsletters)</a></li>
+      <li><a href="" onclick="loadadmindoc('rulings'); return false">Rulings on cards</a></li>
+      <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
+      <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
+    </ul>
+    <div id="admindoc" class="admindoc"></div>
+  </div>
 </div></div>
 <div class="resultrules" id="resultrules"><div class="rulesarea" id="rulesarea"></div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>

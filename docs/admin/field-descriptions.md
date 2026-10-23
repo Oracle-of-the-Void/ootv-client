@@ -5,7 +5,7 @@ Last updated: 2026-10-23
 Every card field has a short description of what it holds, so the card editor can say what a
 field is for before you fill it in, and **settings** that say how the site uses it: its labels,
 how it's searched, and whether it shows at all. Both are kept on the site, not in these docs,
-and anyone with permission edits them on **Admin → Fields** (formerly Field descriptions).
+and anyone with permission edits them on **Admin → Config → Fields** (formerly Field descriptions).
 
 ## Where they show
 
@@ -15,7 +15,7 @@ and anyone with permission edits them on **Admin → Fields** (formerly Field de
 
 ## Editing them
 
-**Admin → Fields** lists the fields of the game you're on, card fields first, then
+**Admin → Config → Fields** lists the fields of the game you're on, card fields first, then
 printing (instance) fields: every field already described, the fields in the game's card template
 and search form, and the fields of the cards loaded in this session. For a field that's missing,
 open a card that has it first, or add it in the editor and come back.

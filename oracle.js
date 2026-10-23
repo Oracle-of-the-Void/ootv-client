@@ -2265,6 +2265,7 @@ function uploadimagetrigger() {
 var massimagerun = null;    // the upload in progress: {stop}
 var massimageplan = null;   // the checked files waiting for Upload: {db, stub, imageuri, items, todo}
 function loadmassimage() {
+  showadmintab('data');
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
@@ -2347,6 +2348,7 @@ function massimagerow(item,imageuri) {
 // Admin -> Set import / Import profiles: setimport-etl.js and setimport.js load on demand, then
 // setimportopen() or importprofilesopen() (in setimport.js) draws the panel
 function loadsetimport(open) {
+  showadmintab(open == 'importprofilesopen' ? 'config' : 'data');
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
@@ -5202,7 +5204,7 @@ function artistmodal(el) {
   var hash = el.id;
   modal(esc(name), '<p><span class="button gray artistsearch">Search cards by '+esc(name)+'</span></p>'+
     '<div class="artistlinks">Loading links…</div>'+
-    (artistsallowed() ? '<p class="artisthost"><a href="" class="artistedit">Edit this entry</a> (Admin → Artists)</p>' : ''));
+    (artistsallowed() ? '<p class="artisthost"><a href="" class="artistedit">Edit this entry</a> (Admin → Data → Artists)</p>' : ''));
   $('#modal').addClass('artistmodal');
   $('#modal .artistsearch').on('click', function() { nomodal(); window.location.hash = hash; });
   $('#modal .artistedit').on('click', function() { nomodal(); showview('resultadmin'); loadartistsadmin(name); return false; });
@@ -5705,6 +5707,7 @@ function showview(view) {
     seturl(viewstate(view.replace(/^result/,'')));
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
+    if(view == 'resultadmin') showadmintab(admintab);
     if(view == 'resultrules') rulesshow();
     if(view == 'resulthelp') helpshow();
     if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
@@ -6663,6 +6666,19 @@ function checkversion() {
       if(data.version && data.version != ootvversion) $('#newversion').show();
     });
 }
+// admin page tabs: the button and div with the same data-admintab; kept for the session
+var admintab = 'data';
+function showadmintab(key) {
+  admintab = key;
+  $('#resultadmin [data-admintab]').each(function() {
+    var on = $(this).attr('data-admintab') == key;
+    if($(this).is('button')) {
+      $(this).toggleClass('settingstabactive', on).attr('aria-selected', on ? 'true' : 'false');
+    } else {
+      $(this).toggle(on);
+    }
+  });
+}
 // admin page: the live deploy (version.json, stamped by .github/stamp-version.sh) and when this
 // browser cached each of this game's selects (refetched once older than selectmaxage).
 function utcstamp(ms) {
@@ -6936,7 +6952,7 @@ function templatefallbacknote(key, fb) {
   if(!fullgamepermission() || /^(text|pdf)/.test(key)) { return ''; }
   var now = ((gameconfig[database] || {}).templates || {}).version;
   return '<p class="templatefailed"><b>Template '+htmlEncode(key)+(now ? ' v'+now : '')+' failed ('+
-    htmlEncode(templateerrtext(fb.error))+'): using v'+fb.version+'.</b> Fix it in Admin → Templates.</p>';
+    htmlEncode(templateerrtext(fb.error))+'): using v'+fb.version+'.</b> Fix it in Admin → Config → Templates.</p>';
 }
 // a template error as one line (JsRender's syntax errors carry the whole template after "in template:")
 function templateerrtext(e) {
@@ -7392,6 +7408,7 @@ function onchangesub(key,nound,noundsub,db) {
 var cursors_loginlog = [null];
 var page_loginlog = 0;
 function loadloginlog(page) {
+  showadmintab('audit');
   if(page === undefined) { page = 0; }
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
@@ -7435,6 +7452,7 @@ var discordgames = [], discordcommands = [];
 // what each bot command does, shown beside its name (a server can rename them); others show their key
 var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', oraclebug: 'Bug report', oraclehelp: 'Help'};
 function loaddiscord(note) {
+  showadmintab('config');
   $('#loginlog').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
@@ -7644,6 +7662,7 @@ function discordtest(btn) {
 // Links to another docs/admin .md file open in the same viewer.
 var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js';
 function loadadmindoc(name) {
+  showadmintab('docs');
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
@@ -7794,6 +7813,7 @@ function fieldsettingtext(v) {
 
 // Admin → Game config and Admin → Templates (gameconfigadmin.js, loaded on first use): which = 'game' or 'templates'
 function loadgameconfigadmin(which) {
+  showadmintab('config');
   var open = function() { gcadminopen(which); };
   if(window.gcadminloaded) { open(); return; }
   $.ajax({url: 'gameconfigadmin.js?v='+ootvversion, dataType: 'script', cache: true})
@@ -7804,6 +7824,7 @@ function loadgameconfigadmin(which) {
 // Admin → Artists (artistsadmin.js, loaded on first use): the oracle-all-artists entries the artist
 // modal shows. name: an entry to open (the modal's Edit link).
 function loadartistsadmin(name) {
+  showadmintab('data');
   $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
@@ -7825,6 +7846,7 @@ function artistsallowed() {
 // Admin → Fields: this game's descriptions and field list settings, or the shared ones (target 'all')
 var fielddescsview = {target: null, only: false};
 function loadfielddescs(target) {
+  showadmintab('config');
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
@@ -7945,6 +7967,7 @@ function fielddescssave() {
 const updatelogpagesize = 30;
 var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, updatelogfacets = {};
 function loadupdatelogpage() {
+  showadmintab('audit');
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
