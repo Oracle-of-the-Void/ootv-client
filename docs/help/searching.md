@@ -12,7 +12,7 @@ The boxes are different for each game: they're that game's card fields.
 - **Save Search** keeps the form under a name. Saved searches are listed under the
   **Search** button. **Save as Default** makes the form start that way (and Reset go back to it).
 - Clicking a value on a card (a clan, a keyword, a type, an artist) searches for it, keeping the
-  rest of your form.
+  rest of your form. An artist opens a small box first, with the search and the artist's links.
 
 ### Kinds of box {#boxes}
 

@@ -684,6 +684,14 @@ Writes one `oracle-all-visits` row per vid per day (`vid` + `day`; `time`, `env`
 `game`, `loggedin`, `userAgent`). A repeat for the same day is a no-op. No IP is stored.
 Always returns 204 with no body, even when the write fails.
 
+## /artist
+
+`GET /artist?name=<credit>` (public, no auth): an artist's links from `oracle-all-artists`, the table
+shared by every game. `name` is the credit exactly as stored in `printing[].artist`. Returns
+`{name, aliasof?, links: [{url, label, archived?}], fandom?, note?}`; an item with `aliasof` (the same
+person under another credit) answers with that item's links. 404 when the name has no item. The card
+page's artist modal (`artistmodal` in `oracle.js`) calls it.
+
 ## /setimport
 
 The Admin page's Set import and Import profiles (`setimport.js`; the admin guide is
