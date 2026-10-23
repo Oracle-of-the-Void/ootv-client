@@ -1795,7 +1795,7 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .artchecknote { color: #666; font-size: 0.9em; }
 .artchecklist { border-collapse: collapse; font-size: 0.9em; }
 .artchecklist td, .artchecklist th { border-bottom: 1px solid #ddd; padding: 2px 6px; text-align: left; vertical-align: top; }
-@media (max-width: 700px) { .artchecklist td:nth-child(8), .artchecklist th:nth-child(8) { display: none; } }
+@media (max-width: 700px) { .artchecklist td:nth-child(3), .artchecklist th:nth-child(3), .artchecklist td:nth-child(8), .artchecklist th:nth-child(8) { display: none; } }
 #massimagestatus { margin: 8px 0; }
 table.massimagelist { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
 table.massimagelist th, table.massimagelist td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
