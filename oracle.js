@@ -2267,6 +2267,7 @@ var massimageplan = null;   // the checked files waiting for Upload: {db, stub, 
 function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
@@ -2348,6 +2349,7 @@ function massimagerow(item,imageuri) {
 function loadsetimport(open) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
@@ -5199,9 +5201,11 @@ function artistmodal(el) {
   var name = $('<div>').html($(el).html()).text().replace(/\u00a0/g,' ').trim();
   var hash = el.id;
   modal(esc(name), '<p><span class="button gray artistsearch">Search cards by '+esc(name)+'</span></p>'+
-    '<div class="artistlinks">Loading links…</div>');
+    '<div class="artistlinks">Loading links…</div>'+
+    (artistsallowed() ? '<p class="artisthost"><a href="" class="artistedit">Edit this entry</a> (Admin → Artists)</p>' : ''));
   $('#modal').addClass('artistmodal');
   $('#modal .artistsearch').on('click', function() { nomodal(); window.location.hash = hash; });
+  $('#modal .artistedit').on('click', function() { nomodal(); showview('resultadmin'); loadartistsadmin(name); return false; });
   artistinfo[name] = artistinfo[name] || $.ajax({url: apiuri+'/artist', data: {name: name}, dataType: 'json', timeout: 10000});
   artistinfo[name].done(function(a) {
     var links = (a.links || []).filter(l => /^https?:\/\//.test(l.url));
@@ -7392,6 +7396,7 @@ function loadloginlog(page) {
   if(page === 0) { cursors_loginlog = [null]; }
   $('#admindoc').empty();
   $('#discordadmin').empty();
+  $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#updatelogpage').empty();
@@ -7431,6 +7436,7 @@ var discordgames = [], discordcommands = [];
 var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', oraclebug: 'Bug report', oraclehelp: 'Help'};
 function loaddiscord(note) {
   $('#loginlog').empty();
+  $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
@@ -7640,6 +7646,7 @@ var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min
 function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#updatelogpage').empty();
@@ -7794,11 +7801,33 @@ function loadgameconfigadmin(which) {
     .fail(function() { $(which == 'templates' ? '#templatesadmin' : '#gameconfigadmin').html('<span class="error">Could not load the editor.</span>'); });
 }
 
+// Admin → Artists (artistsadmin.js, loaded on first use): the oracle-all-artists entries the artist
+// modal shows. name: an entry to open (the modal's Edit link).
+function loadartistsadmin(name) {
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin').empty();
+  $('#massimage, #setimport, #importprofiles').hide();
+  var open = function() { artistsopen(name === undefined ? null : name); };
+  if(window.artistsadminloaded) { open(); return; }
+  $('#artistsadmin').text('Loading the artist editor...');
+  $.ajax({url: 'artistsadmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(open)
+    .fail(function() { $('#artistsadmin').html('<span class="error">Could not load the editor.</span>'); });
+}
+// saving artist entries needs the artists (or full) permission on every game (groups['all'] or groups['*']),
+// as /update operation artists checks
+function artistsallowed() {
+  var user = cache_thing("user","data");
+  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) { return false; }
+  var groups = user.oracle[0].groups || {};
+  return ['all','*'].some(g => Array.isArray(groups[g]) && (groups[g].includes('*') || groups[g].includes('artists')));
+}
+
 // Admin → Fields: this game's descriptions and field list settings, or the shared ones (target 'all')
 var fielddescsview = {target: null, only: false};
 function loadfielddescs(target) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
@@ -7918,6 +7947,7 @@ var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, update
 function loadupdatelogpage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
+  $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();

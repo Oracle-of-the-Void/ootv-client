@@ -2295,6 +2295,18 @@ body.rulesfull { overflow: hidden; }
   .rulesturn { width: 33%; }
 }
 
+/* Admin → Artists (artistsadmin.js) */
+.artistsadmin .artistsform { border: 1px solid #ccc; border-radius: 4px; padding: 4px 12px; margin-bottom: 12px; background: #fafafa; }
+.artistsadmin .artistsform label { white-space: normal; }
+.artistsadmin .artistsform input[type=text] { max-width: 100%; box-sizing: border-box; }
+.artistsadmin .artistslinks td:nth-child(1) { width: 60%; }
+.artistsadmin .artistslinks td:nth-child(2) { width: 30%; color: inherit; }
+.artistsadmin .artistslinks td:nth-child(3), .artistsadmin .artistslinks td:last-child { width: auto; text-align: center; }
+.artistsadmin .artiststable td:first-child { white-space: normal; }
+.artistsadmin .artiststable td:nth-child(2) { white-space: normal; width: 40%; }
+.artistsadmin .artiststable td:last-child { width: 35%; color: #555; }
+#artistsfilter { width: 260px; max-width: 100%; }
+
 /* Admin → Field descriptions (loadfielddescs in oracle.js) */
 .fielddescs label { margin-right: 12px; white-space: nowrap; }
 .fielddescsnote { color: #555; }
