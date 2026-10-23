@@ -6129,6 +6129,9 @@ function gameconfigapply(db, conf) {
   headerize[db] = {deck: gameheaders(g.headers || ['type'])};
   updates[db] = gamesymbols(g.symbols || []);
   gameconfig[db] = conf;
+  if(g.info.blurb) {
+    blurb[db] = g.info.blurb;   // the game's notice on the card page (Paizo's Community Use notice on Pathfinder Pawns)
+  }
   if(g.info.background && db == database) {
     $('body').css('background-image', "url('"+g.info.background+"')");
   }
