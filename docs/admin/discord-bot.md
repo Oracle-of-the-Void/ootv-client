@@ -90,7 +90,9 @@ Each user can file 3 reports per 15 minutes. To stop a server filing issues, unt
 channel (e.g. to show a newcomer). Without options it lists the server's commands
 under the server's own names, and says what game the channel searches and which filters apply.
 `command:` (a pick list of the server's commands) explains one command: usage, examples and every
-option. The options come from the bot's own command definitions, so they're always current. The
+option. Every help reply also ends with a **More on a command…** pick list, so `/oraclehelp`
+plus Enter is one click away from any command's help. The options come from the bot's own
+command definitions, so they're always current. The
 players' help page, `docs/help/discord-bot.md`, says the same at more length.
 
 ## Commands

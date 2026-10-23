@@ -11,7 +11,7 @@ Discord, only to you; add `public:True` to post it for the whole channel.
 | `/rulings` | One card's rulings and errata, and its Rules Q&A answers with `full:True` |
 | `/search` | A search, with the same syntax as the site's search box |
 | `/oraclebug` | Report a problem with the site or a card |
-| `/oraclehelp` | Help on the commands; `command:` explains one of them, `public:True` posts it to the channel |
+| `/oraclehelp` | Help on the commands: pick one from the list under the reply (or add `command:`) for more; `public:True` posts it to the channel |
 
 A server can rename its commands (e.g. `/oracle` instead of `/card`) or turn some off.
 `/oraclehelp` always shows the names that server uses.
