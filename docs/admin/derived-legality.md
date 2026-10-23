@@ -362,10 +362,18 @@ entry has `listable: false`, so the deck/list Legality menu leaves them out.
 ### Paper (12,403)
 
 Cards printed on paper by the original publishers: at least one printing whose `publisher` is
-Five Rings Publishing Group, Wizards of the Coast or Alderac Entertainment Group, and the card
-isn't `Unreleased`. Onyx Lives printings, The Blackest Storm included (Onyx finished and
-published it), don't count. 250 of these cards also have an Onyx Lives reprint. On those, the
-search results and card page show the paper printing.
+Five Rings Publishing Group or Wizards of the Coast, or an Alderac Entertainment Group printing
+from one of the AEG sets (Gold Edition's successors up to, not including, The Blackest Storm,
+plus Promotional–Gold and the Oracle of the Void proxies), and the card isn't `Unreleased`.
+Onyx Lives printings don't count. The Blackest Storm doesn't either: its printings carry both
+Onyx Lives and AEG (AEG technically produced it; Onyx finished and published it), so the AEG
+clause lists its sets in a `set` term, which leaves TBS out. A new AEG set would have to be
+added to that list. 250 of these cards also have an Onyx Lives reprint. On those, the search
+results and card page show the paper printing.
+
+The rule (`any`): `{printing: {publisher: [FRPG, WotC]}}` or
+`{printing: {publisher: [AEG], set: [the 83 AEG sets]}}`. Both printing fields in one clause
+must match the same printing.
 
 The search form has a **Paper** row, just below Pub, with an **only** checkbox. It sends `require_legality=Paper`, which the
 API ANDs with the rest of the search, including whatever the Legality menu holds. Picking
@@ -378,7 +386,7 @@ The publishers come from the set (`ootv-backups/printing-publisher.py`, 2026-10-
 | Five Rings Publishing Group | Pre-Imperial Edition through Scorpion Clan Coup, plus Promotional–Imperial |
 | Wizards of the Coast | Jade Edition through The War of Spirits, plus Promotional–Jade, Promotional–CWF and Gold Edition |
 | Alderac Entertainment Group | After Gold Edition (plus Promotional–Gold) up to The Blackest Storm |
-| Onyx Lives | The Blackest Storm and later (already set) |
+| Onyx Lives | The Blackest Storm and later (already set). The Blackest Storm also has AEG (2026-10-23) |
 
 In the Oracle of the Void set, the proxies are AEG and the Old, New and SotE card backs are
 FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. A new set needs its
@@ -415,3 +423,5 @@ change up through the DynamoDB stream; no cold start is needed.
   printings; `listable: false`; the search API's `require_<field>` and the Paper "only" checkbox (below Pub).
 - 2026-10-16: Obsidian Hand (the Legacy clauses with its own ban list, 44 `remove` exceptions).
 - 2026-10-17: Jade Extended 2000 (Jade Extended limited to cards printed in a Jade-arc set).
+- 2026-10-23: The Blackest Storm's 168 printings got AEG as publisher beside Onyx Lives
+  (bulkupdate); Paper's AEG clause now lists the AEG sets so TBS stays out (still 12,403).
