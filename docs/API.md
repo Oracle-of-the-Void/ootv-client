@@ -516,6 +516,22 @@ inputs:
     * returns `{message, version, fields, changed}`; each save is kept in the item's `history`
       (last 50: who, when, old and new text)
     * read them with `/structure?database=<database>&key=fields`
+    * settings (optional): `{card: {<field>: {...} | null}, printing: {...}}`, each field's whole
+      settings in the field list (label, short, search, show `card`/`internal`/`hidden`, role,
+      searchkey), null to drop them; checked and saved with the descriptions as one version
+  * gameconfig
+    * save a game's config (`oracle-all-structure` `<database>`/`game`: info, rows, sort, headers,
+      views, search, labels, symbols...; ootv-search `lib/gameconfigsave.js`). No cardid.
+    * data is the whole item body (no database/key/version/history); version (required) as for
+      `fields` (0 for a new game), 409 if stale
+    * permission: `gameconfig` (or `*`) on the game
+    * returns `{message, version, changed}` (`changed`: the parts that differ); history keeps the
+      last 50 saves, the newest with the earlier copy (`old`) while the item stays under ~300 KB
+  * templates
+    * save the master templates (`all`/`templates`: `standard`, `views`); database `all`; data and
+      version as for `gameconfig`
+    * site admins only: full permission on every game (`*` in `groups['*']`)
+    * `changed` lists `views.<view>` for each view that changed
 
 outputs:
 

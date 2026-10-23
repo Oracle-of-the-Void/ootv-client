@@ -22,6 +22,7 @@ $.views.helpers("printingidfromset",templateprintingidfromset);
 $.views.helpers("listqty",listquantity);
 $.views.helpers("hasval",templatehasval);
 $.views.helpers("gamerows",function(data,place) { return gamerows(data,place); });
+$.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); });
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -2273,6 +2274,7 @@ function loadmassimage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
   $('#setimport, #importprofiles').hide();
   $('#updatelogpage').empty();
@@ -2353,6 +2355,7 @@ function loadsetimport(open) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
@@ -3265,7 +3268,7 @@ function liststatsdeckfield() {
 function liststatsfields() {
     var info = dbinfo[database] || {};
     if(info.statfields) {
-	return info.statfields;
+	return info.statfields.filter(function(f) { return !gamefieldhidden(f); });
     }
     var s = searchables[database] || {};
     return Object.keys(s).filter(function(f) {
@@ -6045,6 +6048,7 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 // visit) keeps its templates/<game>.js.
 var gameconfig = {};
 var gamemenu = null;   // all/games: the game menu, in order
+var gamehidden = {};   // per game, the fields its field list marks show: "hidden"
 function gameconfigload(db, ready) {
   var stored = cache_thing('gameconfig', db);
   var started = false;
@@ -6112,11 +6116,17 @@ function gameconfigapply(db, conf) {
     if(g.labels[f].short !== undefined) { lab['short'+f] = g.labels[f].short; }
   });
   labels[db] = lab;
+  var hidden = [];
+  ['card','printing'].forEach(function(lvl) {
+    Object.keys(settings[lvl]).forEach(function(f) { if(settings[lvl][f].show == 'hidden' && !hidden.includes(f)) { hidden.push(f); } });
+  });
+  gamehidden[db] = hidden;
   // the search form, in the game's order; a field searched under the card key (l5r artist) is on printings
   var sea = {};
   if(g.quick !== null && g.quick !== undefined) { sea.quick = g.quick; }
   (g.search || []).forEach(function(k) {
     var f = k.replace(/^printing\./,''), first = k.indexOf('printing.') == 0 ? 'printing' : 'card';
+    if(hidden.includes(f)) { return; }
     var s = (settings[first][f] || {}).search || (settings[first == 'card' ? 'printing' : 'card'][f] || {}).search;
     if(s) { sea[k] = s; }
   });
@@ -6213,7 +6223,29 @@ var gamerowhelpers = {
   soultitle: function(v) { return soultitle(v); },
   makelinks: function(v) { return templatemakelinks(v); }
 };
+// a field the game's field list marks show: "hidden" (rarity on an LCG): no card row, search box or Table
+// column, and ~fieldshown(field) is false in the master templates. Card or printing level alike.
+function gamefieldhidden(field, db) {
+  return (gamehidden[db || database] || []).includes(String(field).replace(/^printing\./,''));
+}
+// a row without its hidden fields: the per-field options (wraps, joins, helpers, seps) follow the fields kept
+function gamerowshown(r) {
+  if(!r.fields.some(function(f) { return gamefieldhidden(f); })) { return r; }
+  var keep = r.fields.map(function(f, i) { return gamefieldhidden(f) ? -1 : i; }).filter(function(i) { return i >= 0; });
+  var out = Object.assign({}, r, {fields: keep.map(function(i) { return r.fields[i]; })});
+  ['wraps','joins','helpers'].forEach(function(k) { if(r[k]) { out[k] = keep.map(function(i) { return r[k][i]; }); } });
+  if(r.seps) { out.seps = keep.slice(1).map(function(i) { return r.seps[i-1]; }); }
+  if(r.labelfields) { out.labelfields = r.labelfields.filter(function(f) { return !gamefieldhidden(f); }); }
+  if(Array.isArray(r.when)) {
+    out.when = r.when.filter(function(f) { return !gamefieldhidden(f); });
+    if(!out.when.length) { out.when = 'any'; }
+  }
+  else if(r.when && !['any','all','always'].includes(r.when) && gamefieldhidden(r.when)) { out.when = 'any'; }
+  return out;
+}
 function gamerow(data, r) {
+  r = gamerowshown(r);
+  if(!r.fields.length) { return r.else ? gamerow(data, r.else) : ''; }
   var has = function(f) { return templatehasval(data[f]); };
   var when = r.when || 'any';
   var show = when == 'always' || (Array.isArray(when) ? when.some(has) :
@@ -6791,7 +6823,8 @@ function startpage() {
 // it's the view's default
 function templateloaded(key, val, contents) {
   $("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
-  templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
+  templates[database]['compiled'][key] = templatesafe(database, key, (val.override && val.override.templatekey) || key,
+    "#template-"+(val.generic?'':(database+"-"))+key);
   for (k of ['search','card','list']) {
     if(key == templates[database]['default'][k]) {
       templates[database]['active'][k] = key;
@@ -6800,6 +6833,61 @@ function templateloaded(key, val, contents) {
   for (type of templates[database]['available'][key].places) {
     updatemenubar(type);
   }
+}
+
+// A master template (all/templates) that doesn't compile, or throws while drawing, falls back to the newest
+// earlier version of that view that compiles, from the item's history (GAME-TEMPLATES.md §2.6). Admin →
+// Templates refuses such a save, so this is the net for a template that only fails on some card. The views
+// redraw once the history has come; site admins see which version is in use.
+var templatefallbacks = {};   // [db][key] = {error, loading, tmpl, version}
+var templatehistory = null;   // a promise of all/templates' history
+function templatesafe(db, key, htmlkey, source) {
+  var primary = null, error = null;
+  try { primary = $.templates(source); } catch(e) { error = e; }
+  var safe = {failed: !primary, render: function(data, ctx) {
+    if(!safe.failed) {
+      try { return primary.render(data, ctx); } catch(e) { error = e; safe.failed = true; }
+    }
+    var fb = templatefallback(db, key, htmlkey, error);
+    if(fb.tmpl) {
+      try { return templatefallbacknote(key, fb)+fb.tmpl.render(data, ctx); } catch(e) { console.log(['fallback template failed too', key, e]); }
+    }
+    return '<p class="templatefailed">This view could not be drawn'+(fb.loading ? '; trying an earlier version...' : '.')+
+      (fullgamepermission() ? ' <b>'+htmlEncode(key)+': '+htmlEncode(templateerrtext(error))+'</b>' : '')+'</p>';
+  }};
+  return safe;
+}
+function templatefallback(db, key, htmlkey, error) {
+  templatefallbacks[db] = templatefallbacks[db] || {};
+  if(templatefallbacks[db][key]) { return templatefallbacks[db][key]; }
+  var fb = templatefallbacks[db][key] = {error: error, loading: true};
+  console.log(['template failed, looking for an earlier version', key, error]);
+  templatehistory = templatehistory || Promise.resolve($.ajax({url: apiuri+'/structure?database=all&key=templates', dataType: 'json', cache: false}))
+    .then(function(item) { return item.history || []; }).catch(function() { return []; });
+  templatehistory.then(function(history) {
+    for(var h of history) {
+      var v = h.old && h.old.views && h.old.views[htmlkey];
+      if(!v || typeof v.html != 'string') { continue; }
+      try { fb.tmpl = $.templates(v.html); fb.version = h.version - 1; break; } catch(e) { /* that one fails too: older */ }
+    }
+    fb.loading = false;
+    if(db != database) { return; }
+    ['search','card','list'].forEach(function(type) {
+      if(templates[db]['active'][type] == key && currentresulttab() == type) { activatetemplate(type, key); }
+    });
+  });
+  return fb;
+}
+// for site admins, above the drawn view (not in the text exports): which version stands in
+function templatefallbacknote(key, fb) {
+  if(!fullgamepermission() || /^(text|pdf)/.test(key)) { return ''; }
+  var now = ((gameconfig[database] || {}).templates || {}).version;
+  return '<p class="templatefailed"><b>Template '+htmlEncode(key)+(now ? ' v'+now : '')+' failed ('+
+    htmlEncode(templateerrtext(fb.error))+'): using v'+fb.version+'.</b> Fix it in Admin → Templates.</p>';
+}
+// a template error as one line (JsRender's syntax errors carry the whole template after "in template:")
+function templateerrtext(e) {
+  return String(e && e.message || e).split(/,? in template:/)[0].replace(/\s+/g, ' ').trim();
 }
 
 function chosenify() {
@@ -7256,6 +7344,7 @@ function loadloginlog(page) {
   $('#admindoc').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#loginlog').html('Loading login log...');
@@ -7503,6 +7592,7 @@ function loadadmindoc(name) {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#admindoc').text('Loading '+name+'...');
@@ -7622,7 +7712,8 @@ function fielddescsknown(db) {
     [].concat((card && card.printing) || []).forEach(p => Object.keys(p || {}).forEach(k => known.printing.add(k)));
   };
   var d = fielddescs[db] || {};
-  [d.game, d.all].forEach(it => ['card','printing'].forEach(s => Object.keys((it && it.fields && it.fields[s]) || {}).forEach(k => known[s].add(k))));
+  [d.game, d.all].forEach(it => ['card','printing'].forEach(s => ['fields','settings'].forEach(part =>
+    Object.keys((it && it[part] && it[part][s]) || {}).forEach(k => known[s].add(k)))));
   var structure = cache_thing("structuretemplate",db);
   if(structure && structure.template) { add(structure.template); }
   Object.keys(searchables[db] || {}).filter(k => typeof searchables[db][k] === 'object')
@@ -7633,7 +7724,28 @@ function fielddescsknown(db) {
   return out;
 }
 
-// Admin → Field descriptions: this game's descriptions, or the shared ones (target 'all')
+// a field's settings in the field list (GAME-TEMPLATES.md §2.2): label, short, search, show, role. which:
+// 'game' or 'all' for that item's own, else the game's over the shared ones
+function fieldsetting(db,scope,key,which) {
+  var d = fielddescs[db] || {};
+  var pick = it => (it && it.settings && it.settings[scope] && it.settings[scope][key]) || null;
+  return which ? pick(d[which]) : (pick(d.game) || pick(d.all));
+}
+// settings as one line of JSON for the Settings box, '' for none
+function fieldsettingtext(v) {
+  return v ? JSON.stringify(v) : '';
+}
+
+// Admin → Game config and Admin → Templates (gameconfigadmin.js, loaded on first use): which = 'game' or 'templates'
+function loadgameconfigadmin(which) {
+  var open = function() { gcadminopen(which); };
+  if(window.gcadminloaded) { open(); return; }
+  $.ajax({url: 'gameconfigadmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(open)
+    .fail(function() { $(which == 'templates' ? '#templatesadmin' : '#gameconfigadmin').html('<span class="error">Could not load the editor.</span>'); });
+}
+
+// Admin → Fields: this game's descriptions and field list settings, or the shared ones (target 'all')
 var fielddescsview = {target: null, only: false};
 function loadfielddescs(target) {
   $('#loginlog').empty();
@@ -7641,6 +7753,7 @@ function loadfielddescs(target) {
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
+  $('#gameconfigadmin, #templatesadmin').empty();
   fielddescsview.target = target || database;
   $('#fielddescs').text('Loading field descriptions...');
   fielddescsload(database,true).then(fielddescsshow);
@@ -7653,17 +7766,18 @@ function fielddescsshow() {
   var known = fielddescsknown(database);
   var lab = labels[database] || {};
   var allowed = fielddescsallowed(target);
-  var html = '<h3>Field descriptions</h3>'+
+  var html = '<h3>Fields</h3>'+
     '<p><label><input type="radio" name="fielddescstarget" value="'+database+'"'+(shared ? '' : ' checked')+' onchange="loadfielddescs(this.value);" /> '+
     htmlEncode(dbinfo[database].name)+'</label> '+
     '<label><input type="radio" name="fielddescstarget" value="all"'+(shared ? ' checked' : '')+' onchange="loadfielddescs(this.value);" /> Shared by every game</label> '+
     '<label><input type="checkbox" id="fielddescsonly"'+(fielddescsview.only ? ' checked' : '')+' onchange="fielddescsview.only = this.checked; fielddescsfilter();" /> only fields with no description</label> '+
     '<a href="" onclick="loadadmindoc(\'field-descriptions\'); return false">How these work</a></p>'+
     '<p class="fielddescsnote">'+(item ? 'Version '+item.version+', saved '+htmlEncode(new Date(item.updated).toLocaleString())+' by '+htmlEncode(item.uname) : 'None saved yet.')+
-    (shared ? ' A game\'s own description replaces the shared one.' : ' An empty box uses the shared description, shown greyed.')+
+    (shared ? ' A game\'s own description or settings replace the shared ones.' : ' An empty box uses the shared description or settings, shown greyed.')+
+    ' Settings are JSON: label, short, search ({type, ...} or false), show ("card", "internal" or "hidden": nowhere, e.g. rarity on an LCG), role.'+
     (allowed ? '' : ' <b>Saving needs the fields (or full) permission on '+(shared ? 'every game' : htmlEncode(dbinfo[database].name))+'.</b>')+'</p>';
   [['card','Card fields'],['printing','Printing (instance) fields']].forEach(function(s) {
-    html += '<h4>'+s[1]+'</h4><table class="fielddescstable"><tr><th>Field</th><th>Card page label</th><th>Description</th></tr>'+
+    html += '<h4>'+s[1]+'</h4><table class="fielddescstable"><tr><th>Field</th><th>Card page label</th><th>Description</th><th>Settings</th></tr>'+
       known[s[0]].map(function(k) {
         var own = fielddesc(database,s[0],k,shared ? 'all' : 'game');
         var fallback = shared ? '' : fielddesc(database,s[0],k,'all');
@@ -7671,7 +7785,8 @@ function fielddescsshow() {
         return '<tr data-scope="'+s[0]+'" data-field="'+htmlEncode(k)+'"><td><code>'+htmlEncode(k)+'</code></td><td>'+htmlEncode(label)+'</td>'+
           '<td><textarea class="fielddescstext" rows="'+Math.max(1,Math.ceil((own || fallback).length/90))+'"'+
           ' data-old="'+htmlEncode(own).replace(/"/g,'&quot;')+'" placeholder="'+htmlEncode(fallback).replace(/"/g,'&quot;')+'"'+
-          (allowed ? '' : ' readonly')+'>'+htmlEncode(own)+'</textarea></td></tr>';
+          (allowed ? '' : ' readonly')+'>'+htmlEncode(own)+'</textarea></td>'+
+          fieldsettingcell(s[0],k,shared,allowed)+'</tr>';
       }).join('')+'</table>';
   });
   html += '<p>'+(allowed ? '<input type="button" value="Save" onclick="fielddescssave();" /> ' : '')+
@@ -7680,9 +7795,18 @@ function fielddescsshow() {
   fielddescsfilter();
 }
 
+function fieldsettingcell(scope,key,shared,allowed) {
+  var own = fieldsettingtext(fieldsetting(database,scope,key,shared ? 'all' : 'game'));
+  var fallback = shared ? '' : fieldsettingtext(fieldsetting(database,scope,key,'all'));
+  var hidden = (JSON.parse(own || fallback || '{}').show == 'hidden');
+  return '<td><textarea class="fielddescstext fieldsettingtext'+(hidden ? ' fieldsettinghidden' : '')+'" rows="'+Math.max(1,Math.ceil((own || fallback).length/45))+'"'+
+    ' data-old="'+htmlEncode(own).replace(/"/g,'&quot;')+'" placeholder="'+htmlEncode(fallback).replace(/"/g,'&quot;')+'"'+
+    (allowed ? '' : ' readonly')+'>'+htmlEncode(own)+'</textarea></td>';
+}
+
 function fielddescsfilter() {
   $('#fielddescs tr[data-field]').each(function() {
-    var t = $(this).find('textarea');
+    var t = $(this).find('textarea').first();
     $(this).toggle(!fielddescsview.only || !(t.val().trim() || t.attr('placeholder')));
   });
 }
@@ -7691,27 +7815,41 @@ function fielddescssave() {
   var target = fielddescsview.target;
   var d = fielddescs[database];
   var item = target == 'all' ? d.all : d.game;
-  var data = {}, n = 0;
+  var data = {}, settings = {}, n = 0, bad = [];
   $('#fielddescs tr[data-field]').each(function() {
-    var t = $(this).find('textarea');
-    if(t.val().trim() == t.attr('data-old')) { return; }
-    var s = $(this).attr('data-scope');
-    (data[s] = data[s] || {})[$(this).attr('data-field')] = t.val().trim();
+    var s = $(this).attr('data-scope'), f = $(this).attr('data-field');
+    var t = $(this).find('textarea').not('.fieldsettingtext');
+    if(t.val().trim() != t.attr('data-old')) {
+      (data[s] = data[s] || {})[f] = t.val().trim();
+      n++;
+    }
+    var st = $(this).find('textarea.fieldsettingtext');
+    var text = st.val().trim();
+    if(text == st.attr('data-old')) { return; }
+    var v = null;
+    try {
+      v = text ? JSON.parse(text) : null;
+      if(v !== null && (typeof v != 'object' || Array.isArray(v))) { throw new Error('not an object'); }
+    } catch(e) { bad.push(s+'.'+f+': '+e.message); return; }
+    if(text && fieldsettingtext(v) == st.attr('data-old')) { return; }   // only the spacing changed
+    (settings[s] = settings[s] || {})[f] = v;
     n++;
   });
+  if(bad.length) { $('#fielddescsstatus').html('<span class="error">Not saved, the settings must be JSON objects: '+htmlEncode(bad.join('; '))+'</span>'); return; }
   if(!n) { $('#fielddescsstatus').text('No changes to save.'); return; }
-  $('#fielddescsstatus').text('Saving '+n+' description'+(n == 1 ? '' : 's')+'...');
+  $('#fielddescsstatus').text('Saving '+n+' change'+(n == 1 ? '' : 's')+'...');
   $.ajax({
     type: "POST",
     url: apiuri+"/update",
     contentType: 'application/json',
     dataType: 'json',
-    data: JSON.stringify({uid: getuid(), database: target, operation: 'fields', version: item ? item.version : 0, data: data}),
+    data: JSON.stringify({uid: getuid(), database: target, operation: 'fields', version: item ? item.version : 0, data: data, settings: settings}),
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
     success: function() {
       fielddescsload(database,true).then(function() {
         fielddescsshow();
-        $('#fielddescsstatus').text('Saved '+n+' description'+(n == 1 ? '' : 's')+'.');
+        $('#fielddescsstatus').text('Saved '+n+' change'+(n == 1 ? '' : 's')+'.'+
+          (Object.keys(settings).length ? ' Settings reach the site from the next page load (the game config).' : ''));
       });
     },
     error: function(raw) {
@@ -7732,6 +7870,7 @@ function loadupdatelogpage() {
   $('#loginlog').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin').empty();
   $('#admindoc').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));

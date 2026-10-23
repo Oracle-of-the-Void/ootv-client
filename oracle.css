@@ -2297,6 +2297,21 @@ body.rulesfull { overflow: hidden; }
 .fielddescstable th, .fielddescstable td { border-top: 1px solid #ddd; padding: 3px 6px; vertical-align: top; text-align: left; }
 .fielddescstable td:first-child { white-space: nowrap; }
 .fielddescstable td:nth-child(2) { color: #555; white-space: nowrap; }
-.fielddescstable td:last-child { width: 70%; }
+.fielddescstable td:last-child { width: 35%; }
 .fielddescstext { width: 100%; box-sizing: border-box; font-family: inherit; resize: vertical; }
 .fielddescstext::placeholder { color: #999; }
+.fielddescstable td:nth-child(3) { width: 45%; }
+.fieldsettingtext { font-family: monospace; font-size: 90%; }
+.fieldsettinghidden { background: #f3f3f3; color: #777; }
+/* Admin → Game config and Templates (gameconfigadmin.js) */
+.gcjson { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 90%; resize: vertical; }
+.gcstandard { width: 60%; font-family: monospace; }
+.gcpreview { border-top: 1px solid #ddd; margin-top: 8px; }
+.gcpreviewpart { border: 1px dashed #bbb; margin: 8px 0; padding: 6px; overflow: auto; }
+.gcpreviewtext { white-space: pre-wrap; font-size: 90%; }
+.gcdiff { max-height: 360px; overflow: auto; font-size: 85%; background: #fafafa; padding: 4px; }
+.gcdiffadd { color: #060; background: #e6ffe6; }
+.gcdiffdel { color: #900; background: #ffe6e6; }
+.gcdiffsame { color: #777; }
+.gchistory { font-size: 90%; color: #555; }
+.templatefailed { border: 1px solid #c66; background: #fff3f3; padding: 4px 8px; }

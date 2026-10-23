@@ -283,12 +283,15 @@
     <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game) &middot;
         <a href="" onclick="loadsetimport('importprofilesopen'); return false">Import profiles</a></li>
     <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
-    <li><a href="" onclick="loadfielddescs(); return false">Field descriptions</a> (this game, or shared)</li>
+    <li><a href="" onclick="loadfielddescs(); return false">Fields</a> (descriptions and the field list: labels, search, show; this game, or shared)</li>
+    <li><a href="" onclick="loadgameconfigadmin('game'); return false">Game config</a> (this game: card page rows, sort, views, symbols) &middot;
+        <a href="" onclick="loadgameconfigadmin('templates'); return false">Templates</a> (every game; site admins)</li>
     <li>Reporting</li>
     <li>Docs (docs/admin/*.md; add a link here for each new document)
       <ul>
         <li><a href="" onclick="loadadmindoc('card-editor'); return false">Card editor</a></li>
-        <li><a href="" onclick="loadadmindoc('field-descriptions'); return false">Field descriptions</a></li>
+        <li><a href="" onclick="loadadmindoc('field-descriptions'); return false">Fields (descriptions and settings)</a></li>
+        <li><a href="" onclick="loadadmindoc('game-config'); return false">Game config and templates</a></li>
         <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
         <li><a href="" onclick="loadadmindoc('discord-bot'); return false">Discord bot settings</a></li>
         <li><a href="" onclick="loadadmindoc('set-import'); return false">Set import and import profiles</a></li>
@@ -307,6 +310,8 @@
   <div id="importprofiles" class="setimport"></div>
   <div id="updatelogpage" class="updatelogpage"></div>
   <div id="fielddescs" class="fielddescs"></div>
+  <div id="gameconfigadmin" class="fielddescs gcadmin"></div>
+  <div id="templatesadmin" class="fielddescs gcadmin"></div>
 </div></div>
 <div class="resultrules" id="resultrules"><div class="rulesarea" id="rulesarea"></div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
