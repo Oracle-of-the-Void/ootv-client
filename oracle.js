@@ -6096,6 +6096,9 @@ function gameconfigapply(db, conf) {
   headerize[db] = {deck: gameheaders(g.headers || ['type'])};
   updates[db] = gamesymbols(g.symbols || []);
   gameconfig[db] = conf;
+  if(g.info.background && db == database) {
+    $('body').css('background-image', "url('"+g.info.background+"')");
+  }
 }
 // the "deck" list sort: the group field (deck) with its priority values first, then the other groups by name,
 // then type, then title
@@ -6156,8 +6159,8 @@ function gamesymbols(symbols) {
 }
 // ~gamerows(data, place): the game's rows for the card page ('card'), each printing ('printing') or a
 // search result ('detail'). A row: {fields, label | labelfields, sep, join, wrap, wraps, when, else, helper,
-// ddclass, valuelabels}; label false draws the value on its own line (no <dt>); valuelabels lists each field
-// with a value as "value label".
+// ddclass, valuelabels, suffix}; label false draws the value on its own line (no <dt>); valuelabels lists each
+// field with a value as "value label"; suffix puts each field's short label right after its value (LBS "3S").
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6189,6 +6192,9 @@ function gamerow(data, r) {
       v = gamerowhelpers[r.helper](v, data);
     } else {
       v = (v === undefined || v === null) ? '' : (Array.isArray(v) ? v.join(r.join !== undefined ? r.join : ',') : String(v));
+    }
+    if(r.suffix) {
+      v += lab['short'+f] !== undefined ? lab['short'+f] : f;
     }
     var cls = r.wraps && r.wraps[i];
     return cls ? '<span class="'+cls+'">'+v+'</span>' : v;
