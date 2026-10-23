@@ -17,7 +17,7 @@ or tests. The files in this directory are exactly what gets served.
   site, `https://api-dev.oracleofthevoid.com` (dev Lambda) on preview and localhost. Both
   share the same DynamoDB tables and Elasticsearch, so writes are always live.
 - **Game config, moving to structure** (ootv-claude `GAME-TEMPLATES.md` §2, since 2026-10-23):
-  a game with a `<game>/game` item in `oracle-all-structure` (Initial D, Dune, LBS, 7th Sea so far) is drawn
+  a game with a `<game>/game` item in `oracle-all-structure` (Initial D, Dune, LBS, 7th Sea, Pathfinder Pawns so far) is drawn
   from `GET /gameconfig` (that item, the `settings` of `<game>/fields`, and the master views in
   `all/templates`); `gameconfigapply()` in `oracle.js` fills the globals below from it, and the
   game has no files here. `docs/gameconfig/`: `build.js` (items from a game's old files plus its
