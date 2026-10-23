@@ -1,8 +1,8 @@
 # Discord bot settings
 
-Last updated: 2026-10-16 (/oraclebug: one form, no options)
+Last updated: 2026-10-22 (/cardtext and /rulings)
 
-The Oracle Discord bot (`/card`, `/search` and `/oraclebug` by default) answers in each server it has been
+The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search` and `/oraclebug` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
 channel searches, filters that narrow every search in a channel, and which commands a
 server gets under which names. The bot picks up a change within 5 minutes, with no deploy.
@@ -45,7 +45,7 @@ or Legacy work too, and the bot shows the printing the site would.
 
 ## Command options
 
-Besides the card name or query, `/card` and `/search` take the site's search form fields:
+Besides the card name or query, `/card`, `/cardtext`, `/rulings` and `/search` take the site's search form fields:
 `set`, `rarity`, `type`, `clan`, `keywords`, `text` and `legality`. The list fields
 autocomplete from the game's values. Each game offers the ones its search form has; L5R has all
 seven. They narrow the channel's own filters. On a field the channel already filters, both must
@@ -54,9 +54,25 @@ query when an option is given, e.g. `/search clan:Crab type:Stronghold`.
 
 ## The paper option
 
-`/card` and `/search` (or a server's own names for them) take `paper:true` for L5R: only cards
+`/card`, `/cardtext`, `/rulings` and `/search` (or a server's own names for them) take `paper:true` for L5R: only cards
 with a paper printing (FRPG, WotC or AEG), shown on that printing. It adds the same
 requirement as a required `legality = Paper` line, on top of the channel's filters.
+
+## Card text (/cardtext)
+
+`/cardtext` is `/card show:text` without the option, for people who'd rather not use options: the
+card's rules text, stats and legality, with a small image.
+
+## Rulings (/rulings)
+
+`/rulings` shows the card's rulings and errata (the `ruling` field, `rulings.md`). Rulebook links
+open the page in the site's Rules viewer. The footer says how many Rules Q&A answers (`rulingref`)
+the card has; `full:true` adds them after the rulings. When `/rulings` for the same card was just
+posted in the same channel (within 10 minutes), `full:true` shows only the Q&A, so the rulings
+aren't posted twice. The bot remembers this only while it stays warm, so now and then the rulings
+come again. A long answer is paged: **Previous** and **Next** buttons under it turn the page in
+place, and anyone in the channel can press them. A card with neither gets an only-you "No rulings"
+reply.
 
 ## Bug reports (/oraclebug)
 

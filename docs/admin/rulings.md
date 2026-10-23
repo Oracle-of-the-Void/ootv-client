@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-22
+Last updated: 2026-10-22 (Discord /rulings)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -114,3 +114,8 @@ The pages and the card entries are made by ootv-import `SCRIPTS/email-qa.py`, `e
 `email-digests.py` from the threaded mail archive (project `rules-forum-rulings`).
 
 Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.
+
+## On Discord
+
+The Discord bot's `/rulings <card>` posts a card's rulings and says how many Rules Q&A answers it
+has; `full:true` adds those (`discord-bot.md`, "Rulings").
