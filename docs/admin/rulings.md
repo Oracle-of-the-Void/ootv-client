@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-22 (Discord /rulings)
+Last updated: 2026-10-23 (Imperial Herald rulings)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -62,6 +62,12 @@ ootv-claude `RULINGS-IMPORT.md`):
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
   a few words carry scanning slips, like "Ifyou"). LBS has two cards for a few titles (Eyla the
   Protector, Hole in the Sky, The Weight of Dreams): both got the rulings and a `needsreview` note.
+- Imperial Herald: the card game's FAQ and errata columns in the Herald (issues 1, 3–14, 16, 17 and Vol. 2 #4,
+  1995–2002; the "Oracle of the Void" column and the L5R FAQ) are on the cards the same way, linked to the issue's page on
+  the Newsletters shelf (`The Imperial Herald, Issue 9, p. 11`; the page number is the shelf's, not the printed folio). The
+  scans' OCR drops the italic card names, so these were typed up from the page images (ootv-import `rulings-herald/`), with
+  the version each one is about chosen by hand where a title has several cards. Questions a later FAQ or archive reprinted
+  weren't added again. Those issues carry the shelf tag **Rulings**.
 
 ## Adding, changing, removing
 
