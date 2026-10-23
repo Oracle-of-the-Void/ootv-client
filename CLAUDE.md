@@ -21,9 +21,11 @@ or tests. The files in this directory are exactly what gets served.
   `settings` of `<game>/fields`, and the master views in `all/templates`. `gameconfigapply()` in
   `oracle.js` fills the globals `dbinfo`, `databasesort`, `headerize`, `searchables`, `labels`,
   `templates`, `updates` (symbols) and `blurb` from it; no game has files here. The game menu comes from
-  `all/games`. A new game gets structure items, not files. To edit the items as JSON until the Admin
-  editor exists: `python3 docs/gameconfig/push.py pull DIR [game]`, edit, then `push.py DIR` (dry run)
-  and `--go` (production). `templates/template-*.html` (the generic views: list, text*, visual*, pdf,
+  `all/games`. A new game gets structure items, not files. They're edited in Admin → Fields (the field
+  list's `settings`, `show: "hidden"`), Game config and Templates (`gameconfigadmin.js`, loaded on first
+  use; guide `docs/admin/game-config.md`), or in bulk as JSON: `python3 docs/gameconfig/push.py pull DIR
+  [game]`, edit, then `push.py DIR` (dry run) and `--go` (production). A master template that fails to
+  compile or draw falls back to its newest working version from the item's history (`templatesafe`). `templates/template-*.html` (the generic views: list, text*, visual*, pdf,
   table, debug) are still in the repo, copied into `all/templates` when it was first written.
 - Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
   `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
