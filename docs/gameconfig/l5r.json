@@ -1,0 +1,589 @@
+{
+ "_note": "L5R's rows, sort, views and symbols for build.js (ootv-claude GAME-TEMPLATES.md §2.3-2.4); from template-l5r-card.html / -search.html and the updates[] symbol replacements of templates/l5r.js (in order), with artist, flavor, number and legaldate searched on the printing (§1.7 #8), printedwithset shown as Printed with (§1.7 #17), and legaldate shown on the printing (stored only there; the card row never showed it)",
+ "sort": {
+  "group": "deck",
+  "first": [
+   "Pre-Game",
+   "Dynasty"
+  ]
+ },
+ "headers": [
+  "deck",
+  "type"
+ ],
+ "searchrename": {
+  "artist": "printing.artist",
+  "flavor": "printing.flavor",
+  "number": "printing.number",
+  "legaldate": "printing.legaldate"
+ },
+ "fieldlabels": {
+  "printedwithset": {
+   "label": "Printed with",
+   "short": "Printed with"
+  }
+ },
+ "symbols": [
+  [
+   ":g1:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_01.png\" />"
+  ],
+  [
+   ":g2:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_02.png\" />"
+  ],
+  [
+   ":g3:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_03.png\" />"
+  ],
+  [
+   ":g4:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_04.png\" />"
+  ],
+  [
+   ":g5:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_05.png\" />"
+  ],
+  [
+   ":g6:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_06.png\" />"
+  ],
+  [
+   ":g7:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_07.png\" />"
+  ],
+  [
+   ":g8:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_08.png\" />"
+  ],
+  [
+   ":g9:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_09.png\" />"
+  ],
+  [
+   ":g10:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_10.png\" />"
+  ],
+  [
+   ":g11:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_11.png\" />"
+  ],
+  [
+   ":g12:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_12.png\" />"
+  ],
+  [
+   ":g13:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_13.png\" />"
+  ],
+  [
+   ":g14:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_14.png\" />"
+  ],
+  [
+   ":g15:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_15.png\" />"
+  ],
+  [
+   ":g16:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_16.png\" />"
+  ],
+  [
+   ":g17:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_17.png\" />"
+  ],
+  [
+   ":g18:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_18.png\" />"
+  ],
+  [
+   ":g19:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_19.png\" />"
+  ],
+  [
+   ":g20:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_20.png\" />"
+  ],
+  [
+   ":gstar:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_star.png\" />"
+  ],
+  [
+   ":\\*:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_star.png\" />"
+  ],
+  [
+   ":X:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_star.png\" />"
+  ],
+  [
+   ":g\\*:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_star.png\" />"
+  ],
+  [
+   ":g0:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_00.png\" />"
+  ],
+  [
+   ":0:",
+   "<img class=\"inlinesymbol\" src=\"res/icon-cards-small/g_00.png\" />"
+  ],
+  [
+   ":bow:",
+   "<span class=\"l5rsym\">w</span>"
+  ],
+  [
+   ":Rank:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">c</span>"
+  ],
+  [
+   ":Rank-1:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">f</span>"
+  ],
+  [
+   ":Rank-3:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">d</span>"
+  ],
+  [
+   ":Rank-2:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">e</span>"
+  ],
+  [
+   ":Rank\\+1:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">g</span>"
+  ],
+  [
+   ":Rank\\+2:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">h</span>"
+  ],
+  [
+   ":Rank\\+3:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">i</span>"
+  ],
+  [
+   ":Rank10:",
+   "<span class=\"l5rsym\" style=\"font-size: 200%;\">j</span>"
+  ],
+  [
+   ":Rank(?:&#149;|\\u2022)?(\\d+):",
+   "<span class=\"l5rsym l5rrank\" style=\"font-size: 200%;\">c<span class=\"l5rranknum\">$1</span></span>"
+  ],
+  [
+   ":air:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/air.png\" />"
+  ],
+  [
+   ":earth:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/earth.png\" />"
+  ],
+  [
+   ":fire:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/fire.png\" />"
+  ],
+  [
+   ":water:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/water.png\" />"
+  ],
+  [
+   ":void:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/void.png\" />"
+  ],
+  [
+   ":jade:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/jade.png\" />"
+  ],
+  [
+   ":pearl:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/pearl.png\" />"
+  ],
+  [
+   ":maho:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/maho.png\" />"
+  ],
+  [
+   ":thunder:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/thunder.png\" />"
+  ],
+  [
+   ":shadowlands:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/shadowlands.png\" />"
+  ],
+  [
+   ":tengoku:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/tengoku.png\" />"
+  ],
+  [
+   ":air\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bair.png\" />"
+  ],
+  [
+   ":earth\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bearth.png\" />"
+  ],
+  [
+   ":fire\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bfire.png\" />"
+  ],
+  [
+   ":water\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bwater.png\" />"
+  ],
+  [
+   ":void\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bvoid.png\" />"
+  ],
+  [
+   ":jade\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bjade.png\" />"
+  ],
+  [
+   ":pearl\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bpearl.png\" />"
+  ],
+  [
+   ":maho\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bmaho.png\" />"
+  ],
+  [
+   ":thunder\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bthunder.png\" />"
+  ],
+  [
+   ":shadowlands\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/bshadowlands.png\" />"
+  ],
+  [
+   ":tengoku\\+:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/btengoku.png\" />"
+  ],
+  [
+   ":fear:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/fear.png\" />"
+  ],
+  [
+   ":melee:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/melee.png\" />"
+  ],
+  [
+   ":ranged:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/ranged.png\" />"
+  ],
+  [
+   ":favor:",
+   "<img class=\"inlinesymbolbounded\" src=\"res/onyx/favor.png\" />"
+  ]
+ ],
+ "rows": {
+  "card": [
+   {
+    "fields": [
+     "title"
+    ],
+    "helper": "soultitle",
+    "when": "always"
+   },
+   {
+    "fields": [
+     "type"
+    ]
+   },
+   {
+    "fields": [
+     "force",
+     "chi"
+    ],
+    "wraps": [
+     "iconic force",
+     "iconic chi"
+    ]
+   },
+   {
+    "fields": [
+     "honor",
+     "cost",
+     "ph"
+    ],
+    "wraps": [
+     "smiconic smhr",
+     "smiconic smgc",
+     "smiconic smph"
+    ],
+    "when": [
+     "honor",
+     "ph"
+    ],
+    "else": {
+     "fields": [
+      "cost"
+     ],
+     "wraps": [
+      "smiconic smgc"
+     ]
+    }
+   },
+   {
+    "fields": [
+     "strength",
+     "production",
+     "startinghonor"
+    ],
+    "wraps": [
+     "smiconic smforce",
+     "smiconic smgc",
+     "smiconic smhr"
+    ],
+    "when": [
+     "strength",
+     "startinghonor"
+    ],
+    "else": {
+     "fields": [
+      "production"
+     ],
+     "wraps": [
+      "smiconic smgc"
+     ],
+     "prefix": "+"
+    }
+   },
+   {
+    "fields": [
+     "clan"
+    ]
+   },
+   {
+    "fields": [
+     "keywords",
+     "iconised"
+    ],
+    "labelfields": [
+     "keywords"
+    ],
+    "joins": [
+     " &#149; ",
+     " "
+    ],
+    "when": "keywords",
+    "ddclass": "cardkeywords"
+   },
+   {
+    "fields": [
+     "text"
+    ],
+    "ddclass": "cardtext"
+   },
+   {
+    "fields": [
+     "focus"
+    ]
+   },
+   {
+    "fields": [
+     "legality"
+    ],
+    "helper": "sortlegality"
+   },
+   {
+    "fields": [
+     "banned"
+    ]
+   },
+   {
+    "fields": [
+     "erratum"
+    ]
+   },
+   {
+    "fields": [
+     "mrp"
+    ]
+   },
+   {
+    "fields": [
+     "deck"
+    ]
+   },
+   {
+    "fields": [
+     "notes"
+    ]
+   },
+   {
+    "fields": [
+     "story"
+    ]
+   }
+  ],
+  "printing": [
+   {
+    "fields": [
+     "set"
+    ]
+   },
+   {
+    "fields": [
+     "rarity"
+    ]
+   },
+   {
+    "fields": [
+     "printedwithset"
+    ]
+   },
+   {
+    "fields": [
+     "flavor"
+    ]
+   },
+   {
+    "fields": [
+     "notes"
+    ]
+   },
+   {
+    "fields": [
+     "story"
+    ]
+   },
+   {
+    "fields": [
+     "artist"
+    ]
+   },
+   {
+    "fields": [
+     "number"
+    ]
+   },
+   {
+    "fields": [
+     "legaldate"
+    ]
+   },
+   {
+    "fields": [
+     "publisher",
+     "publisherurl"
+    ],
+    "labelfields": [
+     "publisher"
+    ],
+    "helpers": [
+     null,
+     "makelinks"
+    ],
+    "when": "publisher"
+   }
+  ],
+  "detail": [
+   {
+    "fields": [
+     "type",
+     "clan"
+    ],
+    "seps": [
+     " - "
+    ],
+    "label": false,
+    "when": "clan",
+    "else": {
+     "fields": [
+      "type"
+     ],
+     "label": false
+    }
+   },
+   {
+    "fields": [
+     "force",
+     "chi"
+    ],
+    "wraps": [
+     "smiconic smforce",
+     "smiconic smchi"
+    ],
+    "label": false
+   },
+   {
+    "fields": [
+     "honor",
+     "cost",
+     "ph"
+    ],
+    "wraps": [
+     "smiconic smhr",
+     "smiconic smgc",
+     "smiconic smph"
+    ],
+    "label": false,
+    "when": [
+     "honor",
+     "ph"
+    ],
+    "else": {
+     "fields": [
+      "cost"
+     ],
+     "wraps": [
+      "smiconic smgc"
+     ],
+     "label": false
+    }
+   },
+   {
+    "fields": [
+     "strength",
+     "production",
+     "startinghonor"
+    ],
+    "wraps": [
+     "smiconic smforce",
+     "smiconic smgc",
+     "smiconic smhr"
+    ],
+    "label": false,
+    "when": [
+     "strength",
+     "startinghonor"
+    ],
+    "else": {
+     "fields": [
+      "production"
+     ],
+     "wraps": [
+      "smiconic smgc"
+     ],
+     "prefix": "+",
+     "label": false
+    }
+   },
+   {
+    "fields": [
+     "keywords",
+     "iconised"
+    ],
+    "joins": [
+     " &#9679; ",
+     " "
+    ],
+    "label": false,
+    "when": "keywords"
+   },
+   {
+    "fields": [
+     "text"
+    ],
+    "label": false
+   },
+   {
+    "fields": [
+     "focus"
+    ],
+    "wraps": [
+     "smiconic smfo"
+    ],
+    "label": false
+   }
+  ]
+ }
+}

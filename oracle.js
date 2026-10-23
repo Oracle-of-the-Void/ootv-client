@@ -6199,7 +6199,10 @@ function gamesymbols(symbols) {
 // each field with a value as "value label"; suffix puts each field's short label after its value (true: right
 // after, LBS "3S"; a string: with it between, 7th Sea "2 Can"); seps gives the separator before each field after
 // the first (7th Sea cost/cancel: [" ", " / ", " "]); concat joins the values of all the fields as one list
-// with join (Warlord traits: faction, traits, feats). A true value (a flag such as 7th Sea foil) shows as "Yes".
+// with join (Warlord traits: faction, traits, feats); joins and helpers give a join or helper per field (L5R keywords
+// " &#149; " then iconised " "; publisher, then publisherurl through makelinks); prefix goes before the first value, inside its
+// wraps span (L5R "+3" production); when may also be a list of fields, any of which shows the row (L5R HR/GC/PH: honor or ph).
+// A true value (a flag such as 7th Sea foil) shows as "Yes".
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6213,7 +6216,8 @@ var gamerowhelpers = {
 function gamerow(data, r) {
   var has = function(f) { return templatehasval(data[f]); };
   var when = r.when || 'any';
-  var show = when == 'always' || (when == 'any' ? r.fields.some(has) : when == 'all' ? r.fields.every(has) : has(when));
+  var show = when == 'always' || (Array.isArray(when) ? when.some(has) :
+      when == 'any' ? r.fields.some(has) : when == 'all' ? r.fields.every(has) : has(when));
   if(!show) {
     return r.else ? gamerow(data, r.else) : '';
   }
@@ -6235,15 +6239,18 @@ function gamerow(data, r) {
   }
   var vals = r.fields.map(function(f, i) {
     var v = data[f];
-    if(r.helper) {
-      v = gamerowhelpers[r.helper](v, data);
+    var helper = r.helpers ? r.helpers[i] : r.helper;
+    var join = r.joins && r.joins[i] !== undefined ? r.joins[i] : r.join;
+    if(helper) {
+      v = templatehasval(v) || !r.helpers ? gamerowhelpers[helper](v, data) : '';
     } else {
       v = (v === undefined || v === null) ? '' : v === true ? 'Yes' :
-          (Array.isArray(v) ? v.join(r.join !== undefined ? r.join : ',') : String(v));
+          (Array.isArray(v) ? v.join(join !== undefined ? join : ',') : String(v));
     }
     if(r.suffix) {
       v += (r.suffix === true ? '' : r.suffix)+(lab['short'+f] !== undefined ? lab['short'+f] : f);
     }
+    if(r.prefix && i == 0) { v = r.prefix+v; }
     var cls = r.wraps && r.wraps[i];
     return cls ? '<span class="'+cls+'">'+v+'</span>' : v;
   });
