@@ -90,7 +90,7 @@ function rulesdrawshelf() {
       area.html(out);
       return;
     }
-    out += '<h3>Rulebooks</h3>'+rulesfilterbar()+'<div class="rulesbooks"></div>';
+    out += '<h3>Rulebooks <span class="helpq" data-help="rules#shelf" aria-label="Help: the Rules shelf">?</span></h3>'+rulesfilterbar()+'<div class="rulesbooks"></div>';
     area.html(out+'</div>');
     rulesdrawbooks();
   });
@@ -282,6 +282,7 @@ function rulesdrawreader() {
       (b.text ? '<button class="rulesbtn" onclick="rulescopypage();" aria-label="Copy the text of this page (C)" data-balloon-pos="down-right">'+rulesicon('copy')+'</button>' : '')+
       '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page (or to the text selected)" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
       '<button class="rulesbtn rulesfullbtn" onclick="rulesfullscreen();" aria-label="Full screen (F)" data-balloon-pos="down-right">'+rulesicon(rulesisfull() ? 'minimize' : 'maximize')+'</button>'+
+      ' <span class="helpq" data-help="rules#reading" aria-label="Help: reading a rulebook">?</span>'+
       '</span>'+
     '</div>'+
     '<div class="rulesbody">'+

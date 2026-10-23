@@ -612,6 +612,9 @@ div.helpnav a { padding: 4px 10px; border: solid #69c 1px; border-radius: 14px; 
 div.helpnav a.helpnavactive { background: #69c; color: #fff; }
 div.helpdoc { line-height: 1.45; }
 div.helpdoc h2, div.helpdoc h3 { scroll-margin-top: 8px; }
+div.helptoc { display: inline-block; border: solid #ccc 1px; border-radius: 4px; padding: 4px 16px 4px 0; margin-bottom: 8px; }
+div.helptoc ul { margin: 2px 0; padding-left: 22px; }
+div.helptoc ul ul { font-size: 92%; }
 div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
 div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }

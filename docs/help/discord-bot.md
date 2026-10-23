@@ -16,7 +16,7 @@ Discord, only to you; add `public:True` to post it for the whole channel.
 A server can rename its commands (e.g. `/oracle` instead of `/card`) or turn some off.
 `/oraclehelp` always shows the names that server uses.
 
-## Which game
+## Which game {#which-game}
 
 Most channels have a game of their own: in #l5r the bot searches Legend of the Five Rings,
 in #dune it searches Dune, and so on. Add `game:` to search another game, e.g.
@@ -27,7 +27,7 @@ Some channels also narrow every search, e.g. only cards with an Onyx Lives print
 cards legal in one arc. `/oraclehelp` says what the channel you're in does. Adding `game:` with
 another game leaves those filters out.
 
-## One card: /card, /cardtext
+## One card: /card, /cardtext {#card}
 
 Start typing after `name:` and pick the card from the list. Picking from the list gets you
 exactly that card; if you type a name and send it, the bot shows the closest match and says
@@ -38,7 +38,7 @@ how many others there were.
   stats and legality, with a small image.
 - `/card name:Hida Kisada set:Imperial Edition` shows that printing.
 
-## Rulings: /rulings
+## Rulings: /rulings {#rulings}
 
 `/rulings name:A Test of Courage` shows the card's rulings and errata. Links to rulebooks open
 the page on the site's Rules shelf. The reply also says how many answers the card has in the
@@ -46,17 +46,18 @@ Rules Q&A (the old mailing-list rules digests); `full:True` shows them too. If s
 posted `/rulings` for the same card in the same channel, `full:True` shows only the Q&A, so the
 rulings aren't posted twice. Long replies have **Previous** and **Next** buttons.
 
-## Searching: /search
+## Searching: /search {#search}
 
 `/search query:Toshimoko` finds cards with that word. The query takes the same syntax as the
-site's search box, e.g. `/search query:type:Personality AND clan:Crane`. With one match the bot
+site's All box ([search language](searching.md#syntax)), e.g.
+`/search query:type:Personality AND clan:Crane`. With one match the bot
 shows the card; with more it lists the first 10, and the title links to all the results on the
 site.
 
 The query can be left out when an option narrows the search:
 `/search clan:Crab type:Personality legality:Jade Extended`.
 
-## Options
+## Options {#options}
 
 `/card`, `/cardtext`, `/rulings` and `/search` take the site's search form fields as options.
 The ones marked "list" autocomplete: start typing and pick a value.
@@ -91,7 +92,7 @@ Every card command also takes:
 - `paper:True` (Legend of the Five Rings only): only cards with a paper printing (FRPG, WotC
   or AEG, not Onyx Lives), shown on that printing. It's the site's "Paper: only" box.
 
-## Reporting a problem: /oraclebug
+## Reporting a problem: /oraclebug {#oraclebug}
 
 `/oraclebug` opens a short form: a title, what's wrong, and if you like the card's name, the
 steps to reproduce a website problem, and your device and browser. Sending it files an issue
