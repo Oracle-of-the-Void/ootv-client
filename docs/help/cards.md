@@ -37,7 +37,7 @@ for every card with it, keeping the rest of your search form.
 **Rulings** collects official rulings, FAQ answers and errata for the card. Many end in a
 link to the rulebook or FAQ page they come from: hover over the link to see that page, marked
 where the ruling is (on a phone, press and hold it), and click it to open the page.
-**Open in Rules** takes you to that place in the [Rules](rules.md) section.
+**Open in the Bookshelf** takes you to that place in the [Bookshelf](rules.md).
 
 ## Rules Q&A {#rules-qa}
 

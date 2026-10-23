@@ -27,7 +27,7 @@ on a phone) to see its name.
 - **List/Deck directory** and **Deck/List details**: your decks and lists, logged in
   ([Decks and lists](lists.md)).
 - **Public lists**: decks and lists other people have shared ([Public lists](public-lists.md)).
-- **Rules**: the rulebooks, to read and search ([Rules](rules.md)).
+- **Bookshelf**: the rulebooks and newsletters, to read and search ([Bookshelf](rules.md)).
 - **Help**: these pages.
 
 The buttons on the right change how results look and how they're sorted. Settings is in the
