@@ -606,6 +606,22 @@ div.helplinks {
     align-items: center;
     gap: 12px;
 }
+/* help pages (help.js): the topic list, the topic, and the "?" next to a control (hover: its section in #traitpop) */
+div.helpnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+div.helpnav a { padding: 4px 10px; border: solid #69c 1px; border-radius: 14px; text-decoration: none; }
+div.helpnav a.helpnavactive { background: #69c; color: #fff; }
+div.helpdoc { line-height: 1.45; }
+div.helpdoc h2, div.helpdoc h3 { scroll-margin-top: 8px; }
+div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
+div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
+div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
+dl.helpfields dt { margin-top: 6px; }
+dl.helpfields dd { margin-left: 16px; }
+.helpq { display: inline-block; width: 15px; height: 15px; line-height: 15px; text-align: center; border-radius: 50%;
+  background: #69c; color: #fff; font-size: 11px; font-weight: bold; cursor: help; vertical-align: middle; user-select: none; }
+#traitpop .helppeek { max-height: 50vh; overflow: hidden; }
+#traitpop .helppeek > :first-child { margin-top: 0; }
+#traitpop.traitpoptouch .helppeek { max-height: none; }
 /* list view header line: the list's directory details */
 div.listviewheader {
     margin-bottom: 4px;

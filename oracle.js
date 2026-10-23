@@ -2019,6 +2019,38 @@ function rulesshow() {
     .done(function() { rulesrender(); })
     .fail(function() { $('#rulesarea').html('<span class="error">Could not load the rulebooks.</span>'); });
 }
+// Help (help.js, loaded on first use): the Help view and the "?" links' popups. helpstate: the topic and
+// section shown (null: the first topic, its top).
+var helpstate = {topic: null, sec: null};
+function helpload(done) {
+  if(window.helploaded) { done(); return; }
+  $.ajax({url: 'help.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(done)
+    .fail(function() { $('#helpdoc').html('<span class="error">Could not load the help pages.</span>'); });
+}
+function helpshow() {
+  helpload(function() { helprender(); });   // helprender is in help.js, not there yet
+}
+// the Help view drawn for helpstate (as rulesshowview)
+function helpshowview() {
+  if($('#resulthelp').is(':visible')) {
+    seturl(viewstate('help'), true);
+    helpshow();
+  } else {
+    showview('resulthelp');
+  }
+}
+// open the Help view at a topic's section, as a new history entry (seturl replaces it when it's the one showing)
+function helpopen(topic,sec) {
+  helpstate = {topic: topic, sec: sec || null};
+  if($('#resulthelp').is(':visible')) {
+    seturl(viewstate('help'));
+    helpshow();
+  } else {
+    showview('resulthelp');
+  }
+}
+
 // the Rules view drawn for rulesstate: showview draws it when the view isn't up yet, else draw it here
 function rulesshowview() {
   if($('#resultrules').is(':visible')) {
@@ -5646,6 +5678,7 @@ function showview(view) {
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
     if(view == 'resultrules') rulesshow();
+    if(view == 'resulthelp') helpshow();
     if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
 }
 function showcard() {
@@ -6764,7 +6797,8 @@ function addgametolist(db) {
 // ****************************** URL / HISTORY ******************************
 // The address bar always says what's on screen, so reload, bookmarks and Back/Forward all land in the
 // same place: #game=<g>, then one of
-//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #publiclists=<qs> | #view=<dir|public|help|settings|admin|search|card|list>
+//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #publiclists=<qs> | #help=<topic>[,#helpsec=<id>] |
+//   #view=<dir|public|help|settings|admin|search|card|list>
 // (the About page is #game alone). Old links (no #game, #quicksearch=, #quicksearchtitle=) still work.
 // seturl() is the only place that calls history.*: showview() calls it for every view switch.
 var urlready = false;      // false until the page's own url has been read (startup draws don't add history)
@@ -6809,6 +6843,8 @@ function hashstate(hash) {
   } else if(m.rulebook !== undefined) {
     var mark = rulesmarkparse(m);
     return Object.assign({view: 'rules', book: m.rulebook, page: parseInt(m.page, 10) || (mark.find ? 0 : 1)}, mark);
+  } else if(m.help !== undefined) {
+    return {view: 'help', topic: m.help, sec: m.helpsec || null};
   } else if(m.view !== undefined) {
     return {view: m.view};
   }
@@ -6827,6 +6863,8 @@ function statehash(state) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
     return h+',#rulebook='+state.book+(state.page > 1 || (state.page == 1 && state.find) ? ',#page='+state.page : '')+rulesmarkhash(state);
+  } else if(state.view == 'help' && state.topic) {
+    return h+',#help='+state.topic+(state.sec ? ',#helpsec='+state.sec : '');
   } else if(state.view == 'about') {
     return h;
   }
@@ -6843,6 +6881,8 @@ function viewstate(view) {
     return {view: view, listid: $('#lastlistid').val() || null};
   } else if(view == 'public') {
     return {view: view, pq: lastpublicquery || null};
+  } else if(view == 'help') {
+    return {view: view, topic: helpstate.topic, sec: helpstate.sec};
   } else if(view == 'rules') {
     return {view: view, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at};
   }
@@ -7026,8 +7066,16 @@ function urlparser(keepfilters=false) {
 	  Object.assign(rulesstate, rulesmark);
 	  urlrestoring = 'rules';
 	  rulesshowview();
+  } else if(typeof(matchstruct['help']) != 'undefined') {
+	  helpstate = {topic: matchstruct['help'], sec: matchstruct['helpsec'] || null};
+	  urlrestoring = 'help';
+	  helpshowview();
   } else if(typeof(matchstruct['view']) != 'undefined') {
-	  if(matchstruct['view'] == 'rules') {
+	  if(matchstruct['view'] == 'help') {
+	    helpstate = {topic: null, sec: null};
+	    urlrestoring = 'help';
+	    helpshowview();
+	  } else if(matchstruct['view'] == 'rules') {
 	    rulesstate.book = null;
 	    urlrestoring = 'rules';
 	    rulesshowview();
@@ -8400,10 +8448,19 @@ $(document).on('mouseenter', '#resultcard [data-trait]', function(e) {
 }).on('mouseleave', '#resultcard [data-trait]', function() {
   if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').hide(); }
 });
+$(document).on('mouseenter', '.helpq', function() {
+  if(lastpointertype != 'mouse' || $('#traitpop').hasClass('traitpoptouch') && $('#traitpop').is(':visible')) { return; }
+  var el = this;
+  helpload(function() { helppeek(el, false); });
+}).on('mouseleave', '.helpq', function() {
+  if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').removeData('help').hide(); }
+});
 // touch: a long-press shows it (instead of the browser's link menu); the tap that ends the press does nothing.
 // The same for a ruling's rulebook link (rulingpeek)
-var POPTARGETS = '#resultcard [data-trait], #resultcard dd.rulings a[href*="#rulebook="]';
+// and for a "?" help link (helppeek, help.js)
+var POPTARGETS = '#resultcard [data-trait], #resultcard dd.rulings a[href*="#rulebook="], .helpq';
 function poptargetshow(el,touch) {
+  if($(el).is('.helpq')) { helpload(function() { helppeek(el, touch); }); return; }
   if($(el).is('[data-trait]')) { traitpopshow(el, touch); } else { rulingpeek(el, touch); }
 }
 var traitpress = null, traitpressed = 0;

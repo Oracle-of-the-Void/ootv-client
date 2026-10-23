@@ -50,6 +50,11 @@ or tests. The files in this directory are exactly what gets served.
   says. The books are static files on the images bucket (`<imageuri>rulebooks/`), built and
   uploaded by ootv-import `SCRIPTS/rulebook-convert.py`, so adding one needs no deploy. Guide:
   `docs/admin/rulebooks.md`.
+- Help (menubar ? button, `#view=help`; a section is `#help=<topic>,#helpsec=<id>`) is `help.js`,
+  loaded on first use by `helpload()`; the topics are `docs/help/<topic>.md`, and `.helpq` "?"
+  links next to controls show a section on hover or long-press (`helpstate` in `oracle.js` is
+  what the url says). A new feature gets its help section, and a "?" where people will look for
+  it. How to write them: `docs/HELP-AUTHORING.md`.
 - Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
   import profile; also run by ootv-import `SCRIPTS/etl-compare.js` under Node) and `setimport.js`
   (the page). Both load on demand (`loadsetimport`); `setimport-preview.html` is the empty page
