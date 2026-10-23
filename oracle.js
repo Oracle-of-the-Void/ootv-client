@@ -6198,7 +6198,8 @@ function gamesymbols(symbols) {
 // ddclass, valuelabels, suffix, seps}; label false draws the value on its own line (no <dt>); valuelabels lists
 // each field with a value as "value label"; suffix puts each field's short label after its value (true: right
 // after, LBS "3S"; a string: with it between, 7th Sea "2 Can"); seps gives the separator before each field after
-// the first (7th Sea cost/cancel: [" ", " / ", " "]). A true value (a flag such as 7th Sea foil) shows as "Yes".
+// the first (7th Sea cost/cancel: [" ", " / ", " "]); concat joins the values of all the fields as one list
+// with join (Warlord traits: faction, traits, feats). A true value (a flag such as 7th Sea foil) shows as "Yes".
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6223,6 +6224,14 @@ function gamerow(data, r) {
       return [].concat(data[f]).join(',')+' '+(lab['short'+f] !== undefined ? lab['short'+f] : f);
     });
     return '<dt>'+(r.label !== undefined ? r.label : '')+'</dt><dd>'+items.join(r.sep !== undefined ? r.sep : ' ')+'</dd>';
+  }
+  if(r.concat) {
+    var list = templateconcatarrays.apply(null, r.fields.map(function(f) { return data[f]; }));
+    var cv = list.join(r.join !== undefined ? r.join : ',');
+    if(r.wrap) { cv = '<span class="'+r.wrap+'">'+cv+'</span>'; }
+    var cl = r.label !== undefined ? r.label :
+        (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/');
+    return r.label === false ? cv+'<br />' : '<dt>'+cl+'</dt><dd'+(r.ddclass ? ' class="'+r.ddclass+'"' : '')+'>'+cv+'</dd>';
   }
   var vals = r.fields.map(function(f, i) {
     var v = data[f];
