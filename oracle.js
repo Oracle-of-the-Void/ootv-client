@@ -6192,8 +6192,10 @@ function gamesymbols(symbols) {
 }
 // ~gamerows(data, place): the game's rows for the card page ('card'), each printing ('printing') or a
 // search result ('detail'). A row: {fields, label | labelfields, sep, join, wrap, wraps, when, else, helper,
-// ddclass, valuelabels, suffix}; label false draws the value on its own line (no <dt>); valuelabels lists each
-// field with a value as "value label"; suffix puts each field's short label right after its value (LBS "3S").
+// ddclass, valuelabels, suffix, seps}; label false draws the value on its own line (no <dt>); valuelabels lists
+// each field with a value as "value label"; suffix puts each field's short label after its value (true: right
+// after, LBS "3S"; a string: with it between, 7th Sea "2 Can"); seps gives the separator before each field after
+// the first (7th Sea cost/cancel: [" ", " / ", " "]). A true value (a flag such as 7th Sea foil) shows as "Yes".
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6224,15 +6226,17 @@ function gamerow(data, r) {
     if(r.helper) {
       v = gamerowhelpers[r.helper](v, data);
     } else {
-      v = (v === undefined || v === null) ? '' : (Array.isArray(v) ? v.join(r.join !== undefined ? r.join : ',') : String(v));
+      v = (v === undefined || v === null) ? '' : v === true ? 'Yes' :
+          (Array.isArray(v) ? v.join(r.join !== undefined ? r.join : ',') : String(v));
     }
     if(r.suffix) {
-      v += lab['short'+f] !== undefined ? lab['short'+f] : f;
+      v += (r.suffix === true ? '' : r.suffix)+(lab['short'+f] !== undefined ? lab['short'+f] : f);
     }
     var cls = r.wraps && r.wraps[i];
     return cls ? '<span class="'+cls+'">'+v+'</span>' : v;
   });
-  var v = vals.join(r.sep !== undefined ? r.sep : ' ');
+  var v = r.seps ? vals.map(function(x, i) { return (i ? r.seps[i-1] : '')+x; }).join('') :
+      vals.join(r.sep !== undefined ? r.sep : ' ');
   if(r.wrap) { v = '<span class="'+r.wrap+'">'+v+'</span>'; }
   if(r.label === false) { return v+'<br />'; }
   var label = r.label !== undefined ? r.label :
