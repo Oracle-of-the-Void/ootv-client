@@ -14,10 +14,12 @@ Each server has a table. Every row is one of these:
 - **Server default** (the first row): applies to every channel of that server that has no row
   of its own. Its **Commands** column also sets the server's commands. Its **private replies
   there** checkbox makes replies in those channels visible only to the person who ran the
-  command, unless they add `private:False`; channels with a row of their own stay public.
+  command, unless they add `private:False`; channels with a row of their own follow their own
+  checkbox instead.
 - **A channel**: identified by its Discord channel ID. In Discord, turn on Developer Mode
   (User Settings → Advanced), then right-click the channel → Copy Channel ID. Server IDs are
-  copied the same way from the server icon.
+  copied the same way from the server icon. Its **private replies** checkbox does the same for
+  that channel; unticked, the channel is public even when the server default is private.
 
 **Name** is only a label for this page. The site can't look names up in Discord.
 
