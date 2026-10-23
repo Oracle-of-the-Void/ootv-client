@@ -1,0 +1,86 @@
+# Decks and lists
+
+Log in (free) to keep decks and other lists of cards: a collection, the cards you have to
+trade, the ones you want. Each game has its own lists.
+
+## Your lists {#directory}
+
+**List/Deck directory** in the menu bar shows your lists. The buttons on the right of the menu
+bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort** orders them.
+
+- **New list** makes one. Click a list's name to open it.
+- To rename a list, press and hold its name (or click the pencil beside it). Enter saves.
+- Type straight into a list's **Notes** to change them.
+- **Type** says what the list is: Deck, Collection, Have, Want or Other.
+- **Legality** is the format a deck is for. Its cards are checked against it (see
+  [Statistics](#stats)).
+- **Public** shares the list (see [Sharing](#sharing)).
+
+## Folders {#folders}
+
+**New folder** makes a folder, and folders can hold folders. Move a list into one with its
+**Folder** pull-down, or drag it by its handle onto a folder (or onto **All lists** for the top).
+Folders can be dragged into each other too. Removing a folder keeps what's in it: its lists
+move up a level.
+
+## Adding cards {#active}
+
+Click the switch beside a list's name to make it **active**. Then every card in the search
+results and on the card page gets + and − buttons for that list. You can have several lists
+active at once. They stay active in that browser tab until you switch them off.
+
+Quicker ways:
+
+- **Swipe** a card's picture sideways (or click-drag it with a mouse) to change its count:
+  right adds one, up-right adds three, left removes one, up-left removes them all. In a list,
+  up-right adds two. Settings → Gestures changes what each direction does, or turns swipes off.
+- **Add all to list**, above the search results, adds every card found
+  ([more](searching.md#add-all)).
+- **Upload**, in the list's menu, adds cards from a file (see [Downloads](#downloads)).
+
+Lists save themselves shortly after you change them.
+
+## Looking at a list {#view}
+
+Open a list to see its cards. The buttons on the right of the menu bar change the layout:
+the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
+type, legality and notes are at the top, and can be changed there too.
+
+## Statistics {#stats}
+
+Under the list's name is its card count. Open it for the details: how many cards of each type
+are in each deck, their share of the deck, and averages of the cards' numbers (cost, force and
+so on). Below that, each keyword in the deck and how many of your other cards mention it.
+
+When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
+and **All cards legal for** lists the formats every card is legal in. Only the cards are checked,
+not the deck as a whole (its size, how many copies of a card, banned-card limits).
+
+## Sharing {#sharing}
+
+Set a list to **Public** and anyone can see it, logged in or not, but only you can change it.
+**Copy link** (at the top of the open list) copies a link to send. Public lists also show in
+[Public lists](public-lists.md), under your display name (Settings → Account), or your initials
+if you haven't set one.
+
+## The list menu {#menu}
+
+The list's menu (the grid button) has:
+
+- **Duplicate**: a copy to change.
+- **Upload**: add cards from a file.
+- **Download**: the list as a file (below).
+- **Delete list**.
+
+## Downloads and uploads {#downloads}
+
+- **PDF Print-n-Play**: the cards on sheets of paper to print and cut out. **PDF for
+  MakePlayingCards** makes one PDF per card, with bleed, for ordering printed cards. (Not every
+  game has PDF printing; the print options are in Settings → Printing.)
+- **Sun and Moon** (L5R): a deck file for the Sun and Moon program.
+- **Native Oracle (Tab-delimited)**: a text file you can open in a spreadsheet, or upload into
+  another list.
+- **Headers in downloads** turns the section headings in the files on or off.
+
+**Upload** reads a Sun and Moon file or a Native Oracle file, says which cards it found and
+which it couldn't, and asks before adding them.

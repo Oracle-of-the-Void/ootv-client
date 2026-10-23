@@ -1,7 +1,7 @@
 # Getting started
 
 Oracle of the Void is a card database and deck builder for several collectible card games.
-You can use it without an account. Log in (free) to build decks and lists.
+You can use it without an account. Log in (free) to build [decks and lists](lists.md).
 
 ## Pick a game {#game}
 
@@ -22,14 +22,16 @@ The icons in the middle switch between the site's views. Hover over one (or pres
 on a phone) to see its name.
 
 - **Search results**: the cards your last search found. Click it again to show or hide the form.
-- **Card details**: the card you opened, with every printing, its rulings and its legality.
-- **List/Deck directory** and **Deck/List details**: your decks and lists (logged in).
-- **Public lists**: decks and lists other people have shared.
-- **Rules**: the rulebooks, to read and search.
+- **Card details**: the card you opened, with every printing, its rulings and its legality
+  ([The card page](cards.md)).
+- **List/Deck directory** and **Deck/List details**: your decks and lists, logged in
+  ([Decks and lists](lists.md)).
+- **Public lists**: decks and lists other people have shared ([Public lists](public-lists.md)).
+- **Rules**: the rulebooks, to read and search ([Rules](rules.md)).
 - **Help**: these pages.
 
 The buttons on the right change how results look and how they're sorted. Settings is in the
-menu under your name (or the first menu, logged out).
+menu under your name, or the first menu when logged out ([Account and settings](settings.md)).
 
 ## Links and sharing {#links}
 

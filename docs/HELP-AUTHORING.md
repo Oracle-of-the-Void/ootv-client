@@ -27,6 +27,9 @@ which changes when the heading does, so give an id to every heading something li
 
 Keep sections short: a "?" popup shows one section, and on a desktop it shows only what fits.
 
+A topic with two or more `##` sections gets a contents box under its title, linking each `##`
+and `###` heading. It's built from the headings, so there's nothing to keep up by hand.
+
 ## Links
 
 - To another topic: `[Card fields](fields.md)`, or to a section of one: `[the All box](searching.md#all)`.

@@ -228,8 +228,8 @@
   <div class="directorytable" id="directorytable">
   <div class="listitem directorylistheader">
     <div class="listheadmiddle"></div>
-    <div class="listheadmiddle">Name</div>
-    <div class="listheadmiddle dirfoldercell">Folder</div>
+    <div class="listheadmiddle">Name <span class="helpq" data-help="lists#directory" aria-label="Help: your lists">?</span></div>
+    <div class="listheadmiddle dirfoldercell">Folder <span class="helpq" data-help="lists#folders" aria-label="Help: folders">?</span></div>
     <div class="listheadmiddle">Type</div>
     <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
@@ -264,7 +264,7 @@
       <option value="relevance">Best match</option>
     </select>
     <button type="submit" class="button gray">Search</button>
-    <button type="button" class="button gray" onclick="publicreset();">Reset</button>
+    <button type="button" class="button gray" onclick="publicreset();">Reset</button> <span class="helpq" data-help="public-lists#search" aria-label="Help: finding decks">?</span>
   </form>
   <div class="publicstatus" id="publicstatus"></div>
   <div class="directorycards" id="publicresults"><div class="randarea">Lists other players have made public.</div></div>
@@ -727,7 +727,7 @@ Recent Data Updates for Currently Selected Database:<br>
   </select> <span class="textversionstatus"></span>
 </section>
 <section data-settingstab="display" class="settingsection">
-  <h3>Saved views ({{>gamename}})</h3>
+  <h3>Saved views ({{>gamename}}) <span class="helpq" data-help="settings#display" aria-label="Help: saved views">?</span></h3>
   <p>The views and sort {{>gamename}} opens with. Phones save their own set; this screen uses the <b>{{if phone}}phone{{else}}desktop{{/if}}</b> set.
     Save copies what the Search, Card and List tabs show right now.</p>
   <table class="settingstable">
@@ -752,7 +752,7 @@ Recent Data Updates for Currently Selected Database:<br>
 </section>
 {{/if}}
 <section data-settingstab="gestures" class="settingsection gesturesettings">
-  <h3>Gestures (all games)</h3>
+  <h3>Gestures (all games) <span class="helpq" data-help="settings#gestures" aria-label="Help: gestures">?</span></h3>
   <p>Turn off a gesture to get the browser's usual behavior back (scrolling, dragging a link, the long-press menu).
     {{if loggedin}}Saved to your account.{{else}}You're not logged in, so these are kept in this browser only; Clear Cache deletes them.{{/if}}</p>
   {{for gestures.switches}}
@@ -949,6 +949,7 @@ Recent Data Updates for Currently Selected Database:<br>
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
     <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value); $('#resultlist .liststatslegal').attr('data-format',this.value); liststatslegal();">{{listLegalitySelect:legality}}</select>
     <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>Private</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Public</option></select>
+    <span class="helpq" data-help="lists#sharing" aria-label="Help: type, legality and sharing">?</span>
     <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
   </div>
@@ -1009,7 +1010,7 @@ Recent Data Updates for Currently Selected Database:<br>
      many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
-  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatshint"> (Expand for detailed statistics)</span></summary>
+  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatshint"> (Expand for detailed statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
   {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>
   <div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck itself isn't checked (size, MRPs, ban limits).">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>{{/if}}
   {{if decks.length}}
@@ -1101,7 +1102,7 @@ Recent Data Updates for Currently Selected Database:<br>
      is nothing to flip. ~intable: the card view's dl, as a row with an empty label. Search results and lists
      have one button for the page instead (pagetextversion). -->
 <script id="template-textversion" type="text/x-jsrender">
-{{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</dd>{{else}}<div class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</div>{{/if}}{{/if}}
+{{if textprinting}}{{if ~intable}}<dt></dt><dd class="textversionrow">{{include tmpl="#template-textversionbutton" /}} <span class="helpq" data-help="cards#text-version" aria-label="Help: printed or current text">?</span></dd>{{else}}<div class="textversionrow">{{include tmpl="#template-textversionbutton" /}}</div>{{/if}}{{/if}}
 </script>
 <!-- the text version button itself ("MRP text" / "Printed text"); ~page ('search' / 'list'): the page's one button (data: the page's summary). With
      nothing to flip it's a span: "MRP text" when no card shows a picked printing (only pages, which always show
@@ -1117,9 +1118,9 @@ Recent Data Updates for Currently Selected Database:<br>
 </script>
 
 <script id="template-card-middle" type="text/x-jsrender">
-  {{if ~hasval(ruling)}}<dt>{{:~labels.shortruling}}</dt><dd class="rulings">{{for ruling}}<div>{{:}}</div>{{/for}}</dd>{{/if}}
-  {{if ~hasval(rulingref)}}<dt>{{:~labels.shortrulingref}}</dt><dd class="rulingrefs"><button type="button" class="button gray buttonsmaller rulingrefbutton" data-title="{{>title}}" onclick="rulingrefs(this); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#message-square"></svg> {{:rulingref.length}} {{if rulingref.length==1}}answer{{else}}answers{{/if}} from the rules team</button><div class="rulingreflist" hidden>{{for rulingref}}<div class="rulingref">{{:}}</div>{{/for}}</div></dd>{{/if}}
-  <dt>Versions</dt><dd>{{for ~sortprintings(printing) ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:setclean}}/{{:rarityclean}}{{if printingid == ~top.printingprimary}} *{{/if}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
+  {{if ~hasval(ruling)}}<dt>{{:~labels.shortruling}}<span class="helpq" data-help="cards#rulings" aria-label="Help: rulings">?</span></dt><dd class="rulings">{{for ruling}}<div>{{:}}</div>{{/for}}</dd>{{/if}}
+  {{if ~hasval(rulingref)}}<dt>{{:~labels.shortrulingref}}<span class="helpq" data-help="cards#rules-qa" aria-label="Help: Rules Q&amp;A">?</span></dt><dd class="rulingrefs"><button type="button" class="button gray buttonsmaller rulingrefbutton" data-title="{{>title}}" onclick="rulingrefs(this); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#message-square"></svg> {{:rulingref.length}} {{if rulingref.length==1}}answer{{else}}answers{{/if}} from the rules team</button><div class="rulingreflist" hidden>{{for rulingref}}<div class="rulingref">{{:}}</div>{{/for}}</div></dd>{{/if}}
+  <dt>Versions<span class="helpq" data-help="cards#versions" aria-label="Help: versions">?</span></dt><dd>{{for ~sortprintings(printing) ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:setclean}}/{{:rarityclean}}{{if printingid == ~top.printingprimary}} *{{/if}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
 
 </script> <!-- template-card-middle -->
 

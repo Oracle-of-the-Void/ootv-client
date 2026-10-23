@@ -11,6 +11,11 @@ window.helploaded = true;
 var HELPTOPICS = [
   {id: 'getting-started', title: 'Getting started'},
   {id: 'searching', title: 'Searching'},
+  {id: 'cards', title: 'The card page'},
+  {id: 'lists', title: 'Decks and lists'},
+  {id: 'public-lists', title: 'Public lists'},
+  {id: 'rules', title: 'Rules'},
+  {id: 'settings', title: 'Account and settings'},
   {id: 'fields', title: 'Card fields', generated: true},
   {id: 'discord-bot', title: 'Discord bot'}
 ];
@@ -40,6 +45,7 @@ function helpdoc(id) {
         if(m) { h.html(h.html().slice(0, m.index)); }
         h.attr('id', 'help-'+(m ? m[1] : helpslug(h.html())));
       });
+      helptoc(div, id);
       div.find('a[href]').each(function() {
         var a = $(this), href = a.attr('href');
         var local = /^(?:\.\/)?([\w-]+)\.md(?:#([\w-]+))?$/.exec(href) || /^#([\w-]+)$/.exec(href) && [null, id, href.slice(1)];
@@ -54,6 +60,24 @@ function helpdoc(id) {
     helpdocs[key].catch(function() { delete helpdocs[key]; });   // a failed load is tried again next time
   }
   return helpdocs[key];
+}
+// the topic's contents, under its title: a link to each section (h2) and its subsections (h3)
+function helptoc(div,id) {
+  if(div.find('h2').length < 2) { return; }
+  // a div, not a <nav>: the menubar's nav styles would apply to it
+  var nav = $('<div class="helptoc"><ul></ul></div>'), top = nav.children('ul'), last = null;
+  div.find('h2, h3').each(function() {
+    var h = $(this), sec = h.attr('id').slice(5);
+    var li = $('<li>').append($('<a class="helplink">').attr('href', '#help='+id+',#helpsec='+sec).data('help', id+'#'+sec).html(h.html()));
+    if(h.is('h3') && last) {
+      (last.children('ul').length ? last.children('ul') : $('<ul>').appendTo(last)).append(li);
+    } else {
+      top.append(li);
+      last = li;
+    }
+  });
+  var h1 = div.find('h1').first();
+  nav.insertAfter(h1.length ? h1 : div.children().first());
 }
 // a section of a rendered topic (its heading and what follows, up to the next heading as high), or null
 function helpsection(div,sec) {
@@ -128,7 +152,7 @@ function helppeek(el,touch) {
     pop.toggleClass('traitpoptouch', touch).html('<div class="traitpophead">'+helpesc(title)+'</div><div class="helppeek"></div>'+
       (touch ? '<span class="button gray traitpopopen">Open help</span><span class="button gray traitpopclose" onclick="$(\'#traitpop\').hide();">Close</span>' :
         '<div class="traitpopfoot">Click for the whole help page</div>'));
-    pop.find('.helppeek').append(s ? s.body : div.children().slice(1, 3).clone());
+    pop.find('.helppeek').append(s ? s.body : div.children().not('h1, .helptoc').slice(0, 2).clone());
     pop.find('.traitpopopen').on('click', function() { pop.hide(); helpopen(t[0], t[1] || null); });
     var w = Math.min(touch ? 420 : 480, window.innerWidth - 16);
     if(touch) {
