@@ -28,7 +28,7 @@ it's picked up.
   that artist, once you've compared the two by eye.
 - **By style:** the artists of the 10 credited paintings nearest in painting style (brushwork,
   colour, texture; the same painting doesn't count), with each artist's share of the vote. In a
-  test on 12,781 credited L5R paintings, the top artist was right 41% of the time overall, and
+  test on 14,842 credited L5R paintings, the top artist was right 41% of the time overall, and
   **88% of the time when its share was 50% or more** (shown in bold; about one painting in six
   gets that). Below 50% the names are candidates to look into, not answers. **Nearest paintings**
   lists the 10 with their artists and scores, linked to their cards.
