@@ -39,5 +39,6 @@ work as usual.
 
 ## Getting help {#community}
 
-Ask on Discord, report problems or ask for features on GitHub, and watch the how-to videos on
-YouTube (the links at the top of this page).
+Ask on Discord (where our bot can look up cards: see [Discord bot](discord-bot.md)), report
+problems or ask for features on GitHub, and watch the how-to videos on YouTube (the links at
+the top of this page).
