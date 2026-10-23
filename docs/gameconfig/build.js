@@ -75,6 +75,13 @@ for (const g of games) {
     entry(lvl, name).search = s;
     if (lvl === 'printing' && !key.startsWith('printing.')) entry(lvl, name).searchkey = key;   // l5r/lbs card keys
   }
+  // searchadd [{key, after, search}]: a search the old file lacked (§1.7 #22, 7thsea printing.foil), after `after`
+  for (const add of conf.searchadd || []) {
+    const i = search.indexOf(add.after);
+    search.splice(i < 0 ? search.length : i + 1, 0, add.key);
+    const [lvl, name] = add.key.startsWith('printing.') ? ['printing', add.key.slice(9)] : [level(add.key), add.key];
+    entry(lvl, name).search = add.search;
+  }
   const extra = {};
   const fieldnames = new Set([...rowfields('card'), ...rowfields('printing'), ...rowfields('detail'),
                               ...search.map(k => k.replace(/^printing\./, ''))]);
