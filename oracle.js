@@ -6156,7 +6156,8 @@ function gamesymbols(symbols) {
 }
 // ~gamerows(data, place): the game's rows for the card page ('card'), each printing ('printing') or a
 // search result ('detail'). A row: {fields, label | labelfields, sep, join, wrap, wraps, when, else, helper,
-// ddclass}; label false draws the value on its own line (no <dt>).
+// ddclass, valuelabels}; label false draws the value on its own line (no <dt>); valuelabels lists each field
+// with a value as "value label".
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6175,6 +6176,13 @@ function gamerow(data, r) {
     return r.else ? gamerow(data, r.else) : '';
   }
   var lab = labels[database] || {};
+  if(r.valuelabels) {
+    // each field with a value, as "value label" (Dune's talents: "2 Battle")
+    var items = r.fields.filter(has).map(function(f) {
+      return [].concat(data[f]).join(',')+' '+(lab['short'+f] !== undefined ? lab['short'+f] : f);
+    });
+    return '<dt>'+(r.label !== undefined ? r.label : '')+'</dt><dd>'+items.join(r.sep !== undefined ? r.sep : ' ')+'</dd>';
+  }
   var vals = r.fields.map(function(f, i) {
     var v = data[f];
     if(r.helper) {
