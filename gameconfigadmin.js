@@ -61,7 +61,7 @@ function gcadminallowed(which) {
 }
 
 function gcadminopen(which) {
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs').empty();
+  $('#loginlog, #discordadmin, #artistsadmin, #admindoc, #updatelogpage, #fielddescs').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#gameconfigadmin, #templatesadmin').empty();
   var db = which == 'templates' ? 'all' : database, key = which == 'templates' ? 'templates' : 'game';

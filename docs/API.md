@@ -519,6 +519,19 @@ inputs:
     * settings (optional): `{card: {<field>: {...} | null}, printing: {...}}`, each field's whole
       settings in the field list (label, short, search, show `card`/`internal`/`hidden`, role,
       searchkey), null to drop them; checked and saved with the descriptions as one version
+  * artists
+    * save or delete an artist entry (`oracle-all-artists`, shared by every game; ootv-search
+      `lib/artists.js`). database must be `all`; permission `artists` (or `*`) in `groups['all']`
+      or `groups['*']`. No cardid.
+    * `action: 'put'`: name (the credit, the item's key), data `{links: [{url, label, archived?}],
+      aliasof, fandom, note}`, the whole entry (fields left out or empty are removed)
+    * `action: 'delete'`: name; the old item is kept in `oracle-all-updatelog` (database `artists`,
+      operation `artistdelete`). Refused while other entries are aliases of it
+    * version (required): the entry's version from `GET /artist?all=1` (its updatelog length), 0
+      for a new one; 409 if it has moved on since
+    * an alias (aliasof set) has no links or fandom of its own, must point at an entry that isn't
+      an alias, and an entry with aliases can't become one
+    * returns `{message, name, version, changed}`; the item's `updatelog` row has `source: 'editor'`
   * gameconfig
     * save a game's config (`oracle-all-structure` `<database>`/`game`: info, rows, sort, headers,
       views, search, labels, symbols...; ootv-search `lib/gameconfigsave.js`). No cardid.
@@ -691,6 +704,11 @@ shared by every game. `name` is the credit exactly as stored in `printing[].arti
 `{name, aliasof?, links: [{url, label, archived?}], fandom?, note?}`; an item with `aliasof` (the same
 person under another credit) answers with that item's links. 404 when the name has no item. The card
 page's artist modal (`artistmodal` in `oracle.js`) calls it.
+
+`GET /artist?all=1` (public): every entry for Admin → Artists (`artistsadmin.js`), as
+`{artists: [{name, version, updated?, links?, aliasof?, fandom?, note?}]}` sorted by name, without
+the updatelog (`version` is its length, `updated` its last row's time). Saved with `/update`
+operation `artists`.
 
 ## /setimport
 
