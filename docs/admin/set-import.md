@@ -2,9 +2,9 @@
 
 Last updated: 2026-10-18
 
-**Admin → Set import (this game)** takes a set's spreadsheet to cards on the live site. It replaces
+**Admin → Data → Set import (this game)** takes a set's spreadsheet to cards on the live site. It replaces
 `new-set.py`, `proc.sh`/`parse.jq` and `set-import.py` on the jump box (ootv-import STEPS.md).
-**Admin → Import profiles** holds the mapping from spreadsheet columns to card fields.
+**Admin → Config → Import profiles** holds the mapping from spreadsheet columns to card fields.
 
 Both need the `setimport` permission (or `*`) for the game.
 

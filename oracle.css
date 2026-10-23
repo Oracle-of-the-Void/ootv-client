@@ -1525,6 +1525,8 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
   border-radius: 6px 6px 0 0; cursor: pointer; margin-bottom: -2px; }
 .settingstabs button:hover { background: #faf8f2; }
 .settingstabs button.settingstabactive { background: #575757; color: #fff; border-color: #575757; }
+/* the admin page reuses the settings tabs (showadmintab) */
+.adminlinks { margin: 0 0 12px 0; }
 .savedsearchtable td { vertical-align: top; }
 .gestureswitch { display: block; margin: 2px 0; }
 .swipetable .swipecount { width: 4em; margin-left: 6px; }

@@ -26,7 +26,7 @@ defined once instead of tagged card by card. Cards never display these values.
   need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's
   legality is only a label and isn't checked.
 - **Search form checkbox:** the field `paper` in the L5R field list's settings
-  (`l5r/fields`, Admin → Fields: `"search": {"type": "require", "field": "legality", "value": "Paper"}`,
+  (`l5r/fields`, Admin → Config → Fields: `"search": {"type": "require", "field": "legality", "value": "Paper"}`,
   label `only`, short `Paper`), listed in `l5r/game` `search`, renders a checkbox that sends `require_legality=Paper`. The API ANDs
   `require_<field>` with the rest of the search; `templatefetch()` then switches to a printing
   that fits it.

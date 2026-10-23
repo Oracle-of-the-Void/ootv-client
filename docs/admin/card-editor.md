@@ -4,7 +4,7 @@ Last updated: 2026-10-21
 
 The **Edit** button at the top right of a card (shown to anyone with an edit permission on the
 game) opens one editor for the whole card: its own fields, every instance (printing), and which
-instance is the MRP one. **Admin → New Card** opens the same editor on a blank card.
+instance is the MRP one. **Admin → Data → New Card** opens the same editor on a blank card.
 
 Nothing is saved while you edit. **Commit** saves everything at once. **Reset** asks, then puts
 the card back the way it was when the editor opened, without closing it (images already uploaded
