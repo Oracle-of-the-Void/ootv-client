@@ -11,7 +11,8 @@ window.helploaded = true;
 var HELPTOPICS = [
   {id: 'getting-started', title: 'Getting started'},
   {id: 'searching', title: 'Searching'},
-  {id: 'fields', title: 'Card fields', generated: true}
+  {id: 'fields', title: 'Card fields', generated: true},
+  {id: 'discord-bot', title: 'Discord bot'}
 ];
 var helpdocs = {};   // '<game>/<topic>' (the Fields topic) or '<topic>' -> promise of the rendered topic (a detached div)
 
