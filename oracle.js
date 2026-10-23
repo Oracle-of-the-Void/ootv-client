@@ -162,12 +162,6 @@ function jsondiff(object, base) {
 	return changes(object, base);
 }
 
-function loadtest() {
-	console.log("load test template");
-	$("#all_template").append('<script src="templates/test.js?v='+ootvversion+'"></script>');
-  addgametolist('test');
-}
-
 $.views.converters("addslashes",addslashes);
 
 // preview (and local testing) uses the dev API stack, which runs the dev-ootv-search Lambda;
@@ -5564,7 +5558,7 @@ function searchaddallmax() {
     return (dbinfo[database] && dbinfo[database].addallmax) || 500;
 }
 // the search fields that pick a version of a card: with none of them in the search, the cards go in without a version.
-// KEEP IN SYNC with the version-picking code: the "reverse" searchables in templates/<game>.js, bubbleup and
+// KEEP IN SYNC with the version-picking code: the "reverse" searchables in the game config, bubbleup and
 // templatefetch. A new field that changes the version shown goes here too.
 const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist'];
 function searchaddallversion(request) {
@@ -6068,11 +6062,10 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 // ******************** GAME CONFIG (structure-driven games) ********************
 // A game with a <game>/game item in oracle-all-structure is drawn from it (ootv-claude GAME-TEMPLATES.md §2):
 // GET /gameconfig returns the game config, its field list (fields items: settings) and the master templates
-// (all/templates), and gameconfigapply() fills the same globals templates/<game>.js fills for the others
-// (dbinfo, searchables, labels, templates, databasesort, headerize, updates), so the rest of the page is the
-// same for both. The answer is kept in localStorage: a stored copy is used at once and the fresh one, if its
-// version changed, from the next page load. A game without the item (or the API unreachable on a first
-// visit) keeps its templates/<game>.js.
+// (all/templates), and gameconfigapply() fills the globals the rest of the page reads (dbinfo, searchables,
+// labels, templates, databasesort, headerize, updates). The answer is kept in localStorage: a stored copy is
+// used at once and the fresh one, if its version changed, from the next page load. With no stored copy and
+// the API unreachable, the start page says the game couldn't be loaded.
 var gameconfig = {};
 var gamemenu = null;   // all/games: the game menu, in order
 var gamehidden = {};   // per game, the fields its field list marks show: "hidden"
@@ -6082,8 +6075,8 @@ function gameconfigload(db, ready) {
   var start = function() {
     if(started) { return; }
     started = true;
-    if(!gameconfig[db] && !(templates[db] && templates[db].available)) {
-      // a structure-only game (no templates/<game>.js) whose config couldn't be loaded: say so on the start page
+    if(!gameconfig[db]) {
+      // the game config couldn't be loaded: say so on the start page
       $(".ui-layout-center div[id^=result]").hide();
       $('#resultabout').show().find('.randarea').prepend('<p class="gameconfigerror"><b>'+htmlEncode((dbinfo[db] || {}).name || 'This game')+
         " couldn't be loaded.</b> Check your connection and reload the page.</p>");
@@ -6114,8 +6107,7 @@ function gameconfigload(db, ready) {
     error: function() { start(); }
   });
 }
-// the game menu from all/games; a game drawn only from its structure config (no templates/<game>.js) gets its
-// name and logo here, so every page lists it
+// the game menu from all/games: every game's name and logo, so every page lists them all
 function gamemenuapply(conf) {
   if(!conf.games || !Array.isArray(conf.games.games)) { return; }
   gamemenu = conf.games.games.map(function(g) { return g.table; });
@@ -6786,19 +6778,9 @@ function startpage() {
   // TODO: check for premium
   $.each(templates[database]['available'],function(key,val) {
 	  console.log("initiating template load: "+key);
-	  if(gameconfig[database]) {
-	    // the master templates come with the game config (all/templates); a premium view uses its base view's html
-	    var base = (val.override && val.override.templatekey) ? gameconfig[database].templates.views[val.override.templatekey] : val;
-	    templateloaded(key, val, base.html);
-	    return;
-	  }
-	  $.ajax({
-	    url: "templates/template-"+(val.generic?'':(database+"-"))+((val.override&&val.override.templatekey)?val.override.templatekey:key)+".html?v="+ootvversion,
-	    type: "GET",
-	    datatype: 'text',
-	    cache: true,
-	    success: function(contents) { templateloaded(key, val, contents); }
-	  });
+	  // the master templates come with the game config (all/templates); a premium view uses its base view's html
+	  var base = (val.override && val.override.templatekey) ? gameconfig[database].templates.views[val.override.templatekey] : val;
+	  templateloaded(key, val, base.html);
   });
 
 
@@ -6837,7 +6819,7 @@ function startpage() {
 	  showviewkeepurl('resultsearch');
 	  mobilesearchtoggle(true);
   }
-  // all/games' order; a game only in a templates/<game>.js (none should be) goes last
+  // all/games' order; a game missing from it (none should be) goes last
   (gamemenu || []).concat(Object.keys(dbinfo).filter(function(k) { return !(gamemenu || []).includes(k); }))
     .forEach(function(k) { if(dbinfo[k]) { addgametolist(k); } });
   
@@ -6846,7 +6828,7 @@ function startpage() {
 
 }
 
-// a view's template html arrived (its file, or the game config): compile it, and make it active where
+// a view's template html (from the game config): compile it, and make it active where
 // it's the view's default
 function templateloaded(key, val, contents) {
   $("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
