@@ -42,8 +42,8 @@ replaces the field's settings; clear it to drop them.
   `numeric`, `exists`...) with options such as `advanced`, `clickable`, `reverse`; `false` (or no
   `search`) for a field that isn't searched. `combined` names another card field searched with
   it: L5R and Pathfinder Pawns `title` has `"combined": "alttitle"`, so a title search also finds
-  a card by its other name (ootv-client #26). A field is in the search form only when the game
-  config's `search` list names it ([Game config](game-config.md)).
+  a card by its other name (ootv-claude GAME-TEMPLATES.md §1.7, decision 26). A field is in the
+  search form only when the game config's `search` list names it ([Game config](game-config.md)).
 - `show`: `"card"` (the default: shown on the card page), `"internal"` (the editor only), or
   `"hidden"`: nowhere. A hidden field has no card page row, no search box, no Table view
   column, and a template can leave it out with `{{if ~fieldshown('<field>')}}` (see
