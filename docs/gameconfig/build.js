@@ -2,22 +2,24 @@
 // Builds the structure-driven game config items from a game's templates/<game>.js and its rows file
 // docs/gameconfig/<game>.json (ootv-claude GAME-TEMPLATES.md §2). Writes JSON files for push.py:
 //
-//   node docs/gameconfig/build.js <game> [<game>...] --out DIR
+//   node docs/gameconfig/build.js [<game>...] --out DIR
 //
-//   DIR/all-games.json       all/games: the game menu, in index.html's script order
+//   DIR/all-games.json       all/games: the games with a templates/<game>.js, in index.html's script order
+//                            (push.py merges it into the stored list, which keeps the structure-only games)
 //   DIR/all-templates.json   all/templates: every view's settings and HTML; card and search are the
 //                            masters in docs/gameconfig/masters/, the rest templates/template-<view>.html
 //   DIR/<game>-game.json     <game>/game: info (dbinfo), quick, search order, extra labels, rows,
 //                            sort, headers, views (add/remove against the standard set), symbols
 //   DIR/<game>-settings.json the field list settings for <game>/fields (label, short, search per field)
 //
-// Reading only; push.py writes them (production).
+// Reading only; push.py writes them (production). A game drawn only from structure (no templates/<game>.js,
+// e.g. initiald since 2026-10-23) isn't rebuilt from here: its items are the source, edited in Admin.
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const ROOT = path.resolve(__dirname, '../..');
 const args = process.argv.slice(2);
 const out = args[args.indexOf('--out') + 1];
 const games = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--out');
-if (!out || !games.length) { console.error('usage: build.js <game>... --out DIR'); process.exit(2); }
+if (!out) { console.error('usage: build.js [<game>...] --out DIR   (no game: only all/games and all/templates)'); process.exit(2); }
 fs.mkdirSync(out, { recursive: true });
 
 // every game's templates/<game>.js, in index.html's order
