@@ -1,5 +1,5 @@
 {
-  "_note": "LBS's rows, sort and views for build.js (ootv-claude GAME-TEMPLATES.md §2.3-2.4); from template-lbs-card.html / -search.html, with artist and flavor searched on the printing (§1.7 #8) and the empty keywords row dropped (LBS has no keywords)",
+  "_note": "LBS's rows, sort and views for build.js (ootv-claude GAME-TEMPLATES.md §2.3-2.4); from template-lbs-card.html / -search.html, with artist and flavor searched on the printing (§1.7 #8), the empty keywords row dropped (LBS has no keywords), and city sections (strength, no ka) shown as Strength/Water, the user 2026-10-23",
   "info": {"background": "res/background-lbs.jpg"},
   "sort": {"group": "deck", "first": ["Pre-Game"]},
   "headers": ["deck", "type"],
@@ -8,7 +8,8 @@
     "card": [
       {"fields": ["title"], "when": "always"},
       {"fields": ["type"]},
-      {"fields": ["strength", "ka"], "wraps": ["iconic strength", "iconic ka"]},
+      {"fields": ["strength", "ka"], "wraps": ["iconic strength", "iconic ka"], "when": "ka",
+       "else": {"fields": ["strength", "water"], "wraps": ["iconic strength", "iconic smwater"], "when": "strength"}},
       {"fields": ["water", "copper", "influence"], "wraps": ["iconic smwater", "iconic smcopper", "iconic sminf"],
        "when": "influence",
        "else": {"fields": ["copper"], "wraps": ["iconic smcopper"]}},
@@ -28,7 +29,9 @@
     ],
     "detail": [
       {"fields": ["type"], "label": false},
-      {"fields": ["strength", "ka"], "wraps": ["iconic smstrength", "iconic smka"], "suffix": true, "label": false},
+      {"fields": ["strength", "ka"], "wraps": ["iconic smstrength", "iconic smka"], "suffix": true, "label": false, "when": "ka",
+       "else": {"fields": ["strength", "water"], "wraps": ["iconic smstrength", "iconic smwater"], "suffix": true,
+                "label": false, "when": "strength"}},
       {"fields": ["water", "copper", "influence"], "wraps": ["iconic smwater", "iconic smcopper", "iconic sminfluence"],
        "suffix": true, "label": false, "when": "influence",
        "else": {"fields": ["water", "copper"], "wraps": ["iconic smwater", "iconic smcopper"], "suffix": true,
