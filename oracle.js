@@ -5190,7 +5190,34 @@ function process_keywordlink(data,fieldname,type,title=null) {
         fieldname+'='+type+'&field_'+
         fieldname+'='+encodeURIComponent(cleandata)
     )+
-    '" onclick="window.location.hash=this.id; return false;">'+data+'</a>';
+    (/^(printing_)?artist$/.test(fieldname) ? '" class="artistlink" onclick="artistmodal(this); return false;">' :
+      '" onclick="window.location.hash=this.id; return false;">')+data+'</a>';
+}
+// An artist credit (printing artist): a click opens a small modal with "Search cards by <name>" (the search the
+// link used to run) and the artist's links from GET /artist (oracle-all-artists, shared by every game).
+// A name with no entry shows the search only.
+var artistinfo = {};   // credit -> its GET /artist request
+function artistmodal(el) {
+  var esc = s => $('<div>').text(s).html();
+  var name = $('<div>').html($(el).html()).text().replace(/\u00a0/g,' ').trim();
+  var hash = el.id;
+  modal(esc(name), '<p><span class="button gray artistsearch">Search cards by '+esc(name)+'</span></p>'+
+    '<div class="artistlinks">Loading links…</div>');
+  $('#modal').addClass('artistmodal');
+  $('#modal .artistsearch').on('click', function() { nomodal(); window.location.hash = hash; });
+  artistinfo[name] = artistinfo[name] || $.ajax({url: apiuri+'/artist', data: {name: name}, dataType: 'json', timeout: 10000});
+  artistinfo[name].done(function(a) {
+    var links = (a.links || []).filter(l => /^https?:\/\//.test(l.url));
+    $('#modal .artistlinks').html(links.length ? '<ul>'+links.map(function(l) {
+      var host = l.url.replace(/^https?:\/\/(www\.)?/,'').replace(/[\/?#].*$/,'');
+      if(l.archived) { host = 'web.archive.org'; }
+      return '<li><a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.label || host)+'</a> <span class="artisthost">'+
+        esc(host)+(l.archived ? ', archived copy' : '')+'</span></li>';
+    }).join('')+'</ul>' : '<p class="artisthost">No links known for this artist.</p>');
+  }).fail(function() {
+    delete artistinfo[name];
+    $('#modal .artistlinks').html('<p class="artisthost">No links known for this artist.</p>');
+  });
 }
 // the title a keyword links to instead of a keyword search, or null:
 //   Soul of <name> [Experienced [n]]  -> <name>, the card it's the soul of
@@ -8155,7 +8182,7 @@ function cache_session(thing,selval=null) {
 //**********************************************************  modal window ****************
 
 function modal(title,content) {
-    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal rulingrefmodal artphotomodal');
+    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal rulingrefmodal artphotomodal artistmodal');
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
@@ -8163,7 +8190,7 @@ function modal(title,content) {
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
-  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal rulingrefmodal artphotomodal');
+  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal rulingrefmodal artphotomodal artistmodal');
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
