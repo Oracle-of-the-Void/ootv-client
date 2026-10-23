@@ -8,7 +8,7 @@
 //                            (push.py merges it into the stored list, which keeps the structure-only games)
 //   DIR/all-templates.json   all/templates: every view's settings and HTML; card and search are the
 //                            masters in docs/gameconfig/masters/, the rest templates/template-<view>.html
-//   DIR/<game>-game.json     <game>/game: info (dbinfo), quick, search order, extra labels, rows,
+//   DIR/<game>-game.json     <game>/game: info (dbinfo, plus blurb as info.blurb), quick, search order, extra labels, rows,
 //                            sort, headers, views (add/remove against the standard set), symbols
 //   DIR/<game>-settings.json the field list settings for <game>/fields (label, short, search per field)
 //
@@ -24,7 +24,7 @@ fs.mkdirSync(out, { recursive: true });
 
 // every game's templates/<game>.js, in index.html's order
 const order = [...fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').matchAll(/src="templates\/([\w-]+)\.js/g)].map(m => m[1]);
-const ctx = { console: { log() {} }, $: () => ({ ready() {} }), document: {} };
+const ctx = { console: { log() {} }, $: () => ({ ready() {} }), document: {}, blurb: {} };
 ctx.window = ctx;
 vm.createContext(ctx);
 for (const g of order) vm.runInContext(fs.readFileSync(path.join(ROOT, 'templates', g + '.js'), 'utf8'), ctx, { filename: g + '.js' });
@@ -97,7 +97,7 @@ for (const g of games) {
   for (const [name, l] of Object.entries(conf.fieldlabels || {})) Object.assign(entry(level(name), name), l);
   const avail = Object.keys(t.available);
   write(g + '-game.json', {
-    info: Object.assign({}, ctx.dbinfo[g], conf.info,
+    info: Object.assign({}, ctx.dbinfo[g], ctx.blurb && ctx.blurb[g] ? { blurb: ctx.blurb[g] } : {}, conf.info,
                         Object.keys(renamedfields).length ? { renamedfields: Object.assign({}, ctx.dbinfo[g].renamedfields, renamedfields) } : {}),
     quick: sea.quick === undefined ? null : sea.quick, search, labels: extra,
     rows: conf.rows, sort: conf.sort, headers: conf.headers,
