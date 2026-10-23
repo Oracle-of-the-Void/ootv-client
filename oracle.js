@@ -6011,10 +6011,25 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 // version changed, from the next page load. A game without the item (or the API unreachable on a first
 // visit) keeps its templates/<game>.js.
 var gameconfig = {};
+var gamemenu = null;   // all/games: the game menu, in order
 function gameconfigload(db, ready) {
   var stored = cache_thing('gameconfig', db);
   var started = false;
-  var start = function() { if(!started) { started = true; ready(); } };
+  var start = function() {
+    if(started) { return; }
+    started = true;
+    if(!gameconfig[db] && !(templates[db] && templates[db].available)) {
+      // a structure-only game (no templates/<game>.js) whose config couldn't be loaded: say so on the start page
+      $(".ui-layout-center div[id^=result]").hide();
+      $('#resultabout').show().find('.randarea').prepend('<p class="gameconfigerror"><b>'+htmlEncode((dbinfo[db] || {}).name || 'This game')+
+        " couldn't be loaded.</b> Check your connection and reload the page.</p>");
+      return;
+    }
+    ready();
+  };
+  if(stored) {
+    gamemenuapply(stored);
+  }
   if(stored && stored.game) {
     try { gameconfigapply(db, stored); } catch(e) { console.log(['stored game config failed', e]); delete gameconfig[db]; }
     start();
@@ -6025,6 +6040,7 @@ function gameconfigload(db, ready) {
         cache_thing('gameconfig', db, conf);
       }
       if(!started) {
+        gamemenuapply(conf);
         if(conf.game) {
           try { gameconfigapply(db, conf); } catch(e) { console.log(['game config failed', e]); delete gameconfig[db]; }
         }
@@ -6032,6 +6048,15 @@ function gameconfigload(db, ready) {
       }
     },
     error: function() { start(); }
+  });
+}
+// the game menu from all/games; a game drawn only from its structure config (no templates/<game>.js) gets its
+// name and logo here, so every page lists it
+function gamemenuapply(conf) {
+  if(!conf.games || !Array.isArray(conf.games.games)) { return; }
+  gamemenu = conf.games.games.map(function(g) { return g.table; });
+  conf.games.games.forEach(function(g) {
+    if(!dbinfo[g.table]) { dbinfo[g.table] = {name: g.name, nameshort: g.nameshort, logo: g.logo}; }
   });
 }
 // the field list's settings, the game's over the shared ones (all/fields)
@@ -6683,9 +6708,9 @@ function startpage() {
 	  showviewkeepurl('resultsearch');
 	  mobilesearchtoggle(true);
   }
-  for (var k in dbinfo) {
-	  addgametolist(k);
-  }
+  // all/games' order; a game only in a templates/<game>.js (none should be) goes last
+  (gamemenu || []).concat(Object.keys(dbinfo).filter(function(k) { return !(gamemenu || []).includes(k); }))
+    .forEach(function(k) { if(dbinfo[k]) { addgametolist(k); } });
   
   //    $('.document').bind("DOMSUbtreeModified",chosenify);
   //    chosenify();

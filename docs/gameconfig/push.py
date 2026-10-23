@@ -3,7 +3,9 @@
 
   python3 docs/gameconfig/push.py DIR [--go]
 
-DIR is build.js's --out. Writes all/games, all/templates, and per game <game>/game and the
+DIR is build.js's --out. Writes all/games (merged into the stored list: a game drawn only from
+structure, with no templates/<game>.js left, keeps its entry and place), all/templates, and per game
+<game>/game and the
 `settings` of <game>/fields (the field list; the descriptions in `fields` are left alone). Each item
 gets version + 1 and a history entry (the last 50), and is written only if its version is still the
 one read. Without --go it shows what would change. ootv-claude GAME-TEMPLATES.md §2.
@@ -31,6 +33,11 @@ def main():
     now = int(time.time() * 1000)
     for db, key, body, settings in todo:
         old = t.get_item(Key={'database': db, 'key': key}, ConsistentRead=True).get('Item')
+        if (db, key) == ('all', 'games') and old:
+            # build.js only knows the games that still have a templates/<game>.js: keep the others, in order
+            built = {g['table']: g for g in body['games']}
+            games = [built.pop(g['table'], g) for g in old['games']] + list(built.values())
+            body = dict(body, games=games)
         version = int(old['version']) if old and 'version' in old else 0
         if settings is not None:
             if not old:
