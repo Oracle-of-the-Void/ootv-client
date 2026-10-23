@@ -7,6 +7,9 @@ dbinfo['7thsea'] = {
     'name': "7th Sea CCG",
     'nameshort':'7thsea',
     'logo': '7thsea.png',
+    // search fields renamed in the data (2026-10-22, ootv-claude GAME-TEMPLATES.md §1.7): old names in
+    // saved searches and links are read as the new ones (renamedsearchfields in oracle.js)
+    'renamedfields': {'trait': 'traits', 'errata': 'erratum'},
     'addallmax': 711, // search "Add all to list" cap: 15% over the largest set (Iron Shadow, 618 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/7thsea/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
@@ -56,7 +59,7 @@ searchables['7thsea'] = {
   "printing.rarity": { "type": "select" },
   "type": { "type": "select",
                       "clickable": true  },
-  "trait": { "type": "keyword",
+  "traits": { "type": "keyword",
                       "clickable": true  },
   "text": { "type": "text" },
   "tocomplete": { "type": "text" },
@@ -86,7 +89,7 @@ searchables['7thsea'] = {
                       "clickable": true },
   "notes": { "type": "text", "advanced": true },
   "printing.number": { "type": "numeric", "advanced": true },
-  "errata": { "type": "exists", "advanced": true },
+  "erratum": { "type": "exists", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
@@ -102,8 +105,8 @@ labels['7thsea'] = {
   "shortrarity": "Rarity",
   "tagtype": "Card Type",
   "shorttype": "Type",
-  "tagtrait": "Traits",
-  "shorttrait": "Traits",
+  "tagtraits": "Traits",
+  "shorttraits": "Traits",
   "tagtext": "Card Text",
   "shorttext": "Text",
   "tagtocomplete": "To Complete",
@@ -146,8 +149,8 @@ labels['7thsea'] = {
   "shortnotes": "Notes",
   "tagnumber": "Card Number",
   "shortnumber": "Number",
-  "tagerrata": "Errata",
-  "shorterrata": "Errata",
+  "tagerratum": "Errata",
+  "shorterratum": "Errata",
   "tagprod": "Produces",
   "shortprod": "Produces",
   "tagruling": "Rulings", "shortruling": "Rulings",

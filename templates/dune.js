@@ -7,6 +7,9 @@ dbinfo['dune'] = {
     'name': "Dune CCG",
     'nameshort':'dune',
     'logo': 'dune.png',
+    // search fields renamed in the data (2026-10-22, ootv-claude GAME-TEMPLATES.md §1.7): old names in
+    // saved searches and links are read as the new ones (renamedsearchfields in oracle.js)
+    'renamedfields': {'decktype': 'deck', 'errata': 'erratum'},
     'addallmax': 347, // search "Add all to list" cap: 15% over the largest set (Eye of the Storm, 301 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/dune/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
@@ -14,11 +17,11 @@ dbinfo['dune'] = {
 };
 databasesort['dune'] = {
     deck: function (a,b) {
-        if (a.decktype.join() == "Imperial" && b.decktype.join() != "Imperial") return -1;
-        if (b.decktype.join() == "Imperial" && a.decktype.join() != "Imperial") return 1;
+        if (a.deck.join() == "Imperial" && b.deck.join() != "Imperial") return -1;
+        if (b.deck.join() == "Imperial" && a.deck.join() != "Imperial") return 1;
 
-        if (a.decktype.join() == "House" && b.decktype.join() != "House") return -1;
-        if (b.decktype.join() == "House" && a.decktype.join() != "House") return 1;
+        if (a.deck.join() == "House" && b.deck.join() != "House") return -1;
+        if (b.deck.join() == "House" && a.deck.join() != "House") return 1;
 
         if (a.type.join() > b.type.join()) return 1;
         if (b.type.join() > a.type.join()) return -1;
@@ -64,7 +67,7 @@ searchables['dune'] = {
                       "clickable": true  },
   "subtype": { "type": "select",
                       "clickable": true  },
-  "decktype": { "type": "select",
+  "deck": { "type": "select",
                       "clickable": true  },
   "allegiance": { "type": "select",
                       "clickable": true  },
@@ -83,7 +86,7 @@ searchables['dune'] = {
   "printing.flavor": { "type": "text", "advanced": true },
   "printing.artist": { "type": "text", "advanced": true,
                       "clickable": true  },
-  "errata": { "type": "exists", "advanced": true },
+  "erratum": { "type": "exists", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
@@ -101,8 +104,8 @@ labels['dune'] = {
   "shorttype": "Type",
   "tagsubtype": "Subtype",
   "shortsubtype": "Subtype",
-  "tagdecktype": "Deck",
-  "shortdecktype": "Deck",
+  "tagdeck": "Deck",
+  "shortdeck": "Deck",
   "tagallegiance": "Allegiance",
   "shortallegiance": "Allegiance",
   "tagoperation": "Operation",
@@ -131,8 +134,8 @@ labels['dune'] = {
   "shortflavor": "Flavor",
   "tagartist": "Artist",
   "shortartist": "Artist",
-  "tagerrata": "Errata",
-  "shorterrata": "Errata",
+  "tagerratum": "Errata",
+  "shorterratum": "Errata",
   "tagruling": "Rulings", "shortruling": "Rulings",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };

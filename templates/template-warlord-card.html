@@ -21,7 +21,7 @@
 
    {{if formats && formats.length}}       <dt>{{:~labels.shortformats}}</dt><dd>{{:formats.join(" &#149; ")}}</dd>  {{/if}}
     {{if ~hasval(challengeLord)}}       <dt>{{:~labels.shortchallengeLord}}</dt><dd>YES</dd>  {{/if}}
-    {{if ~hasval(errata)}}       <dt>{{:~labels.shorterrata}}</dt><dd>{{:errata}}</dd>  {{/if}}
+    {{if ~hasval(erratum)}}       <dt>{{:~labels.shorterratum}}</dt><dd>{{:erratum}}</dd>  {{/if}}
 
 {{include tmpl="#template-card-middle" /}}
 
@@ -31,9 +31,9 @@
         {{if ~hasval(set)}}       <dt>{{:~labels.shortset}}</dt><dd>{{:set}}</dd>  {{/if}}
         {{if ~hasval(rarity)}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
         {{if flavorTraits && flavorTraits.length}}       <dt>{{:~labels.shortflavorTraits}}</dt><dd>{{:flavorTraits.join(" &#149; ")}}</dd>  {{/if}}
-        {{if ~hasval(flavorText)}}       <dt>{{:~labels.shortflavorText}}</dt><dd>{{:flavorText}}</dd>  {{/if}}
+        {{if ~hasval(flavor)}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
         {{if ~hasval(artist)}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
-        {{if ~hasval(setnumber)}}       <dt>{{:~labels.shortsetnumber}}</dt><dd>{{:setnumber}}</dd>  {{/if}}
+        {{if ~hasval(number)}}       <dt>{{:~labels.shortnumber}}</dt><dd>{{:number}}</dd>  {{/if}}
         <hr>
       </div>
     {{/for}}

@@ -21,11 +21,11 @@
     {{if ~hasval(faction)}}       <dt>{{:~labels.shortfaction}}</dt><dd>{{:faction}}</dd>  {{/if}}
     {{if ~hasval(affiliation)}}       <dt>{{:~labels.shortaffiliation}}</dt><dd>{{:affiliation}}</dd>  {{/if}}
 
-    {{if ~hasval(trait)}}       <dt>{{:~labels.shorttrait}}</dt><dd>{{:trait.join(" &#149; ")}}</dd>  {{/if}}
+    {{if ~hasval(traits)}}       <dt>{{:~labels.shorttraits}}</dt><dd>{{:traits.join(" &#149; ")}}</dd>  {{/if}}
     {{if ~hasval(tocomplete)}}       <dt>{{:~labels.shorttocomplete}}</dt><dd>{{:tocomplete}}</dd>  {{/if}}
     {{if ~hasval(text)}}       <dt>{{:~labels.shorttext}}</dt><dd>{{:text}}</dd>  {{/if}}
 
-	 {{if ~hasval(errata)}} <dt>{{:~labels.shorterrata}}</dt><dd>{{:errata}}</dd>  {{/if}}
+	 {{if ~hasval(erratum)}} <dt>{{:~labels.shorterratum}}</dt><dd>{{:erratum}}</dd>  {{/if}}
 
     {{if ~hasval(notes)}}       <dt>{{:~labels.shortnotes}}</dt><dd>{{:notes}}</dd>  {{/if}}
 
@@ -38,7 +38,7 @@
         {{if ~hasval(rarity)}}       <dt>{{:~labels.shortrarity}}</dt><dd>{{:rarity}}</dd>  {{/if}}
         {{if ~hasval(flavor)}}       <dt>{{:~labels.shortflavor}}</dt><dd>{{:flavor}}</dd>  {{/if}}
         {{if ~hasval(artist)}}       <dt>{{:~labels.shortartist}}</dt><dd>{{:artist}}</dd>  {{/if}}
-        {{if ~hasval(cardnumber)}}       <dt>{{:~labels.shortcardnumber}}</dt><dd>{{:cardnumber}}</dd>  {{/if}}
+        {{if ~hasval(number)}}       <dt>{{:~labels.shortnumber}}</dt><dd>{{:number}}</dd>  {{/if}}
         <hr>
       </div>
       {{/for}}

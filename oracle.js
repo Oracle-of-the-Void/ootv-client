@@ -3214,8 +3214,7 @@ $(document).on('keydown', '#resultlist .listviewname[contenteditable=true]', fun
 
 // ***********************  list statistics **************
 // Derived from the game's config, so every game gets them without its own setup:
-//  - the deck: the first of 'deck' / 'decktype' the game searches on (dbinfo[game].statdeck overrides; false = none).
-//    'decktype' is only Dune's; drop it once Dune uses 'deck' (TODO.md)
+//  - the deck: 'deck', if the game searches on it (dbinfo[game].statdeck overrides; false = none).
 //  - the averaged fields: the game's numeric searchables, less per-printing ones (card numbers) and 'number'
 //    (dbinfo[game].statfields, a list of field names, overrides)
 // Each type averages the fields its cards have, so L5R personalities get Force/Chi/HR/Cost/PH and fate cards Focus.
@@ -3228,7 +3227,7 @@ function liststatsdeckfield() {
 	return info.statdeck;
     }
     var s = searchables[database] || {};
-    return ['deck','decktype'].find(function(f) { return s[f]; }) || false;
+    return s.deck ? 'deck' : false;
 }
 function liststatsfields() {
     var info = dbinfo[database] || {};
@@ -4047,8 +4046,24 @@ function searchformvalues() {
   });
   return values;
 }
+// search values (form, saved search or link) under a field's old name, renamed to its new one:
+// dbinfo[game].renamedfields {old: new}, names as in the request (printing.x is printing_x), e.g.
+// field_trait / type_trait / field_lower_printing_setnumber
+function renamedsearchfields(values) {
+  var renamed = (dbinfo[database] || {}).renamedfields;
+  if(!renamed || !values) {
+    return values;
+  }
+  var out = {};
+  Object.keys(values).forEach(function(k) {
+    var m = k.match(/^(field_lower_|field_upper_|field_|type_|combined_|require_)(.+?)(\[\])?$/);
+    out[m && renamed[m[2]] ? m[1]+renamed[m[2]]+(m[3] || '') : k] = values[k];
+  });
+  return out;
+}
 // clear the form and fill in values (missing fields stay empty)
 function fillsearchform(values) {
+  values = renamedsearchfields(values);
   var form = $('#searchform');
   form[0].reset();
   var advanced = false;
@@ -6810,7 +6825,7 @@ function urlparser(keepfilters=false) {
   } else if(typeof(matchstruct['search']) != 'undefined') {
 	  console.log(["detected search in URL",matchstruct['search']]);
 	  urlrestoring = 'search';
-	  fdata = uri2json(decodeURIComponent(matchstruct['search']));
+	  fdata = renamedsearchfields(uri2json(decodeURIComponent(matchstruct['search'])));
 	  if(keepfilters) {
 	    keepsearchfilters(fdata);
 	  }
