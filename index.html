@@ -622,7 +622,9 @@ Recent Data Updates for Currently Selected Database:<br>
     <td>{{if newguild}}<input name="guild" placeholder="server ID" size="20">
       {{else channel == '*'}}<b>Server default</b><br><small>channels without a row</small>
       {{else isnew}}<input name="channel" placeholder="new channel ID" size="20">
-      {{else}}<span class="discordid">{{>channel}}</span>{{/if}}</td>
+      {{else}}<span class="discordid">{{>channel}}</span>{{/if}}
+      {{if channel == '*'}}<br><label title="In channels without a row, replies are only for the person who ran the command, unless they add private:False. Channels with a row stay public."><input type="checkbox" name="privateunlisted"{{if privateunlisted}} checked{{/if}}> private replies there</label>
+      {{else}}<br><label title="Replies in this channel are only for the person who ran the command, unless they add private:False. Off: public, whatever the server default says."><input type="checkbox" name="private"{{if private}} checked{{/if}}> private replies</label>{{/if}}</td>
     <td><input name="name" value="{{>name}}" placeholder="{{if channel == '*'}}server name{{else}}#channel{{/if}}" size="16"></td>
     <td><select name="game" onchange="discordgamechange(this)">
       <option value="">(game: required)</option>

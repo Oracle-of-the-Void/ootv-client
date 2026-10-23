@@ -7409,6 +7409,9 @@ function discordrowdata(tr) {
       if(!on || name != c) { defaults = false; }
     });
     if(!defaults) { row.commands = commands; }
+    if(tr.find('input[name=privateunlisted]').prop('checked')) { row.privateunlisted = true; }
+  } else if(tr.find('input[name=private]').prop('checked')) {
+    row.private = true;
   }
   return row;
 }
