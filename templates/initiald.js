@@ -7,6 +7,9 @@ dbinfo['initiald'] = {
     'name': "Initial D CCG",
     'nameshort':'initiald',
     'logo': 'initiald.png',
+    // search fields renamed in the data (2026-10-22, ootv-claude GAME-TEMPLATES.md §1.7): old names in
+    // saved searches and links are read as the new ones (renamedsearchfields in oracle.js)
+    'renamedfields': {'printing_cardno': 'printing_number'},
     'addallmax': 249, // search "Add all to list" cap: 15% over the largest set (Base, 216 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/initiald/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
@@ -77,7 +80,7 @@ searchables['initiald'] = {
   "mods": { "type": "numeric", "advanced": true },
   "printing.flavor": { "type": "text", "advanced": true },
   "notes": { "type": "text", "advanced": true },
-  "printing.cardno": { "type": "numeric", "advanced": true },
+  "printing.number": { "type": "numeric", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
   "rulingref": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
@@ -130,10 +133,8 @@ labels['initiald'] = {
   "shortflavor": "Flavor",
   "tagnotes": "Notes",
   "shortnotes": "Notes",
-  "tagcardno": "Card Number",
-  "shortcardno": "Number",
-  "tagsetno": "Cards in Set",
-  "shortsetno": "In Set",
+  "tagnumber": "Card Number",
+  "shortnumber": "Number",
   "tagcopy": "Copyright",
   "shortcopy": "Copyright",
   "tagruling": "Rulings", "shortruling": "Rulings",

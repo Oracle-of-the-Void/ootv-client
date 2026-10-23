@@ -7,6 +7,9 @@ dbinfo['warlord'] = {
     'name': "Warlord: Saga of the Storm CCG",
     'nameshort':'warlord',
     'logo': 'warlord.png',
+    // search fields renamed in the data (2026-10-22, ootv-claude GAME-TEMPLATES.md §1.7): old names in
+    // saved searches and links are read as the new ones (renamedsearchfields in oracle.js)
+    'renamedfields': {'printing_flavorText': 'printing_flavor', 'errata': 'erratum', 'printing_setnumber': 'printing_number'},
     'addallmax': 667, // search "Add all to list" cap: 15% over the largest set (CE, 580 cards, 2026-10-16)
     'imageuri': 'https://images.oracleofthevoid.com/warlord/',
     'cardsize': [63.5, 88.9], // mm (width, height): the PDF print-n-play card size
@@ -76,12 +79,12 @@ searchables['warlord'] = {
   "skill": { "type": "numeric", "advanced": true },
   "printing.flavorTraits": { "type": "select", "advanced": true,
                       "clickable": true  },
-  "printing.flavorText": { "type": "text", "advanced": true },
+  "printing.flavor": { "type": "text", "advanced": true },
   "printing.artist": { "type": "text", "advanced": true,
                       "clickable": true  },
-  "errata": { "type": "exists", "advanced": true },
+  "erratum": { "type": "exists", "advanced": true },
   "challengeLord": { "type": "exists" },
-  "printing.setnumber": { "type": "numeric", "advanced": true },
+  "printing.number": { "type": "numeric", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
   "rulingref": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
@@ -125,16 +128,16 @@ labels['warlord'] = {
   "shortskill": "Skill",
   "tagflavorTraits": "Flavor Traits",
   "shortflavorTraits": "F Traits",
-  "tagflavorText": "Flavor Text",
-  "shortflavorText": "Flavor",
+  "tagflavor": "Flavor Text",
+  "shortflavor": "Flavor",
   "tagartist": "Artist",
   "shortartist": "Artist",
-  "tagerrata": "Errata",
-  "shorterrata": "Errata",
+  "tagerratum": "Errata",
+  "shorterratum": "Errata",
   "tagchallengeLord": "Challenge Lords",
   "shortchallengeLord": "Ch Lords",
-  "tagsetnumber": "Set Number",
-  "shortsetnumber": "Set #",
+  "tagnumber": "Set Number",
+  "shortnumber": "Set #",
   "tagruling": "Rulings", "shortruling": "Rulings",
   "tagrulingref": "Rules Q&A", "shortrulingref": "Rules Q&A",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
