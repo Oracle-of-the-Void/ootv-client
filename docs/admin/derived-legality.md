@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-17
+Last updated: 2026-10-23
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -25,9 +25,9 @@ defined once instead of tagged card by card. Cards never display these values.
   with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
   need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's
   legality is only a label and isn't checked.
-- **Search form checkbox:** a `searchables` entry of type `require` in `templates/l5r.js`
-  (`"paper": {"type": "require", "field": "legality", "value": "Paper"}`, labels
-  `tagpaper`/`shortpaper`) renders a checkbox that sends `require_legality=Paper`. The API ANDs
+- **Search form checkbox:** the field `paper` in the L5R field list's settings
+  (`l5r/fields`, Admin → Fields: `"search": {"type": "require", "field": "legality", "value": "Paper"}`,
+  label `only`, short `Paper`), listed in `l5r/game` `search`, renders a checkbox that sends `require_legality=Paper`. The API ANDs
   `require_<field>` with the rest of the search; `templatefetch()` then switches to a printing
   that fits it.
 

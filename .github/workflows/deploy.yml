@@ -65,7 +65,7 @@ jobs:
         run: .github/stamp-version.sh "${GITHUB_SHA::12}"
 
       # Caching (see .github/stamp-version.sh):
-      #   *.js, *.css, templates/*  versioned (?v=<commit>) -> cached a year, immutable
+      #   *.js, *.css               versioned (?v=<commit>) -> cached a year, immutable
       #   pages, version.json, docs  revalidated on every load (no-cache; 304 when unchanged)
       #   everything else (images)   cached a day
       # CloudFront leaves the query string out of its cache key, so oracle.js?v=new could be
@@ -82,16 +82,16 @@ jobs:
                 --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*'
                 --exclude '*/#*' --exclude '*/*\+' --exclude '*/*-prev'
                 --exclude '.github' --exclude '.github/*')
-          pages=(--exclude '*' --include '*.html' --include 'version.json' --exclude 'templates/*'
+          pages=(--exclude '*' --include '*.html' --include 'version.json'
                  "${junk[@]}" --include 'docs/admin/*.md' --include 'docs/help/*.md')
 
           # 1. versioned assets, then everything else except the pages (old pages keep working)
-          aws s3 sync . "s3://$BUCKET/" --exclude '*' --include '*.js' --include '*.css' --include 'templates/*' \
+          aws s3 sync . "s3://$BUCKET/" --exclude '*' --include '*.js' --include '*.css' \
             "${junk[@]}" --exclude 'docs/*' \
             --cache-control 'public, max-age=31536000, immutable'
           aws s3 sync . "s3://$BUCKET/" "${junk[@]}" \
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
-            --exclude '*.html' --exclude 'version.json' --exclude '*.js' --exclude '*.css' --exclude 'templates/*' \
+            --exclude '*.html' --exclude 'version.json' --exclude '*.js' --exclude '*.css' \
             --cache-control 'public, max-age=86400'
 
           id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths '/*' --query Invalidation.Id --output text)
