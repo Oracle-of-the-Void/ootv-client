@@ -83,7 +83,7 @@ jobs:
                 --exclude '*/#*' --exclude '*/*\+' --exclude '*/*-prev'
                 --exclude '.github' --exclude '.github/*')
           pages=(--exclude '*' --include '*.html' --include 'version.json' --exclude 'templates/*'
-                 "${junk[@]}" --include 'docs/admin/*.md')
+                 "${junk[@]}" --include 'docs/admin/*.md' --include 'docs/help/*.md')
 
           # 1. versioned assets, then everything else except the pages (old pages keep working)
           aws s3 sync . "s3://$BUCKET/" --exclude '*' --include '*.js' --include '*.css' --include 'templates/*' \
@@ -101,5 +101,5 @@ jobs:
           aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --cache-control 'no-cache'
           aws s3 sync . "s3://$BUCKET/" --delete "${junk[@]}" \
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
-            --include 'docs/admin/*'
+            --include 'docs/admin/*' --include 'docs/help/*'
 
