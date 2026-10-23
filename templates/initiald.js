@@ -82,6 +82,7 @@ searchables['initiald'] = {
   "notes": { "type": "text", "advanced": true },
   "printing.number": { "type": "numeric", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
+  "rulingref": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -137,6 +138,7 @@ labels['initiald'] = {
   "tagcopy": "Copyright",
   "shortcopy": "Copyright",
   "tagruling": "Rulings", "shortruling": "Rulings",
+  "tagrulingref": "Rules Q&A", "shortrulingref": "Rules Q&A",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 

@@ -91,6 +91,7 @@ searchables['7thsea'] = {
   "printing.number": { "type": "numeric", "advanced": true },
   "erratum": { "type": "exists", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
+  "rulingref": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -154,6 +155,7 @@ labels['7thsea'] = {
   "tagprod": "Produces",
   "shortprod": "Produces",
   "tagruling": "Rulings", "shortruling": "Rulings",
+  "tagrulingref": "Rules Q&A", "shortrulingref": "Rules Q&A",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 

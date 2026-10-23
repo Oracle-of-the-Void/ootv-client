@@ -1208,6 +1208,7 @@ printingprimary
 
 <script id="template-card-middle" type="text/x-jsrender">
   {{if ~hasval(ruling)}}<dt>{{:~labels.shortruling}}</dt><dd class="rulings">{{for ruling}}<div>{{:}}</div>{{/for}}</dd>{{/if}}
+  {{if ~hasval(rulingref)}}<dt>{{:~labels.shortrulingref}}</dt><dd class="rulingrefs"><button type="button" class="button gray buttonsmaller rulingrefbutton" data-title="{{>title}}" onclick="rulingrefs(this); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#message-square"></svg> {{:rulingref.length}} {{if rulingref.length==1}}answer{{else}}answers{{/if}} from the rules team</button><div class="rulingreflist" hidden>{{for rulingref}}<div class="rulingref">{{:}}</div>{{/for}}</div></dd>{{/if}}
   <dt>Versions</dt><dd>{{for ~sortprintings(printing) ~top=#data}}<a class="printinglink gray button buttonsmall" href="#game={{:~database}},#cardid={{:~top.cardid}},#cnprintingid={{:printingid}}" onclick="if(event.metaKey || event.ctrlKey) {window.open(this.href); } else { changeprinting({{:~top.cardid}},{{:printingid}},'{{addslashes:~qs}}','{{addslashes:~top.formattedtitle?~top.formattedtitle:~top.title}}'); } return false;">({{:printingid}}) {{:setclean}}/{{:rarityclean}}{{if printingid == ~top.printingprimary}} *{{/if}}</a> {{!-- {{if #index+1 < #get("array").data.length}} &#9679; {{/if}} --}} {{/for}}</dd>
 
 </script> <!-- template-card-middle -->

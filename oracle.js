@@ -7855,7 +7855,7 @@ function cache_session(thing,selval=null) {
 //**********************************************************  modal window ****************
 
 function modal(title,content) {
-    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal artphotomodal');
+    $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal rulingrefmodal artphotomodal');
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
@@ -7863,7 +7863,7 @@ function modal(title,content) {
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
-  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal artphotomodal');
+  $('#modal').removeData('guard').removeClass('cardeditmodal rulingmodal rulingrefmodal artphotomodal');
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
@@ -8005,6 +8005,31 @@ function rulingpopup(href,label) {
   }
   $('#modal').addClass('rulingmodal');
 }
+// Rules Q&A on a card (the card-level "rulingref" field: answers from the rules team, each ending in a link to its
+// place in a copy of the digest it came from): card details show a button with the count, which opens the list in
+// the modal. A click on an answer opens its digest there, scrolled to the answer, with Back to the list;
+// Ctrl/Cmd/Shift-click opens the digest in a new tab.
+function rulingrefs(el) {
+  var title = $('<div>').text('Rules Q&A: '+($(el).data('title') || '')).html();
+  var list = $(el).siblings('.rulingreflist').html();
+  modal(title, '<div class="rulingreflist">'+list+'</div>');
+  $('#modal').addClass('rulingmodal rulingrefmodal').data('rulingrefs', {title: title, list: list});
+}
+$(document).on('click', '#modal .rulingreflist .rulingref', function(e) {
+  var a = $(this).find('a[href]').last();
+  if(!a.length || $(e.target).closest('a').length && $(e.target).closest('a')[0] != a[0]) { return; }
+  e.preventDefault();
+  if(e.metaKey || e.ctrlKey || e.shiftKey) { window.open(a.attr('href'), '_blank', 'noopener'); return; }
+  var back = $('#modal').data('rulingrefs');
+  $('#modal-title').text(a.text());
+  $('#modal-content').html('<iframe class="rulingview" src="'+$('<div>').text(a.attr('href')).html()+'"></iframe>'+
+    '<p><span class="button gray rulingrefback">Back to the list</span> '+
+    '<a class="button gray" href="'+$('<div>').text(a.attr('href')).html()+'" target="_blank" rel="noopener">Open in a new tab</a></p>');
+  $('#modal .rulingrefback').on('click', function() {
+    $('#modal-title').html(back.title);
+    $('#modal-content').html('<div class="rulingreflist">'+back.list+'</div>');
+  });
+});
 function rulingopenrules(book,page) {
   nomodal();
   rulesstate.book = book;

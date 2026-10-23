@@ -88,6 +88,7 @@ searchables['dune'] = {
                       "clickable": true  },
   "erratum": { "type": "exists", "advanced": true },
   "ruling": { "type": "text", "advanced": true },
+  "rulingref": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -137,6 +138,7 @@ labels['dune'] = {
   "tagerratum": "Errata",
   "shorterratum": "Errata",
   "tagruling": "Rulings", "shortruling": "Rulings",
+  "tagrulingref": "Rules Q&A", "shortrulingref": "Rules Q&A",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
