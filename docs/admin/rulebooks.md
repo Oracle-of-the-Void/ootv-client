@@ -1,12 +1,14 @@
-# Rulebooks (Rules section)
+# Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-22
+Last updated: 2026-10-23
 
-The **Rules** button in the menubar (the open book) opens the game's rulebook shelf, oldest book
-first (by year). Above the
-books, filters narrow the shelf by **Type** (one at a time), **Tags** (every tag picked must be on
-the book) and **Arc**; each offers only the values some book has, and the choice is remembered in
-this browser, per game. Each book shows its tags (and its type, unless Complete) under its title.
+The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
+game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
+L5R, **Newsletters** (the Imperial Herald, since 2026-10-23). Each shelf lists its books oldest first
+(by year). Above them, the shelf's own filters narrow it by **Type** (one at a time), **Tags** (every
+tag picked must be on the book) and **Arc**; each offers only the values some book on that shelf has,
+and the choice is remembered in this browser, per game and shelf. The shelf last shown is remembered
+too; `#game=l5r,#shelf=<key>` links to one. Each book shows its tags (and its type, unless Complete) under its title.
 Clicking a book opens it in the page viewer:
 
 - **Turning pages**: the arrow keys, Page Up/Down, Space, Home/End; the mouse wheel or a
@@ -136,9 +138,45 @@ a definition at a heading the layout hints miss (the Onyx datasheet's "Boldface 
 sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
 back in the hover text from the other books' words.
 
+## Shelves
+
+The shelves are listed by the `oracle-all-structure` item `<game>` / `bookshelf` (public
+`/structure?database=<game>&key=bookshelf`), in tab order:
+
+```json
+{"shelves": [
+  {"key": "rulebooks", "title": "Rulebooks", "types": ["Complete", "Addendum", "Special", "Play Variant", "Multi-Arc"],
+   "plaintypes": ["Complete"], "help": "rules#shelf"},
+  {"key": "newsletters", "title": "Newsletters", "types": ["Imperial Herald"], "plaintypes": ["Imperial Herald"],
+   "help": "rules#newsletters"}]}
+```
+
+- `key`: the structure item holding the shelf's books (`<game>` / `rulebooks`, `<game>` / `newsletters`).
+- `types`: the order of the shelf's types on its filter bar (others follow); `plaintypes`: types not
+  marked on each book (Complete on Rulebooks; every newsletter is an Imperial Herald so far).
+- `help`: the Help section its **?** opens.
+
+A game without a `bookshelf` item has the Rulebooks shelf only (as above), and a shelf with no books
+has no tab. Adding a shelf: create its item with the first book (`upload --new-shelf`, below), then add it
+to `bookshelf`; both are read when the Bookshelf first opens, so neither needs a site deploy.
+
+**Book ids are unique across a game's shelves.** Every shelf's books share `<game>/rulebooks/<id>/` on the
+images bucket and the `#rulebook=<id>` links (so ruling and trait links work for any shelf), and `upload`
+refuses an id another shelf has. Closing a book goes back to the shelf it's on.
+
+### Newsletters
+
+The **Imperial Herald**, AEG's fan club magazine (ootv-games `game-l5r/imperial-herald/`, from the Internet
+Archive; its README), list `rulebooks/l5r-newsletters.json` in ootv-import: 55 issues, ids
+`imperial-herald-01`…`17` (the first series, 1995–2000: Vol. 1 #1–4, Vol. 2 #1–3 = issues 5–7, then issues
+8–17), `imperial-herald-v2-01`…`25` (2001–2009), `imperial-herald-v3-01`…`10` (2009–2012) and three 2013–14
+special editions. Type `Imperial Herald`; the books come from `searchable/` (the scans with an OCR text layer),
+so the text is uncorrected OCR. Years come from each issue's text (dates, copyright lines), not a cover date.
+Vol. 3 #3 is the 16-page scan, with the 5-page digital file as a second download.
+
 ## Where the books live
 
-**The shelf** is the `oracle-all-structure` item `<game>` / `rulebooks` (read through the public
+**Each shelf** is the structure item named by its `key`; the Rulebooks shelf is the `oracle-all-structure` item `<game>` / `rulebooks` (read through the public
 `/structure?database=<game>&key=rulebooks`): `books` is a map from each book's id to its title,
 subtitle, year, arc, type, tags, note, page count, cover size, build time and `order` (its place in
 the list below). The shelf shows the books by date: by `year`, and within a year in list order (since
@@ -165,8 +203,9 @@ time in `book.json` and the shelf) so browsers don't reuse a day-old page either
 
 ## Adding or changing books
 
-Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game list,
-`rulebooks/<game>.json`. Each book entry:
+Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game list per shelf:
+`rulebooks/<game>.json` for Rulebooks, and a list with `"shelf": "<key>"` for any other shelf
+(`rulebooks/l5r-newsletters.json`, `"shelf": "newsletters"`). Each book entry:
 
 ```json
 {"id": "emperor", "title": "Emperor Edition", "subtitle": "Rulebook", "year": 2012,

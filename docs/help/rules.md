@@ -1,14 +1,21 @@
-# Rules
+# Bookshelf
 
-**Rules** (the open book in the menu bar) is a shelf of the game's rulebooks, FAQs and
-rules sheets, to read and search online.
+The **Bookshelf** (the open book in the menu bar) holds the game's books, to read and search
+online, on one or more shelves, shown as tabs across the top: **Rulebooks** and, for Legend of
+the Five Rings, **Newsletters**. The site remembers the shelf you were on.
 
-## The shelf {#shelf}
+## Rulebooks {#shelf}
 
-The books are in order of release. The bar above them narrows the shelf by type (complete
-rules, learn to play, addendum, special formats, other ways to play, floor rules, rulings), by
-tag (such as **Base set** or **Last complete rules in arc**), and by arc. The site remembers
-your choice. A book opens at the page you last read.
+The rulebooks, FAQs and rules sheets, in order of release. The bar above them narrows the shelf
+by type (complete rules, learn to play, addendum, special formats, other ways to play, floor
+rules, rulings), by tag (such as **Base set** or **Last complete rules in arc**), and by arc. The
+site remembers your choice. A book opens at the page you last read.
+
+## Newsletters {#newsletters}
+
+Newsletters and magazines about the game, such as AEG's **Imperial Herald** (1995–2014), in
+order of release. Each shelf has its own bar of types and tags, and remembers its own choice.
+They're read just like the rulebooks.
 
 ## Reading {#reading}
 
@@ -41,4 +48,4 @@ The browser's own find (Ctrl+F) works on the pages shown too.
 ## From a card {#from-cards}
 
 Rulings and traits on a card page link to the rulebook page they come from
-([how](cards.md#rulings)); **Open in Rules** opens that page here.
+([how](cards.md#rulings)); **Open in the Bookshelf** opens that page here.

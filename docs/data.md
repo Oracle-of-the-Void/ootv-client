@@ -76,7 +76,7 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   Remove it with its x in the card editor (or `null` in the JSON view). See `docs/admin/needsreview.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
-  in a popup (a Rules shelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
+  in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
   any other page in a small window). See `docs/admin/rulings.md`.
 * rulingref (optional, every game, array of HTML strings): the rules team's answers about the card
   (L5R: from the mailing-list rules digests), one per entry, `<b>Q:</b> ...<br><b>A:</b> ...` then an
