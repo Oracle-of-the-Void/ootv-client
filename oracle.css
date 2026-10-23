@@ -1786,6 +1786,16 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 /* admin mass image upload */
 .massimage { max-width: 60em; }
 .massimage:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+/* Admin -> Artist check (artcheck.js) and its result under a printing in the card editor */
+.artcheck { max-width: 60em; }
+.artcheck:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.artcheckresult { font-style: normal; color: #222; margin: 6px 0; line-height: 1.5; }
+.artcheckresult > div { margin: 2px 0; }
+.artcheckstrong { font-weight: bold; }
+.artchecknote { color: #666; font-size: 0.9em; }
+.artchecklist { border-collapse: collapse; font-size: 0.9em; }
+.artchecklist td, .artchecklist th { border-bottom: 1px solid #ddd; padding: 2px 6px; text-align: left; vertical-align: top; }
+@media (max-width: 700px) { .artchecklist td:nth-child(8), .artchecklist th:nth-child(8) { display: none; } }
 #massimagestatus { margin: 8px 0; }
 table.massimagelist { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
 table.massimagelist th, table.massimagelist td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }

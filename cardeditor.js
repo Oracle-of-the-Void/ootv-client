@@ -350,7 +350,10 @@ function cardeditimages(p,isnew) {
     if(!isnew) {
       // cards whose art looks like this printing's (its stored art vector), in a new tab so edits here stay
       html += '<div class="cardeditnote"><a href="'+htmlEncode(artsimilarurl(cardedit.cardid,p.printingid))+'" target="_blank"'+
-        ' title="Cards whose art looks like this instance\'s image, most alike first (a new tab)">Find similar art</a></div>';
+        ' title="Cards whose art looks like this instance\'s image, most alike first (a new tab)">Find similar art</a>'+
+        (gamepermission('artcheck') ? ' &middot; <a href="" onclick="artcheckinline(\'cardeditartcheck'+htmlEncode(p.printingid)+'\','+cardedit.cardid+',\''+htmlEncode(p.printingid)+'\'); return false"'+
+          ' title="Who painted this: the nearest paintings by style, the same painting\'s credits, any signature (Admin → Artist check)">Check artist</a>'+
+          '<div id="cardeditartcheck'+htmlEncode(p.printingid)+'"></div>' : '')+'</div>';
     }
   }
   if(isnew) {
