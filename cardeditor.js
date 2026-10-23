@@ -60,6 +60,12 @@ function cardeditfetch(db,cardid) {
 var cardeditorder = {};
 function cardeditloadorder(db) {
   if(cardeditorder[db]) { return Promise.resolve(cardeditorder[db]); }
+  if(typeof gameconfig !== 'undefined' && gameconfig[db]) {
+    // a structure-driven game: its card page rows (a row's fields, its else row's too, stay together)
+    var flat = r => r.fields.concat(r.else ? flat(r.else) : []);
+    var rows = gameconfig[db].game.rows;
+    return Promise.resolve(cardeditorder[db] = {card: (rows.card || []).map(flat), printing: (rows.printing || []).map(flat)});
+  }
   return Promise.resolve($.ajax({url: 'templates/template-'+db+'-card.html?v='+ootvversion, dataType: 'text', cache: true}))
     .then(function(text) {
       var at = text.indexOf('template-card-middle');
