@@ -1,6 +1,6 @@
 # Discord bot settings
 
-Last updated: 2026-10-23 (/oraclehelp)
+Last updated: 2026-10-23 (private replies in channels without a row)
 
 The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search`, `/oraclebug` and `/oraclehelp` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
@@ -12,7 +12,9 @@ server gets under which names. The bot picks up a change within 5 minutes, with 
 Each server has a table. Every row is one of these:
 
 - **Server default** (the first row): applies to every channel of that server that has no row
-  of its own. Its **Commands** column also sets the server's commands.
+  of its own. Its **Commands** column also sets the server's commands. Its **private replies
+  there** checkbox makes replies in those channels visible only to the person who ran the
+  command, unless they add `private:False`; channels with a row of their own stay public.
 - **A channel**: identified by its Discord channel ID. In Discord, turn on Developer Mode
   (User Settings → Advanced), then right-click the channel → Copy Channel ID. Server IDs are
   copied the same way from the server icon.
