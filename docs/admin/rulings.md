@@ -107,7 +107,9 @@ the Rules Archive (same rules person, within a week). The answer goes to each ca
 by the digest's date. When the question marks the version ("XP Yasuki Hachi", "Hachi XP2", "Wayan exp 2",
 "non-XP": XP is how players wrote Experienced), only that version gets it. Otherwise, when the question and
 answer clearly echo one version's own card text (words the other versions' texts don't have), that version
-gets it; when it's still several cards, each also gets a `needsreview` note saying so. Everything else, chatter included, stays only in the digests.
+gets it. The answers still left on several versions were then reviewed by hand (ootv-import
+`rulings-email-decisions.tsv`: each stays on every version, goes to one, or comes off), so none carry a
+`needsreview` note; one left unsettled by a later rebuild would get a note saying so. Everything else, chatter included, stays only in the digests.
 After a change to the scripts the cards are re-synced (ootv-backups `add-rulings.py --sync`), which replaces
 only the entries linking to the digests.
 
