@@ -7170,7 +7170,7 @@ function loadloginlog(page) {
 // guild + channel, channel "*" being the server's own row; see docs/admin/discord-bot.md.
 var discordgames = [], discordcommands = [];
 // what each bot command does, shown beside its name (a server can rename them); others show their key
-var discordcommandlabels = {card: 'One card', search: 'Search', oraclebug: 'Bug report'};
+var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', oraclebug: 'Bug report'};
 function loaddiscord(note) {
   $('#loginlog').empty();
   $('#admindoc').empty();
