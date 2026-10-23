@@ -147,7 +147,7 @@ The shelves are listed by the `oracle-all-structure` item `<game>` / `bookshelf`
 {"shelves": [
   {"key": "rulebooks", "title": "Rulebooks", "types": ["Complete", "Addendum", "Special", "Play Variant", "Multi-Arc"],
    "plaintypes": ["Complete"], "help": "rules#shelf"},
-  {"key": "newsletters", "title": "Newsletters", "types": ["Imperial Herald"], "plaintypes": ["Imperial Herald"],
+  {"key": "newsletters", "title": "Newsletters", "types": ["Imperial Herald", "Inserts"], "plaintypes": ["Imperial Herald"],
    "help": "rules#newsletters"}]}
 ```
 
@@ -175,6 +175,8 @@ printed as Vol. 2 #1–3), `Vol. 2`, `Vol. 3`, `Special Edition`, and `Rulings` 
 accumulated rulings or errata (1, 3–17 and Vol. 2 #4; the user, 2026-10-23); the books come from `searchable/` (the scans with an OCR text layer),
 so the text is uncorrected OCR. Years come from each issue's text (dates, copyright lines), not a cover date.
 Vol. 3 #3 is the 16-page scan, with the 5-page digital file as a second download.
+Two **Inserts** (type `Inserts`) came with the same archive: Heroes of Rokugan and Tales of Rokugan (ids
+`heroes-of-rokugan`, `tales-of-rokugan`; year 2000 estimated from the story they tell; the user, 2026-10-23).
 
 ## Where the books live
 
