@@ -16,13 +16,19 @@ or tests. The files in this directory are exactly what gets served.
   The API base is `apiuri`: `https://api.oracleofthevoid.com` (prod Lambda) on the live
   site, `https://api-dev.oracleofthevoid.com` (dev Lambda) on preview and localhost. Both
   share the same DynamoDB tables and Elasticsearch, so writes are always live.
-- `templates/<game>.js` registers a game by filling the globals `dbinfo[game]`,
-  `databasesort[game]`, `headerize`, `searchables`, `labels` and `templates`. Copy an
-  existing game (e.g. `dune.js`) when adding one, and add its `<script>` tag to `index.html`.
-- `templates/template-<game>-<key>.html` holds the JsRender templates for one game
-  (`card`, `search`). Generic ones (`template-list.html`, `template-text*.html`,
-  `template-visual*.html`, `template-pdf.html`) have no game prefix. They are fetched
-  at runtime: `"templates/template-" + (generic ? "" : database + "-") + key + ".html"`.
+- **Game config, moving to structure** (ootv-claude `GAME-TEMPLATES.md` §2, since 2026-10-23):
+  a game with a `<game>/game` item in `oracle-all-structure` (Initial D, Dune so far) is drawn
+  from `GET /gameconfig` (that item, the `settings` of `<game>/fields`, and the master views in
+  `all/templates`); `gameconfigapply()` in `oracle.js` fills the globals below from it, and the
+  game has no files here. `docs/gameconfig/`: `build.js` (items from a game's old files plus its
+  `<game>.json` rows), `push.py` (writes them; production), `masters/`. The game menu comes from
+  `all/games`. A new game gets structure items, not files.
+- The games not moved yet: `templates/<game>.js` registers a game by filling the globals
+  `dbinfo[game]`, `databasesort[game]`, `headerize`, `searchables`, `labels` and `templates`, and
+  `templates/template-<game>-<key>.html` holds its JsRender templates (`card`, `search`). Generic
+  ones (`template-list.html`, `template-text*.html`, `template-visual*.html`, `template-pdf.html`)
+  have no game prefix. They are fetched at runtime:
+  `"templates/template-" + (generic ? "" : database + "-") + key + ".html"`.
 - Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
   `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
   the first S&M export; a printing S&M files under another edition carries its own code in the
