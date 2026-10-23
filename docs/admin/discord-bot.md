@@ -1,8 +1,8 @@
 # Discord bot settings
 
-Last updated: 2026-10-22 (/cardtext and /rulings)
+Last updated: 2026-10-23 (/oraclehelp)
 
-The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search` and `/oraclebug` by default) answers in each server it has been
+The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search`, `/oraclebug` and `/oraclehelp` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
 channel searches, filters that narrow every search in a channel, and which commands a
 server gets under which names. The bot picks up a change within 5 minutes, with no deploy.
@@ -83,6 +83,15 @@ ootv-client. With a card name in a channel that has a game, it gets that game's 
 `discord`, and the issue names the reporter's Discord account and channel.
 Each user can file 3 reports per 15 minutes. To stop a server filing issues, untick
 `oraclebug` in its Commands column and re-register its commands.
+
+## Help (/oraclehelp)
+
+`/oraclehelp` answers only the person who asked, unless they add `public:True` to post it to the
+channel (e.g. to show a newcomer). Without options it lists the server's commands
+under the server's own names, and says what game the channel searches and which filters apply.
+`command:` (a pick list of the server's commands) explains one command: usage, examples and every
+option. The options come from the bot's own command definitions, so they're always current. The
+players' help page, `docs/help/discord-bot.md`, says the same at more length.
 
 ## Commands
 
