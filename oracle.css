@@ -60,6 +60,11 @@ dd.rulings div {
   margin-bottom: 2px;
 }
 #modal.rulingmodal .modal-box { width: 900px; max-width: 95vw; min-width: 0; margin-top: 2%; }
+/* an artist credit's modal (artistmodal): search, then the artist's links */
+#modal.artistmodal .modal-box { width: 420px; max-width: 95vw; min-width: 0; }
+#modal.artistmodal .artistlinks ul { list-style: none; padding: 0; margin: 0; }
+#modal.artistmodal .artistlinks li { margin: 6px 0; }
+#modal.artistmodal .artisthost { color: #777; font-size: 0.85em; }
 /* search by photo (artphoto.js): the matched card above the results, and the corner editor */
 .artphotopanel { display: flex; align-items: center; gap: 16px; padding: 8px 12px; margin: 4px 4px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.9); color: #000; }
 .artphotopreview { max-height: 160px; max-width: 40%; border-radius: 4px; }
