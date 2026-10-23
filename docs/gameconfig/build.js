@@ -58,8 +58,18 @@ for (const g of games) {
   const level = name => printingfields.has(name) ? 'printing' : 'card';
   const entry = (lvl, name) => (settings[lvl][name] = settings[lvl][name] || {});
   const search = [];
-  for (const [key, s] of Object.entries(sea)) {
+  // searchrename {old key: new key}: a card key moved to its printing field (§1.7 #8, lbs artist ->
+  // printing.artist); old links and saved searches are mapped by info.renamedfields
+  const rename = conf.searchrename || {};
+  const renamedfields = {};
+  for (let [key, s] of Object.entries(sea)) {
     if (key === 'quick' || (conf.searchdrop || []).includes(key)) continue;
+    if (rename[key]) {
+      renamedfields[key] = rename[key].replace('.', '_');
+      s = Object.assign({}, s);
+      if (s.clickable === 'printing') s.clickable = true;   // a printing.* key links its printing values itself
+      key = rename[key];
+    }
     search.push(key);
     const [lvl, name] = key.startsWith('printing.') ? ['printing', key.slice(9)] : [level(key), key];
     entry(lvl, name).search = s;
@@ -80,7 +90,9 @@ for (const g of games) {
   for (const [name, l] of Object.entries(conf.fieldlabels || {})) Object.assign(entry(level(name), name), l);
   const avail = Object.keys(t.available);
   write(g + '-game.json', {
-    info: ctx.dbinfo[g], quick: sea.quick === undefined ? null : sea.quick, search, labels: extra,
+    info: Object.assign({}, ctx.dbinfo[g], conf.info,
+                        Object.keys(renamedfields).length ? { renamedfields: Object.assign({}, ctx.dbinfo[g].renamedfields, renamedfields) } : {}),
+    quick: sea.quick === undefined ? null : sea.quick, search, labels: extra,
     rows: conf.rows, sort: conf.sort, headers: conf.headers,
     views: { add: avail.filter(k => !STANDARD.includes(k)), remove: STANDARD.filter(k => !avail.includes(k)) },
     default: t.default, symbols: conf.symbols || []

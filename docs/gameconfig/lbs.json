@@ -1,0 +1,41 @@
+{
+  "_note": "LBS's rows, sort and views for build.js (ootv-claude GAME-TEMPLATES.md §2.3-2.4); from template-lbs-card.html / -search.html, with artist and flavor searched on the printing (§1.7 #8) and the empty keywords row dropped (LBS has no keywords)",
+  "info": {"background": "res/background-lbs.jpg"},
+  "sort": {"group": "deck", "first": ["Pre-Game"]},
+  "headers": ["deck", "type"],
+  "searchrename": {"artist": "printing.artist", "flavor": "printing.flavor"},
+  "rows": {
+    "card": [
+      {"fields": ["title"], "when": "always"},
+      {"fields": ["type"]},
+      {"fields": ["strength", "ka"], "wraps": ["iconic strength", "iconic ka"]},
+      {"fields": ["water", "copper", "influence"], "wraps": ["iconic smwater", "iconic smcopper", "iconic sminf"],
+       "when": "influence",
+       "else": {"fields": ["copper"], "wraps": ["iconic smcopper"]}},
+      {"fields": ["city"], "wraps": ["iconic smcity"]},
+      {"fields": ["faction"]},
+      {"fields": ["text"]},
+      {"fields": ["fate"]},
+      {"fields": ["deck"]},
+      {"fields": ["notes"]}
+    ],
+    "printing": [
+      {"fields": ["set"]},
+      {"fields": ["rarity"]},
+      {"fields": ["flavor"]},
+      {"fields": ["artist"]},
+      {"fields": ["number"]}
+    ],
+    "detail": [
+      {"fields": ["type"], "label": false},
+      {"fields": ["strength", "ka"], "wraps": ["iconic smstrength", "iconic smka"], "suffix": true, "label": false},
+      {"fields": ["water", "copper", "influence"], "wraps": ["iconic smwater", "iconic smcopper", "iconic sminfluence"],
+       "suffix": true, "label": false, "when": "influence",
+       "else": {"fields": ["water", "copper"], "wraps": ["iconic smwater", "iconic smcopper"], "suffix": true,
+                "label": false, "when": "copper"}},
+      {"fields": ["city"], "wraps": ["iconic smcity"], "suffix": true, "label": false},
+      {"fields": ["text"], "label": false},
+      {"fields": ["fate"], "wraps": ["iconic smfate"], "suffix": true, "label": false}
+    ]
+  }
+}
