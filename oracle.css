@@ -606,6 +606,30 @@ div.helplinks {
     align-items: center;
     gap: 12px;
 }
+/* help pages (help.js): the topic list, the topic, and the "?" next to a control (hover: its section in #traitpop) */
+div.helpnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+div.helpnav a { padding: 4px 10px; border: solid #69c 1px; border-radius: 14px; text-decoration: none; }
+div.helpnav a.helpnavactive { background: #69c; color: #fff; }
+div.helpdoc { line-height: 1.45; }
+div.helpdoc h2, div.helpdoc h3 { scroll-margin-top: 8px; }
+div.helptoc { display: inline-block; border: solid #ccc 1px; border-radius: 4px; padding: 4px 16px 4px 0; margin-bottom: 8px; }
+div.helptoc ul { margin: 2px 0; padding-left: 22px; }
+div.helptoc ul ul { font-size: 92%; }
+div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
+div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
+div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
+dl.helpfields dt { margin-top: 6px; }
+dl.helpfields dd { margin-left: 16px; }
+.helpq { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #369; vertical-align: super;
+  line-height: 1; margin-left: 2px;
+  cursor: help; user-select: none; }
+/* a label with a "?" (dt::after adds its colon): the colon first, then the "?" */
+dt:has(> .helpq) { display: flex; justify-content: flex-end; align-items: baseline; }
+dt:has(> .helpq)::after { order: 1; }
+dt > .helpq { order: 2; }
+#traitpop .helppeek { max-height: 50vh; overflow: hidden; }
+#traitpop .helppeek > :first-child { margin-top: 0; }
+#traitpop.traitpoptouch .helppeek { max-height: none; }
 /* list view header line: the list's directory details */
 div.listviewheader {
     margin-bottom: 4px;
