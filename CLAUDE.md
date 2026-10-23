@@ -45,9 +45,11 @@ or tests. The files in this directory are exactly what gets served.
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
   calls. Its image upload is `uploadimagetrigger` in `oracle.js`. User guide:
   `docs/admin/card-editor.md`.
-- The Rules section (menubar book button, `#view=rules`; a page is `#rulebook=<id>,#page=<n>`) is
+- The Bookshelf (the Rules section until 2026-10-23; menubar book button, `#view=rules`, a shelf
+  `#shelf=<key>`; a page is `#rulebook=<id>,#page=<n>`, whatever shelf the book is on) is
   `rules.js`, loaded on first use by `rulesshow()`; `rulesstate` in `oracle.js` is what the url
-  says. The books are static files on the images bucket (`<imageuri>rulebooks/`), built and
+  says. Its shelves (Rulebooks, Newsletters) are listed by the structure item `<game>/bookshelf`, each
+  shelf's books in `<game>/<key>`. The books are static files on the images bucket (`<imageuri>rulebooks/`, every shelf's), built and
   uploaded by ootv-import `SCRIPTS/rulebook-convert.py`, so adding one needs no deploy. Guide:
   `docs/admin/rulebooks.md`.
 - Help (menubar ? button, `#view=help`; a section is `#help=<topic>,#helpsec=<id>`) is `help.js`,

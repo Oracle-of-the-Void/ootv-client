@@ -1,14 +1,14 @@
-// Rules section: the rulebook shelf and page viewer. Loaded on first use by rulesshow() in oracle.js.
-// The shelf is the structure item <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, type, tags, arc, ...}});
+// The Bookshelf (the Rules section until 2026-10-23): its shelves of books (Rulebooks, Newsletters, ...) and the page
+// viewer. Loaded on first use by rulesshow() in oracle.js. Each shelf is a structure item, the Rulebooks shelf
+// <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, type, tags, arc, ...}}; the shelves below);
 // each book lives on the images bucket, per game: <imageuri>rulebooks/<id>/book.json, text.json,
 // <NNN>_{select,details,master}.webp per page and lines/<NNN>.json (the page's words and their boxes)
 // (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md).
-// Urls: #view=rules is the shelf, #rulebook=<id>,#page=<n> a page, and #find=<phrase> (without #page: its
+// Urls: #view=rules is the Bookshelf (#shelf=<key>: that shelf), #rulebook=<id>,#page=<n> a page, and #find=<phrase> (without #page: its
 // first page), #line=<n> or #at=<percent> a place on it, zoomed to the page's width. Turning pages replaces
 // the history entry, so Back leaves the book rather than stepping through every page.
 window.rulesloaded = true;
 
-var rulesshelf = null;      // the shelf ({game, books: [...] by date: year, then order}), once loaded
 var rulesbook = null;       // book.json of the open book
 var rulestext = null;       // text.json of the open book, loaded on the first search
 var ruleslines = {};        // page -> lines/<NNN>.json of the open book ([[block, [[x0, y0, x1, y1, word], ...]], ...]), or a request
@@ -55,22 +55,63 @@ function rulesrender() {
   }
 }
 
-// ********** the shelf **********
+// ********** the shelves **********
+// The Bookshelf has one or more shelves, listed by the structure item <game>/bookshelf
+// (shelves: [{key, title, types, plaintypes, help}, ...]; a game without one has only the Rulebooks shelf).
+// Each shelf's books are the structure item <game>/<key>, as the Rulebooks shelf's are <game>/rulebooks.
+// Book ids are unique across a game's shelves: every book is at <imageuri>rulebooks/<id>/ and #rulebook=<id>.
+// types: the order of the shelf's types on its filter bar (other types follow); plaintypes: types not
+// marked on its books (Complete: most rulebooks).
+var RULESSHELVES = [{key: 'rulebooks', title: 'Rulebooks', types: ['Complete', 'Addendum', 'Special', 'Play Variant', 'Multi-Arc'],
+                     plaintypes: ['Complete'], help: 'rules#shelf'}];
+var rulesshelves = null;    // {game, shelves: [{key, title, ..., books: [...] by date: year, then order}]}, once loaded
+var rulesshelf = null;      // the shelf shown, or the open book's (one of rulesshelves.shelves)
+
+function rulessortbooks(books) {
+  // by date: the book's year, then its place in the list (order) within a year; books of the Multi-Arc
+  // formats (Legacy, Modern, Obsidian Hand, ...: cards from many arcs) come last, by date among themselves
+  return Object.values(books || {}).sort(function(a,b) {
+    return ((a.arc == RULESMULTIARC) - (b.arc == RULESMULTIARC)) ||
+      ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  });
+}
 function rulesloadshelf(done) {
-  if(rulesshelf !== null && rulesshelf.game == database) { done(); return; }
-  $.ajax({url: apiuri+'/structure?database='+database+'&key=rulebooks', dataType: 'json'})
-    .done(function(data) {
-      var books = Object.values((data && data.books) || {});
-      // by date: the book's year, then its place in the list (order) within a year; books of the Multi-Arc
-      // formats (Legacy, Modern, Obsidian Hand, ...: cards from many arcs) come last, by date among themselves
-      books.sort(function(a,b) {
-        return ((a.arc == RULESMULTIARC) - (b.arc == RULESMULTIARC)) ||
-          ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  if(rulesshelves !== null && rulesshelves.game == database) { done(); return; }
+  var game = database;
+  var finish = function(shelves) {
+    if(game == database) { rulesshelves = {game: game, shelves: shelves}; }
+    done();
+  };
+  $.ajax({url: apiuri+'/structure?database='+game+'&key=bookshelf', dataType: 'json'})
+    .always(function(data, status) {
+      var shelves = ((status == 'success' && data && data.shelves) || RULESSHELVES).map(function(s) { return Object.assign({books: []}, s); });
+      var left = shelves.length;
+      shelves.forEach(function(s) {
+        $.ajax({url: apiuri+'/structure?database='+game+'&key='+encodeURIComponent(s.key), dataType: 'json'})
+          .done(function(d) { s.books = rulessortbooks(d && d.books); })
+          .always(function() { if(--left == 0) { finish(shelves); } });
       });
-      rulesshelf = {game: database, books: books};
-      done();
-    })
-    .fail(function() { rulesshelf = {game: database, books: []}; done(); });
+    });
+}
+// the shelves that have books
+function rulesfullshelves() {
+  return rulesshelves.shelves.filter(function(s) { return s.books.length; });
+}
+// the shelf a book is on (null: none)
+function rulesbookshelf(id) {
+  return (rulesshelves && rulesshelves.game == database &&
+    rulesshelves.shelves.find(function(s) { return s.books.some(function(b) { return b.id == id; }); })) || null;
+}
+// the shelf last shown, per game (this browser only)
+function rulessavedshelf() {
+  try { return (JSON.parse(localStorage.getItem('bookshelf') || '{}') || {})[database] || ''; } catch(e) { return ''; }
+}
+function rulessaveshelf(key) {
+  try {
+    var all = JSON.parse(localStorage.getItem('bookshelf') || '{}') || {};
+    all[database] = key;
+    localStorage.setItem('bookshelf', JSON.stringify(all));
+  } catch(e) {}
 }
 function rulesdrawshelf() {
   if(rulesisfull()) { rulesfullscreen(false); }
@@ -78,57 +119,82 @@ function rulesdrawshelf() {
   rulestext = null;
   $('body').removeClass('rulesreading');
   var area = $('#rulesarea');
-  if(rulesshelf === null || rulesshelf.game != database) {
-    area.html('<div class="rulesshelf"><h2>Rules</h2><p>Loading&hellip;</p></div>');
+  if(rulesshelves === null || rulesshelves.game != database) {
+    area.html('<div class="rulesshelf"><h2>Bookshelf</h2><p>Loading&hellip;</p></div>');
   }
   rulesloadshelf(function() {
     if(rulesstate.book) { return; }  // a book was opened meanwhile
-    var game = dbinfo[database].name || database;
-    var out = '<div class="rulesshelf"><h2>Rules</h2>';
-    if(!rulesshelf.books.length) {
-      out += '<p>No rulebooks for '+rulesesc(game)+' yet.</p></div>';
+    var game = dbinfo[database].name || database, full = rulesfullshelves();
+    var out = '<div class="rulesshelf"><h2>Bookshelf</h2>';
+    if(!full.length) {
+      out += '<p>No books for '+rulesesc(game)+' yet.</p></div>';
       area.html(out);
       return;
     }
-    out += '<h3>Rulebooks <span class="helpq" data-help="rules#shelf" aria-label="Help: the Rules shelf">?</span></h3>'+rulesfilterbar()+'<div class="rulesbooks"></div>';
+    // the shelf the url names, else the one last shown, else the first
+    var pick = function(key) { return full.find(function(s) { return s.key == key; }); };
+    rulesshelf = pick(rulesstate.shelf) || pick(rulessavedshelf()) || full[0];
+    rulessaveshelf(rulesshelf.key);
+    var help = ' <span class="helpq" data-help="'+rulesesc(rulesshelf.help || 'rules#shelf')+'" aria-label="Help: the Bookshelf">?</span>';
+    if(full.length > 1) {
+      // a tab per shelf, in place of the shelf's heading
+      out += '<div class="rulesshelftabs" role="tablist">'+full.map(function(s) {
+        var on = s == rulesshelf;
+        return '<button type="button" role="tab" class="rulesshelftab'+(on ? ' rulesshelftabon' : '')+'" data-shelf="'+rulesesc(s.key)+'"'+
+          ' aria-selected="'+(on ? 'true' : 'false')+'">'+rulesesc(s.title)+' <span class="rulesshelfcount">'+s.books.length+'</span></button>';
+      }).join('')+help+'</div>';
+    } else {
+      out += '<h3>'+rulesesc(rulesshelf.title)+help+'</h3>';
+    }
+    out += rulesfilterbar()+'<div class="rulesbooks"></div>';
     area.html(out+'</div>');
     rulesdrawbooks();
   });
 }
+$(document).on('click', '.rulesshelftabs button.rulesshelftab', function() {
+  var key = String($(this).data('shelf'));
+  if(rulesshelf && rulesshelf.key == key) { return; }
+  rulesstate.shelf = key;
+  seturl(viewstate('rules'));
+  rulesdrawshelf();
+});
 
 // ********** shelf filters **********
-// Each book has a type (Complete, Addendum, Special: rules for one format, Play Variant: another way to play, like
-// draft, siege or War of Honor, Multi-Arc: a format with cards from many arcs, like Legacy), or a list of
-// them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. The bar offers only the values some book has;
-// the choice is kept per game in this browser.
+// Each book has a type (on the Rulebooks shelf: Complete, Addendum, Special: rules for one format, Play Variant:
+// another way to play, like draft, siege or War of Honor, Multi-Arc: a format with cards from many arcs, like Legacy),
+// or a list of them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. Each shelf has
+// its own bar, offering only the values its books have; the choice is kept per game and shelf in this browser.
 var RULESMULTIARC = 'Multi-Arc';   // formats spanning arcs: both their arc and their type. Their books, and the arc's
                                    // choice in the Arc filter, come last
-var RULESTYPES = ['Complete', 'Addendum', 'Special', 'Play Variant', RULESMULTIARC];   // the order on the bar; other types follow
-var rulesfilter = null;   // {game, type, arc, tags: [...]}
+var rulesfilter = null;   // {game, shelf, type, arc, tags: [...]}
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
+// where the shelf's choice is saved: the game for the Rulebooks shelf (as before there were shelves), else game/shelf
+function rulesfilterkey() {
+  return rulesshelf.key == 'rulebooks' ? database : database+'/'+rulesshelf.key;
+}
 function rulesfilterload() {
-  if(rulesfilter && rulesfilter.game == database) { return rulesfilter; }
+  if(rulesfilter && rulesfilter.game == database && rulesfilter.shelf == rulesshelf.key) { return rulesfilter; }
   var saved = {};
-  try { saved = (JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {})[database] || {}; } catch(e) {}
-  rulesfilter = {game: database, type: saved.type || '', arc: saved.arc || '', tags: saved.tags || []};
+  try { saved = (JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {})[rulesfilterkey()] || {}; } catch(e) {}
+  rulesfilter = {game: database, shelf: rulesshelf.key, type: saved.type || '', arc: saved.arc || '', tags: saved.tags || []};
   return rulesfilter;
 }
 function rulesfiltersave() {
   try {
     var all = JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {};
-    all[database] = {type: rulesfilter.type, arc: rulesfilter.arc, tags: rulesfilter.tags};
+    all[rulesfilterkey()] = {type: rulesfilter.type, arc: rulesfilter.arc, tags: rulesfilter.tags};
     localStorage.setItem('rulebookfilter', JSON.stringify(all));
   } catch(e) {}
 }
-// the values books have, in shelf order (types in RULESTYPES order)
+// the values the shelf's books have, in shelf order (types in the shelf's types order)
 function rulesfiltervalues() {
-  var types = [], tags = [], arcs = [];
+  var types = [], tags = [], arcs = [], order = rulesshelf.types || [];
   rulesshelf.books.forEach(function(b) {
     rulesbooktypes(b).forEach(function(t) { if(!types.includes(t)) { types.push(t); } });
     (b.tags || []).forEach(function(t) { if(!tags.includes(t)) { tags.push(t); } });
     if(b.arc && !arcs.includes(b.arc)) { arcs.push(b.arc); }
   });
-  var rank = function(t) { var i = RULESTYPES.indexOf(t); return i < 0 ? RULESTYPES.length : i; };
+  var rank = function(t) { var i = order.indexOf(t); return i < 0 ? order.length : i; };
   types.sort(function(a,b) { return rank(a) - rank(b); });
   return {types: types, tags: tags, arcs: arcs};
 }
@@ -195,8 +261,9 @@ function rulesdrawbooks() {
     shown++;
     var cover = rulesbase()+b.id+'/001_select.webp'+(b.built ? '?v='+b.built : '');
     var at = last[database+'/'+b.id];
-    // the types show, except the usual Complete
-    var marks = rulesbooktypes(b).filter(function(t) { return t != 'Complete'; }).concat(b.tags || []);
+    // the types show, except the shelf's usual ones (Complete on the Rulebooks shelf)
+    var plain = rulesshelf.plaintypes || [];
+    var marks = rulesbooktypes(b).filter(function(t) { return !plain.includes(t); }).concat(b.tags || []);
     out += '<a class="rulesbookcard" href="#game='+database+',#rulebook='+b.id+(at > 1 ? ',#page='+at : '')+'" data-book="'+rulesesc(b.id)+'">'+
       '<span class="rulescover"><img loading="lazy" alt="" src="'+cover+'"'+
       (b.cover ? ' width="'+b.cover[0]+'" height="'+b.cover[1]+'"' : '')+'></span>'+
@@ -207,7 +274,7 @@ function rulesdrawbooks() {
       (marks.length ? '<span class="rulesbookmarks">'+marks.map(function(m) { return '<span class="rulesbookmark">'+rulesesc(m)+'</span>'; }).join('')+'</span>' : '')+
       (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
   });
-  $('#rulesarea .rulesbooks').html(shown ? out : '<p class="rulesnomatch">No rulebooks match these filters.</p>');
+  $('#rulesarea .rulesbooks').html(shown ? out : '<p class="rulesnomatch">No books match these filters.</p>');
   $('#rulesarea .rulesfiltercount').text(shown < rulesshelf.books.length ? shown+' of '+rulesshelf.books.length+' books' : '');
 }
 $(document).on('click', 'a.rulesbookcard', function(e) {
@@ -242,16 +309,22 @@ function rulesopenbook(id,page,push=false) {
     })
     .fail(function() {
       rulesloading = null;
-      $('#rulesarea').html('<div class="rulesshelf"><p class="error">No rulebook "'+rulesesc(id)+'".</p>'+
-        '<p><span class="button gray" onclick="rulesclosebook();">All rulebooks</span></p></div>');
+      $('#rulesarea').html('<div class="rulesshelf"><p class="error">No book "'+rulesesc(id)+'".</p>'+
+        '<p><span class="button gray" onclick="rulesclosebook();">Back to the Bookshelf</span></p></div>');
     });
 }
+// back to the shelf the book is on
 function rulesclosebook() {
+  var id = rulesstate.book;
   rulesstate.book = null;
   rulesstate.page = 1;
   rulesclearmark();
-  seturl(viewstate('rules'));
-  rulesdrawshelf();
+  rulesloadshelf(function() {
+    var shelf = rulesbookshelf(id);
+    if(shelf) { rulesstate.shelf = shelf.key; }
+    seturl(viewstate('rules'));
+    rulesdrawshelf();
+  });
 }
 
 function rulesicon(name) {
@@ -268,7 +341,7 @@ function rulesdrawreader() {
   $('#rulesarea').html(
     '<div class="rulesreader">'+
     '<div class="rulestop">'+
-      '<button class="rulesbtn" onclick="rulesclosebook();" aria-label="All rulebooks" data-balloon-pos="down-left">'+rulesicon('book')+'</button>'+
+      '<button class="rulesbtn" onclick="rulesclosebook();" aria-label="Back to the shelf" data-balloon-pos="down-left">'+rulesicon('book')+'</button>'+
       '<span class="rulestitle">'+title+'</span>'+
       '<span class="rulestools">'+
       (b.toc && b.toc.length ? '<button class="rulesbtn" data-panel="contents" onclick="rulestogglepanel(\'contents\');" aria-label="Contents" data-balloon-pos="down">'+rulesicon('list')+'</button>' : '')+
@@ -282,7 +355,7 @@ function rulesdrawreader() {
       (b.text ? '<button class="rulesbtn" onclick="rulescopypage();" aria-label="Copy the text of this page (C)" data-balloon-pos="down-right">'+rulesicon('copy')+'</button>' : '')+
       '<button class="rulesbtn" onclick="rulescopylink();" aria-label="Copy a link to this page (or to the text selected)" data-balloon-pos="down-right">'+rulesicon('link')+'</button>'+
       '<button class="rulesbtn rulesfullbtn" onclick="rulesfullscreen();" aria-label="Full screen (F)" data-balloon-pos="down-right">'+rulesicon(rulesisfull() ? 'minimize' : 'maximize')+'</button>'+
-      ' <span class="helpq" data-help="rules#reading" aria-label="Help: reading a rulebook">?</span>'+
+      ' <span class="helpq" data-help="rules#reading" aria-label="Help: reading a book">?</span>'+
       '</span>'+
     '</div>'+
     '<div class="rulesbody">'+

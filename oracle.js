@@ -1955,10 +1955,10 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
   $.ajax(request);
 }
 
-// The Rules section (rules.js, loaded on first use): the rulebook shelf and page viewer.
-// rulesstate is what the url says: the book open (null: the shelf), its page (0: the first page with find),
+// The Bookshelf (rules.js, loaded on first use; the Rules section until 2026-10-23): its shelves and the page viewer.
+// rulesstate is what the url says: the shelf shown ('': the one last shown), the book open (null: the shelf), its page (0: the first page with find),
 // the book search, and a place on the page to zoom to: find (a phrase), line (its number) or at (percent down).
-var rulesstate = {book: null, page: 1, q: '', find: '', line: 0, at: 0};
+var rulesstate = {shelf: '', book: null, page: 1, q: '', find: '', line: 0, at: 0};
 // the place on the page from a url's #find=, #line=, #at= (rulesmarkhash: back into one)
 function rulesmarkparse(m) {
   return {find: m.find ? decodeURIComponent(m.find) : '', line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0)};
@@ -2017,7 +2017,7 @@ function rulesshow() {
   $('#rulesarea').html('<div class="rulesshelf"><p>Loading&hellip;</p></div>');
   $.ajax({url: 'rules.js?v='+ootvversion, dataType: 'script', cache: true})
     .done(function() { rulesrender(); })
-    .fail(function() { $('#rulesarea').html('<span class="error">Could not load the rulebooks.</span>'); });
+    .fail(function() { $('#rulesarea').html('<span class="error">Could not load the Bookshelf.</span>'); });
 }
 // Help (help.js, loaded on first use): the Help view and the "?" links' popups. helpstate: the topic and
 // section shown (null: the first topic, its top).
@@ -2051,7 +2051,7 @@ function helpopen(topic,sec) {
   }
 }
 
-// the Rules view drawn for rulesstate: showview draws it when the view isn't up yet, else draw it here
+// the Bookshelf view drawn for rulesstate: showview draws it when the view isn't up yet, else draw it here
 function rulesshowview() {
   if($('#resultrules').is(':visible')) {
     seturl(viewstate('rules'), true);
@@ -6866,6 +6866,8 @@ function hashstate(hash) {
   } else if(m.rulebook !== undefined) {
     var mark = rulesmarkparse(m);
     return Object.assign({view: 'rules', book: m.rulebook, page: parseInt(m.page, 10) || (mark.find ? 0 : 1)}, mark);
+  } else if(m.shelf !== undefined) {
+    return {view: 'rules', shelf: m.shelf};
   } else if(m.help !== undefined) {
     return {view: 'help', topic: m.help, sec: m.helpsec || null};
   } else if(m.view !== undefined) {
@@ -6886,6 +6888,8 @@ function statehash(state) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
     return h+',#rulebook='+state.book+(state.page > 1 || (state.page == 1 && state.find) ? ',#page='+state.page : '')+rulesmarkhash(state);
+  } else if(state.view == 'rules' && state.shelf) {
+    return h+',#shelf='+state.shelf;
   } else if(state.view == 'help' && state.topic) {
     return h+',#help='+state.topic+(state.sec ? ',#helpsec='+state.sec : '');
   } else if(state.view == 'about') {
@@ -6907,7 +6911,7 @@ function viewstate(view) {
   } else if(view == 'help') {
     return {view: view, topic: helpstate.topic, sec: helpstate.sec};
   } else if(view == 'rules') {
-    return {view: view, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at};
+    return {view: view, shelf: rulesstate.shelf, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at};
   }
   return {view: view};
 }
@@ -7089,6 +7093,11 @@ function urlparser(keepfilters=false) {
 	  Object.assign(rulesstate, rulesmark);
 	  urlrestoring = 'rules';
 	  rulesshowview();
+  } else if(typeof(matchstruct['shelf']) != 'undefined') {
+	  rulesstate.book = null;
+	  rulesstate.shelf = matchstruct['shelf'];
+	  urlrestoring = 'rules';
+	  rulesshowview();
   } else if(typeof(matchstruct['help']) != 'undefined') {
 	  helpstate = {topic: matchstruct['help'], sec: matchstruct['helpsec'] || null};
 	  urlrestoring = 'help';
@@ -7100,6 +7109,7 @@ function urlparser(keepfilters=false) {
 	    helpshowview();
 	  } else if(matchstruct['view'] == 'rules') {
 	    rulesstate.book = null;
+	    rulesstate.shelf = '';
 	    urlrestoring = 'rules';
 	    rulesshowview();
 	  } else if(matchstruct['view'] == 'settings') {
@@ -8215,7 +8225,7 @@ function rulingpeek(el,touch) {
   place();
   rulingshowplace(pop.find('.rulingview'), l, true, place);
 }
-var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in Rules
+var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in the Bookshelf
 // a ruling's rulebook link: {book, page, mark: {find, line, at} as written in the link}, or null
 function rulinglink(href) {
   var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href || '');
@@ -8279,7 +8289,7 @@ function rulingpopup(href,label) {
   if(l) {
     rulingmark = l.mark;
     modal(title,'<div class="rulingview"><div class="rulingpage"><img src="'+esc(rulingpageurl(l, 'master'))+'" alt="'+title+'"></div></div>'+
-      '<p><span class="button gray" onclick="rulingopenrules(\''+addslashes(l.book)+'\','+l.page+');">Open in Rules</span></p>');
+      '<p><span class="button gray" onclick="rulingopenrules(\''+addslashes(l.book)+'\','+l.page+');">Open in the Bookshelf</span></p>');
     $('#modal').addClass('rulingmodal');   // first: it makes the view scroll
     rulingshowplace($('#modal .rulingview'), l, false);
   } else if(/\.(png|jpe?g|gif|webp)(\?|$)/i.test(href)) {
@@ -8330,7 +8340,7 @@ function rulingopenrules(book,page) {
 }
 
 // ******************** TRAIT LINKS ********************
-// Traits with rules (Cavalry, Kharmic, ...) in Card Details lead to where the rulebooks on the Rules shelf
+// Traits with rules (Cavalry, Kharmic, ...) in Card Details lead to where the books on the Rulebooks shelf
 // define them: hovering one shows the rule's text, clicking it opens the book at that place (or, with more
 // than one book, a choice of them). From the structure item <game>/traits (ootv-import SCRIPTS/rulebook-traits.py,
 // docs/admin/rulebooks.md "Trait links"): books {<id>: {title, year, arc, order}}, editions {<legality>: [book

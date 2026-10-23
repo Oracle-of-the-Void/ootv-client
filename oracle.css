@@ -2192,6 +2192,13 @@ a.rulesbookcard:hover { background: #f1ecdd; }
 .rulesbooksub { color: #555; font-size: .92em; }
 .rulesbookmeta { color: #777; font-size: .82em; margin-top: 2px; }
 .rulesbooknote { color: #777; font-size: .82em; font-style: italic; margin-top: 2px; }
+/* the Bookshelf's shelves (Rulebooks, Newsletters, ...): tabs in place of the shelf heading when there's more than one */
+.rulesshelftabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 4px; margin: 6px 0 10px; border-bottom: 2px solid #e0c35a; }
+.rulesshelftabs .helpq { align-self: center; }
+button.rulesshelftab { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.3em; margin: 0 0 -2px; padding: 2px 10px 3px; border: 0; border-bottom: 4px solid transparent; background: none; color: #777; cursor: pointer; }
+button.rulesshelftab:hover { color: #333; border-bottom-color: #ecdca0; }
+button.rulesshelftab.rulesshelftabon { color: #000; border-bottom-color: #b89a32; }
+.rulesshelfcount { font-family: Arial,Helvetica,sans-serif; font-size: .55em; color: #888; vertical-align: middle; }
 .rulesfilters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: -2px 0 12px; }
 .rulesfiltergroup { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .rulesfilterlabel { color: #555; font-size: .9em; margin-right: 2px; }

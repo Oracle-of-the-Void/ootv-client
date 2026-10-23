@@ -14,7 +14,7 @@ var HELPTOPICS = [
   {id: 'cards', title: 'The card page'},
   {id: 'lists', title: 'Decks and lists'},
   {id: 'public-lists', title: 'Public lists'},
-  {id: 'rules', title: 'Rules'},
+  {id: 'rules', title: 'Bookshelf'},
   {id: 'settings', title: 'Account and settings'},
   {id: 'fields', title: 'Card fields', generated: true},
   {id: 'discord-bot', title: 'Discord bot'}
