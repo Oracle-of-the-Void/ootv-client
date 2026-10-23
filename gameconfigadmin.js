@@ -1,11 +1,35 @@
 // Admin → Game config (this game's <game>/game item) and Admin → Templates (the master templates in
-// all/templates, site admins only). The item is edited as JSON (the templates view by view, as html),
+// all/templates, site admins only). The item is edited as JSON (the templates view by view, as html, and the
+// shared pieces the views include, the partials, piece by piece: the select's "partial:<name>" entries),
 // previewed on a card with the edit applied, and saved whole through POST /update, operations gameconfig
 // and templates (ootv-search lib/gameconfigsave.js: version check, history with the earlier copies). A save
 // that doesn't draw the preview card is refused here. Loaded on first use by loadgameconfigadmin() in
 // oracle.js. Plan: ootv-claude GAME-TEMPLATES.md §2.6, §2.8 step 4; guide: docs/admin/game-config.md.
 var gcadminloaded = true;
 var gcadmin = {};   // {which: 'game'|'templates', db, item (as loaded), draft (the edited body), view, cardid}
+// the view select's key for a partial is "partial:<name>": its name, or null for a view
+function gcadminpart(key) {
+  var m = /^partial:(.+)$/.exec(key || '');
+  return m ? m[1] : null;
+}
+// what the editor shows for a key: the view, or the partial
+function gcadminentry(body, key) {
+  var part = gcadminpart(key);
+  return part ? ((body || {}).partials || {})[part] : ((body || {}).views || {})[key];
+}
+// the views that draw a partial: those including it, or a partial that does (card-top includes textversion)
+function gcadminpartviews(name) {
+  var d = gcadmin.draft, parts = d.partials || {}, want = [name], grew = true;
+  var has = (html, n) => typeof html == 'string' && (html.includes('"#template-'+n+'"') || html.includes("'#template-"+n+"'"));
+  while(grew) {
+    grew = false;
+    Object.keys(parts).forEach(function(p) {
+      if(!want.includes(p) && want.some(n => has(parts[p].html, n))) { want.push(p); grew = true; }
+    });
+  }
+  var views = Object.keys(d.views || {}).filter(k => want.some(n => has(d.views[k].html, n)));
+  return views.length ? views : ['card'];
+}
 const gcadminmeta = ['database', 'key', 'version', 'updated', 'uid', 'uname', 'history'];
 // JSON with keys sorted, so the stored item and an edited copy compare equal whatever their key order
 function gcadmincanon(v) {
@@ -73,13 +97,15 @@ function gcadminshow() {
     ' <a href="" onclick="loadadmindoc(\'game-config\'); return false">How this works</a>'+
     (allowed ? '' : ' <b>Saving needs '+(templ ? 'full permission on every game (site admins)' : 'the gameconfig (or full) permission on '+htmlEncode(dbinfo[database].name))+'.</b>')+'</p>';
   if(templ) {
-    html += '<p>View <select id="gcview" onchange="gcadminview(this.value);">'+Object.keys(g.draft.views || {}).sort().map(k =>
-        '<option value="'+htmlEncode(k)+'"'+(k == g.view ? ' selected' : '')+'>'+htmlEncode(k)+' ('+htmlEncode(g.draft.views[k].longname || '')+')</option>').join('')+'</select> '+
+    html += '<p>View <select id="gcview" onchange="gcadminview(this.value);"><optgroup label="Views">'+Object.keys(g.draft.views || {}).sort().map(k =>
+        '<option value="'+htmlEncode(k)+'"'+(k == g.view ? ' selected' : '')+'>'+htmlEncode(k)+' ('+htmlEncode(g.draft.views[k].longname || '')+')</option>').join('')+
+      '</optgroup><optgroup label="Shared pieces (partials, included by the views)">'+Object.keys(g.draft.partials || {}).sort().map(k =>
+        '<option value="partial:'+htmlEncode(k)+'"'+('partial:'+k == g.view ? ' selected' : '')+'>'+htmlEncode(k)+'</option>').join('')+'</optgroup></select> '+
       '<span id="gcchanged" class="fielddescsnote"></span></p>'+
       '<p>Standard views (every game, unless its config removes one): <input type="text" id="gcstandard" class="gcstandard" value="'+
         htmlEncode((g.draft.standard || []).join(' '))+'" /></p>'+
       '<p>The view\'s html (JsRender):<br /><textarea id="gchtml" class="gcjson" rows="24" spellcheck="false"></textarea></p>'+
-      '<p>Its settings (JSON: places, longname, shortname, generic, headerizable, override):<br /><textarea id="gcviewjson" class="gcjson" rows="3" spellcheck="false"></textarea></p>'+
+      '<p id="gcviewjsonlabel">Its settings (JSON: places, longname, shortname, generic, headerizable, override):<br /><textarea id="gcviewjson" class="gcjson" rows="3" spellcheck="false"></textarea></p>'+
       '<details id="gcdiffbox"><summary>Changes against the saved version</summary><pre id="gcdiff" class="gcdiff"></pre></details>';
   } else {
     html += '<p>The <code>'+htmlEncode(database)+'/game</code> item as JSON: info, rows (card, printing, detail), sort, headers, views (add, remove), search, labels, symbols, quick, default. '+
@@ -127,11 +153,15 @@ function gcadminview(key) {
   if(gcadmin.cardid) { gcadminpreview(); }
 }
 function gcadminviewfill() {
-  var v = (gcadmin.draft.views || {})[gcadmin.view] || {};
+  var part = gcadminpart(gcadmin.view);
+  var v = gcadminentry(gcadmin.draft, gcadmin.view) || {};
   var rest = Object.assign({}, v);
   delete rest.html;
-  $('#gchtml').val(v.html || '').prop('disabled', v.html === undefined)
-    .attr('placeholder', v.html === undefined ? 'This view uses '+((v.override || {}).templatekey || 'another view')+'\'s html.' : '');
+  $('#gchtml').val(v.html || '').prop('disabled', !part && v.html === undefined)
+    .attr('placeholder', !part && v.html === undefined ? 'This view uses '+((v.override || {}).templatekey || 'another view')+'\'s html.' : '');
+  $('#gcviewjsonlabel').contents().first()[0].textContent = part ?
+    'Its note (JSON: note, what the piece is; included as tmpl="#template-'+part+'" by '+gcadminpartviews(part).join(', ')+'):' :
+    'Its settings (JSON: places, longname, shortname, generic, headerizable, override):';
   $('#gcviewjson').val(JSON.stringify(rest));
   gcadmindiff();
 }
@@ -143,11 +173,12 @@ function gcadmintake() {
       if(!$('#gcviewjson').length) { return true; }
       var v = JSON.parse($('#gcviewjson').val() || '{}');
       if(typeof v != 'object' || Array.isArray(v)) { throw new Error('the settings must be a JSON object'); }
-      var html = $('#gchtml').val(), before = (g.draft.views[g.view] || {}).html;
+      var part = gcadminpart(g.view);
+      var html = $('#gchtml').val(), before = (gcadminentry(g.draft, g.view) || {}).html;
       // a textarea gives \r\n back as \n (the text exports have \r\n): an unedited view keeps its own
       if(typeof before == 'string' && before.replace(/\r\n/g, '\n') === html) { html = before; }
       if(!$('#gchtml').prop('disabled')) { v.html = html; }
-      g.draft.views[g.view] = v;
+      if(part) { g.draft.partials = g.draft.partials || {}; g.draft.partials[part] = v; } else { g.draft.views[g.view] = v; }
       g.draft.standard = $('#gcstandard').val().split(/[\s,]+/).filter(x => x);
     } else {
       if(!$('#gcjsontext').length) { return true; }
@@ -166,9 +197,11 @@ function gcadmintake() {
 function gcadmindiff() {
   var g = gcadmin, saved = gcadminbody(g.item);
   var changed = Object.keys(Object.assign({}, saved.views, g.draft.views)).filter(k =>
-    gcadmincanon((saved.views || {})[k]) !== gcadmincanon((g.draft.views || {})[k]));
+    gcadmincanon((saved.views || {})[k]) !== gcadmincanon((g.draft.views || {})[k])).concat(
+    Object.keys(Object.assign({}, saved.partials, g.draft.partials)).filter(k =>
+      gcadmincanon((saved.partials || {})[k]) !== gcadmincanon((g.draft.partials || {})[k])).map(k => 'partial:'+k));
   $('#gcchanged').text(changed.length ? 'Changed: '+changed.join(', ') : 'No changes');
-  var a = (((saved.views || {})[g.view] || {}).html || '').replace(/\r\n/g, '\n').split('\n'), b = (($('#gchtml').val()) || '').split('\n');
+  var a = ((gcadminentry(saved, g.view) || {}).html || '').replace(/\r\n/g, '\n').split('\n'), b = (($('#gchtml').val()) || '').split('\n');
   var lines = gcadminlinediff(a, b);
   $('#gcdiff').html(lines.some(l => l[0] != ' ') ? lines.filter((l, i) =>
       lines.slice(Math.max(0, i-2), i+3).some(x => x[0] != ' ')).map(l =>
@@ -208,7 +241,8 @@ function gcadminpreview() {
   $('#gcpreview').text('Drawing...');
   gcadmincard(cardid).then(function(card) {
     if(!card || !card.cardid) { $('#gcpreview').html('<span class="error">No card '+htmlEncode(cardid)+' in '+htmlEncode(dbinfo[database].name)+'.</span>'); return; }
-    var views = gcadmin.which == 'templates' ? [gcadmin.view] : ['card', 'search', 'list'];
+    var part = gcadminpart(gcadmin.view);
+    var views = gcadmin.which != 'templates' ? ['card', 'search', 'list'] : part ? gcadminpartviews(part) : [gcadmin.view];
     var out = gcadmindraw(card, views);
     $('#gcpreview').html(out.map(function(o) {
       return '<div class="gcpreviewpart" id="gcpart'+out.indexOf(o)+'"><h4>'+htmlEncode(o.title)+'</h4>'+(o.error ? '<p class="error">'+htmlEncode(o.error)+'</p>' :
@@ -236,6 +270,7 @@ function gcadmindraw(card, views) {
     dbinfo[db] = keep.dbinfo; labels[db] = keep.labels; searchables[db] = keep.searchables; templates[db] = keep.templates;
     databasesort[db] = keep.sort; headerize[db] = keep.headers; updates[db] = keep.updates; gameconfig[db] = keep.conf;
     gamehidden[db] = keep.hidden;
+    templatepartials(((keep.conf || {}).templates || {}).partials);   // the draft's pieces out, the page's back
     if(keep.blurb === undefined) { delete blurb[db]; } else { blurb[db] = keep.blurb; }
   };
   var out = [];

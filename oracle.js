@@ -6087,6 +6087,8 @@ function gameconfigload(db, ready) {
   if(stored) {
     gamemenuapply(stored);
   }
+  // a copy stored before the card page pieces moved into all/templates (partials, 2026-10-23) can't draw the card page
+  if(stored && !((stored.templates || {}).partials)) { stored = null; }
   if(stored && stored.game) {
     try { gameconfigapply(db, stored); } catch(e) { console.log(['stored game config failed', e]); delete gameconfig[db]; }
     start();
@@ -6158,6 +6160,7 @@ function gameconfigapply(db, conf) {
   headerize[db] = {deck: gameheaders(g.headers || ['type'])};
   updates[db] = gamesymbols(g.symbols || []);
   gameconfig[db] = conf;
+  templatepartials(conf.templates.partials);
   if(g.info.blurb) {
     blurb[db] = g.info.blurb;   // the game's notice on the card page (Paizo's Community Use notice on Pathfinder Pawns)
   }
@@ -6845,9 +6848,35 @@ function templateloaded(key, val, contents) {
 }
 
 // A master template (all/templates) that doesn't compile, or throws while drawing, falls back to the newest
-// earlier version of that view that compiles, from the item's history (GAME-TEMPLATES.md §2.6). Admin →
+// earlier version of that view that compiles, with the pieces (partials) of the same version, from the item's
+// history (GAME-TEMPLATES.md §2.6). A version with nothing different for the view is skipped. Admin →
 // Templates refuses such a save, so this is the net for a template that only fails on some card. The views
 // redraw once the history has come; site admins see which version is in use.
+// The shared pieces the views include by id (tmpl="#template-card-top", ...; card-top, -middle, -bottom,
+// textversion, textversionbutton, decklistcontrols) are all/templates partials, put in the page as <script>
+// elements. JsRender keeps a template compiled per element, so a new element is a new template.
+// suffix: an earlier version's copies for a fallback, beside the page's, their includes pointed at each other.
+function templatepartials(parts, suffix) {
+  suffix = suffix || '';
+  Object.keys(parts || {}).forEach(function(name) {
+    var p = parts[name];
+    if(!p || typeof p.html != 'string') { return; }
+    $('script#template-'+name+suffix).remove();
+    var el = document.createElement('script');
+    el.type = 'text/x-jsrender';
+    el.id = 'template-'+name+suffix;
+    el.text = suffix ? templatepartialrefs(p.html, parts, suffix) : p.html;
+    document.getElementById('all_template').appendChild(el);
+  });
+}
+// html with its includes of the pieces ("#template-card-top") pointed at the suffixed copies
+function templatepartialrefs(html, parts, suffix) {
+  Object.keys(parts || {}).forEach(function(name) {
+    html = html.replace(new RegExp('([\'"])#template-'+name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')+'\\1', 'g'), '$1#template-'+name+suffix+'$1');
+  });
+  return html;
+}
+
 var templatefallbacks = {};   // [db][key] = {error, loading, tmpl, version}
 var templatehistory = null;   // a promise of all/templates' history
 function templatesafe(db, key, htmlkey, source) {
@@ -6874,10 +6903,21 @@ function templatefallback(db, key, htmlkey, error) {
   templatehistory = templatehistory || Promise.resolve($.ajax({url: apiuri+'/structure?database=all&key=templates', dataType: 'json', cache: false}))
     .then(function(item) { return item.history || []; }).catch(function() { return []; });
   templatehistory.then(function(history) {
+    var now = (gameconfig[db] || {}).templates || {};
     for(var h of history) {
-      var v = h.old && h.old.views && h.old.views[htmlkey];
+      var old = h.old || {}, v = (old.views || {})[htmlkey];
       if(!v || typeof v.html != 'string') { continue; }
-      try { fb.tmpl = $.templates(v.html); fb.version = h.version - 1; break; } catch(e) { /* that one fails too: older */ }
+      // versions before the partials (v1, v2) had them in index.html: the current ones stand in
+      var parts = old.partials || now.partials || {};
+      if(v.html === ((now.views || {})[htmlkey] || {}).html && JSON.stringify(parts) === JSON.stringify(now.partials || {})) { continue; }
+      var suffix = '-v'+(h.version - 1);
+      try {
+        templatepartials(parts, suffix);
+        Object.keys(parts).forEach(function(name) { $.templates('#template-'+name+suffix); });
+        fb.tmpl = $.templates(templatepartialrefs(v.html, parts, suffix));
+        fb.version = h.version - 1;
+        break;
+      } catch(e) { /* that one fails too: older */ }
     }
     fb.loading = false;
     if(db != database) { return; }

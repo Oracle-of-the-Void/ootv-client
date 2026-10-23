@@ -10,7 +10,7 @@ history.
 |---|---|---|
 | **Fields** | per field: description, labels, how it's searched, whether it shows (`show`) | `fields` permission on the game (shared fields: on every game) |
 | **Game config** | this game: name and logo, the card page rows, sort and list headers, views, the search form's order, symbols | `gameconfig` permission on the game |
-| **Templates** | the master templates every game shares: one per view (Card Details, Detailed Search, Visual Spoiler, Simple List, Table, the text exports, PDF...) | site admins (full permission on every game) |
+| **Templates** | the master templates every game shares: one per view (Card Details, Detailed Search, Visual Spoiler, Simple List, Table, the text exports, PDF...), and the shared pieces the views include (the card page's top, middle and bottom, the list +/- controls, the text version button) | site admins (full permission on every game) |
 
 Fields has [its own page](field-descriptions.md). The plan behind all of this is ootv-claude
 `GAME-TEMPLATES.md`.
@@ -46,6 +46,20 @@ loads; you see it after a reload.
 `longname`, `shortname`, `headerizable`, `override` for the large sizes). **Standard views** are the
 ones every game gets unless its config removes one.
 
+**Shared pieces (partials)**, at the bottom of the View list, are parts several views include by
+name, e.g. `{{include tmpl="#template-card-top"/}}`:
+
+| Piece | What it is | Included by |
+|---|---|---|
+| `card-top` | the card page above the game's rows: images, title bar (prev/next, public lists, close, Edit), the text version and needs-review rows | Card Details |
+| `card-middle` | between the card rows and the printing rows: rulings, Rules Q&A, Versions | Card Details |
+| `card-bottom` | after the printing rows: the active lists' +/- per printing, the latest updates | Card Details |
+| `textversion` | the card page's MRP / Printed text row | `card-top` |
+| `textversionbutton` | the MRP / Printed text button itself (also the one on search and list pages) | `textversion`, the page |
+| `decklistcontrols` | a list's count and +/- under each card | Detailed Search, Visual Spoiler |
+
+A piece has its html and a `note` (what it is). Preview draws it in every view that includes it.
+
 - **Preview** draws the card in the view you're on; **Changes against the saved version** shows the
   lines you changed, and the line above the editor names every view you've changed.
 - **Save** saves every view you changed together. It first compiles every view and draws the
@@ -54,7 +68,8 @@ ones every game gets unless its config removes one.
   is false for a field the game hides (Fields, `show: "hidden"`).
 
 **If a template breaks anyway** (one that only fails on some cards), the site falls back to the
-newest earlier version of that view that works, from the history, and site admins see a note above
+newest earlier version of that view that works, from the history (with that version's shared
+pieces), and site admins see a note above
 the view ("Template search v12 failed (...): using v11"). Fix it here; the note goes once the
 broken version is replaced.
 
