@@ -528,7 +528,7 @@ inputs:
     * returns `{message, version, changed}` (`changed`: the parts that differ); history keeps the
       last 50 saves, the newest with the earlier copy (`old`) while the item stays under ~300 KB
   * templates
-    * save the master templates (`all`/`templates`: `standard`, `views`); database `all`; data and
+    * save the master templates (`all`/`templates`: `standard`, `views`, `partials`); database `all`; data and
       version as for `gameconfig`
     * site admins only: full permission on every game (`*` in `groups['*']`)
     * `changed` lists `views.<view>` for each view that changed

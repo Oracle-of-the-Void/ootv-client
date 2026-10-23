@@ -25,7 +25,9 @@ or tests. The files in this directory are exactly what gets served.
   list's `settings`, `show: "hidden"`), Game config and Templates (`gameconfigadmin.js`, loaded on first
   use; guide `docs/admin/game-config.md`), or in bulk as JSON: `python3 docs/gameconfig/push.py pull DIR
   [game]`, edit, then `push.py DIR` (dry run) and `--go` (production). A master template that fails to
-  compile or draw falls back to its newest working version from the item's history (`templatesafe`). `templates/template-*.html` (the generic views: list, text*, visual*, pdf,
+  compile or draw falls back to its newest working version from the item's history (`templatesafe`). The card page's shared pieces (`card-top`, `-middle`, `-bottom`, `textversion`,
+  `textversionbutton`, `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by
+  `templatepartials()`; nothing view-related is left in `index.html`. `templates/template-*.html` (the generic views: list, text*, visual*, pdf,
   table, debug) are still in the repo, copied into `all/templates` when it was first written.
 - Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
   `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
