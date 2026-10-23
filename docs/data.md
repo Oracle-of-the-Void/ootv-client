@@ -89,7 +89,7 @@ What each field holds is also kept on the site, for the card editor: Admin → F
 ```{imageuri}{printing.imagehash}/{printing.image[n][size]}```
 
 e.g. `https://images.oracleofthevoid.com/l5r/Promo-Gold/9774_1_details.jpg`. `imageuri` is the
-game's `templates/<game>.js` value. Until 2026-10-18 l5r and lbs printings used an older layout
+game's `info.imageuri` in its game config (`<game>/game` in `oracle-all-structure`). Until 2026-10-18 l5r and lbs printings used an older layout
 (`printimagehash`, files `<hash>/printing_<cardid>_<printingid>_<size>.jpg`, plus a card-level
 `<imagehash>/card_<cardid>__icon.jpg`); no card uses it any more, and the client no longer reads it.
 Details and how to trace an old URL or field: ootv-claude `DEPRECATED.md`.

@@ -2,8 +2,8 @@
 # Stamps the checkout with a deploy version before deploy.yml syncs it to S3:
 # - local .js/.css references in the top-level *.html pages get ?v=<version>, so their
 #   files can be cached for a year (immutable) and a deploy still changes their URLs
-# - var ootvversion in index.html, which oracle.js appends to runtime loads (templates,
-#   pica) and compares with version.json to offer a reload when a newer deploy is live
+# - var ootvversion in index.html, which oracle.js appends to runtime loads (cardeditor.js,
+#   pica, ...) and compares with version.json to offer a reload when a newer deploy is live
 # - version.json: the version and the deploy time (UTC), which the admin page shows
 # Unstamped (local testing), ootvversion stays 'dev' and the reload check is off.
 set -euo pipefail
