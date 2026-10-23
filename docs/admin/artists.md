@@ -17,6 +17,7 @@ its note. Type in the filter to narrow it by name, link or note; the menu beside
   add the links, or change the note to say there's no match.
 - **No links, not an alias**: credits we found nothing for.
 - **Aliases**: credits that are the same person as another credit.
+- **Not an alias**: every main entry, the ones that hold links.
 
 Click a credit to open its entry above the list. On a card, an admin also gets **Edit this entry**
 in the artist box, which opens it here.

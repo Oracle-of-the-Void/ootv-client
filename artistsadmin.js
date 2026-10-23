@@ -41,7 +41,7 @@ function artistsshow() {
       'oninput="artistsadmin.filter = this.value; artistsrows();" /> '+
       '<select id="artistsonly" onchange="artistsadmin.only = this.value; artistsrows();">'+
       [['', 'All entries'], ['review', 'Waiting for review ('+count(artistsreview)+')'], ['nolinks', 'No links, not an alias ('+count(a => !a.aliasof && !(a.links || []).length)+')'],
-       ['alias', 'Aliases ('+count(a => a.aliasof)+')']]
+       ['alias', 'Aliases ('+count(a => a.aliasof)+')'], ['notalias', 'Not an alias ('+count(a => !a.aliasof)+')']]
         .map(o => '<option value="'+o[0]+'"'+(artistsadmin.only == o[0] ? ' selected' : '')+'>'+o[1]+'</option>').join('')+
       '</select> '+
       (allowed ? '<input type="button" value="New entry" onclick="artistsform(null);" />' : '')+
@@ -64,6 +64,7 @@ function artistsrows() {
     if(only == 'review' && !artistsreview(a)) { return false; }
     if(only == 'nolinks' && (a.aliasof || (a.links || []).length)) { return false; }
     if(only == 'alias' && !a.aliasof) { return false; }
+    if(only == 'notalias' && a.aliasof) { return false; }
     if(!q) { return true; }
     return [a.name, a.aliasof, a.fandom, a.note].concat((a.links || []).map(l => l.url+' '+l.label))
       .some(s => s && s.toLowerCase().includes(q));
