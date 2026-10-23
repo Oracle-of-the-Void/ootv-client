@@ -1,9 +1,10 @@
 # Rulings
 
-Last updated: 2026-10-21
+Last updated: 2026-10-22
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
+Answers the rules team gave on the mailing lists are a second field, `rulingref` ("Rules Q&A", below).
 
 ## What it looks like
 
@@ -71,3 +72,42 @@ card has none, then **+ value** for each ruling. The **x** on a value removes th
 ## Search
 
 Advanced search has a **Rulings** text box that searches the ruling text (link text included).
+
+## Rules Q&A (`rulingref`)
+
+`rulingref` is a second card-level field, in every game, for the rules team's answers to players'
+questions, kept apart from `ruling` because there are many of them and they're informal: answers as
+they stood on the day, some later reversed or folded into the Rules Archive. Same shape as `ruling`
+(HTML strings), each entry the question and the answer, then a link to where it was given:
+
+```json
+"rulingref": [
+  "<b>Q:</b> There is some talk that ... the second card fills face up.<br><b>A:</b> Well, technically, it doesn't refill face-up. It fills normally, then it's revealed. <a href=\"https://images.oracleofthevoid.com/l5r/rulings-mail/2004-08-31-2045-ml.html#r5-0\">Martin Lund, \"Rules for 26 August 2004\", 31 Aug 2004</a>"
+]
+```
+
+On the card's details page a **Rules Q&A** row shows a button with the count ("14 answers from the
+rules team"). It opens the list in a popup; clicking an answer opens its source there, scrolled to the
+answer, with **Back to the list** and **Open in a new tab** (Ctrl/Cmd-click opens it in a new tab
+straight away). Newest answers come first.
+
+### L5R: the rules digests (2000–2006)
+
+The L5R entries come from the rules team's digests on the l5r-ccg and l5r-useful mailing lists ("Rules
+for <date>", "post for <date>": Jeff Alexander, Zen Faulkes, Martin Lund, Vaughn Derderian). Each digest is
+copied, whole, to a page under `https://images.oracleofthevoid.com/l5r/rulings-mail/` (an index of all
+1,086 is `index.html` there), with previous/next links between digests. Each answer on a page has its own
+anchor (`#r<n>-<n>`), marked when a link opens it, and lists the cards it went onto. The askers'
+names (From: lines, "... wrote:") are left out.
+
+Which answers went onto cards: the question names one to three cards (a title written as on the card;
+rules words that are also titles, like Overwhelmed or The Imperial Favor, don't count), the answer
+isn't a holding answer ("I'll check with Jeff"), and the card doesn't already have the same ruling from
+the Rules Archive (same rules person, within a week). The answer goes to each card with that title printed
+by the digest's date; when that's several cards, each also gets a `needsreview` note saying so. Everything
+else, chatter included, stays only in the digests.
+
+The pages and the card entries are made by ootv-import `SCRIPTS/email-qa.py`, `email-plan.py` and
+`email-digests.py` from the threaded mail archive (project `rules-forum-rulings`).
+
+Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.

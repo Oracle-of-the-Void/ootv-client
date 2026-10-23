@@ -149,6 +149,7 @@ searchables['l5r'] = {
     "paper": { "type": "require", "field": "legality", "value": "Paper" },
     "printing.legality":{"type":"hidden","reverse":true},
   "ruling": { "type": "text", "advanced": true },
+  "rulingref": { "type": "text", "advanced": true },
   "needsreview": { "type": "exists", "advanced": true, "maint": true }
 };
 
@@ -183,6 +184,7 @@ labels['l5r'] = {
     "tagnotes":		"Notes",               "shortnotes": "Notes",
     "tagpublisher": "Publisher",  "shortpublisher": "Pub",
   "tagruling": "Rulings", "shortruling": "Rulings",
+  "tagrulingref": "Rules Q&A", "shortrulingref": "Rules Q&A",
   "tagneedsreview": "Needs review", "shortneedsreview": "Needs review"
 };
 
