@@ -53,34 +53,15 @@ function cardeditfetch(db,cardid) {
   });
 }
 
-// The order and grouping of the card page (templates/template-<game>-card.html): each <dt>...</dd>
-// row is a group of fields (F/C, HR/Cost/PH, Publisher and its URL), card fields before
-// template-card-middle, printing fields after. Words in the row's {{...}} tags that aren't fields
-// (if, join, converters) are dropped when the order is used. Never fails: no template, no order.
+// The order and grouping of the card page: the game config's card page rows (<game>/game rows), each
+// row a group of fields (F/C, HR/Cost/PH, Publisher and its URL), card rows and printing rows apart.
+// A row's fields and its else row's stay together. Never fails: no game config, no order.
 var cardeditorder = {};
 function cardeditloadorder(db) {
   if(cardeditorder[db]) { return Promise.resolve(cardeditorder[db]); }
-  if(typeof gameconfig !== 'undefined' && gameconfig[db]) {
-    // a structure-driven game: its card page rows (a row's fields, its else row's too, stay together)
-    var flat = r => r.fields.concat(r.else ? flat(r.else) : []);
-    var rows = gameconfig[db].game.rows;
-    return Promise.resolve(cardeditorder[db] = {card: (rows.card || []).map(flat), printing: (rows.printing || []).map(flat)});
-  }
-  return Promise.resolve($.ajax({url: 'templates/template-'+db+'-card.html?v='+ootvversion, dataType: 'text', cache: true}))
-    .then(function(text) {
-      var at = text.indexOf('template-card-middle');
-      var parts = at >= 0 ? [text.slice(0,at), text.slice(at)] : [text, ''];
-      var groups = parts.map(part => (part.match(/<dt>[\s\S]*?<\/dd>/g) || []).map(function(row) {
-        var names = [];
-        (row.match(/\{\{[\s\S]*?\}\}/g) || []).forEach(function(tag) {
-          tag.replace(/~[\w.]+/g,' ').replace(/"[^"]*"|'[^']*'/g,' ').replace(/\.\w+/g,' ')
-             .replace(/[A-Za-z_]\w*/g, function(w) { if(!names.includes(w)) { names.push(w); } return w; });
-        });
-        return names;
-      }));
-      return cardeditorder[db] = {card: groups[0], printing: groups[1]};
-    })
-    .catch(() => cardeditorder[db] = {card: [], printing: []});
+  var rows = (typeof gameconfig !== 'undefined' && gameconfig[db]) ? gameconfig[db].game.rows : {};
+  var flat = r => r.fields.concat(r.else ? flat(r.else) : []);
+  return Promise.resolve(cardeditorder[db] = {card: (rows.card || []).map(flat), printing: (rows.printing || []).map(flat)});
 }
 
 function cardediterr(e) {

@@ -7,8 +7,7 @@ or tests. The files in this directory are exactly what gets served.
 
 - `index.html` is the single page. It loads jQuery and lodash from CDNs, plus local
   `chosen.jquery.min.js`/`chosen.min.css` (vendored Chosen 1.8.7; the CSS needs the
-  `chosen-sprite*.png` files beside it), `jsviews.min.js`, `amazon-cognito-auth.min.js`
-  and the per-game `templates/<game>.js`.
+  `chosen-sprite*.png` files beside it), `jsviews.min.js` and `amazon-cognito-auth.min.js`. No game has files of its own (below).
 - `oracle.js` (~2500 lines, global functions and `var`s) holds all app logic: Cognito
   login, search (`dosearch`), card view (`docard`), lists/decks (`listinfo`,
   `addlistitem`, `renderlist`), PDF proxies (`createpdf`),
@@ -25,10 +24,11 @@ or tests. The files in this directory are exactly what gets served.
   list's `settings`, `show: "hidden"`), Game config and Templates (`gameconfigadmin.js`, loaded on first
   use; guide `docs/admin/game-config.md`), or in bulk as JSON: `python3 docs/gameconfig/push.py pull DIR
   [game]`, edit, then `push.py DIR` (dry run) and `--go` (production). A master template that fails to
-  compile or draw falls back to its newest working version from the item's history (`templatesafe`). The card page's shared pieces (`card-top`, `-middle`, `-bottom`, `textversion`,
-  `textversionbutton`, `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by
-  `templatepartials()`; nothing view-related is left in `index.html`. `templates/template-*.html` (the generic views: list, text*, visual*, pdf,
-  table, debug) are still in the repo, copied into `all/templates` when it was first written.
+  compile or draw falls back to its newest working version from the item's history (`templatesafe`). The card
+  page's shared pieces (`card-top`, `-middle`, `-bottom`, `textversion`, `textversionbutton`,
+  `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by `templatepartials()`;
+  nothing view-related is left in `index.html`. The old `templates/` directory (per-game `.js`, per-game
+  and generic `.html` views) is gone: ootv-claude `DEPRECATED.md`.
 - Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
   `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
   the first S&M export; a printing S&M files under another edition carries its own code in the
@@ -93,10 +93,9 @@ or tests. The files in this directory are exactly what gets served.
 Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stamps the
 checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
 `var ootvversion` in `index.html` gets the sha, and it writes `version.json` (the sha plus a UTC
-`timestamp`, shown on the admin page with when this browser cached each select). `.js`, `.css` and
-`templates/*` are then served `immutable` for a year, the pages, `version.json` and `docs/admin`
+`timestamp`, shown on the admin page with when this browser cached each select). `.js` and `.css` are then served `immutable` for a year, the pages, `version.json` and `docs/admin`
 as `no-cache`, and images for a day. So anything new that `oracle.js` loads at runtime from
-this repo needs `'?v='+ootvversion` on its URL (see the template, snm and pica loads), or
+this repo needs `'?v='+ootvversion` on its URL (see the cardeditor.js, help.js and pica loads), or
 browsers keep a stale copy for a year. CloudFront ignores query strings, so the deploy
 uploads assets, invalidates and waits (the deploy roles need `cloudfront:GetInvalidation`),
 then uploads the pages. A tab left open across a deploy checks `version.json` when it comes
