@@ -170,7 +170,9 @@ The **Imperial Herald**, AEG's fan club magazine (ootv-games `game-l5r/imperial-
 Archive; its README), list `rulebooks/l5r-newsletters.json` in ootv-import: 55 issues, ids
 `imperial-herald-01`…`17` (the first series, 1995–2000: Vol. 1 #1–4, Vol. 2 #1–3 = issues 5–7, then issues
 8–17), `imperial-herald-v2-01`…`25` (2001–2009), `imperial-herald-v3-01`…`10` (2009–2012) and three 2013–14
-special editions. Type `Imperial Herald`; the books come from `searchable/` (the scans with an OCR text layer),
+special editions. Type `Imperial Herald`; tags `Vol. 1` (the whole first series, issues 1–17, though 5–7 were
+printed as Vol. 2 #1–3), `Vol. 2`, `Vol. 3`, `Special Edition`, and `Rulings` on the issues with FAQ Q&A,
+accumulated rulings or errata (1, 3–17 and Vol. 2 #4; the user, 2026-10-23); the books come from `searchable/` (the scans with an OCR text layer),
 so the text is uncorrected OCR. Years come from each issue's text (dates, copyright lines), not a cover date.
 Vol. 3 #3 is the 16-page scan, with the 5-page digital file as a second download.
 
