@@ -21,6 +21,7 @@ $.views.helpers("sortprintings",templatesortprintings);
 $.views.helpers("printingidfromset",templateprintingidfromset);
 $.views.helpers("listqty",listquantity);
 $.views.helpers("hasval",templatehasval);
+$.views.helpers("gamerows",function(data,place) { return gamerows(data,place); });
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -6001,6 +6002,172 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
     return prdata[data];
 }
 
+// ******************** GAME CONFIG (structure-driven games) ********************
+// A game with a <game>/game item in oracle-all-structure is drawn from it (ootv-claude GAME-TEMPLATES.md §2):
+// GET /gameconfig returns the game config, its field list (fields items: settings) and the master templates
+// (all/templates), and gameconfigapply() fills the same globals templates/<game>.js fills for the others
+// (dbinfo, searchables, labels, templates, databasesort, headerize, updates), so the rest of the page is the
+// same for both. The answer is kept in localStorage: a stored copy is used at once and the fresh one, if its
+// version changed, from the next page load. A game without the item (or the API unreachable on a first
+// visit) keeps its templates/<game>.js.
+var gameconfig = {};
+function gameconfigload(db, ready) {
+  var stored = cache_thing('gameconfig', db);
+  var started = false;
+  var start = function() { if(!started) { started = true; ready(); } };
+  if(stored && stored.game) {
+    try { gameconfigapply(db, stored); } catch(e) { console.log(['stored game config failed', e]); delete gameconfig[db]; }
+    start();
+  }
+  $.ajax({url: apiuri+'/gameconfig', data: {database: db}, dataType: 'json', timeout: 10000,
+    success: function(conf) {
+      if(!stored || stored.version !== conf.version) {
+        cache_thing('gameconfig', db, conf);
+      }
+      if(!started) {
+        if(conf.game) {
+          try { gameconfigapply(db, conf); } catch(e) { console.log(['game config failed', e]); delete gameconfig[db]; }
+        }
+        start();
+      }
+    },
+    error: function() { start(); }
+  });
+}
+// the field list's settings, the game's over the shared ones (all/fields)
+function gameconfigsettings(conf) {
+  var all = ((conf.fields || {}).all || {}).settings || {}, game = ((conf.fields || {}).game || {}).settings || {};
+  return {card: Object.assign({}, all.card, game.card), printing: Object.assign({}, all.printing, game.printing)};
+}
+function gameconfigapply(db, conf) {
+  var g = conf.game, settings = gameconfigsettings(conf);
+  dbinfo[db] = g.info;
+  var lab = {};
+  ['card','printing'].forEach(function(lvl) {
+    Object.keys(settings[lvl]).forEach(function(f) {
+      if(settings[lvl][f].label !== undefined) { lab['tag'+f] = settings[lvl][f].label; }
+      if(settings[lvl][f].short !== undefined) { lab['short'+f] = settings[lvl][f].short; }
+    });
+  });
+  Object.keys(g.labels || {}).forEach(function(f) {
+    if(g.labels[f].label !== undefined) { lab['tag'+f] = g.labels[f].label; }
+    if(g.labels[f].short !== undefined) { lab['short'+f] = g.labels[f].short; }
+  });
+  labels[db] = lab;
+  // the search form, in the game's order; a field searched under the card key (l5r artist) is on printings
+  var sea = {};
+  if(g.quick !== null && g.quick !== undefined) { sea.quick = g.quick; }
+  (g.search || []).forEach(function(k) {
+    var f = k.replace(/^printing\./,''), first = k.indexOf('printing.') == 0 ? 'printing' : 'card';
+    var s = (settings[first][f] || {}).search || (settings[first == 'card' ? 'printing' : 'card'][f] || {}).search;
+    if(s) { sea[k] = s; }
+  });
+  searchables[db] = sea;
+  var views = conf.templates.views, keys = conf.templates.standard.filter(function(k) { return !g.views.remove.includes(k); }).concat(g.views.add);
+  var available = {};
+  keys.forEach(function(k) { if(views[k]) { available[k] = views[k]; } });
+  templates[db] = {'available': available, 'default': g.default, 'compiled': {}, 'active': {}, 'sort': {'search': ''}};
+  databasesort[db] = {deck: gamesort(g.sort || {})};
+  headerize[db] = {deck: gameheaders(g.headers || ['type'])};
+  updates[db] = gamesymbols(g.symbols || []);
+  gameconfig[db] = conf;
+}
+// the "deck" list sort: the group field (deck) with its priority values first, then the other groups by name,
+// then type, then title
+function gamesort(s) {
+  var group = s.group, first = s.first || [];
+  var j = function(v) { return [].concat(v === undefined || v === null ? [] : v).join(); };
+  var cmp = function(x, y) { return x > y ? 1 : (y > x ? -1 : 0); };
+  return function(a, b) {
+    if(group) {
+      var ga = j(a[group]), gb = j(b[group]);
+      for(var f of first) {
+        if(ga == f && gb != f) { return -1; }
+        if(gb == f && ga != f) { return 1; }
+      }
+      if(ga != gb) { return cmp(ga, gb); }
+    }
+    return cmp(j(a.type), j(b.type)) || cmp(j(a.title), j(b.title));
+  };
+}
+// list headers for the "deck" sort: one level (type) or two (deck, then type within it), with copies and
+// distinct cards counted; a card without the field heads "Other"
+function gameheaders(headers) {
+  var j = function(c, f) { return [].concat(c[f] === undefined || c[f] === null ? [] : c[f]).join() || 'Other'; };
+  return function(listdata) {
+    var top = headers.length > 1 ? headers[0] : null, sub = headers[headers.length-1];
+    var sums = {}, counts = {};
+    var add = function(k, q) { sums[k] = (sums[k] || 0) + q; counts[k] = (counts[k] || 0) + 1; };
+    listdata.forEach(function(c) {
+      if(top) { add('t\u0000'+j(c, top), c.listquantity); }
+      add('s\u0000'+(top ? j(c, top) : '')+'\u0000'+j(c, sub), c.listquantity);
+    });
+    var lasttop = null, lastsub = null, out = [];
+    listdata.forEach(function(c) {
+      if(top && j(c, top) !== lasttop) {
+        lasttop = j(c, top);
+        lastsub = null;
+        out.push({cardid: 0, title: lasttop+" - ("+sums['t\u0000'+lasttop]+") ["+counts['t\u0000'+lasttop]+" distinct]", decktitle: true});
+      }
+      if(j(c, sub) !== lastsub) {
+        lastsub = j(c, sub);
+        var k = 's\u0000'+(top ? lasttop : '')+'\u0000'+lastsub;
+        out.push({cardid: 0, subtitle: lastsub+" - ("+sums[k]+") ["+counts[k]+" distinct]", typetitle: true});
+      }
+      out.push(c);
+    });
+    return out;
+  };
+}
+// the game's symbol tokens ([regex source, html], e.g. ":g1:") replaced in the drawn results
+function gamesymbols(symbols) {
+  var res = symbols.map(function(s) { return [new RegExp(s[0], 'g'), s[1]]; });
+  return function(area) {
+    if(!res.length) { return; }
+    $(area+" .listbody").html(function(index, html) {
+      return res.reduce(function(h, r) { return h.replace(r[0], r[1]); }, html);
+    });
+  };
+}
+// ~gamerows(data, place): the game's rows for the card page ('card'), each printing ('printing') or a
+// search result ('detail'). A row: {fields, label | labelfields, sep, join, wrap, wraps, when, else, helper,
+// ddclass}; label false draws the value on its own line (no <dt>).
+function gamerows(data, place) {
+  var conf = gameconfig[database];
+  if(!conf || !data) { return ''; }
+  return (conf.game.rows[place] || []).map(function(r) { return gamerow(data, r); }).join('\n');
+}
+var gamerowhelpers = {
+  sortlegality: function(v) { return templatesortlegality(v || []).join(' &#149; '); },
+  soultitle: function(v) { return soultitle(v); },
+  makelinks: function(v) { return templatemakelinks(v); }
+};
+function gamerow(data, r) {
+  var has = function(f) { return templatehasval(data[f]); };
+  var when = r.when || 'any';
+  var show = when == 'always' || (when == 'any' ? r.fields.some(has) : when == 'all' ? r.fields.every(has) : has(when));
+  if(!show) {
+    return r.else ? gamerow(data, r.else) : '';
+  }
+  var lab = labels[database] || {};
+  var vals = r.fields.map(function(f, i) {
+    var v = data[f];
+    if(r.helper) {
+      v = gamerowhelpers[r.helper](v, data);
+    } else {
+      v = (v === undefined || v === null) ? '' : (Array.isArray(v) ? v.join(r.join !== undefined ? r.join : ',') : String(v));
+    }
+    var cls = r.wraps && r.wraps[i];
+    return cls ? '<span class="'+cls+'">'+v+'</span>' : v;
+  });
+  var v = vals.join(r.sep !== undefined ? r.sep : ' ');
+  if(r.wrap) { v = '<span class="'+r.wrap+'">'+v+'</span>'; }
+  if(r.label === false) { return v+'<br />'; }
+  var label = r.label !== undefined ? r.label :
+      (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/');
+  return '<dt>'+label+'</dt><dd'+(r.ddclass ? ' class="'+r.ddclass+'"' : '')+'>'+v+'</dd>';
+}
+
 function activatetemplate(type,template) {
   templates[database]['active'][type] = template;
   // a card or visual template sets that view's size toggle
@@ -6403,6 +6570,11 @@ $(document).ready(function(){
     finishloginpopup();
     return;
   }
+  // a game drawn from its structure config (/gameconfig) has it applied before anything else runs
+  gameconfigload(database, startpage);
+});
+
+function startpage() {
   // TODO: doing double-load of lists when startup
   // per-game search state first: a cached login (a reload) runs the login callback below at once, and it needs these
   //TODO:  put some stuff in here into functions.   make sure order optimized.
@@ -6460,28 +6632,18 @@ $(document).ready(function(){
   // TODO: check for premium
   $.each(templates[database]['available'],function(key,val) {
 	  console.log("initiating template load: "+key);
+	  if(gameconfig[database]) {
+	    // the master templates come with the game config (all/templates); a premium view uses its base view's html
+	    var base = (val.override && val.override.templatekey) ? gameconfig[database].templates.views[val.override.templatekey] : val;
+	    templateloaded(key, val, base.html);
+	    return;
+	  }
 	  $.ajax({
 	    url: "templates/template-"+(val.generic?'':(database+"-"))+((val.override&&val.override.templatekey)?val.override.templatekey:key)+".html?v="+ootvversion,
 	    type: "GET",
 	    datatype: 'text',
 	    cache: true,
-	    success: function(contents) {
-		    $("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
-		    templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
-		    for (k of ['search','card','list']) {
-		      if(key == templates[database]['default'][k]) {
-			      templates[database]['active'][k] = key;
-		      }
-		    }
-		    for (type of templates[database]['available'][key].places) {
-		      updatemenubar(type);
-		    }
-		    // reference like:   templates[database]['compiled'][templates[database].active.search]
-        /*		if(Object.keys(templateload[database]['search'])[0] == key) {
-		          searchtemplate[database] = $.templates(["#template",key,database].join("-"));
-		          templateactive[database]['search'] = key;
-		          }  */
-	    }
+	    success: function(contents) { templateloaded(key, val, contents); }
 	  });
   });
 
@@ -6528,7 +6690,22 @@ $(document).ready(function(){
   //    $('.document').bind("DOMSUbtreeModified",chosenify);
   //    chosenify();
 
-});
+}
+
+// a view's template html arrived (its file, or the game config): compile it, and make it active where
+// it's the view's default
+function templateloaded(key, val, contents) {
+  $("#all_template").append('<script id="template-'+(val.generic?'':(database+"-"))+key+'" type="text/x-jsrender">'+contents+'</script>');
+  templates[database]['compiled'][key] = $.templates("#template-"+(val.generic?'':(database+"-"))+key);
+  for (k of ['search','card','list']) {
+    if(key == templates[database]['default'][k]) {
+      templates[database]['active'][k] = key;
+    }
+  }
+  for (type of templates[database]['available'][key].places) {
+    updatemenubar(type);
+  }
+}
 
 function chosenify() {
     console.log("chosenify");
