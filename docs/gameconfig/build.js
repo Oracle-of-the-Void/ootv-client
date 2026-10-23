@@ -76,6 +76,8 @@ for (const g of games) {
     if (fieldnames.has(name)) entry(level(name), name)[prop] = lab[k];
     else (extra[name] = extra[name] || {})[prop] = lab[k];
   }
+  // labels the old file lacked, for fields the rows now show (fieldlabels: {field: {label, short}})
+  for (const [name, l] of Object.entries(conf.fieldlabels || {})) Object.assign(entry(level(name), name), l);
   const avail = Object.keys(t.available);
   write(g + '-game.json', {
     info: ctx.dbinfo[g], quick: sea.quick === undefined ? null : sea.quick, search, labels: extra,
