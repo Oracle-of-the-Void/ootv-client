@@ -1952,8 +1952,8 @@ span.dirmenucell, span.dirmenucell nav, span.dirmenucell nav > ul, span.dirmenuc
   display: block;
   z-index: 4;
 }
-/* the card title bar's white title font doesn't carry into the menu */
-div.directorycard .dircardhead ul.dirlistmenu {
+/* the white title font of a card title bar or the list view's header (div.upperhead) doesn't carry into the menu */
+div.directorycard .dircardhead ul.dirlistmenu, div.listviewheader ul.dirlistmenu {
   color: black;
   font-size: medium;
   font-weight: normal;
