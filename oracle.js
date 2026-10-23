@@ -5208,12 +5208,12 @@ function artistmodal(el) {
   artistinfo[name] = artistinfo[name] || $.ajax({url: apiuri+'/artist', data: {name: name}, dataType: 'json', timeout: 10000});
   artistinfo[name].done(function(a) {
     var links = (a.links || []).filter(l => /^https?:\/\//.test(l.url));
-    $('#modal .artistlinks').html(links.length ? '<ul>'+links.map(function(l) {
+    $('#modal .artistlinks').html((links.length ? '<ul>'+links.map(function(l) {
       var host = l.url.replace(/^https?:\/\/(www\.)?/,'').replace(/[\/?#].*$/,'');
       if(l.archived) { host = 'web.archive.org'; }
       return '<li><a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.label || host)+'</a> <span class="artisthost">'+
         esc(host)+(l.archived ? ', archived copy' : '')+'</span></li>';
-    }).join('')+'</ul>' : '<p class="artisthost">No links known for this artist.</p>');
+    }).join('')+'</ul>' : '')+((a.note || !links.length) ? '<p class="artisthost">'+esc(a.note || 'No links known for this artist.')+'</p>' : ''));
   }).fail(function() {
     delete artistinfo[name];
     $('#modal .artistlinks').html('<p class="artisthost">No links known for this artist.</p>');
