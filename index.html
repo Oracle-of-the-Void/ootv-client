@@ -283,6 +283,7 @@
     <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game) &middot;
         <a href="" onclick="loadsetimport('importprofilesopen'); return false">Import profiles</a></li>
     <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
+    <li><a href="" onclick="loadartistsadmin(); return false">Artists</a> (links and notes in the artist modal; every game)</li>
     <li><a href="" onclick="loadfielddescs(); return false">Fields</a> (descriptions and the field list: labels, search, show; this game, or shared)</li>
     <li><a href="" onclick="loadgameconfigadmin('game'); return false">Game config</a> (this game: card page rows, sort, views, symbols) &middot;
         <a href="" onclick="loadgameconfigadmin('templates'); return false">Templates</a> (every game; site admins)</li>
@@ -299,11 +300,13 @@
         <li><a href="" onclick="loadadmindoc('rulebooks'); return false">Bookshelf (rulebooks, newsletters)</a></li>
         <li><a href="" onclick="loadadmindoc('rulings'); return false">Rulings on cards</a></li>
         <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
+        <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
       </ul>
     </li>
   </ul>
   <div id="loginlog"></div>
   <div id="discordadmin" class="discordadmin"></div>
+  <div id="artistsadmin" class="discordadmin artistsadmin"></div>
   <div id="admindoc" class="admindoc"></div>
   <div id="massimage" class="massimage"></div>
   <div id="setimport" class="setimport"></div>
