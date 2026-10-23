@@ -105,8 +105,9 @@ rules words that are also titles, like Overwhelmed or The Imperial Favor, don't 
 isn't a holding answer ("I'll check with Jeff"), and the card doesn't already have the same ruling from
 the Rules Archive (same rules person, within a week). The answer goes to each card with that title printed
 by the digest's date. When the question marks the version ("XP Yasuki Hachi", "Hachi XP2", "Wayan exp 2",
-"non-XP": XP is how players wrote Experienced), only that version gets it; when it's still several cards,
-each also gets a `needsreview` note saying so. Everything else, chatter included, stays only in the digests.
+"non-XP": XP is how players wrote Experienced), only that version gets it. Otherwise, when the question and
+answer clearly echo one version's own card text (words the other versions' texts don't have), that version
+gets it; when it's still several cards, each also gets a `needsreview` note saying so. Everything else, chatter included, stays only in the digests.
 After a change to the scripts the cards are re-synced (ootv-backups `add-rulings.py --sync`), which replaces
 only the entries linking to the digests.
 
