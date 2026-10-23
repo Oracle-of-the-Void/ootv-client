@@ -617,8 +617,12 @@ div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
 dl.helpfields dd { margin-left: 16px; }
-.helpq { display: inline-block; width: 15px; height: 15px; line-height: 15px; text-align: center; border-radius: 50%;
-  background: #69c; color: #fff; font-size: 11px; font-weight: bold; cursor: help; vertical-align: middle; user-select: none; }
+.helpq { font-size: 70%; font-weight: bold; color: #369; vertical-align: super; line-height: 1; margin-left: 1px;
+  cursor: help; user-select: none; }
+/* a label with a "?" (dt::after adds its colon): the colon first, then the "?" */
+dt:has(> .helpq) { display: flex; justify-content: flex-end; align-items: baseline; }
+dt:has(> .helpq)::after { order: 1; }
+dt > .helpq { order: 2; }
 #traitpop .helppeek { max-height: 50vh; overflow: hidden; }
 #traitpop .helppeek > :first-child { margin-top: 0; }
 #traitpop.traitpoptouch .helppeek { max-height: none; }
