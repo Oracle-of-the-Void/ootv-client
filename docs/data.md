@@ -52,7 +52,14 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
   so S&M shows its default printing. Leave it out when the set's code is right. ootv-search's
   `/import` reads it back. Bulk values come from `docs/snm/snm-map.py` through
-  ootv-tools `printings/snm-printings.py`; edit one by hand in the card editor.
+  ootv-tools `printings/snm-printings.py`; edit one by hand in the card editor. A printing S&M
+  doesn't have (starter reprints, The L5R Experience, ...) gets the code of the card's most recent
+  earlier printing S&M does have.
+* printing.titletextsnm (optional, l5r, array of one string). The card name the S&M export writes
+  for this printing, where S&M files it under another card than the card's own S&M name: e.g.
+  Marketplace's pre-Imperial to Jade printings (and the starter reprints that borrow them) are
+  `["Market Place"]` in S&M. Wins over the card's `titletextsnm`/`puretexttitle`/`title` in the S&M
+  export only; `/import` matches it too. Written with `snmsetcode` by the same scripts.
 * printing.image (array, one entry per image, front first). Each entry names the files of one image
   in the printing's `imagehash` directory:
  * ```json
