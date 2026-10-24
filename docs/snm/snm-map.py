@@ -11,14 +11,14 @@ Output:
   printings  "cardid/printingid" -> code, only where the set's code is wrong for that
              printing: the code S&M uses instead, or "" to write no set and let S&M
              show its default printing. These live on the cards, as the printing field
-             `snmsetcode` (ootv-backups/snm-printings.py writes them).
+             `snmsetcode` (ootv-tools/printings/snm-printings.py writes them).
 
 Usage (paths default to the workspace layout):
   python3 -I docs/snm/snm-map.py [S&M database.xml] [dir of per-card l5r JSON]
 
 The file isn't served. The site reads the set codes from the oracle-all-structure item l5r/snm
 (push them with docs/snm/snm-push.py --go) and the printing codes from the cards
-(ootv-backups/snm-printings.py --go).
+(ootv-tools/printings/snm-printings.py --go).
 """
 import collections, html, json, os, re, sys
 import xml.etree.ElementTree as ET
@@ -122,4 +122,4 @@ open(OUT, 'w').write(text)
 print(f"{len(sets)} sets, {len(printings)} printing overrides "
       f"({sum(1 for v in printings.values() if not v)} with no set) -> {os.path.relpath(OUT)}")
 print("then: python3 docs/snm/snm-push.py --go (set codes -> structure item l5r/snm) and")
-print("      ../ootv-backups/snm-printings.py --go (printing codes -> the cards' snmsetcode)")
+print("      ../ootv-tools/printings/snm-printings.py --go (printing codes -> the cards' snmsetcode)")

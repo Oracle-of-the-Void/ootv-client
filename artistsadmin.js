@@ -53,7 +53,7 @@ function artistsshow() {
   if(artistsadmin.edit !== null) { artistsform(artistsadmin.edit); }
 }
 
-// an entry whose note says a possible match is waiting for review (ootv-backups artist-links extra.py MAYBE)
+// an entry whose note says a possible match is waiting for review (ootv-tools artists/links extra.py MAYBE)
 function artistsreview(a) {
   return /waiting for review/i.test(a.note || '');
 }
