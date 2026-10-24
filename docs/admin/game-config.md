@@ -33,6 +33,15 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
 - `symbols`: `[pattern, html]` pairs, the text tokens drawn as icons (L5R `:g1:`...).
+- `discord`: how the Discord bot shows this game's cards: `name` (in replies, e.g. "7th Sea"),
+  `color` (`"#b22222"`), `typeline` (fields under the title), `stats` (`[field, label]` pairs on one
+  line), `text` (`[field, label or null, unitfield]` blocks), `footer` (`[field, label]` after the
+  printing), `paper` (true: the `paper:` option works) and `search` (the bot's field options this
+  game takes: set, rarity, type, clan, keywords, text, legality). A game without it isn't offered in
+  the bot. The bot picks up a save within 5 minutes; a new game also needs the bot's commands
+  registered again (ootv-discord `register-commands.js`).
+- `publiclists`: `{fields: [...]}`, the card fields copied into each public list for its search
+  (L5R: type, deck, clan; default: type).
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
