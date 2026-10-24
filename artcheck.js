@@ -7,6 +7,7 @@
 var artcheckpoll = {};     // target element id -> timer of the job being waited for
 var artcheckpictures = {}; // job id -> the uploaded picture (a data URL), shown with its result while the page is open
 var ARTCHECK_LONG = 1600;  // an upload's long side, as Search by photo (artphoto.js)
+var ARTCHECK_IMAGES = 'https://images.oracleofthevoid.com/';   // + a known signature's path + file
 
 function artcheckapi(action, data) {
   return Promise.resolve($.ajax({
@@ -136,6 +137,24 @@ function artcheckpicks(job) {
   return out;
 }
 
+// the signature found in the art, zoomed, and known signatures of the likely artists beside it
+// (the catalogue: images site artists/<slug>/signatures/, ootv-tools artists/signatures/)
+function artchecksignatures(sig) {
+  var known = sig.known || [], html = '';
+  if(sig.where && sig.where.crop) {
+    html += '<div class="artchecksigfound"><img src="'+artcheckesc(sig.where.crop)+'" alt="signature" /><div class="artchecknote">Found in the art'+
+      (sig.where.read ? ': read as "'+artcheckesc(sig.where.read)+'"' : '')+'. Compare the hand with the known signatures.</div></div>';
+  }
+  if(!known.length) { return html; }
+  var rows = known.map(k => '<div class="artchecksigartist"><b>'+artcheckesc(k.artist)+'</b>'+
+    (k.match ? ' <span class="artcheckstrong">(the reading matches)</span>' : '')+
+    ' <span class="artchecknote">'+k.samples.length+' of '+k.count+'</span><div class="artchecksigstrip">'+
+    k.samples.map(m => '<a href="'+artcheckesc(location.pathname+statehash({'view': 'card', 'cardid': m.cardid, 'prid': m.printingid}))+'" target="_blank"'+
+      ' title="'+artcheckesc(m.title+' ('+String(m.set || '').replace(/&amp;/g,'&').replace(/&ndash;/g,'–')+')')+'">'+
+      '<img src="'+artcheckesc(ARTCHECK_IMAGES+k.path+m.file)+'" alt="'+artcheckesc(m.title)+'" loading="lazy" /></a>').join('')+'</div></div>').join('');
+  return html+'<details class="artchecksigknown"'+(sig.where ? ' open' : '')+'><summary>Known signatures</summary>'+rows+'</details>';
+}
+
 // one finished job as HTML; pick (the card editor's instance id) adds the artist checkboxes
 function artcheckresult(job, pick) {
   if(job.status == 'error') { return '<span class="error">The check failed: '+artcheckesc(job.error)+'</span>'; }
@@ -149,6 +168,7 @@ function artcheckresult(job, pick) {
   html += '<div><b>Signature</b>: '+(sig.error ? '<span class="error">not read ('+artcheckesc(sig.error)+')</span>' :
     sig.read ? '"'+artcheckesc(sig.read)+'"'+(job.image ? ' (the model misreads small signatures: look at the art)' : sig.match ? ' (matches the credit: '+sig.match+')' :
       ' (doesn\'t match the credit: look at the art, the model misreads small signatures)') : 'none read')+'</div>';
+  html += artchecksignatures(sig);
   if((r.same || []).length) {
     html += '<div><b>'+(job.image ? 'Maybe the same painting' : 'Same painting')+'</b>: '+r.same.map(m => artcheckcard(m)+' '+artcheckesc((m.artist || []).join(', '))+
       (job.image ? ' <span class="artchecknote">('+(m.artvec >= 0.9 ? 'very close' : 'close')+', '+m.artvec+')</span>' : '')).join('; ')+'</div>';
