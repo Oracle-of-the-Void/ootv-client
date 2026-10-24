@@ -1,6 +1,6 @@
 // Admin -> Artist check (ootv-claude ARTIST-CHECK.md; guide docs/admin/artist-check.md): who painted
 // a printing, by painting style and by any signature in the art. POST /artcheck (ootv-search
-// admin/artcheck.mjs) only queues and reads jobs; a LAN worker (ootv-backups artcheck-worker.py)
+// admin/artcheck.mjs) only queues and reads jobs; a LAN worker (ootv-tools artcheck/worker.py)
 // does the work and writes the result. Nothing is written to the card. Loaded on demand by
 // loadartcheck() and artcheckinline() in oracle.js.
 
