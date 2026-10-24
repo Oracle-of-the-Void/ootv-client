@@ -8,7 +8,9 @@ usual (see [Needs review notes](needsreview.md)). L5R only for now.
 
 ## Running a check
 
-- **Admin → Artist check:** type the card id and the printing id, then **Check**. The list below
+- **Admin → Artist check:** type the card id and the printing id, then **Check**. Or pick **a
+  picture** (say whether it's a whole card or the art alone): the same check runs on the picture,
+  with "Maybe the same painting" found by art fingerprint (very close at 0.90 and up). The list below
   shows this game's recent checks, newest first. **show** opens one again.
 - **Card editor** (the usual place): under an instance's images, **Check artist** (next to Find
   similar art) runs the check and shows the result right there, with a checkbox for each artist it
@@ -18,7 +20,10 @@ usual (see [Needs review notes](needsreview.md)). L5R only for now.
   log. When the same painting has exactly one credited artist, that box starts ticked; still compare
   the two paintings by eye first. The result stays under the instance while the editor is open.
 
-Both need the `artcheck` permission (or `*`) on the game. A check takes a few seconds once
+Both need the `artcheck` permission (or `*`) on the game. Everyone else who can search by photo
+gets **Photo → Find the artist** on the search panel: the picture check only, within the
+per-level limits in Admin → Config → Limits, and they see only their own results. Pictures are kept
+90 days (`s3://reports.oracleofthevoid.com/artcheck/`), then deleted. A check takes a few seconds once
 it's picked up.
 
 ## Reading the result
