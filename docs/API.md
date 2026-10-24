@@ -751,7 +751,7 @@ idle for 10 minutes with the stream paused gets the stream back and the status `
 The Admin page's Artist check and the card editor's Check artist (`artcheck.js`; the admin guide
 is `docs/admin/artist-check.md`). Handled by the `ootv-admin` Lambda (ootv-search
 `admin/artcheck.mjs`), which only queues and reads jobs in `oracle-all-artcheck`: a worker on our
-LAN (ootv-backups `artcheck-worker.py`) does the check and writes the result. Nothing is written to
+LAN (ootv-tools `artcheck/worker.py`) does the check and writes the result. Nothing is written to
 cards.
 
 inputs: JSON `{uid, database, action, ...}`, with the Cognito token in `Authorization`. The uid's
