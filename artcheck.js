@@ -52,15 +52,16 @@ function artcheckgo() {
   artcheckrun('artcheckone', cardid, printingid, artchecklist);
 }
 
-// queue a check and draw it into #target as it moves along; then() runs when it's finished
-function artcheckrun(target, cardid, printingid, then) {
+// queue a check and draw it into #target as it moves along; then(job) runs when it's finished.
+// pick: the card editor's instance, drawn with artist checkboxes and Fill in artist (artcheckfill)
+function artcheckrun(target, cardid, printingid, then, pick) {
   clearTimeout(artcheckpoll[target]);
   $('#'+target).html('Queueing...');
   artcheckapi('queue', {cardid: cardid, printingid: printingid}).then(function(r) {
     var wait = function(job, worker) {
       if(job.status == 'done' || job.status == 'error') {
-        $('#'+target).html(artcheckresult(job));
-        if(then) { then(); }
+        $('#'+target).html(artcheckresult(job, pick));
+        if(then) { then(job); }
         return;
       }
       $('#'+target).html((job.status == 'running' ? 'Checking' : 'Queued')+' (job '+artcheckesc(job.id)+')... '+
@@ -78,8 +79,18 @@ function artcheckcard(m) {
   return '<a href="'+artcheckesc(url)+'" target="_blank">'+artcheckesc(m.title)+'</a> ('+artcheckesc(String(m.set || '').replace(/&ndash;/g,'–'))+')';
 }
 
-// one finished job as HTML
-function artcheckresult(job) {
+// the artists a finished check names, for the editor's checkboxes: the same painting's credits
+// first, then the style candidates; [{artist, why}], each artist once
+function artcheckpicks(job) {
+  var r = job.result || {}, out = [], seen = {};
+  var add = (a, why) => { if(a && a != 'N/A' && !seen[a.toLowerCase()]) { seen[a.toLowerCase()] = 1; out.push({artist: a, why: why}); } };
+  (r.same || []).forEach(m => (m.artist || []).forEach(a => add(a, 'same painting: '+m.title)));
+  ((r.style || {}).candidates || []).forEach(c => add(c.artist, 'style '+Math.round(c.share*100)+'%'));
+  return out;
+}
+
+// one finished job as HTML; pick (the card editor's instance id) adds the artist checkboxes
+function artcheckresult(job, pick) {
   if(job.status == 'error') { return '<span class="error">The check failed: '+artcheckesc(job.error)+'</span>'; }
   var r = job.result || {}, s = r.style || {}, sig = r.signature || {};
   var credit = (job.artist || []).join(', ') || '(no credit)';
@@ -96,7 +107,35 @@ function artcheckresult(job) {
     ' <span class="artchecknote">(a share of 50% or more was the right artist 88% of the time in testing; below that, candidates only)</span></div>';
   html += '<details><summary>Nearest paintings</summary><ol>'+(s.nearest || []).map(m =>
     '<li>'+artcheckcard(m)+': '+artcheckesc((m.artist || []).join(', '))+' <span class="artchecknote">'+m.score+'</span></li>').join('')+'</ol></details>';
+  if(pick !== undefined && pick !== null) {
+    var picks = artcheckpicks(job);
+    // ticked: the names already in the instance's artist field; with none there, a lone same-painting
+    // artist (the strongest evidence, still to be checked by eye)
+    var inst = window.cardedit && cardedit.card ? cardedit.card.printing.find(x => x.printingid == pick) : null;
+    var now = ((inst && inst.artist) || []).filter(x => String(x).trim()).map(x => String(x).toLowerCase());
+    var sameartists = picks.filter(p => p.why.startsWith('same painting'));
+    var ticked = (p,i) => now.length ? now.includes(p.artist.toLowerCase()) : sameartists.length == 1 && i == 0;
+    html += '<div class="artcheckpick"><b>Artist for this instance</b>: '+(picks.length ? picks.map((p,i) =>
+      '<label title="'+artcheckesc(p.why)+'"><input type="checkbox" class="artcheckpickbox" value="'+artcheckesc(p.artist)+'"'+
+      (ticked(p,i) ? ' checked' : '')+' /> '+artcheckesc(p.artist)+
+      ' <span class="artchecknote">('+artcheckesc(p.why)+')</span></label>').join(' ') : 'no artists to suggest')+
+      (picks.length ? ' <input type="button" value="Fill in artist" title="Set this instance\'s artist field to the ticked artists (Commit saves it)"'+
+        ' onclick="artcheckfill(this,\''+artcheckesc(pick)+'\');" />' : '')+
+      '<div class="artchecknote">Read the printed credit first; tick more than one for a joint credit.</div></div>';
+  }
   return html+'</div>';
+}
+
+// the card editor: the ticked artists become the instance's artist field (in memory; Commit saves it)
+function artcheckfill(el, printingid) {
+  var names = $(el).closest('.artcheckpick').find('.artcheckpickbox:checked').map(function() { return this.value; }).get();
+  if(!names.length) { cardeditstatus('Tick an artist first.', 1); return; }
+  var p = cardedit.card.printing.find(x => x.printingid == printingid);
+  if(!p) { return; }
+  var was = (p.artist || []).filter(x => String(x).trim());
+  p.artist = names;
+  cardeditrender();
+  cardeditstatus('Artist set to '+artcheckesc(names.join(', '))+(was.length ? ' (was '+artcheckesc(was.join(', '))+')' : '')+'. Commit to save it.');
 }
 
 function artchecklist() {

@@ -1,6 +1,6 @@
 # Artist check
 
-Last updated 2026-10-23.
+Last updated 2026-10-24.
 
 Who painted a printing? The artist check answers with three kinds of evidence. It never writes
 to the card: you decide, then fix the credit or add a `needsreview` note in the card editor as
@@ -10,8 +10,13 @@ usual (see [Needs review notes](needsreview.md)). L5R only for now.
 
 - **Admin → Artist check:** type the card id and the printing id, then **Check**. The list below
   shows this game's recent checks, newest first. **show** opens one again.
-- **Card editor:** under a printing's images, **Check artist** (next to Find similar art) runs
-  the check and shows the result right there.
+- **Card editor** (the usual place): under an instance's images, **Check artist** (next to Find
+  similar art) runs the check and shows the result right there, with a checkbox for each artist it
+  names (the same painting's credits first, then the style candidates). Tick the right one (more
+  than one for a joint credit) and press **Fill in artist**: the instance's artist field becomes the
+  ticked names. That's only in the editor until you **Commit**, which saves it with the usual update
+  log. When the same painting has exactly one credited artist, that box starts ticked; still compare
+  the two paintings by eye first. The result stays under the instance while the editor is open.
 
 Both need the `artcheck` permission (or `*`) on the game. A check takes a few seconds once
 it's picked up.

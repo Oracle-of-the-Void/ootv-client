@@ -353,7 +353,9 @@ function cardeditimages(p,isnew) {
         ' title="Cards whose art looks like this instance\'s image, most alike first (a new tab)">Find similar art</a>'+
         (gamepermission('artcheck') ? ' &middot; <a href="" onclick="artcheckinline(\'cardeditartcheck'+htmlEncode(p.printingid)+'\','+cardedit.cardid+',\''+htmlEncode(p.printingid)+'\'); return false"'+
           ' title="Who painted this: the nearest paintings by style, the same painting\'s credits, any signature (Admin → Artist check)">Check artist</a>'+
-          '<div id="cardeditartcheck'+htmlEncode(p.printingid)+'"></div>' : '')+'</div>';
+          '<div id="cardeditartcheck'+htmlEncode(p.printingid)+'">'+
+          (cardedit.artcheck && cardedit.artcheck[p.printingid] && window.artcheckresult ? artcheckresult(cardedit.artcheck[p.printingid], p.printingid) : '')+
+          '</div>' : '')+'</div>';
     }
   }
   if(isnew) {
