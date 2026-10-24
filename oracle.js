@@ -4288,18 +4288,49 @@ function artsimilarhit(datarequest,hit) {
 // Only for a logged-in user with a permission on this game (any operation in groups[database] or
 // groups['*']); Patreon privileges are to come (ootv-claude projects/patreon-privileges.md). Keep it
 // the same as the API's check, ootv-search artembed/app.py allowed().
-function artphotoallowed() {
+// the user's level for the photo features (Find the card and Find the artist), as ootv-search
+// artembed level() and ootv-admin user(): 'admin' / 'maintainer' (a permission on this game),
+// 'patreon-<tier>' (/user's patreon, from oracle-all-patreon: their highest tier), or null
+function artphotolevel() {
   var user = cache_thing("user","data");
-  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) {
-    return false;
+  if(!(user && ("oracle" in user) && user.oracle[0])) {
+    return null;
   }
   var groups = user.oracle[0].groups || {};
-  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].length > 0; });
+  var lists = [database,'*'].map(g => groups[g]).filter(Array.isArray);
+  if(lists.some(g => g.indexOf('*') >= 0)) { return 'admin'; }
+  if(lists.some(g => g.length > 0)) { return 'maintainer'; }
+  var patreon = user.oracle[0].patreon;
+  if(patreon && patreon.tiers && patreon.tiers.length) {
+    return 'patreon-'+patreon.tiers[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  return null;
 }
-// the Photo button (whoever artphotoallowed): find the card (Search by photo, artphoto.js) or find
+function artphotoallowed() {
+  return !!artphotolevel();
+}
+var PATREON_URL = 'https://www.patreon.com/oracleofthevoid';
+// the Photo button (shown to everyone): find the card (Search by photo, artphoto.js) or find
 // the artist (an artist check of an uploaded picture, artcheck.js; ootv-claude ARTIST-CHECK.md).
-// Both have per-level limits (Admin → Config → Limits).
+// Both count against one per-level limit (Admin → Config → Limits), shown at the bottom. Without a
+// level (not logged in, no permission, no Patreon tier): how to get one instead (the user,
+// 2026-10-23: even a free Patreon membership gets 1 a day; say heavy use has a real cost).
 function photochooser() {
+  if(!artphotoallowed()) {
+    var user = cache_thing("user","data");
+    var loggedin = !!(user && user.oracle && user.oracle[0]);
+    return modal('Photo',
+      '<p><b>Find the card</b> and <b>Find the artist</b> work from a photo or picture: the cards whose art matches it, '+
+        'or who may have painted it. They\'re for our <a href="'+PATREON_URL+'" target="_blank" rel="noopener">Patreon</a> '+
+        'supporters, and <b>a free Patreon membership is enough</b>: free members get 1 photo search a day, and paid tiers get more.</p>'+
+      '<p>Each photo search runs image models on servers we pay for, so heavy use has a real cost. Patreon support is what '+
+        'keeps the feature (and the site) running.</p>'+
+      '<p><a class="button gray" href="'+PATREON_URL+'" target="_blank" rel="noopener">Join on Patreon</a>'+
+        (loggedin ? '' : ' <span class="button gray" onclick="dologin();">Log&nbsp;In/Register</span>')+'</p>'+
+      '<p class="photolimit">'+(loggedin ? '' : 'You also need an Oracle of the Void account. ')+
+        'Already a supporter? The email on your Patreon account needs to be one of the emails on your Oracle account '+
+        '(Settings → Account → Emails); it\'s picked up at the next sync, within a day.</p>');
+  }
   modal('Photo',
     '<p><label class="button gray photochoice">Find the card<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></span>'+
       '<input type="file" accept="image/*" onchange="artphotostart(this);" hidden /></label> '+
@@ -4308,7 +4339,37 @@ function photochooser() {
       '<input type="file" accept="image/*" onchange="artcheckphotostart(this);" hidden /></label> '+
       'who may have painted it: the same painting\'s credits, the artists nearest in style, and any signature. The picture is '+
       '<label><input type="radio" name="photokind" value="card" checked /> a whole card</label> '+
-      '<label><input type="radio" name="photokind" value="art" /> the art alone</label></p>');
+      '<label><input type="radio" name="photokind" value="art" /> the art alone</label></p>'+
+    '<p class="photolimit"></p>');
+  photolimitnote();
+}
+
+// under the Photo choices: the user's allowance (searches per day and minute, shared by both), and
+// for supporters that higher tiers get more. Limits from all/artphoto (GET /structure), fetched once.
+var photolimits = null;
+function photolimitnote() {
+  var level = artphotolevel();
+  var show = function(limits) {
+    var lim = (limits || {})[level];
+    var day = lim && lim.day !== undefined, minute = lim && lim.minute !== undefined;
+    // "25 photo searches a day (up to 5 a minute)"
+    var allowance = (day ? lim.day+' photo search'+(lim.day == 1 ? '' : 'es')+' a day' : 'unlimited photo searches')+
+      (minute ? ' (up to '+lim.minute+' a minute)' : '');
+    var user = cache_thing("user","data"), patreon = user.oracle[0].patreon;
+    var text = !lim ? (level.indexOf('patreon-') === 0 ?
+        'Photo searches aren\'t set up for your Patreon tier ('+htmlEncode(patreon.tiers[0])+') yet.' :
+        'No limit on your photo searches.') :
+      level.indexOf('patreon-') === 0 ?
+      'Your Patreon tier, '+htmlEncode(patreon.tiers[0])+', gives you '+allowance+
+        ', shared by Find the card and Find the artist. Higher <a href="'+PATREON_URL+'" target="_blank" rel="noopener">Patreon tiers</a> '+
+        'mean higher limits; heavy use has a real cost in server time.' :
+      (day || minute ? 'You have '+allowance+', shared by Find the card and Find the artist.' :
+                       'No limit on your photo searches.');
+    $('.photolimit').html(text);
+  };
+  if(photolimits) { return show(photolimits); }
+  $.ajax({url: apiuri+'/structure?database=all&key=artphoto', dataType: 'json'})
+    .done(function(item) { photolimits = item.limits || {}; show(photolimits); });
 }
 
 // Photo → Find the artist: the picture -> /artcheck (an upload) -> the worker's result in the popup
@@ -6454,7 +6515,7 @@ function updateviewbuttons() {
     $("#templatebuttons button[data-template]").hide();
   }
   $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
-  $(".artphotobutton").toggle(artphotoallowed());     // search by photo: logged in, with a permission on this game
+  $(".artphotobutton").show();     // the photo features: for everyone; photochooser says how to get access
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
   if(tab == 'dir' || tab == 'public') {

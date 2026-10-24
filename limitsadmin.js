@@ -1,25 +1,25 @@
 // Admin → Config → Limits (loaded on first use by loadlimitsadmin in oracle.js; docs/admin/limits.md):
-// how many times a day and a minute each level may use the photo features. Each feature is an
-// oracle-all-structure item, database all: artphoto (Search by photo, read by ootv-search artembed)
-// and artcheck (Photo → Find the artist, read by ootv-admin artcheck.mjs), {limits: {<level>: {day,
-// minute}}}, read with GET /structure and saved with POST /update operation limits (site admins).
-// The APIs reread them every 5 minutes. A missing item means the API's own defaults, shown here.
+// how many times a day and a minute each level may use the photo features: Find the card and Find
+// the artist share one count (the user's call, 2026-10-23), so one oracle-all-structure item,
+// database all, key artphoto (read by ootv-search artembed and ootv-admin artcheck.mjs),
+// {limits: {<level>: {day, minute}}}, read with GET /structure and saved with POST /update operation
+// limits (site admins). An empty box = no limit. The APIs reread it every 5 minutes. A missing item
+// means the APIs' own defaults, shown here.
 
 var LIMITSFEATURES = [
-  {key: 'artphoto', name: 'Search by photo (Photo → Find the card)',
-   levels: {admin: 'full permission on the game', maintainer: 'any other permission on the game'},
-   defaults: {admin: {day: 500, minute: 10}, maintainer: {day: 100, minute: 5}}},
-  {key: 'artcheck', name: 'Find the artist (Photo → Find the artist; uploads in Admin → Artist check too)',
-   levels: {admin: 'artcheck or full permission on the game', member: 'any other permission on the game'},
-   defaults: {admin: {day: 500, minute: 10}, member: {day: 30, minute: 3}}}
+  {key: 'artphoto', name: 'Photo: Find the card and Find the artist (one count; uploads in Admin → Artist check too)',
+   levels: {admin: 'full permission on the game (Find the artist: or artcheck)', maintainer: 'any other permission on the game',
+            'patreon-free': 'Patreon Free tier', 'patreon-ashigaru': 'Patreon Ashigaru tier',
+            'patreon-samurai': 'Patreon Samurai tier', 'patreon-maker': 'Patreon Maker tier'},
+   defaults: {admin: {}, maintainer: {}}}
 ];
 var limitsadminloaded = true;
 var limitsitems = {};   // key -> the stored item, or null when there is none yet
 
 function limitsopen() {
   $('#limitsadmin').html('<h3>Limits</h3><p>How many times each level may use a photo feature, per day (UTC) and per minute. '+
-    '0 means not at all. The API rereads these every 5 minutes. Levels come from the user\'s permissions on the game '+
-    '(Patreon tiers will add more). Site admins only; see the <a href="" onclick="loadadmindoc(\'limits\'); return false">guide</a>.</p>'+
+    '0 means not at all; an empty box means no limit (a level with both boxes empty that was never saved stays off). The APIs reread these every 5 minutes. Levels come from the user\'s '+
+    'permissions on the game, or their Patreon tier (patreon- and the tier\'s name). Site admins only; see the <a href="" onclick="loadadmindoc(\'limits\'); return false">guide</a>.</p>'+
     LIMITSFEATURES.map(f => '<div class="limitsfeature" id="limits-'+f.key+'">Loading '+htmlEncode(f.name)+'...</div>').join(''));
   LIMITSFEATURES.forEach(function(f) {
     $.ajax({url: apiuri+'/structure?database=all&key='+f.key, dataType: 'json', cache: false})
@@ -35,7 +35,8 @@ function limitsdraw(f) {
   var item = limitsitems[f.key];
   var lim = (item && item.limits) || f.defaults;
   var levels = Object.keys(f.levels).concat(Object.keys(lim).filter(l => !(l in f.levels)));
-  var row = l => '<tr data-level="'+htmlEncode(l)+'"><td><b>'+htmlEncode(l)+'</b><br><span class="limitsnote">'+htmlEncode(f.levels[l] || 'a level the API doesn\'t know yet')+'</span></td>'+
+  // a level not saved yet stays unsaved (no access) while both its boxes are empty
+  var row = l => '<tr data-level="'+htmlEncode(l)+'" data-saved="'+(l in lim ? 1 : 0)+'"><td><b>'+htmlEncode(l)+'</b><br><span class="limitsnote">'+htmlEncode(f.levels[l] || 'a level the API doesn\'t know yet')+'</span></td>'+
     ['day','minute'].map(p => '<td><input type="number" min="0" step="1" class="limitsval" data-period="'+p+'" value="'+
       htmlEncode(String(lim[l] && lim[l][p] !== undefined ? lim[l][p] : ''))+'" /></td>').join('')+'</tr>';
   $('#limits-'+f.key).html('<h4>'+htmlEncode(f.name)+'</h4>'+
@@ -50,9 +51,13 @@ function limitssave(key) {
   var box = $('#limits-'+key), limits = {}, problem = null;
   box.find('tr[data-level]').each(function() {
     var level = $(this).data('level'), v = {};
+    if(!$(this).data('saved') && $(this).find('.limitsval').filter(function() { return $.trim(this.value) !== ''; }).length == 0) {
+      return;
+    }
     $(this).find('.limitsval').each(function() {
       var s = $.trim(this.value);
-      if(!/^\d+$/.test(s)) { problem = level+': '+$(this).data('period')+' must be a whole number from 0'; }
+      if(s === '') { return; }      // no limit
+      if(!/^\d+$/.test(s)) { problem = level+': '+$(this).data('period')+' must be a whole number from 0, or empty for no limit'; }
       v[$(this).data('period')] = parseInt(s, 10);
     });
     limits[level] = v;
