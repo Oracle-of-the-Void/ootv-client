@@ -224,7 +224,8 @@ function rulesfilterbar() {
       v.arcs.map(function(a) { return '<option'+(f.arc == a ? ' selected' : '')+'>'+rulesesc(a)+'</option>'; }).join('')+
       '</select></span>';
   }
-  out += '<span class="rulesfiltercount"></span></div>';
+  out += '<span class="rulesfiltercount"></span>'+
+    '<button type="button" class="rulespill rulesfilterclear" hidden>Clear filters <svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg></button></div>';
   return out;
 }
 function rulesfilterpass(b) {
@@ -245,6 +246,18 @@ $(document).on('click', '.rulesfilters button.rulespill', function() {
     var on = k == 'type' ? f.type == val : f.tags.includes(val);
     $(this).toggleClass('rulespillon', on).attr('aria-pressed', on ? 'true' : 'false');
   });
+  rulesdrawbooks();
+});
+// Clear filters: every filter back to All, for this shelf
+$(document).on('click', '.rulesfilters button.rulesfilterclear', function() {
+  var f = rulesfilterload();
+  f.type = ''; f.arc = ''; f.tags = [];
+  rulesfiltersave();
+  $('.rulesfilters button.rulespill').each(function() {
+    var on = $(this).data('kind') == 'type' && String($(this).data('value')) == '';
+    $(this).toggleClass('rulespillon', on).attr('aria-pressed', on ? 'true' : 'false');
+  });
+  $('.rulesfilters select.rulesarc').val('');
   rulesdrawbooks();
 });
 $(document).on('change', '.rulesfilters select.rulesarc', function() {
@@ -276,6 +289,7 @@ function rulesdrawbooks() {
   });
   $('#rulesarea .rulesbooks').html(shown ? out : '<p class="rulesnomatch">No books match these filters.</p>');
   $('#rulesarea .rulesfiltercount').text(shown < rulesshelf.books.length ? shown+' of '+rulesshelf.books.length+' books' : '');
+  $('#rulesarea .rulesfilterclear').prop('hidden', !(rulesfilter.type || rulesfilter.arc || rulesfilter.tags.length));
 }
 $(document).on('click', 'a.rulesbookcard', function(e) {
   if(e.ctrlKey || e.metaKey || e.shiftKey || e.button) { return; }  // a new tab keeps the link
