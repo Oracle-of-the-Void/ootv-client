@@ -746,6 +746,38 @@ calls `apply` until it says `applied`: planned → pausing (stream disable reque
 idle for 10 minutes with the stream paused gets the stream back and the status `interrupted`;
 `apply` continues it.
 
+## /artcheck
+
+The Admin page's Artist check and the card editor's Check artist (`artcheck.js`; the admin guide
+is `docs/admin/artist-check.md`). Handled by the `ootv-admin` Lambda (ootv-search
+`admin/artcheck.mjs`), which only queues and reads jobs in `oracle-all-artcheck`: a worker on our
+LAN (ootv-tools `artcheck/worker.py`) does the check and writes the result. Nothing is written to
+cards.
+
+inputs: JSON `{uid, database, action, ...}`, with the Cognito token in `Authorization`. Groups
+allowing `artcheck` (or `*`) for the game or for every game: level `admin`, every action. Any other
+permission on the game (whoever may search by photo; the Photo button's Find the artist): level
+`member`, only `queue` with an `image`, within the `all/artcheck` limits (429 when used up), and
+`job` for their own jobs.
+
+| action | input | output |
+|---|---|---|
+| `queue` | `cardid`, `printingid` (the printing must have an image; admins) | `{job, worker}` |
+| `queue` | `image` (a JPEG or PNG data URL, 4 MB at most), `kind` (`card` or `art`), `name` | `{job, worker, left: {day, minute}}` |
+| `jobs` | optional `after` (a page's `next`) | `{jobs: [...] (newest first, 50), next, worker}` |
+| `job` | `id` | `{job, worker}` |
+
+A job: `{game, id, status: queued / running / done / error, created, started, finished, cardid,
+printingid, title, set, artist (the credit when queued), uid, uname, result, error}`; an upload has
+`image` (its key in the reports bucket, `artcheck/<game>/<id>.jpg`) and `kind` instead of the card,
+`title` = the file name, `set` = "whole card" or "art only", and `same` entries carry `artvec`
+(the upload's cosine to that printing, ≥ 0.80). `result`:
+`{credit, style: {candidates: [{artist, share}], nearest: [{cardid, printingid, title, set, artist,
+score}]}, same: [{cardid, printingid, title, set, artist, style, artvec}], signature: {read, match:
+name / initials / "", error}, model, reference: {built, credited}}`. `worker`: `{seen, host, state,
+references, online}` (`online` false when the heartbeat is older than 10 minutes, or `{online:
+false}` when it never ran).
+
 ## /setimportverify
 
 After a set import's apply: compares every card the import wrote with its copy in search, as

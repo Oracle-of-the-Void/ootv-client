@@ -141,7 +141,7 @@
 <div id="searchbottom">
 <span class="gameinfo-gameshort"></span> <span class="gameinfo-gamelogo15"></span><br />
 <span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></svg></span></span>
-<label class="button gray artphotobutton" style="display: none;" aria-label="Find a card from a photo of it (or a picture of its art)" data-balloon-pos="up">Photo<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#camera"></svg></span><input type="file" accept="image/*" onchange="artphotostart(this);" hidden /></label>
+<span class="button gray artphotobutton" style="display: none;" onclick="photochooser();" aria-label="From a photo or picture: find the card, or find the artist" data-balloon-pos="up">Photo<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#camera"></svg></span></span>
 <span class="helpq" data-help="searching#form" aria-label="Help: the search form">?</span>
 <div id="savedsearches"></div>
 </div></div>
@@ -287,10 +287,12 @@
       <li><a href="" onclick="loadmassimage(); return false">Mass image upload</a> (this game)</li>
       <li><a href="" onclick="loadsetimport('setimportopen'); return false">Set import</a> (this game)</li>
       <li><a href="" onclick="loadartistsadmin(); return false">Artists</a> (links and notes in the artist modal; every game)</li>
+      <li><a href="" onclick="loadartcheck(); return false">Artist check</a> (this game: who painted a printing, by style and signature)</li>
     </ul>
     <div id="artistsadmin" class="discordadmin artistsadmin"></div>
     <div id="massimage" class="massimage"></div>
     <div id="setimport" class="setimport"></div>
+    <div id="artcheck" class="artcheck"></div>
   </div>
   <div data-admintab="config">
     <ul class="adminlinks">
@@ -330,6 +332,7 @@
       <li><a href="" onclick="loadadmindoc('rulings'); return false">Rulings on cards</a></li>
       <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
       <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
+      <li><a href="" onclick="loadadmindoc('artist-check'); return false">Artist check (style and signature)</a></li>
     </ul>
     <div id="admindoc" class="admindoc"></div>
   </div>

@@ -2270,9 +2270,9 @@ function loadmassimage() {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
-  $('#setimport, #importprofiles').hide();
+  $('#setimport, #importprofiles, #artcheck').hide();
   $('#updatelogpage').empty();
   $('#massimage').show();
   if(massimagerun) { return; }   // keep the form and results of the upload in progress
@@ -2353,15 +2353,51 @@ function loadsetimport(open) {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var load = f => window.setimportetl && f == 'setimport-etl.js' || window.setimportopen && f == 'setimport.js' ? $.Deferred().resolve() :
                   $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
   $.when(load('setimport-etl.js'), load('setimport.js'))
     .done(function() { window[open](); })
     .fail(function() { $('#setimport').show().html('<span class="error">Could not load the set import code.</span>'); });
+}
+
+// Admin -> Artist check (artcheck.js, loaded on demand): a style vote and a signature read for one
+// printing, done by a LAN worker (ootv-claude ARTIST-CHECK.md). cardid/printingid fill the form.
+function artcheckload() {
+  return window.artcheckopen ? $.Deferred().resolve() : $.ajax({url: 'artcheck.js?v='+ootvversion, dataType: 'script', cache: true});
+}
+
+function loadartcheck(cardid, printingid) {
+  showadmintab('data');
+  $('#artistsadmin').empty();
+  $('#loginlog').empty();
+  $('#discordadmin').empty();
+  $('#fielddescs').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
+  $('#admindoc').empty();
+  $('#updatelogpage').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  $('#artcheck').show();
+  if(!gamepermission('artcheck')) {
+    $('#artcheck').text('The artist check needs the artcheck permission on '+dbinfo[database].name+'.');
+    return;
+  }
+  artcheckload().done(function() { artcheckopen(cardid, printingid); })
+    .fail(function() { $('#artcheck').html('<span class="error">Could not load the artist check code.</span>'); });
+}
+
+// the card editor's "Check artist": the result drawn into #target under the instance, with artist
+// checkboxes and Fill in artist; kept in cardedit.artcheck so a redraw of the editor shows it again
+function artcheckinline(target, cardid, printingid) {
+  artcheckload().done(function() {
+    artcheckrun(target, cardid, printingid, function(job) {
+      if(cardedit && cardedit.cardid == cardid) { (cardedit.artcheck = cardedit.artcheck || {})[printingid] = job; }
+    }, printingid);
+  })
+    .fail(function() { $('#'+target).html('<span class="error">Could not load the artist check code.</span>'); });
 }
 
 // a changed stub, file choice or Replace tick needs a new check
@@ -4260,6 +4296,29 @@ function artphotoallowed() {
   var groups = user.oracle[0].groups || {};
   return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].length > 0; });
 }
+// the Photo button (whoever artphotoallowed): find the card (Search by photo, artphoto.js) or find
+// the artist (an artist check of an uploaded picture, artcheck.js; ootv-claude ARTIST-CHECK.md).
+// Both have per-level limits (Admin → Config → Limits).
+function photochooser() {
+  modal('Photo',
+    '<p><label class="button gray photochoice">Find the card<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></span>'+
+      '<input type="file" accept="image/*" onchange="artphotostart(this);" hidden /></label> '+
+      'from a photo of a card (or a picture of its art): the cards whose art matches it.</p>'+
+    '<p><label class="button gray photochoice">Find the artist<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#feather"></svg></span>'+
+      '<input type="file" accept="image/*" onchange="artcheckphotostart(this);" hidden /></label> '+
+      'who may have painted it: the same painting\'s credits, the artists nearest in style, and any signature. The picture is '+
+      '<label><input type="radio" name="photokind" value="card" checked /> a whole card</label> '+
+      '<label><input type="radio" name="photokind" value="art" /> the art alone</label></p>');
+}
+
+// Photo → Find the artist: the picture -> /artcheck (an upload) -> the worker's result in the popup
+function artcheckphotostart(input) {
+  var kind = $('input[name=photokind]:checked').val() || 'card';
+  var go = function() { artcheckphoto(input, kind); };
+  if(window.artcheckphoto) { return go(); }
+  artcheckload().done(go).fail(function() { modal('Find the artist', '<p>The artist search could not be loaded. Reload the page and try again.</p>'); });
+}
+
 function artphotostart(input) {
   var go = function() { artphotofile(input); };
   if(typeof artphotofile === 'function') {
@@ -7415,9 +7474,9 @@ function loadloginlog(page) {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -7457,7 +7516,7 @@ function loaddiscord(note) {
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
     type: 'GET',
@@ -7667,9 +7726,9 @@ function loadadmindoc(name) {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))
@@ -7825,8 +7884,8 @@ function loadgameconfigadmin(which) {
 // modal shows. name: an entry to open (the modal's Edit link).
 function loadartistsadmin(name) {
   showadmintab('data');
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
   $('#artistsadmin').text('Loading the artist editor...');
@@ -7852,8 +7911,8 @@ function loadfielddescs(target) {
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   fielddescsview.target = target || database;
   $('#fielddescs').text('Loading field descriptions...');
   fielddescsload(database,true).then(fielddescsshow);
@@ -7972,9 +8031,9 @@ function loadupdatelogpage() {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));
   updatelogfacetsfill();
   updatelogsearch();
