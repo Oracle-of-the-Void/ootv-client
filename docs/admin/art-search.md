@@ -32,23 +32,40 @@ The **Photo** button under the search form takes a photo of a card, or a picture
 searches the current game for the cards whose art looks most like it.
 
 Who gets it: a logged-in account with any permission on the game (an entry under the game, or
-under `*`, in the user's groups in the user editor). The button is hidden for everyone else, and
-the API refuses them too. Patreon supporters are meant to get it as well once Patreon privileges
-exist (ootv-claude `projects/patreon-privileges.md`). A result link can be opened by anyone: it
-only searches with the stored fingerprints.
+under `*`, in the user's groups in the user editor), or a Patreon supporter whose tier is listed
+in the limits below. Supporters are tied to their account by email (or by linking Patreon on
+their profile) in `oracle-all-patreon`, which Patreon keeps current; see [Patreon](patreon.md).
+Everyone sees the button: for anyone else (not logged in, or no permission or tier) it explains
+that the photo features are for Patreon supporters, that a free membership gets 1 a day and that
+heavy use has a real cost, with a Join on Patreon button; the API refuses them too. Supporters see
+their allowance under the choices, and that higher tiers get more. The same people get
+**Find the artist** under the same button ([Artist check](artist-check.md)). A result link can be
+opened by anyone: it only searches with the stored fingerprints.
 
-Each person has a daily and a per-minute allowance by level, set in **Admin → Config → Limits**
+Each person has a daily and a per-minute allowance by level, **one count for Find the card and
+Find the artist together** (the user's call, 2026-10-23), set in **Admin → Config → Limits**
 ([Limits](limits.md); stored in `oracle-all-structure`, database `all`, key `artphoto`, field
-`limits`; the API rereads it every 5 minutes). The defaults:
+`limits`; the API rereads it every 5 minutes). A level with no day or minute number has no
+limit in that period. Set 2026-10-23:
 
 | Level | Who | Per day | Per minute |
 |---|---|---|---|
-| `admin` | full permission (`*`) on the game or on `*` | 500 | 10 |
-| `maintainer` | any other permission on the game | 100 | 5 |
+| `admin` | full permission (`*`) on the game or on `*` | no limit | no limit |
+| `maintainer` | any other permission on the game | no limit | no limit |
+| `patreon-free` | Patreon Free tier | 1 | 1 |
+| `patreon-ashigaru` | Patreon Ashigaru ($2) | 5 | 1 |
+| `patreon-samurai` | Patreon Samurai ($5) | 25 | 5 |
+| `patreon-maker` | Patreon Maker ($50) | 500 | 10 |
+
+A supporter gets the level of their highest tier. The key is `patreon-` plus the tier's title on
+Patreon in lower case (anything not a letter or digit becomes `-`), so **renaming a tier on
+Patreon means renaming its key here**; a tier with no key gets no photo features. A level the
+APIs don't find at all gets 1 a day and 1 a minute. Find the artist's `admin` also covers the
+`artcheck` permission, and its `member` level is `maintainer` here.
 
 Correcting the outline counts as a search. Over the limit, the page says so and when it resets
-(the next minute, or midnight UTC); under the results it shows how many are left today. Patreon
-tiers will be more levels in the same list.
+(the next minute, or midnight UTC); under the results it shows how many are left today (not for
+levels without a daily limit).
 The page shrinks the photo and sends it to the API (`POST /artphoto`, the `ootv-artembed`
 Lambda in ootv-search `artembed/`), which:
 
