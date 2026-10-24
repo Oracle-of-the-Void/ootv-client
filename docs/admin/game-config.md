@@ -6,7 +6,7 @@ Every game on the site is drawn from three kinds of settings kept on the site (`
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
 history.
 
-| Admin page | What it holds | Who can save |
+| Admin → Config | What it holds | Who can save |
 |---|---|---|
 | **Fields** | per field: description, labels, how it's searched, whether it shows (`show`) | `fields` permission on the game (shared fields: on every game) |
 | **Game config** | this game: name and logo, the card page rows, sort and list headers, views, the search form's order, symbols | `gameconfig` permission on the game |
@@ -17,7 +17,7 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
 
 ## Game config
 
-**Admin → Game config** shows this game's config as JSON. The main parts:
+**Admin → Config → Game config** shows this game's config as JSON. The main parts:
 
 - `info`: `name`, `nameshort`, `logo`, `imageuri`, `cardsize`, `addallmax`, `description`, and for
   some games `background`, `blurb` (a notice on the card page), `renamedfields`.
@@ -41,7 +41,7 @@ loads; you see it after a reload.
 
 ## Templates
 
-**Admin → Templates** edits the master templates. Pick a **View**: its html (JsRender, the same
+**Admin → Config → Templates** edits the master templates. Pick a **View**: its html (JsRender, the same
 `{{...}}` syntax as before) and its settings (`places`: where it's offered, search, card or list;
 `longname`, `shortname`, `headerizable`, `override` for the large sizes). **Standard views** are the
 ones every game gets unless its config removes one.

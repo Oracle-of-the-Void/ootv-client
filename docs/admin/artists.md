@@ -5,11 +5,11 @@ Last updated: 2026-10-23
 Clicking an artist credit on a card opens a small box: **Search cards by** the artist, then the
 artist's own pages (portfolio, gallery, social media) and a note. Those pages and notes are the
 **artist entries**, one per credit, shared by every game: the same person credited in L5R and 7th
-Sea has one entry. They're kept in the table `oracle-all-artists` and edited on **Admin → Artists**.
+Sea has one entry. They're kept in the table `oracle-all-artists` and edited on **Admin → Data → Artists**.
 
 ## The page
 
-**Admin → Artists** lists every entry: the credit, its links (or the credit it's an alias of) and
+**Admin → Data → Artists** lists every entry: the credit, its links (or the credit it's an alias of) and
 its note. Type in the filter to narrow it by name, link or note; the menu beside it picks out:
 
 - **Waiting for review**: credits with a possible match nobody has confirmed yet (their note says
