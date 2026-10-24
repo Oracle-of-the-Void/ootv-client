@@ -66,8 +66,10 @@ function limitssave(key) {
           beforeSend: function(xhr) { xhr.setRequestHeader('Authorization', getidtoken()); }})
     .done(function(r) {
       if(r.message == 'no changes') { status('No changes to save.'); return; }
+      var saved = 'Saved (version '+r.version+'). The API uses it within 5 minutes.';
+      status(saved);
       $.ajax({url: apiuri+'/structure?database=all&key='+key, dataType: 'json', cache: false})
-        .done(function(item) { limitsitems[key] = item; limitsdraw(LIMITSFEATURES.find(f => f.key == key)); $('#limits-'+key+' .limitsstatus').text('Saved (version '+r.version+'). The API uses it within 5 minutes.'); });
+        .done(function(item) { limitsitems[key] = item; limitsdraw(LIMITSFEATURES.find(f => f.key == key)); $('#limits-'+key+' .limitsstatus').text(saved); });
     })
     .fail(function(xhr) { status((xhr.responseJSON && xhr.responseJSON.error) || 'The save failed.', 1); });
 }
