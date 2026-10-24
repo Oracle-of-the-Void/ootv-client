@@ -1081,7 +1081,7 @@ function importprofilesopen() {
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#admindoc').empty();
-  $('#massimage, #setimport').hide();
+  $('#massimage, #setimport, #artcheck').hide();
   $('#importprofiles').show();
   if(!gamepermission('setimport')) {
     $('#importprofiles').text('Import profiles need the setimport (or full) permission on '+dbinfo[database].name+'.');
