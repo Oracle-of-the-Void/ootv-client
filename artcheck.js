@@ -5,6 +5,8 @@
 // loadartcheck() and artcheckinline() in oracle.js.
 
 var artcheckpoll = {};     // target element id -> timer of the job being waited for
+var artcheckpictures = {}; // job id -> the uploaded picture (a data URL), shown with its result while the page is open
+var ARTCHECK_LONG = 1600;  // an upload's long side, as Search by photo (artphoto.js)
 
 function artcheckapi(action, data) {
   return Promise.resolve($.ajax({
@@ -41,6 +43,9 @@ function artcheckopen(cardid, printingid) {
     '<p>Card id <input type="text" id="artcheckcard" size="7" value="'+artcheckesc(cardid || '')+'" /> '+
     'printing <input type="text" id="artcheckprinting" size="4" value="'+artcheckesc(printingid || '1')+'" /> '+
     '<input type="button" value="Check" onclick="artcheckgo()" /></p>'+
+    '<p>or a picture <input type="file" id="artcheckfile" accept="image/jpeg,image/png" onchange="artcheckupload(this)" /> '+
+    '<label><input type="radio" name="artcheckkind" value="card" checked /> a whole card</label> '+
+    '<label><input type="radio" name="artcheckkind" value="art" /> the art alone</label></p>'+
     '<div id="artcheckone"></div><p id="artcheckworker"></p><table class="artchecklist" id="artchecklist"></table>');
   artchecklist();
   if(cardid) { artcheckgo(); }
@@ -55,9 +60,50 @@ function artcheckgo() {
 // queue a check and draw it into #target as it moves along; then(job) runs when it's finished.
 // pick: the card editor's instance, drawn with artist checkboxes and Fill in artist (artcheckfill)
 function artcheckrun(target, cardid, printingid, then, pick) {
+  artcheckqueue(target, {cardid: cardid, printingid: printingid}, then, pick);
+}
+
+// a picture file -> shrunk and upright (as Search by photo) -> queued as an upload
+function artcheckupload(input) {
+  artcheckpicture(input, $('input[name=artcheckkind]:checked').val() || 'card', 'artcheckone', artchecklist);
+}
+
+// the Photo button's Find the artist (photochooser in oracle.js): the result in the popup
+function artcheckphoto(input, kind) {
+  modal('Find the artist', '<div id="artcheckmodal"></div><p class="artchecknote">The candidates are leads to check, not answers: '+
+    'read any printed credit first.</p>');
+  $('#modal').addClass('artphotomodal');
+  artcheckpicture(input, kind, 'artcheckmodal', null);
+}
+
+function artcheckpicture(input, kind, target, then) {
+  var file = input.files && input.files[0];
+  input.value = '';
+  if(!file) { return; }
+  $('#'+target).html('Reading the picture...');
+  var url = URL.createObjectURL(file), img = new Image();
+  img.onload = function() {
+    URL.revokeObjectURL(url);
+    var k = Math.min(1, ARTCHECK_LONG / Math.max(img.naturalWidth, img.naturalHeight));
+    var canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * k));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * k));
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    var data = canvas.toDataURL('image/jpeg', 0.88);
+    artcheckqueue(target, {image: data, kind: kind, name: file.name}, then, null, data);
+  };
+  img.onerror = function() {
+    URL.revokeObjectURL(url);
+    $('#'+target).html('<span class="error">That file could not be read as a picture. Try a JPEG or PNG.</span>');
+  };
+  img.src = url;
+}
+
+function artcheckqueue(target, data, then, pick, picture) {
   clearTimeout(artcheckpoll[target]);
   $('#'+target).html('Queueing...');
-  artcheckapi('queue', {cardid: cardid, printingid: printingid}).then(function(r) {
+  artcheckapi('queue', data).then(function(r) {
+    if(picture) { artcheckpictures[r.job.id] = picture; }
     var wait = function(job, worker) {
       if(job.status == 'done' || job.status == 'error') {
         $('#'+target).html(artcheckresult(job, pick));
@@ -75,6 +121,7 @@ function artcheckrun(target, cardid, printingid, then, pick) {
 }
 
 function artcheckcard(m) {
+  if(!m.cardid) { return artcheckesc(m.title)+' ('+artcheckesc(m.set || '')+')'; }   // an uploaded picture
   var url = location.pathname+statehash({'view': 'card', 'cardid': m.cardid, 'prid': m.printingid});
   return '<a href="'+artcheckesc(url)+'" target="_blank">'+artcheckesc(m.title)+'</a> ('+artcheckesc(String(m.set || '').replace(/&ndash;/g,'–'))+')';
 }
@@ -94,13 +141,17 @@ function artcheckresult(job, pick) {
   if(job.status == 'error') { return '<span class="error">The check failed: '+artcheckesc(job.error)+'</span>'; }
   var r = job.result || {}, s = r.style || {}, sig = r.signature || {};
   var credit = (job.artist || []).join(', ') || '(no credit)';
-  var html = '<div class="artcheckresult"><b>'+artcheckesc(job.title)+'</b>, printing '+artcheckesc(job.printingid)+
-    ' ('+artcheckesc(String(job.set || '').replace(/&ndash;/g,'–'))+'). Credited: <b>'+artcheckesc(credit)+'</b>';
+  var html = '<div class="artcheckresult">'+(job.image ?
+    (artcheckpictures[job.id] ? '<img class="artcheckpicture" src="'+artcheckpictures[job.id]+'" alt="" />' : '')+
+      'Uploaded picture <b>'+artcheckesc(job.title)+'</b> ('+artcheckesc(job.set)+').' :
+    '<b>'+artcheckesc(job.title)+'</b>, printing '+artcheckesc(job.printingid)+
+    ' ('+artcheckesc(String(job.set || '').replace(/&ndash;/g,'–'))+'). Credited: <b>'+artcheckesc(credit)+'</b>');
   html += '<div><b>Signature</b>: '+(sig.error ? '<span class="error">not read ('+artcheckesc(sig.error)+')</span>' :
-    sig.read ? '"'+artcheckesc(sig.read)+'"'+(sig.match ? ' (matches the credit: '+sig.match+')' :
+    sig.read ? '"'+artcheckesc(sig.read)+'"'+(job.image ? ' (the model misreads small signatures: look at the art)' : sig.match ? ' (matches the credit: '+sig.match+')' :
       ' (doesn\'t match the credit: look at the art, the model misreads small signatures)') : 'none read')+'</div>';
   if((r.same || []).length) {
-    html += '<div><b>Same painting</b>: '+r.same.map(m => artcheckcard(m)+' '+artcheckesc((m.artist || []).join(', '))).join('; ')+'</div>';
+    html += '<div><b>'+(job.image ? 'Maybe the same painting' : 'Same painting')+'</b>: '+r.same.map(m => artcheckcard(m)+' '+artcheckesc((m.artist || []).join(', '))+
+      (job.image ? ' <span class="artchecknote">('+(m.artvec >= 0.9 ? 'very close' : 'close')+', '+m.artvec+')</span>' : '')).join('; ')+'</div>';
   }
   html += '<div><b>By style</b> (the 10 nearest other paintings): '+(s.candidates || []).map(c =>
     '<span class="'+(c.share >= 0.5 ? 'artcheckstrong' : '')+'">'+artcheckesc(c.artist)+' '+Math.round(c.share*100)+'%</span>').join(', ')+
