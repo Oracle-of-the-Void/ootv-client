@@ -34,6 +34,15 @@ it's picked up.
   signatures. In a test of 300 credited paintings, about one in six had something readable, and
   the mismatches checked by eye were the real artist's signature misread (e.g. "T. Williams" for
   T. Gianni). A mismatch is a reason to look, never a reason by itself to change a credit.
+- **Found in the art** (since 2026-10-24): when the model can point to the signature on the card,
+  it's shown cut out and zoomed in. Printed text (the credit strip, the card title) is left out. With
+  nothing read in the art region, the model also looks for any signature on the whole card, so a
+  faint one can turn up here.
+- **Known signatures:** signatures of the likely artists from the signature catalogue (the credited
+  artist, any artist the reading names, then the style candidates), up to six each from different
+  sets, never from the checked painting. Click one to open its card. Compare the hand by eye: the
+  shapes of the letters, the date, where it sits. Only artists already in the catalogue appear
+  (76 so far; the Artists guide, "Signatures", says where they come from).
 - **Same painting:** other credited printings that use the same painting (a reprint, a new frame,
   a crop). These are the strongest evidence: a printing that reuses a credited painting may take
   that artist, once you've compared the two by eye.
