@@ -37,9 +37,9 @@ the API refuses them too. Patreon supporters are meant to get it as well once Pa
 exist (ootv-claude `projects/patreon-privileges.md`). A result link can be opened by anyone: it
 only searches with the stored fingerprints.
 
-Each person has a daily and a per-minute allowance by level, set in the structure table
-(`oracle-all-structure`, database `all`, key `artphoto`, field `limits`; the API rereads it every
-5 minutes):
+Each person has a daily and a per-minute allowance by level, set in **Admin → Config → Limits**
+([Limits](limits.md); stored in `oracle-all-structure`, database `all`, key `artphoto`, field
+`limits`; the API rereads it every 5 minutes). The defaults:
 
 | Level | Who | Per day | Per minute |
 |---|---|---|---|

@@ -545,6 +545,12 @@ inputs:
       version as for `gameconfig`
     * site admins only: full permission on every game (`*` in `groups['*']`)
     * `changed` lists `views.<view>` for each view and `partials.<name>` for each partial that changed
+  * limits
+    * save the per-level limits of a photo feature (`all`/`artphoto`: Search by photo; `all`/`artcheck`:
+      Find the artist); database `all`, `key` naming it, data `{limits: {<level>: {day, minute}}}` (whole
+      numbers from 0), `version` as for `gameconfig` (409 when stale); the item's `note` is kept
+    * site admins only: full permission on every game (`*` in `groups['*']`)
+    * returns `{message, version}`; history keeps the last 20 saves with the old limits
 
 outputs:
 
