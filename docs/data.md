@@ -45,14 +45,14 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   it only came in foil (a foil that differs from the regular card, or a foil-only card, stored as
   its own printing). `"both"`: it came in regular and in foil; a foil identical to the regular card
   is never its own printing. Since 2026-10-23 (project l5r-foils, ootv-claude `projects/l5r-foils.md`);
-  7th Sea's old `foil: true` became `"foil"` the same day (ootv-backups `foil-values.py`). List
+  7th Sea's old `foil: true` became `"foil"` the same day (ootv-tools `printings/foil-values.py`). List
   entries will carry a foil choice of their own (not foil / foil / either).
 * printing.snmsetcode (optional, l5r, array of one string). The Sun and Moon edition code the
   S&M text export writes for this printing, where it differs from its set's code (the
   `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
   so S&M shows its default printing. Leave it out when the set's code is right. ootv-search's
   `/import` reads it back. Bulk values come from `docs/snm/snm-map.py` through
-  ootv-backups `snm-printings.py`; edit one by hand in the card editor.
+  ootv-tools `printings/snm-printings.py`; edit one by hand in the card editor.
 * printing.image (array, one entry per image, front first). Each entry names the files of one image
   in the printing's `imagehash` directory:
  * ```json

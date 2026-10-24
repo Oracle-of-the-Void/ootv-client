@@ -79,7 +79,7 @@ out of the results.
 
 The vectors belong to the image they were made from. Pointing an instance at a different image
 file in the editor clears its vector, so it drops out of similar-art searches until the vectors
-are rebuilt with ootv-backups `art-vectors.py --game <game>`, which only redoes the instances that
+are rebuilt with ootv-tools `art-matching/art-vectors.py --game <game>`, which only redoes the instances that
 need it. New sets and new instances need the same run.
 
 Replacing an image file under the same name (the mass image upload, or the editor's upload with

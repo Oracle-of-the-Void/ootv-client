@@ -35,7 +35,7 @@ or tests. The files in this directory are exactly what gets served.
   printing field `snmsetcode` (`docs/data.md`), which wins. No static copy is served.
   `docs/snm/snm-map.py` rebuilds both into `docs/snm/l5r-snm.json` after S&M updates its
   database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`); then
-  `python3 docs/snm/snm-push.py --go` writes the set codes and ootv-backups `snm-printings.py`
+  `python3 docs/snm/snm-push.py --go` writes the set codes and ootv-tools `printings/snm-printings.py`
   the printing codes. The Admin set import adds a new set's code to the item.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
