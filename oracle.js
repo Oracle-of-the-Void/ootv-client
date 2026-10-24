@@ -8005,7 +8005,7 @@ function loadgameconfigadmin(which) {
 }
 
 // Admin → Config → Limits (limitsadmin.js, loaded on first use): per-level limits of the photo
-// features (all/artphoto, all/artcheck); site admins only
+// features (all/artphoto); site admins only
 function loadlimitsadmin() {
   showadmintab('config');
   $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
