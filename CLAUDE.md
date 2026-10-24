@@ -32,11 +32,12 @@ or tests. The files in this directory are exactly what gets served.
 - Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
   `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
   the first S&M export; a printing S&M files under another edition carries its own code in the
-  printing field `snmsetcode` (`docs/data.md`), which wins. No static copy is served.
+  printing field `snmsetcode` (`docs/data.md`), which wins, and one S&M files under another card
+  name ("Market Place") its `titletextsnm` (`snmlistnames`). No static copy is served.
   `docs/snm/snm-map.py` rebuilds both into `docs/snm/l5r-snm.json` after S&M updates its
   database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`); then
   `python3 docs/snm/snm-push.py --go` writes the set codes and ootv-tools `printings/snm-printings.py`
-  the printing codes. The Admin set import adds a new set's code to the item.
+  the printing codes and names. The Admin set import adds a new set's code to the item.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin

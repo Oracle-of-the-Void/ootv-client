@@ -3121,7 +3121,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
-	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](listdata) : listdata,{
+	    var textdata = textparts[0] == 'textsnm' ? snmlistnames(listdata) : listdata;
+	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](textdata) : textdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
@@ -4529,6 +4530,14 @@ function snmsetload(callback) {
       snmsets[db] = {'sets': {}};
       callback();
     }
+  });
+}
+// the S&M export's cards: where the listed printing has its own `titletextsnm` (S&M files it under
+// another card name, "Market Place" vs "Marketplace"), a copy of the card that carries it
+function snmlistnames(listdata) {
+  return listdata.map(function(card) {
+    var p = card.listprinting > 0 && (card.printing || []).find(e => parseInt(e.printingid) == parseInt(card.listprinting));
+    return (p && p.titletextsnm) ? $.extend({}, card, {'titletextsnm': p.titletextsnm}) : card;
   });
 }
 // {{snmset listprinting printing cardid /}}: "(CODE)", or nothing when S&M has no code for that printing
