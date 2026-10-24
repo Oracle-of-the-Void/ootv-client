@@ -84,8 +84,10 @@ choosing a printing.
 
 ## Search by photo {#photo}
 
-**Photo** (next to the Search button) is for logged-in users with access to the game. It asks what
-you want from the picture:
+**Photo** (next to the Search button) is for logged-in users with access to the game, and for our
+[Patreon](https://www.patreon.com/oracleofthevoid) supporters. Supporters are
+recognized by the email on their Patreon account matching one of the emails on their Oracle
+account. It asks what you want from the picture:
 
 - **Find the card** finds a card from a picture of it, or of its art. The photo is only used for
   the search and isn't kept. After a search you can drag the corners of the card outline and search
@@ -98,4 +100,5 @@ you want from the picture:
   reader often misreads small signatures. The picture is kept for 90 days so the site's maintainers
   can look at it.
 
-Each has a daily and a per-minute allowance; if you use one up, the message says when it resets.
+The two share one daily and per-minute allowance (for supporters it grows with the tier: Free 1 a
+day, Ashigaru 5, Samurai 25, Maker 500); if you use it up, the message says when it resets.

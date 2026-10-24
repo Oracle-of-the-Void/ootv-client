@@ -21,8 +21,9 @@ usual (see [Needs review notes](needsreview.md)). L5R only for now.
   the two paintings by eye first. The result stays under the instance while the editor is open.
 
 Both need the `artcheck` permission (or `*`) on the game. Everyone else who can search by photo
-gets **Photo → Find the artist** on the search panel: the picture check only, within the
-per-level limits in Admin → Config → Limits, and they see only their own results. Pictures are kept
+(any permission on the game, or a Patreon tier) gets **Photo → Find the artist** on the search
+panel: the picture check only, within the per-level limits in Admin → Config → Limits (one count
+shared with Find the card), and they see only their own results. Pictures are kept
 90 days (`s3://reports.oracleofthevoid.com/artcheck/`), then deleted. A check takes a few seconds once
 it's picked up.
 

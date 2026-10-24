@@ -4288,17 +4288,22 @@ function artsimilarhit(datarequest,hit) {
 // Only for a logged-in user with a permission on this game (any operation in groups[database] or
 // groups['*']); Patreon privileges are to come (ootv-claude projects/patreon-privileges.md). Keep it
 // the same as the API's check, ootv-search artembed/app.py allowed().
+// the Photo button (Find the card and Find the artist), as ootv-search artembed level() and
+// ootv-admin user(): a permission on this game, or a Patreon tier (/user's patreon, from
+// oracle-all-patreon; every tier has an allowance in all/artphoto)
 function artphotoallowed() {
   var user = cache_thing("user","data");
-  if(!(user && ("oracle" in user) && ("groups" in user.oracle[0]))) {
+  if(!(user && ("oracle" in user) && user.oracle[0])) {
     return false;
   }
   var groups = user.oracle[0].groups || {};
-  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].length > 0; });
+  var patreon = user.oracle[0].patreon;
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].length > 0; }) ||
+    !!(patreon && patreon.tiers && patreon.tiers.length);
 }
 // the Photo button (whoever artphotoallowed): find the card (Search by photo, artphoto.js) or find
 // the artist (an artist check of an uploaded picture, artcheck.js; ootv-claude ARTIST-CHECK.md).
-// Both have per-level limits (Admin → Config → Limits).
+// Both count against one per-level limit (Admin → Config → Limits).
 function photochooser() {
   modal('Photo',
     '<p><label class="button gray photochoice">Find the card<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></span>'+
@@ -6454,7 +6459,7 @@ function updateviewbuttons() {
     $("#templatebuttons button[data-template]").hide();
   }
   $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
-  $(".artphotobutton").toggle(artphotoallowed());     // search by photo: logged in, with a permission on this game
+  $(".artphotobutton").toggle(artphotoallowed());     // search by photo: logged in, with a permission on this game or a Patreon tier
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
   if(tab == 'dir' || tab == 'public') {
