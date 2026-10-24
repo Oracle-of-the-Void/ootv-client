@@ -45,4 +45,4 @@ result back. If the page says the worker is offline, your check waits in the que
 the worker is back. Checks are kept for 90 days.
 
 How it's built, and how to run the worker: `ootv-claude/ARTIST-CHECK.md` (workspace repo) and
-ootv-backups `artcheck-worker.py`.
+ootv-tools `artcheck/README.md`.
