@@ -2356,7 +2356,7 @@ function loadsetimport(open) {
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var load = f => window.setimportetl && f == 'setimport-etl.js' || window.setimportopen && f == 'setimport.js' ? $.Deferred().resolve() :
                   $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
   $.when(load('setimport-etl.js'), load('setimport.js'))
@@ -7417,7 +7417,7 @@ function loadloginlog(page) {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
   if(cursors_loginlog[page]) { data.before = cursors_loginlog[page]; }
@@ -7458,7 +7458,7 @@ function loaddiscord(note) {
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   if(!note) { $('#discordadmin').text('Loading Discord bot settings...'); }
   $.ajax({
     type: 'GET',
@@ -7670,7 +7670,7 @@ function loadadmindoc(name) {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#admindoc').text('Loading '+name+'...');
   var loadmarked = window.marked ? $.Deferred().resolve() : $.ajax({url: markedurl, dataType: 'script', cache: true});
   $.when(loadmarked, $.ajax({url: 'docs/admin/'+name+'.md', dataType: 'text', cache: false}))
@@ -7827,7 +7827,7 @@ function loadgameconfigadmin(which) {
 function loadlimitsadmin() {
   showadmintab('config');
   $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
   if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $('#limitsadmin').text('The limits need full permission on every game.'); return; }
@@ -7843,7 +7843,7 @@ function loadlimitsadmin() {
 function loadartistsadmin(name) {
   showadmintab('data');
   $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
   $('#artistsadmin').text('Loading the artist editor...');
@@ -7869,7 +7869,7 @@ function loadfielddescs(target) {
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   fielddescsview.target = target || database;
   $('#fielddescs').text('Loading field descriptions...');
@@ -7991,7 +7991,7 @@ function loadupdatelogpage() {
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
-  $('#massimage, #setimport, #importprofiles').hide();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));
   updatelogfacetsfill();
   updatelogsearch();
