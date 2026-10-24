@@ -278,6 +278,7 @@ function logincallback(session) {
 	refreshauthvar = setInterval(refreshauth,60*1000);
 	document.addEventListener('visibilitychange', function() { if(!document.hidden) refreshauth(); });
     }
+    patreonreturn();
     if(cache_thing("user","data")) {
 	userinfocallback();
 	refreshviewdefaults(); // pick up defaults saved from another tab/device
@@ -3685,6 +3686,7 @@ function rendersettings() {
                                            'sortmode': templates[database]['sortmode'] && templates[database]['sortmode']['search']})});
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
     'name': username(user), 'sharedname': sharedname(user.oracle[0]), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
+    'patreonoauth': !!(user.oracle[0].patreon && (user.oracle[0].patreon.linkedby || []).indexOf('oauth') >= 0), 'patreonmsg': patreonmsg,
     'favorite': favoritegame() || '', 'textversion': savedtextversion(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions()),
@@ -3705,24 +3707,7 @@ function postprofile(body, status, done) {
     dataType: 'json',
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
     success: function(data) {
-      // the user is cached per game: put the server's copy in each cached one, keeping its cognito part
-      Object.keys(dbinfo).forEach(function(g) {
-        var key = g+"_user_data";
-        try {
-          var cached = JSON.parse(window.localStorage.getItem(key));
-          if(cached && ("oracle" in cached)) {
-            cached.oracle = data.oracle;
-            window.localStorage.setItem(key, JSON.stringify(cached));
-          }
-        } catch(e) {}
-      });
-      var user = cache_thing("user","data");
-      if(user && ("oracle" in user)) {
-        user.oracle = data.oracle;
-        cache_thing("user","data",user);
-      }
-      showloginfo(user);
-      rendersettings();
+      storeoracle(data);
       done(data);
     },
     error: function(error) {
@@ -3730,6 +3715,26 @@ function postprofile(body, status, done) {
       status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
     }
   });
+}
+// a /user answer: the user is cached per game, so put the server's copy in each cached one, keeping its cognito part
+function storeoracle(data) {
+  Object.keys(dbinfo).forEach(function(g) {
+    var key = g+"_user_data";
+    try {
+      var cached = JSON.parse(window.localStorage.getItem(key));
+      if(cached && ("oracle" in cached)) {
+        cached.oracle = data.oracle;
+        window.localStorage.setItem(key, JSON.stringify(cached));
+      }
+    } catch(e) {}
+  });
+  var user = cache_thing("user","data");
+  if(user && ("oracle" in user)) {
+    user.oracle = data.oracle;
+    cache_thing("user","data",user);
+  }
+  showloginfo(user);
+  rendersettings();
 }
 function editprofilename(el) {
   var section = $(el).closest('dd');
@@ -3840,6 +3845,63 @@ function removeprofileemail(el) {
   postprofile({'action': 'removeemail', 'email': email}, status, function(data) {
     $('.profileemailstatus').text(data.warning || ("Removed "+email+"."));
   });
+}
+
+//**********************************************************  Patreon link ****************
+// Link with Patreon / Unlink (ootv-search webhooks/, ootv-claude PATREON.md): for supporters whose Patreon
+// email isn't one of their emails. Link goes to Patreon (scope identity), which sends the browser back
+// to ?patreon=<result>#view=settings; patreonreturn() shows the result and rereads /user.
+var patreonmsg = '';
+var PATREON_RESULTS = {
+  'linked': 'Linked.',
+  'notmember': 'That Patreon account isn\'t a member of our Patreon yet: join (free is fine), then link again.',
+  'denied': 'Not linked: Patreon wasn\'t allowed to share your account.',
+  'failed': 'Linking didn\'t work; try again.'
+};
+function patreonlink(el) {
+  var status = $(el).closest('dd').find('.profilepatreonstatus');
+  status.text("Going to Patreon...");
+  $.ajax({
+    type: 'POST', url: apiuri+"/patreon/link", contentType: 'application/json', dataType: 'json',
+    data: JSON.stringify({'uid': cache_thing("user","data").oracle[0].uid, 'site': location.origin}),
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) { location.href = data.url; },
+    error: function(error) { status.text("Couldn't link: "+((error.responseJSON && error.responseJSON.error) || error.statusText)); }
+  });
+}
+function patreonunlink(el) {
+  var status = $(el).closest('dd').find('.profilepatreonstatus');
+  if(!confirm("Unlink your Patreon account?\n\nIts supporter perks stop on this account, and it won't be tied again by email; Link with Patreon ties it again.")) {
+    return;
+  }
+  status.text("Unlinking...");
+  $.ajax({
+    type: 'POST', url: apiuri+"/patreon/unlink", contentType: 'application/json', dataType: 'json',
+    data: JSON.stringify({'uid': cache_thing("user","data").oracle[0].uid}),
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function() { patreonmsg = 'Unlinked.'; patreonrefresh(); },
+    error: function(error) { status.text("Couldn't unlink: "+((error.responseJSON && error.responseJSON.error) || error.statusText)); }
+  });
+}
+// reread /user (the patreon part changed on the server) into every cached copy
+function patreonrefresh() {
+  $.ajax({
+    type: 'GET', url: apiuri+"/user", contentType: 'application/json', dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) { storeoracle(data); },
+    error: function(error) { console.log("User reread failed: "+JSON.stringify(error)); }
+  });
+}
+// back from Patreon: ?patreon=<result> (dropped from the address bar), then the settings page shows it
+function patreonreturn() {
+  var m = /[?&]patreon=(\w+)/.exec(location.search);
+  if(!m) {
+    return;
+  }
+  history.replaceState(history.state, '', location.pathname + location.hash);
+  patreonmsg = PATREON_RESULTS[m[1]] || PATREON_RESULTS['failed'];
+  settingstab = 'account';
+  patreonrefresh();
 }
 
 //**********************************************************  Favorite game ****************
@@ -4286,7 +4348,7 @@ function artsimilarhit(datarequest,hit) {
 // Search by photo (artphoto.js, loaded on first use; ootv-search artembed/ and POST /artphoto): the
 // Photo button is a label around a file input, so the picker opens straight from the click.
 // Only for a logged-in user with a permission on this game (any operation in groups[database] or
-// groups['*']); Patreon privileges are to come (ootv-claude projects/patreon-privileges.md). Keep it
+// groups['*']) or a Patreon tier (artphotolevel()). Keep it
 // the same as the API's check, ootv-search artembed/app.py allowed().
 // the user's level for the photo features (Find the card and Find the artist), as ootv-search
 // artembed level() and ootv-admin user(): 'admin' / 'maintainer' (a permission on this game),
@@ -4328,8 +4390,8 @@ function photochooser() {
       '<p><a class="button gray" href="'+PATREON_URL+'" target="_blank" rel="noopener">Join on Patreon</a>'+
         (loggedin ? '' : ' <span class="button gray" onclick="dologin();">Log&nbsp;In/Register</span>')+'</p>'+
       '<p class="photolimit">'+(loggedin ? '' : 'You also need an Oracle of the Void account. ')+
-        'Already a supporter? The email on your Patreon account needs to be one of the emails on your Oracle account '+
-        '(Settings → Account → Emails); it\'s picked up at the next sync, within a day.</p>');
+        'Already a supporter? Use <b>Link with Patreon</b> under Settings → Account → Patreon, or add your Patreon email '+
+        'to your Oracle account\'s emails (Settings → Account → Emails); an email match is picked up within a day.</p>');
   }
   modal('Photo',
     '<p><label class="button gray photochoice">Find the card<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></span>'+
@@ -7943,7 +8005,7 @@ function loadgameconfigadmin(which) {
 }
 
 // Admin → Config → Limits (limitsadmin.js, loaded on first use): per-level limits of the photo
-// features (all/artphoto, all/artcheck); site admins only
+// features (all/artphoto); site admins only
 function loadlimitsadmin() {
   showadmintab('config');
   $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
