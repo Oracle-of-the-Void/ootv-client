@@ -8661,7 +8661,8 @@ function rulingopenrules(book,page) {
 // define them: hovering one shows the rule's text, clicking it opens the book at that place (or, with more
 // than one book, a choice of them). From the structure item <game>/traits (ootv-import SCRIPTS/rulebook-traits.py,
 // docs/admin/rulebooks.md "Trait links"): books {<id>: {title, year, arc, order}}, editions {<legality>: [book
-// ids, the one to prefer first]}, sets {<printing.set>: <legality>}, traits {<trait>: {<book id>: {page, find, text}}}.
+// ids, the one to prefer first]}, sets {<printing.set>: <legality>}, traits {<trait>: {<book id>: {page, find, text}}},
+// textskip [traits marked in the keywords only].
 // A trait's books on a card: the edition of the printing shown, the newest book that defines it, and the last
 // complete rules of each arc whose bug the card has; one book only once. A printing's arc is its legality and the
 // arc its set was printed in (sets), so a printing with no legality there (a ban, KYD cards) still gets that arc's book.
@@ -8720,7 +8721,10 @@ function traitsmark(scope,cardid,legal) {
         $(this).attr('data-trait', trait).after(' <span class="traitbook" data-trait="'+trait+'" title="">&#128214;</span>');
       }
     });
-    var names = Object.keys(data.traits).sort(function(a,b) { return b.length - a.length; });
+    // textskip: traits the text mostly names as something else (Honor: gaining and losing Honor), keywords only
+    var names = Object.keys(data.traits).filter(function(n) { return (data.textskip || []).indexOf(n) < 0; })
+      .sort(function(a,b) { return b.length - a.length; });
+    if(!names.length) { return; }
     var re = new RegExp('\\b('+names.map(function(n) { return n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|')+')s?\\b(?![-\u2010\u2011]\\w)', 'g');   // not part of a name (Utaku Yu-Pan)
     area.find('dd.cardtext').each(function() {
       var seen = {}, nodes = [], walk = document.createTreeWalker(this, NodeFilter.SHOW_TEXT);

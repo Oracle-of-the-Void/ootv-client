@@ -68,7 +68,7 @@ from each of the trait's books (a long rule is whole only for the printing's own
 sentences for the others, so the popup fits the screen; the click and the long-press show them all whole); clicking the book or the underlined word opens the book at the
 definition, marked (a `#find` link). When the trait has more than one book, the click shows them all
 with their text instead, to pick one. A keyword's number doesn't matter (Experienced 2 and Yu 3 link to
-Experienced and Yu), and a trait inside a name (Utaku Yu-Pan) isn't marked. Fan-made books (shelf tag
+Experienced and Yu), and a trait inside a name (Utaku Yu-Pan) isn't marked. A few traits are marked in the Keywords only, never in the Text, because card text mostly uses the word for something else: **Honor** (the Virtue ability) against gaining and losing Honor. They're `textskip` in the trait config. Fan-made books (shelf tag
 **Fan Made**, e.g. the Onyx Lives datasheets) carry a **Fan Made** mark after their title, so AEG's rules
 and the fan rules that changed them can be told apart. The book for the printing shown carries a highlighted **this printing** mark, so the rules
 of the edition in hand stand out from the other books listed. On a phone or tablet, a long-press on the trait (or its keyword)
@@ -107,6 +107,7 @@ The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 - `editions`: each legality → its books, the one to prefer first;
 - `sets`: each set (as `printing.set` has it) → the arc it was released in (in the config: arc → its sets);
 - `traits`: the traits to look for.
+- `textskip`: traits marked in the Keywords only, never in card text (Honor; copied into the item as is).
 
 The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for
 each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it,
