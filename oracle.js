@@ -7512,6 +7512,7 @@ var discordgames = [], discordcommands = [];
 var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', oraclebug: 'Bug report', oraclehelp: 'Help'};
 function loaddiscord(note) {
   showadmintab('config');
+  $('#limitsadmin').empty();
   $('#loginlog').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
@@ -7878,6 +7879,22 @@ function loadgameconfigadmin(which) {
   $.ajax({url: 'gameconfigadmin.js?v='+ootvversion, dataType: 'script', cache: true})
     .done(open)
     .fail(function() { $(which == 'templates' ? '#templatesadmin' : '#gameconfigadmin').html('<span class="error">Could not load the editor.</span>'); });
+}
+
+// Admin → Config → Limits (limitsadmin.js, loaded on first use): per-level limits of the photo
+// features (all/artphoto, all/artcheck); site admins only
+function loadlimitsadmin() {
+  showadmintab('config');
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $('#limitsadmin').text('The limits need full permission on every game.'); return; }
+  if(window.limitsadminloaded) { limitsopen(); return; }
+  $('#limitsadmin').text('Loading...');
+  $.ajax({url: 'limitsadmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { limitsopen(); })
+    .fail(function() { $('#limitsadmin').html('<span class="error">Could not load the limits editor.</span>'); });
 }
 
 // Admin → Artists (artistsadmin.js, loaded on first use): the oracle-all-artists entries the artist

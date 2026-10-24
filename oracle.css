@@ -1785,6 +1785,12 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .discordnote { background: #eef6ee; padding: 4px 8px; }
 /* admin mass image upload */
 .massimage { max-width: 60em; }
+.limitsadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; max-width: 60em; }
+.limitstable { border-collapse: collapse; margin: 4px 0; }
+.limitstable td, .limitstable th { border-bottom: 1px solid #ddd; padding: 3px 8px; text-align: left; vertical-align: top; }
+.limitstable input { width: 6em; }
+.limitsnote { color: #666; font-size: 0.9em; }
+.limitsfeature { margin: 10px 0 16px; }
 .massimage:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 /* Admin -> Artist check (artcheck.js) and its result under a printing in the card editor */
 .artcheck { max-width: 60em; }
