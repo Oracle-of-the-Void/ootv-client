@@ -1,6 +1,6 @@
 # Artist entries
 
-Last updated: 2026-10-23
+Last updated: 2026-10-24
 
 Clicking an artist credit on a card opens a small box: **Search cards by** the artist, then the
 artist's own pages (portfolio, gallery, social media) and a note. Those pages and notes are the
@@ -35,6 +35,13 @@ in the artist box, which opens it here.
 - **Note**: shown in the box under the links, e.g. "No links found" or why there's no artist.
 - **Links**: the address and a label (Instagram, ArtStation, own site...). Tick **Archived copy**
   for a Wayback Machine copy of a dead site; the box says "archived copy". Empty rows are dropped.
+- **Signatures** (not on this page yet): where the artist's known signatures are, set by a script,
+  `signatures: {path, count, updated}`. `path` is a folder on the images site,
+  `https://images.oracleofthevoid.com/artists/<name>/signatures/`, with one cropped signature per card
+  (`<cardid>_<printingid>.png`) and an `index.json` listing each one's card, what it reads, and whether
+  it matched the credit or was confirmed by hand. 76 artists have them since 2026-10-24 (the signature
+  review in project artist-by-style). An alias credit's signatures are on its main entry. Saving an
+  entry here leaves them alone. Using them in Find the artist is project `artist-signatures`.
 
 **Save** writes the entry at once (it's live on every card page right away). If someone else saved
 the same entry after you opened it, the save is refused: copy your changes and reload. **Delete**
