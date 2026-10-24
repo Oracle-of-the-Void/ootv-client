@@ -59,7 +59,10 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   for this printing, where S&M files it under another card than the card's own S&M name: e.g.
   Marketplace's pre-Imperial to Jade printings (and the starter reprints that borrow them) are
   `["Market Place"]` in S&M. Wins over the card's `titletextsnm`/`puretexttitle`/`title` in the S&M
-  export only; `/import` matches it too. Written with `snmsetcode` by the same scripts.
+  export only; `/import` matches it too. Written with `snmsetcode` by the same scripts. The map
+  finds these through the printing's printed name (`printedtitle`, `title`: "Kamoto" in Anvil of
+  Despair), S&M's double-sided strongholds (side "(1)"), and `ALIASES` in `snm-map.py` for names
+  only S&M uses (its typos also sit in the card's `alttitle`, so a pasted S&M name finds the card).
 * printing.image (array, one entry per image, front first). Each entry names the files of one image
   in the printing's `imagehash` directory:
  * ```json
