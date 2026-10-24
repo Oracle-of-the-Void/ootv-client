@@ -1793,6 +1793,9 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .artcheckresult > div { margin: 2px 0; }
 .artcheckstrong { font-weight: bold; }
 .artchecknote { color: #666; font-size: 0.9em; }
+.artcheckpicture { float: right; max-width: 200px; max-height: 200px; margin: 0 0 8px 10px; border-radius: 3px; }
+@media (max-width: 700px) { .artcheckpicture { max-width: 40%; } }
+.artcheckresult details { clear: both; }
 .artcheckpick { margin-top: 6px; padding: 4px 6px; background: #f6f6f0; border-radius: 3px; }
 .artcheckpick label { display: inline-block; margin: 2px 10px 2px 0; white-space: nowrap; }
 .artchecklist { border-collapse: collapse; font-size: 0.9em; }
