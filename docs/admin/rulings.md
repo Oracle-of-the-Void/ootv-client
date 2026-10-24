@@ -36,7 +36,7 @@ Ctrl/Cmd-click opens any of them in a new tab instead.
 
 Most L5R and LBS rulings came from the old FAQs, accumulated rulings, rules archives and errata lists
 (1997 to 2007), which are on the Rules shelf as type **Rulings** (`rulebooks.md`). They were
-put on the cards in bulk (ootv-backups `add-rulings.py`; the plan and how it was made are in
+put on the cards in bulk (ootv-tools `rulings/add-rulings.py`; the plan and how it was made are in
 ootv-claude `RULINGS-IMPORT.md`):
 
 - Each ruling is the archive's text with its citation (`[DW, l5rinfo, 11/4/96]`), then a link
@@ -116,7 +116,7 @@ answer clearly echo one version's own card text (words the other versions' texts
 gets it. The answers still left on several versions were then reviewed by hand (ootv-import
 `rulings-email-decisions.tsv`: each stays on every version, goes to one, or comes off), so none carry a
 `needsreview` note; one left unsettled by a later rebuild would get a note saying so. Everything else, chatter included, stays only in the digests.
-After a change to the scripts the cards are re-synced (ootv-backups `add-rulings.py --sync`), which replaces
+After a change to the scripts the cards are re-synced (ootv-tools `rulings/add-rulings.py --sync`), which replaces
 only the entries linking to the digests.
 
 The pages and the card entries are made by ootv-import `SCRIPTS/email-qa.py`, `email-plan.py` and

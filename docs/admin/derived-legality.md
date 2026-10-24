@@ -379,7 +379,7 @@ The search form has a **Paper** row, just below Pub, with an **only** checkbox. 
 API ANDs with the rest of the search, including whatever the Legality menu holds. Picking
 Paper in the Legality menu instead ORs it with the other legalities chosen there.
 
-The publishers come from the set (`ootv-backups/printing-publisher.py`, 2026-10-14):
+The publishers come from the set (`ootv-tools/printings/printing-publisher.py`, 2026-10-14):
 
 | Publisher | Sets |
 |---|---|

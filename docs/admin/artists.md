@@ -48,6 +48,6 @@ The `artists` permission (or full permission) on every game. Anyone can view the
 
 ## The scripts
 
-The entries were built on 2026-10-23 by ootv-backups `artist-links/` (fandom matching, link checks,
+The entries were built on 2026-10-23 by ootv-tools `artists/links/` (fandom matching, link checks,
 web searches). Since the editor, **the table is the source**: the scripts are for bulk work only, and
 their fill step leaves entries saved here alone.
