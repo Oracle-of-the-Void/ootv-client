@@ -85,7 +85,9 @@ choosing a printing.
 ## Search by photo {#photo}
 
 **Photo** (next to the Search button) is for logged-in users with access to the game, and for our
-[Patreon](https://www.patreon.com/oracleofthevoid) supporters. Supporters are
+[Patreon](https://www.patreon.com/oracleofthevoid) supporters: a free Patreon membership gets 1
+photo search a day, paid tiers more (each search runs image models on servers we pay for, so heavy
+use has a real cost). Without access, the button says how to get it. Supporters are
 recognized by the email on their Patreon account matching one of the emails on their Oracle
 account. It asks what you want from the picture:
 

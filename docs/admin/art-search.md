@@ -35,7 +35,10 @@ Who gets it: a logged-in account with any permission on the game (an entry under
 under `*`, in the user's groups in the user editor), or a Patreon supporter whose tier is listed
 in the limits below. Supporters are tied to their account by email (or by linking Patreon on
 their profile) in `oracle-all-patreon`, which Patreon keeps current; see [Patreon](patreon.md).
-The button is hidden for everyone else, and the API refuses them too. The same people get
+Everyone sees the button: for anyone else (not logged in, or no permission or tier) it explains
+that the photo features are for Patreon supporters, that a free membership gets 1 a day and that
+heavy use has a real cost, with a Join on Patreon button; the API refuses them too. Supporters see
+their allowance under the choices, and that higher tiers get more. The same people get
 **Find the artist** under the same button ([Artist check](artist-check.md)). A result link can be
 opened by anyone: it only searches with the stored fingerprints.
 
