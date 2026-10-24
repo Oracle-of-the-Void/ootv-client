@@ -2235,6 +2235,9 @@ button.rulespill:hover { border-color: #a99a6c; background: #f6f1e2; }
 button.rulespill.rulespillon { background: #e0c35a; border-color: #b89a32; color: #000; }
 select.rulesarc { font: inherit; font-size: .9em; padding: 1px 4px; max-width: 100%; }
 .rulesfiltercount { color: #777; font-size: .85em; }
+button.rulespill.rulesfilterclear { color: #555; }
+button.rulesfilterclear .feather { width: 1em; height: 1em; vertical-align: -2px; }
+button.rulesfilterclear[hidden] { display: none; }
 .rulesbookmarks { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 .rulesbookmark { font-size: .72em; padding: 0 6px; border-radius: 8px; background: #efe7cc; color: #5a4a14; white-space: nowrap; }
 .rulesnomatch { color: #777; font-style: italic; grid-column: 1 / -1; }
