@@ -64,13 +64,23 @@ def exportname(card):
     return t[0] if isinstance(t, list) else t
 
 
+def snmeds(card):
+    """The S&M editions of the card the export's name finds: the exact name, else the loose key."""
+    name = exportname(card)
+    return snmexact.get(html.unescape(name)) or snm.get(key(name), set())
+
+
 # the S&M file has a few stray non-UTF-8 bytes in card text
 root = ET.fromstring(open(SNMDB, encoding='utf-8', errors='replace').read())
 snm = collections.defaultdict(set)
+# exact names too: S&M keeps "Market Place" (Imperial-Jade) and "Marketplace" (Pearl on) as
+# separate cards, which key() would merge
+snmexact = collections.defaultdict(set)
 edsize = collections.Counter()
 for c in root:
     eds = {e.text for e in c.findall('edition')}
     snm[key(c.findtext('name') or '')] |= eds
+    snmexact[html.unescape(c.findtext('name') or '')] |= eds
     edsize.update(eds)
 # S&M lists 3 cards under "RoU" beside "ROU" (Rise of Otosan Uchi); export only ROU
 edsize.pop('RoU', None)
@@ -80,7 +90,7 @@ cards = [json.load(open(os.path.join(CARDS, f))) for f in sorted(os.listdir(CARD
 votes = collections.defaultdict(collections.Counter)
 setsize = collections.Counter()
 for card in cards:
-    eds = snm.get(key(exportname(card)), set())
+    eds = snmeds(card)
     for p in card['printing']:
         for s in p.get('set', []):
             setsize[s] += 1
@@ -105,7 +115,7 @@ for s, v in votes.items():
 
 printings = {}
 for card in cards:
-    eds = snm.get(key(exportname(card)), set())
+    eds = snmeds(card)
     if not eds:
         continue  # name not in S&M: keep the set code, it's the best guess
     for p in card['printing']:
