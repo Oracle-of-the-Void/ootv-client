@@ -6,7 +6,9 @@ has under that name and edition, so this script matches every OotV printing agai
 own card database by the name the export writes (titletextsnm, puretexttitle, title).
 S&M sometimes splits one OotV card into several by name ("Market Place" for pre-Imperial
 to Jade, "Marketplace" from Pearl on), so each printing gets the S&M card that has its
-edition, exact name first.
+edition, exact name first. A printing's own printed name (printing printedtitle or title:
+"Kamoto" in Anvil of Despair) is tried before the card's, S&M's double-sided strongholds
+("X (1)", "X (2)") match X on side 1, and ALIASES below covers the names only S&M uses.
 
 A printing S&M doesn't have under any of the card's names (starter reprints, The L5R
 Experience, other codes S&M's database lacks) exports as the card's most recent printing
@@ -89,6 +91,53 @@ DATES = {
     'Promotional&ndash;Ivory': (2014, 3, 1),
     'Promotional&ndash;Twenty Festivals': (2015, 3, 1),
 }
+# S&M card names that no OotV name reaches: S&M's typos, its "- exp" names for experienced
+# printings, and its shortened or changed subtitles (the printed names are checked against the
+# scans; where the scan shows S&M's name, it's in printing printedtitle instead). S&M name ->
+# cardid. A name only matches the printings in its own S&M editions.
+ALIASES = {
+    'Amoral Wave Man': 12193,
+    'Beseech Sakkau': 9884,
+    'Daidoji Akeha, Iron Crane - exp': 13088,
+    'Daidoji Senshi, Aerie Governor': 13681,
+    'Daigotsu - wind': 989,
+    'Dark Oracle of Water, Hida Saiyuki - exp2': 14023,
+    'Doji Kurizima': 14229,
+    'Goju Hitomi - exp3': 2850,
+    'Gusai Ichido, Clan Champion - exp2': 14431,
+    'Hida Sazeren, Soul of Hida Sozen': 12746,
+    'Hoturi the Heartless - exp3 KYD': 3487,
+    'Isawa Kaname, Advisor the the Ruby Champion': 11759,
+    'Judgement of the Kami': 4062,
+    'Karda': 12733,
+    'Kitsu Kouki - exp': 14380,
+    'Kitsune Toshitaka': 14128,
+    'Militia Training Grounds': 5056,
+    'Mirumoto Hitomi - exp2': 3356,
+    'Oracle of Thunder - exp': 5774,
+    'Otaku Xieng Chi - exp': 9111,
+    'Pierce the Tapestry': 10388,
+    'Polvara Cache': 12208,
+    'Reincarnation': 13006,
+    "Scholar's Facade": 14289,
+    'Shahadet - exp 4': 14129,
+    'Shiba Heirei': 10865,
+    "Shiba Tamashii, Shiba's Soul": 13437,
+    'Shosuro Takumi, Governor of Ryoko Owari': 13765,
+    'Soshi Matashichi': 13281,
+    'Spiritual Coelescence': 10393,
+    'Suiteru no Oni': 7618,
+    'Suzume Ryosuke, Sparrow Clan Champion': 14167,
+    'The Austere Valley of the Sparrow - exp': 14199,
+    'The Obsidian Halls of the Lost': 5657,
+    'Togashi Mitsu - exp': 5191,
+    'Togashi Yoshi - exp': 9666,
+    'Watanabe Masutaro, Soul of Yoritomo Uyko': 13732,
+    'Winter Seige': 9349,
+    'Yogo Mizogushi': 12481,
+}
+# S&M's two sides of a double-sided stronghold: "The Eternal Temple of the Phoenix (1)"
+SIDE = re.compile(r' \((\d)\)$')
 
 
 def key(s):
@@ -105,10 +154,27 @@ def snmeds(card):
     return snm.get(key(exportname(card)), set())
 
 
+def printednames(p):
+    """The printing's own names (printedtitle, title), as plain text."""
+    return [html.unescape(re.sub(r'<[^>]+>', '', t)) for f in ('printedtitle', 'title') for t in p.get(f, [])]
+
+
 def snmcards(card):
-    """[(S&M name, editions)] for the card, the exact export name first."""
+    """[(S&M name, editions)] for the card under its export name, its printings' printed names
+    and ALIASES; the exact export name first, side 1 of a stronghold before side 2."""
     name = html.unescape(exportname(card))
-    return sorted(snmnames.get(key(name), {}).items(), key=lambda ne: ne[0] != name)
+    names = [name] + [n for p in card['printing'] for n in printednames(p)] + aliases.get(card['cardid'], [])
+    found = {}
+    for n in names:
+        found.update(snmnames.get(key(n), {}))
+    return sorted(found.items(), key=lambda ne: (ne[0] != name, ne[0]))
+
+
+def snmprimary(card):
+    """The S&M names under the card's export name alone. A printed name or alias only counts
+    where S&M has that very edition: an experienced card's printed name is the base card's."""
+    name = html.unescape(exportname(card))
+    return sorted(snmnames.get(key(name), {}), key=lambda n: (n != name, n))
 
 
 def ym(text):
@@ -132,9 +198,14 @@ for c in root:
     name = html.unescape(c.findtext('name') or '')
     snm[key(name)] |= eds
     snmnames[key(name)][name] |= eds
+    if SIDE.search(name):
+        snmnames[key(SIDE.sub('', name))][name] |= eds
     edsize.update(eds)
 # S&M lists 3 cards under "RoU" beside "ROU" (Rise of Otosan Uchi); export only ROU
 edsize.pop('RoU', None)
+aliases = collections.defaultdict(list)   # cardid -> S&M names
+for n, cid in ALIASES.items():
+    aliases[cid].append(n)
 
 cards = [json.load(open(os.path.join(CARDS, f))) for f in sorted(os.listdir(CARDS))]
 
@@ -187,13 +258,31 @@ def own(card, p, cands):
     s = (p.get('set') or [''])[0]
     if s in RULEONLY:
         return None
+    # the printing's own printed name first ("The Shattered Stormfront" in Gathering Storms)
+    mine = {key(n) for n in printednames(p)}
+    cands = sorted(cands, key=lambda ne: key(SIDE.sub('', ne[0])) not in mine)
     if s in KEEPCODE:
-        return cands[0][0], sets[s]
+        return (snmprimary(card) or [html.unescape(exportname(card))])[0], sets[s]
+    prim = snmprimary(card)
     for code in [sets.get(s)] + ALTERNATES.get(s, []):
         for name, eds in cands:
             if code and code in eds:
+                # a printed name or alias never takes another card's own S&M card and edition
+                if name not in prim and claimed.get((name, code), {card['cardid']}) - {card['cardid']}:
+                    continue
                 return name, code
     return None
+
+
+# (S&M name, code) -> the cards whose own export name reaches it there
+claimed = collections.defaultdict(set)
+for card in cards:
+    prim = snmprimary(card)
+    for p in card['printing']:
+        code = sets.get((p.get('set') or [''])[0])
+        for name in prim:
+            if code in snmnames[key(name)][name]:
+                claimed[(name, code)].add(card['cardid'])
 
 
 printings = {}
@@ -217,12 +306,14 @@ for card in cards:
             if earlier:
                 hit = max(earlier, key=lambda h: h[0])[1]
                 borrowed += 1
-            else:
+            elif snmprimary(card):
                 if not d:
                     undated[s] += 1
-                hit = (cands[0][0], '')
+                hit = (snmprimary(card)[0], '')
+            else:
+                continue  # only a printed name or alias reaches S&M, in other editions
         name, code = hit
-        if len(cands) == 1:
+        if key(name) == key(name0) and len(snmnames[key(name0)]) == 1:
             name = name0  # one S&M card: a spelling difference only (case, punctuation)
         if code != sets.get(s, '') or name != name0:
             entry = {'code': code}
