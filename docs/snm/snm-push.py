@@ -3,7 +3,7 @@
 
 The S&M export (oracle.js snmsetload), ootv-search's /import (lib/snm.js) and the Admin set
 import read the set codes from that item (`sets` only). Per-printing codes aren't in the item:
-they're the cards' printing field `snmsetcode` (ootv-backups/snm-printings.py). Run this after
+they're the cards' printing field `snmsetcode` (ootv-tools/printings/snm-printings.py). Run this after
 snm-map.py rebuilds docs/snm/l5r-snm.json.
 
   python3 docs/snm/snm-push.py [map.json]          # dry run: what would change
