@@ -2389,9 +2389,14 @@ function loadartcheck(cardid, printingid) {
     .fail(function() { $('#artcheck').html('<span class="error">Could not load the artist check code.</span>'); });
 }
 
-// the card editor's "Check artist": the result drawn into #target under the printing
+// the card editor's "Check artist": the result drawn into #target under the instance, with artist
+// checkboxes and Fill in artist; kept in cardedit.artcheck so a redraw of the editor shows it again
 function artcheckinline(target, cardid, printingid) {
-  artcheckload().done(function() { artcheckrun(target, cardid, printingid); })
+  artcheckload().done(function() {
+    artcheckrun(target, cardid, printingid, function(job) {
+      if(cardedit && cardedit.cardid == cardid) { (cardedit.artcheck = cardedit.artcheck || {})[printingid] = job; }
+    }, printingid);
+  })
     .fail(function() { $('#'+target).html('<span class="error">Could not load the artist check code.</span>'); });
 }
 
