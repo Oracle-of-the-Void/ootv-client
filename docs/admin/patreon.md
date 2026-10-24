@@ -23,7 +23,16 @@ Automatic, by email: a supporter is tied to the Oracle account that has their Pa
 its emails (the same lookup login uses), unless that email isn't verified on the login side. Only
 a hash of the Patreon email is stored. A supporter whose Patreon email isn't on their account can
 add it under their profile's emails; the tie appears on the next webhook or nightly sync.
-(A "Link with Patreon" button on the profile is planned for the rest.)
+
+By Patreon login: **Link with Patreon** (Settings → Account → Patreon) signs the user in to
+Patreon (scope `identity`, nothing else is read) and ties that Patreon account to theirs
+(`linkedby: oauth`), whatever its email. Patreon sends the browser back through
+`https://api.oracleofthevoid.com/patreon/oauth`, which has to be listed as a redirect URI on our
+Patreon API client. A Patreon account that isn't a member of the campaign yet (not even free) can't
+be linked; the user is told to join first.
+
+**Unlink** unties every membership tied to the account and marks them `nomatch`, so email matching
+leaves them alone; only Link with Patreon ties them again.
 
 ## What tiers get
 

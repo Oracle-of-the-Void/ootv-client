@@ -14,6 +14,10 @@ settings are kept in that browser only, and **Clear Cache** deletes them.
   initials.
 - **Emails**: signing in with any of them reaches this account. A new address gets a code to
   confirm it.
+- **Patreon**: our [Patreon](https://www.patreon.com/oracleofthevoid) supporters get more
+  [photo searches](searching.md#photo). A Patreon account whose email is one of your emails is
+  tied to your account by itself. If it uses another email, **Link with Patreon** signs in to
+  Patreon to tie it instead. **Unlink** unties it, and the email match won't tie it again.
 - **Favorite game**: the game the site opens with in a new browser.
 
 ## Display {#display}
