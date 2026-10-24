@@ -734,6 +734,17 @@ Recent Data Updates for Currently Selected Database:<br>
       {{/if}}
       <span class="profileemailstatus"></span>
       <br/><small>Signing in with any of these reaches this account. A new address gets a code to confirm it; a removed one gets an email saying so.</small></dd>
+    <dt>Patreon</dt><dd class="profilepatreon">
+      {{if oracle.patreon}}
+      {{if oracle.patreon.tiers.length}}Supporter: <b>{{>oracle.patreon.tiers[0]}}</b>{{else oracle.patreon.status=='declined_patron'}}Linked; the last payment was declined{{else oracle.patreon.status=='former_patron'}}Linked; a former supporter{{else}}Linked{{/if}}
+      <small>({{if patreonoauth}}linked with Patreon{{else}}by your email{{/if}})</small>
+      <span class="button gray" onclick="patreonunlink(this);">Unlink</span>
+      {{else}}
+      <i>Not linked</i> <span class="button gray" onclick="patreonlink(this);">Link with Patreon</span>
+      {{/if}}
+      <span class="profilepatreonstatus">{{>patreonmsg}}</span>
+      <br/><small>Our <a href="https://www.patreon.com/oracleofthevoid" target="_blank" rel="noopener">Patreon</a> supporters get more photo searches.
+        A Patreon account whose email is one of the emails above is tied to this account by itself; otherwise use Link with Patreon.</small></dd>
     {{!-- No Notifications row (#21): nothing reads users.is_no_email and the site sends no optional email; bring it back as a real switch if that changes --}}
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined<br/>{{:folders}} folder{{if folders!=1}}s{{/if}} ({{>gamename}})</dd>
   </dl>

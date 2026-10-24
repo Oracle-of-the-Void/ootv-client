@@ -89,7 +89,7 @@ choosing a printing.
 photo search a day, paid tiers more (each search runs image models on servers we pay for, so heavy
 use has a real cost). Without access, the button says how to get it. Supporters are
 recognized by the email on their Patreon account matching one of the emails on their Oracle
-account. It asks what you want from the picture:
+account, or by **Link with Patreon** in [Settings](settings.md#account). It asks what you want from the picture:
 
 - **Find the card** finds a card from a picture of it, or of its art. The photo is only used for
   the search and isn't kept. After a search you can drag the corners of the card outline and search
