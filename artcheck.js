@@ -65,11 +65,22 @@ function artcheckrun(target, cardid, printingid, then, pick) {
 
 // a picture file -> shrunk and upright (as Search by photo) -> queued as an upload
 function artcheckupload(input) {
+  artcheckpicture(input, $('input[name=artcheckkind]:checked').val() || 'card', 'artcheckone', artchecklist);
+}
+
+// the Photo button's Find the artist (photochooser in oracle.js): the result in the popup
+function artcheckphoto(input, kind) {
+  modal('Find the artist', '<div id="artcheckmodal"></div><p class="artchecknote">The candidates are leads to check, not answers: '+
+    'read any printed credit first.</p>');
+  $('#modal').addClass('artphotomodal');
+  artcheckpicture(input, kind, 'artcheckmodal', null);
+}
+
+function artcheckpicture(input, kind, target, then) {
   var file = input.files && input.files[0];
   input.value = '';
   if(!file) { return; }
-  var kind = $('input[name=artcheckkind]:checked').val() || 'card';
-  $('#artcheckone').html('Reading the picture...');
+  $('#'+target).html('Reading the picture...');
   var url = URL.createObjectURL(file), img = new Image();
   img.onload = function() {
     URL.revokeObjectURL(url);
@@ -79,11 +90,11 @@ function artcheckupload(input) {
     canvas.height = Math.max(1, Math.round(img.naturalHeight * k));
     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
     var data = canvas.toDataURL('image/jpeg', 0.88);
-    artcheckqueue('artcheckone', {image: data, kind: kind, name: file.name}, artchecklist, null, data);
+    artcheckqueue(target, {image: data, kind: kind, name: file.name}, then, null, data);
   };
   img.onerror = function() {
     URL.revokeObjectURL(url);
-    $('#artcheckone').html('<span class="error">That file could not be read as a picture. Try a JPEG or PNG.</span>');
+    $('#'+target).html('<span class="error">That file could not be read as a picture. Try a JPEG or PNG.</span>');
   };
   img.src = url;
 }

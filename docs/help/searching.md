@@ -84,7 +84,18 @@ choosing a printing.
 
 ## Search by photo {#photo}
 
-**Photo** (next to the Search button) finds a card from a picture of it, or of its art. It's for
-logged-in users with access to the game. The photo is only used for the search and isn't kept.
-After a search you can drag the corners of the card outline and search again if it picked the
-wrong part of the picture.
+**Photo** (next to the Search button) is for logged-in users with access to the game. It asks what
+you want from the picture:
+
+- **Find the card** finds a card from a picture of it, or of its art. The photo is only used for
+  the search and isn't kept. After a search you can drag the corners of the card outline and search
+  again if it picked the wrong part of the picture.
+- **Find the artist** suggests who may have painted it. Say whether the picture is a whole card or
+  the art alone, then pick the picture. A few seconds later you get any signature read in the art,
+  cards that use the same painting (with their credited artist), and the artists whose paintings are
+  nearest in style, with each one's share of the vote. These are leads, not answers: a share of 50%
+  or more was right about nine times in ten when tested on credited L5R art, and the signature
+  reader often misreads small signatures. The picture is kept for 90 days so the site's maintainers
+  can look at it.
+
+Each has a daily and a per-minute allowance; if you use one up, the message says when it resets.
