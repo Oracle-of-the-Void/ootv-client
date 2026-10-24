@@ -2270,7 +2270,7 @@ function loadmassimage() {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
   $('#setimport, #importprofiles').hide();
   $('#updatelogpage').empty();
@@ -2353,7 +2353,7 @@ function loadsetimport(open) {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
@@ -7415,7 +7415,7 @@ function loadloginlog(page) {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#loginlog').html('Loading login log...');
@@ -7453,6 +7453,7 @@ var discordgames = [], discordcommands = [];
 var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', oraclebug: 'Bug report', oraclehelp: 'Help'};
 function loaddiscord(note) {
   showadmintab('config');
+  $('#limitsadmin').empty();
   $('#loginlog').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
@@ -7667,7 +7668,7 @@ function loadadmindoc(name) {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#admindoc').text('Loading '+name+'...');
@@ -7821,11 +7822,27 @@ function loadgameconfigadmin(which) {
     .fail(function() { $(which == 'templates' ? '#templatesadmin' : '#gameconfigadmin').html('<span class="error">Could not load the editor.</span>'); });
 }
 
+// Admin → Config → Limits (limitsadmin.js, loaded on first use): per-level limits of the photo
+// features (all/artphoto, all/artcheck); site admins only
+function loadlimitsadmin() {
+  showadmintab('config');
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
+  $('#massimage, #setimport, #importprofiles').hide();
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $('#limitsadmin').text('The limits need full permission on every game.'); return; }
+  if(window.limitsadminloaded) { limitsopen(); return; }
+  $('#limitsadmin').text('Loading...');
+  $.ajax({url: 'limitsadmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { limitsopen(); })
+    .fail(function() { $('#limitsadmin').html('<span class="error">Could not load the limits editor.</span>'); });
+}
+
 // Admin → Artists (artistsadmin.js, loaded on first use): the oracle-all-artists entries the artist
 // modal shows. name: an entry to open (the modal's Edit link).
 function loadartistsadmin(name) {
   showadmintab('data');
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin').empty();
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
@@ -7853,7 +7870,7 @@ function loadfielddescs(target) {
   $('#admindoc').empty();
   $('#updatelogpage').empty();
   $('#massimage, #setimport, #importprofiles').hide();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   fielddescsview.target = target || database;
   $('#fielddescs').text('Loading field descriptions...');
   fielddescsload(database,true).then(fielddescsshow);
@@ -7972,7 +7989,7 @@ function loadupdatelogpage() {
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
-  $('#gameconfigadmin, #templatesadmin').empty();
+  $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#admindoc').empty();
   $('#massimage, #setimport, #importprofiles').hide();
   $('#updatelogpage').html($.templates("#template-updatelogpage").render({name: dbinfo[database].name}));
