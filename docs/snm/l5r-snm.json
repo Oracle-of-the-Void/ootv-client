@@ -189,6 +189,10 @@
 "1034/3": {
 "code": "RoB"
 },
+"10393/1": {
+"code": "TA",
+"name": "Spiritual Coelescence"
+},
 "1045/15": {
 "code": "Gold"
 },
@@ -297,6 +301,10 @@
 "1086/8": {
 "code": "Lotus"
 },
+"10865/1": {
+"code": "AM",
+"name": "Shiba Heirei"
+},
 "10872/1": {
 "code": ""
 },
@@ -327,6 +335,26 @@
 "11141/1": {
 "code": ""
 },
+"11142/1": {
+"code": "",
+"name": "Gates of the Second City (1)"
+},
+"11142/2": {
+"code": "",
+"name": "Gates of the Second City (1)"
+},
+"11142/3": {
+"code": "",
+"name": "Gates of the Second City (1)"
+},
+"11142/4": {
+"code": "",
+"name": "Gates of the Second City (1)"
+},
+"11142/5": {
+"code": "",
+"name": "Gates of the Second City (1)"
+},
 "11149/1": {
 "code": ""
 },
@@ -334,28 +362,35 @@
 "code": ""
 },
 "11168/2": {
-"code": "Ivory"
+"code": "ShE",
+"name": "Mirumoto Niwa, Soul of Mirumoto Kei"
 },
 "11169/2": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Mirumoto Nokkai, Soul of Mirumoto Tsuge"
 },
 "11169/3": {
-"code": "Ivory"
+"code": "ShE",
+"name": "Mirumoto Nokkai, Soul of Mirumoto Tsuge"
 },
 "1118/7": {
 "code": "Pearl"
 },
 "11182/3": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Matsu Agai, Soul of Matsu Agoro"
 },
 "11187/2": {
-"code": "Ivory"
+"code": "ShE",
+"name": "Matsu Tayuko, Soul of Matsu Aoiko"
 },
 "11187/3": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Matsu Tayuko, Soul of Matsu Aoiko"
 },
 "11198/2": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Agasha Kyokuta, Soul of Agasha Yuhiko"
 },
 "11201/1": {
 "code": ""
@@ -366,26 +401,40 @@
 "1121/2": {
 "code": "SC"
 },
+"11210/2": {
+"code": "Onyx",
+"name": "Bayushi Akane, Soul of Bayushi Kurumi"
+},
+"11210/3": {
+"code": "ShE",
+"name": "Bayushi Akane, Soul of Bayushi Kurumi"
+},
 "11220/2": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Daigotsu Geiko, Soul of Daigotsu Keigo"
 },
 "11220/3": {
-"code": "Ivory"
+"code": "ShE",
+"name": "Daigotsu Geiko, Soul of Daigotsu Keigo"
 },
 "11222/1": {
 "code": ""
 },
 "11224/2": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Daigotsu Roburo, Soul of Daigotsu Bundoru"
 },
 "11224/3": {
-"code": "Ivory"
+"code": "ShE",
+"name": "Daigotsu Roburo, Soul of Daigotsu Bundoru"
 },
 "11228/2": {
-"code": "Ivory"
+"code": "ShE",
+"name": "Chuda Tairao, Soul of Chuda Rintaro"
 },
 "11229/2": {
-"code": "Ivory"
+"code": "Onyx",
+"name": "Dainiko, Soul of Nakadai"
 },
 "11248/2": {
 "code": "Ivory"
@@ -399,8 +448,24 @@
 "11251/2": {
 "code": "Ivory"
 },
+"11252/1": {
+"code": "Ivory",
+"name": "Ancestral Armor of the Mantis Clan"
+},
+"11252/2": {
+"code": "Ivory",
+"name": "Ancestral Armor of the Mantis Clan"
+},
 "11253/2": {
 "code": "Ivory"
+},
+"11254/1": {
+"code": "Ivory",
+"name": "Ancestral Armor of the Scorpion Clan"
+},
+"11254/2": {
+"code": "Ivory",
+"name": "Ancestral Armor of the Scorpion Clan"
 },
 "11255/2": {
 "code": "Ivory"
@@ -431,6 +496,98 @@
 },
 "1129/7": {
 "code": "Obsidian"
+},
+"11290/1": {
+"code": "Ivory",
+"name": "The Impregnable Fortress of the Crab (1)"
+},
+"11290/3": {
+"code": "AMoH",
+"name": "The Impregnable Fortress of the Crab (1)"
+},
+"11290/4": {
+"code": "Ivory",
+"name": "The Impregnable Fortress of the Crab (1)"
+},
+"11292/1": {
+"code": "Ivory",
+"name": "The Exquisite Palace of the Crane (1)"
+},
+"11292/2": {
+"code": "Ivory",
+"name": "The Exquisite Palace of the Crane (1)"
+},
+"11294/1": {
+"code": "Ivory",
+"name": "The Remote Monastery of the Dragon (1)"
+},
+"11294/2": {
+"code": "Ivory",
+"name": "The Remote Monastery of the Dragon (1)"
+},
+"11296/1": {
+"code": "Ivory",
+"name": "The Honorable Garrison of the Lion (1)"
+},
+"11296/3": {
+"code": "AMoH",
+"name": "The Honorable Garrison of the Lion (1)"
+},
+"11296/4": {
+"code": "Ivory",
+"name": "The Honorable Garrison of the Lion (1)"
+},
+"11299/1": {
+"code": "Ivory",
+"name": "The Fruitful Port of the Mantis (1)"
+},
+"11299/2": {
+"code": "Ivory",
+"name": "The Fruitful Port of the Mantis (1)"
+},
+"11299/3": {
+"code": "TwentyFestivals",
+"name": "The Fruitful Port of the Mantis (1)"
+},
+"11299/4": {
+"code": "TCW",
+"name": "The Fruitful Port of the Mantis (1)"
+},
+"11300/1": {
+"code": "Ivory",
+"name": "The Eternal Temple of the Phoenix (1)"
+},
+"11300/2": {
+"code": "Ivory",
+"name": "The Eternal Temple of the Phoenix (1)"
+},
+"11303/1": {
+"code": "Ivory",
+"name": "The Shadowed Estate of the Scorpion (1)"
+},
+"11303/2": {
+"code": "Ivory",
+"name": "The Shadowed Estate of the Scorpion (1)"
+},
+"11303/3": {
+"code": "TwentyFestivals",
+"name": "The Shadowed Estate of the Scorpion (1)"
+},
+"11305/1": {
+"code": "Ivory",
+"name": "The Sinister Citadel of the Spider (1)"
+},
+"11305/2": {
+"code": "Ivory",
+"name": "The Sinister Citadel of the Spider (1)"
+},
+"11306/1": {
+"code": "Ivory",
+"name": "The Golden Plains of the Unicorn (1)"
+},
+"11306/2": {
+"code": "Ivory",
+"name": "The Golden Plains of the Unicorn (1)"
 },
 "1139/5": {
 "code": "Jade"
@@ -543,8 +700,13 @@
 "11745/1": {
 "code": ""
 },
+"11759/1": {
+"code": "TCS",
+"name": "Isawa Kaname, Advisor the the Ruby Champion"
+},
 "11780/2": {
-"code": "TCS"
+"code": "ShE",
+"name": "Zenathaar, Warrior of the Bright Eye"
 },
 "1181/2": {
 "code": "TH"
@@ -607,7 +769,8 @@
 "code": ""
 },
 "1196/2": {
-"code": ""
+"code": "SotE",
+"name": "Oni no Byoki"
 },
 "1196/3": {
 "code": "Diamond"
@@ -669,6 +832,14 @@
 "1218/2": {
 "code": "Emperor"
 },
+"12193/1": {
+"code": "TwentyFestivals",
+"name": "Amoral Wave Man"
+},
+"12208/1": {
+"code": "TwentyFestivals",
+"name": "Polvara Cache"
+},
 "1221/4": {
 "code": "Diamond"
 },
@@ -686,6 +857,38 @@
 },
 "1224/2": {
 "code": ""
+},
+"12257/1": {
+"code": "TwentyFestivals",
+"name": "The Unassailable Fortress of the Crab (1)"
+},
+"12258/1": {
+"code": "TwentyFestivals",
+"name": "The Esteemed Palace of the Crane (1)"
+},
+"12258/2": {
+"code": "TCW",
+"name": "The Esteemed Palace of the Crane (1)"
+},
+"12259/1": {
+"code": "TwentyFestivals",
+"name": "The Fortified Monastery of the Dragon (1)"
+},
+"12260/1": {
+"code": "TwentyFestivals",
+"name": "The Grand Halls of the Lion (1)"
+},
+"12261/1": {
+"code": "TwentyFestivals",
+"name": "The Majestic Temple of the Phoenix (1)"
+},
+"12262/1": {
+"code": "TwentyFestivals",
+"name": "The Hidden Bastion of the Spider (1)"
+},
+"12263/1": {
+"code": "TwentyFestivals",
+"name": "The Endless Plains of the Unicorn (1)"
 },
 "1233/4": {
 "code": "Diamond"
@@ -710,6 +913,10 @@
 },
 "1239/2": {
 "code": "TPW"
+},
+"12481/1": {
+"code": "EP",
+"name": "Yogo Mizogushi"
 },
 "125/2": {
 "code": "Lotus"
@@ -816,6 +1023,14 @@
 "1272/3": {
 "code": "Gold"
 },
+"12733/1": {
+"code": "Onyx",
+"name": "Karda"
+},
+"12746/1": {
+"code": "Onyx",
+"name": "Hida Sazeren, Soul of Hida Sozen"
+},
 "1279/2": {
 "code": "Celestial"
 },
@@ -824,6 +1039,14 @@
 },
 "129/3": {
 "code": "Diamond"
+},
+"12917/1": {
+"code": "Onyx",
+"name": "Yamigatai"
+},
+"12917/2": {
+"code": "ShE",
+"name": "Yamigatai"
 },
 "1298/13": {
 "code": "Gold"
@@ -882,6 +1105,82 @@
 "1299/4": {
 "code": "Lotus"
 },
+"13006/1": {
+"code": "Onyx",
+"name": "Reincarnation"
+},
+"13047/1": {
+"code": "Onyx",
+"name": "The Eternal Well of the Akasha (1)"
+},
+"13047/2": {
+"code": "ShE",
+"name": "The Eternal Well of the Akasha (1)"
+},
+"13048/1": {
+"code": "Onyx",
+"name": "The Indomitable Fortress of the Crab (1)"
+},
+"13048/2": {
+"code": "ShE",
+"name": "The Indomitable Fortress of the Crab (1)"
+},
+"13049/1": {
+"code": "Onyx",
+"name": "The Palatial Estate of the Crane (1)"
+},
+"13049/2": {
+"code": "ShE",
+"name": "The Palatial Estate of the Crane (1)"
+},
+"13050/1": {
+"code": "Onyx",
+"name": "The Esoteric Enigma of the Dragon (1)"
+},
+"13051/1": {
+"code": "Onyx",
+"name": "The Ancient Castle of the Lion (1)"
+},
+"13051/2": {
+"code": "ShE",
+"name": "The Ancient Castle of the Lion (1)"
+},
+"13052/1": {
+"code": "Onyx",
+"name": "The Sacred Ground of the Phoenix (1)"
+},
+"13052/2": {
+"code": "ShE",
+"name": "The Sacred Ground of the Phoenix (1)"
+},
+"13053/1": {
+"code": "Onyx",
+"name": "The Hidden School of the Scorpion (1)"
+},
+"13053/2": {
+"code": "ShE",
+"name": "The Hidden School of the Scorpion (1)"
+},
+"13054/1": {
+"code": "Onyx",
+"name": "The Dark Capital of the Spider (1)"
+},
+"13054/2": {
+"code": "ShE",
+"name": "The Dark Capital of the Spider (1)"
+},
+"13055/1": {
+"code": "Onyx",
+"name": "The Boundless Plains of the Unicorn (1)"
+},
+"13055/2": {
+"code": "ShE",
+"name": "The Boundless Plains of the Unicorn (1)"
+},
+"13088/1": {
+"code": "RoJ",
+"name": "Daidoji Akeha, Iron Crane - exp"
+},
 "1310/3": {
 "code": "Celestial"
 },
@@ -891,14 +1190,34 @@
 "1316/3": {
 "code": "TotV"
 },
+"13281/1": {
+"code": "RtR",
+"name": "Soshi Matashichi"
+},
 "1330/3": {
 "code": "Diamond"
 },
 "13378/1": {
 "code": ""
 },
+"13389/1": {
+"code": "ROU",
+"name": "Profaned Temple"
+},
 "134/4": {
 "code": "Jade"
+},
+"13432/1": {
+"code": "ROU",
+"name": "Yoritomo Seiki, The Young Thunder"
+},
+"13437/1": {
+"code": "ROU",
+"name": "Shiba Tamashii, Shiba's Soul"
+},
+"13437/2": {
+"code": "ShE",
+"name": "Shiba Tamashii, Shiba's Soul"
 },
 "13460/1": {
 "code": ""
@@ -910,16 +1229,45 @@
 "code": "TG"
 },
 "136/3": {
-"code": "WoH"
+"code": "ShE",
+"name": "Agasha Gifu, Arikura-no-baba"
+},
+"13681/1": {
+"code": "ShE",
+"name": "Daidoji Senshi, Aerie Governor"
 },
 "1373/3": {
 "code": "DaK"
 },
+"13732/1": {
+"code": "ShE",
+"name": "Watanabe Masutaro, Soul of Yoritomo Uyko"
+},
+"13765/1": {
+"code": "ShE",
+"name": "Shosuro Takumi, Governor of Ryoko Owari"
+},
 "1378/2": {
 "code": "KD"
 },
+"13977/1": {
+"code": "ShE",
+"name": "The Enlightened Path of the Dragon (1)"
+},
+"13979/1": {
+"code": "ShE",
+"name": "The Shattered Stormfront of the Mantis (1)"
+},
+"13979/2": {
+"code": "GS",
+"name": "The Shattered Stormfront (1)"
+},
 "1399/1": {
 "code": "Promo"
+},
+"14023/1": {
+"code": "GoT",
+"name": "Dark Oracle of Water, Hida Saiyuki - exp2"
 },
 "1403/3": {
 "code": "Celestial"
@@ -927,8 +1275,44 @@
 "1403/4": {
 "code": ""
 },
+"14128/1": {
+"code": "CRII",
+"name": "Kitsune Toshitaka"
+},
+"14129/1": {
+"code": "CRII",
+"name": "Shahadet - exp 4"
+},
+"14167/1": {
+"code": "CRII",
+"name": "Suzume Ryosuke, Sparrow Clan Champion"
+},
+"14199/1": {
+"code": "CRII",
+"name": "The Austere Valley of the Sparrow - exp (1)"
+},
+"14229/1": {
+"code": "TBS",
+"name": "Doji Kurizima"
+},
+"14272/1": {
+"code": "TBS",
+"name": "Lord of the Kumo, The Great Sea Spider"
+},
+"14276/1": {
+"code": "TBS",
+"name": "Zenathaar, Warrior of the Bright Eye"
+},
 "1428/2": {
 "code": "TPW"
+},
+"14283/1": {
+"code": "TBS",
+"name": "Utaku Zo Sia, Imperial Regent"
+},
+"14289/1": {
+"code": "TBS",
+"name": "Scholar's Facade"
 },
 "1429/1": {
 "code": ""
@@ -954,8 +1338,20 @@
 "1434/9": {
 "code": "Diamond"
 },
+"14380/1": {
+"code": "CRI",
+"name": "Kitsu Kouki - exp"
+},
+"14431/1": {
+"code": "CRIII",
+"name": "Gusai Ichido, Clan Champion - exp2"
+},
 "1447/3": {
 "code": "Diamond"
+},
+"14494/1": {
+"code": "CRIII",
+"name": "Disharmony"
 },
 "1450/10": {
 "code": "Gold"
@@ -1633,7 +2029,8 @@
 "code": "WoL"
 },
 "2166/3": {
-"code": "Emperor"
+"code": "Onyx",
+"name": "Doji Tatsuki, Soul of Doji Ayano"
 },
 "217/3": {
 "code": "Gold"
@@ -1672,7 +2069,8 @@
 "code": "Gold"
 },
 "2215/2": {
-"code": ""
+"code": "SCC2",
+"name": "The Dragon Pearl"
 },
 "2217/1": {
 "code": "FK"
@@ -2496,6 +2894,10 @@
 "2841/9": {
 "code": "Gold"
 },
+"2850/1": {
+"code": "KYD",
+"name": "Goju Hitomi - exp3"
+},
 "2851/2": {
 "code": "Emperor"
 },
@@ -2956,7 +3358,8 @@
 "code": "SL"
 },
 "3356/3": {
-"code": ""
+"code": "TotV",
+"name": "Mirumoto Hitomi - exp2"
 },
 "3361/2": {
 "code": "Diamond"
@@ -3035,6 +3438,10 @@
 },
 "3464/3": {
 "code": "Diamond"
+},
+"3487/1": {
+"code": "KYD",
+"name": "Hoturi the Heartless - exp3 KYD"
 },
 "3489/3": {
 "code": "KD"
@@ -3633,8 +4040,16 @@
 "405/1": {
 "code": "Promo"
 },
+"4052/1": {
+"code": "TotV",
+"name": "Jiujutsu Duel"
+},
 "4059/3": {
 "code": "Emperor"
+},
+"4062/1": {
+"code": "WoC",
+"name": "Judgement of the Kami"
 },
 "4072/2": {
 "code": "Celestial"
@@ -4319,10 +4734,12 @@
 "code": "Obsidian"
 },
 "4865/2": {
-"code": ""
+"code": "SCC3",
+"name": "The Master Painter"
 },
 "4865/3": {
-"code": ""
+"code": "SCC3",
+"name": "The Master Painter"
 },
 "4869/6": {
 "code": "Obsidian"
@@ -4567,6 +4984,14 @@
 "5037/2": {
 "code": "Emperor"
 },
+"5056/2": {
+"code": "Onyx",
+"name": "Militia Training Grounds"
+},
+"5056/3": {
+"code": "ShE",
+"name": "Militia Training Grounds"
+},
 "5059/3": {
 "code": "CoB"
 },
@@ -4631,7 +5056,8 @@
 "code": "Diamond"
 },
 "5191/2": {
-"code": ""
+"code": "CJ",
+"name": "Togashi Mitsu - exp"
 },
 "52/1": {
 "code": ""
@@ -5086,6 +5512,14 @@
 "5641/15": {
 "code": "Obsidian"
 },
+"5657/1": {
+"code": "Lotus",
+"name": "The Obsidian Halls of the Lost"
+},
+"5657/2": {
+"code": "CoB",
+"name": "The Obsidian Halls of the Lost"
+},
 "566/2": {
 "code": "SC"
 },
@@ -5195,7 +5629,8 @@
 "code": "Pearl"
 },
 "5734/1": {
-"code": ""
+"code": "DotE",
+"name": "Oni no Hatsu Suru"
 },
 "5737/1": {
 "code": ""
@@ -5220,6 +5655,10 @@
 },
 "5767/1": {
 "code": "Promo"
+},
+"5774/1": {
+"code": "KYD",
+"name": "Oracle of Thunder - exp"
 },
 "5778/2": {
 "code": "TPW"
@@ -6017,7 +6456,8 @@
 "code": "TTT"
 },
 "6394/2": {
-"code": ""
+"code": "SCC2",
+"name": "The Ruby of Iuchiban"
 },
 "6413/3": {
 "code": ""
@@ -7007,7 +7447,8 @@
 "code": "Pearl"
 },
 "7618/3": {
-"code": "Emperor"
+"code": "ShE",
+"name": "Suiteru no Oni"
 },
 "762/3": {
 "code": "SCC1"
@@ -7346,7 +7787,8 @@
 "code": "Imperial"
 },
 "7959/2": {
-"code": ""
+"code": "SCC3",
+"name": "The Ancient Halls of the Akodo"
 },
 "7959/5": {
 "code": "Jade"
@@ -7652,10 +8094,12 @@
 "code": "Diamond"
 },
 "8319/2": {
-"code": ""
+"code": "AoD",
+"name": "Yogo Junzo's Army"
 },
 "8319/5": {
-"code": ""
+"code": "TotV",
+"name": "Yogo Junzo's Army"
 },
 "8319/6": {
 "code": ""
@@ -7709,7 +8153,8 @@
 "code": "TotV"
 },
 "8407/2": {
-"code": ""
+"code": "HE4",
+"name": "The Otaku Palaces"
 },
 "8407/3": {
 "code": ""
@@ -7868,7 +8313,8 @@
 "code": "Gold"
 },
 "8563/1": {
-"code": ""
+"code": "RoB",
+"name": "Hoshi Oki"
 },
 "8564/2": {
 "code": "GotE"
@@ -7895,7 +8341,8 @@
 "code": "Celestial"
 },
 "8582/4": {
-"code": ""
+"code": "KD",
+"name": "Hitomi Shiori"
 },
 "8586/2": {
 "code": "Celestial"
@@ -8207,13 +8654,16 @@
 "code": "KD"
 },
 "8929/2": {
-"code": ""
+"code": "Pearl",
+"name": "Oni no Ugulu"
 },
 "8929/3": {
-"code": ""
+"code": "TotV",
+"name": "Oni no Ugulu"
 },
 "8929/4": {
-"code": ""
+"code": "Pearl",
+"name": "Oni no Ugulu"
 },
 "8947/2": {
 "code": ""
@@ -8318,7 +8768,8 @@
 "code": "SC"
 },
 "9087/2": {
-"code": ""
+"code": "HE3",
+"name": "Otaku Meadows"
 },
 "9087/6": {
 "code": "Diamond"
@@ -8360,7 +8811,8 @@
 "code": "Gold"
 },
 "9111/2": {
-"code": ""
+"code": "FaS",
+"name": "Otaku Xieng Chi - exp"
 },
 "9114/2": {
 "code": "Lotus"
@@ -8512,6 +8964,10 @@
 "9345/8": {
 "code": "Obsidian"
 },
+"9349/1": {
+"code": "TDoW",
+"name": "Winter Seige"
+},
 "9356/1": {
 "code": ""
 },
@@ -8660,10 +9116,12 @@
 "code": "KD"
 },
 "9578/2": {
-"code": ""
+"code": "AoD",
+"name": "Kamoto"
 },
 "9580/2": {
-"code": ""
+"code": "CJ",
+"name": "Kanbe"
 },
 "9589/2": {
 "code": "SW"
@@ -8684,7 +9142,8 @@
 "code": "TTT"
 },
 "9601/2": {
-"code": ""
+"code": "CJ",
+"name": "Masasue"
 },
 "9601/4": {
 "code": "Pearl"
@@ -8714,7 +9173,8 @@
 "code": "PotD"
 },
 "9641/2": {
-"code": ""
+"code": "CJ",
+"name": "Takuni"
 },
 "9641/4": {
 "code": "Jade"
@@ -8726,7 +9186,8 @@
 "code": "BtD"
 },
 "9647/3": {
-"code": ""
+"code": "TotV",
+"name": "Tsuyu"
 },
 "9649/2": {
 "code": "RoB"
@@ -8735,10 +9196,12 @@
 "code": "KD"
 },
 "9666/3": {
-"code": ""
+"code": "TotV",
+"name": "Togashi Yoshi - exp"
 },
 "9677/2": {
-"code": ""
+"code": "pre",
+"name": "Motto Seiki"
 },
 "9677/6": {
 "code": "BoBP"
@@ -8791,11 +9254,17 @@
 "981/9": {
 "code": "Imperial"
 },
+"9884/1": {
+"code": "TSE",
+"name": "Beseech Sakkau"
+},
 "989/5": {
-"code": ""
+"code": "HaE",
+"name": "Daigotsu - wind"
 },
 "989/6": {
-"code": ""
+"code": "HaE",
+"name": "Daigotsu - wind"
 },
 "989/7": {
 "code": "TG"
