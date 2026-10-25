@@ -5117,6 +5117,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
   traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
     set: legality.set[showpr] || [], sets: legality.sets});
+  publiccardcount(carddata.cardid);
 
   if(!switchview) {
 	  return;
@@ -9008,7 +9009,8 @@ function generalnomodal(div,event) {
 // The query is the form's fields plus cardid (card view link) and owner ("more by this player").
 // Decks shows only decks; someone's other lists (collections, haves, wants) show under them (an owner filter,
 // from People or "by ..."), where the type select appears. Formats counts decks only (server side).
-// Decks and People load publicpagesize at a time; scrolling to the end loads more (publicloadmore).
+// Most played (group=cards) ranks the cards of the decks found, by how many decks play each or by copies.
+// Decks, People and Most played load publicpagesize at a time; scrolling to the end loads more (publicloadmore).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
 var publicshown = 0;          // results on screen for it
@@ -9034,13 +9036,29 @@ function publicquery() {
       parts.push(k+'='+encodeURIComponent(publicextra[k].value));
     }
   });
+  // with the card in it: at least one copy, as Most played and the card page's count count it
+  if(publicextra.cardid) {
+    parts.push('minqty=1');
+  }
   return parts.join('&');
 }
 // what's sent: the query, plus decks only in the Decks view unless it's one person's lists
 function publicrequest(query) {
   var group = $('#publicform [name="group"]').val() || '';
   var deckonly = !group && !publicextra.owner;
-  $('#publicform [name="type"]').toggle(!deckonly && group != 'formats');
+  $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
+  // Most played: its own order and card type; the list sort means nothing there
+  $('#publicform [name="order"]').toggle(group == 'cards');
+  $('#publicform [name="sort"]').toggle(group != 'cards');
+  if(group != 'cards') {
+    $('#publicform [name="cardtype"]').hide();
+  }
+  if(group == 'cards') {
+    query = query.replace(/(^|&)sort=[^&]*/g,'');
+  } else {
+    query = query.replace(/(^|&)(order|cardtype)=[^&]*/g,'');
+  }
+  query = query.replace(/^&/,'');
   return query.replace(/(^|&)type=[^&]*/g,'') + (deckonly ? (query ? '&' : '')+'type=deck' : '');
 }
 // a query string -> the form and extra filters
@@ -9050,7 +9068,7 @@ function publicfillform(qs) {
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   $('#publicform [name="group"]').val(q.group || '');
-  ['q','card','type','clan','format','stronghold','sort'].forEach(function(k) {
+  ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
       return;
@@ -9122,8 +9140,9 @@ function publicfetch(query, from, done) {
 function publicrender(data, append) {
   if(data.groups) {
     renderpublicgroups(data, append);
-    publicshown = data.group == 'people' ? data.from + data.groups.length : data.groups.length;
-    publicmoretotal = data.group == 'people' ? data.groupstotal : data.groups.length;
+    var paged = data.group == 'people' || data.group == 'cards';
+    publicshown = paged ? data.from + data.groups.length : data.groups.length;
+    publicmoretotal = paged ? data.groupstotal : data.groups.length;
   } else {
     renderpublic(data, append);
     publicshown = data.from + data.hits.length;
@@ -9212,7 +9231,8 @@ function renderpublic(data, append) {
     $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
   }
 }
-// the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), in place
+// the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), Most played
+// (bar-chart-2), in place
 // of the search ones, as the directory has its own (updatedirbuttons)
 function updatepublicbuttons() {
   var onpublic = currentresulttab() == 'public';
@@ -9224,6 +9244,9 @@ function updatepublicbuttons() {
 // the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
 function publicgroup(group) {
   $('#publicform [name="group"]').val(group);
+  if(group != 'cards') {
+    $('#publicform [name="cardtype"], #publicform [name="order"]').val('');
+  }
   publicsearch(0);
 }
 // People: a person's public lists by type (Decks first), then pre-constructed and tournament results
@@ -9246,6 +9269,10 @@ function publicgroupcounts(g, people=false) {
   return parts.join(' &middot; ');
 }
 function renderpublicgroups(data, append) {
+  if(data.group == 'cards') {
+    renderpubliccards(data, append);
+    return;
+  }
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
@@ -9283,6 +9310,89 @@ function renderpublicgroups(data, append) {
   } else {
     $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
   }
+}
+// Most played: one card per row, its rank, how many of the decks found play it and how many copies.
+// The images come from /oracle-fetch for the cards not cached yet (publiccardimages).
+function renderpubliccards(data, append) {
+  var chips = Object.keys(publicextra).map(function(k) {
+    return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
+  }).join(' ');
+  publicfacetoptions('clan', data.facets.clan, 'Any clan');
+  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
+  publicfacetoptions('format', data.facets.format, 'Any format');
+  publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
+  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
+  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
+  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' public '+(data.total == 1 ? 'deck' : 'decks')+
+    ', '+(data.order == 'copies' ? 'most copies' : 'played in the most decks')+' first <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
+  var html = data.groups.map(function(g, n) {
+    var pct = data.total ? Math.round(100*g.decks/data.total) : 0;
+    var title = g.title || 'card #'+g.cardid;
+    return '<div class="directorycard publiccard publiccardrow" data-open="card" data-cardid="'+parseInt(g.cardid)+'">'+
+      '<div class="dircardhead"><span class="publicrank">'+(data.from+n+1)+'</span> <a class="dircardname" href="#game='+database+',#cardid='+parseInt(g.cardid)+'" onclick="docardid('+parseInt(g.cardid)+'); return false;">'+htmlEncode(title)+'</a></div>'+
+      '<div class="publiccardmain">'+
+	'<img class="publiccardimg" data-cardid="'+parseInt(g.cardid)+'" src="'+missingimage['select']+'" alt="">'+
+	'<div class="dircardbody">'+
+	  '<div class="dircardmeta">'+htmlEncode((g.type || []).join(', '))+'</div>'+
+	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <b>'+g.copies+'</b> '+(g.copies == 1 ? 'copy' : 'copies')+'</div>'+
+	  '<div class="publicbar"><span style="width:'+pct+'%"></span></div>'+
+	'</div></div></div>';
+  }).join('');
+  if(append) {
+    $("#publicresults").append(html);
+  } else {
+    $("#publicresults").html(html || '<div class="randarea">No public decks match.</div>');
+  }
+  publiccardimages(data.groups.map(function(g) { return g.cardid; }));
+}
+// the Most played rows' images: cached cards at once, the rest with one /oracle-fetch
+function publiccardimages(cardids) {
+  var fill = function() {
+    cardids.forEach(function(id) {
+      if(cache_card_is(id)) {
+        $('#publicresults img.publiccardimg[data-cardid="'+id+'"]').attr('src', templatefetchimage(cache_card_fetch(id), 'select'));
+      }
+    });
+  };
+  var missing = cardids.filter(function(id) { return !cache_card_is(id); });
+  fill();
+  if(missing.length) {
+    listprefetch(missing, [fill]);
+  }
+}
+// a Most played row's deck count: the Decks view with that card
+function publicdeckswith(cardid, title) {
+  publicextra = {cardid: {value: cardid, label: 'with '+(title || 'card #'+cardid)}};
+  $('#publicform [name="group"]').val('');
+  publicsearch(0);
+}
+// the card view's globe link gets how many public decks play the card (at least one copy)
+var publiccardcounts = {};
+function publiccardcount(cardid) {
+  var key = database+'/'+cardid;
+  var show = function(n) {
+    var link = $('#resultcard a.cardpubliclists');
+    if(String($("#lastcardid").val()) != String(cardid) || !link.length) {
+      return;
+    }
+    link.find('.cardpubliccount').remove();
+    link.attr('title', n ? 'In '+n+' public '+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)' : 'Public lists with this card');
+    if(n) {
+      link.append('<span class="cardpubliccount">'+n+'</span>');
+    }
+  };
+  if(key in publiccardcounts) {
+    show(publiccardcounts[key]);
+    return;
+  }
+  $.ajax({
+    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid)+'&minqty=1&type=deck&size=0',
+    dataType: 'json',
+    success: function(data) {
+      publiccardcounts[key] = data.total || 0;
+      show(publiccardcounts[key]);
+    }
+  });
 }
 function publicattr(v) {
   return htmlEncode(String(v)).replace(/"/g,'&quot;');
@@ -9322,6 +9432,8 @@ $(document).on('click', '#publicresults .publiccard', function(e) {
     publicopen({owner: card.data('owner')}, this);
   } else if(open == 'format') {
     publicopen({format: String(card.data('format'))});
+  } else if(open == 'card') {
+    docardid(card.data('cardid'));
   }
 });
 function openpubliclist(listid) {

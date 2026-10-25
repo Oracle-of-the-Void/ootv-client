@@ -92,6 +92,7 @@
 	<button aria-label="Decks" data-balloon-pos="down" data-publicview="" style="display:none" onclick="publicgroup('');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#layers"></svg></button>
 	<button aria-label="People" data-balloon-pos="down" data-publicview="people" style="display:none" onclick="publicgroup('people');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#user"></svg></button>
 	<button aria-label="Formats" data-balloon-pos="down" data-publicview="formats" style="display:none" onclick="publicgroup('formats');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
+	<button aria-label="Most played cards" data-balloon-pos="down" data-publicview="cards" style="display:none" onclick="publicgroup('cards');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#bar-chart-2"></svg></button>
 	<button aria-label="Debug view" data-balloon-pos="down" data-template="debug" style="display:none" onclick="viewbutton('debug');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg></button>
 	</span></li>
 	<li class="menunone"><span class="searchviewgroup" id="sizebuttons">
@@ -250,8 +251,13 @@
     <select name="clan" style="display:none"><option value="">Any clan</option></select>
     <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
     <select name="format" style="display:none"><option value="">Any format</option></select>
+    <select name="cardtype" style="display:none"><option value="">Any card type</option></select>
     <label class="publicwinner" title="Pre-constructed decks: starters, learn-to-play"><input type="checkbox" name="precon" value="1" onchange="publicsearch(0);"> Pre-constructed <span id="publicpreconcount"></span></label>
     <label class="publicwinner" title="Lists with a tournament result"><input type="checkbox" name="winner" value="1" onchange="publicsearch(0);"> Tournament results <span id="publicwinnercount"></span></label>
+    <select name="order" style="display:none" title="Most played: by how many decks play the card, or by copies over all decks">
+      <option value="">Most decks</option>
+      <option value="copies">Most copies</option>
+    </select>
     <select name="sort">
       <option value="">Newest first</option>
       <option value="name">Name</option>
@@ -337,6 +343,7 @@
       <li><a href="" onclick="loadadmindoc('patreon'); return false">Patreon supporters</a></li>
       <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
       <li><a href="" onclick="loadadmindoc('artist-check'); return false">Artist check (style and signature)</a></li>
+      <li><a href="" onclick="loadadmindoc('most-played'); return false">Most played cards (public decks)</a></li>
     </ul>
     <div id="admindoc" class="admindoc"></div>
   </div>
