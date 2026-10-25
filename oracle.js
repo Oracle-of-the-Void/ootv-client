@@ -23,6 +23,8 @@ $.views.helpers("listqty",listquantity);
 $.views.helpers("hasval",templatehasval);
 $.views.helpers("gamerows",function(data,place) { return gamerows(data,place); });
 $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); });
+$.views.helpers("foilmark",templatefoilmark);
+$.views.helpers("foilof",templatefoilof);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -5977,6 +5979,24 @@ function sortbyselect(items,key,valuefn) {
     };
     // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
     return items.slice().sort(function(a,b) { return pos(a) - pos(b); });
+}
+// ~foilmark(foil, long): the foil mark, every game (ootv-claude projects/l5r-foils.md). A printing's foil: "foil" = only
+// printed in foil, "both" = printed regular and in foil; a list entry's: "foil", or "either" (a want that takes both).
+// Nothing for a regular printing. long adds the words after the mark (the card page's Foil row).
+var foilmarks = {
+  foil: ['foilonly', 'Foil', 'Only printed in foil'],
+  both: ['foilboth', 'Also foil', 'Printed regular and in foil'],
+  either: ['foilboth', 'Foil or not', 'Foil or regular, either is fine']
+};
+function templatefoilmark(foil, long) {
+  var m = foilmarks[[].concat(foil || [])[0]];
+  if(!m) { return ''; }
+  return '<span class="foilmark '+m[0]+'" title="'+m[2]+'">&#10022; '+m[1]+'</span>'+(long ? ' <span class="foilwords">'+m[2]+'</span>' : '');
+}
+// ~foilof(printing, printingid): that printing's foil value (list and visual views, which know only an id)
+function templatefoilof(printing, pid) {
+  var p = (printing || []).find(function(e) { return parseInt(e.printingid) == parseInt(pid); });
+  return p ? p.foil : undefined;
 }
 function templatehasval(v) {
     // card detail guards: card fields are arrays, and [""] / ["&nbsp;"] are truthy but display nothing (#236)
