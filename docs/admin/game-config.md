@@ -74,7 +74,11 @@ A piece has its html and a `note` (what it is). Preview draws it in every view t
 - **Save** saves every view you changed together. It first compiles every view and draws the
   preview card in each; any error and nothing is saved.
 - `{{:~gamerows(#data,'card')}}` draws the game's rows (Game config). `{{if ~fieldshown('rarity')}}`
-  is false for a field the game hides (Fields, `show: "hidden"`).
+  is false for a field the game hides (Fields, `show: "hidden"`). `{{:~foilmark(foil)}}` draws a
+  printing's foil mark (`✦ Foil` for `"foil"`, `✦ Also foil` for `"both"`, nothing otherwise; a second
+  argument `true` adds the words); `~foilof(printing, printingid)` gives one printing's `foil` for the
+  list and visual views. The card page (Versions buttons, image, each printing's Foil row), search
+  and list views use them, so every game shows foils without a row in its own config.
 
 **If a template breaks anyway** (one that only fails on some cards), the site falls back to the
 newest earlier version of that view that works, from the history (with that version's shared
