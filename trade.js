@@ -111,6 +111,12 @@ function tradesforcard(area, cardid) {
     '<p><a href="" onclick="tradestate.card = null; tradeviewshow(\'resulttrades\'); return false;">Your matches</a> <span class="helpq" data-help="trading#card" aria-label="Help: traders for a card">?</span></p>'+
     '<div class="tradeside" data-side="have"><h3>Have it</h3><div>Loading&hellip;</div></div>'+
     '<div class="tradeside" data-side="want"><h3>Want it</h3><div>Loading&hellip;</div></div>');
+  if(!cached) {   // opened from a link: the card's title once it's fetched
+    listprefetch([cardid], [function() {
+      var c = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
+      if(c && c.title && tradestate.card == cardid) area.find('h2 a').text($('<div>').html([].concat(c.title).join(', ')).text());
+    }]);
+  }
   ['have','want'].forEach(function(side) {
     $.ajax({
       url: apiuri+'/trade?mode=cards&game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid)+'&side='+side,
