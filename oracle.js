@@ -6435,7 +6435,8 @@ function gamesymbols(symbols) {
 // with join (Warlord traits: faction, traits, feats); joins and helpers give a join or helper per field (L5R keywords
 // " &#149; " then iconised " "; publisher, then publisherurl through makelinks); prefix goes before the first value, inside its
 // wraps span (L5R "+3" production); when may also be a list of fields, any of which shows the row (L5R HR/GC/PH: honor or ph).
-// A true value (a flag such as 7th Sea foil) shows as "Yes".
+// A true value (a flag such as 7th Sea foil) shows as "Yes". A label built from the fields' short labels may
+// break after each "/", so a long one (Initial D "Power/Traction/Cost/Mods") wraps instead of running over the value.
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6489,7 +6490,7 @@ function gamerow(data, r) {
     var cv = list.join(r.join !== undefined ? r.join : ',');
     if(r.wrap) { cv = '<span class="'+r.wrap+'">'+cv+'</span>'; }
     var cl = r.label !== undefined ? r.label :
-        (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/');
+        (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/<wbr>');
     return r.label === false ? cv+'<br />' : '<dt>'+cl+'</dt><dd'+(r.ddclass ? ' class="'+r.ddclass+'"' : '')+'>'+cv+'</dd>';
   }
   var vals = r.fields.map(function(f, i) {
@@ -6514,7 +6515,7 @@ function gamerow(data, r) {
   if(r.wrap) { v = '<span class="'+r.wrap+'">'+v+'</span>'; }
   if(r.label === false) { return v+'<br />'; }
   var label = r.label !== undefined ? r.label :
-      (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/');
+      (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/<wbr>');
   return '<dt>'+label+'</dt><dd'+(r.ddclass ? ' class="'+r.ddclass+'"' : '')+'>'+v+'</dd>';
 }
 
