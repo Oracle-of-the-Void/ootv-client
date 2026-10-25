@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-25 (Rules Q&A from the AEG rules forum)
+Last updated: 2026-10-25 (Rules Q&A from the AEG rules forum, 2005–2015)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -122,29 +122,42 @@ only the entries linking to the digests.
 The pages and the card entries are made by ootv-import `SCRIPTS/email-qa.py`, `email-plan.py` and
 `email-digests.py` from the threaded mail archive (project `rules-forum-rulings`).
 
-### L5R: the AEG rules forum (2005–2007)
+### L5R: the AEG rules forum (2005–2015)
 
 When the mailing-list digests stopped (February 2005), the rules team answered on AEG's L5R CCG Rules
-forum (alderac.com/forum, board 59). That forum is gone; what the Wayback Machine saved of it (318 topics,
-1,129 posts, February 2005 to 2007: little after 2006 survives) is copied to pages under
+forum (alderac.com/forum, board 59; "L5R Rules Questions" after the July 2007 upgrade). That forum is gone.
+Two copies of it are used: what the Wayback Machine saved (318 topics, February 2005 to early 2007, plus a
+topic from the read-only old board) and an HTTrack copy saved on 2015-10-13 (7,286 of the board's 9,663
+topics, May 2007 to October 2015; the earlier topics were no longer on the board by then). Together:
+7,605 topics, 18,130 posts. They're copied to pages under
 `https://images.oracleofthevoid.com/l5r/rulings-forum/`, one per topic (`t<topic>.html`, index `index.html`),
 the whole thread with previous/next links by date. Each official answer has its own anchor
 (`#r<post>-<n>`) and lists the cards it went onto. Players' names are left out; the officials are named.
 
 Official answers are posts by members ranked "Rules Official" on the board (Zen Faulkes, Martin Lund,
-chrisF, MaPhi Messner) and Jeff Alexander's AEG accounts. A quoted question followed by the official's
+Chris Fuchs, MaPhi Messner) and Jeff Alexander's AEG accounts, and, from when each joined the rules team
+(the "Rules Junta"): Roger Giner-Sorolla (RogerGS), Alex Jones (AkodoGilador), Brook Cunningham
+(MacBeth2001), Doruk Özaydın (atesh), Dan Jacobson (Kaiu Genji), Jon Palmer and Ben Higgins (Daidoji
+Ryushi). The 2015 copy shows only the 2015 ranks, so there the names and dates decide. Bayushi Mamoru
+and Bayushi Loïc, who helped answer, aren't counted (mostly not making calls). A quoted question followed by the official's
 text is a pair; an unquoted answer answers the topic's opening post (or the post just before). The
 "March 2005 Ruling Archive" topic holds the daily digests posted there ("Your Rules for <date>"): each is
 cut into its items, and each answer is credited to the official who signed it. Replies that only point
-elsewhere ("search the forum") or ask the asker something back don't count. The rest is chosen and
+elsewhere ("search the forum"), ask the asker something back, or only hold a question ("Under
+discussion", "kicked up to the Rules Junta", "see below") don't count. The rest is chosen and
 placed as for the digests (the topic title counts as part of the question), plus one more check: an
 answer a card already has from the mailing list isn't added again. Hand decisions for titles with
 several versions: ootv-import `rulings-forum-decisions.tsv`. Re-syncing replaces only the entries
 linking to the forum pages (`--sync .../rulings-forum/ --sync-note "Forum rulings:"`).
 
-Written 2026-10-25: 1,115 entries on 462 cards. Made by ootv-import `SCRIPTS/forum-topics.py`,
-`forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from the crawl in ootv-games
-`game-aeg-forum-crawl/` (its `rulings-work/README.md`).
+Written 2026-10-25: first 1,115 entries on 462 cards (Wayback only), then the 2015 copy's plan of
+10,143 entries on 3,188 cards. Ring of Air (6333) and Ring of Water (6339) kept their first-write entries:
+the new list would take them past DynamoDB's 400 KB item limit (their `updatelog` already holds whole
+copies of the field from earlier syncs), so `add-rulings.py` skipped them (`toobig.txt`). 247 cards whose title had several versions when answered got each such
+answer on every version plus a "Forum rulings:" needsreview note; they're listed for later in ootv-games
+`game-l5r/rulings-review/`. Made by ootv-import `SCRIPTS/forum-topics.py` (`--httrack` for the 2015
+copy), `forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from ootv-games
+`game-aeg-forum-crawl/` and `game-l5r/kempy-aegrules/` (see `game-aeg-forum-crawl/rulings-work/README.md`).
 
 Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.
 
