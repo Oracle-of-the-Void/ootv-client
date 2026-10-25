@@ -41,6 +41,13 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   false. To set it, open the printing in the site's card editor and use Add field → `notmrp`
   (it starts as `true`), or add `"notmrp": true` inside that printing's object in the editor's JSON
   view. Make MRP in the editor removes it from the printing it picks. The Discord bot honors it too.
+* printing.printedbugs (optional, L5R, array of strings). The arc bugs (legality kanji) printed on the
+  card, from Jade Edition on: `jade`, `gold`, `diamond`, `lotus`, `samurai`, `celestial`, `emperor`,
+  `ivory`, `twentyfestivals`, `onyx`, `shatteredempire`; `[]` = no bug (Imperial-arc cards print none).
+  What is printed, not legality: a ban takes the arc out of `legality`, never out of `printedbugs`. A
+  misprint meant to carry a bug it doesn't show gets that bug. Filled for new printings by the bug
+  check (Admin → Artist check → Check bugs, or the card editor's Check bugs → Set printedbugs); existing
+  printings don't carry it yet (ootv-claude `CARD-ARC-IDENTIFIER.md`, 2026-10-25).
 * printing.foil (optional, every game, string). Left out: the printing is regular only. `"foil"`:
   it only came in foil (a foil that differs from the regular card, or a foil-only card, stored as
   its own printing). `"both"`: it came in regular and in foil; a foil identical to the regular card
