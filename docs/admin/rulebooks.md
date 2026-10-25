@@ -53,6 +53,12 @@ Clicking a book opens it in the page viewer:
     pages, usually down one column then the next).
   - `#page=<n>,#at=<percent>`: that far down the page (`#at=40`), for pages with no text.
 
+  A book can also carry the links printed in its PDF (`book.json` `links`, below): a click or tap
+  on one opens its place as an `#at` link (or a web address in a new tab), as a new history entry,
+  so Back returns to the link. Off in select mode, so the text under them can be selected.
+  The pages sit above the page-turn areas but let the pointer through (`pointer-events: none`),
+  so only the link boxes take clicks there.
+
   `#find` survives a rebuilt book best; line numbers can shift when the text changes. Turning
   the page drops the place. `#game=l5r,#view=rules` is the shelf. Turning pages doesn't add
   browser history, so Back leaves the book. The shelf remembers the last page read in each book
@@ -194,7 +200,7 @@ Everything else is on the images bucket, under the game: `https://images.oracleo
 
 | File | What |
 |---|---|
-| `<id>/book.json` | One book: each page's size, the table of contents, downloads, whether it has text |
+| `<id>/book.json` | One book: each page's size, the table of contents, the links printed in it (`links`, when the config gives them), downloads, whether it has text |
 | `<id>/text.json` | The text of each page, for the book's search (the PDF's own text, or OCR) |
 | `<id>/lines/<NNN>.json` | Each page's words and where they are on it, for selecting and copying, `#find` and `#line` links: `[[block, [[x0, y0, x1, y1, word], ...]], ...]`, a line per entry in reading order, boxes in 1/10000ths of the page from its top left (`pdftotext -bbox-layout`, or tesseract's word boxes). `book.json` has `lines: true` when the book has them |
 | `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp`, `_zoom.webp` | Each page: thumbnail (300 px), normal (1400 px), large (2400 px) and deep zoom (4800 px) on the long side. `_zoom` is only made when the source is that large: every PDF, but not the Jade photos (2048 px). A rescan or remaster at higher resolution gets it on its next build. |
@@ -224,7 +230,14 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   browser prints whose text layer is gibberish); `{"pdf": "<file>"}` takes the text from another PDF
   with the same pages. `ocr_psm` sets tesseract's page segmentation mode (default 3); 4 (one column)
   fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
-- `toc`: a list of `{"title", "page", "level"}`, or `{"pdf": "<file>"}` to take a PDF's bookmarks.
+- `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
+  `{"file": "<file>"}` to read the list from a JSON file.
+- `links`: a JSON file of the links in the PDF, `{"<page>": [[x0, y0, x1, y1, page, at] | [x0, y0, x1, y1,
+  "<url>"], ...]}`: each link's box in 1/10000ths of the page from its top left (as `lines/`), and where it
+  goes, a page and how far down it (percent, 0 = the top), or a web address. Copied into `book.json` as
+  is (not with `crop`). The Comprehensive Rules rebuilds make it with
+  ootv-games `game-l5r/rulebook-enhance/comprehensive-rules/scripts/links.py` (PyMuPDF reads the PDF's link
+  annotations).
   `page` is the viewer's page number (the PDF page), not the number printed on the page.
 - `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
