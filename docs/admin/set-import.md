@@ -88,6 +88,8 @@ Both need the `setimport` permission (or `*`) for the game.
      write today, say). Without either, there's nothing to roll back to.
    - *Apply* (after ticking the confirmation) writes the cards. Search picks them up as they
      go in (the search index takes a live stream, so nothing is paused). Each new card gets an `op: new` update log entry; each reprint gets `newinstance`.
+     A reprint whose printing brings an arc the card's own legality lacks (Three Dynasties, say) also gets
+     that arc added to the card's legality, with an `update` entry (since 2026-10-25).
      Then it writes one update log row for the whole set (the site's "new set" notice). Writes are conditional, so a card someone edited since the plan
      is skipped as a conflict, never overwritten.
    - *Verify* compares every written card with its copy in search, waits for the stream to
