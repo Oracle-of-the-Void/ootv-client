@@ -31,7 +31,12 @@ not the worker's check). Pick up to 31 days at a time, and a game to narrow it.
 Where it lives: DynamoDB `oracle-all-usage`, one row per use, kept for good (no expiry): key `day`
 (`YYYY-MM-DD`, UTC) + `id` (`<time>#<feature>#<random>`); fields `ts`, `feature`, `game`, `uid`,
 `level`, `outcome`, `status`, `ms`, `ref` (the photo search id or the artist check job id), `kind`,
-`left`, `message`. Only the user id is stored: no names, emails or pictures (the page looks the
+`left`, `message`, and `backfill` on rows rebuilt afterwards (below). Only the user id is stored: no names, emails or pictures (the page looks the
 names up). Written by ootv-search `artembed/app.py` (Find the card) and `admin/index.mjs`
 (the artist features); read with `POST /artcheck` action `usage`. Query recipe: ootv-search
 `CLAUDE.md`, "Photo feature usage log".
+
+**Before 2026-10-25** nothing was logged this way. 27 rows were rebuilt on 2026-10-25 from what had
+been kept (field `backfill`): 14 Find the card uses from the artembed log (the 8 from 2026-10-22,
+before a login was needed, have no person or level) and 12 artist check jobs plus one bad request
+from `oracle-all-artcheck` and the ootv-admin log. Refusals before then weren't recorded anywhere.
