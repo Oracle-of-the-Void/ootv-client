@@ -7549,6 +7549,9 @@ function initializeform(db) {
 	  case 'select':
 	    ret += selectfield(db,key);
 	    break;
+	  case 'foil':
+	    ret += foilselect(nound);
+	    break;
 	  }
 	  return ret+'</dd>'
   });
@@ -7567,6 +7570,12 @@ function initializeform(db) {
   applysearchdefault();
 }
 
+// the Foil search (type "foil", every game; ootv-search routes/search.js): fixed choices, ORed
+var foilsearch = [['any', 'Any foil'], ['foil', 'Foil only'], ['both', 'Regular and foil'], ['none', 'Not foil']];
+function foilselect(nound) {
+  return '<select class="chosen-select" multiple id="field_'+nound+'" name="field_'+nound+'">'+
+    foilsearch.map(function(o) { return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join('')+'</select>';
+}
 // a search form select, from the cached values
 function selectfield(db,key) {
   var nound = key.replace("printing.","printing_");
