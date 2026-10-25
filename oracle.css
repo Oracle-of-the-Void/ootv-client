@@ -874,6 +874,13 @@ dd {
     font-size: 14pt;
   text-align: left;
 }
+/* card page and Detail search rows: a label taller than its value (one wrapped over several lines)
+   keeps the next row below it. Not the search form, whose buttons sit beside each other in a dd. */
+.listitem dd::after {
+    content: "";
+    display: block;
+    clear: left;
+}
 /******************   end DL   ***************/
 
 
