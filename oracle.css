@@ -1813,6 +1813,8 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .artchecksigartist { margin: 4px 0; }
 .artchecksigstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .artchecksigstrip img { height: 72px; max-width: 140px; object-fit: contain; background: #eee; border: 1px solid #ddd; border-radius: 3px; }
+.artchecksigclosest a { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; max-width: 140px; }
+.artchecksigcap { font-size: 0.8em; text-align: center; line-height: 1.2; margin-top: 2px; }
 @media (max-width: 700px) { .artchecksigstrip img { height: 56px; max-width: 30vw; } }
 .artchecksubmit { margin: 6px 0; padding: 6px; border: 1px dashed #bbb; border-radius: 3px; }
 .artchecksubmit input[type=text] { max-width: 100%; }
