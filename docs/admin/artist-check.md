@@ -63,16 +63,6 @@ What to do with it: read the printed credit strip on the scan first. If there's 
 same-painting match checked by eye can give the artist. Otherwise put the candidates in the card's
 `needsreview` notes and leave the credit blank.
 
-## Signature submissions
-
-Below the recent checks, **Signature submissions** lists the signatures people sent in from Find the
-artist that wait for an admin: the zoomed signature, the printing (or "an uploaded picture"), its
-credit, what the model read, the artist the sender named, and who sent it. Compare the signature
-with the artist's known ones (run Artist check on the printing, or open the artist's catalogue), fix
-the name in the box if needed, then **Approve** (filed in the catalogue under that artist, which must
-be in the artists list) or **Reject**. Tick "show decided ones too" to see past decisions. Filed
-signatures are marked `how: submitted` in the artist's `index.json`, with who sent and approved them.
-
 ## Check bugs (L5R)
 
 **Check bugs** (next to Check, and under each L5R instance in the card editor beside Check artist)
@@ -93,6 +83,16 @@ In the card editor, **Set printedbugs** sets the instance's `printedbugs` to the
 Admin page, the picture option **the bugs on a whole card** checks an uploaded flat scan (photos at
 an angle aren't straightened yet). It's right 99.94% of the time against the reviewed cards, and
 never reports a bug that isn't there. `printedbugs` is described in `docs/data.md`.
+
+## Signature submissions
+
+Below the recent checks, **Signature submissions** lists the signatures people sent in from Find the
+artist that wait for an admin: the zoomed signature, the printing (or "an uploaded picture"), its
+credit, what the model read, the artist the sender named, and who sent it. Compare the signature
+with the artist's known ones (run Artist check on the printing, or open the artist's catalogue), fix
+the name in the box if needed, then **Approve** (filed in the catalogue under that artist, which must
+be in the artists list) or **Reject**. Tick "show decided ones too" to see past decisions. Filed
+signatures are marked `how: submitted` in the artist's `index.json`, with who sent and approved them.
 
 ## When it says the worker is offline
 
