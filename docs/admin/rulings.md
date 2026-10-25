@@ -151,9 +151,14 @@ several versions: ootv-import `rulings-forum-decisions.tsv`. Re-syncing replaces
 linking to the forum pages (`--sync .../rulings-forum/ --sync-note "Forum rulings:"`).
 
 Written 2026-10-25: first 1,115 entries on 462 cards (Wayback only), then the 2015 copy's plan of
-10,143 entries on 3,188 cards. Ring of Air (6333) and Ring of Water (6339) kept their first-write entries:
-the new list would take them past DynamoDB's 400 KB item limit (their `updatelog` already holds whole
-copies of the field from earlier syncs), so `add-rulings.py` skipped them (`toobig.txt`). 247 cards whose title had several versions when answered got each such
+10,143 entries on 3,188 cards.
+
+Card size: a DynamoDB item stops at 400 KB, and the rulings writes used to log a card's whole old and new
+`ruling` / `rulingref` list in its history, so cards synced several times neared the limit (Ring of Air and
+Ring of Water first failed the 2007–2015 write). Since 2026-10-25 a rulings history row holds only the
+entries removed (old data) and added (new data), marked `partial`, and ootv-tools `rulings/trim-updatelog.py`
+rewrote the older rows that way on the 77 cards of 100 KB or more (Feign Death 403 → 191 KB); the whole lists
+are in the table exports. A card that would still pass the limit is skipped and listed (`toobig.txt`). 247 cards whose title had several versions when answered got each such
 answer on every version plus a "Forum rulings:" needsreview note; they're listed for later in ootv-games
 `game-l5r/rulings-review/`. Made by ootv-import `SCRIPTS/forum-topics.py` (`--httrack` for the 2015
 copy), `forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from ootv-games
