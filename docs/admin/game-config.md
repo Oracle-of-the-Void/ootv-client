@@ -48,6 +48,18 @@ edit, as Card Details, a search result and a list, without saving anything. **Sa
 again first and refuses an edit they can't draw. Other people see a save from their next page
 loads; you see it after a reload.
 
+## The game menu and preview games
+
+The game menu is the `oracle-all-structure` item `all` / `games`: `games`, a list of
+`{table, name, nameshort, logo}` in menu order. A game can sit in it with **`"preview": true`**
+while it's being set up (the L5R LCG, 2026-10-25): preview.oracleofthevoid.com (and localhost) list it,
+the main site doesn't, and neither the Discord bot nor Admin → Discord settings offers it. On every site it
+still opens by direct link (`#game=<table>`), and once open it shows in that page's menu. The flag only
+hides it: the game's config, fields and cards are the same data on both sites, so an edit made while
+previewing is live for anyone who has the link. To release the game, delete `preview` from its entry
+(ootv-client `docs/gameconfig/push.py` with `all-games.json`); no deploy, the menus pick it up on
+their next load, the bot within 5 minutes.
+
 ## Templates
 
 **Admin → Config → Templates** edits the master templates. Pick a **View**: its html (JsRender, the same

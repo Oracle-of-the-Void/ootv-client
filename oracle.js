@@ -168,7 +168,8 @@ $.views.converters("addslashes",addslashes);
 
 // preview (and local testing) uses the dev API stack, which runs the dev-ootv-search Lambda;
 // the data behind it (DynamoDB, Elasticsearch) is shared with prod, so writes are still live
-var apiuri = /^(preview\.|localhost|127\.0\.0\.1)/.test(location.hostname)
+var previewsite = /^(preview\.|localhost|127\.0\.0\.1)/.test(location.hostname);
+var apiuri = previewsite
     ? "https://api-dev.oracleofthevoid.com"
     : "https://api.oracleofthevoid.com";
 var searchcache = {};
@@ -6351,11 +6352,14 @@ function gameconfigload(db, ready) {
     error: function() { start(); }
   });
 }
-// the game menu from all/games: every game's name and logo, so every page lists them all
+// the game menu from all/games: every game's name and logo, so every page lists them all.
+// A game marked preview: true is listed on preview (and localhost) only; on the main site it's
+// still there by direct link (#game=<table>), just not in the menu (docs/admin/game-config.md)
 function gamemenuapply(conf) {
   if(!conf.games || !Array.isArray(conf.games.games)) { return; }
-  gamemenu = conf.games.games.map(function(g) { return g.table; });
-  conf.games.games.forEach(function(g) {
+  var games = conf.games.games.filter(function(g) { return previewsite || !g.preview; });
+  gamemenu = games.map(function(g) { return g.table; });
+  games.forEach(function(g) {
     if(!dbinfo[g.table]) { dbinfo[g.table] = {name: g.name, nameshort: g.nameshort, logo: g.logo}; }
   });
 }
