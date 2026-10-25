@@ -65,6 +65,11 @@ its printings, so `artist:...` or `set:...` there finds nothing. Use the form's 
 those: Set, Rarity and Artist (under Advanced) search the printings, and the result shows the
 printing that matched.
 
+**Foil** (under Advanced) finds printings by their foil mark: *Any foil*, *Foil only* (only
+printed in foil), *Regular and foil*, or *Not foil*. Pick more than one to find either. Combined
+with Set or Rarity it looks at the same printing, so Set: Gold Edition with Foil: Regular and
+foil finds Gold Edition's rares that also came in foil.
+
 ## Results {#results}
 
 - More results load as you scroll down. The count is in the menu bar.

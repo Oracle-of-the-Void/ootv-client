@@ -20,6 +20,19 @@ the card's current text.
 Each printing's own set, rarity, flavor text, artist and so on are listed below the card's
 details.
 
+## Foil {#foil}
+
+A printing that came in foil carries a foil mark, on its Versions button, in its details and in
+search results:
+
+- **✦ Foil** (rainbow): this printing was only ever printed in foil, such as a foil promo. Its
+  image shows the mark too.
+- **✦ Also foil** (outlined): this printing came both regular and in foil, such as a booster
+  rare that also turned up as a foil.
+
+A foil promo is its own printing, even when it looks just like the regular card. Hover over a
+mark to see what it means.
+
 ## Printed text or current text {#text-version}
 
 When the page shows one printing, its text can be either the wording printed on that card or
