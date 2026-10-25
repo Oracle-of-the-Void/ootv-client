@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-23
+Last updated: 2026-10-24
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -368,3 +368,14 @@ From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue o
   printout of the same rules is the second download), The New Order, Thunderous Acclaim, Evil Portents and The
   Blackest Storm.
 - None of the file drop books has a credit `note`. Each one went live only after a check-off.
+
+## The L5R LCG books (2026-10-24)
+
+FFG's rules documents for Legend of the Five Rings: The Card Game, from the Support section of FFG's
+product page (Wayback copy of 2021-09-03; ootv-games `game-newl5r/ffg-rules/`, with the list of all 143
+Support documents), list `rulebooks/l5rlcg.json`, ids `lcg-*`. Rules Reference v17.3 (Complete, Last
+complete rules), Learn to Play (Learn to Play, Base set), Imperial Law 2021-08-10 (Addendum; the card
+errata link to it), Skirmish Learn to Play, Skirmish Rules Reference, Skirmish Reference Cards,
+Multiplayer Rules (Enlightenment), Draft Rules v3, Under Fu Leng's Shadow Rules (Play Variant),
+Tournament Regulations v2.3 (the text version as a second download) and FFG Floor Rules (Floor Rules).
+No arcs; the PDFs have no bookmarks, so no contents yet. Types and tags: the user, 2026-10-24.
