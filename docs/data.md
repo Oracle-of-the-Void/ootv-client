@@ -49,11 +49,18 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   check (Admin → Artist check → Check bugs, or the card editor's Check bugs → Set printedbugs); existing
   printings don't carry it yet (ootv-claude `CARD-ARC-IDENTIFIER.md`, 2026-10-25).
 * printing.foil (optional, every game, string). Left out: the printing is regular only. `"foil"`:
-  it only came in foil (a foil that differs from the regular card, or a foil-only card, stored as
-  its own printing). `"both"`: it came in regular and in foil; a foil identical to the regular card
-  is never its own printing. Since 2026-10-23 (project l5r-foils, ootv-claude `projects/l5r-foils.md`);
-  7th Sea's old `foil: true` became `"foil"` the same day (ootv-tools `printings/foil-values.py`). List
+  it only came in foil (a foil that differs from the regular card, a foil-only card, or a foil
+  promo, stored as its own printing). `"both"`: it came in regular and in foil in the same
+  release (e.g. booster rare foils); a foil identical to the regular card in the same release is
+  never its own printing. A foil **promo** is always its own printing (Promotional–<arc> set, rarity
+  Promo, `"foil"`, `notmrp`), even when it looks like the regular card (the user, 2026-10-25).
+  Since 2026-10-23 (project l5r-foils, ootv-claude `projects/l5r-foils.md`); 7th Sea's old
+  `foil: true` became `"foil"` the same day (ootv-tools `printings/foil-values.py`), L5R was filled
+  2026-10-25 from imperialblock and Carlo Brozzo's lists (ootv-tools `printings/l5r-foils.py`). List
   entries will carry a foil choice of their own (not foil / foil / either).
+* printing.notes (optional, array of strings). Facts about how the printing was released,
+  e.g. `Released in the Kotei 2006 pack`. Promo sources from Carlo Brozzo's promo
+  list read `Released as: <source> (Brozzo's promo list)` (2026-10-25).
 * printing.snmsetcode (optional, l5r, array of one string). The Sun and Moon edition code the
   S&M text export writes for this printing, where it differs from its set's code (the
   `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
