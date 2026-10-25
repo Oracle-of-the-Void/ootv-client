@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-23 (Imperial Herald rulings)
+Last updated: 2026-10-25 (Rules Q&A from the AEG rules forum)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -121,6 +121,30 @@ only the entries linking to the digests.
 
 The pages and the card entries are made by ootv-import `SCRIPTS/email-qa.py`, `email-plan.py` and
 `email-digests.py` from the threaded mail archive (project `rules-forum-rulings`).
+
+### L5R: the AEG rules forum (2005–2007)
+
+When the mailing-list digests stopped (February 2005), the rules team answered on AEG's L5R CCG Rules
+forum (alderac.com/forum, board 59). That forum is gone; what the Wayback Machine saved of it (318 topics,
+1,129 posts, February 2005 to 2007: little after 2006 survives) is copied to pages under
+`https://images.oracleofthevoid.com/l5r/rulings-forum/`, one per topic (`t<topic>.html`, index `index.html`),
+the whole thread with previous/next links by date. Each official answer has its own anchor
+(`#r<post>-<n>`) and lists the cards it went onto. Players' names are left out; the officials are named.
+
+Official answers are posts by members ranked "Rules Official" on the board (Zen Faulkes, Martin Lund,
+chrisF, MaPhi Messner) and Jeff Alexander's AEG accounts. A quoted question followed by the official's
+text is a pair; an unquoted answer answers the topic's opening post (or the post just before). The
+"March 2005 Ruling Archive" topic holds the daily digests posted there ("Your Rules for <date>"): each is
+cut into its items, and each answer is credited to the official who signed it. Replies that only point
+elsewhere ("search the forum") or ask the asker something back don't count. The rest is chosen and
+placed as for the digests (the topic title counts as part of the question), plus one more check: an
+answer a card already has from the mailing list isn't added again. Hand decisions for titles with
+several versions: ootv-import `rulings-forum-decisions.tsv`. Re-syncing replaces only the entries
+linking to the forum pages (`--sync .../rulings-forum/ --sync-note "Forum rulings:"`).
+
+Written 2026-10-25: 1,115 entries on 462 cards. Made by ootv-import `SCRIPTS/forum-topics.py`,
+`forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from the crawl in ootv-games
+`game-aeg-forum-crawl/` (its `rulings-work/README.md`).
 
 Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.
 
