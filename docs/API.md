@@ -422,7 +422,8 @@ inputs (a value list can be repeated or comma separated):
 * game (required)
 * q: text over list name, notes, owner name and card titles
 * card: lists with a card whose title matches (phrase)
-* cardid: lists with all of these cards; minqty: at least this many copies of each
+* cardid: lists with all of these cards; minqty: at least this many copies of each (the client sends `minqty=1`:
+  the card page's "in N public decks" count is `cardid=N&minqty=1&type=deck&size=0`, its `total`)
 * type, clan, stronghold (title), owner (uid)
 * format: the deck's format (`derived.format`: the list's own legality, else inferred, see `derived.formatsource`)
 * cardslegal: formats every card must be legal in (all given); winner=1: lists with a tournament result
@@ -434,6 +435,11 @@ inputs (a value list can be repeated or comma separated):
   each `owner, ownername, types {deck: n, collection: n, ...}, formats[]`. `formats`: every deck format at once (decks
   only; `format` '' for none), each `format, people, source {owner, name, cards}`. Both: `lists, precon, tournament,
   wins, latest`.
+  `cards` (the client's Most played view): one row per card in the decks found (decks only), paged with from/size
+  (`groupstotal`: how many different cards), each `cardid, title, type[], decks` (decks with at least one copy) `,
+  copies` (summed over them); `order=decks` (default) or `copies`, `cardtype` (one or more) narrows to those card
+  types. It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
+  `cardtype` filter).
 
 outputs:
 

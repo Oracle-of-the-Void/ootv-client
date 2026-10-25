@@ -14,7 +14,7 @@ shared, including tournament-winning decks and the pre-constructed starter decks
 
 More load as you scroll down.
 
-## Decks, People, Formats {#views}
+## Decks, People, Formats, Most played {#views}
 
 The buttons on the right of the menu bar group the results:
 
@@ -22,8 +22,26 @@ The buttons on the right of the menu bar group the results:
 - **People**: one card per player, with how many of each kind of list they've shared. Click to
   see their lists.
 - **Formats**: how many decks there are for each format. Click one to see them.
+- **Most played**: the cards the decks play most ([below](#most-played)).
 
 "by *name*" on a deck shows that player's other lists.
+
+## Most played cards {#most-played}
+
+**Most played** (the bar chart button) ranks the cards in the public decks. It counts the decks
+that the filters find, so pick a format, a clan or **Tournament results** to see what those decks
+play. Each card shows:
+
+- **In N decks**: how many of the decks have at least one copy, and what share of them that is.
+  Click it to see those decks.
+- **copies**: the copies over all of them, so a card played three to a deck counts three times.
+
+**Most decks** / **Most copies** picks which count comes first, and **Any card type** narrows it to
+one type of card. Click a card to open it. Only decks count, not collections or have and want
+lists. Old tournament archives make up a large share of the L5R decks, so their eras weigh more.
+
+On a card's page, the number next to the globe beside its name is how many public decks play it.
+Click it to see them.
 
 ## Opening a deck {#open}
 
