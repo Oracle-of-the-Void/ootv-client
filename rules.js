@@ -3,7 +3,8 @@
 // <game>/rulebooks (books: {<id>: {title, pages, cover, built, order, type, tags, arc, ...}}; the shelves below);
 // each book lives on the images bucket, per game: <imageuri>rulebooks/<id>/book.json, text.json,
 // <NNN>_{select,details,master}.webp per page and lines/<NNN>.json (the page's words and their boxes)
-// (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md).
+// (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md). A book's links (book.json links, the
+// links printed in its PDF) are boxes over its pages that open the place they point to (rulesdrawlinks).
 // Urls: #view=rules is the Bookshelf (#shelf=<key>: that shelf), #rulebook=<id>,#page=<n> a page, and #find=<phrase> (without #page: its
 // first page), #line=<n> or #at=<percent> a place on it, zoomed to the page's width. Turning pages replaces
 // the history entry, so Back leaves the book rather than stepping through every page.
@@ -561,6 +562,7 @@ function rulesgo(page,url=true) {
   }).join(''));
   ruleslayout();
   stage.scrollTop(0).scrollLeft(0);   // a turned page keeps the zoom, from its top left
+  rulesdrawlinks(shown);
   rulesdrawtext(shown);
   $('#rulesarea .rulespageinput').val(shown.length > 1 ? shown[0]+'-'+shown[1] : page);
   $('#rulesarea .rulesslider').val(page);
@@ -667,6 +669,38 @@ function rulesdrawtext(shown) {
     });
   });
 }
+// ********** links printed in the book (book.json links: {"<page>": [[x0, y0, x1, y1, page, at] | [..., url]]}) **********
+// Each is a box over the page image (in 1/10000ths of the page, as lines/): a contents entry, a "see X"
+// cross-reference. One to another page or place opens it there like a #page=,#at= link, as a new history entry so
+// Back returns to the link; one to a web address opens in a new tab. In select mode they step aside for the text.
+function rulesdrawlinks(shown) {
+  if(!rulesbook.links) { return; }
+  shown.forEach(function(p) {
+    var links = rulesbook.links[p];
+    if(!links || !links.length) { return; }
+    $('#rulesarea .rulespage[data-page="'+p+'"]').append('<div class="ruleslinklayer">'+links.map(function(l) {
+      var pos = 'left:'+(l[0] / 100)+'%;top:'+(l[1] / 100)+'%;width:'+((l[2] - l[0]) / 100)+'%;height:'+((l[3] - l[1]) / 100)+'%';
+      if(typeof l[4] == 'string') {
+        return '<a class="ruleslink" style="'+pos+'" href="'+rulesesc(l[4])+'" target="_blank" rel="noopener" title="'+rulesesc(l[4])+'"></a>';
+      }
+      var to = Object.assign({}, viewstate('rules'), {page: l[4], find: '', line: 0, at: l[5] || 0});
+      return '<a class="ruleslink" style="'+pos+'" href="'+rulesesc(statehash(to))+'" data-to="'+l[4]+'" data-at="'+(l[5] || 0)+'" title="Page '+l[4]+'"></a>';
+    }).join('')+'</div>');
+  });
+}
+function rulesjump(page, at) {
+  rulesclearmark();
+  rulesstate.page = page;
+  rulesstate.at = at;
+  rulesgo(page, false);
+  seturl(viewstate('rules'));
+}
+$(document).on('click', '#rulesarea a.ruleslink', function(e) {
+  if(rulesnoclick) { e.preventDefault(); return; }   // the end of a drag, not a click
+  if(!$(this).data('to')) { return; }   // a web address: the browser opens it
+  e.preventDefault();
+  rulesjump(+$(this).data('to'), +$(this).data('at') || 0);
+});
 function rulesclearmark() {
   rulesstate.find = '';
   rulesstate.line = 0;
