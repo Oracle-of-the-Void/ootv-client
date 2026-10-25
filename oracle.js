@@ -2267,7 +2267,7 @@ var massimagerun = null;    // the upload in progress: {stop}
 var massimageplan = null;   // the checked files waiting for Upload: {db, stub, imageuri, items, todo}
 function loadmassimage() {
   showadmintab('data');
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -2350,7 +2350,7 @@ function massimagerow(item,imageuri) {
 // setimportopen() or importprofilesopen() (in setimport.js) draws the panel
 function loadsetimport(open) {
   showadmintab(open == 'importprofilesopen' ? 'config' : 'data');
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -2374,7 +2374,7 @@ function artcheckload() {
 function loadartcheck(cardid, printingid) {
   showadmintab('data');
   $('#artistsadmin').empty();
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
@@ -7608,7 +7608,7 @@ function loadloginlog(page) {
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
-  $('#updatelogpage').empty();
+  $('#updatelogpage, #usageadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
@@ -7646,7 +7646,7 @@ var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'R
 function loaddiscord(note) {
   showadmintab('config');
   $('#limitsadmin').empty();
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
@@ -7856,7 +7856,7 @@ function discordtest(btn) {
 var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js';
 function loadadmindoc(name) {
   showadmintab('docs');
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -8018,7 +8018,7 @@ function loadgameconfigadmin(which) {
 // features (all/artphoto); site admins only
 function loadlimitsadmin() {
   showadmintab('config');
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
+  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
@@ -8030,11 +8030,27 @@ function loadlimitsadmin() {
     .fail(function() { $('#limitsadmin').html('<span class="error">Could not load the limits editor.</span>'); });
 }
 
+// Admin → Audit → Usage (usageadmin.js, loaded on first use): every use of the photo features,
+// from oracle-all-usage; site admins only
+function loadusageadmin() {
+  showadmintab('audit');
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $('#usageadmin').text('The usage log needs full permission on every game.'); return; }
+  if(window.usageadminloaded) { usageopen(); return; }
+  $('#usageadmin').text('Loading...');
+  $.ajax({url: 'usageadmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { usageopen(); })
+    .fail(function() { $('#usageadmin').html('<span class="error">Could not load the usage log.</span>'); });
+}
+
 // Admin → Artists (artistsadmin.js, loaded on first use): the oracle-all-artists entries the artist
 // modal shows. name: an entry to open (the modal's Edit link).
 function loadartistsadmin(name) {
   showadmintab('data');
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
+  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
@@ -8056,7 +8072,7 @@ function artistsallowed() {
 var fielddescsview = {target: null, only: false};
 function loadfielddescs(target) {
   showadmintab('config');
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
@@ -8177,7 +8193,7 @@ const updatelogpagesize = 30;
 var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, updatelogfacets = {};
 function loadupdatelogpage() {
   showadmintab('audit');
-  $('#loginlog').empty();
+  $('#loginlog, #usageadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
