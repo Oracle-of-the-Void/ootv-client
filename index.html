@@ -314,11 +314,13 @@
     <ul class="adminlinks">
       <li><a href="" onclick="loadupdatelogpage(); return false">Update log</a> (this game)</li>
       <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
+      <li><a href="" onclick="loadusageadmin(); return false">Usage</a> (photo features: Find the card, Find the artist, Artist check; every game; site admins)</li>
       <li>Reporting</li>
     </ul>
     <div id="admininfo" class="admininfo"></div>
     <div id="updatelogpage" class="updatelogpage"></div>
     <div id="loginlog"></div>
+    <div id="usageadmin" class="fielddescs limitsadmin usageadmin"></div>
   </div>
   <div data-admintab="docs">
     <!-- docs/admin/*.md; add a link here for each new document -->
@@ -332,6 +334,7 @@
       <li><a href="" onclick="loadadmindoc('needsreview'); return false">Needs review notes on cards</a></li>
       <li><a href="" onclick="loadadmindoc('rulebooks'); return false">Bookshelf (rulebooks, newsletters)</a></li>
       <li><a href="" onclick="loadadmindoc('rulings'); return false">Rulings on cards</a></li>
+      <li><a href="" onclick="loadadmindoc('usage'); return false">Usage log (photo features)</a></li>
       <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
       <li><a href="" onclick="loadadmindoc('limits'); return false">Limits (photo features)</a></li>
       <li><a href="" onclick="loadadmindoc('patreon'); return false">Patreon supporters</a></li>
