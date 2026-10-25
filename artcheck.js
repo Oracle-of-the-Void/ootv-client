@@ -148,22 +148,40 @@ function artcheckpicks(job) {
   return out;
 }
 
-// the signature found in the art, zoomed, and known signatures of the likely artists beside it
+// the signature found in the art, zoomed; the catalogue signatures closest to it (by the crop's
+// vector and the reading); artists the reading names; known signatures of the likely artists
 // (the catalogue: images site artists/<slug>/signatures/, ootv-tools artists/signatures/)
+function artchecksigimg(path, m, label) {
+  return '<a'+(m.cardid ? ' href="'+artcheckesc(location.pathname+statehash({'view': 'card', 'cardid': m.cardid, 'prid': m.printingid}))+'" target="_blank"' : '')+
+    ' title="'+artcheckesc((m.title || 'an uploaded picture')+(m.set ? ' ('+String(m.set).replace(/&amp;/g,'&').replace(/&ndash;/g,'–')+')' : ''))+'">'+
+    '<img src="'+artcheckesc(ARTCHECK_IMAGES+path+m.file)+'" alt="'+artcheckesc(m.title || '')+'" loading="lazy" />'+(label || '')+'</a>';
+}
+
 function artchecksignatures(sig) {
-  var known = sig.known || [], html = '';
+  var known = sig.known || [], closest = sig.closest || [], html = '';
   if(sig.where && sig.where.crop) {
     html += '<div class="artchecksigfound"><img src="'+artcheckesc(sig.where.crop)+'" alt="signature" /><div class="artchecknote">Found in the art'+
       (sig.where.read ? ': read as "'+artcheckesc(sig.where.read)+'"' : '')+'. Compare the hand with the known signatures.</div></div>';
+  }
+  var bare = (sig.named || []).filter(n => !n.signatures);
+  if(bare.length) {
+    html += '<div class="artchecknote">The reading may name '+bare.map(n => '<b>'+artcheckesc(n.artist)+'</b>').join(', ')+
+      ' (no signatures in the catalogue yet).</div>';
+  }
+  if(closest.length) {
+    html += '<div class="artchecksigartist"><b>Closest known signatures</b> <span class="artchecknote">('+
+      (sig.where ? 'by the look of the hand, and the reading' : 'by the reading')+'; a signal only: compare by eye)</span>'+
+      '<div class="artchecksigstrip artchecksigclosest">'+closest.map(c => artchecksigimg(c.path, c,
+        '<span class="artchecksigcap">'+artcheckesc(c.artist)+'<br><span class="artchecknote">'+
+        (c.image !== null && c.image !== undefined ? 'look '+Math.round(c.image*100)+'%' : '')+
+        (c.text >= 0.75 ? (c.image !== null && c.image !== undefined ? ', ' : '')+'reading '+Math.round(c.text*100)+'%' : '')+'</span></span>')).join('')+'</div></div>';
   }
   if(!known.length) { return html; }
   var rows = known.map(k => '<div class="artchecksigartist"><b>'+artcheckesc(k.artist)+'</b>'+
     (k.match ? ' <span class="artcheckstrong">(the reading matches)</span>' : '')+
     ' <span class="artchecknote">'+k.samples.length+' of '+k.count+'</span><div class="artchecksigstrip">'+
-    k.samples.map(m => '<a'+(m.cardid ? ' href="'+artcheckesc(location.pathname+statehash({'view': 'card', 'cardid': m.cardid, 'prid': m.printingid}))+'" target="_blank"' : '')+
-      ' title="'+artcheckesc(m.title+' ('+String(m.set || '').replace(/&amp;/g,'&').replace(/&ndash;/g,'–')+')')+'">'+
-      '<img src="'+artcheckesc(ARTCHECK_IMAGES+k.path+m.file)+'" alt="'+artcheckesc(m.title)+'" loading="lazy" /></a>').join('')+'</div></div>').join('');
-  return html+'<details class="artchecksigknown"'+(sig.where ? ' open' : '')+'><summary>Known signatures</summary>'+rows+'</details>';
+    k.samples.map(m => artchecksigimg(k.path, m)).join('')+'</div></div>').join('');
+  return html+'<details class="artchecksigknown"'+(sig.where && !closest.length ? ' open' : '')+'><summary>Known signatures by artist</summary>'+rows+'</details>';
 }
 
 // a found signature not in the catalogue yet: a box for the artist's name and Add to the catalogue
@@ -178,7 +196,8 @@ function artchecksubmitform(job, sig) {
   if(job.signaturesub) { return artchecksubstate(job.signaturesub); }
   var admin = gamepermission('artcheck');
   // the likely names first: the credit, the artists whose signatures are shown, the style vote
-  var likely = [].concat(job.artist || [], (sig.known || []).filter(k => k.match).map(k => k.artist),
+  var likely = [].concat(job.artist || [], (sig.named || []).map(n => n.artist), (sig.known || []).filter(k => k.match).map(k => k.artist),
+                         (sig.closest || []).map(c => c.artist),
                          (((job.result || {}).style || {}).candidates || []).map(c => c.artist))
     .filter((a,i,l) => a && a != 'N/A' && l.indexOf(a) == i);
   var id = 'artchecksub'+artcheckesc(job.id);

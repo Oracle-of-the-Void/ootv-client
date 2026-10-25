@@ -38,11 +38,21 @@ it's picked up.
   it's shown cut out and zoomed in. Printed text (the credit strip, the card title) is left out. With
   nothing read in the art region, the model also looks for any signature on the whole card, so a
   faint one can turn up here.
-- **Known signatures:** signatures of the likely artists from the signature catalogue (the credited
-  artist, any artist the reading names, then the style candidates), up to six each from different
-  sets, never from the checked painting. Click one to open its card. Compare the hand by eye: the
-  shapes of the letters, the date, where it sits. Only artists already in the catalogue appear
-  (76 so far; the Artists guide, "Signatures", says where they come from).
+- **The reading may name** (since 2026-10-25): artists in the artists list whose name the reading
+  matches (a word of it, the initials, or nearly the same letters, so "Schuler" finds Douglas Shuler)
+  but who have no signatures in the catalogue yet. Those with signatures show below instead.
+- **Closest known signatures** (since 2026-10-25): the eight signatures in the catalogue most like the
+  one found, from any artist: by the look of the hand (the cut-out compared as an image, "look") and
+  by the reading (against what the model read on each known signature and its artist's name,
+  "reading"). The reading part also catches the model's usual misreads: "HYPER" brings up Steve
+  Snyder's signature that it once read that way. In testing, the nearest signature by look alone was
+  the same artist about one time in four (chance: one in twenty-five), so it's a lead to compare by
+  eye, not an answer. A signature filed a minute ago is already compared.
+- **Known signatures by artist:** signatures of the likely artists from the signature catalogue (the
+  credited artist, any artist the reading names, the artists of the closest signatures, then the
+  style candidates), up to six each from different sets, never from the checked painting. Click one
+  to open its card. Compare the hand by eye: the shapes of the letters, the date, where it sits. Only
+  artists already in the catalogue appear (the Artists guide, "Signatures", says where they come from).
 - **Add this signature to the catalogue** (since 2026-10-25): shown when a signature was found and
   the painting (or the same painting on another printing) isn't in the catalogue yet. Type whose it
   is (the box suggests the credit, artists the reading names and the style vote first, then every

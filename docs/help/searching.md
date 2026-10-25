@@ -96,7 +96,7 @@ account, or by **Link with Patreon** in [Settings](settings.md#account). It asks
   again if it picked the wrong part of the picture.
 - **Find the artist** suggests who may have painted it. Say whether the picture is a whole card or
   the art alone, then pick the picture. A few seconds later you get any signature found in the art
-  (zoomed in, with known signatures of the likely artists beside it to compare),
+  (zoomed in, with the known signatures that look most like it and those of the likely artists beside it to compare),
   cards that use the same painting (with their credited artist), and the artists whose paintings are
   nearest in style, with each one's share of the vote. These are leads, not answers: a share of 50%
   or more was right about nine times in ten when tested on credited L5R art, and the signature
