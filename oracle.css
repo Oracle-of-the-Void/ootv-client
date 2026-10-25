@@ -2121,6 +2121,8 @@ div.publicpager {
     color: #fff;
 }
 a.cardpubliclists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
+a.cardpubliclists { text-decoration: none; }
+span.cardpubliccount { font-size: 13px; color: #fff; vertical-align: middle; margin-left: 2px; }
 span.publicformatsource { color: #777; font-size: small; }
 div.publicaward, div.listaward { color: #8a6d00; font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
@@ -2365,3 +2367,12 @@ body.rulesfull { overflow: hidden; }
 .gcdiffsame { color: #777; }
 .gchistory { font-size: 90%; color: #555; }
 .templatefailed { border: 1px solid #c66; background: #fff3f3; padding: 4px 8px; }
+
+/* Public lists, Most played: image, rank, counts, a bar for the share of decks */
+div.publiccardrow div.publiccardmain { display: flex; gap: 4px; align-items: flex-start; padding: 6px 0 0 6px; }
+div.publiccardrow img.publiccardimg { width: 70px; flex: none; border-radius: 4px; }
+div.publiccardrow div.dircardbody { min-width: 0; padding-top: 0; }
+div.publiccardrow div.dircardmeta:first-child { margin-top: 0; }
+span.publicrank { color: #fff; font-weight: bold; min-width: 1.5em; }
+div.publicbar { height: 6px; background: #e6e6e6; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+div.publicbar span { display: block; height: 100%; background: #1aa329; }
