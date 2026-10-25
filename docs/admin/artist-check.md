@@ -1,6 +1,6 @@
 # Artist check
 
-Last updated 2026-10-24.
+Last updated 2026-10-25.
 
 Who painted a printing? The artist check answers with three kinds of evidence. It never writes
 to the card: you decide, then fix the credit or add a `needsreview` note in the card editor as
@@ -62,6 +62,27 @@ it's picked up.
 What to do with it: read the printed credit strip on the scan first. If there's no credit, a
 same-painting match checked by eye can give the artist. Otherwise put the candidates in the card's
 `needsreview` notes and leave the credit blank.
+
+## Check bugs (L5R)
+
+**Check bugs** (next to Check, and under each L5R instance in the card editor beside Check artist)
+asks the same worker which arc bugs are printed on the card, read from the instance's images. It
+shows each bug it found, zoomed (green frame), and any it's unsure of (orange frame, marked ?), with
+a score, then what to review:
+
+- **unsure**: a bug might be there; look at the zoomed picture. Faint bare glyphs (the Samurai 侍 on
+  Glory of the Empire starter reprints) and washed-out foil scans land here.
+- **legality without a printed bug (misprint?)**: the instance is legal in an arc whose bug isn't
+  printed. Either a misprint meant to carry it (it still gets the bug in `printedbugs`: add it by
+  hand) or a wrong legality.
+- **bug without legality (ban? no-legality set?)**: the bug is printed but the instance isn't legal
+  there, e.g. a card banned from that arc.
+
+In the card editor, **Set printedbugs** sets the instance's `printedbugs` to the bugs found, and
+**Add review note** copies the review lines into the card's `needsreview`; Commit saves either. On the
+Admin page, the picture option **the bugs on a whole card** checks an uploaded flat scan (photos at
+an angle aren't straightened yet). It's right 99.94% of the time against the reviewed cards, and
+never reports a bug that isn't there. `printedbugs` is described in `docs/data.md`.
 
 ## Signature submissions
 
