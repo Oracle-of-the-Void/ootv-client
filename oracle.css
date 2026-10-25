@@ -134,6 +134,11 @@ a.ex { float: right; font-size: large;}
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+/* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells
+   "Foil" (rainbow) from "Also foil" (white, purple star); the card page shows the words */
+a.deckswipe > .foilmark { font-size: 0; width: 18px; height: 18px; padding: 0; border-radius: 50%; top: 5px; left: 5px; text-align: center; }
+a.deckswipe > .foilmark::before { content: '\2726'; font-size: 12px; line-height: 18px; }
+a.deckswipe > .foilmark.foilboth::before { color: #b04fd0; }
 
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
 div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
