@@ -54,7 +54,8 @@ so on). Below that, each keyword in the deck and how many of your other cards me
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. Only the cards are checked,
-not the deck as a whole (its size, how many copies of a card, banned-card limits).
+not the deck as a whole (its size, how many copies of a card, banned-card limits). Proxy cards
+aren't checked at all: they're in the deck to be printed and played, not part of its construction.
 
 ## Sharing {#sharing}
 
