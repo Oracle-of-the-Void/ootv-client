@@ -381,11 +381,12 @@ function bugcheckresult(job, pick) {
   html += (r.review || []).length ? '<div><b>To review</b>:<ul>'+r.review.map(x => '<li>'+artcheckesc(x)+'</li>').join('')+'</ul></div>'
     : '<div class="artchecknote">Nothing to review'+(job.image ? '.' : ': the bugs match the printing\'s legality.')+'</div>';
   if(pick !== undefined && pick !== null) {
-    html += '<div class="artcheckpick"><input type="button" value="Set printedbugs" title="Set this instance\'s printedbugs to the bugs found (Commit saves it)"'+
-      ' onclick="bugcheckfill(\''+artcheckesc(pick)+'\','+artcheckesc(JSON.stringify(r.printedbugs || []))+');" />'+
+    html += '<div class="artcheckpick"><input type="button" value="Set printedbugs" title="Set this instance\'s printedbugs to the bugs found, plus any a misprint note names (Commit saves it)"'+
+      ' onclick="bugcheckfill(\''+artcheckesc(pick)+'\','+artcheckesc(JSON.stringify(r.suggested || r.printedbugs || []))+');" />'+
       ((r.review || []).length ? ' <input type="button" value="Add review note" title="Add the review lines to the card\'s needsreview (Commit saves it)"'+
         ' onclick="bugchecknote(\''+artcheckesc(pick)+'\','+artcheckesc(JSON.stringify(r.review))+');" />' : '')+
-      '<div class="artchecknote">A misprint meant to carry a bug it doesn\'t show gets that bug too: add it by hand.</div></div>';
+      '<div class="artchecknote">A misprint meant to carry a bug it doesn\'t show gets that bug too: give the instance a note '+
+        '"Misprinted without the X bug: ..." and check again, or add it by hand.</div></div>';
   }
   return html+'</div>';
 }

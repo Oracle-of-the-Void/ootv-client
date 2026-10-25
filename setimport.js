@@ -61,6 +61,7 @@ function setimportopen() {
     '<div id="setimp-register" class="setimp-section"></div>'+
     '<div id="setimp-images" class="setimp-section"></div>'+
     '<div id="setimp-plan" class="setimp-section"></div>'+
+    '<div id="setimp-bugs" class="setimp-section"></div>'+
     '<div id="setimp-live" class="setimp-section"></div>');
   $('#setimp-setup').html('<h4>1. Setup</h4>Loading import profiles...');
   setimpapi('profiles').then(function(r) {
@@ -108,6 +109,7 @@ function setimpopenjob(job) {
     setimp.plan = {job: job, ready: !m.problems.length, problems: m.problems, warnings: m.warnings, infos: m.infos,
                    counts: m.counts, description: m.description, set: m.set, imagehash: m.imagehash, fromjob: true};
     setimprenderplan();
+    setimprenderbugs();
     setimprenderlive();
     $('html, body').animate({scrollTop: $('#setimp-plan').offset().top - 60}, 200);
   }).catch(e => alert(setimperr(e)));
@@ -266,7 +268,7 @@ function setimptransform() {
   $('#setimp-plan').html('<h4>5. Plan</h4><p>Checks everything against the live cards (read-only): cardids, reprint matches, '+
                          'set registration, images, values the site hasn\'t seen. Plan again after any change.</p>'+
                          '<input type="button" value="Plan" onclick="setimpdoplan()" /> <span id="setimp-planstatus"></span>');
-  $('#setimp-live').empty();
+  $('#setimp-live, #setimp-bugs').empty();
 }
 
 // ---------------------------------------------------------------- 2. preview
@@ -695,7 +697,7 @@ function setimpplanstatus(msg, cls) {
 function setimpdoplan() {
   var r = setimp.result;
   setimpplanstatus('Planning (reads every live card; about 10 seconds)...');
-  $('#setimp-live').empty();
+  $('#setimp-live, #setimp-bugs').empty();
   setimpapi('plan', {"params": r.params, "profile": r.profile, "overrides": setimp.overrides, "accept": Object.keys(setimp.accept || {}),
                      "description": $('#setimp-desc').length ? $('#setimp-desc').val() : '',
                      "registration": setimp.registration || null,
@@ -707,6 +709,7 @@ function setimpdoplan() {
       setimp.meta = null;
       setimprenderplan();
       setimpmatchfromplan(p);
+      setimprenderbugs();
       setimprenderlive();
       setimploadjobs();
     }).catch(e => setimpplanstatus(setimpesc(setimperr(e)), 'error'));
@@ -910,6 +913,74 @@ function setimpsetoverride(file, cardid, primary) {
   if(cardid !== null) { o.cardid = cardid.trim(); }
   if(primary !== null) { o.primary = primary; }
   if(!o.cardid && !o.primary) { delete setimp.overrides[file]; } else { setimp.overrides[file] = o; }
+}
+
+// ---------------------------------------------------------------- bug check (L5R)
+// The arc bugs the images show against the planned legality and printedbugs, the set by the border
+// (pre-Gold) or the printed set code (Gold on): the artcheck worker checks each new printing
+// (ootv-search admin/setimport.mjs bugcheck/bugchecks; ootv-tools artcheck task "bugs"). Warnings
+// only: the import expects that information ahead of time, this checks it.
+var setimpbugpoll = null;
+
+function setimprenderbugs() {
+  clearTimeout(setimpbugpoll);
+  if(setimp.db != 'l5r' || !setimp.job) { $('#setimp-bugs').empty(); return; }
+  $('#setimp-bugs').html('<h4>Check the bugs</h4><p>Reads every new printing\'s image: the arc bugs printed on it against its '+
+    'legality and printedbugs, and the set by the border (before Gold Edition) or the code printed along the bottom (from Gold '+
+    'Edition on). It doesn\'t block anything; check each line it lists. About two seconds a card on the worker.</p>'+
+    '<input type="button" value="Check the bugs" onclick="setimpbugstart()" /> '+
+    '<label><input type="checkbox" id="setimp-bugsall" onchange="setimpbugdraw()" /> show every printing</label> '+
+    '<span id="setimp-bugstatus"></span><div id="setimp-bugtable"></div>');
+  setimpbugload();
+}
+
+function setimpbugstart() {
+  $('#setimp-bugstatus').text('Queueing...');
+  setimpapi('bugcheck', {"job": setimp.job}).then(function(r) {
+    $('#setimp-bugstatus').text(r.bugcheck.count+' printings queued.'+(r.worker && !r.worker.online ? ' The worker is offline: they wait until it is back.' : ''));
+    setimpbugload();
+  }).catch(e => $('#setimp-bugstatus').html('<span class="error">'+setimpesc(setimperr(e))+'</span>'));
+}
+
+function setimpbugload() {
+  clearTimeout(setimpbugpoll);
+  var job = setimp.job;
+  setimpapi('bugchecks', {"job": job}).then(function(r) {
+    if(job != setimp.job) { return; }
+    setimp.bugs = r;
+    setimpbugdraw();
+    var left = (r.rows || []).filter(x => x.status == 'queued' || x.status == 'running').length;
+    if(left) { setimpbugpoll = setTimeout(setimpbugload, 8000); }
+  }).catch(e => $('#setimp-bugstatus').html('<span class="error">'+setimpesc(setimperr(e))+'</span>'));
+}
+
+function setimpbugdraw() {
+  var r = setimp.bugs;
+  if(!r || !r.bugcheck) { $('#setimp-bugtable').empty(); return; }
+  var rows = r.rows || [], all = $('#setimp-bugsall').is(':checked');
+  var done = rows.filter(x => x.status == 'done' || x.status == 'error').length;
+  var flagged = rows.filter(x => x.status == 'error' || (x.review || []).length);
+  $('#setimp-bugstatus').text(done+' of '+rows.length+' checked ('+new Date(r.bugcheck.at).toLocaleString()+'), '+flagged.length+' to look at'+
+    (r.worker && !r.worker.online ? '; the worker is offline' : (done < rows.length ? '; checking...' : '.')));
+  var show = all ? rows : flagged;
+  var names = list => (list || []).join(', ') || 'none';
+  $('#setimp-bugtable').html(show.length ? '<table class="setimp-table"><tr><th>Row</th><th>Card</th><th>Bugs</th><th>Set</th><th>To look at</th></tr>'+
+    show.map(x => '<tr><td><a href="" onclick="setimpbugshow(\''+setimpesc(x.id)+'\'); return false">'+setimpesc(x.file || x.id)+'</a></td>'+
+      '<td>'+setimpesc(x.title)+' <span class="artchecknote">'+setimpesc(x.cardid)+'_'+setimpesc(x.printingid)+'</span></td>'+
+      '<td>'+(x.status == 'done' ? setimpesc(names(x.printedbugs))+((x.unsure || []).length ? ' <span class="artchecknote">(unsure: '+setimpesc(names(x.unsure))+')</span>' : '') :
+        setimpesc(x.status)+(x.error ? ': '+setimpesc(x.error) : ''))+'</td>'+
+      '<td>'+(x.setcode && x.setcode.set ? setimpesc(String(x.setcode.set).replace(/&amp;/g,'&'))+' <span class="artchecknote">(printed)</span>' :
+              x.border && x.border.known ? setimpesc(x.border.say)+' <span class="artchecknote">(border'+(x.border.sure ? '' : ', a guess')+')</span>' : '')+'</td>'+
+      '<td>'+(x.review || []).map(setimpesc).join('<br>')+'</td></tr>').join('')+'</table>'
+    : (done ? '<p>Nothing to look at.</p>' : ''));
+}
+
+// one printing's full result (with the zoomed bugs) in a popup: the artist check's view of a bugs job
+function setimpbugshow(id) {
+  artcheckload().done(function() {
+    artcheckapi('job', {id: id}).then(r => modal('Bug check', r.job.status == 'done' || r.job.status == 'error' ? artcheckresult(r.job) : 'Not checked yet.'),
+                                      e => modal('Bug check', '<span class="error">'+setimpesc(artcheckerr(e))+'</span>'));
+  });
 }
 
 // ---------------------------------------------------------------- 6. go live
