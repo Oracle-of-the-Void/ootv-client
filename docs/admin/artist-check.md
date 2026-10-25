@@ -46,11 +46,11 @@ it's picked up.
 - **Same painting:** other credited printings that use the same painting (a reprint, a new frame,
   a crop). These are the strongest evidence: a printing that reuses a credited painting may take
   that artist, once you've compared the two by eye.
-- **By style:** the artists of the 10 credited paintings nearest in painting style (brushwork,
-  colour, texture; the same painting doesn't count), with each artist's share of the vote. In a
-  test on 14,842 credited L5R paintings, the top artist was right 41% of the time overall, and
-  **88% of the time when its share was 50% or more** (shown in bold; about one painting in six
-  gets that). Below 50% the names are candidates to look into, not answers. **Nearest paintings**
+- **By style:** artists ranked by how close their 5 best credited paintings come in painting style
+  (brushwork, colour, texture; the same painting doesn't count), each with its share of the vote
+  among the 10 nearest paintings. In a test on 15,546 credited L5R paintings (2026-10-25), the top
+  artist was right 42% of the time overall, and **88% of the time when its share was 50% or more**
+  (shown in bold; about one painting in six gets that). Below 50% the names are candidates to look into, not answers. **Nearest paintings**
   lists the 10 with their artists and scores, linked to their cards.
 
 What to do with it: read the printed credit strip on the scan first. If there's no credit, a
