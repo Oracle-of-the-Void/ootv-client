@@ -50,7 +50,7 @@ function artcheckopen(cardid, printingid) {
     '<p>or a picture <input type="file" id="artcheckfile" accept="image/jpeg,image/png" onchange="artcheckupload(this)" /> '+
     '<label><input type="radio" name="artcheckkind" value="card" checked /> a whole card</label> '+
     '<label><input type="radio" name="artcheckkind" value="art" /> the art alone</label>'+
-    (database == 'l5r' ? ' <label title="A flat scan of the whole card: photos at an angle aren\'t straightened yet"><input type="radio" name="artcheckkind" value="bugs" /> the bugs on a whole card</label>' : '')+'</p>'+
+    (database == 'l5r' ? ' <label title="A scan or photo of the whole card: a photo is cut out and straightened (best on a pale background)"><input type="radio" name="artcheckkind" value="bugs" /> the bugs on a whole card</label>' : '')+'</p>'+
     '<div id="artcheckone"></div><p id="artcheckworker"></p><table class="artchecklist" id="artchecklist"></table>'+
     '<h4>Signature submissions</h4><p class="artchecknote">Signatures found by Find the artist and sent in by people '+
     'who aren\'t admins. Approve files one in the signature catalogue under the artist in its box (fix the name first if needed).</p>'+
@@ -361,8 +361,18 @@ function bugcheckresult(job, pick) {
     (r.stored ? ' <span class="artchecknote">(stored printedbugs: '+artcheckesc(bugchecknames(r.stored) || 'none')+')</span>' : '')+'</div>';
   var figs = (r.printedbugs || []).map(v => crop(v)).join('')+(r.unsure || []).map(v => crop(v, 1)).join('');
   if(figs) { html += '<div class="bugcheckcrops">'+figs+'</div>'; }
+  if(r.photo && r.photo.found) {
+    html += '<div class="artchecknote">The card was found in the photo and straightened'+(r.photo.turned ? ' (it was upside down)' : '')+'.</div>';
+  }
+  // pre-Gold cards: the set by the border (ootv-tools identify/sets.py), within the arc the bugs allow
+  var b = r.border;
+  if(b) {
+    html += '<div><b>Set by the border</b>: '+(b.known ? artcheckesc(b.say)+' <span class="artchecknote">('+
+      (b.sure ? 'sure: '+Math.round(b.share*100)+'% of the nearest scans agree' : 'a guess: '+Math.round(b.share*100)+'% of the nearest scans agree')+')</span>' :
+      'not recognised <span class="artchecknote">(not like any pre-Gold set\'s border: a promo or a later set?)</span>')+'</div>';
+  }
   html += (r.review || []).length ? '<div><b>To review</b>:<ul>'+r.review.map(x => '<li>'+artcheckesc(x)+'</li>').join('')+'</ul></div>'
-    : '<div class="artchecknote">Nothing to review: the bugs match the printing\'s legality.</div>';
+    : '<div class="artchecknote">Nothing to review'+(job.image ? '.' : ': the bugs match the printing\'s legality.')+'</div>';
   if(pick !== undefined && pick !== null) {
     html += '<div class="artcheckpick"><input type="button" value="Set printedbugs" title="Set this instance\'s printedbugs to the bugs found (Commit saves it)"'+
       ' onclick="bugcheckfill(\''+artcheckesc(pick)+'\','+artcheckesc(JSON.stringify(r.printedbugs || []))+');" />'+
