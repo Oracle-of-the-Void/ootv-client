@@ -2447,12 +2447,14 @@ function loadartcheck(cardid, printingid) {
 }
 
 // the card editor's "Check artist": the result drawn into #target under the instance, with artist
-// checkboxes and Fill in artist; kept in cardedit.artcheck so a redraw of the editor shows it again
-function artcheckinline(target, cardid, printingid) {
+// checkboxes and Fill in artist; kept in cardedit.artcheck so a redraw of the editor shows it again.
+// task 'bugs' is "Check bugs" (L5R): the printed bugs, with Set printedbugs, kept in cardedit.bugcheck
+function artcheckinline(target, cardid, printingid, task) {
   artcheckload().done(function() {
     artcheckrun(target, cardid, printingid, function(job) {
-      if(cardedit && cardedit.cardid == cardid) { (cardedit.artcheck = cardedit.artcheck || {})[printingid] = job; }
-    }, printingid);
+      var key = task == 'bugs' ? 'bugcheck' : 'artcheck';
+      if(cardedit && cardedit.cardid == cardid) { (cardedit[key] = cardedit[key] || {})[printingid] = job; }
+    }, printingid, task);
   })
     .fail(function() { $('#'+target).html('<span class="error">Could not load the artist check code.</span>'); });
 }

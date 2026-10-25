@@ -1,5 +1,6 @@
 // Admin -> Artist check (ootv-claude ARTIST-CHECK.md; guide docs/admin/artist-check.md): who painted
-// a printing, by painting style and by any signature in the art. POST /artcheck (ootv-search
+// a printing, by painting style and by any signature in the art. L5R also has Check bugs (task
+// "bugs", ootv-claude CARD-ARC-IDENTIFIER.md): the arc bugs printed on the card (bugcheckresult). POST /artcheck (ootv-search
 // admin/artcheck.mjs) only queues and reads jobs; a LAN worker (ootv-tools artcheck/worker.py)
 // does the work and writes the result. Nothing is written to the card. Loaded on demand by
 // loadartcheck() and artcheckinline() in oracle.js.
@@ -44,10 +45,12 @@ function artcheckopen(cardid, printingid) {
     '<a href="" onclick="loadadmindoc(\'artist-check\'); return false">guide</a>.</p>'+
     '<p>Card id <input type="text" id="artcheckcard" size="7" value="'+artcheckesc(cardid || '')+'" /> '+
     'printing <input type="text" id="artcheckprinting" size="4" value="'+artcheckesc(printingid || '1')+'" /> '+
-    '<input type="button" value="Check" onclick="artcheckgo()" /></p>'+
+    '<input type="button" value="Check" onclick="artcheckgo()" />'+
+    (database == 'l5r' ? ' <input type="button" value="Check bugs" title="The arc bugs printed on the card" onclick="artcheckgo(\'bugs\')" />' : '')+'</p>'+
     '<p>or a picture <input type="file" id="artcheckfile" accept="image/jpeg,image/png" onchange="artcheckupload(this)" /> '+
     '<label><input type="radio" name="artcheckkind" value="card" checked /> a whole card</label> '+
-    '<label><input type="radio" name="artcheckkind" value="art" /> the art alone</label></p>'+
+    '<label><input type="radio" name="artcheckkind" value="art" /> the art alone</label>'+
+    (database == 'l5r' ? ' <label title="A flat scan of the whole card: photos at an angle aren\'t straightened yet"><input type="radio" name="artcheckkind" value="bugs" /> the bugs on a whole card</label>' : '')+'</p>'+
     '<div id="artcheckone"></div><p id="artcheckworker"></p><table class="artchecklist" id="artchecklist"></table>'+
     '<h4>Signature submissions</h4><p class="artchecknote">Signatures found by Find the artist and sent in by people '+
     'who aren\'t admins. Approve files one in the signature catalogue under the artist in its box (fix the name first if needed).</p>'+
@@ -58,21 +61,23 @@ function artcheckopen(cardid, printingid) {
   if(cardid) { artcheckgo(); }
 }
 
-function artcheckgo() {
+function artcheckgo(task) {
   var cardid = $.trim($('#artcheckcard').val()), printingid = $.trim($('#artcheckprinting').val());
   if(!/^\d+$/.test(cardid) || !printingid) { $('#artcheckone').html('<span class="error">A card id and a printing id, please.</span>'); return; }
-  artcheckrun('artcheckone', cardid, printingid, artchecklist);
+  artcheckrun('artcheckone', cardid, printingid, artchecklist, undefined, task);
 }
 
 // queue a check and draw it into #target as it moves along; then(job) runs when it's finished.
-// pick: the card editor's instance, drawn with artist checkboxes and Fill in artist (artcheckfill)
-function artcheckrun(target, cardid, printingid, then, pick) {
-  artcheckqueue(target, {cardid: cardid, printingid: printingid}, then, pick);
+// pick: the card editor's instance, drawn with artist checkboxes and Fill in artist (artcheckfill),
+// or for task 'bugs' with Set printedbugs (bugcheckfill)
+function artcheckrun(target, cardid, printingid, then, pick, task) {
+  artcheckqueue(target, Object.assign({cardid: cardid, printingid: printingid}, task ? {task: task} : {}), then, pick);
 }
 
 // a picture file -> shrunk and upright (as Search by photo) -> queued as an upload
 function artcheckupload(input) {
-  artcheckpicture(input, $('input[name=artcheckkind]:checked').val() || 'card', 'artcheckone', artchecklist);
+  var kind = $('input[name=artcheckkind]:checked').val() || 'card';
+  artcheckpicture(input, kind == 'bugs' ? 'card' : kind, 'artcheckone', artchecklist, kind == 'bugs' ? 'bugs' : undefined);
 }
 
 // the Photo button's Find the artist (photochooser in oracle.js): the result in the popup
@@ -83,7 +88,7 @@ function artcheckphoto(input, kind) {
   artcheckpicture(input, kind, 'artcheckmodal', null);
 }
 
-function artcheckpicture(input, kind, target, then) {
+function artcheckpicture(input, kind, target, then, task) {
   var file = input.files && input.files[0];
   input.value = '';
   if(!file) { return; }
@@ -97,7 +102,7 @@ function artcheckpicture(input, kind, target, then) {
     canvas.height = Math.max(1, Math.round(img.naturalHeight * k));
     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
     var data = canvas.toDataURL('image/jpeg', 0.88);
-    artcheckqueue(target, {image: data, kind: kind, name: file.name}, then, null, data);
+    artcheckqueue(target, Object.assign({image: data, kind: kind, name: file.name}, task ? {task: task} : {}), then, null, data);
   };
   img.onerror = function() {
     URL.revokeObjectURL(url);
@@ -259,6 +264,7 @@ function artcheckdecide(el, decision) {
 // one finished job as HTML; pick (the card editor's instance id) adds the artist checkboxes
 function artcheckresult(job, pick) {
   if(job.status == 'error') { return '<span class="error">The check failed: '+artcheckesc(job.error)+'</span>'; }
+  if(job.task == 'bugs') { return bugcheckresult(job, pick); }
   var r = job.result || {}, s = r.style || {}, sig = r.signature || {};
   var credit = (job.artist || []).join(', ') || '(no credit)';
   var html = '<div class="artcheckresult">'+(job.image ?
@@ -311,19 +317,77 @@ function artcheckfill(el, printingid) {
   cardeditstatus('Artist set to '+artcheckesc(names.join(', '))+(was.length ? ' (was '+artcheckesc(was.join(', '))+')' : '')+'. Commit to save it.');
 }
 
+// ---- printed bugs (task "bugs"): the worker's legality/bugs.py result ----
+
+var BUGCHECK_NAMES = {jade: 'Jade', gold: 'Gold', diamond: 'Diamond', lotus: 'Lotus', samurai: 'Samurai',
+  celestial: 'Celestial', emperor: 'Emperor', ivory: 'Ivory', twentyfestivals: 'Twenty Festivals', onyx: 'Onyx',
+  shatteredempire: 'Shattered Empire'};
+
+function bugchecknames(list) {
+  return (list || []).map(v => BUGCHECK_NAMES[v] || v).join(', ');
+}
+
+// one finished bugs job: the bugs found and the unsure ones, each zoomed, and what to review.
+// pick (the card editor's instance): Set printedbugs, and Add review note when there's something to review
+function bugcheckresult(job, pick) {
+  var r = job.result || {}, crops = r.crops || {};
+  var crop = (v, unsure) => crops[v] ? '<figure class="bugcheckcrop'+(unsure ? ' bugcheckunsure' : '')+'"><img src="'+artcheckesc(crops[v])+'" alt="'+artcheckesc(v)+'" />'+
+    '<figcaption>'+artcheckesc(BUGCHECK_NAMES[v] || v)+(unsure ? ' ?' : '')+' <span class="artchecknote">'+artcheckesc((r.scores || {})[v])+'</span></figcaption></figure>' : '';
+  var html = '<div class="artcheckresult">'+(job.image ?
+    (artcheckpictures[job.id] ? '<img class="artcheckpicture" src="'+artcheckpictures[job.id]+'" alt="" />' : '')+
+      'Uploaded picture <b>'+artcheckesc(job.title)+'</b>.' :
+    '<b>'+artcheckesc(job.title)+'</b>, printing '+artcheckesc(job.printingid)+' ('+artcheckesc(String(job.set || '').replace(/&ndash;/g,'–'))+').');
+  html += '<div><b>Printed bugs</b>: '+((r.printedbugs || []).length ? artcheckesc(bugchecknames(r.printedbugs)) : 'none found')+
+    ((r.unsure || []).length ? '; <b>unsure</b>: '+artcheckesc(bugchecknames(r.unsure)) : '')+
+    (r.stored ? ' <span class="artchecknote">(stored printedbugs: '+artcheckesc(bugchecknames(r.stored) || 'none')+')</span>' : '')+'</div>';
+  var figs = (r.printedbugs || []).map(v => crop(v)).join('')+(r.unsure || []).map(v => crop(v, 1)).join('');
+  if(figs) { html += '<div class="bugcheckcrops">'+figs+'</div>'; }
+  html += (r.review || []).length ? '<div><b>To review</b>:<ul>'+r.review.map(x => '<li>'+artcheckesc(x)+'</li>').join('')+'</ul></div>'
+    : '<div class="artchecknote">Nothing to review: the bugs match the printing\'s legality.</div>';
+  if(pick !== undefined && pick !== null) {
+    html += '<div class="artcheckpick"><input type="button" value="Set printedbugs" title="Set this instance\'s printedbugs to the bugs found (Commit saves it)"'+
+      ' onclick="bugcheckfill(\''+artcheckesc(pick)+'\','+artcheckesc(JSON.stringify(r.printedbugs || []))+');" />'+
+      ((r.review || []).length ? ' <input type="button" value="Add review note" title="Add the review lines to the card\'s needsreview (Commit saves it)"'+
+        ' onclick="bugchecknote(\''+artcheckesc(pick)+'\','+artcheckesc(JSON.stringify(r.review))+');" />' : '')+
+      '<div class="artchecknote">A misprint meant to carry a bug it doesn\'t show gets that bug too: add it by hand.</div></div>';
+  }
+  return html+'</div>';
+}
+
+// the card editor: printedbugs of the instance (in memory; Commit saves it)
+function bugcheckfill(printingid, bugs) {
+  var p = cardedit.card.printing.find(x => x.printingid == printingid);
+  if(!p) { return; }
+  var was = p.printedbugs;
+  p.printedbugs = bugs.slice();
+  cardeditrender();
+  cardeditstatus('printedbugs set to ['+artcheckesc(bugs.join(', '))+']'+(was ? ' (was ['+artcheckesc(was.join(', '))+'])' : '')+'. Commit to save it.');
+}
+
+function bugchecknote(printingid, review) {
+  var c = cardedit.card, p = c.printing.find(x => x.printingid == printingid);
+  var set = p && p.set ? String(p.set[0]).replace(/&ndash;/g,'–') : 'printing '+printingid;
+  var day = new Date().toISOString().slice(0, 10);
+  c.needsreview = (c.needsreview || []).concat(['The '+set+' printing '+printingid+': printed bugs: '+review.join('; ')+' (bug check, '+day+')']);
+  cardeditrender();
+  cardeditstatus('Review note added. Commit to save it.');
+}
+
 function artchecklist() {
   artcheckapi('jobs').then(function(r) {
     $('#artcheckworker').html(artcheckworker(r.worker));
     var rows = (r.jobs || []).map(function(j) {
       var top = ((j.result || {}).style || {}).candidates || [];
       var sig = (j.result || {}).signature || {};
+      var bugs = j.task == 'bugs' ? 'bugs: '+(bugchecknames((j.result || {}).printedbugs) || (j.status == 'done' ? 'none' : ''))+
+        (((j.result || {}).review || []).length ? ' (to review)' : '') : '';
       return '<tr><td>'+new Date(j.created).toLocaleString()+'</td><td>'+artcheckcard(j)+' #'+artcheckesc(j.printingid)+'</td>'+
         '<td>'+artcheckesc((j.artist || []).join(', '))+'</td><td>'+artcheckesc(j.status)+'</td>'+
-        '<td>'+(top[0] ? artcheckesc(top[0].artist)+' '+Math.round(top[0].share*100)+'%' : '')+'</td>'+
+        '<td>'+(bugs ? artcheckesc(bugs) : top[0] ? artcheckesc(top[0].artist)+' '+Math.round(top[0].share*100)+'%' : '')+'</td>'+
         '<td>'+(sig.read ? '"'+artcheckesc(sig.read)+'"' : '')+'</td>'+
         '<td><a href="" onclick="artcheckshow(\''+artcheckesc(j.id)+'\'); return false">show</a></td><td>'+artcheckesc(j.uname)+'</td></tr>';
     });
-    $('#artchecklist').html(rows.length ? '<tr><th>Queued</th><th>Printing</th><th>Credit</th><th>Status</th><th>Top by style</th><th>Signature</th><th></th><th>By</th></tr>'+rows.join('')
+    $('#artchecklist').html(rows.length ? '<tr><th>Queued</th><th>Printing</th><th>Credit</th><th>Status</th><th>Top by style / bugs</th><th>Signature</th><th></th><th>By</th></tr>'+rows.join('')
                                         : '<tr><td>No checks yet for this game.</td></tr>');
   }, function(e) { $('#artchecklist').html('<tr><td class="error">'+artcheckesc(artcheckerr(e))+'</td></tr>'); });
 }
