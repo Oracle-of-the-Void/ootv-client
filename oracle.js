@@ -5252,7 +5252,7 @@ function bubbleup(data,request=null,prid=null) {
     if (!card || !card.printingreverse || !Array.isArray(card.printing)) {
       return card;
     }
-    var hasrev = prid || card.listprinting > 0 || requirerev ||
+    var hasrev = prid || card.listprinting > 0 || requirerev || ("field_printing_foil" in request) ||
         Object.keys(card.printingreverse).some(function(key) {
           return (("field_printing_"+key) in request) || (("field_"+key) in request);
         });
@@ -5762,7 +5762,7 @@ function searchaddallmax() {
 // the search fields that pick a version of a card: with none of them in the search, the cards go in without a version.
 // KEEP IN SYNC with the version-picking code: the "reverse" searchables in the game config, bubbleup and
 // templatefetch. A new field that changes the version shown goes here too.
-const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist'];
+const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist', 'foil'];
 function searchaddallversion(request) {
     return Object.keys(request).some(function(key) {
 	var m = key.match(/^(?:field|require)_(?:printing_)?(.*)$/);
@@ -5778,7 +5778,7 @@ function searchaddallpick() {
     var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); }).map(function(listid) { return items[rev[listid]]; });
     var request = searchcache[database]['queryrequest'][qs] || $.deparam(qs);
     modal('Add all ' + total.toLocaleString() + ' cards to which list?',
-	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher or artist to add a version).') + '</p>' +
+	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher, artist or foil to add a version).') + '</p>' +
 	'<p><label>Copies of each card <input id="searchaddallcopies" type="number" min="1" step="1" value="1" style="width: 4em;" /></label></p>' +
 	'<ul class="swipepicklist">' +
 	(active.length ? active.map(function(list) { return listpickitem(list, 'searchaddallpicked'); }).join('') + '<li class="swipepicksep">All lists</li>' : '') +
@@ -6171,6 +6171,22 @@ function templatefetch(card,id=false,datarequest={}) {
               }
             }
         }
+        // the Foil search (field_printing_foil: any / foil / both / none): keep the printing chosen above if
+        // it fits, else the latest that does, preferring one that also has a searched set or rarity
+        var foilchoice = [].concat(datarequest.field_printing_foil || []).filter(function(v) { return v !== ''; });
+        if(foilchoice.length && !foilfits(card.printing[pr], foilchoice)) {
+            var fits = [];
+            card.printing.forEach(function(p,i) { if(foilfits(p, foilchoice)) { fits.push(i); } });
+            var also = fits.filter(function(i) {
+                return ['set','rarity'].some(function(a) {
+                    var want = [].concat(datarequest['field_printing_'+a] || []);
+                    return [].concat(card.printing[i][a] || []).some(function(v) { return want.includes(v); });
+                });
+            });
+            if(fits.length) {
+                pr = latestprinting(card, also.length ? also : fits);
+            }
+        }
         // require_<field> (e.g. the "Paper only" checkbox): keep the printing chosen above if it
         // fits every required value, else switch to one that does
         Object.keys(datarequest).filter(function(k) { return k.startsWith("require_"); }).forEach(function(k) {
@@ -6190,6 +6206,11 @@ function templatefetch(card,id=false,datarequest={}) {
     }
     //console.log("onx ret: "+pr);
     return card.printing[pr];
+}
+// whether printing p fits any of the Foil search's choices (any = "foil" or "both", none = no foil value)
+function foilfits(p, choices) {
+    var f = p && p.foil;
+    return choices.some(function(c) { return c == 'any' ? (f == 'foil' || f == 'both') : (c == 'none' ? !f : f == c); });
 }
 function printingfits(card,pr,field,value) {
     // whether printing index pr carries value, or fits the derived value's rule on its own;

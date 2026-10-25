@@ -68,7 +68,8 @@ printing that matched.
 **Foil** (under Advanced) finds printings by their foil mark: *Any foil*, *Foil only* (only
 printed in foil), *Regular and foil*, or *Not foil*. Pick more than one to find either. Combined
 with Set or Rarity it looks at the same printing, so Set: Gold Edition with Foil: Regular and
-foil finds Gold Edition's rares that also came in foil.
+foil finds Gold Edition's rares that also came in foil. Each result shows the printing that fits
+the Foil choice (its image, set and rarity).
 
 ## Results {#results}
 
