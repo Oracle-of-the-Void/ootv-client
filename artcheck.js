@@ -9,6 +9,7 @@ var artcheckpoll = {};     // target element id -> timer of the job being waited
 var artcheckpictures = {}; // job id -> the uploaded picture (a data URL), shown with its result while the page is open
 var ARTCHECK_LONG = 1600;  // an upload's long side, as Search by photo (artphoto.js)
 var ARTCHECK_IMAGES = 'https://images.oracleofthevoid.com/';   // + a known signature's path + file
+var artcheckartists = null; // GET /artist?all=1, loaded when a signature's artist box first gets focus
 
 function artcheckapi(action, data) {
   return Promise.resolve($.ajax({
@@ -50,8 +51,13 @@ function artcheckopen(cardid, printingid) {
     '<label><input type="radio" name="artcheckkind" value="card" checked /> a whole card</label> '+
     '<label><input type="radio" name="artcheckkind" value="art" /> the art alone</label>'+
     (database == 'l5r' ? ' <label title="A flat scan of the whole card: photos at an angle aren\'t straightened yet"><input type="radio" name="artcheckkind" value="bugs" /> the bugs on a whole card</label>' : '')+'</p>'+
-    '<div id="artcheckone"></div><p id="artcheckworker"></p><table class="artchecklist" id="artchecklist"></table>');
+    '<div id="artcheckone"></div><p id="artcheckworker"></p><table class="artchecklist" id="artchecklist"></table>'+
+    '<h4>Signature submissions</h4><p class="artchecknote">Signatures found by Find the artist and sent in by people '+
+    'who aren\'t admins. Approve files one in the signature catalogue under the artist in its box (fix the name first if needed).</p>'+
+    '<p><label><input type="checkbox" id="artchecksuball" onchange="artchecksubs()" /> show decided ones too</label></p>'+
+    '<div id="artchecksubs"></div>');
   artchecklist();
+  artchecksubs();
   if(cardid) { artcheckgo(); }
 }
 
@@ -154,10 +160,105 @@ function artchecksignatures(sig) {
   var rows = known.map(k => '<div class="artchecksigartist"><b>'+artcheckesc(k.artist)+'</b>'+
     (k.match ? ' <span class="artcheckstrong">(the reading matches)</span>' : '')+
     ' <span class="artchecknote">'+k.samples.length+' of '+k.count+'</span><div class="artchecksigstrip">'+
-    k.samples.map(m => '<a href="'+artcheckesc(location.pathname+statehash({'view': 'card', 'cardid': m.cardid, 'prid': m.printingid}))+'" target="_blank"'+
+    k.samples.map(m => '<a'+(m.cardid ? ' href="'+artcheckesc(location.pathname+statehash({'view': 'card', 'cardid': m.cardid, 'prid': m.printingid}))+'" target="_blank"' : '')+
       ' title="'+artcheckesc(m.title+' ('+String(m.set || '').replace(/&amp;/g,'&').replace(/&ndash;/g,'–')+')')+'">'+
       '<img src="'+artcheckesc(ARTCHECK_IMAGES+k.path+m.file)+'" alt="'+artcheckesc(m.title)+'" loading="lazy" /></a>').join('')+'</div></div>').join('');
   return html+'<details class="artchecksigknown"'+(sig.where ? ' open' : '')+'><summary>Known signatures</summary>'+rows+'</details>';
+}
+
+// a found signature not in the catalogue yet: a box for the artist's name and Add to the catalogue
+// (an admin: filed at once) or Submit for approval (anyone else: waits in Admin -> Artist check).
+// POST /artcheck sigsubmit (ootv-search admin/artcheck.mjs; ootv-claude ARTIST-CHECK.md)
+function artchecksubmitform(job, sig) {
+  if(!sig.where || !sig.where.file) { return ''; }
+  if((sig.catalogued || []).length) {
+    return '<div class="artchecknote">This signature is in the catalogue already (under '+
+      artcheckesc(sig.catalogued.map(c => c.artist).filter((a,i,l) => a && l.indexOf(a) == i).join(', ') || 'its artist')+').</div>';
+  }
+  if(job.signaturesub) { return artchecksubstate(job.signaturesub); }
+  var admin = gamepermission('artcheck');
+  // the likely names first: the credit, the artists whose signatures are shown, the style vote
+  var likely = [].concat(job.artist || [], (sig.known || []).filter(k => k.match).map(k => k.artist),
+                         (((job.result || {}).style || {}).candidates || []).map(c => c.artist))
+    .filter((a,i,l) => a && a != 'N/A' && l.indexOf(a) == i);
+  var id = 'artchecksub'+artcheckesc(job.id);
+  return '<div class="artchecksubmit" id="'+id+'"><b>Add this signature to the catalogue</b>: whose is it? '+
+    '<input type="text" class="artchecksubartist" list="'+id+'list" size="24" value="'+artcheckesc((job.artist || [])[0] || '')+'"'+
+    ' placeholder="the artist\'s name" onfocus="artcheckartistlist(this)" /><datalist id="'+id+'list">'+
+    likely.map(a => '<option value="'+artcheckesc(a)+'">').join('')+'</datalist> '+
+    '<input type="button" value="'+(admin ? 'Add to the catalogue' : 'Submit for approval')+'" onclick="artchecksubmit(this,\''+artcheckesc(job.id)+'\')" />'+
+    '<div class="artchecknote">'+(admin ? 'You\'re an admin: it\'s filed at once, under an artist from the artists list.' :
+      'An admin looks at it before it goes in the catalogue.')+' Only send a signature you can read or recognise.</div>'+
+    '<div class="artchecksubstatus"></div></div>';
+}
+
+function artchecksubstate(s) {
+  return '<div class="artchecknote">This signature was '+(s.status == 'pending' ? 'submitted for approval' : artcheckesc(s.status))+
+    ' (artist: '+artcheckesc(s.artist)+').</div>';
+}
+
+// the artists list behind the name box's suggestions, after the likely names
+function artcheckartistlist(input) {
+  var list = $('#'+$(input).attr('list'));
+  var fill = function() {
+    var have = {};
+    list.find('option').each(function() { have[this.value] = 1; });
+    list.append(artcheckartists.filter(a => !have[a]).map(a => $('<option>').attr('value', a)));
+  };
+  if(list.data('full')) { return; }
+  list.data('full', 1);
+  if(!artcheckartists) {
+    artcheckartists = Promise.resolve($.ajax({url: apiuri+'/artist', data: {all: 1}, dataType: 'json', timeout: 30000}))
+      .then(r => (r.artists || []).map(a => a.name).sort(), () => []);
+  }
+  Promise.resolve(artcheckartists).then(names => { artcheckartists = names; fill(); });
+}
+
+function artchecksubmit(el, id) {
+  var box = $(el).closest('.artchecksubmit'), artist = $.trim(box.find('.artchecksubartist').val());
+  if(!artist) { box.find('.artchecksubstatus').html('<span class="error">The artist\'s name, please.</span>'); return; }
+  $(el).prop('disabled', true);
+  box.find('.artchecksubstatus').text('Sending...');
+  artcheckapi('sigsubmit', {id: id, artist: artist}).then(function(r) {
+    var s = r.submission;
+    box.html(s.status == 'approved' ? '<div class="artchecknote">Added to the catalogue under <b>'+artcheckesc(s.artist)+'</b>.</div>' :
+      '<div class="artchecknote">Submitted for approval (artist: '+artcheckesc(s.artist)+'). Thank you!</div>');
+    if($('#artchecksubs').length) { artchecksubs(); }
+  }, function(e) {
+    $(el).prop('disabled', false);
+    box.find('.artchecksubstatus').html('<span class="error">'+artcheckesc(artcheckerr(e))+'</span>');
+  });
+}
+
+// Admin -> Artist check: the submissions waiting (or all), with Approve / Reject
+function artchecksubs() {
+  artcheckapi('sigqueue', {pending: !$('#artchecksuball').prop('checked')}).then(function(r) {
+    var subs = r.submissions || [];
+    if(!subs.length) { $('#artchecksubs').html('<p>No signatures waiting.</p>'); return; }
+    $('#artchecksubs').html('<table class="artchecklist artchecksubs"><tr><th>Signature</th><th>From</th><th>Read</th><th>Artist</th><th>By</th><th></th></tr>'+
+      subs.map(function(s) {
+        var pending = s.status == 'pending';
+        return '<tr data-id="'+artcheckesc(s.id)+'"><td><img src="'+artcheckesc(s.crop)+'" alt="signature" /></td>'+
+          '<td>'+artcheckcard(s)+(s.cardid ? '' : ' <span class="artchecknote">(an uploaded picture)</span>')+
+            '<br><span class="artchecknote">credited: '+artcheckesc((s.credit || []).join(', ') || 'none')+'</span></td>'+
+          '<td>'+(s.read ? '"'+artcheckesc(s.read)+'"' : '')+'</td>'+
+          '<td>'+(pending ? '<input type="text" class="artchecksubartist" list="artchecksubslist" size="20" value="'+artcheckesc(s.artist)+'"'+
+              ' onfocus="artcheckartistlist(this)" />' : artcheckesc(s.artist))+'</td>'+
+          '<td>'+artcheckesc(s.uname)+'<br><span class="artchecknote">'+new Date(s.created).toLocaleString()+'</span></td>'+
+          '<td>'+(pending ? '<input type="button" value="Approve" onclick="artcheckdecide(this,\'approve\')" /> '+
+                            '<input type="button" value="Reject" onclick="artcheckdecide(this,\'reject\')" /><div class="artchecksubstatus"></div>' :
+              artcheckesc(s.status)+' by '+artcheckesc(s.decidedby))+'</td></tr>';
+      }).join('')+'</table><datalist id="artchecksubslist"></datalist>');
+  }, function(e) { $('#artchecksubs').html('<span class="error">'+artcheckesc(artcheckerr(e))+'</span>'); });
+}
+
+function artcheckdecide(el, decision) {
+  var row = $(el).closest('tr'), artist = $.trim(row.find('.artchecksubartist').val());
+  row.find('input[type=button]').prop('disabled', true);
+  artcheckapi('sigdecide', {id: row.data('id'), decision: decision, artist: artist}).then(artchecksubs, function(e) {
+    row.find('input[type=button]').prop('disabled', false);
+    row.find('.artchecksubstatus').html('<span class="error">'+artcheckesc(artcheckerr(e))+'</span>');
+  });
 }
 
 // one finished job as HTML; pick (the card editor's instance id) adds the artist checkboxes
@@ -175,6 +276,7 @@ function artcheckresult(job, pick) {
     sig.read ? '"'+artcheckesc(sig.read)+'"'+(job.image ? ' (the model misreads small signatures: look at the art)' : sig.match ? ' (matches the credit: '+sig.match+')' :
       ' (doesn\'t match the credit: look at the art, the model misreads small signatures)') : 'none read')+'</div>';
   html += artchecksignatures(sig);
+  html += artchecksubmitform(job, sig);
   if((r.same || []).length) {
     html += '<div><b>'+(job.image ? 'Maybe the same painting' : 'Same painting')+'</b>: '+r.same.map(m => artcheckcard(m)+' '+artcheckesc((m.artist || []).join(', '))+
       (job.image ? ' <span class="artchecknote">('+(m.artvec >= 0.9 ? 'very close' : 'close')+', '+m.artvec+')</span>' : '')).join('; ')+'</div>';

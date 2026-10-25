@@ -1814,6 +1814,9 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .artchecksigstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .artchecksigstrip img { height: 72px; max-width: 140px; object-fit: contain; background: #eee; border: 1px solid #ddd; border-radius: 3px; }
 @media (max-width: 700px) { .artchecksigstrip img { height: 56px; max-width: 30vw; } }
+.artchecksubmit { margin: 6px 0; padding: 6px; border: 1px dashed #bbb; border-radius: 3px; }
+.artchecksubmit input[type=text] { max-width: 100%; }
+.artchecksubs img { max-height: 72px; max-width: 160px; border: 1px solid #ccc; border-radius: 3px; }
 .artcheckpick { margin-top: 6px; padding: 4px 6px; background: #f6f6f0; border-radius: 3px; }
 .artcheckpick label { display: inline-block; margin: 2px 10px 2px 0; white-space: nowrap; }
 .bugcheckcrops { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0; }

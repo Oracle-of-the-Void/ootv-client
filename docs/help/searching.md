@@ -102,6 +102,8 @@ account, or by **Link with Patreon** in [Settings](settings.md#account). It asks
   or more was right about nine times in ten when tested on credited L5R art, and the signature
   reader often misreads small signatures. The picture is kept for 90 days so the site's maintainers
   can look at it.
+  If a signature is found that isn't in our signature catalogue yet, you can say whose it is and
+  **Submit for approval**: once a maintainer has checked it, it's shown beside future results.
 
 The two share one daily and per-minute allowance (for supporters it grows with the tier: Free 1 a
 day, Ashigaru 5, Samurai 25, Maker 500); if you use it up, the message says when it resets.

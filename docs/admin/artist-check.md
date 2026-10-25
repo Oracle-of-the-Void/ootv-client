@@ -43,6 +43,12 @@ it's picked up.
   sets, never from the checked painting. Click one to open its card. Compare the hand by eye: the
   shapes of the letters, the date, where it sits. Only artists already in the catalogue appear
   (76 so far; the Artists guide, "Signatures", says where they come from).
+- **Add this signature to the catalogue** (since 2026-10-25): shown when a signature was found and
+  the painting (or the same painting on another printing) isn't in the catalogue yet. Type whose it
+  is (the box suggests the credit, artists the reading names and the style vote first, then every
+  name in the artists list). For an admin (artcheck permission) it's filed at once, under an artist
+  from the artists list (an alias goes to the entry it points at; add a new artist in Admin →
+  Artists first). Anyone else using Photo → Find the artist gets **Submit for approval** instead.
 - **Same painting:** other credited printings that use the same painting (a reprint, a new frame,
   a crop). These are the strongest evidence: a printing that reuses a credited painting may take
   that artist, once you've compared the two by eye.
@@ -77,6 +83,16 @@ In the card editor, **Set printedbugs** sets the instance's `printedbugs` to the
 Admin page, the picture option **the bugs on a whole card** checks an uploaded flat scan (photos at
 an angle aren't straightened yet). It's right 99.94% of the time against the reviewed cards, and
 never reports a bug that isn't there. `printedbugs` is described in `docs/data.md`.
+
+## Signature submissions
+
+Below the recent checks, **Signature submissions** lists the signatures people sent in from Find the
+artist that wait for an admin: the zoomed signature, the printing (or "an uploaded picture"), its
+credit, what the model read, the artist the sender named, and who sent it. Compare the signature
+with the artist's known ones (run Artist check on the printing, or open the artist's catalogue), fix
+the name in the box if needed, then **Approve** (filed in the catalogue under that artist, which must
+be in the artists list) or **Reject**. Tick "show decided ones too" to see past decisions. Filed
+signatures are marked `how: submitted` in the artist's `index.json`, with who sent and approved them.
 
 ## When it says the worker is offline
 
