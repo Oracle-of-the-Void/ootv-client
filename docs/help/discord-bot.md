@@ -80,6 +80,7 @@ Not every game has every option, just as on the site's search form:
 | Legend of the Burning Sands, 7th Sea, Warlord, Initial D | `set`, `rarity`, `type`, `text` |
 | Dune | `set`, `rarity`, `type` |
 | Pathfinder Pawns | `set`, `type` |
+| Android: Netrunner | `set`, `type`, `text`, `legality` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.
