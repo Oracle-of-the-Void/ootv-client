@@ -90,8 +90,24 @@ a score, then what to review:
 
 In the card editor, **Set printedbugs** sets the instance's `printedbugs` to the bugs found, and
 **Add review note** copies the review lines into the card's `needsreview`; Commit saves either. On the
-Admin page, the picture option **the bugs on a whole card** checks an uploaded flat scan (photos at
-an angle aren't straightened yet). It's right 99.94% of the time against the reviewed cards, and
+Admin page, the picture option **the bugs on a whole card** checks an uploaded scan or photo of the
+whole card: a photo is cut out of its background, straightened and turned the right way up (it works
+best on a pale background).
+
+For cards from Gold Edition on, **Printed set** is the set whose code (or name) the vision model
+read along the card's bottom edge, with what it read. Reprint products print the original set's
+code (Samurai Edition Banzai prints KD or TTT, the 15th Anniversary throwbacks CELESTIAL), so a
+different set there means "reprint, or the wrong set": it's listed under To review. It was right
+for 252 of 261 test cards and never named a set that wasn't printed. The model can invent text on a
+card with nothing printed, so a reading only counts when a known code is in it.
+
+For cards from before Gold Edition, **Set by the border** names the set the border looks like, among
+the sets of the arc the bugs allow (no bug: the Imperial arc; the Jade bug: the Jade arc). "sure"
+was right 99.7% of the time in testing; "a guess" is a lead to check; "not recognised" means the
+border is like none of them (a promo, a later set). Hidden Emperor 1–6 and The Dark Journey Home share
+one border, and so do the Scorpion Clan Coup scrolls; the plain black borders (Battle of Beiden Pass,
+Top Deck) are the hardest. When a sure guess differs from the printing's set, or the border isn't
+recognised, it's also listed under To review. It's right 99.94% of the time against the reviewed cards, and
 never reports a bug that isn't there. `printedbugs` is described in `docs/data.md`.
 
 ## Signature submissions
