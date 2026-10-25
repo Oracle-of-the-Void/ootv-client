@@ -21,6 +21,7 @@ Someone with none of these can't use either feature. A supporter is tied to thei
   maintainers, set 2026-10-23). A level shown in the panel but never saved stays off while both
   its boxes are empty.
 - When someone uses up a limit, they get "you have used your N photo searches per day/minute" until it resets.
+- Every use and every refusal is in [Admin → Audit → Usage](usage.md): check there how often people hit a limit before changing it.
 - A never-saved item shows the APIs' built-in defaults (admin and maintainer: no limit); the first save stores them.
 - Each save keeps the last 20 versions in the item's history (with the limits before the save).
   If someone else saved in between, the save is refused: reload the panel and redo the change.
