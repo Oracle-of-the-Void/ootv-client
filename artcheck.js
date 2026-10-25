@@ -364,6 +364,13 @@ function bugcheckresult(job, pick) {
   if(r.photo && r.photo.found) {
     html += '<div class="artchecknote">The card was found in the photo and straightened'+(r.photo.turned ? ' (it was upside down)' : '')+'.</div>';
   }
+  // from Gold Edition on: the set code printed along the bottom (ootv-tools identify/setcode.py)
+  var sc = r.setcode;
+  if(sc) {
+    html += '<div><b>Printed set</b>: '+(sc.error ? '<span class="artchecknote">not read (the vision model is off)</span>' :
+      sc.set ? artcheckesc(String(sc.set).replace(/&amp;/g,'&').replace(/&ndash;/g,'–'))+(sc.sure ? '' : ' <span class="artchecknote">(a guess)</span>') :
+      'not recognised')+(sc.read ? ' <span class="artchecknote">(read: "'+artcheckesc(sc.read.replace(/\n/g,' / '))+'")</span>' : '')+'</div>';
+  }
   // pre-Gold cards: the set by the border (ootv-tools identify/sets.py), within the arc the bugs allow
   var b = r.border;
   if(b) {
