@@ -461,7 +461,8 @@ codes:
 
 POST (form: `table`, `cardids=1,2,3`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
 these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
-deck check. Answers `{cardslegal: [...], unknown: <cards not found>}`; 400 without a table or with over 5000 cards.
+deck check. Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
+<cards not found>}`; 400 without a table or with over 5000 cards.
 
 ## /list action=award, action=precon
 
