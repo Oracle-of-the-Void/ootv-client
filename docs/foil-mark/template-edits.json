@@ -1,0 +1,44 @@
+[
+ [
+  "partials",
+  "card-middle",
+  "{{if printingid == ~top.printingprimary}} *{{/if}}</a>",
+  "{{if printingid == ~top.printingprimary}} *{{/if}} {{:~foilmark(foil)}}</a>"
+ ],
+ [
+  "views",
+  "card",
+  "<hr>\n        {{:~gamerows(#data,'printing')}}",
+  "<hr>\n        {{if foil}}<dt>Foil</dt><dd>{{:~foilmark(foil,true)}}</dd>{{/if}}\n        {{:~gamerows(#data,'printing')}}"
+ ],
+ [
+  "partials",
+  "card-top",
+  "<div class=\"printing\" data-printingid=\"{{:printingid}}\">\n            {{if image}}",
+  "<div class=\"printing\" data-printingid=\"{{:printingid}}\"><span class=\"printingimages\">{{if foil=='foil'}}{{:~foilmark(foil)}}{{/if}}\n            {{if image}}"
+ ],
+ [
+  "partials",
+  "card-top",
+  "               <img src=\"/res/missing-stamp-rot288.png\">\n            {{/if}}\n\t  </div>",
+  "               <img src=\"/res/missing-stamp-rot288.png\">\n            {{/if}}\n\t  </span></div>"
+ ],
+ [
+  "views",
+  "search",
+  "({{:printingid}}) {{:set}}{{if ~fieldshown('rarity')}}/{{:rarity}}{{/if}}</a>",
+  "({{:printingid}}) {{:set}}{{if ~fieldshown('rarity')}}/{{:rarity}}{{/if}} {{:~foilmark(foil)}}</a>"
+ ],
+ [
+  "views",
+  "list",
+  "{{printingfromid listprinting printing \"rarity\" /}}{{/if}}]{{/if}}",
+  "{{printingfromid listprinting printing \"rarity\" /}}{{/if}}] {{:~foilmark(~foilof(printing, listprinting))}}{{/if}}"
+ ],
+ [
+  "views",
+  "visual",
+  "\" />\n</a>",
+  "\" />\n{{if ~foilof(printing, listprinting||printingid)=='foil'}}{{:~foilmark('foil')}}{{/if}}\n</a>"
+ ]
+]
