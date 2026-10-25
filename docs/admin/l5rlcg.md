@@ -3,7 +3,8 @@
 Last updated: 2026-10-24
 
 Fantasy Flight Games' **Legend of the Five Rings: The Card Game** (2017–2021), added 2026-10-24
-(ootv-claude `projects/newgame-l5rlcg.md`). FFG only for now; Emerald Legacy, the community
+(ootv-claude `projects/newgame-l5rlcg.md`). Until its release it's a preview game: in the menu on
+preview only ([Game config](game-config.md), "The game menu and preview games"). FFG only for now; Emerald Legacy, the community
 continuation, can follow if there's interest.
 
 ## Where the data came from
