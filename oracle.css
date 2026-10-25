@@ -2328,6 +2328,13 @@ button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-siz
 /* the text layer (rulesdrawtext): transparent words over the page image, in the page's own units (cqh) */
 .rulespage { position: relative; container-type: size; }
 .rulestextlayer { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+/* the pages sit above the turn areas (.rulesturn) but let the pointer through, so only their link boxes take
+   clicks there; drags, pinches and turns land on the stage and the turn areas as before */
+.rulesstage .rulespage { z-index: 3; pointer-events: none; }
+.ruleslinklayer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.ruleslink { position: absolute; pointer-events: auto; border-radius: 2px; cursor: pointer; -webkit-tap-highlight-color: rgba(140, 30, 30, .2); }
+.ruleslink:hover, .ruleslink:focus-visible { background: rgba(140, 30, 30, .12); outline: none; }
+.rulesselecting .ruleslinklayer { display: none; }
 .rulesline { font-size: 0; }
 .rulestextlayer span { position: absolute; white-space: pre; color: transparent; font-family: sans-serif; transform-origin: 0 0; cursor: text; }
 .rulestextlayer span::selection { background: rgba(0, 100, 255, .3); color: transparent; }
