@@ -622,6 +622,10 @@ div.helptoc { display: inline-block; border: solid #ccc 1px; border-radius: 4px;
 div.helptoc ul { margin: 2px 0; padding-left: 22px; }
 div.helptoc ul ul { font-size: 92%; }
 div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
+div.helpdoc table { border-collapse: collapse; margin: 6px 0; }
+div.helpdoc th, div.helpdoc td { border-bottom: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: middle; }
+div.helpdoc td img { display: block; max-width: 100%; border-radius: 3px; margin: 2px 0; }
+div.helpdoc td img[src*="/bug-"] { display: inline-block; width: 56px; height: 56px; margin-right: 4px; }
 div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
