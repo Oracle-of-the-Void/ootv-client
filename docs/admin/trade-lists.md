@@ -1,6 +1,6 @@
 # Trade lists and messages
 
-Last updated: 2026-10-24
+Last updated: 2026-10-26
 
 Players open have and want lists to trade, the site matches them, and they talk it over in
 messages. Plan and decisions: ootv-claude `TRADE-LISTS.md`. Player help: Help → Trading and messages.
@@ -19,8 +19,10 @@ and nightly.
 
 ## Matching
 
-By card: a want matches any printing unless both sides name different printings. Foil (when lists carry
-it, project l5r-foils) must agree unless either side says "either". Your matches put players who match
+By card: a want matches any printing unless both sides name different printings. Foil (the list entry's
+foil toggle: none, `foil`, or `either` on a want) must agree unless either side says `either`. An entry for a
+printing only printed in foil is indexed as `foil` whatever the entry holds (`entryFoil()` in
+ootv-search `lib/publiclists.js`). Your matches put players who match
 both ways first, then by how many cards match.
 
 ## Going quiet
