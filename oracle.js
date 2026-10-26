@@ -6359,6 +6359,33 @@ function foilfits(p, choices) {
     var f = p && p.foil;
     return choices.some(function(c) { return c == 'any' ? (f == 'foil' || f == 'both') : (c == 'none' ? !f : f == c); });
 }
+function cardderived(card,field) {
+    // the names of the derived values (/attributes <field>.derived) the card fits, the way /search
+    // matches them (ootv-search CLAUDE.md "Derived select values"): every `all` clause, at least one
+    // `any` clause, no `none` clause. In a clause the card fields must match the card and the printing
+    // fields one printing. The card's <field>derivedexception {add, remove} wins. Entries with
+    // listable: false (search filters such as Paper) are left out.
+    var derived = cache_select(field+".derived");
+    if(!Array.isArray(derived) || !card || !Array.isArray(card.printing)) {
+        return [];
+    }
+    var has = function(vals,want) {
+        want = [].concat(want).map(selectplaintext);
+        return [].concat(vals || []).some(function(v) { return want.includes(selectplaintext(v)); });
+    };
+    var fits = function(cl) {
+        var cardok = Object.keys(cl).every(function(k) { return k == 'printing' || has(card[k],cl[k]); });
+        return cardok && (!cl.printing || card.printing.some(function(p) {
+            return Object.keys(cl.printing).every(function(k) { return has(p[k],cl.printing[k]); });
+        }));
+    };
+    var exc = card[field+'derivedexception'] || {};
+    return derived.filter(function(d) {
+        if(d.listable === false || has(exc.remove,d.name)) { return false; }
+        if(has(exc.add,d.name)) { return true; }
+        return (d.all || []).every(fits) && (!d.any || !d.any.length || d.any.some(fits)) && !(d.none || []).some(fits);
+    }).map(function(d) { return d.name; });
+}
 function printingfits(card,pr,field,value) {
     // whether printing index pr carries value, or fits the derived value's rule on its own;
     // a printing marked notmrp never fits a legality
