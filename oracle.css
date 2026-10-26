@@ -154,6 +154,11 @@ div.searchinput input.searchnumeric[type=text] {
 div.searchinput select { 
   width: 110px;
 }
+/* Chosen copies the select's on-screen width when it starts: 0px if the sidebar was hidden then (phone layout,
+   split screen, browser zoom), or the wrong mode's width after the window crosses 768px. The width comes from here instead */
+div.searchinput .chosen-container {
+  width: 110px !important;
+}
 div.searchinput { 
   position: relative;
 }
@@ -1708,6 +1713,9 @@ div#phonesearchbar .numresults {
     max-width: 100%;
     box-sizing: border-box;
   }
+}
+/* finger-sized icons and tap targets: touch screens only, not a narrow desktop window (split screen, browser zoom) */
+@media (pointer: coarse) and (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
   /* every icon a quarter bigger than on desktop (17px), and the buttons around them grow to fit */
   .feather {
     width: 21px;
@@ -1751,6 +1759,22 @@ div#phonesearchbar .numresults {
     width: 26px;
     height: 26px;
   }
+  div#phonesearchbar svg.feather {
+    width: 30px;
+    height: 30px;
+  }
+  /* card view prev/next: finger-sized tap targets around the small arrow images */
+  #cardprev, #cardnext {
+    display: inline-block;
+    padding: 6px 8px;
+    vertical-align: middle;
+  }
+  #cardprev img, #cardnext img {
+    width: 26px !important;
+    height: auto;
+  }
+}
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
   .gameinfo-game .gamename, li.numresultsmenu, li.textversionmenu {
     display: none !important;
   }
@@ -1781,10 +1805,6 @@ div#phonesearchbar .numresults {
   body.viewsearch div#phonesearchbar {
     display: flex;
   }
-  div#phonesearchbar svg.feather {
-    width: 30px;
-    height: 30px;
-  }
   /* the panel is full width, so let the form fields use it instead of the desktop sidebar's pixel widths */
   div#sidebar div.searchinput {
     float: none;
@@ -1792,21 +1812,14 @@ div#phonesearchbar .numresults {
   div#sidebar div.searchinput input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
     width: 60vw;
   }
+  div#sidebar div.searchinput .chosen-container {
+    width: 60vw !important;
+  }
   div[class^=result] .randarea, .modal-box {
     min-width: 0;
   }
   .modal-box {
     width: 95%;
-  }
-  /* card view prev/next: finger-sized tap targets around the small arrow images */
-  #cardprev, #cardnext {
-    display: inline-block;
-    padding: 6px 8px;
-    vertical-align: middle;
-  }
-  #cardprev img, #cardnext img {
-    width: 26px !important;
-    height: auto;
   }
   /* card view (template-card-top, all games): image above the details instead of beside them */
   #resultcard div.listitem, #resultcard div.listimage, #resultcard div.listbody {
