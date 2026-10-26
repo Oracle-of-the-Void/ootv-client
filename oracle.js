@@ -25,6 +25,7 @@ $.views.helpers("gamerows",function(data,place) { return gamerows(data,place); }
 $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); });
 $.views.helpers("foilmark",templatefoilmark);
 $.views.helpers("foilof",templatefoilof);
+$.views.helpers("listfoil",templatelistfoil);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -675,7 +676,7 @@ function listmerge(listid,server) {
   if(!(server && server.Items && server.Items[0]) || !(local && local.list && local.list.Items && local.list.Items[0])) {
     return;
   }
-  var key = function(c) { return c.cardid+'/'+(c.printing||0); };
+  var key = function(c) { return c.cardid+'/'+(c.printing||0)+'/'+(c.foil||''); };
   var qty = function(list) {
     var q = {};
     (list || []).forEach(function(c) { q[key(c)] = (q[key(c)] || 0) + parseInt(c.quantity); });
@@ -693,7 +694,7 @@ function listmerge(listid,server) {
     seen[k] = 1;
     var n = base ? (sq[k] || 0) + (lq[k] || 0) - (bq[k] || 0) : (lq[k] || 0);
     if(n > 0) {
-      merged.push({"cardid": c.cardid, "printing": c.printing || 0, "quantity": n});
+      merged.push(listentry(c.cardid, c.printing || 0, n, c.foil));
     }
   });
   console.log("list changed elsewhere, merged: "+listid);
@@ -1839,16 +1840,27 @@ function savecallback() {
     renderlisteditarea(); // update card counts
 }
 
-// how many of this card (and printing) the list holds, shown beside its +/- buttons (span.listqty)
-function listquantity(listid,cardid,prid=0) {
+// how many of this card (and printing, and foil) the list holds, shown beside its +/- buttons (span.listqty)
+function listquantity(listid,cardid,prid=0,foil='') {
     var list = cache_thing("list",listid);
     if(!(list && list.list && list.list.Items && list.list.Items[0])) {
 	return '';
     }
-    var item = list.list.Items[0].list.find(function(ele) { return ele.cardid == cardid && ele.printing == (prid||0); });
+    var item = list.list.Items[0].list.find(function(ele) { return listentryis(ele,cardid,prid,foil); });
     return item ? item.quantity : 0;
 }
-function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
+// a list entry: {cardid, printing, quantity} and foil when it's set (project l5r-foils): "foil", or on a
+// want list "either" (a want that takes regular or foil). No foil = regular. The key is card + printing + foil,
+// so a have list can hold a regular and a foil copy of one printing.
+function listentry(cardid,prid,n,foil) {
+    var e = {'cardid':cardid,'printing':prid,'quantity':n};
+    if(foil) { e.foil = foil; }
+    return e;
+}
+function listentryis(ele,cardid,prid,foil) {
+    return ele.cardid == cardid && ele.printing == (prid||0) && (ele.foil||'') == (foil||'');
+}
+function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
     if(!listmine(listid)) {
 	console.warn("addlistitem: list "+listid+" isn't yours");
 	return;
@@ -1856,10 +1868,10 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
-    listitemchange(list,cardid,prid,n,abs);
+    listitemchange(list,cardid,prid,n,abs,foil);
     listcounts(list);
     cache_thing("list",listid,list);
-    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
     listitemsdone(listid);
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
@@ -1878,10 +1890,10 @@ function addlistitems(listid,items,n=1) {
     refreshactivelistviews(); // the search results' counts
 }
 // one card's change in a cached list (cache_thing): n copies more (abs: exactly n; null: remove)
-function listitemchange(list,cardid,prid=0,n=1,abs=false) {
-    var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
+function listitemchange(list,cardid,prid=0,n=1,abs=false,foil='') {
+    var ind = list.list.Items[0].list.findIndex(function(ele) { return listentryis(ele,cardid,prid,foil); });
     if(ind<0 && n != null) {
-	list.list.Items[0].list.push({'cardid':cardid,'printing':prid,'quantity':n});
+	list.list.Items[0].list.push(listentry(cardid,prid,n,foil));
     } else {
 	if(n == null) {
 	    list.list.Items[0].list.splice(ind,1);
@@ -1893,6 +1905,28 @@ function listitemchange(list,cardid,prid=0,n=1,abs=false) {
 	    }
 	}
     }
+}
+// the list entry's foil toggle (~listfoil): regular -> foil (-> foil or not, on a want list) -> regular. An entry
+// that lands on one already there (same card, printing and foil) joins it.
+function listfoiltoggle(listid,cardid,prid,foil) {
+    if(!listmine(listid)) { return; }
+    var list = cache_thing("list",listid), entries = list.list.Items[0].list;
+    var cycle = list.list.Items[0].type == 'want' ? ['', 'foil', 'either'] : ['', 'foil'];
+    var next = cycle[(cycle.indexOf(foil||'') + 1) % cycle.length];
+    var ind = entries.findIndex(function(ele) { return listentryis(ele,cardid,prid,foil); });
+    if(ind < 0) { return; }
+    var other = entries.findIndex(function(ele) { return listentryis(ele,cardid,prid,next); });
+    if(other >= 0) {
+	entries[other].quantity = parseInt(entries[other].quantity) + parseInt(entries[ind].quantity);
+	entries.splice(ind,1);
+    } else if(next) {
+	entries[ind].foil = next;
+    } else {
+	delete entries[ind].foil;
+    }
+    listcounts(list);
+    cache_thing("list",listid,list);
+    listitemsdone(listid);
 }
 function listcounts(list) {
     list.list.Items[0].distinctcount = list.list.Items[0].list.length;
@@ -3125,6 +3159,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		var card = cache_card_fetch(c.cardid);
 		card.listprinting = c.printing;
 		card.listquantity = c.quantity;
+		card.listfoil = c.foil || '';
 		listdata.push(card);
 	    } else {
 		listdata.push(c);
@@ -3210,7 +3245,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		var value = $(this).text() ;
 		if(field_listid[4] != value) {
 		    console.log(field_listid);
-		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
+		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort,field_listid[5]||'');
 		}
 	    });
 	}
@@ -6069,6 +6104,19 @@ function templatefoilmark(foil, long) {
 function templatefoilof(printing, pid) {
   var p = (printing || []).find(function(e) { return parseInt(e.printingid) == parseInt(pid); });
   return p ? p.foil : undefined;
+}
+// ~listfoil(#data, listid, mine): a list entry's foil (list views). A printing only printed in foil shows its
+// mark; one that also came in foil (or, for "any printing", a card with a foil printing) shows the entry's own
+// foil, as a toggle on your own list (listfoiltoggle). Nothing for a card that never came in foil.
+function templatelistfoil(card, listid, mine) {
+  var ps = card.printing || [], f = card.listfoil || '';
+  var p = card.listprinting > 0 ? ps.find(function(e) { return parseInt(e.printingid) == parseInt(card.listprinting); }) : null;
+  if(p && p.foil == 'foil') { return templatefoilmark('foil'); }
+  var can = p ? p.foil == 'both' : ps.some(function(e) { return e.foil; });
+  if(!can && !f) { return ''; }
+  if(!mine) { return templatefoilmark(f); }
+  return '<span class="foiltoggle" title="Regular or foil: click to change" onclick="listfoiltoggle(\''+listid+'\',\''+card.cardid+'\',\''+
+    (card.listprinting||0)+'\',\''+f+'\'); return false;">'+(f ? templatefoilmark(f) : '<span class="foilmark foilregular">Regular</span>')+'</span>';
 }
 function templatehasval(v) {
     // card detail guards: card fields are arrays, and [""] / ["&nbsp;"] are truthy but display nothing (#236)
