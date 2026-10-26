@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-25 (Rules Q&A from the AEG rules forum, 2005–2015)
+Last updated: 2026-10-25 (Rules Q&A from the Discord rules channels)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -163,6 +163,31 @@ answer on every version plus a "Forum rulings:" needsreview note; they're listed
 `game-l5r/rulings-review/`. Made by ootv-import `SCRIPTS/forum-topics.py` (`--httrack` for the 2015
 copy), `forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from ootv-games
 `game-aeg-forum-crawl/` and `game-l5r/kempy-aegrules/` (see `game-aeg-forum-crawl/rulings-work/README.md`).
+
+### L5R: the Discord rules channels (2021–)
+
+Since the forum, rules questions are asked on Discord: Oracle of the Void `#rules` (and the L5R CCG format
+channels: Imperial … Obsidian Hand, `#l5r`), Sun and Moon `#rules-questions` and Onyx Lives `#rules-questions`.
+Our bot (ootv-discord `scripts/export-channels.js`, read-only, needs the Message Content intent) copies them to
+ootv-games `game-l5r/discord-rulings/`, and they're copied to pages under
+`https://images.oracleofthevoid.com/l5r/rulings-discord/`, one per channel and month with at least one answered
+question (`<server>-<channel>-<yyyy-mm>.html`, index `index.html`), every message included, with previous/next
+links. Each question has its own anchor (`#r<message id>-0`) and lists the cards its answers went onto. Players
+are shown as "A player"; the officials are named.
+
+Official answers are Oracle of the Void staff's: Brook Cunningham (MacBeth2001), Alex Jones (AkodoGilador),
+Jeremy Sumerlin (TetsuroJ) and Jeff Williamson (docangst). The site owner (Kiyoteru) isn't counted. kempy_nezumi and
+saaam answer often but aren't officials: their answers go on a card only when it has no rulings and no Rules Q&A
+at all, starting "Unofficial answer:". An answer is a staff member's messages replying to a question (Discord's
+reply link, or following it in the channel within a few hours); every official answer to a question is kept, in
+order. The rest is chosen and placed as for the digests and the forum (an answer the card already has from
+another source isn't added again). Hand decisions for titles with several versions, and for unofficial answers
+that weren't rulings: ootv-import `rulings-discord-decisions.tsv`. Re-syncing replaces only the entries linking to
+the Discord pages (`--sync .../rulings-discord/ --sync-note "Discord rulings:"`), so a rerun after new
+questions is safe. Made by ootv-import `SCRIPTS/discord-qa.py`, `email-plan.py --base` and `discord-pages.py`
+(see ootv-games `game-l5r/discord-rulings-work/README.md`).
+
+Written 2026-10-25: 875 answers, 1,148 entries on 816 cards, no needsreview notes.
 
 Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.
 
