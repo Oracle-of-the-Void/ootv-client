@@ -15,6 +15,10 @@ switched on. Set a list back to **Not for trade** (or Private) to stop trading i
 
 A card on a Want list matches any printing of it, unless you picked a printing.
 
+Foil counts too. Mark each entry with the foil toggle in the list view: a foil want matches only foil
+haves, a regular want only regular ones, and **Foil or not** (Want lists) matches either. A printing
+that was only made in foil is always foil.
+
 ## Your matches {#matches}
 
 **Trades** shows the players who have cards you want and want cards you have. The best ones come
