@@ -46,6 +46,15 @@ Open a list to see its cards. The buttons on the right of the menu bar change th
 the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
 type, legality and notes are at the top, and can be changed there too.
 
+## Foil copies {#foil}
+
+A card whose printing came in foil shows a foil button next to it in your list. Click it to
+switch the entry between **Regular** and **✦ Foil**. On a **Want** list there's a third choice,
+**✦ Foil or not**, for a card you'd take either way. A regular and a foil copy of the same
+printing are two entries, so a Have list can hold both. A printing only ever printed in foil
+just shows its **✦ Foil** mark. Lists without a printing chosen (any version) can be marked foil
+too, when any version of the card came in foil.
+
 ## Statistics {#stats}
 
 Under the list's name is its card count. Open it for the details: how many cards of each type
@@ -80,7 +89,7 @@ The list's menu (the grid button) has:
   game has PDF printing; the print options are in Settings → Printing.)
 - **Sun and Moon** (L5R): a deck file for the Sun and Moon program.
 - **Native Oracle (Tab-delimited)**: a text file you can open in a spreadsheet, or upload into
-  another list.
+  another list. Foil entries end in `[foil]` (or `[foil or not]`), and an upload reads that back.
 - **Headers in downloads** turns the section headings in the files on or off.
 
 **Upload** reads a Sun and Moon file or a Native Oracle file, says which cards it found and

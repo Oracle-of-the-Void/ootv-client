@@ -1,0 +1,58 @@
+[
+ [
+  "views",
+  "list",
+  ":{{:listprinting}}:{{:listquantity}}\">",
+  ":{{:listprinting}}:{{:listquantity}}:{{:listfoil}}\">",
+  1
+ ],
+ [
+  "views",
+  "list",
+  "] {{:~foilmark(~foilof(printing, listprinting))}}{{/if}}",
+  "]{{/if}}{{if ~datarequest.listid}} {{:~listfoil(#data, ~datarequest.listid, ~listmine)}}{{/if}}",
+  1
+ ],
+ [
+  "views",
+  "list",
+  "'{{:~datarequest.sort}}'); return false;",
+  "'{{:~datarequest.sort}}','{{:listfoil}}'); return false;",
+  3
+ ],
+ [
+  "partials",
+  "decklistcontrols",
+  "data-printing=\"{{:listprinting||0}}\">{{:listquantity}}</span>",
+  "data-printing=\"{{:listprinting||0}}\" data-foil=\"{{:listfoil}}\">{{:listquantity}}</span>",
+  1
+ ],
+ [
+  "partials",
+  "decklistcontrols",
+  "'{{:~datarequest.sort}}'); return false;",
+  "'{{:~datarequest.sort}}','{{:listfoil}}'); return false;",
+  3
+ ],
+ [
+  "partials",
+  "decklistcontrols",
+  "{{else}}x{{/if}}\n     </div>",
+  "{{else}}x{{/if}} {{:~listfoil(#data, ~datarequest.listid, ~listmine)}}\n     </div>",
+  1
+ ],
+ [
+  "views",
+  "text",
+  "{{printingfromid listprinting printing \"set\" /}}){{else}}{{/if}}",
+  "{{printingfromid listprinting printing \"set\" /}}){{else}}{{/if}}{{if listfoil}} [{{if listfoil=='either'}}foil or not{{else}}foil{{/if}}]{{/if}}",
+  1
+ ],
+ [
+  "views",
+  "texttab",
+  "{{printingfromid listprinting printing \"set\" /}}){{else}}{{/if}}",
+  "{{printingfromid listprinting printing \"set\" /}}){{else}}{{/if}}{{if listfoil}} [{{if listfoil=='either'}}foil or not{{else}}foil{{/if}}]{{/if}}",
+  1
+ ]
+]
