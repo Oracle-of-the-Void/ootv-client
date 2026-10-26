@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-26
+Last updated: 2026-10-26 (text checks)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -233,7 +233,18 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
 - `ligatures: "lost"`: the PDF's fonts give no text for the fi/ff/fl ligatures, so its text reads "battle eld",
   "e ect", "rst". The words are joined back in `text.json` and `lines/` where that makes a dictionary word
   (the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
-  book already on the shelf without rendering its pages again.
+  book already on the shelf without rendering its pages again. Not for a book that also has split words
+  (L5Revival): there it takes the pieces of split words for lost ligatures ("w ords" → "w fiords").
+- `splitwords: true`: the PDF's text has spaces inside words ("v ery well receiv ed", "Li m ite d", small caps
+  "U SING T HESE R ULES"). Neighbouring pieces on a line are joined into the longest word they make, when
+  one piece isn't a word on its own; letters spaced out one by one ("t h e e n d") are split into the
+  fewest dictionary words ("the end"). It leaves alone a single capital before a word ("G in", "X or":
+  rules variables), an acronym before a word ("AEG is"), and a whole word at the end of a run unless the
+  book prints the joined word whole somewhere ("t ak e out" → "take out", "Str ong hold" → "Stronghold").
+  On since 2026-10-26 for L5Revival, Lotus, Diamond, War of Honor, the 1999 DCI Universal Rules and the
+  Samurai, Celestial and Emperor Comprehensive Rules.
+- Ligature characters (ﬁ, ﬂ, ﬀ, ...) in a PDF's text always become plain letters (since 2026-10-26; the
+  Samurai Edition preview had 279), so the book search finds "find" in "ﬁnd". No option needed.
 - `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
   `{"file": "<file>"}` to read the list from a JSON file.
 - `links`: a JSON file of the links in the PDF, `{"<page>": [[x0, y0, x1, y1, page, at] | [x0, y0, x1, y1,
@@ -313,7 +324,43 @@ the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is eno
 2026-10-20): it takes each book's live `book.json`, writes it with `lines: true` and `lines/` to
 `--out`, and `upload <id> --out build-lines` then sends only those (the page images aren't
 touched). Give it a folder without other builds of the book: it refuses one holding a
-different build's page images. OCR'd books are OCR'd again from their live `_master` pages.
+different build's page images. OCR'd books are OCR'd again from their live `_master` pages; the others get
+`text.json` again too (from the same PDF, with the folding and the book's repairs).
+
+### Checking the text before upload
+
+A page can look perfect and still have broken text: what the site searches, copies, links with `#find`
+and what the Discord bot's `/rule` quotes is the PDF's text layer, not the picture. Before uploading a
+book (a new one, a rebuild, a remaster), run:
+
+```bash
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json check <id> [--out DIR]   # the build in DIR, else the live book
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json check                    # every book in the list
+```
+
+It lists, per book, a count and examples of:
+
+| Problem | Looks like | Cause | Fix |
+|---|---|---|---|
+| Lost ligatures | "battle eld", "e ect", "rst" | the font draws fi/ff/fl as one glyph that has no text (old Chrome print-to-PDF of a web page: the 20F Comprehensive Rules, Chrome 60, 2017) | `"ligatures": "lost"` |
+| Ligature characters | "ﬁnd", "oﬃcial" | the PDF stores the ligature as its own character | automatic |
+| Split words | "receiv ed", "Li m ite d", "U SING" | letter spacing, justified text, small caps, or fonts turned into shapes (Type 3) in a browser print (L5Revival, Opera 2022; Lotus, InDesign CS2) | `"splitwords": true` |
+
+Then, before turning an option on:
+
+- **Read what it would change.** Every join or repair is a guess from the dictionary
+  (`/usr/share/dict/american-english`, common words only, plus words the book prints whole twice), so look
+  at the full list for the book (`text.json` before and after), not just the counts. Scrambled text (the LCG
+  Learn to Play books: "ha ter", "s him") gives more wrong joins than right ones; leave those off.
+- **Scans are different.** OCR'd books (the Imperial Heralds) show a few "ee", "o", "h a" from OCR noise
+  anywhere; `check` hides lost ligatures for a book that also prints plenty of whole fi/ff/fl words, and a
+  handful of split words in a scan is normal. Don't turn the options on for OCR.
+- **Links into the book.** A repair changes words, so check that the `#find` links into it still match:
+  the cards' `ruling` and `rulingref` links (`#rulebook=<id>`) and the trait links item. On 2026-10-26 all
+  957 links into the 12 repaired books still matched (`#find` counts letters and digits only, so joining
+  "receiv ed" doesn't move a phrase, but a changed letter would).
+- **For a PDF we make** (remasters, browser prints of web rules), check `pdftotext` on it before building;
+  a broken text layer is cheapest to fix at the source (another print, `font-variant-ligatures: none`).
 
 ## The L5R books (2026-10-19)
 
