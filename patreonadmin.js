@@ -73,11 +73,12 @@ function patreondraw() {
     count('free')+' free, '+count('former_patron')+' former. '+patreondata.filter(x => x.uid !== undefined).length+' tied to an Oracle account, '+
     patreondata.filter(x => x.discord).length+' on Discord.</p>';
   if(!rows.length) { $('#patreonresult').html(html+'<p>No one matches.</p>'); return; }
-  html += '<table class="loginlog patreonrows"><tr><th>Status</th><th>Tier</th><th>Pledge</th><th>Last charge</th><th>Oracle account</th>'+
-    '<th>Discord</th><th>Servers</th></tr>'+
+  html += '<table class="loginlog patreonrows"><tr><th>Status</th><th>Tier</th><th>Oracle account</th><th>Discord</th><th>Servers</th>'+
+    '<th>Pledge</th><th>Last charge</th></tr>'+
     rows.map(x => '<tr class="patreon-'+htmlEncode(x.status)+'"><td>'+htmlEncode(PATREONSTATUS[x.status] || x.status)+'</td><td>'+
-      htmlEncode((x.tiers || []).join(', '))+'</td><td>'+(x.cents ? '$'+(x.cents / 100).toFixed(2) : '')+'</td><td>'+
+      htmlEncode((x.tiers || []).join(', '))+'</td><td>'+patreonaccount(x)+'</td><td>'+patreondiscord(x.discord)+'</td><td>'+
+      patreonservers(x.discord)+'</td><td>'+(x.cents ? '$'+(x.cents / 100).toFixed(2) : '')+'</td><td>'+
       (x.lastcharge ? htmlEncode(x.lastcharge.slice(0, 10))+(x.lastchargestatus && x.lastchargestatus != 'Paid' ? ' '+htmlEncode(x.lastchargestatus) : '') : '')+
-      '</td><td>'+patreonaccount(x)+'</td><td>'+patreondiscord(x.discord)+'</td><td>'+patreonservers(x.discord)+'</td></tr>').join('')+'</table>';
+      '</td></tr>').join('')+'</table>';
   $('#patreonresult').html(html);
 }
