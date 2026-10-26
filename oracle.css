@@ -1583,10 +1583,11 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
 /* ********************** narrow screens (phones) **********************
    Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
-/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js sets data-balloon-visible after a long-press */
+/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js sets data-balloon-visible after a long-press.
+   Not just transparent: an invisible balloon by the screen's edge still widens the page past the screen (large text, browser zoom) */
 @media (hover: none) {
   [aria-label][data-balloon-pos]:not([data-balloon-visible]):before, [aria-label][data-balloon-pos]:not([data-balloon-visible]):after {
-    opacity: 0 !important;
+    display: none !important;
   }
 }
 /* visual spoiler search while lists are active (template-visual): image on a gray card, deck controls below */
@@ -1684,8 +1685,28 @@ div#phonesearchbar .numresults {
   div.menubar nav li {
     padding-left: .6rem;
   }
+  /* the view icons flow like words: they start beside the menu and game logo and wrap under them (a float would
+     drop below them whole), so with large text or browser zoom they take few rows and never widen the page. Inline,
+     not a block, so the right-hand items after them (login, username) can share their last row when there's room.
+     No box around them: it can't follow them across lines (the active one keeps its highlight) */
   div.menubar nav li.viewicons {
     padding-top: 3px;
+    float: none;
+    display: inline;
+  }
+  div.menubar nav li.viewicons .searchviewgroup {
+    display: inline;
+    border: none;
+    padding: 0;
+  }
+  div.menubar nav li.viewicons .searchviewgroup button {
+    display: inline-block;
+    vertical-align: top;
+  }
+  .searchviewgroup {
+    flex-wrap: wrap;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   /* every icon a quarter bigger than on desktop (17px), and the buttons around them grow to fit */
   .feather {
@@ -2297,13 +2318,14 @@ button.rulesfilterclear[hidden] { display: none; }
 .rulesbookmarks { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 .rulesbookmark { font-size: .72em; padding: 0 6px; border-radius: 8px; background: #efe7cc; color: #5a4a14; white-space: nowrap; }
 .rulesnomatch { color: #777; font-style: italic; grid-column: 1 / -1; }
-.rulesreader { display: flex; flex-direction: column; }
+/* never wider than the screen: a toolbar that doesn't fit (large text, browser zoom) wraps rather than widening the page */
+.rulesreader { display: flex; flex-direction: column; min-width: 0; max-width: 100%; }
 .rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
 .rulestop { border-bottom: 1px solid #d8d2c2; }
 .rulesbottom { border-top: 1px solid #d8d2c2; }
 .rulestitle { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rulestitle .rulesbooksub { font-family: "Times New Roman",Georgia,Serif; font-size: .75em; }
-.rulestools { display: flex; gap: 2px; position: relative; }
+.rulestools { display: flex; flex-wrap: wrap; gap: 2px; position: relative; min-width: 0; max-width: 100%; }
 .rulestools[data-copied]::after { content: attr(data-copied); position: absolute; right: 0; top: 100%; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: .85em; white-space: nowrap; z-index: 5; }
 button.rulesbtn { padding: 2px 3px; margin: 0; border: 1px solid transparent; border-radius: 3px; background: transparent; color: rgb(96, 96, 96); cursor: pointer; line-height: 0; }
 button.rulesbtn:hover { color: black; border-color: rgb(192, 192, 192); }
