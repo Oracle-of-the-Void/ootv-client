@@ -23,6 +23,9 @@ $.views.helpers("listqty",listquantity);
 $.views.helpers("hasval",templatehasval);
 $.views.helpers("gamerows",function(data,place) { return gamerows(data,place); });
 $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); });
+$.views.helpers("foilmark",templatefoilmark);
+$.views.helpers("foilof",templatefoilof);
+$.views.helpers("listfoil",templatelistfoil);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -166,7 +169,8 @@ $.views.converters("addslashes",addslashes);
 
 // preview (and local testing) uses the dev API stack, which runs the dev-ootv-search Lambda;
 // the data behind it (DynamoDB, Elasticsearch) is shared with prod, so writes are still live
-var apiuri = /^(preview\.|localhost|127\.0\.0\.1)/.test(location.hostname)
+var previewsite = /^(preview\.|localhost|127\.0\.0\.1)/.test(location.hostname);
+var apiuri = previewsite
     ? "https://api-dev.oracleofthevoid.com"
     : "https://api.oracleofthevoid.com";
 var searchcache = {};
@@ -672,7 +676,7 @@ function listmerge(listid,server) {
   if(!(server && server.Items && server.Items[0]) || !(local && local.list && local.list.Items && local.list.Items[0])) {
     return;
   }
-  var key = function(c) { return c.cardid+'/'+(c.printing||0); };
+  var key = function(c) { return c.cardid+'/'+(c.printing||0)+'/'+(c.foil||''); };
   var qty = function(list) {
     var q = {};
     (list || []).forEach(function(c) { q[key(c)] = (q[key(c)] || 0) + parseInt(c.quantity); });
@@ -690,7 +694,7 @@ function listmerge(listid,server) {
     seen[k] = 1;
     var n = base ? (sq[k] || 0) + (lq[k] || 0) - (bq[k] || 0) : (lq[k] || 0);
     if(n > 0) {
-      merged.push({"cardid": c.cardid, "printing": c.printing || 0, "quantity": n});
+      merged.push(listentry(c.cardid, c.printing || 0, n, c.foil));
     }
   });
   console.log("list changed elsewhere, merged: "+listid);
@@ -1836,16 +1840,27 @@ function savecallback() {
     renderlisteditarea(); // update card counts
 }
 
-// how many of this card (and printing) the list holds, shown beside its +/- buttons (span.listqty)
-function listquantity(listid,cardid,prid=0) {
+// how many of this card (and printing, and foil) the list holds, shown beside its +/- buttons (span.listqty)
+function listquantity(listid,cardid,prid=0,foil='') {
     var list = cache_thing("list",listid);
     if(!(list && list.list && list.list.Items && list.list.Items[0])) {
 	return '';
     }
-    var item = list.list.Items[0].list.find(function(ele) { return ele.cardid == cardid && ele.printing == (prid||0); });
+    var item = list.list.Items[0].list.find(function(ele) { return listentryis(ele,cardid,prid,foil); });
     return item ? item.quantity : 0;
 }
-function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
+// a list entry: {cardid, printing, quantity} and foil when it's set (project l5r-foils): "foil", or on a
+// want list "either" (a want that takes regular or foil). No foil = regular. The key is card + printing + foil,
+// so a have list can hold a regular and a foil copy of one printing.
+function listentry(cardid,prid,n,foil) {
+    var e = {'cardid':cardid,'printing':prid,'quantity':n};
+    if(foil) { e.foil = foil; }
+    return e;
+}
+function listentryis(ele,cardid,prid,foil) {
+    return ele.cardid == cardid && ele.printing == (prid||0) && (ele.foil||'') == (foil||'');
+}
+function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
     if(!listmine(listid)) {
 	console.warn("addlistitem: list "+listid+" isn't yours");
 	return;
@@ -1853,10 +1868,10 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null) {
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
-    listitemchange(list,cardid,prid,n,abs);
+    listitemchange(list,cardid,prid,n,abs,foil);
     listcounts(list);
     cache_thing("list",listid,list);
-    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0); }).text(listquantity(listid,cardid,prid));
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
     listitemsdone(listid);
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
@@ -1875,10 +1890,10 @@ function addlistitems(listid,items,n=1) {
     refreshactivelistviews(); // the search results' counts
 }
 // one card's change in a cached list (cache_thing): n copies more (abs: exactly n; null: remove)
-function listitemchange(list,cardid,prid=0,n=1,abs=false) {
-    var ind = list.list.Items[0].list.findIndex(function(ele) { return ele.cardid == cardid && ele.printing == prid; });
+function listitemchange(list,cardid,prid=0,n=1,abs=false,foil='') {
+    var ind = list.list.Items[0].list.findIndex(function(ele) { return listentryis(ele,cardid,prid,foil); });
     if(ind<0 && n != null) {
-	list.list.Items[0].list.push({'cardid':cardid,'printing':prid,'quantity':n});
+	list.list.Items[0].list.push(listentry(cardid,prid,n,foil));
     } else {
 	if(n == null) {
 	    list.list.Items[0].list.splice(ind,1);
@@ -1890,6 +1905,28 @@ function listitemchange(list,cardid,prid=0,n=1,abs=false) {
 	    }
 	}
     }
+}
+// the list entry's foil toggle (~listfoil): regular -> foil (-> foil or not, on a want list) -> regular. An entry
+// that lands on one already there (same card, printing and foil) joins it.
+function listfoiltoggle(listid,cardid,prid,foil) {
+    if(!listmine(listid)) { return; }
+    var list = cache_thing("list",listid), entries = list.list.Items[0].list;
+    var cycle = list.list.Items[0].type == 'want' ? ['', 'foil', 'either'] : ['', 'foil'];
+    var next = cycle[(cycle.indexOf(foil||'') + 1) % cycle.length];
+    var ind = entries.findIndex(function(ele) { return listentryis(ele,cardid,prid,foil); });
+    if(ind < 0) { return; }
+    var other = entries.findIndex(function(ele) { return listentryis(ele,cardid,prid,next); });
+    if(other >= 0) {
+	entries[other].quantity = parseInt(entries[other].quantity) + parseInt(entries[ind].quantity);
+	entries.splice(ind,1);
+    } else if(next) {
+	entries[ind].foil = next;
+    } else {
+	delete entries[ind].foil;
+    }
+    listcounts(list);
+    cache_thing("list",listid,list);
+    listitemsdone(listid);
 }
 function listcounts(list) {
     list.list.Items[0].distinctcount = list.list.Items[0].list.length;
@@ -2447,12 +2484,14 @@ function loadartcheck(cardid, printingid) {
 }
 
 // the card editor's "Check artist": the result drawn into #target under the instance, with artist
-// checkboxes and Fill in artist; kept in cardedit.artcheck so a redraw of the editor shows it again
-function artcheckinline(target, cardid, printingid) {
+// checkboxes and Fill in artist; kept in cardedit.artcheck so a redraw of the editor shows it again.
+// task 'bugs' is "Check bugs" (L5R): the printed bugs, with Set printedbugs, kept in cardedit.bugcheck
+function artcheckinline(target, cardid, printingid, task) {
   artcheckload().done(function() {
     artcheckrun(target, cardid, printingid, function(job) {
-      if(cardedit && cardedit.cardid == cardid) { (cardedit.artcheck = cardedit.artcheck || {})[printingid] = job; }
-    }, printingid);
+      var key = task == 'bugs' ? 'bugcheck' : 'artcheck';
+      if(cardedit && cardedit.cardid == cardid) { (cardedit[key] = cardedit[key] || {})[printingid] = job; }
+    }, printingid, task);
   })
     .fail(function() { $('#'+target).html('<span class="error">Could not load the artist check code.</span>'); });
 }
@@ -2846,7 +2885,7 @@ function updateselect(select) {
 	  success: function(raw) {
 	    console.log(["select lookup results: ",select,raw]);
 	    cache_select(select,raw);
-	    if(select == "legality") {
+	    if(select == "legality" || select == "legality.derived") {
 		    redrawcardforselect();
 	    }
 	    if(updatecallback[database] !== undefined) {
@@ -3120,6 +3159,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		var card = cache_card_fetch(c.cardid);
 		card.listprinting = c.printing;
 		card.listquantity = c.quantity;
+		card.listfoil = c.foil || '';
 		listdata.push(card);
 	    } else {
 		listdata.push(c);
@@ -3205,7 +3245,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		var value = $(this).text() ;
 		if(field_listid[4] != value) {
 		    console.log(field_listid);
-		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort);
+		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort,field_listid[5]||'');
 		}
 	    });
 	}
@@ -5317,7 +5357,7 @@ function bubbleup(data,request=null,prid=null) {
     if (!card || !card.printingreverse || !Array.isArray(card.printing)) {
       return card;
     }
-    var hasrev = prid || card.listprinting > 0 || requirerev ||
+    var hasrev = prid || card.listprinting > 0 || requirerev || ("field_printing_foil" in request) ||
         Object.keys(card.printingreverse).some(function(key) {
           return (("field_printing_"+key) in request) || (("field_"+key) in request);
         });
@@ -5827,7 +5867,7 @@ function searchaddallmax() {
 // the search fields that pick a version of a card: with none of them in the search, the cards go in without a version.
 // KEEP IN SYNC with the version-picking code: the "reverse" searchables in the game config, bubbleup and
 // templatefetch. A new field that changes the version shown goes here too.
-const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist'];
+const searchaddallversioned = ['set', 'rarity', 'publisher', 'legality', 'artist', 'foil'];
 function searchaddallversion(request) {
     return Object.keys(request).some(function(key) {
 	var m = key.match(/^(?:field|require)_(?:printing_)?(.*)$/);
@@ -5843,7 +5883,7 @@ function searchaddallpick() {
     var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); }).map(function(listid) { return items[rev[listid]]; });
     var request = searchcache[database]['queryrequest'][qs] || $.deparam(qs);
     modal('Add all ' + total.toLocaleString() + ' cards to which list?',
-	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher or artist to add a version).') + '</p>' +
+	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher, artist or foil to add a version).') + '</p>' +
 	'<p><label>Copies of each card <input id="searchaddallcopies" type="number" min="1" step="1" value="1" style="width: 4em;" /></label></p>' +
 	'<ul class="swipepicklist">' +
 	(active.length ? active.map(function(list) { return listpickitem(list, 'searchaddallpicked'); }).join('') + '<li class="swipepicksep">All lists</li>' : '') +
@@ -6047,6 +6087,37 @@ function sortbyselect(items,key,valuefn) {
     // slice so the cached card data isn't reordered; unknown values keep their stored order at the end
     return items.slice().sort(function(a,b) { return pos(a) - pos(b); });
 }
+// ~foilmark(foil, long): the foil mark, every game (ootv-claude projects/l5r-foils.md). A printing's foil: "foil" = only
+// printed in foil, "both" = printed regular and in foil; a list entry's: "foil", or "either" (a want that takes both).
+// Nothing for a regular printing. long adds the words after the mark (the card page's Foil row).
+var foilmarks = {
+  foil: ['foilonly', 'Foil', 'Only printed in foil'],
+  both: ['foilboth', 'Also foil', 'Printed regular and in foil'],
+  either: ['foilboth', 'Foil or not', 'Foil or regular, either is fine']
+};
+function templatefoilmark(foil, long) {
+  var m = foilmarks[[].concat(foil || [])[0]];
+  if(!m) { return ''; }
+  return '<span class="foilmark '+m[0]+'" title="'+m[2]+'">&#10022; '+m[1]+'</span>'+(long ? ' <span class="foilwords">'+m[2]+'</span>' : '');
+}
+// ~foilof(printing, printingid): that printing's foil value (list and visual views, which know only an id)
+function templatefoilof(printing, pid) {
+  var p = (printing || []).find(function(e) { return parseInt(e.printingid) == parseInt(pid); });
+  return p ? p.foil : undefined;
+}
+// ~listfoil(#data, listid, mine): a list entry's foil (list views). A printing only printed in foil shows its
+// mark; one that also came in foil (or, for "any printing", a card with a foil printing) shows the entry's own
+// foil, as a toggle on your own list (listfoiltoggle). Nothing for a card that never came in foil.
+function templatelistfoil(card, listid, mine) {
+  var ps = card.printing || [], f = card.listfoil || '';
+  var p = card.listprinting > 0 ? ps.find(function(e) { return parseInt(e.printingid) == parseInt(card.listprinting); }) : null;
+  if(p && p.foil == 'foil') { return templatefoilmark('foil'); }
+  var can = p ? p.foil == 'both' : ps.some(function(e) { return e.foil; });
+  if(!can && !f) { return ''; }
+  if(!mine) { return templatefoilmark(f); }
+  return '<span class="foiltoggle" title="Regular or foil: click to change" onclick="listfoiltoggle(\''+listid+'\',\''+card.cardid+'\',\''+
+    (card.listprinting||0)+'\',\''+f+'\'); return false;">'+(f ? templatefoilmark(f) : '<span class="foilmark foilregular">Regular</span>')+'</span>';
+}
 function templatehasval(v) {
     // card detail guards: card fields are arrays, and [""] / ["&nbsp;"] are truthy but display nothing (#236)
     if(Array.isArray(v)) {
@@ -6220,6 +6291,22 @@ function templatefetch(card,id=false,datarequest={}) {
               }
             }
         }
+        // the Foil search (field_printing_foil: any / foil / both / none): keep the printing chosen above if
+        // it fits, else the latest that does, preferring one that also has a searched set or rarity
+        var foilchoice = [].concat(datarequest.field_printing_foil || []).filter(function(v) { return v !== ''; });
+        if(foilchoice.length && !foilfits(card.printing[pr], foilchoice)) {
+            var fits = [];
+            card.printing.forEach(function(p,i) { if(foilfits(p, foilchoice)) { fits.push(i); } });
+            var also = fits.filter(function(i) {
+                return ['set','rarity'].some(function(a) {
+                    var want = [].concat(datarequest['field_printing_'+a] || []);
+                    return [].concat(card.printing[i][a] || []).some(function(v) { return want.includes(v); });
+                });
+            });
+            if(fits.length) {
+                pr = latestprinting(card, also.length ? also : fits);
+            }
+        }
         // require_<field> (e.g. the "Paper only" checkbox): keep the printing chosen above if it
         // fits every required value, else switch to one that does
         Object.keys(datarequest).filter(function(k) { return k.startsWith("require_"); }).forEach(function(k) {
@@ -6239,6 +6326,38 @@ function templatefetch(card,id=false,datarequest={}) {
     }
     //console.log("onx ret: "+pr);
     return card.printing[pr];
+}
+// whether printing p fits any of the Foil search's choices (any = "foil" or "both", none = no foil value)
+function foilfits(p, choices) {
+    var f = p && p.foil;
+    return choices.some(function(c) { return c == 'any' ? (f == 'foil' || f == 'both') : (c == 'none' ? !f : f == c); });
+}
+function cardderived(card,field) {
+    // the names of the derived values (/attributes <field>.derived) the card fits, the way /search
+    // matches them (ootv-search CLAUDE.md "Derived select values"): every `all` clause, at least one
+    // `any` clause, no `none` clause. In a clause the card fields must match the card and the printing
+    // fields one printing. The card's <field>derivedexception {add, remove} wins. Entries with
+    // listable: false (search filters such as Paper) are left out.
+    var derived = cache_select(field+".derived");
+    if(!Array.isArray(derived) || !card || !Array.isArray(card.printing)) {
+        return [];
+    }
+    var has = function(vals,want) {
+        want = [].concat(want).map(selectplaintext);
+        return [].concat(vals || []).some(function(v) { return want.includes(selectplaintext(v)); });
+    };
+    var fits = function(cl) {
+        var cardok = Object.keys(cl).every(function(k) { return k == 'printing' || has(card[k],cl[k]); });
+        return cardok && (!cl.printing || card.printing.some(function(p) {
+            return Object.keys(cl.printing).every(function(k) { return has(p[k],cl.printing[k]); });
+        }));
+    };
+    var exc = card[field+'derivedexception'] || {};
+    return derived.filter(function(d) {
+        if(d.listable === false || has(exc.remove,d.name)) { return false; }
+        if(has(exc.add,d.name)) { return true; }
+        return (d.all || []).every(fits) && (!d.any || !d.any.length || d.any.some(fits)) && !(d.none || []).some(fits);
+    }).map(function(d) { return d.name; });
 }
 function printingfits(card,pr,field,value) {
     // whether printing index pr carries value, or fits the derived value's rule on its own;
@@ -6379,11 +6498,14 @@ function gameconfigload(db, ready) {
     error: function() { start(); }
   });
 }
-// the game menu from all/games: every game's name and logo, so every page lists them all
+// the game menu from all/games: every game's name and logo, so every page lists them all.
+// A game marked preview: true is listed on preview (and localhost) only; on the main site it's
+// still there by direct link (#game=<table>), just not in the menu (docs/admin/game-config.md)
 function gamemenuapply(conf) {
   if(!conf.games || !Array.isArray(conf.games.games)) { return; }
-  gamemenu = conf.games.games.map(function(g) { return g.table; });
-  conf.games.games.forEach(function(g) {
+  var games = conf.games.games.filter(function(g) { return previewsite || !g.preview; });
+  gamemenu = games.map(function(g) { return g.table; });
+  games.forEach(function(g) {
     if(!dbinfo[g.table]) { dbinfo[g.table] = {name: g.name, nameshort: g.nameshort, logo: g.logo}; }
   });
 }
@@ -6504,7 +6626,8 @@ function gamesymbols(symbols) {
 // with join (Warlord traits: faction, traits, feats); joins and helpers give a join or helper per field (L5R keywords
 // " &#149; " then iconised " "; publisher, then publisherurl through makelinks); prefix goes before the first value, inside its
 // wraps span (L5R "+3" production); when may also be a list of fields, any of which shows the row (L5R HR/GC/PH: honor or ph).
-// A true value (a flag such as 7th Sea foil) shows as "Yes".
+// A true value (a flag such as 7th Sea foil) shows as "Yes". A label built from the fields' short labels may
+// break after each "/", so a long one (Initial D "Power/Traction/Cost/Mods") wraps instead of running over the value.
 function gamerows(data, place) {
   var conf = gameconfig[database];
   if(!conf || !data) { return ''; }
@@ -6512,6 +6635,15 @@ function gamerows(data, place) {
 }
 var gamerowhelpers = {
   sortlegality: function(v) { return templatesortlegality(v || []).join(' &#149; '); },
+  // the stored values plus every derived value the card fits (a game whose legality is all derived
+  // rules, Netrunner): a row {fields: ["legality"], helper: "derivedlegality", when: "always"}
+  derivedlegality: function(v, data) {
+    var all = [].concat(v || []);
+    cardderived(data, 'legality').forEach(function(n) {
+      if(!all.some(function(x) { return selectplaintext(x) == selectplaintext(n); })) { all.push(n); }
+    });
+    return all.length ? templatesortlegality(all).join(' &#149; ') : '&ndash;';
+  },
   soultitle: function(v) { return soultitle(v); },
   makelinks: function(v) { return templatemakelinks(v); }
 };
@@ -6558,7 +6690,7 @@ function gamerow(data, r) {
     var cv = list.join(r.join !== undefined ? r.join : ',');
     if(r.wrap) { cv = '<span class="'+r.wrap+'">'+cv+'</span>'; }
     var cl = r.label !== undefined ? r.label :
-        (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/');
+        (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/<wbr>');
     return r.label === false ? cv+'<br />' : '<dt>'+cl+'</dt><dd'+(r.ddclass ? ' class="'+r.ddclass+'"' : '')+'>'+cv+'</dd>';
   }
   var vals = r.fields.map(function(f, i) {
@@ -6583,7 +6715,7 @@ function gamerow(data, r) {
   if(r.wrap) { v = '<span class="'+r.wrap+'">'+v+'</span>'; }
   if(r.label === false) { return v+'<br />'; }
   var label = r.label !== undefined ? r.label :
-      (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/');
+      (r.labelfields || r.fields).map(function(f) { return lab['short'+f] !== undefined ? lab['short'+f] : f; }).join('/<wbr>');
   return '<dt>'+label+'</dt><dd'+(r.ddclass ? ' class="'+r.ddclass+'"' : '')+'>'+v+'</dd>';
 }
 
@@ -7622,6 +7754,9 @@ function initializeform(db) {
 	  case 'select':
 	    ret += selectfield(db,key);
 	    break;
+	  case 'foil':
+	    ret += foilselect(nound);
+	    break;
 	  }
 	  return ret+'</dd>'
   });
@@ -7640,6 +7775,12 @@ function initializeform(db) {
   applysearchdefault();
 }
 
+// the Foil search (type "foil", every game; ootv-search routes/search.js): fixed choices, ORed
+var foilsearch = [['any', 'Any foil'], ['foil', 'Foil only'], ['both', 'Regular and foil'], ['none', 'Not foil']];
+function foilselect(nound) {
+  return '<select class="chosen-select" multiple id="field_'+nound+'" name="field_'+nound+'">'+
+    foilsearch.map(function(o) { return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join('')+'</select>';
+}
 // a search form select, from the cached values
 function selectfield(db,key) {
   var nound = key.replace("printing.","printing_");
@@ -7738,7 +7879,7 @@ function loadloginlog(page) {
 // guild + channel, channel "*" being the server's own row; see docs/admin/discord-bot.md.
 var discordgames = [], discordcommands = [];
 // what each bot command does, shown beside its name (a server can rename them); others show their key
-var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', oraclebug: 'Bug report', oraclehelp: 'Help'};
+var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'Rulings', search: 'Search', rule: 'Rulebook lookup', oraclebug: 'Bug report', oraclehelp: 'Help'};
 function loaddiscord(note) {
   showadmintab('config');
   $('#limitsadmin').empty();

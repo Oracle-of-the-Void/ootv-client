@@ -24,6 +24,8 @@ They're read just like the rulebooks.
 - Type a page number in the page box, or drag the slider to flip through.
 - **One page / two pages** shows pages side by side on a wide screen.
 - **Full screen** (or **F**) uses the whole screen.
+- Some books link inside themselves (the Comprehensive Rules): click or tap an entry in the
+  contents, or a "see …" reference in the text, to go there. **Back** returns to where you were.
 
 ## Zooming {#zoom}
 

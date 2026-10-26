@@ -1,6 +1,6 @@
 # Artist check
 
-Last updated 2026-10-24.
+Last updated 2026-10-25.
 
 Who painted a printing? The artist check answers with three kinds of evidence. It never writes
 to the card: you decide, then fix the credit or add a `needsreview` note in the card editor as
@@ -38,24 +38,87 @@ it's picked up.
   it's shown cut out and zoomed in. Printed text (the credit strip, the card title) is left out. With
   nothing read in the art region, the model also looks for any signature on the whole card, so a
   faint one can turn up here.
-- **Known signatures:** signatures of the likely artists from the signature catalogue (the credited
-  artist, any artist the reading names, then the style candidates), up to six each from different
-  sets, never from the checked painting. Click one to open its card. Compare the hand by eye: the
-  shapes of the letters, the date, where it sits. Only artists already in the catalogue appear
-  (76 so far; the Artists guide, "Signatures", says where they come from).
+- **The reading may name** (since 2026-10-25): artists in the artists list whose name the reading
+  matches (a word of it, the initials, or nearly the same letters, so "Schuler" finds Douglas Shuler)
+  but who have no signatures in the catalogue yet. Those with signatures show below instead.
+- **Closest known signatures** (since 2026-10-25): the eight signatures in the catalogue most like the
+  one found, from any artist: by the look of the hand (the cut-out compared as an image, "look") and
+  by the reading (against what the model read on each known signature and its artist's name,
+  "reading"). The reading part also catches the model's usual misreads: "HYPER" brings up Steve
+  Snyder's signature that it once read that way. In testing, the nearest signature by look alone was
+  the same artist about one time in four (chance: one in twenty-five), so it's a lead to compare by
+  eye, not an answer. A signature filed a minute ago is already compared.
+- **Known signatures by artist:** signatures of the likely artists from the signature catalogue (the
+  credited artist, any artist the reading names, the artists of the closest signatures, then the
+  style candidates), up to six each from different sets, never from the checked painting. Click one
+  to open its card. Compare the hand by eye: the shapes of the letters, the date, where it sits. Only
+  artists already in the catalogue appear (the Artists guide, "Signatures", says where they come from).
+- **Add this signature to the catalogue** (since 2026-10-25): shown when a signature was found and
+  the painting (or the same painting on another printing) isn't in the catalogue yet. Type whose it
+  is (the box suggests the credit, artists the reading names and the style vote first, then every
+  name in the artists list). For an admin (artcheck permission) it's filed at once, under an artist
+  from the artists list (an alias goes to the entry it points at; add a new artist in Admin →
+  Artists first). Anyone else using Photo → Find the artist gets **Submit for approval** instead.
 - **Same painting:** other credited printings that use the same painting (a reprint, a new frame,
   a crop). These are the strongest evidence: a printing that reuses a credited painting may take
   that artist, once you've compared the two by eye.
-- **By style:** the artists of the 10 credited paintings nearest in painting style (brushwork,
-  colour, texture; the same painting doesn't count), with each artist's share of the vote. In a
-  test on 14,842 credited L5R paintings, the top artist was right 41% of the time overall, and
-  **88% of the time when its share was 50% or more** (shown in bold; about one painting in six
-  gets that). Below 50% the names are candidates to look into, not answers. **Nearest paintings**
+- **By style:** artists ranked by how close their 5 best credited paintings come in painting style
+  (brushwork, colour, texture; the same painting doesn't count), each with its share of the vote
+  among the 10 nearest paintings. In a test on 15,546 credited L5R paintings (2026-10-25), the top
+  artist was right 42% of the time overall, and **88% of the time when its share was 50% or more**
+  (shown in bold; about one painting in six gets that). Below 50% the names are candidates to look into, not answers. **Nearest paintings**
   lists the 10 with their artists and scores, linked to their cards.
 
 What to do with it: read the printed credit strip on the scan first. If there's no credit, a
 same-painting match checked by eye can give the artist. Otherwise put the candidates in the card's
 `needsreview` notes and leave the credit blank.
+
+## Check bugs (L5R)
+
+**Check bugs** (next to Check, and under each L5R instance in the card editor beside Check artist)
+asks the same worker which arc bugs are printed on the card, read from the instance's images. It
+shows each bug it found, zoomed (green frame), and any it's unsure of (orange frame, marked ?), with
+a score, then what to review:
+
+- **unsure**: a bug might be there; look at the zoomed picture. Faint bare glyphs (the Samurai 侍 on
+  Glory of the Empire starter reprints) and washed-out foil scans land here.
+- **legality without a printed bug (misprint?)**: the instance is legal in an arc whose bug isn't
+  printed. Either a misprint meant to carry it (it still gets the bug in `printedbugs`: add it by
+  hand) or a wrong legality.
+- **bug without legality (ban? no-legality set?)**: the bug is printed but the instance isn't legal
+  there, e.g. a card banned from that arc.
+
+In the card editor, **Set printedbugs** sets the instance's `printedbugs` to the bugs found, and
+**Add review note** copies the review lines into the card's `needsreview`; Commit saves either. On the
+Admin page, the picture option **the bugs on a whole card** checks an uploaded scan or photo of the
+whole card: a photo is cut out of its background, straightened and turned the right way up (it works
+best on a pale background).
+
+For cards from Gold Edition on, **Printed set** is the set whose code (or name) the vision model
+read along the card's bottom edge, with what it read. Reprint products print the original set's
+code (Samurai Edition Banzai prints KD or TTT, the 15th Anniversary throwbacks CELESTIAL), so a
+different set there means "reprint, or the wrong set": it's listed under To review. It was right
+for 252 of 261 test cards and never named a set that wasn't printed. The model can invent text on a
+card with nothing printed, so a reading only counts when a known code is in it.
+
+For cards from before Gold Edition, **Set by the border** names the set the border looks like, among
+the sets of the arc the bugs allow (no bug: the Imperial arc; the Jade bug: the Jade arc). "sure"
+was right 99.7% of the time in testing; "a guess" is a lead to check; "not recognised" means the
+border is like none of them (a promo, a later set). Hidden Emperor 1–6 and The Dark Journey Home share
+one border, and so do the Scorpion Clan Coup scrolls; the plain black borders (Battle of Beiden Pass,
+Top Deck) are the hardest. When a sure guess differs from the printing's set, or the border isn't
+recognised, it's also listed under To review. It's right 99.94% of the time against the reviewed cards, and
+never reports a bug that isn't there. `printedbugs` is described in `docs/data.md`.
+
+## Signature submissions
+
+Below the recent checks, **Signature submissions** lists the signatures people sent in from Find the
+artist that wait for an admin: the zoomed signature, the printing (or "an uploaded picture"), its
+credit, what the model read, the artist the sender named, and who sent it. Compare the signature
+with the artist's known ones (run Artist check on the printing, or open the artist's catalogue), fix
+the name in the box if needed, then **Approve** (filed in the catalogue under that artist, which must
+be in the artists list) or **Reject**. Tick "show decided ones too" to see past decisions. Filed
+signatures are marked `how: submitted` in the artist's `index.json`, with who sent and approved them.
 
 ## When it says the worker is offline
 

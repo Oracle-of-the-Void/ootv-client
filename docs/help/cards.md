@@ -20,6 +20,19 @@ the card's current text.
 Each printing's own set, rarity, flavor text, artist and so on are listed below the card's
 details.
 
+## Foil {#foil}
+
+A printing that came in foil carries a foil mark, on its Versions button, in its details and in
+search results:
+
+- **✦ Foil** (rainbow): this printing was only ever printed in foil, such as a foil promo. Its
+  image shows the mark too.
+- **✦ Also foil** (outlined): this printing came both regular and in foil, such as a booster
+  rare that also turned up as a foil.
+
+A foil promo is its own printing, even when it looks just like the regular card. Hover over a
+mark to see what it means.
+
 ## Printed text or current text {#text-version}
 
 When the page shows one printing, its text can be either the wording printed on that card or
@@ -46,8 +59,10 @@ where the ruling is (on a phone, press and hold it), and click it to open the pa
 ## Rules Q&A {#rules-qa}
 
 The **answers from the rules team** button lists answers the official rules team gave about
-this card, mostly from the old mailing-list rules digests. Click one to read it where it was
-posted, with the question it answered.
+this card: from the old mailing-list rules digests, AEG's rules forum and the rules channels on
+the L5R Discord servers. Click one to read it where it was posted, with the question it answered.
+A few answers from experienced players who aren't officials start "Unofficial answer:"; they're only
+on cards with no other rulings.
 
 ## Traits and keywords in the rulebooks {#traits}
 

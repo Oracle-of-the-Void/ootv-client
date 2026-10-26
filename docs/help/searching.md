@@ -65,6 +65,12 @@ its printings, so `artist:...` or `set:...` there finds nothing. Use the form's 
 those: Set, Rarity and Artist (under Advanced) search the printings, and the result shows the
 printing that matched.
 
+**Foil** (under Advanced) finds printings by their foil mark: *Any foil*, *Foil only* (only
+printed in foil), *Regular and foil*, or *Not foil*. Pick more than one to find either. Combined
+with Set or Rarity it looks at the same printing, so Set: Gold Edition with Foil: Regular and
+foil finds Gold Edition's rares that also came in foil. Each result shows the printing that fits
+the Foil choice (its image, set and rarity).
+
 ## Results {#results}
 
 - More results load as you scroll down. The count is in the menu bar.
@@ -96,12 +102,14 @@ account, or by **Link with Patreon** in [Settings](settings.md#account). It asks
   again if it picked the wrong part of the picture.
 - **Find the artist** suggests who may have painted it. Say whether the picture is a whole card or
   the art alone, then pick the picture. A few seconds later you get any signature found in the art
-  (zoomed in, with known signatures of the likely artists beside it to compare),
+  (zoomed in, with the known signatures that look most like it and those of the likely artists beside it to compare),
   cards that use the same painting (with their credited artist), and the artists whose paintings are
   nearest in style, with each one's share of the vote. These are leads, not answers: a share of 50%
   or more was right about nine times in ten when tested on credited L5R art, and the signature
   reader often misreads small signatures. The picture is kept for 90 days so the site's maintainers
   can look at it.
+  If a signature is found that isn't in our signature catalogue yet, you can say whose it is and
+  **Submit for approval**: once a maintainer has checked it, it's shown beside future results.
 
 The two share one daily and per-minute allowance (for supporters it grows with the tier: Free 1 a
 day, Ashigaru 5, Samurai 25, Maker 500); if you use it up, the message says when it resets.

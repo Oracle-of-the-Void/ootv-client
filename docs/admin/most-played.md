@@ -1,6 +1,6 @@
 # Most played cards (public decks)
 
-Last updated 2026-10-24.
+Last updated 2026-10-25.
 
 **Public lists → Most played** (the bar chart button) ranks the cards in the public decks, and a
 card's page shows how many public decks play it, as a number next to the globe beside its title. Both
@@ -21,8 +21,10 @@ public, and stops counting when they make it private.
   tournament results narrow the decks first. The format is the deck's own, else the one inferred from
   its name or its cards (the Formats view's "guessed"). **Any card type** narrows the cards.
 - **Archives weigh in.** Old tournament archives (moderator-set tournament results) are a large share
-  of the L5R decks, so their eras weigh more in the overall list. Pick a format or tournament results
-  for a fairer view of one era.
+  of the L5R decks, so their eras weigh more in the overall list. The biggest is kempy's L5RRules deck
+  archive: 1,066 decks (Imperial through Onyx, most from Emperor, Celestial and Twenty Festivals),
+  owner "Kempy Nezumi - L5RRules archive", added 2026-10-25. Pick a format or tournament results for a
+  fairer view of one era.
 
 ## How it's built
 

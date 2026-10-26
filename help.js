@@ -12,6 +12,7 @@ var HELPTOPICS = [
   {id: 'getting-started', title: 'Getting started'},
   {id: 'searching', title: 'Searching'},
   {id: 'cards', title: 'The card page'},
+  {id: 'identify', title: 'Identifying L5R cards'},
   {id: 'lists', title: 'Decks and lists'},
   {id: 'public-lists', title: 'Public lists'},
   {id: 'trading', title: 'Trading and messages'},

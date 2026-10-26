@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-23
+Last updated: 2026-10-26 (text checks)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -52,6 +52,12 @@ Clicking a book opens it in the page viewer:
   - `#page=<n>,#line=<n>`: the page's nth line of text, in its reading order (on two-column
     pages, usually down one column then the next).
   - `#page=<n>,#at=<percent>`: that far down the page (`#at=40`), for pages with no text.
+
+  A book can also carry the links printed in its PDF (`book.json` `links`, below): a click or tap
+  on one opens its place as an `#at` link (or a web address in a new tab), as a new history entry,
+  so Back returns to the link. Off in select mode, so the text under them can be selected.
+  The pages sit above the page-turn areas but let the pointer through (`pointer-events: none`),
+  so only the link boxes take clicks there.
 
   `#find` survives a rebuilt book best; line numbers can shift when the text changes. Turning
   the page drops the place. `#game=l5r,#view=rules` is the shelf. Turning pages doesn't add
@@ -194,7 +200,7 @@ Everything else is on the images bucket, under the game: `https://images.oracleo
 
 | File | What |
 |---|---|
-| `<id>/book.json` | One book: each page's size, the table of contents, downloads, whether it has text |
+| `<id>/book.json` | One book: each page's size, the table of contents, the links printed in it (`links`, when the config gives them), downloads, whether it has text |
 | `<id>/text.json` | The text of each page, for the book's search (the PDF's own text, or OCR) |
 | `<id>/lines/<NNN>.json` | Each page's words and where they are on it, for selecting and copying, `#find` and `#line` links: `[[block, [[x0, y0, x1, y1, word], ...]], ...]`, a line per entry in reading order, boxes in 1/10000ths of the page from its top left (`pdftotext -bbox-layout`, or tesseract's word boxes). `book.json` has `lines: true` when the book has them |
 | `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp`, `_zoom.webp` | Each page: thumbnail (300 px), normal (1400 px), large (2400 px) and deep zoom (4800 px) on the long side. `_zoom` is only made when the source is that large: every PDF, but not the Jade photos (2048 px). A rescan or remaster at higher resolution gets it on its next build. |
@@ -224,7 +230,29 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   browser prints whose text layer is gibberish); `{"pdf": "<file>"}` takes the text from another PDF
   with the same pages. `ocr_psm` sets tesseract's page segmentation mode (default 3); 4 (one column)
   fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
-- `toc`: a list of `{"title", "page", "level"}`, or `{"pdf": "<file>"}` to take a PDF's bookmarks.
+- `ligatures: "lost"`: the PDF's fonts give no text for the fi/ff/fl ligatures, so its text reads "battle eld",
+  "e ect", "rst". The words are joined back in `text.json` and `lines/` where that makes a dictionary word
+  (the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
+  book already on the shelf without rendering its pages again. Not for a book that also has split words
+  (L5Revival): there it takes the pieces of split words for lost ligatures ("w ords" → "w fiords").
+- `splitwords: true`: the PDF's text has spaces inside words ("v ery well receiv ed", "Li m ite d", small caps
+  "U SING T HESE R ULES"). Neighbouring pieces on a line are joined into the longest word they make, when
+  one piece isn't a word on its own; letters spaced out one by one ("t h e e n d") are split into the
+  fewest dictionary words ("the end"). It leaves alone a single capital before a word ("G in", "X or":
+  rules variables), an acronym before a word ("AEG is"), and a whole word at the end of a run unless the
+  book prints the joined word whole somewhere ("t ak e out" → "take out", "Str ong hold" → "Stronghold").
+  On since 2026-10-26 for L5Revival, Lotus, Diamond, War of Honor, the 1999 DCI Universal Rules and the
+  Samurai, Celestial and Emperor Comprehensive Rules.
+- Ligature characters (ﬁ, ﬂ, ﬀ, ...) in a PDF's text always become plain letters (since 2026-10-26; the
+  Samurai Edition preview had 279), so the book search finds "find" in "ﬁnd". No option needed.
+- `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
+  `{"file": "<file>"}` to read the list from a JSON file.
+- `links`: a JSON file of the links in the PDF, `{"<page>": [[x0, y0, x1, y1, page, at] | [x0, y0, x1, y1,
+  "<url>"], ...]}`: each link's box in 1/10000ths of the page from its top left (as `lines/`), and where it
+  goes, a page and how far down it (percent, 0 = the top), or a web address. Copied into `book.json` as
+  is (not with `crop`). The Comprehensive Rules rebuilds make it with
+  ootv-games `game-l5r/rulebook-enhance/comprehensive-rules/scripts/links.py` (PyMuPDF reads the PDF's link
+  annotations).
   `page` is the viewer's page number (the PDF page), not the number printed on the page.
 - `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
@@ -296,7 +324,43 @@ the shelf when that book is next uploaded (`meta <id>` then `upload <id>` is eno
 2026-10-20): it takes each book's live `book.json`, writes it with `lines: true` and `lines/` to
 `--out`, and `upload <id> --out build-lines` then sends only those (the page images aren't
 touched). Give it a folder without other builds of the book: it refuses one holding a
-different build's page images. OCR'd books are OCR'd again from their live `_master` pages.
+different build's page images. OCR'd books are OCR'd again from their live `_master` pages; the others get
+`text.json` again too (from the same PDF, with the folding and the book's repairs).
+
+### Checking the text before upload
+
+A page can look perfect and still have broken text: what the site searches, copies, links with `#find`
+and what the Discord bot's `/rule` quotes is the PDF's text layer, not the picture. Before uploading a
+book (a new one, a rebuild, a remaster), run:
+
+```bash
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json check <id> [--out DIR]   # the build in DIR, else the live book
+SCRIPTS/rulebook-convert.py rulebooks/l5r.json check                    # every book in the list
+```
+
+It lists, per book, a count and examples of:
+
+| Problem | Looks like | Cause | Fix |
+|---|---|---|---|
+| Lost ligatures | "battle eld", "e ect", "rst" | the font draws fi/ff/fl as one glyph that has no text (old Chrome print-to-PDF of a web page: the 20F Comprehensive Rules, Chrome 60, 2017) | `"ligatures": "lost"` |
+| Ligature characters | "ﬁnd", "oﬃcial" | the PDF stores the ligature as its own character | automatic |
+| Split words | "receiv ed", "Li m ite d", "U SING" | letter spacing, justified text, small caps, or fonts turned into shapes (Type 3) in a browser print (L5Revival, Opera 2022; Lotus, InDesign CS2) | `"splitwords": true` |
+
+Then, before turning an option on:
+
+- **Read what it would change.** Every join or repair is a guess from the dictionary
+  (`/usr/share/dict/american-english`, common words only, plus words the book prints whole twice), so look
+  at the full list for the book (`text.json` before and after), not just the counts. Scrambled text (the LCG
+  Learn to Play books: "ha ter", "s him") gives more wrong joins than right ones; leave those off.
+- **Scans are different.** OCR'd books (the Imperial Heralds) show a few "ee", "o", "h a" from OCR noise
+  anywhere; `check` hides lost ligatures for a book that also prints plenty of whole fi/ff/fl words, and a
+  handful of split words in a scan is normal. Don't turn the options on for OCR.
+- **Links into the book.** A repair changes words, so check that the `#find` links into it still match:
+  the cards' `ruling` and `rulingref` links (`#rulebook=<id>`) and the trait links item. On 2026-10-26 all
+  957 links into the 12 repaired books still matched (`#find` counts letters and digits only, so joining
+  "receiv ed" doesn't move a phrase, but a changed letter would).
+- **For a PDF we make** (remasters, browser prints of web rules), check `pdftotext` on it before building;
+  a broken text layer is cheapest to fix at the source (another print, `font-variant-ligatures: none`).
 
 ## The L5R books (2026-10-19)
 
@@ -368,3 +432,14 @@ From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue o
   printout of the same rules is the second download), The New Order, Thunderous Acclaim, Evil Portents and The
   Blackest Storm.
 - None of the file drop books has a credit `note`. Each one went live only after a check-off.
+
+## The L5R LCG books (2026-10-24)
+
+FFG's rules documents for Legend of the Five Rings: The Card Game, from the Support section of FFG's
+product page (Wayback copy of 2021-09-03; ootv-games `game-newl5r/ffg-rules/`, with the list of all 143
+Support documents), list `rulebooks/l5rlcg.json`, ids `lcg-*`. Rules Reference v17.3 (Complete, Last
+complete rules), Learn to Play (Learn to Play, Base set), Imperial Law 2021-08-10 (Addendum; the card
+errata link to it), Skirmish Learn to Play, Skirmish Rules Reference, Skirmish Reference Cards,
+Multiplayer Rules (Enlightenment), Draft Rules v3, Under Fu Leng's Shadow Rules (Play Variant),
+Tournament Regulations v2.3 (the text version as a second download) and FFG Floor Rules (Floor Rules).
+No arcs; the PDFs have no bookmarks, so no contents yet. Types and tags: the user, 2026-10-24.

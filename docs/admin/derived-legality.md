@@ -1,11 +1,12 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-23
+Last updated: 2026-10-24 (showing derived values on the card page)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
 icons on each printing, and type. The formats that weren't printed on the cards can then be
-defined once instead of tagged card by card. Cards never display these values.
+defined once instead of tagged card by card. L5R cards don't display these values; a game can
+show them on the card page instead (below, "Showing derived values on the card page").
 
 ## Where it lives
 
@@ -391,6 +392,22 @@ The publishers come from the set (`ootv-tools/printings/printing-publisher.py`, 
 In the Oracle of the Void set, the proxies are AEG and the Old, New and SotE card backs are
 FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. A new set needs its
 publisher set at import time.
+
+## Showing derived values on the card page
+
+A game whose legality is all derived rules (Android: Netrunner: each format's current card pool and
+ban list, plus every dated snapshot) shows the values a card fits on its page. That's set per game,
+in its game config (Admin → Config → Game config): the legality row uses the helper
+`derivedlegality` and shows always, e.g. `{"fields": ["legality"], "helper": "derivedlegality",
+"when": "always"}` in `rows.card`. The row lists the card's stored values plus every derived value it
+fits, in the Legality menu's order, or a dash when there are none. The game's search list must hold
+`legality.derived` (and `legality.sortregex`) as hidden fields, so the rules are loaded.
+
+The card page works the rule out the way the search does (`cardderived()` in `oracle.js`): every
+`all` clause, at least one `any` clause, no `none` clause; in a clause, card fields match the card
+and printing fields one printing; the card's `legalityderivedexception` wins. Entries with
+`listable: false` (Paper) are filters, not formats, and aren't listed. L5R keeps its plain
+`sortlegality` row, so its cards still show only their stored legality.
 
 ## Changing a rule
 

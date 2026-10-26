@@ -824,6 +824,9 @@ permission on the game (whoever may search by photo; the Photo button's Find the
 | `queue` | `image` (a JPEG or PNG data URL, 4 MB at most), `kind` (`card` or `art`), `name` | `{job, worker, left: {day, minute}}` |
 | `jobs` | optional `after` (a page's `next`) | `{jobs: [...] (newest first, 50), next, worker}` |
 | `job` | `id` | `{job, worker}` |
+| `sigsubmit` | `id` (a finished job of yours, or any for admins), `artist` | `{submission}`: an admin's is filed in the catalogue at once (`status: approved`), anyone else's is `pending` |
+| `sigqueue` | optional `pending` (true: waiting ones only), `after` (admins) | `{submissions: [...] (newest first, 50), next}` |
+| `sigdecide` | `id`, `decision` (`approve` / `reject`), optional `artist` (approve: the name to file it under), `note` (admins) | `{submission}` |
 
 A job: `{game, id, status: queued / running / done / error, created, started, finished, cardid,
 printingid, title, set, artist (the credit when queued), uid, uname, result, error}`; an upload has
@@ -832,7 +835,19 @@ printingid, title, set, artist (the credit when queued), uid, uname, result, err
 (the upload's cosine to that printing, ≥ 0.80). `result`:
 `{credit, style: {candidates: [{artist, share}], nearest: [{cardid, printingid, title, set, artist,
 score}]}, same: [{cardid, printingid, title, set, artist, style, artvec}], signature: {read, match:
-name / initials / "", error}, model, reference: {built, credited}}`. `worker`: `{seen, host, state,
+name / initials / "", error, where: {box, read, crop, file}, known: [...], catalogued: [{artist, file,
+cardid, printingid}]}, model, reference: {built, credited}}`. `where.file` is the found signature's
+PNG in the reports bucket (`artcheck/<game>/<id>-signature.png`); `catalogued` lists the catalogue
+rows of the same painting (non-empty: nothing to submit). After a submission the job carries
+`signaturesub: {id, status, artist}`.
+
+A submission: a row `game = "sigsub/<game>"` in `oracle-all-artcheck` (no expiry) `{id, status: pending /
+approved / rejected, created, job, file (its PNG, kept at artcheck-signatures/<game>/<id>.png), crop,
+read, cardid, printingid, title, set, credit, artist, uid, uname, decided, decidedby, note, filed:
+{artist, path, file}}`. Filing copies the PNG to `artists/<slug>/signatures/` on the images bucket,
+appends an `index.json` row (`how: submitted`, `by`, `approved`, `job`, `added`) and updates the
+artist entry's `signatures` with an updatelog row (`source: sigsubmit`), then stamps row
+`game = "worker", id = "catalogue"` (`updated`, `artist`) so the worker reloads its catalogue. `worker`: `{seen, host, state,
 references, online}` (`online` false when the heartbeat is older than 10 minutes, or `{online:
 false}` when it never ran).
 

@@ -41,12 +41,26 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   false. To set it, open the printing in the site's card editor and use Add field → `notmrp`
   (it starts as `true`), or add `"notmrp": true` inside that printing's object in the editor's JSON
   view. Make MRP in the editor removes it from the printing it picks. The Discord bot honors it too.
+* printing.printedbugs (optional, L5R, array of strings). The arc bugs (legality kanji) printed on the
+  card, from Jade Edition on: `jade`, `gold`, `diamond`, `lotus`, `samurai`, `celestial`, `emperor`,
+  `ivory`, `twentyfestivals`, `onyx`, `shatteredempire`; `[]` = no bug (Imperial-arc cards print none).
+  What is printed, not legality: a ban takes the arc out of `legality`, never out of `printedbugs`. A
+  misprint meant to carry a bug it doesn't show gets that bug. Filled for new printings by the bug
+  check (Admin → Artist check → Check bugs, or the card editor's Check bugs → Set printedbugs); existing
+  printings don't carry it yet (ootv-claude `CARD-ARC-IDENTIFIER.md`, 2026-10-25).
 * printing.foil (optional, every game, string). Left out: the printing is regular only. `"foil"`:
-  it only came in foil (a foil that differs from the regular card, or a foil-only card, stored as
-  its own printing). `"both"`: it came in regular and in foil; a foil identical to the regular card
-  is never its own printing. Since 2026-10-23 (project l5r-foils, ootv-claude `projects/l5r-foils.md`);
-  7th Sea's old `foil: true` became `"foil"` the same day (ootv-tools `printings/foil-values.py`). List
+  it only came in foil (a foil that differs from the regular card, a foil-only card, or a foil
+  promo, stored as its own printing). `"both"`: it came in regular and in foil in the same
+  release (e.g. booster rare foils); a foil identical to the regular card in the same release is
+  never its own printing. A foil **promo** is always its own printing (Promotional–<arc> set, rarity
+  Promo, `"foil"`, `notmrp`), even when it looks like the regular card (the user, 2026-10-25).
+  Since 2026-10-23 (project l5r-foils, ootv-claude `projects/l5r-foils.md`); 7th Sea's old
+  `foil: true` became `"foil"` the same day (ootv-tools `printings/foil-values.py`), L5R was filled
+  2026-10-25 from imperialblock and Carlo Brozzo's lists (ootv-tools `printings/l5r-foils.py`). List
   entries will carry a foil choice of their own (not foil / foil / either).
+* printing.notes (optional, array of strings). Facts about how the printing was released,
+  e.g. `Released in the Kotei 2006 pack`. Promo sources from Carlo Brozzo's promo
+  list read `Released as: <source> (Brozzo's promo list)` (2026-10-25).
 * printing.snmsetcode (optional, l5r, array of one string). The Sun and Moon edition code the
   S&M text export writes for this printing, where it differs from its set's code (the
   `oracle-all-structure` item `l5r/snm`, `sets`): e.g. `["Promo"]`, or `[""]` to write no set
@@ -84,6 +98,11 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   `arthub: true` marks placeholder art that matches too many cards. The API never sends `artvec` to
   the browser, the card editor hides all four, and an edit that changes the image drops them until
   the vectors are recomputed. In OpenSearch `artvec` becomes `printing.artvector` (k-NN, not in `_source`).
+* printing.imagecleaned (optional, array of strings, internal: Fields `show: "internal"`, not on card
+  pages): where the printing's image came from when its watermark was removed, one note per image,
+  e.g. `ccgtrader scan, watermark removed by duneccg.webflow.io (their Drive folder, fetched
+  2026-10-25)`. Marks images to replace with a clean scan of our own; drop it when the image is
+  replaced. First used on Dune, 2026-10-25 (ootv-tools `printings/dune-scans.py`).
 
 ### optional
 

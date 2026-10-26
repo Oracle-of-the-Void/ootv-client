@@ -123,6 +123,26 @@ a.printinglink {  text-decoration: none; }
 a.ex { float: right; font-size: large;}
 .headsetrar { float: right; padding-right: 2px; }
 
+/* the foil mark (templatefoilmark), every game: holo pill = only printed in foil, outlined = also came in foil */
+.foilmark { display: inline-block; font-size: 0.75em; line-height: 1.35; padding: 0 6px; border-radius: 9px;
+  white-space: nowrap; font-weight: bold; vertical-align: 1px; letter-spacing: 0.02em; }
+.foilmark.foilonly { color: #3b2766; border: 1px solid #a993d6;
+  background: linear-gradient(115deg, #ffd3ec 0%, #d2ecff 28%, #dcffd8 52%, #fff1b8 76%, #ecd4ff 100%); }
+.foilmark.foilboth { color: #5b4a86; border: 1px solid #b6a6de; background: #fff; }
+.foilmark.foilboth::first-letter { color: #b04fd0; }
+.foilwords { font-size: 0.85em; color: #666; }
+.foilmark.foilregular { color: #666; border: 1px dashed #bbb; background: #fff; font-weight: normal; }
+.foiltoggle { cursor: pointer; }
+.foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
+.printingimages, a.deckswipe { position: relative; display: inline-block; }
+.printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
+  font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+/* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells
+   "Foil" (rainbow) from "Also foil" (white, purple star); the card page shows the words */
+a.deckswipe > .foilmark { font-size: 0; width: 18px; height: 18px; padding: 0; border-radius: 50%; top: 5px; left: 5px; text-align: center; }
+a.deckswipe > .foilmark::before { content: '\2726'; font-size: 12px; line-height: 18px; }
+a.deckswipe > .foilmark.foilboth::before { color: #b04fd0; }
+
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
 div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
 div.searchinput input[type=text] { 
@@ -622,6 +642,10 @@ div.helptoc { display: inline-block; border: solid #ccc 1px; border-radius: 4px;
 div.helptoc ul { margin: 2px 0; padding-left: 22px; }
 div.helptoc ul ul { font-size: 92%; }
 div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
+div.helpdoc table { border-collapse: collapse; margin: 6px 0; }
+div.helpdoc th, div.helpdoc td { border-bottom: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: middle; }
+div.helpdoc td img { display: block; max-width: 100%; border-radius: 3px; margin: 2px 0; }
+div.helpdoc td img[src*="/bug-"] { display: inline-block; width: 56px; height: 56px; margin-right: 4px; }
 div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
@@ -869,6 +893,13 @@ dd {
     padding: 0 0 0.25em 0;
     font-size: 14pt;
   text-align: left;
+}
+/* card page and Detail search rows: a label taller than its value (one wrapped over several lines)
+   keeps the next row below it. Not the search form, whose buttons sit beside each other in a dd. */
+.listitem dd::after {
+    content: "";
+    display: block;
+    clear: left;
 }
 /******************   end DL   ***************/
 
@@ -1552,10 +1583,11 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
 /* ********************** narrow screens (phones) **********************
    Search sidebar becomes a slide-over panel (body.mobilesearch, opened by the Search Results button, see searchviewbutton()),
    the menubar wraps instead of overlapping, and fixed minimum widths are dropped. Keep the 768px in sync with narrowscreen() in oracle.js. */
-/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js sets data-balloon-visible after a long-press */
+/* touch screens: a tapped button keeps :hover/:focus, so balloon tooltips only show while oracle.js sets data-balloon-visible after a long-press.
+   Not just transparent: an invisible balloon by the screen's edge still widens the page past the screen (large text, browser zoom) */
 @media (hover: none) {
   [aria-label][data-balloon-pos]:not([data-balloon-visible]):before, [aria-label][data-balloon-pos]:not([data-balloon-visible]):after {
-    opacity: 0 !important;
+    display: none !important;
   }
 }
 /* visual spoiler search while lists are active (template-visual): image on a gray card, deck controls below */
@@ -1653,8 +1685,28 @@ div#phonesearchbar .numresults {
   div.menubar nav li {
     padding-left: .6rem;
   }
+  /* the view icons flow like words: they start beside the menu and game logo and wrap under them (a float would
+     drop below them whole), so with large text or browser zoom they take few rows and never widen the page. Inline,
+     not a block, so the right-hand items after them (login, username) can share their last row when there's room.
+     No box around them: it can't follow them across lines (the active one keeps its highlight) */
   div.menubar nav li.viewicons {
     padding-top: 3px;
+    float: none;
+    display: inline;
+  }
+  div.menubar nav li.viewicons .searchviewgroup {
+    display: inline;
+    border: none;
+    padding: 0;
+  }
+  div.menubar nav li.viewicons .searchviewgroup button {
+    display: inline-block;
+    vertical-align: top;
+  }
+  .searchviewgroup {
+    flex-wrap: wrap;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   /* every icon a quarter bigger than on desktop (17px), and the buttons around them grow to fit */
   .feather {
@@ -1813,9 +1865,20 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .artchecksigartist { margin: 4px 0; }
 .artchecksigstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .artchecksigstrip img { height: 72px; max-width: 140px; object-fit: contain; background: #eee; border: 1px solid #ddd; border-radius: 3px; }
+.artchecksigclosest a { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; max-width: 140px; }
+.artchecksigcap { font-size: 0.8em; text-align: center; line-height: 1.2; margin-top: 2px; }
 @media (max-width: 700px) { .artchecksigstrip img { height: 56px; max-width: 30vw; } }
+.artchecksubmit { margin: 6px 0; padding: 6px; border: 1px dashed #bbb; border-radius: 3px; }
+.artchecksubmit input[type=text] { max-width: 100%; }
+.artchecksubs img { max-height: 72px; max-width: 160px; border: 1px solid #ccc; border-radius: 3px; }
 .artcheckpick { margin-top: 6px; padding: 4px 6px; background: #f6f6f0; border-radius: 3px; }
 .artcheckpick label { display: inline-block; margin: 2px 10px 2px 0; white-space: nowrap; }
+.bugcheckcrops { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0; }
+.bugcheckcrop { margin: 0; text-align: center; }
+.bugcheckcrop img { width: 96px; height: 96px; object-fit: contain; border: 2px solid #4a4; border-radius: 3px; }
+.bugcheckunsure img { border-color: #c80; }
+.bugcheckcrop figcaption { font-size: 0.9em; }
+.artcheckresult ul { margin: 2px 0 2px 1.2em; padding: 0; }
 .artchecklist { border-collapse: collapse; font-size: 0.9em; }
 .artchecklist td, .artchecklist th { border-bottom: 1px solid #ddd; padding: 2px 6px; text-align: left; vertical-align: top; }
 @media (max-width: 700px) { .artchecklist td:nth-child(3), .artchecklist th:nth-child(3), .artchecklist td:nth-child(8), .artchecklist th:nth-child(8) { display: none; } }
@@ -2255,13 +2318,14 @@ button.rulesfilterclear[hidden] { display: none; }
 .rulesbookmarks { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 .rulesbookmark { font-size: .72em; padding: 0 6px; border-radius: 8px; background: #efe7cc; color: #5a4a14; white-space: nowrap; }
 .rulesnomatch { color: #777; font-style: italic; grid-column: 1 / -1; }
-.rulesreader { display: flex; flex-direction: column; }
+/* never wider than the screen: a toolbar that doesn't fit (large text, browser zoom) wraps rather than widening the page */
+.rulesreader { display: flex; flex-direction: column; min-width: 0; max-width: 100%; }
 .rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
 .rulestop { border-bottom: 1px solid #d8d2c2; }
 .rulesbottom { border-top: 1px solid #d8d2c2; }
 .rulestitle { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rulestitle .rulesbooksub { font-family: "Times New Roman",Georgia,Serif; font-size: .75em; }
-.rulestools { display: flex; gap: 2px; position: relative; }
+.rulestools { display: flex; flex-wrap: wrap; gap: 2px; position: relative; min-width: 0; max-width: 100%; }
 .rulestools[data-copied]::after { content: attr(data-copied); position: absolute; right: 0; top: 100%; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: .85em; white-space: nowrap; z-index: 5; }
 button.rulesbtn { padding: 2px 3px; margin: 0; border: 1px solid transparent; border-radius: 3px; background: transparent; color: rgb(96, 96, 96); cursor: pointer; line-height: 0; }
 button.rulesbtn:hover { color: black; border-color: rgb(192, 192, 192); }
@@ -2294,6 +2358,13 @@ button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-siz
 /* the text layer (rulesdrawtext): transparent words over the page image, in the page's own units (cqh) */
 .rulespage { position: relative; container-type: size; }
 .rulestextlayer { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+/* the pages sit above the turn areas (.rulesturn) but let the pointer through, so only their link boxes take
+   clicks there; drags, pinches and turns land on the stage and the turn areas as before */
+.rulesstage .rulespage { z-index: 3; pointer-events: none; }
+.ruleslinklayer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.ruleslink { position: absolute; pointer-events: auto; border-radius: 2px; cursor: pointer; -webkit-tap-highlight-color: rgba(140, 30, 30, .2); }
+.ruleslink:hover, .ruleslink:focus-visible { background: rgba(140, 30, 30, .12); outline: none; }
+.rulesselecting .ruleslinklayer { display: none; }
 .rulesline { font-size: 0; }
 .rulestextlayer span { position: absolute; white-space: pre; color: transparent; font-family: sans-serif; transform-origin: 0 0; cursor: text; }
 .rulestextlayer span::selection { background: rgba(0, 100, 255, .3); color: transparent; }

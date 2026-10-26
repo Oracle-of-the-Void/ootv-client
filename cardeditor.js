@@ -353,8 +353,12 @@ function cardeditimages(p,isnew) {
         ' title="Cards whose art looks like this instance\'s image, most alike first (a new tab)">Find similar art</a>'+
         (gamepermission('artcheck') ? ' &middot; <a href="" onclick="artcheckinline(\'cardeditartcheck'+htmlEncode(p.printingid)+'\','+cardedit.cardid+',\''+htmlEncode(p.printingid)+'\'); return false"'+
           ' title="Who painted this: the nearest paintings by style, the same painting\'s credits, any signature (Admin → Artist check)">Check artist</a>'+
+          (cardedit.db == 'l5r' ? ' &middot; <a href="" onclick="artcheckinline(\'cardeditbugcheck'+htmlEncode(p.printingid)+'\','+cardedit.cardid+',\''+htmlEncode(p.printingid)+'\',\'bugs\'); return false"'+
+            ' title="The arc bugs printed on this instance\'s image, with Set printedbugs (Admin → Artist check)">Check bugs</a>' : '')+
           '<div id="cardeditartcheck'+htmlEncode(p.printingid)+'">'+
           (cardedit.artcheck && cardedit.artcheck[p.printingid] && window.artcheckresult ? artcheckresult(cardedit.artcheck[p.printingid], p.printingid) : '')+
+          '</div><div id="cardeditbugcheck'+htmlEncode(p.printingid)+'">'+
+          (cardedit.bugcheck && cardedit.bugcheck[p.printingid] && window.artcheckresult ? artcheckresult(cardedit.bugcheck[p.printingid], p.printingid) : '')+
           '</div>' : '')+'</div>';
     }
   }

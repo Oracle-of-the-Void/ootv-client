@@ -5,6 +5,7 @@
 window.artistsadminloaded = true;
 var artistsadmin = {list: [], byname: {}, filter: '', only: '', edit: null};
 const artistsshown = 200;   // rows drawn at once; the filter narrows the rest
+const artistsimages = 'https://images.oracleofthevoid.com/';   // + signatures.path + index.json / a file
 
 // name: the entry to open in the form (undefined keeps the one open); note: a status line to show
 // once drawn (after a save)
@@ -41,7 +42,8 @@ function artistsshow() {
       'oninput="artistsadmin.filter = this.value; artistsrows();" /> '+
       '<select id="artistsonly" onchange="artistsadmin.only = this.value; artistsrows();">'+
       [['', 'All entries'], ['review', 'Waiting for review ('+count(artistsreview)+')'], ['nolinks', 'No links, not an alias ('+count(a => !a.aliasof && !(a.links || []).length)+')'],
-       ['alias', 'Aliases ('+count(a => a.aliasof)+')'], ['notalias', 'Not an alias ('+count(a => !a.aliasof)+')']]
+       ['alias', 'Aliases ('+count(a => a.aliasof)+')'], ['notalias', 'Not an alias ('+count(a => !a.aliasof)+')'],
+       ['sigs', 'With signatures ('+count(a => a.signatures)+')']]
         .map(o => '<option value="'+o[0]+'"'+(artistsadmin.only == o[0] ? ' selected' : '')+'>'+o[1]+'</option>').join('')+
       '</select> '+
       (allowed ? '<input type="button" value="New entry" onclick="artistsform(null);" />' : '')+
@@ -65,6 +67,7 @@ function artistsrows() {
     if(only == 'nolinks' && (a.aliasof || (a.links || []).length)) { return false; }
     if(only == 'alias' && !a.aliasof) { return false; }
     if(only == 'notalias' && a.aliasof) { return false; }
+    if(only == 'sigs' && !a.signatures) { return false; }
     if(!q) { return true; }
     return [a.name, a.aliasof, a.fandom, a.note].concat((a.links || []).map(l => l.url+' '+l.label))
       .some(s => s && s.toLowerCase().includes(q));
@@ -102,6 +105,7 @@ function artistsform(name) {
     '<p><label>l5r.fandom.com page <input type="text" id="artistsfandom" size="40" value="'+htmlEncode((a && a.fandom) || '')+'"'+dis+' /></label>'+
       (a && a.fandom ? ' <a href="https://l5r.fandom.com/wiki/'+encodeURIComponent(a.fandom.replace(/ /g,'_'))+'" target="_blank" rel="noopener">open</a>' : '')+'</p>'+
     '<p><label for="artistsnote">Note</label><br><textarea id="artistsnote" class="fielddescstext" rows="2"'+dis+'>'+htmlEncode((a && a.note) || '')+'</textarea></p>'+
+    '<div id="artistssigs"></div>'+
     '<table class="fielddescstable artistslinks"><thead><tr><th>Link</th><th>Label</th><th>Archived copy</th><th></th></tr></thead><tbody></tbody></table>'+
     '<p>'+(allowed ? '<input type="button" value="Add link" onclick="artistslinkrow({});" /> '+
       '<input type="button" value="Save" onclick="artistssave();" /> '+
@@ -113,7 +117,34 @@ function artistsform(name) {
   $('#artistsedit').html(html);
   ((a && a.links) || []).forEach(artistslinkrow);
   if(a && !(a.links || []).length && allowed && !a.aliasof) { artistslinkrow({}); }
+  if(a) { artistssigs(a); }
   $('#artistsedit')[0].scrollIntoView({block: 'nearest'});
+}
+
+// the entry's known signatures (the catalogue: index.json in signatures.path on the images site, written by
+// ootv-tools artists/signatures/ and Artist check submissions); an alias's are on its main entry
+function artistssigs(a) {
+  var main = a.aliasof && artistsadmin.byname[a.aliasof];
+  var own = a.signatures ? a : main && main.signatures ? main : null;
+  if(!own) { $('#artistssigs').html('<p class="fielddescsnote">No known signatures in the catalogue.</p>'); return; }
+  var from = own === a ? '' : ' (on the entry of <i>'+htmlEncode(own.name)+'</i>)';
+  $('#artistssigs').html('<p class="fielddescsnote">Loading the known signatures...</p>');
+  $.ajax({url: artistsimages+own.signatures.path+'index.json', dataType: 'json', cache: false, timeout: 30000})
+    .done(function(list) {
+      if(artistsadmin.edit !== a.name) { return; }
+      list = list || [];
+      // the catalogue is L5R's: link each to its card on the L5R site whatever game is open
+      $('#artistssigs').html('<p><b>Known signatures</b>'+from+': '+list.length+'</p>'+
+        '<div class="artchecksigstrip artistssigstrip">'+list.map(m =>
+          '<a href="'+htmlEncode(location.pathname+'#game=l5r,#cardid='+m.cardid+(m.printingid ? ',#cnprintingid='+m.printingid : ''))+'" target="_blank" '+
+            'title="'+htmlEncode(m.title+' ('+String(m.set || '').replace(/&amp;/g,'&').replace(/&ndash;/g,'–')+')'+
+              (m.read ? ', read as "'+m.read+'"' : '')+(m.how ? ', '+m.how : ''))+'">'+
+          '<img src="'+htmlEncode(artistsimages+own.signatures.path+m.file)+'" alt="'+htmlEncode(m.title)+'" loading="lazy" /></a>').join('')+'</div>');
+    })
+    .fail(function(raw) {
+      if(artistsadmin.edit !== a.name) { return; }
+      $('#artistssigs').html('<p class="error">Could not load the known signatures'+from+': '+raw.status+'</p>');
+    });
 }
 
 function artistslinkrow(l) {

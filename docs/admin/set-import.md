@@ -82,12 +82,23 @@ Both need the `setimport` permission (or `*`) for the game.
    In the reprint list, type a cardid to change a match, `new` to make the row a new card, or
    tick *primary* to show the new printing first. In the new card list, type a cardid to make a
    row a reprint. Then *Plan again*.
+   **Check the bugs** (L5R, after a plan): the artcheck worker on the `ai` box reads each new
+   printing's image and lists what to look at: the arc bugs printed on it against the planned
+   legality and `printedbugs` ("legality without a printed bug (misprint?)", "bug without legality",
+   "printedbugs given: X; the image shows: Y"), unsure bugs (with the vision model's yes/no), and the
+   set: by the border before Gold Edition, by the code printed along the bottom from Gold Edition on
+   ("prints the code of X (a reprint, or the wrong set?)"). It blocks nothing: the import expects
+   that information ahead of time, and this only checks it. About two seconds a card; *show every
+   printing* lists them all, and a row's name opens the full result with the bugs zoomed (that needs
+   the artcheck permission). The results stay with the import (30 days).
 6. **Go live.**
    - *Start the export* takes a full table backup (5–10 minutes). It's optional: Apply doesn't
      wait for it, so skip it when the table already has a recent export (one from another bulk
      write today, say). Without either, there's nothing to roll back to.
    - *Apply* (after ticking the confirmation) writes the cards. Search picks them up as they
      go in (the search index takes a live stream, so nothing is paused). Each new card gets an `op: new` update log entry; each reprint gets `newinstance`.
+     A reprint whose printing brings an arc the card's own legality lacks (Three Dynasties, say) also gets
+     that arc added to the card's legality, with an `update` entry (since 2026-10-25).
      Then it writes one update log row for the whole set (the site's "new set" notice). Writes are conditional, so a card someone edited since the plan
      is skipped as a conflict, never overwritten.
    - *Verify* compares every written card with its copy in search, waits for the stream to
