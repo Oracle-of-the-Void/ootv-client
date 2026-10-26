@@ -5157,6 +5157,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
   traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
     set: legality.set[showpr] || [], sets: legality.sets});
+  rulingsfold('#resultcard');
   publiccardcount(carddata.cardid);
 
   if(!switchview) {
@@ -8832,6 +8833,36 @@ function rulingpeek(el,touch) {
   place();
   rulingshowplace(pop.find('.rulingview'), l, true, place);
 }
+// A card's rulings start partly shown: the first rulingsfew, then "Show N more" (and "Show fewer" back). The
+// arrow by the label folds the whole list away to "Show N rulings", which opens it again partly shown.
+var rulingsfew = 3;
+function rulingsfold(where) {
+  $(where).find('dd.rulings').each(function() {
+    var dd = $(this), n = dd.children('div').length, more = n - rulingsfew;
+    var plural = function(k,extra) { return k+' '+(extra ? 'more ' : '')+(k == 1 ? 'ruling' : 'rulings'); };
+    dd.prev('dt').prepend('<span class="rulingsfoldbtn" role="button" tabindex="0" aria-expanded="true" title="Hide the rulings">&#9662;</span>');
+    dd.append('<span class="rulingsopen" role="button" tabindex="0">Show '+plural(n)+'</span>');
+    if(more > 0) {
+      dd.addClass('rulingssome').append('<span class="rulingsmore" role="button" tabindex="0" data-more="Show '+plural(more,true)+'">Show '+plural(more,true)+'</span>');
+    }
+  });
+}
+$(document).on('click keydown', 'dt .rulingsfoldbtn, dd.rulings .rulingsopen', function(e) {
+  if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
+  e.preventDefault();
+  var dd = $(this).closest('dt').next('dd.rulings').add($(this).closest('dd.rulings')), open = dd.hasClass('rulingsnone');
+  dd.toggleClass('rulingsnone', !open);
+  if(open && dd.hasClass('rulingsall')) { dd.find('.rulingsmore').trigger('click'); }   // opens partly shown again
+  dd.prev('dt').find('.rulingsfoldbtn').html(open ? '&#9662;' : '&#9656;')
+    .attr({'aria-expanded': open ? 'true' : 'false', title: open ? 'Hide the rulings' : 'Show the rulings'});
+});
+$(document).on('click keydown', 'dd.rulings .rulingsmore', function(e) {
+  if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
+  e.preventDefault();
+  var dd = $(this).closest('dd'), all = dd.hasClass('rulingssome');
+  dd.toggleClass('rulingssome', !all).toggleClass('rulingsall', all);
+  $(this).text(all ? 'Show fewer' : $(this).data('more'));
+});
 var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in the Bookshelf
 // a ruling's rulebook link: {book, page, mark: {find, line, at} as written in the link}, or null
 function rulinglink(href) {
