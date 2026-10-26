@@ -369,13 +369,13 @@ Then, before turning an option on:
 From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`):
 
 - **Imperial Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/imperial/rebuild/pages-01-64.pdf`,
-  2026-10-20), with its own text. The contents come from the bookmarks of the old searchable scan
-  (same 64 pages); the original color scan is the second download.
+  2026-10-20), with its own text. The contents come from its own contents page; the original color scan is the
+  second download.
 - **Scorpion Clan Coup**: the retypeset remaster (ootv-games
   `game-l5r/rulebook-enhance/scc/rebuild/scc-pages-01-71-back.pdf`, 2026-10-20), with its own text: all
   72 pages, so the two-page view shows the printed spreads. Kempy's scan lacks pp. 2-3, 22, 24, 28,
   36-37, 47, 49 and 51; those were set from phone photos of the same booklet (the older `L5RRules` copy
-  of `Rulebook-L5R-Imperial_(SCC).pdf`). No contents yet. Kempy's scan is the second download.
+  of `Rulebook-L5R-Imperial_(SCC).pdf`). Kempy's scan is the second download.
 - **Jade Edition**: the retypeset remaster (ootv-games
   `game-l5r/rulebook-enhance/jade/rebuild/jade-pages-01-71-back.pdf`, 2026-10-20), from phone photos of every
   spread (`Rulebook-L5R-Jade.zip`), with its own text and contents. Downloads: the PDF, the original photos and
@@ -385,6 +385,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   pages, cover to the Turn Sequence back cover, the art the photos' own. The contents follow the printed table
   of contents. The pages render from the full-quality join (`pearl-pages-01-88.pdf`, 169 MB); the PDF download is
   the same pages with JPEG images (`pearl-rulebook.pdf`, 12 MB). The original photos zip is the second download.
+- **Remasters linked (2026-10-26)**: Imperial, SCC, Jade and Pearl link the way the Comprehensive Rules do
+  (`toc` and `links` files from ootv-games `game-l5r/rulebook-enhance/scripts/link_book.py`, written into the PDFs
+  too, with bookmarks): contents to each section (where its heading really is), index numbers to the entry on that
+  page, every printed page reference, "see X" and back-cover Turn Sequence cross-references, printed web addresses
+  (1990s fan sites through the Wayback Machine; never-archived ones stay plain), and card names (errata, Pearl's card
+  list) and card pictures to the card on the site, at the book's own printing. Their covers carry the edition's arc
+  bug as a wax seal. Steps: ootv-import `rulebooks/REPRODUCE.md`, "Link the book last".
 - **Gold Edition**: the publisher PDF shows two-page spreads on a grey mat, so the book is built from
   `game-l5r/rulebook-enhance/gold/rebuild/Rulebook-L5R-Gold_pages.pdf` (2026-10-20): the same PDF cut
   into 88 single pages (cover, inside cover, pp. 1-85, back cover) by ootv-games
@@ -412,7 +419,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
-- Imperial, Jade, Pearl and Ivory basic have a table of contents so far.
+- Imperial, SCC, Jade, Pearl and Ivory basic have a table of contents so far (and the Comprehensive Rules).
 
 From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue of the rest is ootv-import
 `rulebooks/QUEUE.md`):
