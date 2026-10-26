@@ -801,7 +801,8 @@ approved / rejected, created, job, file (its PNG, kept at artcheck-signatures/<g
 read, cardid, printingid, title, set, credit, artist, uid, uname, decided, decidedby, note, filed:
 {artist, path, file}}`. Filing copies the PNG to `artists/<slug>/signatures/` on the images bucket,
 appends an `index.json` row (`how: submitted`, `by`, `approved`, `job`, `added`) and updates the
-artist entry's `signatures` with an updatelog row (`source: sigsubmit`). `worker`: `{seen, host, state,
+artist entry's `signatures` with an updatelog row (`source: sigsubmit`), then stamps row
+`game = "worker", id = "catalogue"` (`updated`, `artist`) so the worker reloads its catalogue. `worker`: `{seen, host, state,
 references, online}` (`online` false when the heartbeat is older than 10 minutes, or `{online:
 false}` when it never ran).
 
