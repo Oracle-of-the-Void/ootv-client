@@ -1685,11 +1685,22 @@ div#phonesearchbar .numresults {
   div.menubar nav li {
     padding-left: .6rem;
   }
-  /* with large text or browser zoom the icon groups wrap rather than widening the whole page past the screen */
+  /* the view icons flow like words: they start beside the menu and game logo and wrap under them (a float would
+     drop below them whole), so with large text or browser zoom they take few rows and never widen the page.
+     No box around them: it can't follow them across lines (the active one keeps its highlight) */
   div.menubar nav li.viewicons {
     padding-top: 3px;
-    max-width: 100%;
-    box-sizing: border-box;
+    float: none;
+    display: block;
+  }
+  div.menubar nav li.viewicons .searchviewgroup {
+    display: inline;
+    border: none;
+    padding: 0;
+  }
+  div.menubar nav li.viewicons .searchviewgroup button {
+    display: inline-block;
+    vertical-align: top;
   }
   .searchviewgroup {
     flex-wrap: wrap;
