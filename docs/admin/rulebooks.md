@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-24
+Last updated: 2026-10-26
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -230,6 +230,10 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   browser prints whose text layer is gibberish); `{"pdf": "<file>"}` takes the text from another PDF
   with the same pages. `ocr_psm` sets tesseract's page segmentation mode (default 3); 4 (one column)
   fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
+- `ligatures: "lost"`: the PDF's fonts give no text for the fi/ff/fl ligatures, so its text reads "battle eld",
+  "e ect", "rst". The words are joined back in `text.json` and `lines/` where that makes a dictionary word
+  (the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
+  book already on the shelf without rendering its pages again.
 - `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
   `{"file": "<file>"}` to read the list from a JSON file.
 - `links`: a JSON file of the links in the PDF, `{"<page>": [[x0, y0, x1, y1, page, at] | [x0, y0, x1, y1,
