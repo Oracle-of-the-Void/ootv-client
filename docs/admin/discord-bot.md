@@ -1,8 +1,8 @@
 # Discord bot settings
 
-Last updated: 2026-10-23 (private replies in channels without a row)
+Last updated: 2026-10-25 (/rule)
 
-The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search`, `/oraclebug` and `/oraclehelp` by default) answers in each server it has been
+The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search`, `/rule`, `/oraclebug` and `/oraclehelp` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
 channel searches, filters that narrow every search in a channel, and which commands a
 server gets under which names. The bot picks up a change within 5 minutes, with no deploy.
@@ -77,6 +77,26 @@ aren't posted twice. The bot remembers this only while it stays warm, so now and
 come again. A long answer is paged: **Previous** and **Next** buttons under it turn the page in
 place, and anyone in the channel can press them. A card with neither gets an only-you "No rulings"
 reply.
+
+## Rulebook lookup (/rule)
+
+`/rule term:<words> [arc:] [book:]` reads the game's Bookshelf, as published for the site (the
+shelf item, the `traits` item behind the trait links, and each book's `book.json` and `text.json`;
+[Bookshelf](rulebooks.md)), so a new or rebuilt book reaches it with no bot change. Which book:
+
+- `book:` picks one;
+- `arc:`, or the channel's arc (a channel whose filter is a `legality` that is an arc), picks the
+  arc's book tagged **Last complete rules in arc**. Ivory Edition has none and takes its block's,
+  the Twenty Festivals Comprehensive Rules (the user, 2026-10-25); Onyx Edition, with no books,
+  takes the first of its `editions` books in the traits item;
+- otherwise the newest book tagged Last complete rules (in arc) that isn't **Fan Made**: the 20F
+  Comprehensive Rules for L5R, the Rules Reference for the LCG.
+
+A term not in that book is looked for in the arc's other `editions` books (the Onyx Lives
+datasheets hold only what they change), and the reply says so. In a book the bot takes the
+trait links' entry first, then a contents entry, then the text, a heading for the term first.
+Running heads and page numbers (lines on a third of the pages) are left out of passages. Tagging
+a book Last complete rules in arc on the shelf changes which book `arc:` reads.
 
 ## Bug reports (/oraclebug)
 
