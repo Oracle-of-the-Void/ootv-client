@@ -6,6 +6,7 @@
 * [/oracle-fetch (GET)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
+* [/gameconfig (GET)](#gameconfig)             -> A game's config in one request (or every game's Discord block)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
 * [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
@@ -205,6 +206,26 @@ codes:
 * 200: success
 * 404: not found
 * 5xx: error
+
+## /gameconfig
+
+Handled by lambda: ootv-search/routes/gameconfig.js. Public, read only, `Cache-Control: no-cache`.
+
+`GET /gameconfig?database=<game>`: everything the client needs to draw a game (`gameconfigapply()`
+in `oracle.js`), from `oracle-all-structure`, without the items' `history`:
+* `database`, `version` (the items' versions joined, to tell a stored copy is current)
+* `games`: `all/games` (the game menu)
+* `game`: `<game>/game`, or null for a game with no config
+* `fields`: `{all, game}`, `all/fields` and `<game>/fields`
+* `templates`: `all/templates`
+
+400 without a valid `database`.
+
+`GET /gameconfig?discord=1`: what the Discord bot (ootv-discord `src/games.js`) reads at cold start,
+in one request so it doesn't wake several API containers at once:
+* `games`: `all/games` (preview flags included; the bot leaves those games out)
+* `discord`: `{<game>: <game>/game's discord block}` for each game in the menu that has one
+  (`docs/admin/game-config.md`)
 
 ## /user
 
