@@ -391,7 +391,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   page, every printed page reference, "see X" and back-cover Turn Sequence cross-references, printed web addresses
   (1990s fan sites through the Wayback Machine; never-archived ones stay plain), and card names (errata, Pearl's card
   list) and card pictures to the card on the site, at the book's own printing. Their covers carry the edition's arc
-  bug as a wax seal. Steps: ootv-import `rulebooks/REPRODUCE.md`, "Link the book last".
+  bug as a wax seal; the Comprehensive Rules rebuilds carry a large one as their title page's centrepiece. Steps: ootv-import `rulebooks/REPRODUCE.md`, "Link the book last".
 - **Gold Edition**: the publisher PDF shows two-page spreads on a grey mat, so the book is built from
   `game-l5r/rulebook-enhance/gold/rebuild/Rulebook-L5R-Gold_pages.pdf` (2026-10-20): the same PDF cut
   into 88 single pages (cover, inside cover, pp. 1-85, back cover) by ootv-games
