@@ -141,9 +141,11 @@ Invest, Unstoppable, under Ivory Edition, first) and The Blackest Storm (Sinceri
 Festivals, first). The Onyx Lives datasheets are searched (2026-10-21). Two per-book options in the JSON
 help with rulesheets: `narrow` (a heading over a narrow column, whose first line looks like a heading
 too) and `hover` (keep more than 420 characters, where the rule comes after an introduction); `stop` ends
-a definition at a heading the layout hints miss (the Onyx datasheet's "Boldface Keywords"). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
-sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
-back in the hover text from the other books' words.
+a definition at a heading the layout hints miss (the Onyx datasheet's "Boldface Keywords"); `headnum` strips a
+number before an entry heading ("C1 Cavalry" in the rebuilt 20F Comprehensive Rules), and a line starting with one
+ends the definition. The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
+sections. Hover texts from books that print card-text icons (the 20F Comprehensive Rules) name them in
+brackets: "Invest [2 Gold]:".
 
 ## Shelves
 
@@ -232,7 +234,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
 - `ligatures: "lost"`: the PDF's fonts give no text for the fi/ff/fl ligatures, so its text reads "battle eld",
   "e ect", "rst". The words are joined back in `text.json` and `lines/` where that makes a dictionary word
-  (the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
+  (the 2017 print of the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
   book already on the shelf without rendering its pages again. Not for a book that also has split words
   (L5Revival): there it takes the pieces of split words for lost ligatures ("w ords" → "w fiords").
 - `splitwords: true`: the PDF's text has spaces inside words ("v ery well receiv ed", "Li m ite d", small caps
@@ -242,7 +244,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   rules variables), an acronym before a word ("AEG is"), and a whole word at the end of a run unless the
   book prints the joined word whole somewhere ("t ak e out" → "take out", "Str ong hold" → "Stronghold").
   On since 2026-10-26 for L5Revival, Lotus, Diamond, War of Honor, the 1999 DCI Universal Rules and the
-  Samurai, Celestial and Emperor Comprehensive Rules.
+  Samurai, Celestial, Emperor and Twenty Festivals Comprehensive Rules.
 - Ligature characters (ﬁ, ﬂ, ﬀ, ...) in a PDF's text always become plain letters (since 2026-10-26; the
   Samurai Edition preview had 279), so the book search finds "find" in "ﬁnd". No option needed.
 - `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
@@ -399,11 +401,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   built from `game-l5r/rulebook-enhance/samurai/rebuild/Rulebook-L5R-Samurai_preview_pages.pdf`
   (2026-10-20): the spreads cut down the middle by `rulebook-enhance/samurai/split_samurai.py`, 49
   single pages. Crop only, text kept; the original is the second download.
-- **Comprehensive Rules** for Samurai, Celestial and Emperor Edition (2026-10-25/26): rebuilt from AEG's
-  rules.l5r.com wiki into internally linked books (contents with page numbers, every cross-reference a link, `toc`
+- **Comprehensive Rules** for Samurai, Celestial and Emperor Edition and Twenty Festivals (2026-10-25/26): rebuilt
+  from AEG's rules sites (the rules.l5r.com wiki; for 20F, the rules.alderac.com page) into internally linked books (contents with page numbers, every cross-reference a link, `toc`
   and `links` files), with the remaster credit. Celestial and Emperor come from kempy's HTTrack copy of the wiki;
   Samurai from the Wayback Machine's copies of its final (2009) pages, replacing kempy's print of the October 2007
-  page under the same id, so its card rulings were synced to the new pages. Build and notes: ootv-import
+  page under the same id, so its card rulings were synced to the new pages; Twenty Festivals from the Wayback
+  Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt). Card-text
+  icons in 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order. Build and notes: ootv-import
   `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
