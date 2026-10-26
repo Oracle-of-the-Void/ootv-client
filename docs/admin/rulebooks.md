@@ -399,6 +399,12 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   built from `game-l5r/rulebook-enhance/samurai/rebuild/Rulebook-L5R-Samurai_preview_pages.pdf`
   (2026-10-20): the spreads cut down the middle by `rulebook-enhance/samurai/split_samurai.py`, 49
   single pages. Crop only, text kept; the original is the second download.
+- **Comprehensive Rules** for Samurai, Celestial and Emperor Edition (2026-10-25/26): rebuilt from AEG's
+  rules.l5r.com wiki into internally linked books (contents with page numbers, every cross-reference a link, `toc`
+  and `links` files), with the remaster credit. Celestial and Emperor come from kempy's HTTrack copy of the wiki;
+  Samurai from the Wayback Machine's copies of its final (2009) pages, replacing kempy's print of the October 2007
+  page under the same id, so its card rulings were synced to the new pages. Build and notes: ootv-import
+  `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
