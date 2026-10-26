@@ -42,7 +42,7 @@ how many others there were.
 
 `/rulings name:A Test of Courage` shows the card's rulings and errata. Links to rulebooks open
 the page on the site. The reply also says how many answers the card has in the
-Rules Q&A (the old mailing-list rules digests); `full:True` shows them too. If someone just
+Rules Q&A (the rules team's answers from the mailing lists, AEG's forum and Discord); `full:True` shows them too. If someone just
 posted `/rulings` for the same card in the same channel, `full:True` shows only the Q&A, so the
 rulings aren't posted twice. Long replies have **Previous** and **Next** buttons.
 
