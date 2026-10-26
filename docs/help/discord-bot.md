@@ -10,6 +10,7 @@ Discord, only to you; add `public:True` to post it for the whole channel.
 | `/cardtext` | One card's rules text, stats and legality |
 | `/rulings` | One card's rulings and errata, and its Rules Q&A answers with `full:True` |
 | `/search` | A search, with the same syntax as the site's search box |
+| `/rule` | A rule from the rulebooks, with a link that opens the book at it |
 | `/oraclebug` | Report a problem with the site or a card |
 | `/oraclehelp` | Help on the commands: pick one from the list under the reply (or add `command:`) for more; `public:True` posts it to the channel |
 
@@ -56,6 +57,26 @@ site.
 
 The query can be left out when an option narrows the search:
 `/search clan:Crab type:Personality legality:Jade Extended`.
+
+## Rules: /rule {#rule}
+
+`/rule term:Cavalry` finds a rule in the [Bookshelf](rules.md) rulebooks and shows the passage,
+the book and page, and a small picture of the page. The title opens the book on the site at that
+place, marked. **Also on** lists other pages with the term.
+
+- `term`: a keyword or trait (Cavalry, Yu), a rule's heading (Ranged Attacks, Battle
+  Resolution) or any words. It autocompletes with the traits and the headings of the book it will
+  look in.
+- `arc:` looks in that arc's latest complete rules, e.g. `arc:Clan Wars (Imperial)` reads Scorpion
+  Clan Coup and `arc:Hidden Emperor (Jade)` The Spirit Wars. Ivory Edition reads the Twenty
+  Festivals Comprehensive Rules.
+- `book:` looks in one rulebook instead, e.g. `book:Jade Edition`.
+- Without either, the bot reads the channel's arc, if the channel is for one arc, and otherwise the
+  newest AEG rules, the Twenty Festivals Comprehensive Rules.
+
+The Onyx Lives datasheets only hold the rules they change. When the term isn't in one, the bot
+looks in the rules it builds on (the Onyx/Shattered Empire datasheet, then the Twenty Festivals
+Comprehensive Rules) and says where it found it. Rules from fan-made books are marked **Fan Made**.
 
 ## Options {#options}
 
