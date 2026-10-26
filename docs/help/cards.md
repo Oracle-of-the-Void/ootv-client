@@ -59,8 +59,10 @@ where the ruling is (on a phone, press and hold it), and click it to open the pa
 ## Rules Q&A {#rules-qa}
 
 The **answers from the rules team** button lists answers the official rules team gave about
-this card, mostly from the old mailing-list rules digests. Click one to read it where it was
-posted, with the question it answered.
+this card: from the old mailing-list rules digests, AEG's rules forum and the rules channels on
+the L5R Discord servers. Click one to read it where it was posted, with the question it answered.
+A few answers from experienced players who aren't officials start "Unofficial answer:"; they're only
+on cards with no other rulings.
 
 ## Traits and keywords in the rulebooks {#traits}
 
