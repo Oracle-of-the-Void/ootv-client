@@ -1850,6 +1850,8 @@ table.usagetable td:not(:first-child), table.usagetable th { text-align: right; 
 table.usagetable tr.usagetotal td { border-top: 2px solid #999; }
 table.usagerows tr.usage-limited td { color: #a60; }
 table.usagerows tr.usage-error td, table.usagerows tr.usage-denied td { color: #a00; }
+table.patreonrows tr.patreon-former_patron td, table.patreonrows tr.patreon-free td { color: #666; }
+table.patreonrows tr.patreon-declined_patron td:first-child { color: #a60; }
 /* admin Discord bot settings */
 .discordadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 table.discord { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 4px 0 16px; }
