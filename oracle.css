@@ -2460,7 +2460,6 @@ div.tradecard.tradeboth .dircardhead { background: linear-gradient(#2e8b3a, #1d5
 span.tradetag { font-size: small; padding: 0 6px; border-radius: 8px; background: #fff; color: #1d5e26; }
 div.tradeside { margin: 6px 0; }
 div.tradeside ul, div.tradecard ul { margin: 2px 0 6px; padding-left: 18px; }
-small.tradefoil { color: #8a6d00; }
 a.cardtraders svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
 a.cardtraders { text-decoration: none; margin-left: 6px; }
 button.msgbutton { position: relative; }

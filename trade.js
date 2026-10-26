@@ -39,7 +39,7 @@ function tradecard(e, yourslabel) {
   var link = '<a href="#game='+database+',#cardid='+parseInt(e.cardid)+'" onclick="docardid('+parseInt(e.cardid)+'); return false;">'+tradeesc(e.title || 'card #'+e.cardid)+'</a>';
   bits.push(link);
   if(e.printing) bits.push('<small>(printing '+tradeesc(e.printing)+')</small>');
-  if(e.foil) bits.push('<small class="tradefoil">'+(e.foil == 'either' ? 'foil or not' : 'foil')+'</small>');
+  if(e.foil) bits.push(templatefoilmark(e.foil));
   if(yourslabel && e.yours) bits.push('<small>('+yourslabel+' '+parseInt(e.yours)+')</small>');
   return '<li>'+bits.join(' ')+'</li>';
 }
