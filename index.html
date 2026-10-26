@@ -62,6 +62,8 @@
 	<button aria-label="Deck/List Details" data-balloon-pos="down" data-view="resultlist" onclick="showview('resultlist');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></button>
 	<button aria-label="Public Lists" data-balloon-pos="down" data-view="resultpublic" onclick="showview('resultpublic');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></button>
 	<button aria-label="Bookshelf" data-balloon-pos="down" data-view="resultrules" onclick="showview('resultrules');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#book-open"></svg></button>
+	<button aria-label="Trades" data-balloon-pos="down" data-view="resulttrades" onclick="showview('resulttrades');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#repeat"></svg></button>
+	<button aria-label="Messages" data-balloon-pos="down" data-view="resultmessages" class="msgbutton" onclick="showview('resultmessages');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#mail"></svg><span class="msgbadge" style="display:none"></span></button>
 	<button aria-label="Help" data-balloon-pos="down" data-view="resulthelp" onclick="showview('resulthelp');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#help-circle"></svg></button>
 	</span>
       </li>
@@ -346,11 +348,15 @@
       <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
       <li><a href="" onclick="loadadmindoc('artist-check'); return false">Artist check (style and signature)</a></li>
       <li><a href="" onclick="loadadmindoc('most-played'); return false">Most played cards (public decks)</a></li>
+      <li><a href="" onclick="loadadmindoc('trade-lists'); return false">Trade lists and messages</a></li>
     </ul>
     <div id="admindoc" class="admindoc"></div>
   </div>
 </div></div>
 <div class="resultrules" id="resultrules"><div class="rulesarea" id="rulesarea"></div></div>
+<!-- Trades and Messages (trade.js, loaded on first use; ootv-claude TRADE-LISTS.md) -->
+<div class="resulttrades" id="resulttrades"><div class="randarea tradesarea" id="tradesarea"></div></div>
+<div class="resultmessages" id="resultmessages"><div class="randarea messagesarea" id="messagesarea"></div></div>
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
 <div class="resultabout" id="resultabout">
 <div class="randarea">
@@ -754,7 +760,12 @@ Recent Data Updates for Currently Selected Database:<br>
       <span class="profilepatreonstatus">{{>patreonmsg}}</span>
       <br/><small>Our <a href="https://www.patreon.com/oracleofthevoid" target="_blank" rel="noopener">Patreon</a> supporters get more photo searches.
         A Patreon account whose email is one of the emails above is tied to this account by itself; otherwise use Link with Patreon.</small></dd>
-    {{!-- No Notifications row (#21): nothing reads users.is_no_email and the site sends no optional email; bring it back as a real switch if that changes --}}
+    <dt>Messages</dt><dd class="profilemessages">
+      <label><input type="checkbox" class="profileacceptmessages"{{if oracle.acceptmessages !== false}} checked{{/if}} onchange="saveprofilemessaging(this);"> Accept messages from other players</label><br/>
+      <label><input type="checkbox" class="profilemessageemail"{{if oracle.messageemail !== 'off'}} checked{{/if}}{{if oracle.acceptmessages === false}} disabled{{/if}} onchange="saveprofilemessaging(this);"> Email me when someone sends a message</label>
+      <span class="profilemessagesstatus"></span>
+      <br/><small>Off: nobody can start a new conversation with you, and your lists can't be open to trade. Conversations you already have carry on; mute or block someone from the conversation.
+        The email names the sender and links to the message, once per conversation until you read it. <span class="helpq" data-help="trading#messages" aria-label="Help: messages">?</span></small></dd>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined<br/>{{:folders}} folder{{if folders!=1}}s{{/if}} ({{>gamename}})</dd>
   </dl>
 </section>
@@ -1000,6 +1011,7 @@ Recent Data Updates for Currently Selected Database:<br>
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
     <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value); $('#resultlist .liststatslegal').attr('data-format',this.value); liststatslegal();">{{listLegalitySelect:legality}}</select>
     <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>Private</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Public</option></select>
+    {{if type == 'have' || type == 'want'}}<select class="listselect" aria-label="Trade" onchange="listtradeset('{{:listid}}',this);"><option value="false"{{if !trade}} selected{{/if}}>Not for trade</option><option value="true"{{if trade}} selected{{/if}}>Open to trade</option></select> <span class="helpq" data-help="trading#open" aria-label="Help: open to trade">?</span>{{/if}}
     <span class="helpq" data-help="lists#sharing" aria-label="Help: type, legality and sharing">?</span>
     <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}

@@ -55,6 +55,9 @@ printing are two entries, so a Have list can hold both. A printing only ever pri
 just shows its **✦ Foil** mark. Lists without a printing chosen (any version) can be marked foil
 too, when any version of the card came in foil.
 
+Trades match on it: a foil want finds only foil haves, a regular want only regular ones, and
+**Foil or not** finds either (see Help → Trading and messages).
+
 ## Statistics {#stats}
 
 Under the list's name is its card count. Open it for the details: how many cards of each type

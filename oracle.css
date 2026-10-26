@@ -2452,3 +2452,40 @@ div.publiccardrow div.dircardmeta:first-child { margin-top: 0; }
 span.publicrank { color: #fff; font-weight: bold; min-width: 1.5em; }
 div.publicbar { height: 6px; background: #e6e6e6; border-radius: 3px; margin-top: 4px; overflow: hidden; }
 div.publicbar span { display: block; height: 100%; background: #1aa329; }
+
+/* Trades and Messages (trade.js) */
+div.tradesarea, div.messagesarea { display: block; padding: 6px 10px; max-width: 1100px; box-sizing: border-box; }
+div.tradelist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin-top: 8px; }
+div.tradecard.tradeboth .dircardhead { background: linear-gradient(#2e8b3a, #1d5e26); }
+span.tradetag { font-size: small; padding: 0 6px; border-radius: 8px; background: #fff; color: #1d5e26; }
+div.tradeside { margin: 6px 0; }
+div.tradeside ul, div.tradecard ul { margin: 2px 0 6px; padding-left: 18px; }
+a.cardtraders svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
+a.cardtraders { text-decoration: none; margin-left: 6px; }
+button.msgbutton { position: relative; }
+span.msgbadge { position: absolute; top: -4px; right: -6px; min-width: 16px; padding: 0 3px; border-radius: 8px; background: #c00; color: #fff; font-size: 11px; line-height: 16px; text-align: center; }
+div.msginbox { margin-top: 6px; }
+div.msgthreadrow { display: flex; gap: 6px; align-items: baseline; padding: 6px 4px; border-bottom: 1px solid #ccc; cursor: pointer; }
+div.msgthreadrow:hover { background: #eee; }
+div.msgthreadrow.msgunread .msgwho { font-weight: bold; }
+span.msgwho { flex: 0 1 auto; overflow-wrap: anywhere; }
+span.msgsubject { color: #555; font-size: small; }
+span.msgcount { background: #c00; color: #fff; border-radius: 8px; padding: 0 6px; font-size: small; }
+span.msgwhen { margin-left: auto; color: #777; font-size: small; white-space: nowrap; }
+div.msghead { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+div.msghead h2 { margin: 4px 0; }
+div.msgflags { margin: 4px 0; }
+div.msgthread { max-height: 55vh; overflow-y: auto; padding: 4px 0; }
+div.msg { max-width: 80%; margin: 6px 0; padding: 6px 8px; border-radius: 8px; background: #eee; overflow-wrap: anywhere; }
+div.msg.msgmine { margin-left: auto; background: #d9eedb; }
+div.msgmeta { font-size: small; color: #666; }
+div.msgctx, div.msgcontext { font-size: small; color: #2a5d8a; margin: 2px 0; }
+form.msgcompose textarea { width: 100%; box-sizing: border-box; font: inherit; }
+form.msgcompose { margin-top: 6px; }
+@media (max-width: 600px) {
+  div.tradelist { grid-template-columns: 1fr; }
+  div.msg { max-width: 92%; }
+}
+div.tradesarea, div.messagesarea { text-align: left; }
+div.tradesarea h2, div.messagesarea h2 { text-align: center; }
+div.msghead h2 { text-align: left; }
