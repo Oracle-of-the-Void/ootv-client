@@ -244,7 +244,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   rules variables), an acronym before a word ("AEG is"), and a whole word at the end of a run unless the
   book prints the joined word whole somewhere ("t ak e out" → "take out", "Str ong hold" → "Stronghold").
   On since 2026-10-26 for L5Revival, Lotus, Diamond, War of Honor, the 1999 DCI Universal Rules and the
-  Samurai, Celestial, Emperor and Twenty Festivals Comprehensive Rules.
+  Samurai, Celestial, Emperor, Ivory and Twenty Festivals Comprehensive Rules.
 - Ligature characters (ﬁ, ﬂ, ﬀ, ...) in a PDF's text always become plain letters (since 2026-10-26; the
   Samurai Edition preview had 279), so the book search finds "find" in "ﬁnd". No option needed.
 - `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
@@ -408,13 +408,14 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   built from `game-l5r/rulebook-enhance/samurai/rebuild/Rulebook-L5R-Samurai_preview_pages.pdf`
   (2026-10-20): the spreads cut down the middle by `rulebook-enhance/samurai/split_samurai.py`, 49
   single pages. Crop only, text kept; the original is the second download.
-- **Comprehensive Rules** for Samurai, Celestial and Emperor Edition and Twenty Festivals (2026-10-25/26): rebuilt
-  from AEG's rules sites (the rules.l5r.com wiki; for 20F, the rules.alderac.com page) into internally linked books (contents with page numbers, every cross-reference a link, `toc`
+- **Comprehensive Rules** for Samurai, Celestial, Emperor and Ivory Edition and Twenty Festivals (2026-10-25/26): rebuilt
+  from AEG's rules sites (the rules.l5r.com wiki; for Ivory and 20F, the rules.alderac.com pages) into internally linked books (contents with page numbers, every cross-reference a link, `toc`
   and `links` files), with the remaster credit. Celestial and Emperor come from kempy's HTTrack copy of the wiki;
   Samurai from the Wayback Machine's copies of its final (2009) pages, replacing kempy's print of the October 2007
   page under the same id, so its card rulings were synced to the new pages; Twenty Festivals from the Wayback
-  Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt). Card-text
-  icons in 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order. Build and notes: ootv-import
+  Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt); Ivory likewise from its page's
+  captures (final text as archived 15 March 2015, the page has no date; kempy's 2017 print is the second download, and it
+  has trait links). Card-text icons in Ivory and 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order. Build and notes: ootv-import
   `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
