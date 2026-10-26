@@ -57,6 +57,11 @@ ootv-claude `RULINGS-IMPORT.md`):
 - The FAQs' questions and answers (1997 to 2004) are rulings too: the question and its answer
   (`Q: ... A: ...`) go to each card the question names. A question about a title several cards
   share gets the same `needsreview` note.
+- Comprehensive Rules (Samurai and Celestial, chapter "Specific Card Rulings and Most Recent Printings",
+  `rulebooks.md`): each card's MRP (`Erratum: Reads, "..."`) and rulings, linked to the book page. A title several
+  cards share went only to the card whose stats or text the entry quotes, so these have no `needsreview` note.
+  Celestial's went on 2026-10-26; Samurai's replaced the October 2007 print's the same day, when its remaster of
+  the final (2009) wiki took over that shelf id (the old ones' copies on other printings and their notes went too).
 - Rulings on general rules topics (Costs, Timing, Tokens...) and questions that name no card stay
   in the books, not on cards.
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
