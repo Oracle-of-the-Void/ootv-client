@@ -1686,12 +1686,13 @@ div#phonesearchbar .numresults {
     padding-left: .6rem;
   }
   /* the view icons flow like words: they start beside the menu and game logo and wrap under them (a float would
-     drop below them whole), so with large text or browser zoom they take few rows and never widen the page.
+     drop below them whole), so with large text or browser zoom they take few rows and never widen the page. Inline,
+     not a block, so the right-hand items after them (login, username) can share their last row when there's room.
      No box around them: it can't follow them across lines (the active one keeps its highlight) */
   div.menubar nav li.viewicons {
     padding-top: 3px;
     float: none;
-    display: block;
+    display: inline;
   }
   div.menubar nav li.viewicons .searchviewgroup {
     display: inline;
