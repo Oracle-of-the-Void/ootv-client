@@ -59,6 +59,12 @@ dd.rulings div {
   padding-left: 4px;
   margin-bottom: 2px;
 }
+/* rulingsfold: the first 3 shown, the rest behind "Show N more"; the arrow by the label folds them all away */
+dd.rulings.rulingssome > div:nth-of-type(n+4), dd.rulings.rulingsnone > div, dd.rulings.rulingsnone .rulingsmore,
+dd.rulings:not(.rulingsnone) .rulingsopen { display: none; }
+dd.rulings .rulingsmore, dd.rulings .rulingsopen, dt .rulingsfoldbtn { cursor: pointer; color: #369; }
+dd.rulings .rulingsmore, dd.rulings .rulingsopen { display: inline-block; padding-left: 7px; font-size: 90%; text-decoration: underline; }
+dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-align: center; user-select: none; }
 #modal.rulingmodal .modal-box { width: 900px; max-width: 95vw; min-width: 0; margin-top: 2%; }
 /* an artist credit's modal (artistmodal): search, then the artist's links */
 #modal.artistmodal .modal-box { width: 420px; max-width: 95vw; min-width: 0; }

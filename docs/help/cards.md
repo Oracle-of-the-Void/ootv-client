@@ -56,6 +56,10 @@ link to the rulebook or FAQ page they come from: hover over the link to see that
 where the ruling is (on a phone, press and hold it), and click it to open the page.
 **Open in the Bookshelf** takes you to that place in the [Bookshelf](rules.md).
 
+A card with many rulings shows the first three: **Show N more** lists the rest, and **Show
+fewer** goes back. The arrow by the **Rulings** label folds the whole list away to **Show N rulings**;
+click that (or the arrow again) to bring them back.
+
 ## Rules Q&A {#rules-qa}
 
 The **answers from the rules team** button lists answers the official rules team gave about
