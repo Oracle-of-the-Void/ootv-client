@@ -1849,8 +1849,8 @@ div#phonesearchbar .numresults {
     display: block;
     width: auto;
   }
-  #maincontent img:not(.inlinesymbolbounded) {
-    /* not the 1em text symbols (onyx elements etc.), which height: auto would blow up to full size.
+  #maincontent img:not(.inlinesymbolbounded):not(.legalitybug) {
+    /* not the 1em text symbols (onyx elements etc.) or legality bugs, which height: auto would blow up to full size.
        vw, not %: images sit in auto-width table cells, where a % max-width collapses them; !important beats the card view's inline max-width: 600px */
     max-width: 90vw !important;
     height: auto;
@@ -2490,3 +2490,11 @@ div.publiccardrow div.dircardmeta:first-child { margin-top: 0; }
 span.publicrank { color: #fff; font-weight: bold; min-width: 1.5em; }
 div.publicbar { height: 6px; background: #e6e6e6; border-radius: 3px; margin-top: 4px; overflow: hidden; }
 div.publicbar span { display: block; height: 100%; background: #1aa329; }
+
+/* L5R arc bugs (legality kanji) before a legality's name (legalitybug in oracle.js); the Detailed Search
+   result's line of small ones under the set names (legalitybugline) */
+img.legalitybug { height: 1.3em; width: auto; vertical-align: -0.3em; margin-right: 0.2em; }
+span.legalitywithbug { white-space: nowrap; }
+span.listlegalitybug img.legalitybug { margin-left: 0.3em; }
+div.legalitybugline { margin: 3px 0 2px; line-height: 1; }
+div.legalitybugline img.legalitybugsmall { height: 20px; width: 20px; vertical-align: middle; margin: 0 2px 0 0; }

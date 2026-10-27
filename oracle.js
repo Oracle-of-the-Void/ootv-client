@@ -17,6 +17,7 @@ $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
 $.views.helpers("sortlegality",templatesortlegality);
+$.views.helpers("legalitybugs",function(data) { return legalitybugline(data); });
 $.views.helpers("sortprintings",templatesortprintings);
 $.views.helpers("printingidfromset",templateprintingidfromset);
 $.views.helpers("listqty",listquantity);
@@ -100,6 +101,10 @@ $.views.converters("listLegalitySelect",function(legality) {
 });
 $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
+});
+$.views.converters("legalitybug",function(val) { return legalitybug(val); });
+$.views.converters("legalitybugged",function(val) {
+  return legalitybug(val)+(val||'').replace(/&nbsp;/g, " ");
 });
 $.views.converters("databaseitemlookup",function(item) {
   if(item=="blurb" && typeof blurb !== 'undefined' && blurb[database]) {
@@ -3536,7 +3541,7 @@ function liststatslegal() {
 	    } else {
 		bad.hide();
 	    }
-	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+htmlEncode(f)+'</span>'; }).join('') :
+	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
 	if(liststatslegalcache[key]) {
@@ -6068,6 +6073,26 @@ function templatesortlegality(legality) {
     // card detail legalities in chronological (arc) order (#190)
     return sortbyselect(legality,"legality",function(l) { return l; });
 }
+// the arc bug (legality kanji) drawn before a legality's name: game config legalitybugs {path, bugs: {<legality,
+// plain text>: <image name>}} (docs/admin/game-config.md; L5R: the Renka Gyosho wax seals from ootv-assets
+// legality-bugs). '' for a legality with none, or a game without them. small: the bug alone (alt is the name).
+function legalitybug(value, small) {
+    var lb = ((gameconfig[database] || {}).game || {}).legalitybugs;
+    var name = selectplaintext(value || '');
+    if(!lb || !lb.bugs || !lb.bugs[name]) { return ''; }
+    return '<img class="legalitybug'+(small ? ' legalitybugsmall' : '')+'" src="'+lb.path+lb.bugs[name]+'.png" alt="'+
+        (small ? htmlEncode(name) : '')+'" title="'+htmlEncode(name)+'" />';
+}
+function legalitybugged(value) {
+    var bug = legalitybug(value);
+    return bug ? '<span class="legalitywithbug">'+bug+value+'</span>' : value;
+}
+// the Detailed Search result's line of bugs under the set names (~legalitybugs(#data)): the card's legalities
+// that have one, in arc order; nothing when none does
+function legalitybugline(data) {
+    var bugs = templatesortlegality([].concat((data && data.legality) || [])).map(function(l) { return legalitybug(l, true); }).filter(Boolean);
+    return bugs.length ? '<div class="legalitybugline">'+bugs.join('')+'</div>' : '';
+}
 function templatesortprintings(printing) {
     // card detail Versions in chronological set order; set is linkified by docard, setclean is not
     return sortbyselect(printing,"printing.set",function(p) {
@@ -6622,7 +6647,7 @@ function gamerows(data, place) {
   return (conf.game.rows[place] || []).map(function(r) { return gamerow(data, r); }).join('\n');
 }
 var gamerowhelpers = {
-  sortlegality: function(v) { return templatesortlegality(v || []).join(' &#149; '); },
+  sortlegality: function(v) { return templatesortlegality(v || []).map(legalitybugged).join(' &#149; '); },
   // the stored values plus every derived value the card fits (a game whose legality is all derived
   // rules, Netrunner): a row {fields: ["legality"], helper: "derivedlegality", when: "always"}
   derivedlegality: function(v, data) {
@@ -6630,7 +6655,7 @@ var gamerowhelpers = {
     cardderived(data, 'legality').forEach(function(n) {
       if(!all.some(function(x) { return selectplaintext(x) == selectplaintext(n); })) { all.push(n); }
     });
-    return all.length ? templatesortlegality(all).join(' &#149; ') : '&ndash;';
+    return all.length ? templatesortlegality(all).map(legalitybugged).join(' &#149; ') : '&ndash;';
   },
   soultitle: function(v) { return soultitle(v); },
   makelinks: function(v) { return templatemakelinks(v); }
@@ -9469,10 +9494,10 @@ function renderpublic(data, append) {
     if(d.stronghold) meta.push(d.stronghold.title);
     var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
     var when = String(h.modified || h.created || '').slice(0,10);
-    var format = d.format ? '<div class="dircardmeta">Format: <b>'+htmlEncode(d.format)+'</b>'+
+    var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
     var formats = (d.cardslegal || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">All cards legal for: '+
-      d.cardslegal.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+      d.cardslegal.map(function(f) { return '<span>'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
     var precon = h.precon ? '<div class="publicprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: '+htmlEncode(h.precon.product || '')+(h.precon.year ? ' ('+htmlEncode(h.precon.year)+')' : '')+'</div>' : '';
     var award = h.award ? '<div class="publicaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> '+htmlEncode(h.award.result || 'Tournament')+': '+htmlEncode(h.award.event || '')+(h.award.year ? ' ('+htmlEncode(h.award.year)+')' : '')+'</div>' : '';
     return '<div class="directorycard publiccard" data-open="list" data-listid="'+h.listid+'">'+
@@ -9551,7 +9576,7 @@ function renderpublicgroups(data, append) {
 	'<div class="dircardbody">'+
 	  '<div class="dircardmeta">'+publicgroupcounts(g, true)+'</div>'+
 	  (g.formats.length ? '<div class="publicformats">Formats: '+g.formats.map(function(f) {
-	    return '<a href="" class="publicformatlink" data-format="'+publicattr(f.value)+'" onclick="publicopen({owner: '+parseInt(g.owner)+', format: $(this).data(\'format\')}, this); return false;">'+htmlEncode(f.value)+' '+f.count+'</a>';
+	    return '<a href="" class="publicformatlink" data-format="'+publicattr(f.value)+'" onclick="publicopen({owner: '+parseInt(g.owner)+', format: $(this).data(\'format\')}, this); return false;">'+legalitybug(f.value)+htmlEncode(f.value)+' '+f.count+'</a>';
 	  }).join('')+'</div>' : '')+
 	  (when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
 	'</div></div>';
@@ -9560,7 +9585,7 @@ function renderpublicgroups(data, append) {
     var guessed = (src.name || 0) + (src.cards || 0);
     var fmt = g.format || 'none';
     return '<div class="directorycard publiccard" data-open="format" data-format="'+publicattr(fmt)+'">'+
-      '<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({format: \''+publicjs(fmt)+'\'}); return false;">'+(g.format ? htmlEncode(g.format) : 'No format')+'</a></div>'+
+      '<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({format: \''+publicjs(fmt)+'\'}); return false;">'+(g.format ? legalitybug(g.format)+htmlEncode(g.format) : 'No format')+'</a></div>'+
       '<div class="dircardbody">'+
 	'<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
 	'<div class="dircardmeta"><a href="" onclick="publicopen({group: \'people\', format: \''+publicjs(fmt)+'\'}); return false;" title="The people with decks in this format">'+g.people+' '+(g.people==1 ? 'person' : 'people')+'</a>'+(guessed ? ' &middot; '+(src.owner || 0)+' set by owner, '+guessed+' guessed' : '')+'</div>'+
