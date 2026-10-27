@@ -648,6 +648,30 @@ function listmine(listid) {
   var list = cache_thing("list",listid);
   return !!(list && list.list && list.list.Items[0] && list.list.Items[0].owner == getuid());
 }
+// someone else's list an admin may edit (groups holding 'listedit' or '*'; ootv-search /list marks it adminedit)
+function listadminedit(listid) {
+  if(!listid || listmine(listid) || !gamepermission('listedit')) {
+    return false;
+  }
+  var list = cache_thing("list",listid);
+  return !!(list && list.list && list.list.Items[0] && list.list.Items[0].adminedit);
+}
+// the list's cards and details can be changed: your own, or as an admin
+function listeditable(listid) {
+  return listmine(listid) || listadminedit(listid);
+}
+// an active list's details for the active lists bar and the card controls: the directory's item, or for
+// someone else's list being edited as an admin (not in your directory) its loaded item. listdata: the loaded list.
+function activelistmeta(listid) {
+  var dir = cache_thing("list","data"), rev = cache_thing("list","datareverse");
+  var cached = cache_thing("list",listid);
+  var list = (dir && rev && rev[listid] !== undefined) ? dir.lists.Items[rev[listid]] :
+      (cached && cached.list && cached.list.Items[0] ? $.extend({}, cached.list.Items[0]) : {'listid': listid, 'name': 'List '+listid});
+  if(cached) {
+    list.listdata = cached;
+  }
+  return list;
+}
 // a #listid link to a list that's private, deleted or never existed (the API answers all three alike)
 function listunavailable() {
   $('#resultlist').html('<div class="randarea">This list is private or doesn\'t exist.'+
@@ -1591,11 +1615,7 @@ function renderlisteditarea() {
 	    '<div class="randarea">Active Lists:<br />'+
 		(Object.keys(updatepending).length >0 ? '<span style="background-color:red;" onclick="savecallback();">Updates Pending</span>' :'')+
 		listactivetemplate.render(activelists.map(function(listid) {
-		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-		    if(cache_thing("list",listid)) {
-			list.listdata = cache_thing("list",listid);
-		    }
-		    return list;
+		    return activelistmeta(listid);
 		}))+
 		'</div><br /><br />'
 	);
@@ -1659,7 +1679,7 @@ function syncactivelists() {
 	}
     }
     var before = activelists.length;
-    activelists = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); });
+    activelists = activelists.filter(function(listid) { return rev.hasOwnProperty(listid) || listadminedit(listid); });
     activelists.forEach(function(listid) {
 	showlisttoggle(listid,true);
     });
@@ -1860,7 +1880,7 @@ function listentryis(ele,cardid,prid,foil) {
     return ele.cardid == cardid && ele.printing == (prid||0) && (ele.foil||'') == (foil||'');
 }
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
-    if(!listmine(listid)) {
+    if(!listeditable(listid)) {
 	console.warn("addlistitem: list "+listid+" isn't yours");
 	return;
     }
@@ -1875,7 +1895,7 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
 function addlistitems(listid,items,n=1) {
-    if(!listmine(listid)) {
+    if(!listeditable(listid)) {
 	console.warn("addlistitems: list "+listid+" isn't yours");
 	return;
     }
@@ -1908,7 +1928,7 @@ function listitemchange(list,cardid,prid=0,n=1,abs=false,foil='') {
 // the list entry's foil toggle (~listfoil): regular -> foil (-> foil or not, on a want list) -> regular. An entry
 // that lands on one already there (same card, printing and foil) joins it.
 function listfoiltoggle(listid,cardid,prid,foil) {
-    if(!listmine(listid)) { return; }
+    if(!listeditable(listid)) { return; }
     var list = cache_thing("list",listid), entries = list.list.Items[0].list;
     var cycle = list.list.Items[0].type == 'want' ? ['', 'foil', 'either'] : ['', 'foil'];
     var next = cycle[(cycle.indexOf(foil||'') + 1) % cycle.length];
@@ -3134,7 +3154,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
-		"listmine": listmine(listid)   // the card rows' count controls, only on your own lists
+		"listmine": listeditable(listid)   // the card rows' count controls, only on your own lists (or as an admin)
 	};
 	// the template's vars (visual-premium: imageclass details), and the Deck format's large size
 	var override = getactivetemplateoverride('list');
@@ -3202,7 +3222,7 @@ function listheader(listid) {
     var meta = null;
     var dir = cache_thing("list","data");
     var rev = cache_thing("list","datareverse");
-    var mine = listmine(listid);
+    var mine = listeditable(listid);
     if(dir && rev && rev[listid] !== undefined) {
 	meta = $.extend({}, dir.lists.Items[rev[listid]]);
     }
@@ -3214,7 +3234,7 @@ function listheader(listid) {
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
-	"awardmod": gamepermission('listaward'),
+	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid),
 	"loggedin": listloggedin(), "database": database});
 }
 // moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
@@ -3611,8 +3631,7 @@ function listmissing(listid,missing) {
     if(missing.length < 1) {
 	return '';
     }
-    var rev = cache_thing("list","datareverse");
-    var mine = rev && rev[listid] !== undefined;
+    var mine = listeditable(listid);
     return '<div class="listmissing">'+(missing.length == 1 ? 'A card' : missing.length+' cards')+
 	' in this list no longer '+(missing.length == 1 ? 'exists' : 'exist')+' on the site (card id '+
 	missing.map(function(c) { return c.cardid; }).join(', ')+').'+
@@ -5173,13 +5192,7 @@ function cardhtml(carddata,prid=null,qs=null) {
   var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
-	  "activelists": activelists.map(function(listid) {
-	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-	    if(cache_thing("list",listid)) {
-		    list.listdata = cache_thing("list",listid);
-	    }
-	    return list;
-	  }),
+	  "activelists": activelists.map(activelistmeta),
 	  "database": database,
     "dbinfo": dbinfo[database],
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
@@ -5506,13 +5519,7 @@ function rendercards(data,request,querystring) {
 	    "labels": labels[database],
 	    "datarequest": request,
 	    "qs": querystring,
-	    "activelists":activelists.map(function(listid) {
-	      var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-	      if(cache_thing("list",listid)) {
-		      list.listdata = cache_thing("list",listid);
-	      }
-	      return list;
-	    }),
+	    "activelists":activelists.map(activelistmeta),
 	    "database": database
   };
   var override = getactivetemplateoverride('search');
@@ -5599,7 +5606,7 @@ function deckswipestart(target, x, y, mouse=false) {
     var a = $(target).closest('a.deckswipe');
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
     deckswipe = null;
-    if(a.data('list') && !listmine(String(a.data('list')))) {
+    if(a.data('list') && !listeditable(String(a.data('list')))) {
 	return false;   // someone else's shared deck: read only
     }
     if(listid || (a.length && searchloggedin() && cache_thing("list","data"))) {
@@ -5707,8 +5714,7 @@ function deckswipeapply(listid, cardid, prid, act, named=false) {
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
     if(named) {
-	var lists = cache_thing("list","data").lists.Items;
-	title += ' \u2192 ' + lists[cache_thing("list","datareverse")[listid]].name;
+	title += ' \u2192 ' + activelistmeta(listid).name;
     }
     var n = {'add': act[1], 'sub': -act[1], 'set': act[1] - have, 'zero': -have}[act[0]] || 0;
     if(n == 0 || (have == 0 && n < 0)) {
@@ -5812,7 +5818,7 @@ function searchaddallpick() {
     var total = searchcache[database]['querytotal'][qs];
     var rev = cache_thing("list","datareverse") || {};
     var items = cache_thing("list","data").lists.Items;
-    var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); }).map(function(listid) { return items[rev[listid]]; });
+    var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid) || listadminedit(listid); }).map(activelistmeta);
     var request = searchcache[database]['queryrequest'][qs] || $.deparam(qs);
     modal('Add all ' + total.toLocaleString() + ' cards to which list?',
 	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher, artist or foil to add a version).') + '</p>' +
@@ -5853,8 +5859,7 @@ function searchaddallpicked(listid) {
 	    });
 	    addlistitems(listid, items, copies);
 	    nomodal();
-	    var lists = cache_thing("list","data").lists.Items;
-	    deckswipetoast('Added ' + items.length.toLocaleString() + ' cards' + (copies > 1 ? ' \u00d7' + copies : '') + ' \u2192 ' + $('<div>').text(lists[cache_thing("list","datareverse")[listid]].name).html());
+	    deckswipetoast('Added ' + items.length.toLocaleString() + ' cards' + (copies > 1 ? ' \u00d7' + copies : '') + ' \u2192 ' + $('<div>').text(activelistmeta(listid).name).html());
 	});
     });
 }
