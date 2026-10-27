@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-27 (Ivory expansion rulesheets in the Ivory and 20F Comprehensive Rules)
+Last updated: 2026-10-27 (Onyx/ShE Comprehensive Rules draft; Ivory expansion rulesheets in the Ivory and 20F Comprehensive Rules)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -423,6 +423,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (destroyed Provinces' Fortifications, Invest, II.4 and Appendix B entries); the books grew to 90 (20F) and 89 (Ivory)
   pages and the trait links were rerun. Build and notes: ootv-import
   `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
+- **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-10-27, Version 0.1 draft): a new book, not a rebuild:
+  the 20F book above (with its rulesheets) plus Onyx Lives' Onyx/ShE Rules Datasheet, applied in the datasheet's own words
+  where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty
+  Festivals". The datasheet only applies where it changes something; every other wording change was the user's decision,
+  one by one (record: ootv-games `rulebook-enhance/comprehensive-rules/onyx/JUDGEMENT.md`). It is to become the official
+  Onyx/ShE rules reference after the Onyx Lives rules team reviews it. Build and notes: ootv-import
+  `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
