@@ -3,8 +3,9 @@
 Last updated: 2026-10-26
 
 AEG's **Doomtown: Reloaded** (2014–2016) and **Pine Box Entertainment**'s sets since 2017, Weird West
-Edition included, as one game (ootv-claude `projects/newgame-dtlcg.md`). Not live yet: built and checked
-offline, waiting on the go-live steps (ootv-games `game-dtlcg/GO-LIVE.md`).
+Edition included, as one game (ootv-claude `projects/newgame-dtlcg.md`). On the site it's called **Doomtown**
+(the game menu, the bot); this doc says Doomtown: Reloaded to keep it apart from the 1998 CCG. Not live yet: built and checked
+Live as a preview game since 2026-10-27 (ootv-games `game-dtlcg/GO-LIVE.md`).
 
 **Not the 1998 Doomtown CCG**, which would be a game of its own (`dtccg`). The two never share cards,
 ids or images, even where names agree.
