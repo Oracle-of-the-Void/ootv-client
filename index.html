@@ -890,7 +890,7 @@ Recent Data Updates for Currently Selected Database:<br>
   {{if ~snm}}<li onclick="listinfo('{{:listid}}',false,'textsnm,filename:ootv_{{filenamecleaner:name}},noheaders');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sun"></svg> Sun and Moon</li>{{/if}}
   <li onclick="listinfo('{{:listid}}',false,'texttab,filename:ootv_{{filenamecleaner:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#columns"></svg> Native Oracle (Tab-delimited)</li>
   <li onclick="toggleheaders();"><button class="iiconic ipositive toggleheaderson"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button><button style="display:none;" class="iiconic inegative toggleheadersoff"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button> Headers in downloads</li>
-  <li class="dirmenudelete" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg> Delete list</li>
+  {{if !~adminedit}}<li class="dirmenudelete" onclick="removelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg> Delete list</li>{{/if}}
   </ul>
 </li></ul></nav>
 </script>
@@ -981,7 +981,7 @@ Recent Data Updates for Currently Selected Database:<br>
 
 <!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
      controls (activate toggle, actions menu, rename, type/legality/public, notes) and, when it's public, the
-     share link; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
+     share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
      the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
 <!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
@@ -994,6 +994,10 @@ Recent Data Updates for Currently Selected Database:<br>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
   {{if ~mine}}
+  {{if ~adminedit}}<div class="listviewshared listviewadminedit" role="note">
+    <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg>
+    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared{{else}}Private{{/if}} list by <b>{{>ownername || 'another player'}}</b> &#149; you're editing it as an admin; changes save to their list</span>
+  </div>{{/if}}
   <div class="listviewtitle">
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
     <span class="dirmenucell">{{include tmpl="#template-listmenu" ~inheader=true/}}</span>
