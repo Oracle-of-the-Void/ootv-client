@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-26 (text checks)
+Last updated: 2026-10-27 (Ivory expansion rulesheets in the Ivory and 20F Comprehensive Rules)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -415,7 +415,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   page under the same id, so its card rulings were synced to the new pages; Twenty Festivals from the Wayback
   Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt); Ivory likewise from its page's
   captures (final text as archived 15 March 2015, the page has no date; kempy's 2017 print is the second download, and it
-  has trait links). Card-text icons in Ivory and 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order. Build and notes: ootv-import
+  has trait links). Card-text icons in Ivory and 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order.
+  Since 2026-10-27 the Ivory and 20F books also carry the four Ivory expansion rulesheets (The New Order, Thunderous
+  Acclaim, Evil Portents, The Blackest Storm): their new rules in their own words where they belong, each marked by a bar
+  and a ◆ linking to a front chapter "Updates from the Expansion Rulesheets" (which rulesheet changed what), and their card
+  notes as chapter XV, Notes on Specific Cards. Four wordings of the books' own were changed to fit, with the user's yes
+  (destroyed Provinces' Fortifications, Invest, II.4 and Appendix B entries); the books grew to 90 (20F) and 89 (Ivory)
+  pages and the trait links were rerun. Build and notes: ootv-import
   `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,

@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-25 (Rules Q&A from the Discord rules channels)
+Last updated: 2026-10-27 (Ivory expansion rulesheets: card notes and card-named rules)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -62,6 +62,11 @@ ootv-claude `RULINGS-IMPORT.md`):
   cards share went only to the card whose stats or text the entry quotes, so these have no `needsreview` note.
   Celestial's went on 2026-10-26; Samurai's replaced the October 2007 print's the same day, when its remaster of
   the final (2009) wiki took over that shelf id (the old ones' copies on other printings and their notes went too).
+- Ivory expansion rulesheets (Thunderous Acclaim, Evil Portents, The Blackest Storm; 2026-10-27): their seven "Notes on
+  Specific Cards" are on those cards, linked to the rulesheet's page (`Evil Portents rulesheet, p. 1`). Four more cards that a
+  rule on them names (Yogo Mizoguchi of Evil Portents, Sannin, Utaku Zo Sia, Grievous Wound) have that rule as a ruling plus a
+  `needsreview` note asking whether the card's text needs updating, for the rules team. The same notes are chapter XV of the
+  Ivory and 20F Comprehensive Rules.
 - Rulings on general rules topics (Costs, Timing, Tokens...) and questions that name no card stay
   in the books, not on cards.
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
