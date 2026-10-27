@@ -3159,6 +3159,15 @@
 "3122/2": {
 "code": "RoB"
 },
+"3127/2": {
+"code": "Emperor"
+},
+"3127/3": {
+"code": "Emperor"
+},
+"3128/5": {
+"code": "Obsidian"
+},
 "3136/2": {
 "code": "Diamond"
 },
@@ -8102,7 +8111,8 @@
 "name": "Yogo Junzo's Army"
 },
 "8319/6": {
-"code": ""
+"code": "",
+"name": "Yogo Junzo's Army"
 },
 "8319/7": {
 "code": "Jade"
