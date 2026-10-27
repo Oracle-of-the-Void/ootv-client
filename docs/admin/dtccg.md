@@ -1,12 +1,12 @@
-# Doomtown CCG (table `dtccg`)
+# Deadlands: Doomtown (table `dtccg`)
 
 Last updated: 2026-10-27
 
-The **original Doomtown collectible card game** (1998–2001): Episodes 1&2 to 9, Pine Box Edition,
+**Deadlands: Doomtown**, the original Doomtown collectible card game (1998–2001): Episodes 1&2 to 9, Pine Box Edition,
 Shootout at High Noon, Mouth of Hell, Reaping of Souls, Revelations, Boot Hill Edition, Ashes to
 Ashes, Eye for an Eye, Do Unto Others, Promotional and Brothers' Bounty. Copyright Pinnacle
 Entertainment Group; published by Wizards of the Coast (Five Rings Publishing) to 1999 and Alderac
-Entertainment Group from 2000. Added and released 2026-10-27 (ootv-claude `projects/newgame-dt.md`).
+Entertainment Group from 2000. Added and released 2026-10-27, first as "Doomtown CCG", renamed the same day (ootv-claude `projects/newgame-dt.md`).
 
 **Not Doomtown: Reloaded** (the 2014 game, table `dtlcg`). The two are separate games: never match cards
 between them, even where the names are the same.
