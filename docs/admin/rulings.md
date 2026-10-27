@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-27 (Ivory expansion rulesheets: card notes and card-named rules)
+Last updated: 2026-10-27 (Ivory expansion rulesheets: card notes and card-named rules; weekly Discord Rules Q&A sync)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -188,7 +188,7 @@ are shown as "A player"; the officials are named.
 Official answers are Oracle of the Void staff's: Brook Cunningham (MacBeth2001), Alex Jones (AkodoGilador),
 Jeremy Sumerlin (TetsuroJ) and Jeff Williamson (docangst). The site owner (Kiyoteru) isn't counted. kempy_nezumi and
 saaam answer often but aren't officials: their answers go on a card only when it has no rulings and no Rules Q&A
-at all, starting "Unofficial answer:". An answer is a staff member's messages replying to a question (Discord's
+from another source, starting "Unofficial answer:". An answer is a staff member's messages replying to a question (Discord's
 reply link, or following it in the channel within a few hours); every official answer to a question is kept, in
 order. The rest is chosen and placed as for the digests and the forum (an answer the card already has from
 another source isn't added again). Hand decisions for titles with several versions, and for unofficial answers
@@ -198,6 +198,13 @@ questions is safe. Made by ootv-import `SCRIPTS/discord-qa.py`, `email-plan.py -
 (see ootv-games `game-l5r/discord-rulings-work/README.md`).
 
 Written 2026-10-25: 875 answers, 1,148 entries on 816 cards, no needsreview notes.
+
+Kept current since 2026-10-27 by a weekly job (ootv-tools `rulings/discord-sync.sh`, cron on the ai box, Mondays
+6:47 CDT): it exports the new messages, replans, uploads the pages and, only when something changed, re-syncs the
+cards the usual way (export first, an updatelog row per card, one bulkupdate row, search checked afterwards). An
+unofficial answer comes off a card once the card gets a ruling. A new question that lands on several versions of a
+card goes to each with a "Discord rulings:" needsreview note until a row in `rulings-discord-decisions.tsv` settles it.
+First run 2026-10-27: 9 cards.
 
 Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.
 
