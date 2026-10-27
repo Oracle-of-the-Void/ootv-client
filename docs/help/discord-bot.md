@@ -104,6 +104,7 @@ Not every game has every option, just as on the site's search form:
 | Dune | `set`, `rarity`, `type` |
 | Pathfinder Pawns | `set`, `type` |
 | Legend of the Five Rings: The Card Game | `set`, `type`, `clan`, `text`, `legality` |
+| Deadlands: Doomtown (1998) | `set`, `type`, `outfit`, `text`, `legality` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.
