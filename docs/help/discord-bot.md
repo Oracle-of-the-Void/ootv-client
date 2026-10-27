@@ -68,11 +68,13 @@ place, marked. **Also on** lists other pages with the term.
   Resolution) or any words. It autocompletes with the traits and the headings of the book it will
   look in.
 - `arc:` looks in that arc's latest complete rules, e.g. `arc:Clan Wars (Imperial)` reads Scorpion
-  Clan Coup and `arc:Hidden Emperor (Jade)` The Spirit Wars. Ivory Edition reads the Twenty
-  Festivals Comprehensive Rules.
+  Clan Coup and `arc:Hidden Emperor (Jade)` The Spirit Wars.
 - `book:` looks in one rulebook instead, e.g. `book:Jade Edition`.
 - Without either, the bot reads the channel's arc, if the channel is for one arc, and otherwise the
   newest AEG rules, the Twenty Festivals Comprehensive Rules.
+
+When the term isn't there, the reply names the arcs (or books) whose rules define it, e.g.
+`/rule term:Yu` lists the arcs that have Yu; add one as `arc:` (or `book:`) to see it.
 
 The Onyx Lives datasheets only hold the rules they change. When the term isn't in one, the bot
 looks in the rules it builds on (the Onyx/Shattered Empire datasheet, then the Twenty Festivals
