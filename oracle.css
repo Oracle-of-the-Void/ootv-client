@@ -737,6 +737,15 @@ div.listviewheader div.listviewshared .listviewsharedtext {
     flex: 1 1 14em;
     overflow-wrap: anywhere;
 }
+/* someone else's list an admin is editing: red, so it isn't taken for your own */
+div.listviewheader div.listviewshared.listviewadminedit {
+    background: #fde4e1;
+    border-color: #c0392b;
+    color: #4a0f08;
+}
+div.listviewheader div.listviewshared.listviewadminedit > svg {
+    color: #c0392b;
+}
 /* a copy of a shared deck: where it came from */
 div.listviewheader div.listviewsource {
     margin: 2px 0 4px;

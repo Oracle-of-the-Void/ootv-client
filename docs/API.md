@@ -538,6 +538,14 @@ otherwise). Answers `{award}`. Owners can't set it, and a copy doesn't keep it.
 `action=precon&precon={"product": ..., "year": ...}` marks a pre-constructed deck (starter, learn-to-play) the same
 way (`product` required). `/publiclists` takes `precon=1` and returns `precon` and a `precon` facet count.
 
+## /list: admin edits of anyone's list
+
+Users whose `groups[<game>]` or `groups['*']` hold `listedit` or `*` (site admins) can read any list, private ones
+too, and save it with `updatefield` like the owner (cards, name, notes, type, legality, public, folder; `baserev`
+works the same). Their read answers `adminedit: true` (with `ownername`), and the client then shows the owner's edit
+controls under a red "editing as an admin" banner (`listadminedit()` / `listeditable()` in `oracle.js`). Deleting
+(`action=remove`) stays the owner's. Each such save logs `admin_list_edit` (listid, owner, uid, field) in CloudWatch.
+
 ## /update
 
 Handles database manipulation
