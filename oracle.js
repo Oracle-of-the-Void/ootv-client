@@ -3130,6 +3130,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    }
 	});
     }
+    gamepicklist(listdata, listid);
     //console.log(listdata);
     console.log("sorting with: "+sort);
     // games without list sorts/headers (pathfinder-pawns) fall back to title order, no headers
@@ -3497,7 +3498,7 @@ function liststats(listdata,listid=null) {
 	});
 	return out;
     };
-    var decks = group(cards, function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; }).map(function(d) {
+    var decks = group(cards, function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; }).map(function(d) {
 	var copies = d.cards.reduce(function(t,c) { return t + c.qty; }, 0);
 	var types = group(d.cards, function(c) { return join(c.card.type) || 'Other'; }).map(function(t) {
 	    var tc = t.cards.reduce(function(s,c) { return s + c.qty; }, 0);
@@ -3507,7 +3508,7 @@ function liststats(listdata,listid=null) {
 	return {"name": d.name, "copies": copies, "pct": liststatspct(copies, total),
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
-    var deckkey = function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; };
+    var deckkey = function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; };
     var keywords = liststatskeywords(cards, decks.map(function(d) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
@@ -6495,6 +6496,58 @@ function gameconfigapply(db, conf) {
     $('body').css('background-image', "url('"+g.info.background+"')");
   }
 }
+// sort.pick: {field: {rules: [[regex, value], ...], default}}. A card in a list with more than one value in that
+// field (L5R Border Keep and Bamboo Harvesters from Forgotten Legacy: Dynasty and Pre-Game) is grouped under one:
+// the first rule whose regex matches the list's legality, else the arc of the listed printing's set (an unmatched
+// legality, like Legacy, leaves it to the printing), else default. Names are matched with &nbsp; as spaces. The
+// value must be one of the card's own; otherwise the card keeps all its values. Saved on the card as listpick.
+function gamepicklist(listdata, listid) {
+  var pick = ((gameconfig[database] || {}).game || {}).sort;
+  pick = pick && pick.pick;
+  var meta = listid && cache_thing("list",listid) && cache_thing("list",listid).list ? cache_thing("list",listid).list.Items[0] || {} : {};
+  var plain = function(v) { return String(v || '').replace(/&nbsp;| /g,' ').trim(); };
+  var arcs = null;   // set name -> arc, from the printing.set select (grouped by arc)
+  var setarc = function(set) {
+    if(arcs === null) {
+      arcs = {};
+      var sel = cache_select("printing.set");
+      (Array.isArray(sel) ? sel : []).forEach(function(g) {
+        if(typeof g !== 'object') { return; }
+        var arc = Object.keys(g)[0];
+        Object.keys(Array.isArray(g[arc]) ? {} : g[arc]).forEach(function(s) { arcs[plain(s)] = arc; });
+      });
+    }
+    return arcs[plain(set)];
+  };
+  listdata.forEach(function(c) {
+    delete c.listpick;
+    if(!pick || !(c.cardid > 0)) { return; }
+    Object.keys(pick).forEach(function(f) {
+      var vals = [].concat(c[f] === undefined || c[f] === null ? [] : c[f]), p = pick[f] || {};
+      if(vals.length < 2) { return; }
+      var match = function(name) {
+        name = plain(name);
+        if(!name) { return null; }
+        for(var r of p.rules || []) {
+          try {
+            if(new RegExp(r[0]).test(name) && vals.indexOf(r[1]) != -1) { return r[1]; }
+          } catch(e) { console.log("sort.pick: bad regex "+r[0]); }   // a typo in Game config skips the rule
+        }
+        return null;
+      };
+      var pr = (c.printing || []).find(function(x) { return x.printingid == c.listprinting; }) || (c.printing || [])[0] || {};
+      var v = match(meta.legality) || match(setarc([].concat(pr.set || [])[0])) || (vals.indexOf(p.default) != -1 ? p.default : null);
+      if(v) {
+        c.listpick = c.listpick || {};
+        c.listpick[f] = [v];
+      }
+    });
+  });
+}
+// a list card's value for a field, as gamepicklist chose it
+function gamepicked(c, f) {
+  return c.listpick && c.listpick[f] ? c.listpick[f] : c[f];
+}
 // the "deck" list sort: the group field (deck) with its priority values first, then the other groups by name,
 // then type, then title
 function gamesort(s) {
@@ -6503,7 +6556,7 @@ function gamesort(s) {
   var cmp = function(x, y) { return x > y ? 1 : (y > x ? -1 : 0); };
   return function(a, b) {
     if(group) {
-      var ga = j(a[group]), gb = j(b[group]);
+      var ga = j(gamepicked(a, group)), gb = j(gamepicked(b, group));
       for(var f of first) {
         if(ga == f && gb != f) { return -1; }
         if(gb == f && ga != f) { return 1; }
@@ -6516,7 +6569,7 @@ function gamesort(s) {
 // list headers for the "deck" sort: one level (type) or two (deck, then type within it), with copies and
 // distinct cards counted; a card without the field heads "Other"
 function gameheaders(headers) {
-  var j = function(c, f) { return [].concat(c[f] === undefined || c[f] === null ? [] : c[f]).join() || 'Other'; };
+  var j = function(c, f) { var v = gamepicked(c, f); return [].concat(v === undefined || v === null ? [] : v).join() || 'Other'; };
   return function(listdata) {
     var top = headers.length > 1 ? headers[0] : null, sub = headers[headers.length-1];
     var sums = {}, counts = {};
