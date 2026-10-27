@@ -36,10 +36,11 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   arc of the listed printing's set is matched; if that fails too, `default`. The value must be one of the
   card's own, or the card keeps all of them. Names are matched with `&nbsp;` as spaces. The deck sort,
   the headers and the list stats all use the choice. L5R uses it for Border Keep and Bamboo Harvesters from
-  Forgotten Legacy (`deck`: Dynasty and Pre-Game). They are Pre-Game cards under the Celestial and Emperor
-  rules (and in BigDeck and Obsidian Hand) and Dynasty cards from Ivory on (and in Modern):
-  `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire|Three Dynasties", "Dynasty"],
-  ["Celestial|\\(Emperor\\)|^Emperor|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
+  Forgotten Legacy and the Ivory promos (680 and 1107, `deck`: Dynasty and Pre-Game). They are Pre-Game cards under the Celestial and Emperor
+  rules, in Three Dynasties (its Bamboo Harvesters "begins the game in play"), BigDeck and Obsidian Hand, and
+  Dynasty cards in Ivory, Twenty Festivals, Onyx and Shattered Empire, and in Modern:
+  `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire", "Dynasty"],
+  ["Celestial|\\(Emperor\\)|^Emperor|Three Dynasties|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
   (`\\(Emperor\\)`, not `Emperor`, so The Hidden Emperor (Jade) doesn't match).
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
