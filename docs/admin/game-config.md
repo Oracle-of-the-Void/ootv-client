@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-23
+Last updated: 2026-10-27
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -30,6 +30,17 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   every row by itself.
 - `search`: the search form's fields, in order (a field's search settings are on Fields).
 - `sort`: `{group, first}` for the deck sort; `headers`: the list headers (`["deck", "type"]`).
+  `sort.pick` (optional) puts a card that has more than one value in a field under just one in lists:
+  `{"<field>": {"rules": [["<regex>", "<value>"], ...], "default": "<value>"}}`. The first rule whose regex
+  matches the list's legality wins; if none does (no legality, or one like Legacy that no rule names), the
+  arc of the listed printing's set is matched; if that fails too, `default`. The value must be one of the
+  card's own, or the card keeps all of them. Names are matched with `&nbsp;` as spaces. The deck sort,
+  the headers and the list stats all use the choice. L5R uses it for Border Keep and Bamboo Harvesters from
+  Forgotten Legacy (`deck`: Dynasty and Pre-Game). They are Pre-Game cards under the Celestial and Emperor
+  rules (and in BigDeck and Obsidian Hand) and Dynasty cards from Ivory on (and in Modern):
+  `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire|Three Dynasties", "Dynasty"],
+  ["Celestial|\\(Emperor\\)|^Emperor|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
+  (`\\(Emperor\\)`, not `Emperor`, so The Hidden Emperor (Jade) doesn't match).
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
 - `symbols`: `[pattern, html]` pairs, the text tokens drawn as icons (L5R `:g1:`...).
