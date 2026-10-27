@@ -428,8 +428,11 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty
   Festivals". The datasheet only applies where it changes something; every other wording change was the user's decision,
   one by one (record: ootv-games `rulebook-enhance/comprehensive-rules/onyx/JUDGEMENT.md`). It is to become the official
-  Onyx/ShE rules reference after the Onyx Lives rules team reviews it. Build and notes: ootv-import
-  `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
+  Onyx/ShE rules reference after the Onyx Lives rules team reviews it. On the shelf since 2026-10-27 as
+  `onyx-she-comprehensive-rules` (type Complete, tag Fan Made), after the Onyx/ShE datasheet. Its arc is Shattered Empire
+  only for now: a book's arc is one value in the viewer and the Discord bot; it gets War of the Seals (Onyx Edition) too
+  once a book can list two (ootv-claude `issues/ootv-claude/TODO.md`). "Last complete rules in arc" stays on the datasheet
+  until the review. Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
