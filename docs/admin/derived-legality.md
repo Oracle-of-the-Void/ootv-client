@@ -409,9 +409,9 @@ and printing fields one printing; the card's `legalityderivedexception` wins. En
 `listable: false` (Paper) are filters, not formats, and aren't listed. L5R keeps its plain
 `sortlegality` row, so its cards still show only their stored legality.
 
-The Doomtown CCG (`dtccg`) works the same way: Open, Boot Hill Strict and Boot Hill Extended are all
+Deadlands: Doomtown (`dtccg`) works the same way: Open, Boot Hill Strict and Boot Hill Extended are all
 derived rules in `dtccg/attributes`, Boot Hill Extended with a `none` clause on the titles AEG ruled
-out and an `any` clause on the ones it kept ([Doomtown CCG](dtccg.md), "Legality").
+out and an `any` clause on the ones it kept ([Deadlands: Doomtown](dtccg.md), "Legality").
 
 ## Changing a rule
 
