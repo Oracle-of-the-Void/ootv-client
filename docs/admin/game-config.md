@@ -54,6 +54,12 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   registered again (ootv-discord `register-commands.js`).
 - `publiclists`: `{fields: [...]}`, the card fields copied into each public list for its search
   (L5R: type, deck, clan; default: type).
+- `legalitybugs`: `{path, bugs: {<legality>: <image>}}`, the arc bug drawn before a legality's name
+  wherever one is shown (card page, deck stats, a deck's format, Public lists), and alone, small, on a
+  line under the versions in a Detailed Search result (`~legalitybugs(#data)` in the `search` view). The
+  legality is its plain text (spaces, not `&nbsp;`); the image is `<path><image>.png`. L5R: the 13 arcs,
+  `res/legality-bugs/renka-gyosho-wax/` (the Renka Gyosho wax seals from ootv-assets `legality-bugs/`).
+  A legality not listed (the formats, Unreleased) gets none.
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
