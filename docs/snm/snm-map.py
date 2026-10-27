@@ -10,9 +10,16 @@ edition, exact name first. A printing's own printed name (printing printedtitle 
 "Kamoto" in Anvil of Despair) is tried before the card's, S&M's double-sided strongholds
 ("X (1)", "X (2)") match X on side 1, and ALIASES below covers the names only S&M uses.
 
+S&M has two builds with their own card databases, and they are never mixed (the user,
+2026-10-27): every pre-Onyx printing is matched against the Win build (Kempy 1.3.4, 2017) only,
+and Onyx Lives printings (sets the set list marks as digital releases: The Blackest Storm, Onyx
+Edition, Shattered Empire, ...) against the Onyx build only. Onyx re-keyed some old cards to their
+Onyx printing and dropped the old editions (Jade Works has only Onyx and ShE there), so matching
+old printings against it sends them out with no set.
+
 A printing S&M doesn't have under any of the card's names (starter reprints, The L5R
-Experience, other codes S&M's database lacks) exports as the card's most recent printing
-released before it that S&M does have (its name and edition); with none, as no set.
+Experience, other codes S&M's database lacks) exports as the card's most recent printing of the
+same era released before it that its build does have (its name and edition); with none, as no set.
 Release dates come from ootv-import/l5r-sets-wikipedia.tsv, plus DATES below.
 
 Output:
@@ -25,7 +32,8 @@ Output:
              `snmsetcode` and `titletextsnm` (ootv-tools/printings/snm-printings.py writes them).
 
 Usage (paths default to the workspace layout):
-  python3 -I docs/snm/snm-map.py [S&M database.xml] [dir of per-card l5r JSON] [l5r-sets-wikipedia.tsv]
+  python3 -I docs/snm/snm-map.py [Win database.xml] [dir of per-card l5r JSON] [l5r-sets-wikipedia.tsv]
+                                 [Onyx database.xml]
 
 The file isn't served. The site reads the set codes from the oracle-all-structure item l5r/snm
 (push them with docs/snm/snm-push.py --go) and the printing codes and names from the cards
@@ -36,8 +44,9 @@ import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WS = os.path.normpath(os.path.join(HERE, '../../..'))
-SNMDB = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    WS, 'SnM/Sun and Moon - Onyx/Sun and Moon_Data/StreamingAssets/Database/database.xml')
+SNMXML = 'SnM/Sun and Moon - %s/Sun and Moon_Data/StreamingAssets/Database/database.xml'
+WINDB = sys.argv[1] if len(sys.argv) > 1 else os.path.join(WS, SNMXML % 'Win')
+ONYXDB = sys.argv[4] if len(sys.argv) > 4 else os.path.join(WS, SNMXML % 'Onyx')
 CARDS = sys.argv[2] if len(sys.argv) > 2 else os.path.join(WS, 'ootv-backups/work/cur-l5r/split2')
 OUT = os.path.join(HERE, 'l5r-snm.json')
 SETLIST = sys.argv[3] if len(sys.argv) > 3 else os.path.join(WS, 'ootv-import/l5r-sets-wikipedia.tsv')
@@ -149,9 +158,9 @@ def exportname(card):
     return t[0] if isinstance(t, list) else t
 
 
-def snmeds(card):
-    """All S&M editions of the cards the export's name finds (the loose key)."""
-    return snm.get(key(exportname(card)), set())
+def snmeds(card, db):
+    """All of one build's S&M editions of the cards the export's name finds (the loose key)."""
+    return db.snm.get(key(exportname(card)), set())
 
 
 def printednames(p):
@@ -159,22 +168,22 @@ def printednames(p):
     return [html.unescape(re.sub(r'<[^>]+>', '', t)) for f in ('printedtitle', 'title') for t in p.get(f, [])]
 
 
-def snmcards(card):
-    """[(S&M name, editions)] for the card under its export name, its printings' printed names
-    and ALIASES; the exact export name first, side 1 of a stronghold before side 2."""
+def snmcards(card, db):
+    """[(S&M name, editions)] in one build for the card under its export name, its printings'
+    printed names and ALIASES; the exact export name first, side 1 of a stronghold before side 2."""
     name = html.unescape(exportname(card))
     names = [name] + [n for p in card['printing'] for n in printednames(p)] + aliases.get(card['cardid'], [])
     found = {}
     for n in names:
-        found.update(snmnames.get(key(n), {}))
+        found.update(db.snmnames.get(key(n), {}))
     return sorted(found.items(), key=lambda ne: (ne[0] != name, ne[0]))
 
 
-def snmprimary(card):
+def snmprimary(card, db):
     """The S&M names under the card's export name alone. A printed name or alias only counts
     where S&M has that very edition: an experienced card's printed name is the base card's."""
     name = html.unescape(exportname(card))
-    return sorted(snmnames.get(key(name), {}), key=lambda n: (n != name, n))
+    return sorted(db.snmnames.get(key(name), {}), key=lambda n: (n != name, n))
 
 
 def ym(text):
@@ -186,37 +195,58 @@ def ym(text):
     return (int(m.group(1)), 0, 0) if m else None
 
 
-# the S&M file has a few stray non-UTF-8 bytes in card text
-root = ET.fromstring(open(SNMDB, encoding='utf-8', errors='replace').read())
-snm = collections.defaultdict(set)
-# loose key -> {S&M name: editions}: S&M keeps "Market Place" (pre-Imperial to Jade) and
-# "Marketplace" (Pearl on) as separate cards, which key() alone would merge
-snmnames = collections.defaultdict(lambda: collections.defaultdict(set))
-edsize = collections.Counter()
-for c in root:
-    eds = {e.text for e in c.findall('edition')}
-    name = html.unescape(c.findtext('name') or '')
-    snm[key(name)] |= eds
-    snmnames[key(name)][name] |= eds
-    if SIDE.search(name):
-        snmnames[key(SIDE.sub('', name))][name] |= eds
-    edsize.update(eds)
-# S&M lists 3 cards under "RoU" beside "ROU" (Rise of Otosan Uchi); export only ROU
-edsize.pop('RoU', None)
+class Build:
+    """One S&M build's card database: loose key -> editions (snm), loose key -> {S&M name:
+    editions} (snmnames; S&M keeps "Market Place" (pre-Imperial to Jade) and "Marketplace" (Pearl
+    on) as separate cards, which key() alone would merge), edition -> card count (edsize), and
+    (S&M name, code) -> the cards whose own export name reaches it there (claimed)."""
+    def __init__(self, path):
+        # the S&M file has a few stray non-UTF-8 bytes in card text
+        root = ET.fromstring(open(path, encoding='utf-8', errors='replace').read())
+        self.snm = collections.defaultdict(set)
+        self.snmnames = collections.defaultdict(lambda: collections.defaultdict(set))
+        self.edsize = collections.Counter()
+        self.claimed = collections.defaultdict(set)
+        for c in root:
+            eds = {e.text for e in c.findall('edition')}
+            name = html.unescape(c.findtext('name') or '')
+            self.snm[key(name)] |= eds
+            self.snmnames[key(name)][name] |= eds
+            if SIDE.search(name):
+                self.snmnames[key(SIDE.sub('', name))][name] |= eds
+            self.edsize.update(eds)
+        # Onyx lists 3 cards under "RoU" beside "ROU" (Rise of Otosan Uchi); export only ROU
+        self.edsize.pop('RoU', None)
+
+
+WIN, ONYX = Build(WINDB), Build(ONYXDB)
 aliases = collections.defaultdict(list)   # cardid -> S&M names
 for n, cid in ALIASES.items():
     aliases[cid].append(n)
+
+# release dates and eras: the set list's by set name, else by S&M code when only one OotV set has it.
+# Onyx Lives sets are the set list's digital releases (The Blackest Storm on); every other set,
+# and every set the list lacks (promos, starters), is pre-Onyx.
+setlist = list(csv.DictReader(open(SETLIST), delimiter='\t', quoting=csv.QUOTE_NONE))
+byname = {key(r['set']): ym(r['released']) for r in setlist}
+onyxlives = {key(r['set']) for r in setlist if r['released'].strip().startswith('Digital')}
+
+
+def build(s):
+    """The S&M build a printing of OotV set s is matched against: never the other one."""
+    return ONYX if key(s) in onyxlives else WIN
+
 
 cards = [json.load(open(os.path.join(CARDS, f))) for f in sorted(os.listdir(CARDS))]
 
 votes = collections.defaultdict(collections.Counter)
 setsize = collections.Counter()
 for card in cards:
-    eds = snmeds(card)
     for p in card['printing']:
         for s in p.get('set', []):
+            db = build(s)
             setsize[s] += 1
-            votes[s].update(e for e in eds if e in edsize)
+            votes[s].update(e for e in snmeds(card, db) if e in db.edsize)
 
 sets = {}
 for s, v in votes.items():
@@ -232,12 +262,10 @@ for s, v in votes.items():
         # score by the share of the S&M edition matched, so base sets full of reprints
         # don't outvote the expansion; the edition must also cover half the set, so a
         # small reprint edition (CE15MRP) doesn't win the set it reprints (Celestial)
+        edsize = build(s).edsize
         big = [e for e in v if v[e] >= setsize[s] / 2] or list(v)
         sets[s] = max(big, key=lambda e: (v[e] / edsize[e], v[e]))
 
-# release dates: the set list's by set name, else by S&M code when only one OotV set has it
-setlist = list(csv.DictReader(open(SETLIST), delimiter='\t', quoting=csv.QUOTE_NONE))
-byname = {key(r['set']): ym(r['released']) for r in setlist}
 bycode = {}
 for r in setlist:
     bycode.setdefault(r['snm_code'], ym(r['released']))
@@ -253,8 +281,8 @@ def setdate(s):
     return bycode.get(code) if codecount[code] == 1 else None
 
 
-def own(card, p, cands):
-    """(S&M name, code) for a printing S&M has under one of the card's names, else None."""
+def own(card, p, cands, db):
+    """(S&M name, code) for a printing build db has under one of the card's names, else None."""
     s = (p.get('set') or [''])[0]
     if s in RULEONLY:
         return None
@@ -262,81 +290,91 @@ def own(card, p, cands):
     mine = {key(n) for n in printednames(p)}
     cands = sorted(cands, key=lambda ne: key(SIDE.sub('', ne[0])) not in mine)
     if s in KEEPCODE:
-        return (snmprimary(card) or [html.unescape(exportname(card))])[0], sets[s]
-    prim = snmprimary(card)
+        return (snmprimary(card, db) or [html.unescape(exportname(card))])[0], sets[s]
+    prim = snmprimary(card, db)
     for code in [sets.get(s)] + ALTERNATES.get(s, []):
         for name, eds in cands:
             if code and code in eds:
                 # a printed name or alias never takes another card's own S&M card and edition
-                if name not in prim and claimed.get((name, code), {card['cardid']}) - {card['cardid']}:
+                if name not in prim and db.claimed.get((name, code), {card['cardid']}) - {card['cardid']}:
                     continue
                 return name, code
     return None
 
 
-# (S&M name, code) -> the cards whose own export name reaches it there
-claimed = collections.defaultdict(set)
 for card in cards:
-    prim = snmprimary(card)
     for p in card['printing']:
-        code = sets.get((p.get('set') or [''])[0])
-        for name in prim:
-            if code in snmnames[key(name)][name]:
-                claimed[(name, code)].add(card['cardid'])
+        s = (p.get('set') or [''])[0]
+        db = build(s)
+        code = sets.get(s)
+        for name in snmprimary(card, db):
+            if code in db.snmnames[key(name)][name]:
+                db.claimed[(name, code)].add(card['cardid'])
 
 
-def printednamed(card, p, cands):
+# loose key of each card's export name -> cardids, across both eras
+owners = collections.defaultdict(set)
+for card in cards:
+    owners[key(exportname(card))].add(card['cardid'])
+
+
+def printednamed(card, p, cands, db):
     """The S&M names (of cands) that are this printing's own printed name, other than the card's
-    export name, where no other card's export name reaches them in any edition."""
+    export name, where no other card's export name reaches them in any edition, nor is that name
+    in either era (Kakita Shinichi - exp3, printed "Kakita Shinichi", in Chaos Reigns III)."""
     mine = {key(n) for n in printednames(p)} - {key(exportname(card))}
     return [name for name, eds in cands if key(SIDE.sub('', name)) in mine
-            and not any(claimed.get((name, e), set()) - {card['cardid']} for e in eds)]
+            and not owners.get(key(SIDE.sub('', name)), set()) - {card['cardid']}
+            and not any(db.claimed.get((name, e), set()) - {card['cardid']} for e in eds)]
 
 
 printings = {}
 undated = collections.Counter()
 borrowed = 0
 for card in cards:
-    cands = snmcards(card)
-    if not cands:
-        continue  # name not in S&M: keep the set code, it's the best guess
-    have = [(setdate(p['set'][0]), own(card, p, cands)) for p in card['printing'] if own(card, p, cands)]
     name0 = html.unescape(exportname(card))
-    for p in card['printing']:
-        s = (p.get('set') or [''])[0]
-        if NOSET.match(s):
-            continue
-        hit = own(card, p, cands)
-        if not hit:
-            # the most recent printing S&M has, released before this one
-            d = setdate(s)
-            earlier = [h for h in have if h[0] and d and h[0] < d]
-            # S&M's card under this printing's own printed name first ("Yogo Junzo's Army" on the
-            # Imperial promo of The Shadowlands Horde): its earlier printing, else that name with
-            # no set; never a name another card's export name reaches (an experienced card's
-            # printed name is the base card's)
-            mine = printednamed(card, p, cands)
-            if mine:
-                earlier = [h for h in earlier if h[1][0] in mine]
-            if mine and not earlier:
-                hit = (mine[0], '')
-            elif earlier:
-                hit = max(earlier, key=lambda h: h[0])[1]
-                borrowed += 1
-            elif snmprimary(card):
-                if not d:
-                    undated[s] += 1
-                hit = (snmprimary(card)[0], '')
-            else:
-                continue  # only a printed name or alias reaches S&M, in other editions
-        name, code = hit
-        if key(name) == key(name0) and len(snmnames[key(name0)]) == 1:
-            name = name0  # one S&M card: a spelling difference only (case, punctuation)
-        if code != sets.get(s, '') or name != name0:
-            entry = {'code': code}
-            if name != name0:
-                entry['name'] = name
-            printings[f"{card['cardid']}/{p['printingid']}"] = entry
+    for db in (WIN, ONYX):
+        # each era's printings against its own build only, borrowing only from that era
+        mine_era = [p for p in card['printing'] if build((p.get('set') or [''])[0]) is db]
+        cands = snmcards(card, db)
+        if not mine_era or not cands:
+            continue  # name not in this build: keep the set code, it's the best guess
+        have = [(setdate(p['set'][0]), own(card, p, cands, db)) for p in mine_era if own(card, p, cands, db)]
+        for p in mine_era:
+            s = (p.get('set') or [''])[0]
+            if NOSET.match(s):
+                continue
+            hit = own(card, p, cands, db)
+            if not hit:
+                # the most recent printing S&M has, released before this one
+                d = setdate(s)
+                earlier = [h for h in have if h[0] and d and h[0] < d]
+                # S&M's card under this printing's own printed name first ("Yogo Junzo's Army" on the
+                # Imperial promo of The Shadowlands Horde): its earlier printing, else that name with
+                # no set; never a name another card's export name reaches (an experienced card's
+                # printed name is the base card's)
+                mine = printednamed(card, p, cands, db)
+                if mine:
+                    earlier = [h for h in earlier if h[1][0] in mine]
+                if mine and not earlier:
+                    hit = (mine[0], '')
+                elif earlier:
+                    hit = max(earlier, key=lambda h: h[0])[1]
+                    borrowed += 1
+                elif snmprimary(card, db):
+                    if not d:
+                        undated[s] += 1
+                    hit = (snmprimary(card, db)[0], '')
+                else:
+                    continue  # only a printed name or alias reaches S&M, in other editions
+            name, code = hit
+            if key(name) == key(name0) and len(db.snmnames[key(name0)]) == 1:
+                name = name0  # one S&M card: a spelling difference only (case, punctuation)
+            if code != sets.get(s, '') or name != name0:
+                entry = {'code': code}
+                if name != name0:
+                    entry['name'] = name
+                printings[f"{card['cardid']}/{p['printingid']}"] = entry
 
 text = json.dumps({'sets': dict(sorted(sets.items())), 'printings': dict(sorted(printings.items()))},
                   indent=0) + '\n'
