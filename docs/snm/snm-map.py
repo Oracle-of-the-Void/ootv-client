@@ -285,6 +285,14 @@ for card in cards:
                 claimed[(name, code)].add(card['cardid'])
 
 
+def printednamed(card, p, cands):
+    """The S&M names (of cands) that are this printing's own printed name, other than the card's
+    export name, where no other card's export name reaches them in any edition."""
+    mine = {key(n) for n in printednames(p)} - {key(exportname(card))}
+    return [name for name, eds in cands if key(SIDE.sub('', name)) in mine
+            and not any(claimed.get((name, e), set()) - {card['cardid']} for e in eds)]
+
+
 printings = {}
 undated = collections.Counter()
 borrowed = 0
@@ -303,7 +311,16 @@ for card in cards:
             # the most recent printing S&M has, released before this one
             d = setdate(s)
             earlier = [h for h in have if h[0] and d and h[0] < d]
-            if earlier:
+            # S&M's card under this printing's own printed name first ("Yogo Junzo's Army" on the
+            # Imperial promo of The Shadowlands Horde): its earlier printing, else that name with
+            # no set; never a name another card's export name reaches (an experienced card's
+            # printed name is the base card's)
+            mine = printednamed(card, p, cands)
+            if mine:
+                earlier = [h for h in earlier if h[1][0] in mine]
+            if mine and not earlier:
+                hit = (mine[0], '')
+            elif earlier:
                 hit = max(earlier, key=lambda h: h[0])[1]
                 borrowed += 1
             elif snmprimary(card):
