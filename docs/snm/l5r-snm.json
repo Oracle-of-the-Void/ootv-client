@@ -150,17 +150,11 @@
 "1001/9": {
 "code": "Obsidian"
 },
-"10033/1": {
-"code": ""
+"10033/6": {
+"code": "Ivory"
 },
-"10033/2": {
-"code": ""
-},
-"10033/3": {
-"code": ""
-},
-"10033/4": {
-"code": ""
+"10038/4": {
+"code": "TwentyFestivals"
 },
 "1006/3": {
 "code": "KD"
@@ -168,30 +162,48 @@
 "1008/3": {
 "code": "Gold"
 },
+"10082/3": {
+"code": "TwentyFestivals"
+},
 "10119/3": {
 "code": ""
 },
-"10189/1": {
-"code": ""
+"10125/3": {
+"code": "Ivory"
 },
-"10189/2": {
-"code": ""
+"10160/3": {
+"code": "Ivory"
 },
 "1020/3": {
 "code": "KD"
 },
-"10231/1": {
-"code": ""
+"10242/3": {
+"code": "TwentyFestivals"
 },
 "1025/2": {
 "code": "HC"
 },
+"1027/3": {
+"code": "TwentyFestivals"
+},
+"10271/4": {
+"code": "Ivory"
+},
+"1029/4": {
+"code": "Ivory"
+},
 "1034/3": {
 "code": "RoB"
+},
+"10384/3": {
+"code": "TwentyFestivals"
 },
 "10393/1": {
 "code": "TA",
 "name": "Spiritual Coelescence"
+},
+"10433/3": {
+"code": "TwentyFestivals"
 },
 "1045/15": {
 "code": "Gold"
@@ -251,19 +263,49 @@
 "code": "Diamond"
 },
 "1045/40": {
-"code": "Samurai"
+"code": "Promo"
+},
+"1045/41": {
+"code": "Promo"
+},
+"10543/3": {
+"code": "TwentyFestivals"
 },
 "1059/4": {
 "code": "BoBP"
 },
-"10607/1": {
-"code": ""
+"10609/3": {
+"code": "TwentyFestivals"
+},
+"10615/3": {
+"code": "TwentyFestivals"
 },
 "1065/2": {
 "code": "Lotus"
 },
-"10658/1": {
-"code": ""
+"10663/3": {
+"code": "TwentyFestivals"
+},
+"10695/3": {
+"code": "TwentyFestivals"
+},
+"10699/3": {
+"code": "TwentyFestivals"
+},
+"10704/3": {
+"code": "TwentyFestivals"
+},
+"10733/3": {
+"code": "TwentyFestivals"
+},
+"10734/3": {
+"code": "TwentyFestivals"
+},
+"10735/4": {
+"code": "TwentyFestivals"
+},
+"10741/3": {
+"code": "TwentyFestivals"
 },
 "1076/10": {
 "code": "Obsidian"
@@ -298,27 +340,90 @@
 "108/8": {
 "code": "Gold"
 },
+"108/9": {
+"code": "TwentyFestivals"
+},
+"10827/3": {
+"code": "TwentyFestivals"
+},
+"10830/4": {
+"code": "TwentyFestivals"
+},
+"10835/4": {
+"code": "TwentyFestivals"
+},
 "1086/8": {
 "code": "Lotus"
+},
+"10861/3": {
+"code": "TwentyFestivals"
 },
 "10865/1": {
 "code": "AM",
 "name": "Shiba Heirei"
 },
-"10872/1": {
-"code": ""
+"10869/3": {
+"code": "TwentyFestivals"
+},
+"10887/3": {
+"code": "TwentyFestivals"
+},
+"10890/3": {
+"code": "TwentyFestivals"
+},
+"10897/3": {
+"code": "TwentyFestivals"
+},
+"10907/3": {
+"code": "TwentyFestivals"
 },
 "1092/2": {
 "code": "SC"
 },
+"10927/5": {
+"code": "TwentyFestivals"
+},
+"10928/3": {
+"code": "TwentyFestivals"
+},
+"10929/3": {
+"code": "TwentyFestivals"
+},
 "1093/1": {
 "code": "TotV"
+},
+"10931/4": {
+"code": "TwentyFestivals"
+},
+"10940/3": {
+"code": "TwentyFestivals"
+},
+"10941/3": {
+"code": "TwentyFestivals"
+},
+"10945/3": {
+"code": "TwentyFestivals"
+},
+"10955/4": {
+"code": "TwentyFestivals"
+},
+"10956/3": {
+"code": "TwentyFestivals"
+},
+"10963/3": {
+"code": "TwentyFestivals"
 },
 "1106/3": {
 "code": "Celestial"
 },
+"1106/5": {
+"code": "Celestial"
+},
 "1107/2": {
 "code": "FL"
+},
+"1110/3": {
+"code": "Samurai"
 },
 "1111/2": {
 "code": "Celestial"
@@ -326,14 +431,14 @@
 "1112/3": {
 "code": "Gold"
 },
-"11139/1": {
-"code": ""
-},
 "1114/4": {
 "code": "Lotus"
 },
-"11141/1": {
-"code": ""
+"1114/5": {
+"code": "Samurai"
+},
+"11141/4": {
+"code": "Ivory"
 },
 "11142/1": {
 "code": "",
@@ -355,15 +460,54 @@
 "code": "",
 "name": "Gates of the Second City (1)"
 },
-"11149/1": {
-"code": ""
+"11144/2": {
+"code": "Ivory"
 },
-"11167/1": {
-"code": ""
+"11147/3": {
+"code": "Ivory"
+},
+"11148/3": {
+"code": "Ivory"
+},
+"11150/2": {
+"code": "Ivory"
+},
+"11151/2": {
+"code": "Ivory"
+},
+"11152/3": {
+"code": "Ivory"
+},
+"11154/2": {
+"code": "Ivory"
+},
+"11155/2": {
+"code": "Ivory"
+},
+"11156/3": {
+"code": "Ivory"
+},
+"11157/3": {
+"code": "Ivory"
+},
+"11159/3": {
+"code": "Ivory"
+},
+"11164/2": {
+"code": "Ivory"
+},
+"11165/3": {
+"code": "Ivory"
+},
+"11166/2": {
+"code": "Ivory"
 },
 "11168/2": {
 "code": "ShE",
 "name": "Mirumoto Niwa, Soul of Mirumoto Kei"
+},
+"11168/3": {
+"code": "Ivory"
 },
 "11169/2": {
 "code": "Onyx",
@@ -373,12 +517,39 @@
 "code": "ShE",
 "name": "Mirumoto Nokkai, Soul of Mirumoto Tsuge"
 },
+"11169/4": {
+"code": "Ivory"
+},
+"11171/3": {
+"code": "Ivory"
+},
+"11173/2": {
+"code": "Ivory"
+},
+"11175/2": {
+"code": "Ivory"
+},
+"11179/3": {
+"code": "Ivory"
+},
 "1118/7": {
 "code": "Pearl"
+},
+"11180/2": {
+"code": "Ivory"
 },
 "11182/3": {
 "code": "Onyx",
 "name": "Matsu Agai, Soul of Matsu Agoro"
+},
+"11182/4": {
+"code": "Ivory"
+},
+"11183/2": {
+"code": "Ivory"
+},
+"11186/2": {
+"code": "Ivory"
 },
 "11187/2": {
 "code": "ShE",
@@ -388,14 +559,53 @@
 "code": "Onyx",
 "name": "Matsu Tayuko, Soul of Matsu Aoiko"
 },
+"11187/4": {
+"code": "Ivory"
+},
+"11188/2": {
+"code": "Ivory"
+},
+"11189/2": {
+"code": "Ivory"
+},
+"11192/2": {
+"code": "Ivory"
+},
+"11196/2": {
+"code": "Ivory"
+},
+"11197/3": {
+"code": "Ivory"
+},
 "11198/2": {
 "code": "Onyx",
 "name": "Agasha Kyokuta, Soul of Agasha Yuhiko"
 },
-"11201/1": {
-"code": ""
+"11198/3": {
+"code": "Ivory"
+},
+"11201/4": {
+"code": "Ivory"
+},
+"11202/2": {
+"code": "Ivory"
+},
+"11203/2": {
+"code": "Ivory"
 },
 "11204/2": {
+"code": "Ivory"
+},
+"11205/2": {
+"code": "Ivory"
+},
+"11206/2": {
+"code": "Ivory"
+},
+"11207/2": {
+"code": "Ivory"
+},
+"11208/2": {
 "code": "Ivory"
 },
 "1121/2": {
@@ -409,6 +619,27 @@
 "code": "ShE",
 "name": "Bayushi Akane, Soul of Bayushi Kurumi"
 },
+"11210/4": {
+"code": "Ivory"
+},
+"11211/2": {
+"code": "Ivory"
+},
+"11212/2": {
+"code": "Ivory"
+},
+"11213/2": {
+"code": "Ivory"
+},
+"11215/2": {
+"code": "Ivory"
+},
+"11217/2": {
+"code": "Ivory"
+},
+"11219/2": {
+"code": "Ivory"
+},
 "11220/2": {
 "code": "Onyx",
 "name": "Daigotsu Geiko, Soul of Daigotsu Keigo"
@@ -417,8 +648,11 @@
 "code": "ShE",
 "name": "Daigotsu Geiko, Soul of Daigotsu Keigo"
 },
-"11222/1": {
-"code": ""
+"11222/4": {
+"code": "Ivory"
+},
+"11223/2": {
+"code": "Ivory"
 },
 "11224/2": {
 "code": "Onyx",
@@ -428,19 +662,67 @@
 "code": "ShE",
 "name": "Daigotsu Roburo, Soul of Daigotsu Bundoru"
 },
+"11224/4": {
+"code": "Ivory"
+},
+"11225/2": {
+"code": "Ivory"
+},
+"11226/2": {
+"code": "Ivory"
+},
 "11228/2": {
 "code": "ShE",
 "name": "Chuda Tairao, Soul of Chuda Rintaro"
 },
+"11228/3": {
+"code": "Ivory"
+},
 "11229/2": {
 "code": "Onyx",
 "name": "Dainiko, Soul of Nakadai"
+},
+"11231/2": {
+"code": "Ivory"
+},
+"11232/2": {
+"code": "Ivory"
+},
+"11233/2": {
+"code": "Ivory"
+},
+"11234/2": {
+"code": "Ivory"
+},
+"11235/2": {
+"code": "Ivory"
+},
+"11236/2": {
+"code": "Ivory"
+},
+"11238/2": {
+"code": "Ivory"
+},
+"11240/2": {
+"code": "Ivory"
+},
+"11242/2": {
+"code": "Ivory"
+},
+"11243/2": {
+"code": "Ivory"
+},
+"11247/5": {
+"code": "Ivory"
 },
 "11248/2": {
 "code": "Ivory"
 },
 "11249/2": {
 "code": "Ivory"
+},
+"1125/3": {
+"code": "Samurai"
 },
 "11250/2": {
 "code": "Ivory"
@@ -473,17 +755,104 @@
 "11256/2": {
 "code": "Ivory"
 },
-"11270/1": {
-"code": ""
+"11257/2": {
+"code": "Ivory"
 },
-"11270/2": {
-"code": ""
+"11258/4": {
+"code": "Ivory"
+},
+"1126/4": {
+"code": "Samurai"
+},
+"11260/2": {
+"code": "Ivory"
+},
+"11261/2": {
+"code": "Ivory"
+},
+"11262/2": {
+"code": "Ivory"
+},
+"11265/2": {
+"code": "Ivory"
+},
+"11266/2": {
+"code": "Ivory"
+},
+"11267/2": {
+"code": "Ivory"
+},
+"11268/2": {
+"code": "Ivory"
+},
+"11269/2": {
+"code": "Ivory"
+},
+"11270/5": {
+"code": "Ivory"
+},
+"11270/6": {
+"code": "TwentyFestivals"
+},
+"11271/2": {
+"code": "Ivory"
+},
+"11272/2": {
+"code": "Ivory"
+},
+"11273/2": {
+"code": "Ivory"
+},
+"11274/2": {
+"code": "Ivory"
+},
+"11275/2": {
+"code": "Ivory"
+},
+"11276/2": {
+"code": "Ivory"
+},
+"11277/2": {
+"code": "Ivory"
+},
+"11278/2": {
+"code": "Ivory"
+},
+"11279/2": {
+"code": "Ivory"
 },
 "1128/2": {
 "code": ""
 },
 "1128/7": {
 "code": "Pearl"
+},
+"11280/2": {
+"code": "Ivory"
+},
+"11281/2": {
+"code": "Ivory"
+},
+"11282/2": {
+"code": "Ivory"
+},
+"11283/2": {
+"code": "Ivory"
+},
+"11284/2": {
+"code": "Ivory"
+},
+"11285/2": {
+"code": "Ivory"
+},
+"11286/4": {
+"code": "Ivory"
+},
+"11287/2": {
+"code": "Ivory"
+},
+"11288/2": {
+"code": "Ivory"
 },
 "1129/4": {
 "code": "Emerald"
@@ -553,6 +922,10 @@
 "code": "TCW",
 "name": "The Fruitful Port of the Mantis (1)"
 },
+"11299/5": {
+"code": "TwentyFestivals",
+"name": "The Fruitful Port of the Mantis (1)"
+},
 "11300/1": {
 "code": "Ivory",
 "name": "The Eternal Temple of the Phoenix (1)"
@@ -573,6 +946,10 @@
 "code": "TwentyFestivals",
 "name": "The Shadowed Estate of the Scorpion (1)"
 },
+"11303/4": {
+"code": "TwentyFestivals",
+"name": "The Shadowed Estate of the Scorpion (1)"
+},
 "11305/1": {
 "code": "Ivory",
 "name": "The Sinister Citadel of the Spider (1)"
@@ -589,6 +966,12 @@
 "code": "Ivory",
 "name": "The Golden Plains of the Unicorn (1)"
 },
+"11310/4": {
+"code": "Ivory"
+},
+"11311/2": {
+"code": "Ivory"
+},
 "1139/5": {
 "code": "Jade"
 },
@@ -597,6 +980,9 @@
 },
 "1139/7": {
 "code": "Pearl"
+},
+"1140/3": {
+"code": "TwentyFestivals"
 },
 "11419/1": {
 "code": ""
@@ -631,37 +1017,22 @@
 "1146/15": {
 "code": "Pearl"
 },
+"1146/16": {
+"code": "Promo"
+},
 "1146/9": {
 "code": "Imperial"
 },
-"11556/1": {
-"code": ""
-},
-"11561/1": {
-"code": ""
-},
-"11585/1": {
-"code": ""
-},
 "1159/4": {
 "code": "Diamond"
-},
-"11592/1": {
-"code": ""
-},
-"11594/1": {
-"code": ""
-},
-"11602/1": {
-"code": ""
-},
-"11605/1": {
-"code": ""
 },
 "1162/4": {
 "code": "Samurai"
 },
 "1162/7": {
+"code": "Samurai"
+},
+"1162/8": {
 "code": "Samurai"
 },
 "1164/2": {
@@ -670,34 +1041,19 @@
 "1164/3": {
 "code": "BtD"
 },
+"1168/3": {
+"code": "Ivory"
+},
 "1169/1": {
 "code": "Promo"
 },
 "1170/1": {
 "code": "CJ"
 },
-"11717/1": {
-"code": ""
-},
 "1172/4": {
 "code": "TG2"
 },
-"11722/1": {
-"code": ""
-},
-"11723/1": {
-"code": ""
-},
 "1173/2": {
-"code": ""
-},
-"11736/1": {
-"code": ""
-},
-"11737/1": {
-"code": ""
-},
-"11745/1": {
 "code": ""
 },
 "11759/1": {
@@ -708,29 +1064,11 @@
 "code": "ShE",
 "name": "Zenathaar, Warrior of the Bright Eye"
 },
+"1179/3": {
+"code": "Samurai"
+},
 "1181/2": {
 "code": "TH"
-},
-"11869/1": {
-"code": ""
-},
-"11874/1": {
-"code": ""
-},
-"11875/1": {
-"code": ""
-},
-"11876/1": {
-"code": ""
-},
-"11880/1": {
-"code": ""
-},
-"11881/1": {
-"code": ""
-},
-"11883/1": {
-"code": ""
 },
 "1189/3": {
 "code": "TotV"
@@ -758,15 +1096,6 @@
 },
 "1190/9": {
 "code": "Jade"
-},
-"11919/1": {
-"code": ""
-},
-"11942/1": {
-"code": ""
-},
-"11943/1": {
-"code": ""
 },
 "1196/2": {
 "code": "SotE",
@@ -802,8 +1131,233 @@
 "1205/7": {
 "code": "Obsidian"
 },
+"12068/2": {
+"code": "TwentyFestivals"
+},
+"12069/2": {
+"code": "TwentyFestivals"
+},
+"12070/2": {
+"code": "TwentyFestivals"
+},
+"12071/2": {
+"code": "TwentyFestivals"
+},
+"12072/2": {
+"code": "TwentyFestivals"
+},
+"12074/2": {
+"code": "TwentyFestivals"
+},
+"12076/3": {
+"code": "TwentyFestivals"
+},
+"12077/2": {
+"code": "TwentyFestivals"
+},
+"12079/2": {
+"code": "TwentyFestivals"
+},
+"12081/2": {
+"code": "TwentyFestivals"
+},
+"12082/2": {
+"code": "TwentyFestivals"
+},
+"12084/2": {
+"code": "TwentyFestivals"
+},
+"12086/2": {
+"code": "TwentyFestivals"
+},
+"12087/2": {
+"code": "TwentyFestivals"
+},
+"12088/2": {
+"code": "TwentyFestivals"
+},
+"12089/2": {
+"code": ""
+},
+"12090/2": {
+"code": "TwentyFestivals"
+},
+"12093/3": {
+"code": "TwentyFestivals"
+},
+"12094/2": {
+"code": "TwentyFestivals"
+},
+"12095/2": {
+"code": "TwentyFestivals"
+},
+"12096/2": {
+"code": "TwentyFestivals"
+},
+"12097/2": {
+"code": "TwentyFestivals"
+},
+"12099/2": {
+"code": "TwentyFestivals"
+},
 "121/3": {
 "code": "BtD"
+},
+"121/5": {
+"code": "Ivory"
+},
+"12100/2": {
+"code": "TwentyFestivals"
+},
+"12101/2": {
+"code": "TwentyFestivals"
+},
+"12102/2": {
+"code": ""
+},
+"12103/2": {
+"code": "TwentyFestivals"
+},
+"12104/3": {
+"code": "TwentyFestivals"
+},
+"12105/2": {
+"code": "TwentyFestivals"
+},
+"12107/2": {
+"code": "TwentyFestivals"
+},
+"12108/2": {
+"code": "TwentyFestivals"
+},
+"12110/2": {
+"code": "TwentyFestivals"
+},
+"12111/2": {
+"code": "TwentyFestivals"
+},
+"12112/2": {
+"code": "TwentyFestivals"
+},
+"12114/2": {
+"code": "TwentyFestivals"
+},
+"12115/2": {
+"code": "TwentyFestivals"
+},
+"12116/2": {
+"code": ""
+},
+"12118/2": {
+"code": "TwentyFestivals"
+},
+"12119/2": {
+"code": "TwentyFestivals"
+},
+"12121/2": {
+"code": "TwentyFestivals"
+},
+"12123/2": {
+"code": "TwentyFestivals"
+},
+"12124/2": {
+"code": "TwentyFestivals"
+},
+"12126/2": {
+"code": "TwentyFestivals"
+},
+"12127/2": {
+"code": "TwentyFestivals"
+},
+"12128/2": {
+"code": ""
+},
+"12129/2": {
+"code": "TwentyFestivals"
+},
+"12131/3": {
+"code": "TwentyFestivals"
+},
+"12132/2": {
+"code": "TwentyFestivals"
+},
+"12133/2": {
+"code": "TwentyFestivals"
+},
+"12134/2": {
+"code": "TwentyFestivals"
+},
+"12137/2": {
+"code": "TwentyFestivals"
+},
+"12138/2": {
+"code": "TwentyFestivals"
+},
+"12140/2": {
+"code": "TwentyFestivals"
+},
+"12141/2": {
+"code": "TwentyFestivals"
+},
+"12143/2": {
+"code": "TwentyFestivals"
+},
+"12145/2": {
+"code": "TwentyFestivals"
+},
+"12146/2": {
+"code": "TwentyFestivals"
+},
+"12147/2": {
+"code": "TwentyFestivals"
+},
+"12148/2": {
+"code": ""
+},
+"12149/2": {
+"code": "TwentyFestivals"
+},
+"12151/2": {
+"code": "TwentyFestivals"
+},
+"12153/2": {
+"code": "TwentyFestivals"
+},
+"12155/2": {
+"code": "TwentyFestivals"
+},
+"12156/2": {
+"code": "TwentyFestivals"
+},
+"12157/2": {
+"code": "TwentyFestivals"
+},
+"12158/2": {
+"code": "TwentyFestivals"
+},
+"12159/2": {
+"code": ""
+},
+"12161/2": {
+"code": ""
+},
+"12162/2": {
+"code": "TwentyFestivals"
+},
+"12164/2": {
+"code": "TwentyFestivals"
+},
+"12166/2": {
+"code": "TwentyFestivals"
+},
+"12167/2": {
+"code": "TwentyFestivals"
+},
+"12168/2": {
+"code": "TwentyFestivals"
+},
+"12169/2": {
+"code": "TwentyFestivals"
 },
 "1217/11": {
 "code": "Pearl"
@@ -829,16 +1383,82 @@
 "1217/18": {
 "code": "Gold"
 },
+"12170/2": {
+"code": "TwentyFestivals"
+},
+"12174/2": {
+"code": "TwentyFestivals"
+},
+"12175/2": {
+"code": "TwentyFestivals"
+},
+"12177/2": {
+"code": "TwentyFestivals"
+},
 "1218/2": {
 "code": "Emperor"
+},
+"12181/2": {
+"code": "TwentyFestivals"
+},
+"12184/2": {
+"code": "TwentyFestivals"
+},
+"12185/2": {
+"code": "TwentyFestivals"
+},
+"12186/2": {
+"code": "TwentyFestivals"
+},
+"12188/2": {
+"code": "TwentyFestivals"
+},
+"12189/2": {
+"code": "TwentyFestivals"
+},
+"12190/2": {
+"code": ""
 },
 "12193/1": {
 "code": "TwentyFestivals",
 "name": "Amoral Wave Man"
 },
+"12194/2": {
+"code": "TwentyFestivals"
+},
+"12195/2": {
+"code": "TwentyFestivals"
+},
+"12196/2": {
+"code": "TwentyFestivals"
+},
+"12197/2": {
+"code": "TwentyFestivals"
+},
+"12198/2": {
+"code": "TwentyFestivals"
+},
+"12199/2": {
+"code": "TwentyFestivals"
+},
+"12203/2": {
+"code": "TwentyFestivals"
+},
+"12204/2": {
+"code": "TwentyFestivals"
+},
+"12206/2": {
+"code": "TwentyFestivals"
+},
+"12207/2": {
+"code": "TwentyFestivals"
+},
 "12208/1": {
 "code": "TwentyFestivals",
 "name": "Polvara Cache"
+},
+"12209/2": {
+"code": "TwentyFestivals"
 },
 "1221/4": {
 "code": "Diamond"
@@ -849,16 +1469,89 @@
 "1221/6": {
 "code": "Diamond"
 },
+"12210/2": {
+"code": "TwentyFestivals"
+},
+"12211/3": {
+"code": "TwentyFestivals"
+},
+"12212/2": {
+"code": "TwentyFestivals"
+},
+"12213/2": {
+"code": "TwentyFestivals"
+},
+"12214/2": {
+"code": "TwentyFestivals"
+},
+"12216/2": {
+"code": "TwentyFestivals"
+},
+"12218/2": {
+"code": "TwentyFestivals"
+},
+"12219/2": {
+"code": "TwentyFestivals"
+},
 "1222/3": {
 "code": "FOU"
+},
+"1222/4": {
+"code": "Ivory"
+},
+"12220/2": {
+"code": "TwentyFestivals"
+},
+"12222/2": {
+"code": "TwentyFestivals"
+},
+"12226/2": {
+"code": "TwentyFestivals"
+},
+"12228/2": {
+"code": "TwentyFestivals"
 },
 "1223/1": {
 "code": "Promo"
 },
+"12230/2": {
+"code": "TwentyFestivals"
+},
+"12231/2": {
+"code": "TwentyFestivals"
+},
+"12234/2": {
+"code": "TwentyFestivals"
+},
+"12236/2": {
+"code": "TwentyFestivals"
+},
+"12237/2": {
+"code": "TwentyFestivals"
+},
+"12239/2": {
+"code": "TwentyFestivals"
+},
 "1224/2": {
 "code": ""
 },
+"12244/2": {
+"code": "TwentyFestivals"
+},
+"12249/2": {
+"code": "TwentyFestivals"
+},
+"12251/2": {
+"code": "TwentyFestivals"
+},
+"12254/2": {
+"code": "TwentyFestivals"
+},
 "12257/1": {
+"code": "TwentyFestivals",
+"name": "The Unassailable Fortress of the Crab (1)"
+},
+"12257/2": {
 "code": "TwentyFestivals",
 "name": "The Unassailable Fortress of the Crab (1)"
 },
@@ -870,7 +1563,15 @@
 "code": "TCW",
 "name": "The Esteemed Palace of the Crane (1)"
 },
+"12258/3": {
+"code": "TwentyFestivals",
+"name": "The Esteemed Palace of the Crane (1)"
+},
 "12259/1": {
+"code": "TwentyFestivals",
+"name": "The Fortified Monastery of the Dragon (1)"
+},
+"12259/2": {
 "code": "TwentyFestivals",
 "name": "The Fortified Monastery of the Dragon (1)"
 },
@@ -878,7 +1579,15 @@
 "code": "TwentyFestivals",
 "name": "The Grand Halls of the Lion (1)"
 },
+"12260/2": {
+"code": "TwentyFestivals",
+"name": "The Grand Halls of the Lion (1)"
+},
 "12261/1": {
+"code": "TwentyFestivals",
+"name": "The Majestic Temple of the Phoenix (1)"
+},
+"12261/2": {
 "code": "TwentyFestivals",
 "name": "The Majestic Temple of the Phoenix (1)"
 },
@@ -886,12 +1595,26 @@
 "code": "TwentyFestivals",
 "name": "The Hidden Bastion of the Spider (1)"
 },
+"12262/2": {
+"code": "TwentyFestivals",
+"name": "The Hidden Bastion of the Spider (1)"
+},
 "12263/1": {
 "code": "TwentyFestivals",
 "name": "The Endless Plains of the Unicorn (1)"
 },
+"12263/2": {
+"code": "TwentyFestivals",
+"name": "The Endless Plains of the Unicorn (1)"
+},
+"1228/3": {
+"code": "Samurai"
+},
 "1233/4": {
 "code": "Diamond"
+},
+"1234/10": {
+"code": "Samurai"
 },
 "1234/6": {
 "code": "Imperial"
@@ -906,6 +1629,9 @@
 "code": "Obsidian"
 },
 "1236/3": {
+"code": "Samurai"
+},
+"1236/4": {
 "code": "Samurai"
 },
 "1237/4": {
@@ -942,7 +1668,13 @@
 "12587/1": {
 "code": ""
 },
+"12587/2": {
+"code": ""
+},
 "12589/1": {
+"code": ""
+},
+"12589/2": {
 "code": ""
 },
 "1259/1": {
@@ -954,16 +1686,31 @@
 "12591/1": {
 "code": ""
 },
+"12591/2": {
+"code": ""
+},
 "12593/1": {
+"code": ""
+},
+"12593/2": {
 "code": ""
 },
 "12595/1": {
 "code": ""
 },
+"12595/2": {
+"code": ""
+},
 "12597/1": {
 "code": ""
 },
+"12597/2": {
+"code": ""
+},
 "12599/1": {
+"code": ""
+},
+"12599/2": {
 "code": ""
 },
 "1260/1": {
@@ -972,16 +1719,31 @@
 "12600/1": {
 "code": ""
 },
+"12600/2": {
+"code": ""
+},
 "12601/1": {
+"code": ""
+},
+"12601/2": {
 "code": ""
 },
 "12602/1": {
 "code": ""
 },
+"12602/2": {
+"code": ""
+},
 "12603/1": {
 "code": ""
 },
+"12603/2": {
+"code": ""
+},
 "12604/1": {
+"code": ""
+},
+"12604/2": {
 "code": ""
 },
 "1261/1": {
@@ -990,8 +1752,41 @@
 "1262/1": {
 "code": "CE15"
 },
+"12639/2": {
+"code": ""
+},
 "1264/3": {
 "code": "Gold"
+},
+"12640/2": {
+"code": ""
+},
+"12641/2": {
+"code": ""
+},
+"12642/2": {
+"code": ""
+},
+"12643/2": {
+"code": ""
+},
+"12644/2": {
+"code": ""
+},
+"12645/2": {
+"code": ""
+},
+"12646/2": {
+"code": ""
+},
+"12647/2": {
+"code": ""
+},
+"12648/2": {
+"code": ""
+},
+"12649/2": {
+"code": ""
 },
 "1265/3": {
 "code": "Gold"
@@ -1031,11 +1826,14 @@
 "code": "Onyx",
 "name": "Hida Sazeren, Soul of Hida Sozen"
 },
-"1279/2": {
+"1279/3": {
 "code": "Celestial"
 },
 "1280/4": {
 "code": "Lotus"
+},
+"1280/5": {
+"code": "Samurai"
 },
 "129/3": {
 "code": "Diamond"
@@ -1225,12 +2023,21 @@
 "1350/3": {
 "code": "Celestial"
 },
+"1350/4": {
+"code": "Samurai"
+},
+"1351/3": {
+"code": "Samurai"
+},
 "1358/3": {
 "code": "TG"
 },
 "136/3": {
 "code": "ShE",
 "name": "Agasha Gifu, Arikura-no-baba"
+},
+"1366/2": {
+"code": "Samurai"
 },
 "13681/1": {
 "code": "ShE",
@@ -1249,6 +2056,9 @@
 },
 "1378/2": {
 "code": "KD"
+},
+"1392/4": {
+"code": "Celestial"
 },
 "13977/1": {
 "code": "ShE",
@@ -1283,9 +2093,15 @@
 "code": "CRII",
 "name": "Shahadet - exp 4"
 },
+"1415/3": {
+"code": "Samurai"
+},
 "14167/1": {
 "code": "CRII",
 "name": "Suzume Ryosuke, Sparrow Clan Champion"
+},
+"1418/3": {
+"code": "Ivory"
 },
 "14199/1": {
 "code": "CRII",
@@ -1314,11 +2130,8 @@
 "code": "TBS",
 "name": "Scholar's Facade"
 },
-"1429/1": {
-"code": ""
-},
-"1429/2": {
-"code": ""
+"1429/5": {
+"code": "Ivory"
 },
 "1431/2": {
 "code": "FL"
@@ -1332,22 +2145,36 @@
 "1434/12": {
 "code": "Lotus"
 },
+"1434/13": {
+"code": "Ivory"
+},
 "1434/5": {
 "code": "Lotus"
 },
 "1434/9": {
 "code": "Diamond"
 },
-"14380/1": {
-"code": "CRI",
-"name": "Kitsu Kouki - exp"
+"1439/5": {
+"code": "Samurai"
+},
+"1440/3": {
+"code": "Samurai"
 },
 "14431/1": {
 "code": "CRIII",
 "name": "Gusai Ichido, Clan Champion - exp2"
 },
+"1444/4": {
+"code": "TwentyFestivals"
+},
+"1444/5": {
+"code": "Samurai"
+},
 "1447/3": {
 "code": "Diamond"
+},
+"1449/5": {
+"code": "TwentyFestivals"
 },
 "14494/1": {
 "code": "CRIII",
@@ -1371,6 +2198,9 @@
 "1450/15": {
 "code": "Diamond"
 },
+"1450/16": {
+"code": "Ivory"
+},
 "1450/7": {
 "code": "Diamond"
 },
@@ -1378,6 +2208,9 @@
 "code": "Jade"
 },
 "1464/5": {
+"code": "Samurai"
+},
+"1464/6": {
 "code": "Samurai"
 },
 "1471/7": {
@@ -1428,8 +2261,14 @@
 "1475/9": {
 "code": "Gold"
 },
+"1480/3": {
+"code": "Samurai"
+},
 "1487/4": {
 "code": "WoC"
+},
+"1487/5": {
+"code": "Samurai"
 },
 "1497/20": {
 "code": "Imperial"
@@ -1470,11 +2309,20 @@
 "1497/32": {
 "code": "Lotus"
 },
+"1497/33": {
+"code": "Celestial"
+},
 "1497/7": {
 "code": "Celestial"
 },
+"1500/3": {
+"code": "Samurai"
+},
 "1502/3": {
 "code": "Lotus"
+},
+"1502/4": {
+"code": "Samurai"
 },
 "1503/4": {
 "code": "Pearl"
@@ -1483,6 +2331,9 @@
 "code": "TotV"
 },
 "1507/5": {
+"code": "Samurai"
+},
+"1507/6": {
 "code": "Samurai"
 },
 "1514/5": {
@@ -1542,6 +2393,12 @@
 "1528/2": {
 "code": "Celestial"
 },
+"1528/6": {
+"code": "Ivory"
+},
+"1530/4": {
+"code": "Samurai"
+},
 "1531/2": {
 "code": "TTT"
 },
@@ -1562,6 +2419,9 @@
 },
 "1567/3": {
 "code": "WoE"
+},
+"1569/3": {
+"code": "Samurai"
 },
 "1578/5": {
 "code": "Jade"
@@ -1596,6 +2456,9 @@
 "1597/2": {
 "code": "WoL"
 },
+"1610/3": {
+"code": "Samurai"
+},
 "1616/4": {
 "code": "Gold"
 },
@@ -1614,11 +2477,17 @@
 "1618/5": {
 "code": "Diamond"
 },
+"1618/6": {
+"code": "Samurai"
+},
 "1624/2": {
 "code": "EoME"
 },
 "1629/2": {
 "code": "SC"
+},
+"1630/2": {
+"code": "Samurai"
 },
 "1632/2": {
 "code": "AOF"
@@ -1653,6 +2522,9 @@
 "1677/2": {
 "code": "EoME"
 },
+"1682/4": {
+"code": "Ivory"
+},
 "1686/2": {
 "code": "WaD"
 },
@@ -1674,6 +2546,9 @@
 "1699/3": {
 "code": "WoL"
 },
+"1700/2": {
+"code": "Celestial"
+},
 "1701/2": {
 "code": "Lotus"
 },
@@ -1686,8 +2561,14 @@
 "1712/2": {
 "code": "HC"
 },
+"1720/5": {
+"code": "Samurai"
+},
 "1727/2": {
 "code": "TTT"
+},
+"1731/3": {
+"code": "Samurai"
 },
 "1733/2": {
 "code": "Emperor"
@@ -1695,8 +2576,17 @@
 "1733/3": {
 "code": "Emperor"
 },
+"1736/3": {
+"code": "TwentyFestivals"
+},
 "1738/2": {
 "code": "Lotus"
+},
+"1745/4": {
+"code": "Ivory"
+},
+"1745/5": {
+"code": "Samurai"
 },
 "1756/2": {
 "code": "KD"
@@ -1727,6 +2617,9 @@
 },
 "1866/3": {
 "code": "Lotus"
+},
+"1866/4": {
+"code": "Samurai"
 },
 "1868/1": {
 "code": "SL"
@@ -1797,6 +2690,12 @@
 "1923/5": {
 "code": "Gold"
 },
+"1923/7": {
+"code": "TwentyFestivals"
+},
+"1936/3": {
+"code": "Samurai"
+},
 "1961/2": {
 "code": "PotD"
 },
@@ -1821,11 +2720,20 @@
 "200/3": {
 "code": "Emperor"
 },
+"2000/5": {
+"code": "TwentyFestivals"
+},
 "2005/4": {
 "code": "Diamond"
 },
 "2009/2": {
 "code": "CoB"
+},
+"201/4": {
+"code": "Ivory"
+},
+"2014/7": {
+"code": "Ivory"
 },
 "2015/3": {
 "code": "TotV"
@@ -1914,17 +2822,26 @@
 "2061/3": {
 "code": "Samurai"
 },
+"2061/4": {
+"code": "Samurai"
+},
 "2070/2": {
 "code": "SC"
 },
 "2070/4": {
 "code": "SC"
 },
+"2070/5": {
+"code": "Ivory"
+},
 "2071/4": {
 "code": "Lotus"
 },
 "2072/2": {
 "code": "Samurai"
+},
+"2073/2": {
+"code": "Celestial"
 },
 "2074/2": {
 "code": ""
@@ -1941,6 +2858,9 @@
 "2081/2": {
 "code": "Samurai"
 },
+"2081/3": {
+"code": "Samurai"
+},
 "2088/2": {
 "code": "TTT"
 },
@@ -1955,6 +2875,9 @@
 },
 "2096/5": {
 "code": "Diamond"
+},
+"2096/6": {
+"code": "Samurai"
 },
 "21/3": {
 "code": "Lotus"
@@ -1978,6 +2901,9 @@
 "code": "CoB"
 },
 "2106/4": {
+"code": "Samurai"
+},
+"2106/5": {
 "code": "Samurai"
 },
 "2108/2": {
@@ -2041,6 +2967,9 @@
 "2172/3": {
 "code": "Gold"
 },
+"2180/2": {
+"code": ""
+},
 "2191/4": {
 "code": "TG"
 },
@@ -2049,6 +2978,9 @@
 },
 "2199/4": {
 "code": "KD"
+},
+"2202/3": {
+"code": "Ivory"
 },
 "2205/6": {
 "code": "Jade"
@@ -2087,6 +3019,9 @@
 "2220/3": {
 "code": "Gold"
 },
+"2221/3": {
+"code": "Celestial"
+},
 "2225/3": {
 "code": "CJ"
 },
@@ -2118,7 +3053,10 @@
 "code": "Gold"
 },
 "2250/7": {
-"code": "Samurai"
+"code": "Promo"
+},
+"2250/8": {
+"code": "Promo"
 },
 "2252/3": {
 "code": "Gold"
@@ -2128,6 +3066,12 @@
 },
 "2257/3": {
 "code": "Samurai"
+},
+"2257/4": {
+"code": "Samurai"
+},
+"2261/4": {
+"code": "TwentyFestivals"
 },
 "2264/2": {
 "code": "TTT"
@@ -2164,6 +3108,9 @@
 },
 "2305/8": {
 "code": "TG"
+},
+"2305/9": {
+"code": "TwentyFestivals"
 },
 "2309/2": {
 "code": "BtD"
@@ -2214,7 +3161,10 @@
 "code": "Diamond"
 },
 "2332/31": {
-"code": "Samurai"
+"code": "Promo"
+},
+"2332/32": {
+"code": "Promo"
 },
 "2339/2": {
 "code": ""
@@ -2239,6 +3189,12 @@
 },
 "2346/7": {
 "code": "Samurai"
+},
+"2346/8": {
+"code": "Samurai"
+},
+"2346/9": {
+"code": "TwentyFestivals"
 },
 "2349/2": {
 "code": ""
@@ -2306,6 +3262,9 @@
 "2378/1": {
 "code": "Promo"
 },
+"2385/3": {
+"code": "TwentyFestivals"
+},
 "2387/5": {
 "code": ""
 },
@@ -2317,6 +3276,9 @@
 },
 "2390/2": {
 "code": ""
+},
+"2392/3": {
+"code": "Ivory"
 },
 "2394/7": {
 "code": "Pearl"
@@ -2333,8 +3295,23 @@
 "2411/2": {
 "code": "PotD"
 },
+"2411/5": {
+"code": ""
+},
+"2412/3": {
+"code": "Ivory"
+},
+"2414/6": {
+"code": "Samurai"
+},
+"2414/7": {
+"code": "TwentyFestivals"
+},
 "2415/12": {
 "code": "Diamond"
+},
+"2419/5": {
+"code": "Samurai"
 },
 "2423/3": {
 "code": "CJ"
@@ -2354,11 +3331,11 @@
 "2438/3": {
 "code": "TTT"
 },
-"2443/1": {
-"code": ""
+"2442/3": {
+"code": "Ivory"
 },
-"2443/2": {
-"code": ""
+"2445/10": {
+"code": "Ivory"
 },
 "2450/3": {
 "code": "Diamond"
@@ -2369,40 +3346,19 @@
 "2460/3": {
 "code": "TotV"
 },
-"2463/1": {
-"code": ""
+"2463/10": {
+"code": "Ivory"
 },
-"2463/2": {
-"code": ""
-},
-"2463/3": {
-"code": ""
-},
-"2463/4": {
-"code": ""
-},
-"2463/5": {
-"code": ""
-},
-"2463/6": {
-"code": ""
+"2463/11": {
+"code": "Samurai"
 },
 "2463/9": {
-"code": ""
-},
-"2470/1": {
-"code": ""
-},
-"2470/2": {
-"code": ""
+"code": "Samurai"
 },
 "2470/3": {
-"code": ""
+"code": "Celestial"
 },
 "2470/4": {
-"code": ""
-},
-"2470/5": {
 "code": ""
 },
 "2471/6": {
@@ -2410,6 +3366,9 @@
 },
 "2473/12": {
 "code": "Lotus"
+},
+"2473/13": {
+"code": "Samurai"
 },
 "2475/8": {
 "code": "Pearl"
@@ -2433,6 +3392,9 @@
 "code": "Gold"
 },
 "2478/16": {
+"code": "Samurai"
+},
+"2478/17": {
 "code": "Samurai"
 },
 "2478/3": {
@@ -2462,6 +3424,9 @@
 "2512/1": {
 "code": "Promo"
 },
+"2533/3": {
+"code": "Celestial"
+},
 "2544/3": {
 "code": "Gold"
 },
@@ -2470,6 +3435,9 @@
 },
 "2550/6": {
 "code": "WaD"
+},
+"2550/7": {
+"code": "Ivory"
 },
 "2553/2": {
 "code": "TTT"
@@ -2482,6 +3450,9 @@
 },
 "2557/6": {
 "code": "Diamond"
+},
+"2557/7": {
+"code": "Ivory"
 },
 "2558/1": {
 "code": "Promo"
@@ -2507,10 +3478,16 @@
 "2563/2": {
 "code": "KD"
 },
+"2578/5": {
+"code": "Ivory"
+},
 "2581/4": {
 "code": "Lotus"
 },
 "2581/5": {
+"code": "Samurai"
+},
+"2581/6": {
 "code": "Samurai"
 },
 "2582/2": {
@@ -2543,6 +3520,9 @@
 "2586/13": {
 "code": "Diamond"
 },
+"2586/14": {
+"code": "TwentyFestivals"
+},
 "2586/6": {
 "code": "Pearl"
 },
@@ -2560,6 +3540,12 @@
 },
 "2600/2": {
 "code": "KD"
+},
+"2602/5": {
+"code": "Ivory"
+},
+"2609/4": {
+"code": "Samurai"
 },
 "2619/11": {
 "code": "Samurai"
@@ -2606,35 +3592,35 @@
 "2645/4": {
 "code": "Samurai"
 },
+"2645/5": {
+"code": "Samurai"
+},
+"2650/3": {
+"code": "Samurai"
+},
 "266/2": {
 "code": "TH"
 },
 "2663/3": {
 "code": "Samurai"
 },
+"2663/4": {
+"code": "Samurai"
+},
+"2666/4": {
+"code": "TwentyFestivals"
+},
 "2669/3": {
 "code": "Diamond"
+},
+"2675/2": {
+"code": ""
 },
 "268/2": {
 "code": "Celestial"
 },
 "2687/2": {
 "code": "WoL"
-},
-"2694/1": {
-"code": ""
-},
-"2694/2": {
-"code": ""
-},
-"2694/3": {
-"code": ""
-},
-"2694/4": {
-"code": ""
-},
-"2694/5": {
-"code": ""
 },
 "2696/11": {
 "code": "Pearl"
@@ -2654,14 +3640,32 @@
 "2706/2": {
 "code": "IG2"
 },
+"2706/6": {
+"code": "Ivory"
+},
+"2710/2": {
+"code": ""
+},
 "2713/3": {
 "code": "FK"
+},
+"2717/3": {
+"code": "TwentyFestivals"
 },
 "2718/2": {
 "code": "GotE"
 },
 "272/3": {
 "code": "Celestial"
+},
+"272/4": {
+"code": "Samurai"
+},
+"2723/3": {
+"code": "TwentyFestivals"
+},
+"2724/3": {
+"code": "Ivory"
 },
 "2744/4": {
 "code": "Jade"
@@ -2674,6 +3678,9 @@
 },
 "2749/2": {
 "code": ""
+},
+"2749/5": {
+"code": "TwentyFestivals"
 },
 "2764/1": {
 "code": "PotD"
@@ -2729,14 +3736,26 @@
 "2784/22": {
 "code": "Diamond"
 },
+"2784/23": {
+"code": "Celestial"
+},
 "2786/2": {
 "code": ""
 },
 "2786/5": {
 "code": "TG"
 },
+"2786/6": {
+"code": "Ivory"
+},
+"2788/3": {
+"code": "TwentyFestivals"
+},
 "279/3": {
 "code": "TG"
+},
+"280/2": {
+"code": "Celestial"
 },
 "2802/2": {
 "code": "TTT"
@@ -2819,6 +3838,9 @@
 "2818/14": {
 "code": "SOMP"
 },
+"2818/15": {
+"code": "Ivory"
+},
 "2818/9": {
 "code": "Gold"
 },
@@ -2851,6 +3873,12 @@
 },
 "2829/14": {
 "code": "Samurai"
+},
+"2829/15": {
+"code": "Samurai"
+},
+"2829/16": {
+"code": "TwentyFestivals"
 },
 "2829/9": {
 "code": "Imperial"
@@ -2893,6 +3921,9 @@
 },
 "2841/9": {
 "code": "Gold"
+},
+"285/3": {
+"code": "Samurai"
 },
 "2850/1": {
 "code": "KYD",
@@ -2943,6 +3974,9 @@
 "2867/30": {
 "code": "Lotus"
 },
+"2867/31": {
+"code": "Celestial"
+},
 "2867/7": {
 "code": "Celestial"
 },
@@ -2954,6 +3988,9 @@
 },
 "2899/2": {
 "code": "TPW"
+},
+"2899/3": {
+"code": ""
 },
 "2903/2": {
 "code": "Celestial"
@@ -2976,8 +4013,20 @@
 "2922/5": {
 "code": "TTT"
 },
+"2922/6": {
+"code": "Ivory"
+},
+"2925/6": {
+"code": "TwentyFestivals"
+},
 "2943/3": {
 "code": "Samurai"
+},
+"2943/4": {
+"code": "Samurai"
+},
+"2944/3": {
+"code": "Ivory"
 },
 "2949/2": {
 "code": "Emperor"
@@ -3084,6 +4133,12 @@
 "3043/30": {
 "code": "Lotus"
 },
+"3043/31": {
+"code": "Ivory"
+},
+"3043/32": {
+"code": "Samurai"
+},
 "3045/3": {
 "code": "Diamond"
 },
@@ -3102,7 +4157,13 @@
 "3057/3": {
 "code": "Lotus"
 },
+"3067/3": {
+"code": "Ivory"
+},
 "3080/4": {
+"code": "Samurai"
+},
+"3080/5": {
 "code": "Samurai"
 },
 "3082/2": {
@@ -3111,35 +4172,20 @@
 "3083/2": {
 "code": "BtD"
 },
-"309/1": {
-"code": ""
-},
 "309/10": {
-"code": ""
+"code": "Lotus"
 },
 "309/11": {
-"code": ""
+"code": "Lotus"
 },
 "309/12": {
-"code": ""
+"code": "Samurai"
 },
-"309/2": {
-"code": ""
+"309/13": {
+"code": "Samurai"
 },
 "309/3": {
-"code": ""
-},
-"309/4": {
-"code": ""
-},
-"309/5": {
-"code": ""
-},
-"309/6": {
-"code": ""
-},
-"309/7": {
-"code": ""
+"code": "Celestial"
 },
 "3094/2": {
 "code": ""
@@ -3147,13 +4193,25 @@
 "3095/2": {
 "code": "Samurai"
 },
+"3095/3": {
+"code": "Samurai"
+},
 "310/2": {
 "code": "PotD"
+},
+"310/3": {
+"code": ""
 },
 "3103/3": {
 "code": "Diamond"
 },
+"3105/3": {
+"code": "Samurai"
+},
 "3119/3": {
+"code": "Samurai"
+},
+"3119/4": {
 "code": "Samurai"
 },
 "3122/2": {
@@ -3182,6 +4240,9 @@
 },
 "314/3": {
 "code": "Gold"
+},
+"3140/3": {
+"code": "Celestial"
 },
 "3142/3": {
 "code": "Gold"
@@ -3279,8 +4340,14 @@
 "3247/2": {
 "code": "Lotus"
 },
+"3249/2": {
+"code": ""
+},
 "3257/2": {
 "code": "Emperor"
+},
+"3260/2": {
+"code": "Celestial"
 },
 "327/4": {
 "code": "TTT"
@@ -3290,6 +4357,9 @@
 },
 "3271/3": {
 "code": "Gold"
+},
+"3273/10": {
+"code": "Ivory"
 },
 "3273/7": {
 "code": "Pearl"
@@ -3303,11 +4373,17 @@
 "3276/4": {
 "code": "Samurai"
 },
+"3276/7": {
+"code": "Samurai"
+},
 "3277/1": {
 "code": "Promo"
 },
 "3279/2": {
 "code": ""
+},
+"3284/3": {
+"code": "Samurai"
 },
 "3285/3": {
 "code": "Celestial"
@@ -3333,8 +4409,14 @@
 "3305/4": {
 "code": "Gold"
 },
+"3307/4": {
+"code": "Ivory"
+},
 "331/10": {
 "code": "Gold"
+},
+"331/11": {
+"code": "Ivory"
 },
 "331/9": {
 "code": "Imperial"
@@ -3347,6 +4429,9 @@
 },
 "3323/3": {
 "code": "TTT"
+},
+"3328/3": {
+"code": "Samurai"
 },
 "3333/3": {
 "code": "Diamond"
@@ -3388,6 +4473,9 @@
 "3398/7": {
 "code": "Gold"
 },
+"3398/8": {
+"code": "Samurai"
+},
 "3399/4": {
 "code": "Jade"
 },
@@ -3399,6 +4487,12 @@
 },
 "3405/1": {
 "code": "Promo"
+},
+"3416/4": {
+"code": "Samurai"
+},
+"3418/4": {
+"code": "Samurai"
 },
 "3423/2": {
 "code": "TTT"
@@ -3436,6 +4530,9 @@
 "3440/5": {
 "code": "Lotus"
 },
+"3440/6": {
+"code": "TwentyFestivals"
+},
 "3443/2": {
 "code": "TTT"
 },
@@ -3448,6 +4545,9 @@
 "3464/3": {
 "code": "Diamond"
 },
+"347/3": {
+"code": "Ivory"
+},
 "3487/1": {
 "code": "KYD",
 "name": "Hoturi the Heartless - exp3 KYD"
@@ -3458,11 +4558,17 @@
 "3491/2": {
 "code": ""
 },
+"3493/5": {
+"code": "Ivory"
+},
 "3495/2": {
 "code": "Diamond"
 },
 "3501/4": {
 "code": "Diamond"
+},
+"3501/5": {
+"code": "Ivory"
 },
 "3511/3": {
 "code": "Gold"
@@ -3472,6 +4578,9 @@
 },
 "3515/1": {
 "code": "Promo"
+},
+"3516/3": {
+"code": "Samurai"
 },
 "3525/2": {
 "code": "KD"
@@ -3614,6 +4723,9 @@
 "3549/3": {
 "code": "Diamond"
 },
+"3559/3": {
+"code": "TwentyFestivals"
+},
 "3569/1": {
 "code": "Promo"
 },
@@ -3629,6 +4741,9 @@
 "3586/5": {
 "code": "Diamond"
 },
+"3593/2": {
+"code": "Samurai"
+},
 "3608/2": {
 "code": "KD"
 },
@@ -3640,6 +4755,9 @@
 },
 "3631/4": {
 "code": "Pearl"
+},
+"3636/6": {
+"code": "Ivory"
 },
 "3638/2": {
 "code": "Emperor"
@@ -3658,6 +4776,9 @@
 },
 "3656/2": {
 "code": "TTT"
+},
+"3668/3": {
+"code": "Samurai"
 },
 "3683/1": {
 "code": "Promo"
@@ -3687,7 +4808,10 @@
 "code": "KD"
 },
 "3710/6": {
-"code": "Samurai"
+"code": "Promo"
+},
+"3710/7": {
+"code": "Promo"
 },
 "3717/3": {
 "code": "KD"
@@ -3701,6 +4825,9 @@
 "3718/7": {
 "code": "Samurai"
 },
+"3718/8": {
+"code": "Samurai"
+},
 "3726/5": {
 "code": "Diamond"
 },
@@ -3709,6 +4836,9 @@
 },
 "3726/7": {
 "code": "Gold"
+},
+"3726/8": {
+"code": "Samurai"
 },
 "373/3": {
 "code": "AoD"
@@ -3734,6 +4864,9 @@
 "3759/7": {
 "code": "Gold"
 },
+"3759/8": {
+"code": "Samurai"
+},
 "3764/2": {
 "code": "KD"
 },
@@ -3755,6 +4888,12 @@
 "3772/2": {
 "code": "TTT"
 },
+"3774/4": {
+"code": "Ivory"
+},
+"3785/3": {
+"code": "TwentyFestivals"
+},
 "3787/4": {
 "code": "Imperial"
 },
@@ -3775,6 +4914,9 @@
 },
 "3801/6": {
 "code": "Pearl"
+},
+"3802/3": {
+"code": "TwentyFestivals"
 },
 "3808/17": {
 "code": "BoBP"
@@ -3812,6 +4954,9 @@
 "3808/28": {
 "code": "Samurai"
 },
+"3808/29": {
+"code": "Celestial"
+},
 "3809/4": {
 "code": ""
 },
@@ -3822,6 +4967,9 @@
 "code": "TTT"
 },
 "3822/3": {
+"code": "Samurai"
+},
+"3822/4": {
 "code": "Samurai"
 },
 "3831/2": {
@@ -3836,6 +4984,9 @@
 "3850/2": {
 "code": "SC"
 },
+"3855/4": {
+"code": "Samurai"
+},
 "3867/3": {
 "code": "HV"
 },
@@ -3846,6 +4997,9 @@
 "code": "Gold"
 },
 "3885/2": {
+"code": "Samurai"
+},
+"3886/2": {
 "code": "Samurai"
 },
 "3895/2": {
@@ -3867,6 +5021,9 @@
 "code": "Gold"
 },
 "3916/2": {
+"code": "Samurai"
+},
+"3916/3": {
 "code": "Samurai"
 },
 "3924/2": {
@@ -3917,6 +5074,9 @@
 "3997/3": {
 "code": "Diamond"
 },
+"4006/3": {
+"code": "Samurai"
+},
 "4010/2": {
 "code": "BtD"
 },
@@ -3956,92 +5116,62 @@
 "4022/9": {
 "code": "Imperial"
 },
-"4036/1": {
-"code": ""
-},
-"4036/10": {
-"code": ""
-},
 "4036/11": {
-"code": ""
-},
-"4036/12": {
-"code": ""
-},
-"4036/13": {
-"code": ""
+"code": "Gold"
 },
 "4036/16": {
-"code": ""
+"code": "Imperial"
 },
 "4036/17": {
-"code": ""
+"code": "BoBP"
 },
 "4036/18": {
-"code": ""
+"code": "BoBP"
 },
 "4036/19": {
-"code": ""
+"code": "Obsidian"
 },
-"4036/2": {
-"code": ""
+"4036/20": {
+"code": "Jade"
+},
+"4036/22": {
+"code": "Obsidian"
 },
 "4036/23": {
-"code": ""
+"code": "Pearl"
 },
 "4036/24": {
-"code": ""
+"code": "Pearl"
 },
 "4036/25": {
-"code": ""
+"code": "Pearl"
 },
 "4036/26": {
-"code": ""
+"code": "Pearl"
 },
 "4036/27": {
-"code": ""
+"code": "SOMP"
 },
 "4036/28": {
-"code": ""
+"code": "Gold"
 },
 "4036/29": {
-"code": ""
-},
-"4036/3": {
-"code": ""
+"code": "Gold"
 },
 "4036/30": {
-"code": ""
+"code": "Gold"
 },
 "4036/31": {
-"code": ""
+"code": "Gold"
 },
 "4036/32": {
-"code": ""
+"code": "Gold"
 },
 "4036/33": {
-"code": ""
+"code": "Gold"
 },
 "4036/34": {
-"code": ""
-},
-"4036/4": {
-"code": ""
-},
-"4036/5": {
-"code": ""
-},
-"4036/6": {
-"code": ""
-},
-"4036/7": {
-"code": ""
-},
-"4036/8": {
-"code": ""
-},
-"4036/9": {
-"code": ""
+"code": "Gold"
 },
 "4048/2": {
 "code": "KD"
@@ -4102,6 +5232,9 @@
 "4080/8": {
 "code": "Gold"
 },
+"4091/3": {
+"code": "Ivory"
+},
 "410/11": {
 "code": "SoSM"
 },
@@ -4114,8 +5247,14 @@
 "4116/4": {
 "code": "Lotus"
 },
+"4116/5": {
+"code": "Samurai"
+},
 "4118/2": {
 "code": "Emperor"
+},
+"4120/2": {
+"code": "Samurai"
 },
 "413/2": {
 "code": "TTT"
@@ -4134,6 +5273,9 @@
 },
 "4163/2": {
 "code": "Lotus"
+},
+"4169/3": {
+"code": "Samurai"
 },
 "4173/2": {
 "code": "Diamond"
@@ -4222,6 +5364,12 @@
 "428/9": {
 "code": "Gold"
 },
+"4283/3": {
+"code": "TwentyFestivals"
+},
+"4284/3": {
+"code": "Ivory"
+},
 "4296/2": {
 "code": ""
 },
@@ -4267,8 +5415,14 @@
 "4334/11": {
 "code": "Diamond"
 },
+"4334/12": {
+"code": "Ivory"
+},
 "4334/8": {
 "code": "Diamond"
+},
+"4348/4": {
+"code": "Ivory"
 },
 "4371/2": {
 "code": "SC"
@@ -4282,6 +5436,9 @@
 "4379/2": {
 "code": "KD"
 },
+"4383/3": {
+"code": "Samurai"
+},
 "4389/5": {
 "code": "Obsidian"
 },
@@ -4290,6 +5447,9 @@
 },
 "4391/6": {
 "code": "SOMP"
+},
+"4396/3": {
+"code": "Ivory"
 },
 "4400/4": {
 "code": "Obsidian"
@@ -4309,17 +5469,32 @@
 "4440/3": {
 "code": "Celestial"
 },
+"4440/4": {
+"code": "Samurai"
+},
 "4441/3": {
 "code": "Celestial"
 },
 "4452/2": {
 "code": ""
 },
+"4467/3": {
+"code": "Ivory"
+},
 "4474/2": {
 "code": "SC"
 },
 "4476/2": {
 "code": "KD"
+},
+"4477/3": {
+"code": "Samurai"
+},
+"4480/10": {
+"code": "Samurai"
+},
+"4480/11": {
+"code": "TwentyFestivals"
 },
 "4480/6": {
 "code": "Celestial"
@@ -4338,6 +5513,21 @@
 },
 "4496/13": {
 "code": "Diamond"
+},
+"4496/14": {
+"code": "Celestial"
+},
+"4497/3": {
+"code": "Samurai"
+},
+"4498/4": {
+"code": "Samurai"
+},
+"4499/2": {
+"code": "Samurai"
+},
+"45/3": {
+"code": "TwentyFestivals"
 },
 "4501/3": {
 "code": "CJ"
@@ -4365,6 +5555,9 @@
 },
 "4535/4": {
 "code": "Pearl"
+},
+"4537/3": {
+"code": "Ivory"
 },
 "4540/3": {
 "code": "Gold"
@@ -4408,6 +5601,9 @@
 "4626/12": {
 "code": "Pearl"
 },
+"4626/13": {
+"code": "Samurai"
+},
 "4631/3": {
 "code": "Diamond"
 },
@@ -4425,6 +5621,9 @@
 },
 "4637/4": {
 "code": "Diamond"
+},
+"4637/6": {
+"code": "Celestial"
 },
 "4638/3": {
 "code": "Emperor"
@@ -4456,6 +5655,9 @@
 "4651/2": {
 "code": ""
 },
+"4656/3": {
+"code": "TwentyFestivals"
+},
 "466/2": {
 "code": "SCC1"
 },
@@ -4464,6 +5666,9 @@
 },
 "4664/12": {
 "code": "Lotus"
+},
+"4671/2": {
+"code": ""
 },
 "4674/2": {
 "code": "PotD"
@@ -4477,7 +5682,13 @@
 "4688/4": {
 "code": "Diamond"
 },
+"4696/5": {
+"code": "TwentyFestivals"
+},
 "470/3": {
+"code": "Samurai"
+},
+"470/4": {
 "code": "Samurai"
 },
 "4702/2": {
@@ -4501,6 +5712,9 @@
 "4708/4": {
 "code": "Samurai"
 },
+"4708/5": {
+"code": "Samurai"
+},
 "4712/1": {
 "code": "TotV"
 },
@@ -4509,6 +5723,9 @@
 },
 "4724/3": {
 "code": "Emperor"
+},
+"4726/6": {
+"code": "Samurai"
 },
 "4733/10": {
 "code": "Imperial"
@@ -4574,7 +5791,10 @@
 "code": "Gold"
 },
 "4734/31": {
-"code": "Samurai"
+"code": "Promo"
+},
+"4734/33": {
+"code": "Promo"
 },
 "4735/4": {
 "code": "Gold"
@@ -4615,6 +5835,9 @@
 "475/14": {
 "code": "Gold"
 },
+"475/15": {
+"code": "Samurai"
+},
 "475/6": {
 "code": "Gold"
 },
@@ -4623,6 +5846,9 @@
 },
 "4751/6": {
 "code": "Lotus"
+},
+"4751/7": {
+"code": "Samurai"
 },
 "4762/10": {
 "code": "Gold"
@@ -4662,6 +5888,9 @@
 },
 "4815/7": {
 "code": "Diamond"
+},
+"4816/3": {
+"code": "Samurai"
 },
 "4840/14": {
 "code": "Gold"
@@ -4718,6 +5947,9 @@
 "4840/30": {
 "code": "Samurai"
 },
+"4840/31": {
+"code": "Celestial"
+},
 "4840/4": {
 "code": "Emerald",
 "name": "Market Place"
@@ -4736,8 +5968,14 @@
 "4849/2": {
 "code": "TTT"
 },
+"485/3": {
+"code": "Samurai"
+},
 "4863/7": {
 "code": "CJ"
+},
+"4863/8": {
+"code": "Samurai"
 },
 "4864/5": {
 "code": "Obsidian"
@@ -4776,6 +6014,9 @@
 },
 "4896/2": {
 "code": "PotD"
+},
+"4897/3": {
+"code": "Samurai"
 },
 "4898/2": {
 "code": "KD"
@@ -4849,8 +6090,14 @@
 "4970/2": {
 "code": "TTT"
 },
+"4972/3": {
+"code": "Samurai"
+},
 "4983/2": {
 "code": "TTT"
+},
+"4987/2": {
+"code": "Samurai"
 },
 "4993/1": {
 "code": "FK"
@@ -4875,6 +6122,9 @@
 },
 "5007/2": {
 "code": ""
+},
+"5009/3": {
+"code": "Samurai"
 },
 "5011/2": {
 "code": "TH"
@@ -4990,8 +6240,14 @@
 "5030/2": {
 "code": "TTT"
 },
+"5035/2": {
+"code": "Samurai"
+},
 "5037/2": {
 "code": "Emperor"
+},
+"5054/4": {
+"code": "Ivory"
 },
 "5056/2": {
 "code": "Onyx",
@@ -5013,6 +6269,9 @@
 "5065/1": {
 "code": "Promo"
 },
+"5078/3": {
+"code": "Samurai"
+},
 "5079/6": {
 "code": "BoBP"
 },
@@ -5031,8 +6290,14 @@
 "5097/6": {
 "code": "BoBP"
 },
+"5103/3": {
+"code": "Samurai"
+},
 "5108/2": {
 "code": "TTT"
+},
+"5116/2": {
+"code": "Celestial"
 },
 "5125/2": {
 "code": ""
@@ -5048,6 +6313,9 @@
 },
 "5153/7": {
 "code": "Pearl"
+},
+"5157/3": {
+"code": "Samurai"
 },
 "5161/6": {
 "code": "Jade"
@@ -5086,6 +6354,9 @@
 "5235/3": {
 "code": "Samurai"
 },
+"5235/4": {
+"code": "Samurai"
+},
 "5239/5": {
 "code": "Imperial"
 },
@@ -5107,6 +6378,12 @@
 "5249/4": {
 "code": "Diamond"
 },
+"5249/5": {
+"code": "Samurai"
+},
+"5256/2": {
+"code": "Samurai"
+},
 "5270/2": {
 "code": "TTT"
 },
@@ -5116,7 +6393,13 @@
 "5288/6": {
 "code": "BoBP"
 },
+"5290/3": {
+"code": "TwentyFestivals"
+},
 "5295/3": {
+"code": "Samurai"
+},
+"5295/4": {
 "code": "Samurai"
 },
 "5298/2": {
@@ -5151,6 +6434,9 @@
 },
 "5309/2": {
 "code": "KD"
+},
+"5310/2": {
+"code": "Celestial"
 },
 "5315/4": {
 "code": "Gold"
@@ -5190,6 +6476,12 @@
 },
 "5376/3": {
 "code": "Diamond"
+},
+"5377/2": {
+"code": "Samurai"
+},
+"5378/3": {
+"code": "Samurai"
 },
 "5387/5": {
 "code": "Obsidian"
@@ -5239,7 +6531,13 @@
 "5409/5": {
 "code": "Gold"
 },
+"5410/2": {
+"code": ""
+},
 "5412/2": {
+"code": "Samurai"
+},
+"5415/9": {
 "code": "Samurai"
 },
 "5419/4": {
@@ -5277,6 +6575,9 @@
 },
 "5470/3": {
 "code": "BB"
+},
+"5470/4": {
+"code": "TwentyFestivals"
 },
 "5477/4": {
 "code": "Obsidian"
@@ -5359,6 +6660,9 @@
 "5495/23": {
 "code": "Gold"
 },
+"5495/24": {
+"code": "Ivory"
+},
 "5498/2": {
 "code": "KD"
 },
@@ -5389,6 +6693,9 @@
 "5512/9": {
 "code": "Gold"
 },
+"5527/3": {
+"code": "TwentyFestivals"
+},
 "5530/4": {
 "code": "Gold"
 },
@@ -5397,6 +6704,9 @@
 },
 "5535/2": {
 "code": "SC"
+},
+"5536/3": {
+"code": "Samurai"
 },
 "5548/4": {
 "code": "AoD"
@@ -5416,6 +6726,9 @@
 "5563/3": {
 "code": "FK"
 },
+"5565/3": {
+"code": "TwentyFestivals"
+},
 "5567/5": {
 "code": "Diamond"
 },
@@ -5424,6 +6737,9 @@
 },
 "5579/8": {
 "code": "Jade"
+},
+"5579/9": {
+"code": "TwentyFestivals"
 },
 "5580/1": {
 "code": "SCC2"
@@ -5451,6 +6767,9 @@
 },
 "5599/10": {
 "code": "Diamond"
+},
+"5599/11": {
+"code": "Samurai"
 },
 "5599/6": {
 "code": "Emperor"
@@ -5491,7 +6810,13 @@
 "5611/5": {
 "code": "Gold"
 },
+"5611/6": {
+"code": "Ivory"
+},
 "562/4": {
+"code": "Samurai"
+},
+"562/5": {
 "code": "Samurai"
 },
 "5625/4": {
@@ -5520,6 +6845,9 @@
 },
 "5641/15": {
 "code": "Obsidian"
+},
+"5641/16": {
+"code": "Ivory"
 },
 "5657/1": {
 "code": "Lotus",
@@ -5562,53 +6890,23 @@
 "5665/7": {
 "code": "Obsidian"
 },
-"5675/1": {
-"code": ""
-},
-"5675/10": {
-"code": ""
-},
-"5675/11": {
-"code": ""
-},
 "5675/14": {
-"code": ""
+"code": "BoBP"
 },
 "5675/15": {
-"code": ""
+"code": "Pearl"
 },
 "5675/16": {
-"code": ""
+"code": "Pearl"
 },
 "5675/17": {
-"code": ""
+"code": "Gold"
 },
 "5675/18": {
-"code": ""
+"code": "Gold"
 },
-"5675/2": {
-"code": ""
-},
-"5675/3": {
-"code": ""
-},
-"5675/4": {
-"code": ""
-},
-"5675/5": {
-"code": ""
-},
-"5675/6": {
-"code": ""
-},
-"5675/7": {
-"code": ""
-},
-"5675/8": {
-"code": ""
-},
-"5675/9": {
-"code": ""
+"5675/19": {
+"code": "Ivory"
 },
 "5676/2": {
 "code": "Diamond"
@@ -5618,6 +6916,9 @@
 },
 "5682/9": {
 "code": "Samurai"
+},
+"5688/6": {
+"code": "Ivory"
 },
 "5689/2": {
 "code": "KD"
@@ -5665,6 +6966,9 @@
 "5767/1": {
 "code": "Promo"
 },
+"5769/3": {
+"code": "Ivory"
+},
 "5774/1": {
 "code": "KYD",
 "name": "Oracle of Thunder - exp"
@@ -5696,7 +7000,13 @@
 "5801/9": {
 "code": "Pearl"
 },
+"5812/3": {
+"code": "Ivory"
+},
 "5830/7": {
+"code": "Samurai"
+},
+"5830/8": {
 "code": "Samurai"
 },
 "5831/10": {
@@ -5732,6 +7042,9 @@
 "5832/4": {
 "code": ""
 },
+"5832/6": {
+"code": "TwentyFestivals"
+},
 "5833/3": {
 "code": "Lotus"
 },
@@ -5746,6 +7059,15 @@
 },
 "5851/2": {
 "code": "KD"
+},
+"5858/3": {
+"code": "TwentyFestivals"
+},
+"5859/3": {
+"code": "Ivory"
+},
+"5862/2": {
+"code": ""
 },
 "5867/3": {
 "code": "Celestial"
@@ -5789,6 +7111,9 @@
 "5915/12": {
 "code": "Samurai"
 },
+"5915/13": {
+"code": "Samurai"
+},
 "5915/7": {
 "code": "TG"
 },
@@ -5800,6 +7125,9 @@
 },
 "5917/2": {
 "code": ""
+},
+"5917/4": {
+"code": "Samurai"
 },
 "5918/2": {
 "code": "SL"
@@ -5819,6 +7147,9 @@
 "5957/5": {
 "code": "Emperor"
 },
+"5957/6": {
+"code": "Celestial"
+},
 "5964/5": {
 "code": "AoD"
 },
@@ -5833,6 +7164,9 @@
 },
 "5972/1": {
 "code": "SL"
+},
+"5972/4": {
+"code": "Ivory"
 },
 "5976/6": {
 "code": "Jade"
@@ -5855,23 +7189,14 @@
 "6001/7": {
 "code": "Gold"
 },
+"6002/3": {
+"code": "Samurai"
+},
 "6006/1": {
 "code": "Promo"
 },
 "6010/3": {
 "code": "SCC1"
-},
-"6021/1": {
-"code": ""
-},
-"6021/2": {
-"code": ""
-},
-"6021/3": {
-"code": ""
-},
-"6021/4": {
-"code": ""
 },
 "6027/10": {
 "code": "Emerald"
@@ -5912,6 +7237,9 @@
 "6054/2": {
 "code": "TTT"
 },
+"6059/3": {
+"code": "TwentyFestivals"
+},
 "6064/2": {
 "code": "BtD"
 },
@@ -5948,49 +7276,34 @@
 "608/12": {
 "code": "Diamond"
 },
+"608/13": {
+"code": "TwentyFestivals"
+},
 "608/6": {
 "code": "Gold"
 },
 "608/9": {
 "code": "Gold"
 },
-"6084/1": {
-"code": ""
-},
 "6084/11": {
-"code": ""
-},
-"6084/2": {
-"code": ""
-},
-"6084/3": {
-"code": ""
-},
-"6084/4": {
-"code": ""
-},
-"6084/5": {
-"code": ""
-},
-"6084/6": {
-"code": ""
-},
-"6084/7": {
-"code": ""
-},
-"6084/8": {
-"code": ""
-},
-"6084/9": {
-"code": ""
+"code": "Pearl"
 },
 "6092/3": {
 "code": "Gold"
 },
+"6101/5": {
+"code": "TwentyFestivals"
+},
 "6103/2": {
 "code": "KD"
 },
+"6104/3": {
+"code": "Samurai"
+},
 "611/4": {
+"code": "Samurai"
+},
+"611/5": {
 "code": "Samurai"
 },
 "6110/2": {
@@ -5998,6 +7311,9 @@
 },
 "6111/5": {
 "code": "Gold"
+},
+"6111/7": {
+"code": "TwentyFestivals"
 },
 "6126/4": {
 "code": "Lotus"
@@ -6008,14 +7324,8 @@
 "6136/4": {
 "code": "Jade"
 },
-"614/1": {
-"code": ""
-},
-"614/2": {
-"code": ""
-},
-"614/3": {
-"code": ""
+"614/6": {
+"code": "Ivory"
 },
 "6144/3": {
 "code": "Lotus"
@@ -6083,6 +7393,9 @@
 "6153/9": {
 "code": "Gold"
 },
+"6157/5": {
+"code": "Ivory"
+},
 "616/3": {
 "code": "Diamond"
 },
@@ -6092,8 +7405,14 @@
 "6161/1": {
 "code": "SCC2"
 },
+"6164/3": {
+"code": "Samurai"
+},
 "6166/5": {
 "code": "Diamond"
+},
+"6166/6": {
+"code": "TwentyFestivals"
 },
 "6167/10": {
 "code": "Diamond"
@@ -6149,14 +7468,26 @@
 "6188/3": {
 "code": ""
 },
+"6189/2": {
+"code": "Samurai"
+},
 "619/11": {
 "code": "Gold"
+},
+"619/12": {
+"code": "Ivory"
+},
+"619/13": {
+"code": "Samurai"
 },
 "6190/2": {
 "code": "Samurai"
 },
 "6191/3": {
 "code": "Diamond"
+},
+"6194/3": {
+"code": "TwentyFestivals"
 },
 "621/1": {
 "code": "SL"
@@ -6206,8 +7537,14 @@
 "6227/22": {
 "code": "Samurai"
 },
+"6227/23": {
+"code": "Samurai"
+},
 "6235/6": {
 "code": "Lotus"
+},
+"6235/7": {
+"code": "Samurai"
 },
 "6250/2": {
 "code": "AOF"
@@ -6230,17 +7567,29 @@
 "6258/2": {
 "code": "SC"
 },
+"626/3": {
+"code": "TwentyFestivals"
+},
+"6267/3": {
+"code": "TwentyFestivals"
+},
 "6276/4": {
 "code": "KD"
 },
 "6276/5": {
 "code": "KD"
 },
+"6279/3": {
+"code": "Samurai"
+},
 "6283/9": {
 "code": "BoBP"
 },
 "6290/10": {
 "code": "TG"
+},
+"6290/11": {
+"code": "Samurai"
 },
 "6290/8": {
 "code": "Celestial"
@@ -6256,6 +7605,9 @@
 },
 "6291/7": {
 "code": "Lotus"
+},
+"6292/3": {
+"code": "TwentyFestivals"
 },
 "6302/2": {
 "code": "BtD"
@@ -6275,14 +7627,26 @@
 "6314/8": {
 "code": "TG"
 },
+"6314/9": {
+"code": "Ivory"
+},
 "6315/3": {
 "code": "Celestial"
 },
 "6315/8": {
 "code": "Samurai"
 },
+"6315/9": {
+"code": "Samurai"
+},
 "6324/4": {
 "code": "TG"
+},
+"6327/3": {
+"code": "Samurai"
+},
+"6328/3": {
+"code": "Samurai"
 },
 "6333/15": {
 "code": "Samurai"
@@ -6304,6 +7668,12 @@
 },
 "6333/29": {
 "code": "Celestial"
+},
+"6333/30": {
+"code": "Ivory"
+},
+"6333/31": {
+"code": "TwentyFestivals"
 },
 "6333/8": {
 "code": "Celestial"
@@ -6338,6 +7708,12 @@
 "6334/33": {
 "code": "Lotus"
 },
+"6334/34": {
+"code": "Ivory"
+},
+"6334/35": {
+"code": "TwentyFestivals"
+},
 "6334/8": {
 "code": "Celestial"
 },
@@ -6364,6 +7740,12 @@
 },
 "6335/27": {
 "code": "Samurai"
+},
+"6335/28": {
+"code": "Ivory"
+},
+"6335/29": {
+"code": "TwentyFestivals"
 },
 "6338/15": {
 "code": "Samurai"
@@ -6395,6 +7777,12 @@
 "6338/31": {
 "code": "Celestial"
 },
+"6338/32": {
+"code": "Ivory"
+},
+"6338/33": {
+"code": "TwentyFestivals"
+},
 "6338/8": {
 "code": "Celestial"
 },
@@ -6425,6 +7813,12 @@
 "6339/32": {
 "code": "Celestial"
 },
+"6339/33": {
+"code": "Ivory"
+},
+"6339/34": {
+"code": "TwentyFestivals"
+},
 "6339/8": {
 "code": "Celestial"
 },
@@ -6449,11 +7843,8 @@
 "6366/3": {
 "code": ""
 },
-"6369/1": {
-"code": ""
-},
-"6369/2": {
-"code": ""
+"6369/5": {
+"code": "Ivory"
 },
 "6373/1": {
 "code": "CJ"
@@ -6463,6 +7854,12 @@
 },
 "638/2": {
 "code": "TTT"
+},
+"6385/3": {
+"code": "Samurai"
+},
+"6391/6": {
+"code": "Samurai"
 },
 "6394/2": {
 "code": "SCC2",
@@ -6474,6 +7871,9 @@
 "6413/4": {
 "code": "KD"
 },
+"6415/4": {
+"code": "Ivory"
+},
 "6422/4": {
 "code": "Jade"
 },
@@ -6482,9 +7882,6 @@
 },
 "644/1": {
 "code": "Promo"
-},
-"6440/1": {
-"code": ""
 },
 "6441/5": {
 "code": "Emerald"
@@ -6495,11 +7892,17 @@
 "6452/3": {
 "code": "TTT"
 },
+"6452/4": {
+"code": "TwentyFestivals"
+},
 "6453/5": {
 "code": "Obsidian"
 },
 "6455/2": {
 "code": "Gold"
+},
+"6456/3": {
+"code": "Samurai"
 },
 "6463/3": {
 "code": "TotV"
@@ -6579,6 +7982,9 @@
 "6464/36": {
 "code": "TG"
 },
+"6467/3": {
+"code": "Ivory"
+},
 "6471/10": {
 "code": "Pearl"
 },
@@ -6591,8 +7997,17 @@
 "6471/9": {
 "code": "Jade"
 },
+"6473/3": {
+"code": "Samurai"
+},
+"6475/3": {
+"code": "TwentyFestivals"
+},
 "6476/3": {
 "code": "KD"
+},
+"6476/4": {
+"code": "Ivory"
 },
 "6487/1": {
 "code": "Promo"
@@ -6642,6 +8057,12 @@
 "652/8": {
 "code": "Diamond"
 },
+"6532/3": {
+"code": "TwentyFestivals"
+},
+"6534/2": {
+"code": ""
+},
 "6536/4": {
 "code": "CJ"
 },
@@ -6654,14 +8075,23 @@
 "6537/6": {
 "code": "Samurai"
 },
+"6537/7": {
+"code": "Samurai"
+},
 "6538/5": {
 "code": "Lotus"
 },
 "6538/6": {
-"code": "Samurai"
+"code": "Promo"
+},
+"6538/7": {
+"code": "Promo"
 },
 "6553/11": {
 "code": "Gold"
+},
+"6553/12": {
+"code": "Ivory"
 },
 "6553/7": {
 "code": "Gold"
@@ -6672,23 +8102,29 @@
 "6572/3": {
 "code": "KD"
 },
+"6573/3": {
+"code": "Samurai"
+},
 "6576/3": {
 "code": "FK"
 },
 "6580/1": {
 "code": "Promo"
 },
-"6593/1": {
-"code": ""
+"6586/4": {
+"code": "TwentyFestivals"
 },
 "6593/2": {
-"code": ""
+"code": "DaK"
 },
 "6595/1": {
 "code": "Promo"
 },
 "6621/2": {
 "code": ""
+},
+"6624/5": {
+"code": "Ivory"
 },
 "6628/3": {
 "code": "SL"
@@ -6697,6 +8133,12 @@
 "code": "CJ"
 },
 "6630/2": {
+"code": "Celestial"
+},
+"6632/4": {
+"code": "Celestial"
+},
+"6633/2": {
 "code": "Celestial"
 },
 "6634/2": {
@@ -6744,6 +8186,12 @@
 "6708/1": {
 "code": "Promo"
 },
+"672/3": {
+"code": "TwentyFestivals"
+},
+"6722/3": {
+"code": "Celestial"
+},
 "6729/1": {
 "code": "Promo"
 },
@@ -6756,6 +8204,9 @@
 "6737/2": {
 "code": "KD"
 },
+"6740/3": {
+"code": "Samurai"
+},
 "6741/2": {
 "code": "Diamond"
 },
@@ -6766,6 +8217,9 @@
 "code": "Jade"
 },
 "6761/2": {
+"code": "Samurai"
+},
+"6761/3": {
 "code": "Samurai"
 },
 "6767/2": {
@@ -6783,6 +8237,9 @@
 "6780/2": {
 "code": "Samurai"
 },
+"6780/3": {
+"code": "Samurai"
+},
 "6782/2": {
 "code": "Diamond"
 },
@@ -6790,6 +8247,9 @@
 "code": "Lotus"
 },
 "679/3": {
+"code": "Celestial"
+},
+"679/8": {
 "code": "Celestial"
 },
 "6794/3": {
@@ -6819,6 +8279,9 @@
 "6815/3": {
 "code": "Diamond"
 },
+"6816/2": {
+"code": "Celestial"
+},
 "6818/2": {
 "code": "Emperor"
 },
@@ -6834,14 +8297,32 @@
 "6822/8": {
 "code": "Gold"
 },
+"6835/2": {
+"code": ""
+},
+"6840/7": {
+"code": "Ivory"
+},
+"6842/4": {
+"code": "Ivory"
+},
 "6855/2": {
 "code": "Emperor"
 },
 "6885/2": {
 "code": "Emperor"
 },
+"6886/4": {
+"code": "Samurai"
+},
+"6902/2": {
+"code": "Samurai"
+},
 "6912/2": {
 "code": "Gold"
+},
+"6913/2": {
+"code": "Samurai"
 },
 "6922/2": {
 "code": "Gold"
@@ -6861,8 +8342,17 @@
 "6938/4": {
 "code": "Jade"
 },
+"6977/2": {
+"code": ""
+},
+"6984/6": {
+"code": "Celestial"
+},
 "6987/2": {
 "code": "DoW"
+},
+"6989/4": {
+"code": "Promo"
 },
 "6992/3": {
 "code": "Diamond"
@@ -6878,6 +8368,9 @@
 },
 "7008/2": {
 "code": "Emperor"
+},
+"7009/3": {
+"code": "Celestial"
 },
 "7014/3": {
 "code": "Diamond"
@@ -6919,6 +8412,9 @@
 "code": "Samurai"
 },
 "7086/3": {
+"code": "Samurai"
+},
+"7086/4": {
 "code": "Samurai"
 },
 "7088/2": {
@@ -6963,23 +8459,47 @@
 "7130/2": {
 "code": "TTT"
 },
+"7155/3": {
+"code": "Ivory"
+},
 "7171/5": {
 "code": "Diamond"
 },
 "7179/2": {
 "code": "BtD"
 },
+"7182/2": {
+"code": "Samurai"
+},
 "7185/3": {
 "code": "AD"
+},
+"7191/2": {
+"code": "Samurai"
+},
+"7192/2": {
+"code": "Samurai"
+},
+"7193/2": {
+"code": "Samurai"
 },
 "7194/5": {
 "code": "Diamond"
 },
+"7194/6": {
+"code": "TwentyFestivals"
+},
 "7196/2": {
 "code": "FOU"
 },
+"7200/2": {
+"code": "Celestial"
+},
 "7216/4": {
 "code": "Lotus"
+},
+"7216/5": {
+"code": "Samurai"
 },
 "7239/10": {
 "code": "Obsidian"
@@ -7056,8 +8576,14 @@
 "7266/27": {
 "code": "Samurai"
 },
+"7266/28": {
+"code": "Celestial"
+},
 "7267/3": {
 "code": "Diamond"
+},
+"7270/3": {
+"code": "Samurai"
 },
 "7273/2": {
 "code": ""
@@ -7098,14 +8624,14 @@
 "7281/23": {
 "code": "Lotus"
 },
+"7281/24": {
+"code": "Ivory"
+},
+"7288/4": {
+"code": "Samurai"
+},
 "7290/3": {
 "code": "Gold"
-},
-"7291/1": {
-"code": ""
-},
-"7291/2": {
-"code": ""
 },
 "7295/3": {
 "code": "Diamond"
@@ -7121,6 +8647,9 @@
 },
 "730/12": {
 "code": "Lotus"
+},
+"730/13": {
+"code": "Samurai"
 },
 "7300/4": {
 "code": "Gold"
@@ -7179,6 +8708,9 @@
 "7303/32": {
 "code": "Gold"
 },
+"7305/5": {
+"code": "TwentyFestivals"
+},
 "7311/6": {
 "code": "Celestial"
 },
@@ -7189,6 +8721,9 @@
 "code": "Diamond"
 },
 "7339/8": {
+"code": "Samurai"
+},
+"7339/9": {
 "code": "Samurai"
 },
 "7341/4": {
@@ -7228,6 +8763,9 @@
 "code": "Lotus"
 },
 "7398/12": {
+"code": "Samurai"
+},
+"7398/13": {
 "code": "Samurai"
 },
 "7398/6": {
@@ -7296,11 +8834,17 @@
 "7399/36": {
 "code": "TG"
 },
+"7399/37": {
+"code": "Ivory"
+},
 "7399/6": {
 "code": "Celestial"
 },
 "7408/2": {
 "code": "TTT"
+},
+"7411/5": {
+"code": "Ivory"
 },
 "7413/2": {
 "code": "TH"
@@ -7341,6 +8885,9 @@
 "7443/25": {
 "code": "Lotus"
 },
+"7443/26": {
+"code": "Celestial"
+},
 "745/4": {
 "code": "Pearl"
 },
@@ -7365,10 +8912,16 @@
 "7463/4": {
 "code": "Diamond"
 },
+"7463/5": {
+"code": "Ivory"
+},
 "7467/2": {
 "code": "KD"
 },
 "7475/5": {
+"code": "Samurai"
+},
+"7475/6": {
 "code": "Samurai"
 },
 "7483/4": {
@@ -7391,6 +8944,9 @@
 },
 "7504/2": {
 "code": "WoC"
+},
+"7510/3": {
+"code": "Ivory"
 },
 "7511/2": {
 "code": ""
@@ -7428,6 +8984,9 @@
 "7542/9": {
 "code": "Jade"
 },
+"7543/5": {
+"code": "Ivory"
+},
 "7546/12": {
 "code": "Pearl"
 },
@@ -7436,6 +8995,9 @@
 },
 "7547/2": {
 "code": "Celestial"
+},
+"7578/3": {
+"code": "Samurai"
 },
 "7580/2": {
 "code": "KD"
@@ -7455,12 +9017,18 @@
 "7597/4": {
 "code": "Pearl"
 },
+"76/5": {
+"code": "TwentyFestivals"
+},
 "7618/3": {
 "code": "ShE",
 "name": "Suiteru no Oni"
 },
 "762/3": {
 "code": "SCC1"
+},
+"7620/3": {
+"code": "Ivory"
 },
 "7623/2": {
 "code": "Emperor"
@@ -7479,6 +9047,12 @@
 },
 "7631/3": {
 "code": "TTT"
+},
+"7637/3": {
+"code": "TwentyFestivals"
+},
+"764/3": {
+"code": "Samurai"
 },
 "765/3": {
 "code": "Celestial"
@@ -7543,6 +9117,9 @@
 "7660/29": {
 "code": "Gold"
 },
+"7660/30": {
+"code": "TwentyFestivals"
+},
 "7660/9": {
 "code": "Gold"
 },
@@ -7553,6 +9130,9 @@
 "code": "Lotus"
 },
 "7662/4": {
+"code": "Samurai"
+},
+"7662/5": {
 "code": "Samurai"
 },
 "7663/3": {
@@ -7597,7 +9177,13 @@
 "7691/3": {
 "code": "Celestial"
 },
+"7694/4": {
+"code": "Ivory"
+},
 "7703/2": {
+"code": "Samurai"
+},
+"7703/3": {
 "code": "Samurai"
 },
 "7709/3": {
@@ -7605,6 +9191,12 @@
 },
 "7713/3": {
 "code": "Diamond"
+},
+"7714/3": {
+"code": "TwentyFestivals"
+},
+"7715/4": {
+"code": "Samurai"
 },
 "7716/3": {
 "code": "Samurai"
@@ -7639,6 +9231,9 @@
 "7776/2": {
 "code": "Emperor"
 },
+"7790/3": {
+"code": "Ivory"
+},
 "7792/4": {
 "code": "Gold"
 },
@@ -7657,6 +9252,9 @@
 "782/6": {
 "code": "Obsidian"
 },
+"7821/4": {
+"code": "TwentyFestivals"
+},
 "7827/2": {
 "code": "Diamond"
 },
@@ -7669,11 +9267,11 @@
 "785/2": {
 "code": "KD"
 },
-"7852/1": {
-"code": ""
+"7852/4": {
+"code": "Ivory"
 },
-"7852/2": {
-"code": ""
+"786/2": {
+"code": "Samurai"
 },
 "7862/3": {
 "code": "SCC3"
@@ -7684,8 +9282,14 @@
 "7863/2": {
 "code": "PotD"
 },
+"7869/4": {
+"code": "TwentyFestivals"
+},
 "7871/3": {
 "code": "SL"
+},
+"7874/3": {
+"code": "Ivory"
 },
 "7879/3": {
 "code": "Emperor"
@@ -7717,11 +9321,8 @@
 "7894/9": {
 "code": "Lotus"
 },
-"7897/1": {
-"code": ""
-},
-"7897/2": {
-"code": ""
+"7897/5": {
+"code": "Ivory"
 },
 "7899/3": {
 "code": ""
@@ -7768,11 +9369,23 @@
 "7929/9": {
 "code": "Gold"
 },
+"7931/3": {
+"code": "TwentyFestivals"
+},
+"7933/9": {
+"code": "Samurai"
+},
+"7934/6": {
+"code": "Samurai"
+},
 "7936/2": {
 "code": "TPW"
 },
 "7937/4": {
 "code": "Samurai"
+},
+"7937/6": {
+"code": "Celestial"
 },
 "7938/4": {
 "code": "Jade"
@@ -7795,6 +9408,9 @@
 "7956/6": {
 "code": "Imperial"
 },
+"7956/8": {
+"code": "Imperial"
+},
 "7959/2": {
 "code": "SCC3",
 "name": "The Ancient Halls of the Akodo"
@@ -7811,11 +9427,17 @@
 "7963/4": {
 "code": "FK"
 },
+"7975/3": {
+"code": "TwentyFestivals"
+},
 "7980/5": {
 "code": ""
 },
 "7980/6": {
 "code": "Jade"
+},
+"7983/3": {
+"code": "TwentyFestivals"
 },
 "7985/3": {
 "code": "AoD"
@@ -7825,6 +9447,9 @@
 },
 "7987/4": {
 "code": ""
+},
+"7990/3": {
+"code": "Ivory"
 },
 "7999/2": {
 "code": "Samurai"
@@ -7852,6 +9477,9 @@
 },
 "8028/5": {
 "code": "TTT"
+},
+"8028/6": {
+"code": "Ivory"
 },
 "8042/5": {
 "code": "Diamond"
@@ -7883,14 +9511,23 @@
 "8073/2": {
 "code": "SL"
 },
+"8078/3": {
+"code": "Celestial"
+},
 "8079/5": {
 "code": "Jade"
+},
+"8081/2": {
+"code": ""
 },
 "8083/6": {
 "code": "BoBP"
 },
 "8083/7": {
 "code": "Diamond"
+},
+"8085/8": {
+"code": "Samurai"
 },
 "809/2": {
 "code": "Gold"
@@ -7933,6 +9570,9 @@
 },
 "8122/1": {
 "code": "Promo"
+},
+"8123/3": {
+"code": "TwentyFestivals"
 },
 "8124/1": {
 "code": "Promo"
@@ -8015,6 +9655,9 @@
 "8175/5": {
 "code": "Samurai"
 },
+"8175/6": {
+"code": "Samurai"
+},
 "8176/2": {
 "code": "KD"
 },
@@ -8039,8 +9682,14 @@
 "8226/8": {
 "code": "Imperial"
 },
+"8227/3": {
+"code": "TwentyFestivals"
+},
 "8234/3": {
 "code": ""
+},
+"8235/4": {
+"code": "TwentyFestivals"
 },
 "824/2": {
 "code": "TTT"
@@ -8053,6 +9702,9 @@
 },
 "8253/3": {
 "code": "TG2"
+},
+"826/3": {
+"code": "Samurai"
 },
 "8269/3": {
 "code": "Diamond"
@@ -8099,6 +9751,9 @@
 "8316/2": {
 "code": "Emperor"
 },
+"8317/2": {
+"code": "Celestial"
+},
 "8318/3": {
 "code": "Diamond"
 },
@@ -8116,6 +9771,9 @@
 },
 "8319/7": {
 "code": "Jade"
+},
+"8331/3": {
+"code": "Samurai"
 },
 "834/4": {
 "code": "KD"
@@ -8156,6 +9814,9 @@
 "84/3": {
 "code": "SL"
 },
+"84/5": {
+"code": "Ivory"
+},
 "8401/1": {
 "code": "TotV"
 },
@@ -8172,6 +9833,9 @@
 "8408/3": {
 "code": "Samurai"
 },
+"8408/5": {
+"code": "Celestial"
+},
 "8412/2": {
 "code": ""
 },
@@ -8186,6 +9850,9 @@
 },
 "8426/2": {
 "code": ""
+},
+"8427/3": {
+"code": "Ivory"
 },
 "8430/3": {
 "code": "Gold"
@@ -8202,6 +9869,12 @@
 "8440/13": {
 "code": "Gold"
 },
+"8440/14": {
+"code": "Ivory"
+},
+"8440/15": {
+"code": "Samurai"
+},
 "8440/8": {
 "code": "Pearl"
 },
@@ -8214,7 +9887,13 @@
 "8444/4": {
 "code": "Pearl"
 },
+"845/3": {
+"code": "Samurai"
+},
 "8457/3": {
+"code": "Samurai"
+},
+"8457/4": {
 "code": "Samurai"
 },
 "8460/6": {
@@ -8222,6 +9901,12 @@
 },
 "8460/7": {
 "code": "Lotus"
+},
+"8463/3": {
+"code": "TwentyFestivals"
+},
+"8470/2": {
+"code": ""
 },
 "8495/3": {
 "code": "TG"
@@ -8262,6 +9947,9 @@
 "851/2": {
 "code": "Samurai"
 },
+"851/3": {
+"code": "Samurai"
+},
 "8511/2": {
 "code": "PotD"
 },
@@ -8274,8 +9962,8 @@
 "8529/3": {
 "code": "CJ"
 },
-"853/1": {
-"code": ""
+"8531/2": {
+"code": "Samurai"
 },
 "8536/2": {
 "code": ""
@@ -8283,11 +9971,17 @@
 "8537/2": {
 "code": "TPW"
 },
+"8539/4": {
+"code": "Samurai"
+},
 "8543/2": {
 "code": "TTT"
 },
 "8544/2": {
 "code": "TPW"
+},
+"8545/5": {
+"code": "Ivory"
 },
 "8546/2": {
 "code": "TH"
@@ -8297,6 +9991,9 @@
 },
 "8547/3": {
 "code": ""
+},
+"8547/4": {
+"code": "Samurai"
 },
 "8550/2": {
 "code": "SC"
@@ -8315,6 +10012,9 @@
 },
 "8555/9": {
 "code": "Jade"
+},
+"8557/2": {
+"code": "Samurai"
 },
 "8560/3": {
 "code": "Gold"
@@ -8360,6 +10060,9 @@
 "8590/2": {
 "code": "Emperor"
 },
+"8591/4": {
+"code": "TwentyFestivals"
+},
 "8593/2": {
 "code": "KD"
 },
@@ -8380,6 +10083,9 @@
 },
 "8602/2": {
 "code": "PotD"
+},
+"8602/3": {
+"code": ""
 },
 "8604/1": {
 "code": "Promo"
@@ -8413,6 +10119,12 @@
 },
 "863/3": {
 "code": "Lotus"
+},
+"8632/4": {
+"code": "Ivory"
+},
+"864/2": {
+"code": "Celestial"
 },
 "8652/2": {
 "code": "Gold"
@@ -8486,10 +10198,16 @@
 "8695/3": {
 "code": "KD"
 },
+"87/10": {
+"code": "TwentyFestivals"
+},
 "87/7": {
 "code": "Diamond"
 },
 "87/8": {
+"code": "Samurai"
+},
+"87/9": {
 "code": "Samurai"
 },
 "870/2": {
@@ -8510,10 +10228,16 @@
 "8710/6": {
 "code": "Diamond"
 },
+"8710/7": {
+"code": "TwentyFestivals"
+},
 "8728/3": {
 "code": "Lotus"
 },
 "8729/3": {
+"code": "GotE"
+},
+"8729/6": {
 "code": "GotE"
 },
 "8734/10": {
@@ -8546,8 +10270,14 @@
 "874/4": {
 "code": "Samurai"
 },
+"874/5": {
+"code": "Samurai"
+},
 "8741/8": {
 "code": "Diamond"
+},
+"8741/9": {
+"code": "Ivory"
 },
 "8742/3": {
 "code": "Diamond"
@@ -8578,6 +10308,9 @@
 },
 "8771/7": {
 "code": "pre"
+},
+"8771/8": {
+"code": "Samurai"
 },
 "8772/2": {
 "code": "BtD"
@@ -8612,6 +10345,9 @@
 "8831/2": {
 "code": "KD"
 },
+"8833/3": {
+"code": "Ivory"
+},
 "8835/3": {
 "code": "DA"
 },
@@ -8624,11 +10360,20 @@
 "8837/2": {
 "code": "Emperor"
 },
+"8845/2": {
+"code": "Samurai"
+},
+"8846/3": {
+"code": "Samurai"
+},
 "8849/2": {
 "code": "TTT"
 },
 "8855/2": {
 "code": ""
+},
+"8857/2": {
+"code": "Samurai"
 },
 "8862/4": {
 "code": "DA"
@@ -8657,6 +10402,9 @@
 "8914/1": {
 "code": "Promo"
 },
+"8916/2": {
+"code": ""
+},
 "8920/3": {
 "code": "Diamond"
 },
@@ -8681,41 +10429,17 @@
 "8948/7": {
 "code": "Gold"
 },
+"8948/8": {
+"code": "Ivory"
+},
 "8957/3": {
 "code": "Diamond"
 },
-"8965/1": {
-"code": ""
-},
 "8965/12": {
-"code": ""
+"code": "SOMP"
 },
 "8965/13": {
-"code": ""
-},
-"8965/2": {
-"code": ""
-},
-"8965/3": {
-"code": ""
-},
-"8965/4": {
-"code": ""
-},
-"8965/5": {
-"code": ""
-},
-"8965/6": {
-"code": ""
-},
-"8965/7": {
-"code": ""
-},
-"8965/8": {
-"code": ""
-},
-"8965/9": {
-"code": ""
+"code": "Gold"
 },
 "8968/2": {
 "code": "KD"
@@ -8732,6 +10456,12 @@
 "898/2": {
 "code": "Gold"
 },
+"8980/3": {
+"code": "TwentyFestivals"
+},
+"8984/3": {
+"code": "Samurai"
+},
 "8988/3": {
 "code": "TTT"
 },
@@ -8744,6 +10474,12 @@
 "9007/6": {
 "code": "Diamond"
 },
+"9007/7": {
+"code": "TwentyFestivals"
+},
+"9008/3": {
+"code": "TwentyFestivals"
+},
 "9010/8": {
 "code": "Obsidian"
 },
@@ -8752,6 +10488,9 @@
 },
 "9013/2": {
 "code": "KD"
+},
+"9016/3": {
+"code": "Samurai"
 },
 "9018/3": {
 "code": "Celestial"
@@ -8762,17 +10501,26 @@
 "902/3": {
 "code": "APC"
 },
+"9022/4": {
+"code": "Samurai"
+},
 "9023/3": {
 "code": ""
 },
 "9023/4": {
 "code": "Diamond"
 },
+"9030/4": {
+"code": "Samurai"
+},
 "9039/2": {
 "code": "TTT"
 },
 "9069/2": {
 "code": "Diamond"
+},
+"9080/3": {
+"code": "Samurai"
 },
 "9086/2": {
 "code": "SC"
@@ -8788,6 +10536,9 @@
 "code": "Lotus"
 },
 "9087/8": {
+"code": "Samurai"
+},
+"9087/9": {
 "code": "Samurai"
 },
 "9090/2": {
@@ -8811,6 +10562,9 @@
 "9103/3": {
 "code": "Lotus"
 },
+"9105/4": {
+"code": "Samurai"
+},
 "9110/2": {
 "code": ""
 },
@@ -8833,11 +10587,17 @@
 "9132/4": {
 "code": "Celestial"
 },
+"9132/5": {
+"code": "Celestial"
+},
 "914/2": {
 "code": "TTT"
 },
 "9155/2": {
 "code": ""
+},
+"9156/5": {
+"code": "Ivory"
 },
 "9162/3": {
 "code": "Emperor"
@@ -8869,6 +10629,9 @@
 "9182/8": {
 "code": "TG"
 },
+"9182/9": {
+"code": "TwentyFestivals"
+},
 "9186/2": {
 "code": "SC"
 },
@@ -8881,14 +10644,23 @@
 "9192/7": {
 "code": "Gold"
 },
+"9193/3": {
+"code": "Samurai"
+},
+"9196/16": {
+"code": "Ivory"
+},
+"9196/17": {
+"code": "Samurai"
+},
 "9202/3": {
 "code": "Samurai"
 },
-"9203/1": {
-"code": ""
+"9203/5": {
+"code": "Ivory"
 },
-"9203/2": {
-"code": ""
+"9206/3": {
+"code": "Samurai"
 },
 "9214/3": {
 "code": "Celestial"
@@ -8896,11 +10668,20 @@
 "9225/4": {
 "code": "Gold"
 },
+"9229/3": {
+"code": "Samurai"
+},
 "923/2": {
 "code": "Emperor"
 },
+"9234/2": {
+"code": "Samurai"
+},
 "9235/3": {
 "code": "TotV"
+},
+"9239/3": {
+"code": "Ivory"
 },
 "9246/2": {
 "code": "Emperor"
@@ -8917,6 +10698,9 @@
 "9273/4": {
 "code": "Samurai"
 },
+"9273/5": {
+"code": "Samurai"
+},
 "9279/2": {
 "code": "Lotus"
 },
@@ -8925,6 +10709,9 @@
 },
 "9281/7": {
 "code": "Celestial"
+},
+"9282/10": {
+"code": "Samurai"
 },
 "9282/8": {
 "code": "Lotus"
@@ -8946,6 +10733,9 @@
 },
 "9323/5": {
 "code": "Gold"
+},
+"933/2": {
+"code": ""
 },
 "9330/3": {
 "code": "Celestial"
@@ -8978,47 +10768,26 @@
 "code": "TDoW",
 "name": "Winter Seige"
 },
-"9356/1": {
-"code": ""
+"9356/15": {
+"code": "Ivory"
 },
-"9356/10": {
-"code": ""
-},
-"9356/11": {
-"code": ""
-},
-"9356/12": {
-"code": ""
-},
-"9356/2": {
-"code": ""
+"9356/16": {
+"code": "Samurai"
 },
 "9356/3": {
-"code": ""
-},
-"9356/4": {
-"code": ""
-},
-"9356/5": {
-"code": ""
-},
-"9356/6": {
-"code": ""
-},
-"9356/7": {
-"code": ""
-},
-"9356/8": {
-"code": ""
+"code": "Celestial"
 },
 "9356/9": {
-"code": ""
+"code": "Celestial"
 },
 "9357/5": {
 "code": "Celestial"
 },
 "9357/6": {
 "code": "Lotus"
+},
+"9357/7": {
+"code": "Samurai"
 },
 "9358/3": {
 "code": "CJ"
@@ -9035,8 +10804,17 @@
 "9393/3": {
 "code": "Samurai"
 },
+"9405/4": {
+"code": "Samurai"
+},
+"9413/7": {
+"code": "Ivory"
+},
 "9423/3": {
 "code": "Gold"
+},
+"943/3": {
+"code": "TwentyFestivals"
 },
 "9439/2": {
 "code": "Gold"
@@ -9059,6 +10837,12 @@
 "9459/2": {
 "code": "Emperor"
 },
+"9467/3": {
+"code": "Ivory"
+},
+"9468/3": {
+"code": "Ivory"
+},
 "9469/2": {
 "code": "SC"
 },
@@ -9076,6 +10860,9 @@
 },
 "949/3": {
 "code": "FK"
+},
+"949/4": {
+"code": "Samurai"
 },
 "9491/2": {
 "code": ""
@@ -9106,6 +10893,9 @@
 },
 "954/5": {
 "code": "Gold"
+},
+"9545/3": {
+"code": "Samurai"
 },
 "9557/2": {
 "code": "DA"
@@ -9161,8 +10951,14 @@
 "9607/2": {
 "code": "Samurai"
 },
+"9608/2": {
+"code": "Celestial"
+},
 "961/2": {
 "code": "TTT"
+},
+"9614/4": {
+"code": "Samurai"
 },
 "962/2": {
 "code": "Celestial"
@@ -9170,8 +10966,14 @@
 "962/8": {
 "code": "Lotus"
 },
+"962/9": {
+"code": "Promo"
+},
 "9620/3": {
 "code": "Celestial"
+},
+"9620/4": {
+"code": "Samurai"
 },
 "9622/2": {
 "code": "TTT"
@@ -9204,6 +11006,9 @@
 },
 "9651/2": {
 "code": "KD"
+},
+"9661/2": {
+"code": ""
 },
 "9666/3": {
 "code": "TotV",
@@ -9242,6 +11047,9 @@
 },
 "9722/1": {
 "code": ""
+},
+"9798/4": {
+"code": "TwentyFestivals"
 },
 "981/10": {
 "code": "BoBP"
@@ -9293,6 +11101,9 @@
 },
 "991/8": {
 "code": "Pearl"
+},
+"9922/3": {
+"code": "TwentyFestivals"
 },
 "994/2": {
 "code": ""

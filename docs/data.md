@@ -68,7 +68,10 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   `/import` reads it back. Bulk values come from `docs/snm/snm-map.py` through
   ootv-tools `printings/snm-printings.py`; edit one by hand in the card editor. A printing S&M
   doesn't have (starter reprints, The L5R Experience, ...) gets the code of the card's most recent
-  earlier printing S&M does have.
+  earlier printing S&M does have. S&M's two builds are never mixed: pre-Onyx printings are
+  checked against the Win build's database (Kempy 1.3.4, 2017) only, Onyx Lives printings (the
+  digital releases: The Blackest Storm, Onyx Edition, Shattered Empire, ...) against the Onyx
+  build's only. Onyx dropped the old editions of some cards it reprinted (Jade Works).
 * printing.titletextsnm (optional, l5r, array of one string). The card name the S&M export writes
   for this printing, where S&M files it under another card than the card's own S&M name: e.g.
   Marketplace's pre-Imperial to Jade printings (and the starter reprints that borrow them) are
