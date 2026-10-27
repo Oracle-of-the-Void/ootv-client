@@ -1243,10 +1243,14 @@ div#maincontent {
 div.menubar nav li.viewicons {
   padding-top: 3px;
 }
-/* menubar game logo: the 64px file, so it stays sharp when phones show it doubled */
+/* menubar game logo: the 64px file, so it stays sharp when phones show it doubled. Fixed height, width from
+   the logo's own shape (wide logos like Doomtown's wordmark were squeezed square), capped so it can't crowd the icons */
 .gameinfo-game img {
-  width: 15px;
   height: 15px;
+  width: auto;
+  max-width: 60px;
+  object-fit: contain;
+  vertical-align: middle;
 }
 /* the search results' and the list view's Showing: buttons (pagetextversion): in the menubar while that view is
    on screen (body.viewsearch / body.viewlist); phones have #phonetextversion / #phonelisttextversion above it instead */
@@ -1731,9 +1735,13 @@ div#phonesearchbar .numresults {
     height: auto;
   }
   /* menubar icons at about two and a half times the size for fingers (not the icons inside the dropdowns) */
-  div.menubar nav > ul > li > svg.feather, div.menubar nav .searchviewgroup svg.feather, .gameinfo-game img {
+  div.menubar nav > ul > li > svg.feather, div.menubar nav .searchviewgroup svg.feather {
     width: 42px;
     height: 42px;
+  }
+  .gameinfo-game img {
+    height: 42px;
+    max-width: 110px;
   }
   /* directory cards: their buttons match the menubar icons (not the icons inside the Download dropdown) */
   div.directorycard .dircardhead > button.iiconic, div.directorycard .dircardhead .dirmenucell nav > ul > li > button.iiconic {
