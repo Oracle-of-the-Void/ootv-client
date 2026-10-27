@@ -48,6 +48,11 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   misprint meant to carry a bug it doesn't show gets that bug. Filled for new printings by the bug
   check (Admin → Artist check → Check bugs, or the card editor's Check bugs → Set printedbugs); existing
   printings don't carry it yet (ootv-claude `CARD-ARC-IDENTIFIER.md`, 2026-10-25).
+* printing.deck (optional, L5R, array of one string): the deck the printing was for under the rules of
+  its arc, where that differs between printings of one card. On the Border Keep and Bamboo Harvesters
+  printings (2026-10-27, ootv-tools `printings/printed-deck.py`): Pre-Game for Celestial, Emperor and
+  Three Dynasties, Dynasty for the Ivory promos. The card keeps every value (`["Dynasty", "Pre-Game"]`);
+  lists choose one with the game config's `sort.pick` (`docs/admin/game-config.md`).
 * printing.foil (optional, every game, string). Left out: the printing is regular only. `"foil"`:
   it only came in foil (a foil that differs from the regular card, a foil-only card, or a foil
   promo, stored as its own printing). `"both"`: it came in regular and in foil in the same

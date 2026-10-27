@@ -46,6 +46,12 @@ Open a list to see its cards. The buttons on the right of the menu bar change th
 the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
 type, legality and notes are at the top, and can be changed there too.
 
+L5R: Border Keep and Bamboo Harvesters were Pre-Game cards under the Celestial and Emperor rules (and
+Three Dynasties), and Dynasty cards from Ivory on. Versions that were both sit in the section the
+deck's **Legality** calls for: Pre-Game in Celestial, Emperor, BigDeck and Obsidian Hand decks, Dynasty in
+Ivory, Twenty Festivals, Onyx and Modern ones. In Legacy, or with no legality, the version you chose
+decides. **Printed text** on the card shows the deck each version was printed for.
+
 ## Foil copies {#foil}
 
 A card whose printing came in foil shows a foil button next to it in your list. Click it to
