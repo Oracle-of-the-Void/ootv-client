@@ -300,10 +300,11 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...; their type is `Multi-Arc` too, or a
     list with it, e.g. `["Rulings", "Multi-Arc"]` for a format's FAQ). Multi-Arc books come last on
     the shelf (by year among themselves), and so does Multi-Arc in the Arc filter (2026-10-22).
-    A book that belongs to more than one arc takes a list, oldest arc first: the Onyx/ShE Comprehensive
-    Rules are `["War of the Seals (Onyx Edition)", "Shattered Empire"]` (2026-10-27). It shows under
-    each arc in the Arc filter, its line reads "2026 · War of the Seals (Onyx Edition) · Shattered Empire · …",
-    and the Discord bot's `/rule arc:` takes it as either arc's book.
+    A book that belongs to more than one arc takes a list, oldest arc first: the three Onyx/ShE books
+    (Rules Datasheet, Comprehensive Rules, Icon Reference) are `["War of the Seals (Onyx Edition)", "Shattered Empire"]`
+    (2026-10-27). Such a book shows under each arc in the Arc filter, its line names them all
+    ("2026 · War of the Seals (Onyx Edition) · Shattered Empire · …"), and the Discord bot's `/rule arc:` takes it as
+    either arc's book.
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
@@ -457,9 +458,9 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Festivals". The datasheet only applies where it changes something; every other wording change was the user's decision,
   one by one (record: ootv-games `rulebook-enhance/comprehensive-rules/onyx/JUDGEMENT.md`). It is to become the official
   Onyx/ShE rules reference after the Onyx Lives rules team reviews it. On the shelf since 2026-10-27 as
-  `onyx-she-comprehensive-rules` (type Complete, tag Fan Made), after the Onyx/ShE datasheet. Its arc is Shattered Empire
-  only for now: a book's arc is one value in the viewer and the Discord bot; it gets War of the Seals (Onyx Edition) too
-  once a book can list two (ootv-claude `issues/ootv-claude/TODO.md`). "Last complete rules in arc" stays on the datasheet
+  `onyx-she-comprehensive-rules` (type Complete, tag Fan Made), after the Onyx/ShE datasheet. Its arc is both War of the Seals
+  (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
+  arc could be only one). "Last complete rules in arc" stays on the datasheet
   until the review. Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
