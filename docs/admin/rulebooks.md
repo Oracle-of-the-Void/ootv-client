@@ -117,8 +117,8 @@ Legality itself isn't changed.
 
 An edition's book is the first of its books (below) that defines the trait; its "Last complete rules in
 arc" book comes first where there is one (Scorpion Clan Coup before Imperial, The Spirit Wars before
-Jade). Onyx Edition and Shattered Empire go to Onyx Lives' Onyx/ShE Rules Datasheet, then AEG's 20F
-Comprehensive Rules it builds on; Three Dynasties to the Three Dynasties Rules Datasheet, then those two.
+Jade). Onyx Edition and Shattered Empire go to the Onyx/ShE Comprehensive Rules (their "Last complete rules in arc"
+book since 2026-10-28), then Onyx Lives' Onyx/ShE Rules Datasheet, then AEG's 20F Comprehensive Rules; Three Dynasties to the Three Dynasties Rules Datasheet, then those two.
 Words that older books use for something else (Honor, Duty, Elite) only link to the Onyx Lives sheets.
 
 The links come from the `oracle-all-structure` item `<game>` / `traits` (public
@@ -460,8 +460,8 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Onyx/ShE rules reference after the Onyx Lives rules team reviews it. On the shelf since 2026-10-27 as
   `onyx-she-comprehensive-rules` (type Complete, tag Fan Made), after the Onyx/ShE datasheet. Its arc is both War of the Seals
   (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
-  arc could be only one). "Last complete rules in arc" stays on the datasheet
-  until the review. Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
+  arc could be only one). Since 2026-10-28 it is the arcs' "Last complete rules in arc" book (moved from the datasheet,
+  the user) and a trait-link source (its glossary, pp. 62–92; the Discord /rule bot answers Onyx/ShE questions from it). Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
 - **Comprehensive Rules for Three Dynasties** (2026-10-27, Version 0.1 draft): the Onyx/ShE book above plus Onyx Lives' Three
   Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
   and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
