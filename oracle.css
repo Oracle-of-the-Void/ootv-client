@@ -1373,6 +1373,10 @@ nav ul li ul li {
   background: rgb(255,255,255);
 }
 
+/* a game in all/games with preview: true (listed on preview/localhost only) */
+nav ul li ul li.gamepreviewonly { background: rgb(255,236,179); }
+.gamepreviewtag { margin-left: .5em; padding: 0 .35em; border-radius: 3px; background: rgb(214,120,0); color: #fff; font-size: 75%; font-weight: bold; text-transform: uppercase; vertical-align: middle; }
+
 nav ul li ul li:focus-within,
 nav ul li ul li:focus,
 nav ul li ul li:hover {

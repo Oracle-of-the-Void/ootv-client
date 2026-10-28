@@ -71,7 +71,8 @@ loads; you see it after a reload.
 The game menu is the `oracle-all-structure` item `all` / `games`: `games`, a list of
 `{table, name, nameshort, logo}` in menu order. A game can sit in it with **`"preview": true`**
 while it's being set up (the L5R LCG, 2026-10-25): preview.oracleofthevoid.com (and localhost) list it,
-the main site doesn't, and neither the Discord bot nor Admin → Discord settings offers it. On every site it
+the main site doesn't (on preview its menu entry is highlighted, amber with a PREVIEW tag, so it's clear
+which games the main site doesn't list yet), and neither the Discord bot nor Admin → Discord settings offers it. On every site it
 still opens by direct link (`#game=<table>`), and once open it shows in that page's menu. The flag only
 hides it: the game's config, fields and cards are the same data on both sites, so an edit made while
 previewing is live for anyone who has the link. To release the game, delete `preview` from its entry
