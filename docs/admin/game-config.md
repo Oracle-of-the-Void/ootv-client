@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-27
+Last updated: 2026-10-28
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -60,6 +60,11 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   legality is its plain text (spaces, not `&nbsp;`); the image is `<path><image>.png`. L5R: the 13 arcs,
   `res/legality-bugs/renka-gyosho-wax/` (the Renka Gyosho wax seals from ootv-assets `legality-bugs/`).
   A legality not listed (the formats, Unreleased) gets none.
+- `clanmons`: `{path, mons: {<clan>: <image>}}`, the clan's mon drawn before every `clan` value a card
+  row shows (card page, search results) and before a public deck's clan. The clan is its plain text;
+  the image is `<path><image>.png`. L5R: 19 clans, `res/clan-mons/oracle-plain-color/` (the flat
+  clan-colour mons from ootv-assets `mons/oracle_plain/color/`). A clan not listed (Ninja, Spirit)
+  gets none. Toturi's Army is the Wolf.
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
