@@ -179,7 +179,7 @@ copy), `forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from ootv-game
 Since the forum, rules questions are asked on Discord: Oracle of the Void `#rules` (and the L5R CCG format
 channels: Imperial … Obsidian Hand, `#l5r`), Sun and Moon `#rules-questions` and Onyx Lives `#rules-questions`.
 Our bot (ootv-discord `scripts/export-channels.js`, read-only, needs the Message Content intent) copies them to
-ootv-games `game-l5r/discord-rulings/`, and they're copied to pages under
+ootv-tools `rulings/discord/exports/` (in git, so each week's new messages are a diff), and they're copied to pages under
 `https://images.oracleofthevoid.com/l5r/rulings-discord/`, one per channel and month with at least one answered
 question (`<server>-<channel>-<yyyy-mm>.html`, index `index.html`), every message included, with previous/next
 links. Each question has its own anchor (`#r<message id>-0`) and lists the cards its answers went onto. Players
@@ -195,7 +195,7 @@ another source isn't added again). Hand decisions for titles with several versio
 that weren't rulings: ootv-import `rulings-discord-decisions.tsv`. Re-syncing replaces only the entries linking to
 the Discord pages (`--sync .../rulings-discord/ --sync-note "Discord rulings:"`), so a rerun after new
 questions is safe. Made by ootv-import `SCRIPTS/discord-qa.py`, `email-plan.py --base` and `discord-pages.py`
-(see ootv-games `game-l5r/discord-rulings-work/README.md`).
+(see ootv-tools `rulings/discord/README.md`).
 
 Written 2026-10-25: 875 answers, 1,148 entries on 816 cards, no needsreview notes.
 
