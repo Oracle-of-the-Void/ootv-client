@@ -466,7 +466,10 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
   and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
   Empire". Every wording was the user's decision, one by one (record: ootv-games
-  `rulebook-enhance/comprehensive-rules/three-dynasties/JUDGEMENT.md`, with three questions open for the Onyx Lives rules team).
+  `rulebook-enhance/comprehensive-rules/three-dynasties/JUDGEMENT.md`). The Onyx Lives rules team answered its three
+  questions (2026-10-27): Events resolve the pre-Twenty Festivals way (a trait from a resolution area, mandatory), an Event
+  revealed by the first-turn Cycle waits a turn, and Provinces flip simultaneously before the active player orders the Events.
+  It also has the datasheet's update of 27 October (Action Sequence Revision, "Check" Terminology).
   On the shelf since 2026-10-27 as `three-dynasties-comprehensive-rules` (type Complete, tags Fan Made and **Last complete rules
   in arc**, moved there from the Three Dynasties datasheet), after the datasheet. The tag makes it the Discord /rule bot's Three
   Dynasties book; trait links still go to the datasheet (they list books by id). Build and notes: ootv-import
