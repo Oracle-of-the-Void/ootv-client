@@ -2455,6 +2455,13 @@ body.rulesfull { overflow: hidden; }
 .artistsadmin .artistsform { border: 1px solid #ccc; border-radius: 4px; padding: 4px 12px; margin-bottom: 12px; background: #fafafa; }
 .artistsadmin .artistsform label { white-space: normal; }
 .artistsadmin .artistsform input[type=text] { max-width: 100%; box-sizing: border-box; }
+.artistssigstrip a { display: inline-block; border: 2px solid transparent; border-radius: 4px; }
+.artistssigstrip a.artistssigpicked { border-color: #c33; }
+.artistssigpanel { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 8px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+.artistssigpanel .artistssigbig { max-width: 320px; max-height: 200px; object-fit: contain; background: #eee; border: 1px solid #ddd; }
+.artistssigpanel .artistssigfields { flex: 1 1 280px; min-width: 0; }
+.artistssigpanel .artistssigfields p { margin: 4px 0; }
+@media (max-width: 700px) { .artistssigpanel .artistssigbig { max-width: 100%; } }
 .artistsadmin .artistslinks td:nth-child(1) { width: 60%; }
 .artistsadmin .artistslinks td:nth-child(2) { width: 30%; color: inherit; }
 .artistsadmin .artistslinks td:nth-child(3), .artistsadmin .artistslinks td:last-child { width: auto; text-align: center; }
