@@ -45,9 +45,10 @@ The browser's own find (Ctrl+F) works on the pages shown too.
 - **Select text** (or **T**) lets you select words on the page to copy, like any web page.
 - **Copy the text of this page** (or **C**) copies the whole page.
 - **Copy a link** copies a link to the page shown, or, with text selected, to that text: the
-  link opens the book there, with the text marked. In the Comprehensive Rules, a link to selected text
-  names its section instead, like `#sec=VII.3.9.E` (section VII.3.9, step E). It keeps working
-  when an update moves the rules to another page.
+  link opens the book there, with the text marked. The link holds only the selection's first and last
+  few words (`first words.*last words`), so even a long selection makes a short link. In the
+  Comprehensive Rules, a link to selected text also names its section, like `#sec=VII.3.9.E`
+  (section VII.3.9, step E), so it keeps working when an update moves the rules to another page.
 - **Section links**: add `,#sec=<number>` after a book in the address bar to open it at that section:
   a chapter (`VII`), a section (`VII.3.9`), a lettered step in it (`VII.3.9.E`) or a glossary entry
   (`T2`). Spaces work too (`VII 3.9 E`).

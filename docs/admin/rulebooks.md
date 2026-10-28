@@ -47,8 +47,11 @@ Clicking a book opens it in the page viewer:
   width, scrolled to it and marked:
   - `#page=<n>,#find=<words>`: the first place on the page with these words (letters and
     digits only count, so spaces, line breaks, hyphens and punctuation don't matter). Without
-    `#page`, the first page of the book that has them. Links copied from a selection use its
-    first dozen words.
+    `#page`, the first page of the book that has them. `.*` joins a start and an end:
+    `#find=first words.*last words` marks everything from the first to the end of the last found after them
+    on the page (only the start when the end isn't there, e.g. a selection running onto the next page). Links copied from a
+    selection use its first six and last six words that way (the whole of a selection of 12 words or fewer), so a long
+    selection doesn't make a long link.
   - `#page=<n>,#line=<n>`: the page's nth line of text, in its reading order (on two-column
     pages, usually down one column then the next).
   - `#page=<n>,#at=<percent>`: that far down the page (`#at=40`), for pages with no text.
@@ -58,7 +61,7 @@ Clicking a book opens it in the page viewer:
     section's id for entries with no number (`RULINGS-KATSU`, `FAQ-WHAT-PERFORMS-AN-ACTION`). Case, spaces and
     dots don't matter (`vii 3.9 e`). A step or section the book lacks opens the one holding it (VII.3.9.Z:
     VII.3.9, with a note), anything else the first page. In those books the link button copies a selection
-    as the `#sec` link of the section or step it starts in, not a `#find` link.
+    as the `#sec` link of the section or step it starts in, plus its `#find`.
   - `#sec=<section>,#find=<words>`: the phrase, on the section's page or up to four pages after it (a long
     section), marked; the section's heading when none has it. For links to a sentence inside a section, such
     as card rulings.

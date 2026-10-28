@@ -753,7 +753,7 @@ function rulessecbetter(k, than) {
 }
 // #find without #page: the first page with the phrase (from text.json), then the page as usual
 function rulesfindpage(url) {
-  var q = rulesnorm(rulesstate.find), id = rulesbook.id;
+  var q = rulesnormfind(rulesstate.find).split('*')[0], id = rulesbook.id;
   var go = function() {
     var page = (rulestext || []).findIndex(function(t) { return rulesnorm(t).indexOf(q) >= 0; }) + 1;
     if(!page) {
@@ -1027,16 +1027,18 @@ function rulessearch() {
 }
 $(document).on('input', '#rulesarea .rulessearch', _.debounce(rulessearch, 250));
 
-// a link to the page shown (with its marked place), or with text selected on a page, to that text (#find=); in a
-// book with a section map, to the section the text is in (#sec=VII.3.9.E), which a rebuild can't break
+// a link to the page shown (with its marked place), or with text selected on a page, to that text: #find=<its first
+// six words>.*<its last six>; in a book with a section map, inside the section it starts in (#sec=VII.3.9.E,#find=...),
+// which a rebuild that moves pages cannot break
 function rulescopylink() {
   var state = viewstate('rules'), sel = rulesselection();
   var sec = sel && sel.at !== null ? rulessecat(sel.page, sel.at) : '';
-  if(sec) {
-    Object.assign(state, {page: 0, find: '', line: 0, at: 0, sec: sec});
-  } else if(sel) {
-    // the first dozen words find it; more would only break on a rebuilt book's small differences
-    Object.assign(state, {page: sel.page, find: sel.text.split(/\s+/).slice(0, 12).join(' '), line: 0, at: 0, sec: ''});
+  if(sel) {
+    // its first and last six words find the whole of it (first.*last) and keep the url short; more would only
+    // break on a rebuilt book's small differences
+    var words = sel.text.split(/\s+/).filter(Boolean);
+    var find = words.length > 12 ? words.slice(0, 6).join(' ')+'.*'+words.slice(-6).join(' ') : words.join(' ');
+    Object.assign(state, {page: sec ? 0 : sel.page, find: find, line: 0, at: 0, sec: sec});
   }
   var url = location.href.split('#')[0]+statehash(state);
   var label = sec ? 'Link to '+sec : sel ? 'Link to this text' : 'Link to this page';
