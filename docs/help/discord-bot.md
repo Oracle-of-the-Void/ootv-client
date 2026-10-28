@@ -109,6 +109,7 @@ Not every game has every option, just as on the site's search form:
 | Android: Netrunner | `set`, `type`, `text`, `legality` |
 | Doomtown: The Card Game | `set`, `type`, `text`, `legality` |
 | Deadlands: Doomtown (1998) | `set`, `type`, `outfit`, `text`, `legality` |
+| Quest for the Grail | `set`, `rarity`, `type`, `text` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.
