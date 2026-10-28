@@ -6136,6 +6136,19 @@ function legalitybug(value, small) {
     return '<img class="legalitybug'+(small ? ' legalitybugsmall' : '')+'" src="'+lb.path+lb.bugs[name]+'.png" alt="'+
         (small ? htmlEncode(name) : '')+'" title="'+htmlEncode(name)+'" />';
 }
+// the clan's mon drawn before a clan's name, like the legality bugs: game config clanmons {path, mons: {<clan,
+// plain text>: <image name>}} (docs/admin/game-config.md; L5R: the outlined brush mons from ootv-assets
+// mons/oracle_ink/outlined). '' for a clan with none, or a game without them.
+function clanmon(value) {
+    var cm = ((gameconfig[database] || {}).game || {}).clanmons;
+    var name = selectplaintext(value || '');
+    if(!cm || !cm.mons || !cm.mons[name]) { return ''; }
+    return '<img class="clanmon" src="'+cm.path+cm.mons[name]+'.png" alt="" title="'+htmlEncode(name)+'" />';
+}
+function clanmonned(value) {
+    var mon = clanmon(value);
+    return mon ? '<span class="clanwithmon">'+mon+value+'</span>' : value;
+}
 function legalitybugged(value) {
     var bug = legalitybug(value);
     return bug ? '<span class="legalitywithbug">'+bug+value+'</span>' : value;
@@ -6766,6 +6779,8 @@ function gamerow(data, r) {
     if(helper) {
       v = templatehasval(v) || !r.helpers ? gamerowhelpers[helper](v, data) : '';
     } else {
+      // every clan shown gets its mon (game config clanmons)
+      if(f == 'clan' && templatehasval(v)) { v = [].concat(v).map(clanmonned); }
       v = (v === undefined || v === null) ? '' : v === true ? 'Yes' :
           (Array.isArray(v) ? v.join(join !== undefined ? join : ',') : String(v));
     }
@@ -9578,6 +9593,8 @@ function renderpublic(data, append) {
     var meta = [listtypes[h.type] || h.type];
     if(d.clan) meta.push(d.clan);
     if(d.stronghold) meta.push(d.stronghold.title);
+    meta = meta.map(htmlEncode);
+    if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
     var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
     var when = String(h.modified || h.created || '').slice(0,10);
     var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
@@ -9590,7 +9607,7 @@ function renderpublic(data, append) {
       '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
       '<div class="dircardbody">'+
         award+precon+
-        '<div class="dircardmeta">'+meta.map(htmlEncode).join(' &middot; ')+'</div>'+
+        '<div class="dircardmeta">'+meta.join(' &middot; ')+'</div>'+
         format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
         '<div class="dircardmeta">by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>'+(when ? ' &middot; '+when : '')+'</div>'+
