@@ -45,6 +45,9 @@ Settings → Display sets which one new visits start with.
 Many values on the card are links: a clan, a type, a keyword, an artist. Clicking one searches
 for every card with it, keeping the rest of your search form.
 
+In L5R a clan has its mon beside it, here and in search results and Public lists, the way each
+legality has its arc bug.
+
 An artist works a little differently: clicking the name opens a small box with **Search cards by**
 that artist, then the artist's own pages (portfolio, gallery, social media) where we know them.
 Links marked "archived copy" go to an old saved copy of a site that is gone.
