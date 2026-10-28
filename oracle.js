@@ -2015,14 +2015,34 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
 
 // The Bookshelf (rules.js, loaded on first use; the Rules section until 2026-10-23): its shelves and the page viewer.
 // rulesstate is what the url says: the shelf shown ('': the one last shown), the book open (null: the shelf), its page (0: the first page with find),
-// the book search, and a place on the page to zoom to: find (a phrase), line (its number) or at (percent down).
-var rulesstate = {shelf: '', book: null, page: 1, q: '', find: '', line: 0, at: 0};
-// the place on the page from a url's #find=, #line=, #at= (rulesmarkhash: back into one)
+// the book search, and a place on the page to zoom to: find (a phrase), line (its number) or at (percent down), or a
+// section of a book with a section map (sec: "VII.3.9.E", its page and at from book.json sections, so the link
+// survives a rebuild that moves pages; page 0 until the book is loaded).
+var rulesstate = {shelf: '', book: null, page: 1, q: '', find: '', line: 0, at: 0, sec: ''};
+// the place on the page from a url's #find=, #line=, #at=, #sec= (rulesmarkhash: back into one)
 function rulesmarkparse(m) {
-  return {find: m.find ? decodeURIComponent(m.find) : '', line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0)};
+  return {find: m.find ? decodeURIComponent(m.find) : '', line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0),
+          sec: m.sec ? rulessecnorm(decodeURIComponent(m.sec)) : ''};
 }
 function rulesmarkhash(state) {
-  return state.find ? ',#find='+encodeURIComponent(state.find) : state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '';
+  return state.sec ? ',#sec='+encodeURIComponent(state.sec) : state.find ? ',#find='+encodeURIComponent(state.find) :
+    state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '';
+}
+// #sec=: a section's printed number, a lettered step in it, or a section's id, as book.json sections keys them
+// ("VII.3.9", "VII.3.9.E", "B3", "RULINGS-KATSU"; ootv-games comprehensive-rules/scripts/sections.py): upper case,
+// dots between the parts, so "vii 3.9 e" and "VII.3.9 E" work too
+function rulessecnorm(s) {
+  return String(s || '').trim().toUpperCase().replace(/[\s_]+/g, '.').replace(/\.{2,}/g, '.').replace(/^\.|\.$/g, '');
+}
+// where a section starts, {key, page, at}: the section asked for, else the nearest one holding it (VII.3.9.Z:
+// VII.3.9, key says which); null when the book has no map or nothing matches
+function rulessecplace(sections, sec) {
+  var k = rulessecnorm(sec).replace(/^GLOSSARY\.(?=[A-Z]\d)/, '');
+  while(sections && k) {
+    if(sections[k]) { return {key: k, page: sections[k][0], at: sections[k][1]}; }
+    k = k.lastIndexOf('.') > 0 ? k.slice(0, k.lastIndexOf('.')) : '';
+  }
+  return null;
 }
 // letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
 function rulesnorm(s) {
@@ -2053,6 +2073,9 @@ function rulesmarkwords(lines, mark) {
     return rulesfindwords(lines, rulesnorm(mark.find));
   } else if(mark.line && lines[mark.line-1]) {
     return lines[mark.line-1][1].map(function(w, j) { return [mark.line-1, j]; });
+  } else if(mark.sec) {   // a section: its heading (or a step's first line), the first line from at down
+    var i = lines.findIndex(function(line) { return line[1].length && line[1][0][1] >= (mark.at || 0) * 100; });
+    if(i >= 0) { return lines[i][1].map(function(w, j) { return [i, j]; }); }
   }
   return [];
 }
@@ -7452,7 +7475,7 @@ function statehash(state) {
   } else if(state.view == 'public' && state.pq) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
-    return h+',#rulebook='+state.book+(state.page > 1 || (state.page == 1 && state.find) ? ',#page='+state.page : '')+rulesmarkhash(state);
+    return h+',#rulebook='+state.book+(!state.sec && (state.page > 1 || (state.page == 1 && state.find)) ? ',#page='+state.page : '')+rulesmarkhash(state);
   } else if(state.view == 'rules' && state.shelf) {
     return h+',#shelf='+state.shelf;
   } else if(state.view == 'help' && state.topic) {
@@ -7476,7 +7499,7 @@ function viewstate(view) {
   } else if(view == 'help') {
     return {view: view, topic: helpstate.topic, sec: helpstate.sec};
   } else if(view == 'rules') {
-    return {view: view, shelf: rulesstate.shelf, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at};
+    return {view: view, shelf: rulesstate.shelf, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at, sec: rulesstate.sec};
   }
   return {view: view};
 }
@@ -7654,7 +7677,7 @@ function urlparser(keepfilters=false) {
   } else if(typeof(matchstruct['rulebook']) != 'undefined') {
 	  var rulesmark = rulesmarkparse(matchstruct);
 	  rulesstate.book = matchstruct['rulebook'];
-	  rulesstate.page = parseInt(matchstruct['page'], 10) || (rulesmark.find ? 0 : 1);
+	  rulesstate.page = rulesmark.sec ? 0 : parseInt(matchstruct['page'], 10) || (rulesmark.find ? 0 : 1);
 	  Object.assign(rulesstate, rulesmark);
 	  urlrestoring = 'rules';
 	  rulesshowview();
@@ -8910,12 +8933,17 @@ $(document).on('mouseenter', '#resultcard dd.rulings a[href*="#rulebook="]', fun
   if(lastpointertype != 'mouse' || $('#traitpop').hasClass('traitpoptouch') && $('#traitpop').is(':visible')) { return; }
   rulingpeek(this, false);
 }).on('mouseleave', '#resultcard dd.rulings a[href*="#rulebook="]', function() {
-  if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').removeData('ruling').hide(); }
+  if(!$('#traitpop').hasClass('traitpoptouch')) { rulingpeeking = null; $('#traitpop').removeData('ruling').hide(); }
 });
 // the place a ruling's rulebook link points at, in the trait popup: by el on hover (mouse), or after a long-press
 // (touch), centred, with Open page and Close (as traitpopshow)
+var rulingpeeking = null;   // the link being peeked at, while a #sec link's book loads (the mouse may leave first)
 function rulingpeek(el,touch) {
-  var l = rulinglink($(el).attr('href')), label = $(el).text(), w = Math.min(touch ? 420 : 560, window.innerWidth - 16);
+  rulingpeeking = el;
+  rulingresolve(rulinglink($(el).attr('href')), function(l) { if(rulingpeeking == el) { rulingpeekshow(el, touch, l); } });
+}
+function rulingpeekshow(el,touch,l) {
+  var label = $(el).text(), w = Math.min(touch ? 420 : 560, window.innerWidth - 16);
   var pop = $('#traitpop');
   if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
   pop.toggleClass('traitpoptouch', touch).data('ruling', el).html('<div class="traitpophead">'+$('<div>').text(label).html()+'</div>'+
@@ -8962,14 +8990,32 @@ $(document).on('click keydown', 'dd.rulings .rulingsmore', function(e) {
   dd.toggleClass('rulingssome', !all).toggleClass('rulingsall', all);
   $(this).text(all ? 'Show fewer' : $(this).data('more'));
 });
-var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in the Bookshelf
-// a ruling's rulebook link: {book, page, mark: {find, line, at} as written in the link}, or null
+var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at, #sec), for Open in the Bookshelf
+// a ruling's rulebook link: {book, page, mark: {find, line, at, sec} as written in the link}, or null
 function rulinglink(href) {
   var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href || '');
   if(!m) { return null; }
   var mark = {};
-  href.replace(/#(find|line|at)=([^,#]*)/g, function(all, k, v) { mark[k] = v; });
+  href.replace(/#(find|line|at|sec)=([^,#]*)/g, function(all, k, v) { mark[k] = v; });
   return {book: decodeURIComponent(m[1]), page: parseInt(m[2],10) || 1, mark: mark};
+}
+// a #sec link's page and place, from the book's section map: done(l) with page, mark.at and mark.sec (the key
+// found) filled in; a section the book lacks drops sec and keeps the link's page
+var rulingbooks = {};   // book.json url -> its request
+function rulingresolve(l,done) {
+  if(!l.mark.sec) { done(l); return; }
+  var url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/book.json';
+  rulingbooks[url] = rulingbooks[url] || $.ajax({url: url, dataType: 'json', cache: true});
+  rulingbooks[url].always(function(book) {
+    var place = rulessecplace(book && book.sections, decodeURIComponent(l.mark.sec));
+    if(place) {
+      Object.assign(l, {page: place.page});
+      Object.assign(l.mark, {sec: place.key, at: place.at});
+    } else {
+      delete l.mark.sec;
+    }
+    done(l);
+  });
 }
 function rulingpageurl(l,size) {
   return dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/'+String(l.page).padStart(3,'0')+'_'+size+'.webp';
@@ -8979,8 +9025,8 @@ function rulingpageurl(l,size) {
 var rulinglines = {};   // lines/<NNN>.json url -> its request
 function rulingplace(l,done) {
   var mark = rulesmarkparse(l.mark);
-  if(mark.at) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
-  if(!mark.find && !mark.line) { done(null); return; }
+  if(mark.at && !mark.sec) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
+  if(!mark.find && !mark.line && !mark.sec) { done(null); return; }
   var url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/lines/'+String(l.page).padStart(3,'0')+'.json';
   rulinglines[url] = rulinglines[url] || $.ajax({url: url, dataType: 'json', cache: true});
   rulinglines[url].done(function(lines) {
@@ -9020,9 +9066,12 @@ function rulingshowplace(view,l,peek,done) {
   });
 }
 function rulingpopup(href,label) {
+  var l = rulinglink(href);
+  if(l) { rulingresolve(l, function(l) { rulingpopupshow(href, label, l); }); } else { rulingpopupshow(href, label, null); }
+}
+function rulingpopupshow(href,label,l) {
   var esc = s => $('<div>').text(s).html();
   var title = esc(label || 'Ruling');
-  var l = rulinglink(href);
   if(l) {
     rulingmark = l.mark;
     modal(title,'<div class="rulingview"><div class="rulingpage"><img src="'+esc(rulingpageurl(l, 'master'))+'" alt="'+title+'"></div></div>'+
