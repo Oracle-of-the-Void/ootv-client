@@ -48,7 +48,9 @@ The browser's own find (Ctrl+F) works on the pages shown too.
   link opens the book there, with the text marked. The link holds only the selection's first and last
   few words (`first words.*last words`), so even a long selection makes a short link. In the
   Comprehensive Rules, a link to selected text also names its section, like `#sec=VII.3.9.E`
-  (section VII.3.9, step E), so it keeps working when an update moves the rules to another page.
+  (section VII.3.9, step E), so it keeps working when an update moves the rules to another page. To
+  link a section without selecting anything, click once in its text in select mode (that leaves a
+  cursor) and then **Copy a link**.
 - **Section links**: add `,#sec=<number>` after a book in the address bar to open it at that section:
   a chapter (`VII`), a section (`VII.3.9`), a lettered step in it (`VII.3.9.E`) or a glossary entry
   (`T2`). Spaces work too (`VII 3.9 E`).

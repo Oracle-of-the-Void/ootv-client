@@ -2021,8 +2021,8 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
 var rulesstate = {shelf: '', book: null, page: 1, q: '', find: '', line: 0, at: 0, sec: ''};
 // the place on the page from a url's #find=, #line=, #at=, #sec= (rulesmarkhash: back into one)
 function rulesmarkparse(m) {
-  return {find: m.find ? decodeURIComponent(m.find) : '', line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0),
-          sec: m.sec ? rulessecnorm(decodeURIComponent(m.sec)) : ''};
+  var sec = m.sec ? rulessecnorm(decodeURIComponent(m.sec)) : '', find = m.find ? decodeURIComponent(m.find) : '';
+  return {find: sec && !rulessecfindok(find) ? '' : find, line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0), sec: sec};
 }
 function rulesmarkhash(state) {
   return (state.sec ? ',#sec='+encodeURIComponent(state.sec) : '')+(state.find ? ',#find='+encodeURIComponent(state.find) :
@@ -2052,7 +2052,7 @@ function rulessecfind(book, place, find, done, tries=0) {
   if(tries > 4) { done(null); return; }
   rulingbooklines[url] = rulingbooklines[url] || $.ajax({url: url, dataType: 'json', cache: true});
   rulingbooklines[url].done(function(lines) {
-    if(rulesfindwords(lines, rulesnormfind(find)).length) { done(p); } else { rulessecfind(book, place, find, done, tries + 1); }
+    if(rulesfindwords(lines, rulesnormfind(find), tries ? 0 : place.at * 100).length) { done(p); } else { rulessecfind(book, place, find, done, tries + 1); }
   }).fail(function() { done(null); });
 }
 // letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
@@ -2064,18 +2064,25 @@ function rulesnorm(s) {
 function rulesnormfind(find) {
   return String(find || '').split('.*').map(rulesnorm).filter(Boolean).join('*');
 }
+// a #find with a #sec only counts when it's long enough to tell places apart ("E." would find any e on the page): a
+// shorter one is dropped and the link goes to the section
+function rulessecfindok(find) {
+  return rulesnormfind(find).split('*')[0].length >= 10;
+}
 // the words of a page's lines that spell q (rulesnormfind'd): [[line, word], ...], or [] when it isn't there. With
-// gaps (first*last), from the first part to the end of the last one found after it, else just the first part
-function rulesfindwords(lines, q) {
-  var chars = '', at = [];
+// gaps (first*last), from the first part to the end of the last one found after it, else just the first part.
+// fromy (1/10000ths of the page): only from the first line at or below it (a #sec's section start)
+function rulesfindwords(lines, q, fromy=0) {
+  var chars = '', at = [], start = -1;
   lines.forEach(function(line, i) {
+    if(start < 0 && line[1].length && line[1][0][1] >= fromy) { start = chars.length; }
     line[1].forEach(function(w, j) {
       var n = rulesnorm(w[4]);
       chars += n;
       for(var k = 0; k < n.length; k++) { at.push([i, j]); }
     });
   });
-  var parts = (q || '').split('*'), from = parts[0] ? chars.indexOf(parts[0]) : -1;
+  var parts = (q || '').split('*'), from = parts[0] && start >= 0 ? chars.indexOf(parts[0], start) : -1;
   if(from < 0) { return []; }
   var end = from + parts[0].length;
   parts.slice(1).forEach(function(part) {
@@ -2092,8 +2099,8 @@ function rulesfindwords(lines, q) {
 }
 // the words of a place (mark: {find, line}, as rulesmarkparse gives) on a page's lines: [[line, word], ...]
 function rulesmarkwords(lines, mark) {
-  if(mark.find) {
-    return rulesfindwords(lines, rulesnormfind(mark.find));
+  if(mark.find) {   // with a #sec on the section's page (at set), only from the section's start
+    return rulesfindwords(lines, rulesnormfind(mark.find), mark.sec ? (mark.at || 0) * 100 : 0);
   } else if(mark.line && lines[mark.line-1]) {
     return lines[mark.line-1][1].map(function(w, j) { return [mark.line-1, j]; });
   } else if(mark.sec) {   // a section: its heading (or a step's first line), the first line from at down
@@ -9038,9 +9045,11 @@ function rulingresolve(l,done) {
     }
     Object.assign(l, {page: place.page});
     Object.assign(l.mark, {sec: place.key, at: place.at});
+    if(l.mark.find && !rulessecfindok(decodeURIComponent(l.mark.find))) { delete l.mark.find; }
     if(!l.mark.find) { done(l); return; }
     rulessecfind(l.book, place, decodeURIComponent(l.mark.find), function(p) {   // the phrase's page; else the section's heading
       if(p) { l.page = p; } else { delete l.mark.find; }
+      if(p && p != place.page) { l.mark.at = 0; }   // past the section's page: from the top
       done(l);
     });
   });
