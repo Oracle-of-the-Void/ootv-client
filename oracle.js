@@ -3636,7 +3636,7 @@ function liststats(listdata,listid=null) {
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
+	"decks": decks, "keywords": keywords, "open": liststatsopen(),
 	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
 // the stats block's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
@@ -3709,6 +3709,11 @@ function liststatsstripe() {
     });
 }
 // open or closed (the section, and its keyword part), kept per browser
+// the statistics box starts open, folded on phones so the cards come first; once toggled it stays as left
+function liststatsopen() {
+    var open = cache_session("liststatsopen");
+    return open === null ? !narrowscreen() : open !== false;
+}
 function liststatstoggle(el) {
     cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
 }
@@ -7378,6 +7383,10 @@ function startpage() {
   // phones default search results to the Visual Spoiler, unless a saved phone default says otherwise
   if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
 	  templates[database]['default']['search'] = 'visual';
+  }
+  // and lists (shared deck links too) to the Simple List rather than the card images of the Deck view
+  if(narrowscreen() && templates[database]['available']['list'] && !(viewdefaults() || {})['list']) {
+	  templates[database]['default']['list'] = 'list';
   }
   
   // TODO: check for premium
