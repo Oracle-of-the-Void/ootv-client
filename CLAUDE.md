@@ -23,11 +23,11 @@ or tests. The files in this directory are exactly what gets served.
   `all/games`. A new game gets structure items, not files. They're edited in Admin → Fields (the field
   list's `settings`, `show: "hidden"`), Game config and Templates (`gameconfigadmin.js`, loaded on first
   use; guide `docs/admin/game-config.md`). **A small change (one key, one flag, one mon) is a conditional
-  `update_item` of only that path on the live item (version check, `version + 1` + history entry), or the
-  Admin editor: never push.py** (workspace `CLAUDE.md`, the user 2026-10-28). Only real bulk edits (many
+  `update_item` of only that path on the live item: ootv-tools `structure/set.py` (version check,
+  `version + 1` + history entry), or the Admin editor: never push.py** (workspace `CLAUDE.md`, the user 2026-10-28). Only real bulk edits (many
   settings, a restructure, a new game's first items) go as JSON: `python3 docs/gameconfig/push.py pull DIR
-  [game]` right before the push (a stale file wipes later saves), edit, then `push.py DIR` (dry run) and
-  `--go` (production). A master template that fails to
+  [game]`, edit, then `push.py DIR` (dry run) and `--go` (production); it refuses any item saved since the
+  pull (`DIR/versions.json`). A master template that fails to
   compile or draw falls back to its newest working version from the item's history (`templatesafe`). The card
   page's shared pieces (`card-top`, `-middle`, `-bottom`, `textversion`, `textversionbutton`,
   `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by `templatepartials()`;
@@ -40,7 +40,7 @@ or tests. The files in this directory are exactly what gets served.
   name ("Market Place") its `titletextsnm` (`snmlistnames`). No static copy is served.
   `docs/snm/snm-map.py` rebuilds both into `docs/snm/l5r-snm.json` after S&M updates its
   database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`); then
-  `python3 docs/snm/snm-push.py --go` writes the set codes and ootv-tools `printings/snm-printings.py`
+  `python3 docs/snm/snm-push.py --go` writes the changed set codes (only those, each conditioned on its old value) and ootv-tools `printings/snm-printings.py`
   the printing codes and names. The Admin set import adds a new set's code to the item.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
