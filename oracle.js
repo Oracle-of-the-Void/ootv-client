@@ -212,6 +212,19 @@ if(found = window.location.href.match(/([\w_-]+)\.html/)) {
     window.location = location.protocol + '//' + location.host + location.pathname;
   }
 }
+// a shared link's second '#' (#game=l5r,#listid=...) can arrive as %23: iOS apps (Discord's in-app browser)
+// escape it, and then the link read as #game=l5r alone (the search form, no deck). Values are
+// encodeURIComponent'd, so ',%23word=' is never part of one.
+function hashunescape(hash) {
+  return hash.replace(/(?:,|%2C)%23(?=\w+(?:=|,|$))/gi, ',#');
+}
+function hashrepair() {
+  var fixed = hashunescape(location.hash);
+  if(fixed != location.hash) {
+    history.replaceState(history.state, '', location.pathname + location.search + fixed);
+  }
+}
+hashrepair();
 if(cache_session("database")) {
   database = cache_session("database");
 } else if(cache_session("favoritegame") && !/#game=/.test(location.hash)) {
@@ -7581,6 +7594,7 @@ var urlpendinglist = null; // a #listid link opened before the directory loaded 
 
 // '#a=1,#b=2' -> {a: '1', b: '2'} (a repeated key gives an array)
 function parsehash(hash) {
+  hash = hashunescape(hash);
   var matches = hash.match(/#[^#]+/g);
   var matchstruct = {};
   var structpatt = /#(\w+)=?((?:[^,=#])+)?/;
@@ -7708,6 +7722,7 @@ function showviewkeepurl(view) {
 // Back/Forward, and a hash typed in the address bar or set by a link (keyword links): draw what the url says
 $(window).on('popstate', function (e) {
   console.log(['popstate',e.originalEvent.state,location.hash]);
+  hashrepair();
   // phones: back/forward shows results or a card, so close the search panel; back to the blank start page opens it, as on load
   mobilesearchtoggle(narrowscreen() && !location.hash.replace(/#game=[^#]*/,''));
   // no state: a link or a typed url, which keeps the form's filters (urlparser)
