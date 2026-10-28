@@ -66,7 +66,9 @@ place, marked. **Also on** lists other pages with the term.
 
 - `term`: a keyword or trait (Cavalry, Yu), a rule's heading (Ranged Attacks, Battle
   Resolution) or any words. It autocompletes with the traits and the headings of the book it will
-  look in.
+  look in. In the Comprehensive Rules it can also be a section number: `VII.3.9`, a step in it
+  (`VII.3.9.E`, or `VII 3.9 E`), or a glossary entry (`T2`). The reply shows that section, and its
+  link opens it on the site even after an update moves it to another page.
 - `arc:` looks in that arc's latest complete rules, e.g. `arc:Clan Wars (Imperial)` reads Scorpion
   Clan Coup and `arc:Hidden Emperor (Jade)` The Spirit Wars.
 - `book:` looks in one rulebook instead, e.g. `book:Jade Edition`.
