@@ -812,6 +812,19 @@ permission on the game (whoever may search by photo; the Photo button's Find the
 | `sigqueue` | optional `pending` (true: waiting ones only), `after` (admins) | `{submissions: [...] (newest first, 50), next}` |
 | `sigdecide` | `id`, `decision` (`approve` / `reject`), optional `artist` (approve: the name to file it under), `note` (admins) | `{submission}` |
 
+The signature catalogue (Admin → Artists; ootv-search `admin/signatures.mjs`, table
+`oracle-all-signatures`, key `artist` + `file`) uses the same route with `database: "all"` and the
+Artists editor's permission (`artists` or `*` in groups `all` or `*`). `n` is the length of the
+signature's `updatelog` as loaded: if it changed since, the call is refused with 409.
+
+| action | input | output |
+|---|---|---|
+| `siglist` | optional `artist` (an entry's name) | `{artist, path, signatures: [item + n]}`, or without `artist` `{counts: {artist: n}}` |
+| `sigedit` | `artist`, `file`, `n`, any of `read`, `how`, `note` (empty removes it) | `{signature}` (or `message: "no changes"`) |
+| `sigmove` | `artist`, `file`, `n`, `to` (an artist entry; an alias moves it to its main entry) | `{signature, from}` |
+| `sigdetach` | `artist`, `file`, `n` | `{submission}`: a pending row in the game's Signature submissions, no artist |
+| `sigdelete` | `artist`, `file`, `n` | `{deleted, trash}`: the crop moved to `removed/<time>-<file>`, an `oracle-all-imagetrash` row (reason `signature-deleted`) with the item |
+
 A job: `{game, id, status: queued / running / done / error, created, started, finished, cardid,
 printingid, title, set, artist (the credit when queued), uid, uname, result, error}`; an upload has
 `image` (its key in the reports bucket, `artcheck/<game>/<id>.jpg`) and `kind` instead of the card,
@@ -828,9 +841,11 @@ rows of the same painting (non-empty: nothing to submit). After a submission the
 A submission: a row `game = "sigsub/<game>"` in `oracle-all-artcheck` (no expiry) `{id, status: pending /
 approved / rejected, created, job, file (its PNG, kept at artcheck-signatures/<game>/<id>.png), crop,
 read, cardid, printingid, title, set, credit, artist, uid, uname, decided, decidedby, note, filed:
-{artist, path, file}}`. Filing copies the PNG to `artists/<slug>/signatures/` on the images bucket,
-appends an `index.json` row (`how: submitted`, `by`, `approved`, `job`, `added`) and updates the
-artist entry's `signatures` with an updatelog row (`source: sigsubmit`), then stamps row
+{artist, path, file}}`; a signature detached in Admin → Artists also has `detached: {from, file, how,
+note, by, approved, added, at, byname, updatelog}` and no `artist` until approved. Filing copies the
+PNG to `artists/<slug>/signatures/` on the images bucket and puts an `oracle-all-signatures` item
+(`how: submitted`, `by`, `approved`, `job`, `added`, an updatelog row `source: sigsubmit`; a detached
+one keeps its own), then stamps row
 `game = "worker", id = "catalogue"` (`updated`, `artist`) so the worker reloads its catalogue. `worker`: `{seen, host, state,
 references, online}` (`online` false when the heartbeat is older than 10 minutes, or `{online:
 false}` when it never ran).
