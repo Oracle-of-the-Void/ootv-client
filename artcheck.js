@@ -53,7 +53,8 @@ function artcheckopen(cardid, printingid) {
     (database == 'l5r' ? ' <label title="A scan or photo of the whole card: a photo is cut out and straightened (best on a pale background)"><input type="radio" name="artcheckkind" value="bugs" /> the bugs on a whole card</label>' : '')+'</p>'+
     '<div id="artcheckone"></div><p id="artcheckworker"></p><table class="artchecklist" id="artchecklist"></table>'+
     '<h4>Signature submissions</h4><p class="artchecknote">Signatures found by Find the artist and sent in by people '+
-    'who aren\'t admins. Approve files one in the signature catalogue under the artist in its box (fix the name first if needed).</p>'+
+    'who aren\'t admins, and signatures detached from an artist in Admin → Artists. Approve files one in the signature catalogue '+
+    'under the artist in its box (fix the name first if needed; a detached one needs a name).</p>'+
     '<p><label><input type="checkbox" id="artchecksuball" onchange="artchecksubs()" /> show decided ones too</label></p>'+
     '<div id="artchecksubs"></div>');
   artchecklist();
@@ -261,9 +262,11 @@ function artchecksubs() {
           '<td>'+artcheckcard(s)+(s.cardid ? '' : ' <span class="artchecknote">(an uploaded picture)</span>')+
             '<br><span class="artchecknote">credited: '+artcheckesc((s.credit || []).join(', ') || 'none')+'</span></td>'+
           '<td>'+(s.read ? '"'+artcheckesc(s.read)+'"' : '')+'</td>'+
-          '<td>'+(pending ? '<input type="text" class="artchecksubartist" list="artchecksubslist" size="20" value="'+artcheckesc(s.artist)+'"'+
-              ' onfocus="artcheckartistlist(this)" />' : artcheckesc(s.artist))+'</td>'+
-          '<td>'+artcheckesc(s.uname)+'<br><span class="artchecknote">'+new Date(s.created).toLocaleString()+'</span></td>'+
+          '<td>'+(pending ? '<input type="text" class="artchecksubartist" list="artchecksubslist" size="20" value="'+artcheckesc(s.artist || '')+'"'+
+              (s.detached ? ' placeholder="the artist"' : '')+' onfocus="artcheckartistlist(this)" />' : artcheckesc(s.artist))+'</td>'+
+          // a signature detached from an artist in Admin → Artists (ootv-search admin/signatures.mjs) waits here for one
+          '<td>'+(s.detached ? 'detached from <b>'+artcheckesc(s.detached.from)+'</b> by '+artcheckesc(s.uname) : artcheckesc(s.uname))+
+            '<br><span class="artchecknote">'+new Date(s.created).toLocaleString()+'</span></td>'+
           '<td>'+(pending ? '<input type="button" value="Approve" onclick="artcheckdecide(this,\'approve\')" /> '+
                             '<input type="button" value="Reject" onclick="artcheckdecide(this,\'reject\')" /><div class="artchecksubstatus"></div>' :
               artcheckesc(s.status)+' by '+artcheckesc(s.decidedby))+'</td></tr>';

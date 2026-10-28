@@ -35,15 +35,31 @@ in the artist box, which opens it here.
 - **Note**: shown in the box under the links, e.g. "No links found" or why there's no artist.
 - **Links**: the address and a label (Instagram, ArtStation, own site...). Tick **Archived copy**
   for a Wayback Machine copy of a dead site; the box says "archived copy". Empty rows are dropped.
-- **Signatures**: shown read-only under the note when an entry is open (an alias shows its main entry's),
-  each crop linking to its L5R card (hover for the set and what was read); **With signatures** in the
-  list's menu picks the artists that have some. Where the artist's known signatures are, set by a script,
-  `signatures: {path, count, updated}`. `path` is a folder on the images site,
-  `https://images.oracleofthevoid.com/artists/<name>/signatures/`, with one cropped signature per card
-  (`<cardid>_<printingid>.png`) and an `index.json` listing each one's card, what it reads, and whether
-  it matched the credit or was confirmed by hand. 76 artists had them on 2026-10-24 (the signature
-  review in project artist-by-style); approved Artist check submissions add more. An alias credit's signatures are on its main entry. Saving an
-  entry here leaves them alone. Using them in Find the artist is project `artist-signatures`.
+- **Signatures**: the artist's known signatures, shown under the note when an entry is open (an alias
+  shows its main entry's); hover one for its card, set and what was read. **With signatures** in the
+  list's menu picks the artists that have some. Click a signature to open it: a bigger crop, a link to
+  its card, the credit, who sent and approved it, and its last change. With the artists permission:
+  - **Read as**, **How** and **Note**, then **Save**. *Read as* is what the vision model (or a person)
+    reads in the signature; Find the artist compares a new find with these readings, so a misreading
+    that keeps coming back ("HYPER" for Snyder) is worth keeping. *How*: `matched` (the reading matched
+    the credit), `confirmed` (a person confirmed it), `submitted` (sent in from Find the artist),
+    `review`/`spots` (from the catalogue scripts).
+  - **Move to** another artist (a listed name; an alias files under its main entry), then **Move**.
+  - **Detach**: it's a signature, but not this artist's, and you don't know whose. It leaves the
+    catalogue and waits in Admin → Artist check, *Signature submissions*, as "detached from ...", for
+    whoever works it out to approve it under the right artist.
+  - **Delete**: not a signature, or not worth keeping. The crop is kept aside (the image trash) but is
+    gone from the catalogue.
+
+  Every change is logged on the signature and takes effect in Find the artist within a minute. If
+  someone else changed the same signature since you opened it, the change is refused: reload.
+
+  Where they're kept: table `oracle-all-signatures`, one item per signature (key artist + file, with
+  the card, set, credit, reading, how and an update log), and the crops on the images site at
+  `https://images.oracleofthevoid.com/artists/<name>/signatures/<cardid>_<printingid>.png`. The first
+  ones came from the signature reviews (projects artist-by-style and artist-signatures: 221 artists
+  and 2,505 signatures on 2026-10-28); approved Artist check submissions add more. Saving an entry
+  here leaves its signatures alone.
 
 **Save** writes the entry at once (it's live on every card page right away). If someone else saved
 the same entry after you opened it, the save is refused: copy your changes and reload. **Delete**

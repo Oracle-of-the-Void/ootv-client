@@ -114,11 +114,14 @@ never reports a bug that isn't there. `printedbugs` is described in `docs/data.m
 
 Below the recent checks, **Signature submissions** lists the signatures people sent in from Find the
 artist that wait for an admin: the zoomed signature, the printing (or "an uploaded picture"), its
-credit, what the model read, the artist the sender named, and who sent it. Compare the signature
+credit, what the model read, the artist the sender named, and who sent it. Signatures detached from an
+artist in Admin → Artists (see the Artists guide, "Signatures") wait here too, marked "detached from
+<artist>", with the artist box empty: name the artist before approving. Compare the signature
 with the artist's known ones (run Artist check on the printing, or open the artist's catalogue), fix
 the name in the box if needed, then **Approve** (filed in the catalogue under that artist, which must
 be in the artists list) or **Reject**. Tick "show decided ones too" to see past decisions. Filed
-signatures are marked `how: submitted` in the artist's `index.json`, with who sent and approved them.
+signatures are marked `how: submitted` in the catalogue, with who sent and approved them; a detached
+one keeps what it had (how, note, its update log).
 
 ## When it says the worker is offline
 
