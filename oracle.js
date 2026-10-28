@@ -6214,8 +6214,8 @@ function legalitybug(value, small) {
         (small ? htmlEncode(name) : '')+'" title="'+htmlEncode(name)+'" />';
 }
 // the clan's mon drawn before a clan's name, like the legality bugs: game config clanmons {path, mons: {<clan,
-// plain text>: <image name>}} (docs/admin/game-config.md; L5R: the outlined brush mons from ootv-assets
-// mons/oracle_ink/outlined). '' for a clan with none, or a game without them.
+// plain text>: <image name>}} (docs/admin/game-config.md; L5R: the flat clan-colour mons from ootv-assets
+// mons/oracle_plain/color). '' for a clan with none, or a game without them.
 function clanmon(value) {
     var cm = ((gameconfig[database] || {}).game || {}).clanmons;
     var name = selectplaintext(value || '');
