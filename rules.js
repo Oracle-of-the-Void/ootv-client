@@ -619,7 +619,7 @@ function rulesselecting() {
 }
 function rulestoggleselect() {
   rulesselect = !rulesselect;
-  if(!rulesselect) { window.getSelection().removeAllRanges(); }
+  if(!rulesselect) { window.getSelection().removeAllRanges(); rulescaretmark = null; $('#rulesarea .rulescaret').remove(); }
   $('#rulesarea .rulesstage').toggleClass('rulesselecting', rulesselecting());
   $('#rulesarea .rulesselectbtn').toggleClass('searchviewactive', rulesselect);
   if(rulesselect) { rulesflash('Select text to copy it, or copy a link to it'); }
@@ -709,6 +709,7 @@ function rulesclearmark() {
   rulesstate.at = 0;
   rulesstate.sec = '';
   rulesmarkzoomed = '';
+  rulescaretmark = null;
 }
 function rulesmarkkey() {
   return rulesstate.book+'/'+rulesstate.page+'/'+(rulesstate.find || '')+'/'+rulesstate.line+'/'+rulesstate.at+'/'+rulesstate.sec;
@@ -839,13 +840,32 @@ function rulesselection() {
   return text ? {page: page, text: text, at: at} : null;
 }
 // a click on the text in select mode leaves a cursor there: {page, at} of its line (for a link to its section), or null
+// browsers draw no caret in text that can't be edited, so the viewer draws its own (.rulescaret) and keeps its place
 function rulescaret() {
-  var sel = window.getSelection();
-  if(!sel || !sel.rangeCount || !sel.isCollapsed) { return null; }
-  var line = $(sel.getRangeAt(0).startContainer).closest('.rulesline'), page = +line.closest('.rulespage').data('page');
-  var lines = ruleslines[page], l = Array.isArray(lines) && line.length && lines[+line.data('line')];
-  return l && l[1].length && line.closest('#rulesarea').length ? {page: page, at: l[1][0][1] / 100} : null;
+  return rulescaretmark;
 }
+var rulescaretmark = null;   // the cursor a click left: {page, at} (at: percent down to its line's top)
+$(document).on('click', '#rulesarea .rulesselecting .rulespage', function(e) {
+  var sel = window.getSelection();
+  $('#rulesarea .rulescaret').remove();
+  rulescaretmark = null;
+  if(sel && !sel.isCollapsed && sel.toString().trim()) { return; }   // a drag that selected text
+  var page = $(this), lines = ruleslines[+page.data('page')], r = this.getBoundingClientRect();
+  if(!Array.isArray(lines) || !lines.length) { return; }
+  var x = (e.clientX - r.left) / r.width * 10000, y = (e.clientY - r.top) / r.height * 10000;
+  // the line clicked on, or the nearest one
+  var best = null;
+  lines.forEach(function(line) {
+    if(!line[1].length) { return; }
+    var top = Math.min.apply(null, line[1].map(w => w[1])), bottom = Math.max.apply(null, line[1].map(w => w[3]));
+    var d = y < top ? top - y : y > bottom ? y - bottom : 0;
+    if(!best || d < best.d) { best = {d: d, top: top, bottom: bottom}; }
+  });
+  rulescaretmark = {page: +page.data('page'), at: best.top / 100};
+  page.append('<div class="rulescaret" style="left:'+(x / 100)+'%;top:'+(best.top / 100)+'%;height:'+((best.bottom - best.top) / 100)+'%"></div>');
+  var sec = rulessecat(rulescaretmark.page, rulescaretmark.at);
+  if(sec) { rulesflash(sec+': copy a link to it'); }
+});
 // words as text to paste ([{page, block, line, word}] in reading order): a line's words joined by spaces, lines
 // of a block into one paragraph (words broken across lines by a hyphen joined again), blocks and pages apart by a
 // blank line, unless the text runs on (no full stop, the next starting in lower case: a block break that isn't a
