@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-24 (showing derived values on the card page)
+Last updated: 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -148,23 +148,17 @@ Any of:
 
 This is its own type-based rule. Don't generalize it to other Extended formats.
 
-### Jade Extended 2000 (1,915)
+### Jade Extended 2000 (2,346)
 
-The Jade Extended rule unchanged, plus:
+Jade Extended without Jade's experienced rule. Any of:
+- a Stronghold, Personality, Event, Spell or Ring legal in Jade **on one of its printings**
+- a Strategy (Actions, Kihos), Follower, Sensei, Item, Holding, Region or Ancestor legal in
+  Imperial or Jade
 
-All of:
-- a printing from a Hidden Emperor (Jade) arc set: Jade Edition, Hidden Emperor 1–6, The Dark
-  Journey Home, Pearl Edition, Siege of Sleeping Mountain, Honor Bound, Ambition's Debt, Fire &
-  Shadow, Top Deck Booster Pack, Heroes of Rokugan, Soul of the Empire, Storms Over Matsu Palace,
-  The War of Spirits, Promotional–Jade and Promotional–CWF (the set menu's "The Hidden
-  Emperor (Jade)" group)
-
-The set clause is an `all` clause, so the printing shown is a Jade-arc one. It drops 487 Jade
-Extended cards that were never reprinted in the arc: Imperial-only Strategies, Items, Holdings,
-Followers, Regions and Ancestors, and 58 Imperial Personalities (Akodo Kage, Bayushi Kachiko, the
-Scorpion Clan Coup cards). Those Personalities are Jade-legal only through Jade's experienced rule (a
-Personality whose experienced version was printed in Jade counts as Jade). Jade Extended 2000 has no
-such rule, which is what sets it apart from Jade Extended.
+Jade's experienced rule (a Personality whose experienced version was printed in Jade counts as
+Jade) puts Jade on the card only, never on a printing, so the printing condition leaves out exactly
+those 56 Imperial Personalities (Akodo Toturi, Bayushi Kachiko, the Dragons, ...). Everything else
+matches Jade Extended.
 
 ### Legacy (11,981)
 
@@ -446,3 +440,6 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-17: Jade Extended 2000 (Jade Extended limited to cards printed in a Jade-arc set).
 - 2026-10-23: The Blackest Storm's 168 printings got AEG as publisher beside Onyx Lives
   (bulkupdate); Paper's AEG clause now lists the AEG sets so TBS stays out (still 12,403).
+- 2026-10-28: Jade Extended 2000 corrected to Jade Extended without the experienced rule (Jade on a
+  printing for Strongholds, Personalities, Events, Spells, Rings); the Jade-arc set clause, which also
+  dropped 428 Imperial non-Personality cards, is gone. 1,918 → 2,346.
