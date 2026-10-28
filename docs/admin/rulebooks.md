@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-27 (Onyx/ShE Comprehensive Rules draft; Ivory expansion rulesheets in the Ivory and 20F Comprehensive Rules)
+Last updated: 2026-10-27 (Three Dynasties Comprehensive Rules draft; Onyx/ShE Comprehensive Rules draft; Ivory expansion rulesheets in the Ivory and 20F Comprehensive Rules)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -462,6 +462,15 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
   arc could be only one). "Last complete rules in arc" stays on the datasheet
   until the review. Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
+- **Comprehensive Rules for Three Dynasties** (2026-10-27, Version 0.1 draft): the Onyx/ShE book above plus Onyx Lives' Three
+  Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
+  and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
+  Empire". Every wording was the user's decision, one by one (record: ootv-games
+  `rulebook-enhance/comprehensive-rules/three-dynasties/JUDGEMENT.md`, with three questions open for the Onyx Lives rules team).
+  On the shelf since 2026-10-27 as `three-dynasties-comprehensive-rules` (type Complete, tags Fan Made and **Last complete rules
+  in arc**, moved there from the Three Dynasties datasheet), after the datasheet. The tag makes it the Discord /rule bot's Three
+  Dynasties book; trait links still go to the datasheet (they list books by id). Build and notes: ootv-import
+  `rulebooks/COMPREHENSIVE-RULES.md`, "Three Dynasties".
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
