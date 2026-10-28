@@ -2052,14 +2052,20 @@ function rulessecfind(book, place, find, done, tries=0) {
   if(tries > 4) { done(null); return; }
   rulingbooklines[url] = rulingbooklines[url] || $.ajax({url: url, dataType: 'json', cache: true});
   rulingbooklines[url].done(function(lines) {
-    if(rulesfindwords(lines, rulesnorm(find)).length) { done(p); } else { rulessecfind(book, place, find, done, tries + 1); }
+    if(rulesfindwords(lines, rulesnormfind(find)).length) { done(p); } else { rulessecfind(book, place, find, done, tries + 1); }
   }).fail(function() { done(null); });
 }
 // letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
 function rulesnorm(s) {
   return s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
 }
-// the words of a page's lines that spell q (rulesnorm'd): [[line, word], ...], or [] when it isn't there
+// a #find phrase for rulesfindwords: rulesnorm'd, its ".*" gaps kept as "*" ("first words.*last words": a long
+// selection without a long url)
+function rulesnormfind(find) {
+  return String(find || '').split('.*').map(rulesnorm).filter(Boolean).join('*');
+}
+// the words of a page's lines that spell q (rulesnormfind'd): [[line, word], ...], or [] when it isn't there. With
+// gaps (first*last), from the first part to the end of the last one found after it, else just the first part
 function rulesfindwords(lines, q) {
   var chars = '', at = [];
   lines.forEach(function(line, i) {
@@ -2069,10 +2075,16 @@ function rulesfindwords(lines, q) {
       for(var k = 0; k < n.length; k++) { at.push([i, j]); }
     });
   });
-  var from = q ? chars.indexOf(q) : -1;
+  var parts = (q || '').split('*'), from = parts[0] ? chars.indexOf(parts[0]) : -1;
   if(from < 0) { return []; }
+  var end = from + parts[0].length;
+  parts.slice(1).forEach(function(part) {
+    var at2 = end >= 0 ? chars.indexOf(part, end) : -1;
+    end = at2 >= 0 ? at2 + part.length : -1;
+  });
+  if(end < 0) { end = from + parts[0].length; }   // the end isn't on this page (a selection over two pages): the start
   var out = [];
-  for(var k = from; k < from + q.length; k++) {
+  for(var k = from; k < end; k++) {
     var last = out[out.length-1];
     if(!last || last[0] != at[k][0] || last[1] != at[k][1]) { out.push(at[k]); }
   }
@@ -2081,7 +2093,7 @@ function rulesfindwords(lines, q) {
 // the words of a place (mark: {find, line}, as rulesmarkparse gives) on a page's lines: [[line, word], ...]
 function rulesmarkwords(lines, mark) {
   if(mark.find) {
-    return rulesfindwords(lines, rulesnorm(mark.find));
+    return rulesfindwords(lines, rulesnormfind(mark.find));
   } else if(mark.line && lines[mark.line-1]) {
     return lines[mark.line-1][1].map(function(w, j) { return [mark.line-1, j]; });
   } else if(mark.sec) {   // a section: its heading (or a step's first line), the first line from at down
