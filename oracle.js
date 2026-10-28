@@ -2026,8 +2026,8 @@ function rulesmarkparse(m) {
           sec: m.sec ? rulessecnorm(decodeURIComponent(m.sec)) : ''};
 }
 function rulesmarkhash(state) {
-  return state.sec ? ',#sec='+encodeURIComponent(state.sec) : state.find ? ',#find='+encodeURIComponent(state.find) :
-    state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '';
+  return (state.sec ? ',#sec='+encodeURIComponent(state.sec) : '')+(state.find ? ',#find='+encodeURIComponent(state.find) :
+    state.sec ? '' : state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '');
 }
 // #sec=: a section's printed number, a lettered step in it, or a section's id, as book.json sections keys them
 // ("VII.3.9", "VII.3.9.E", "B3", "RULINGS-KATSU"; ootv-games comprehensive-rules/scripts/sections.py): upper case,
@@ -2044,6 +2044,17 @@ function rulessecplace(sections, sec) {
     k = k.lastIndexOf('.') > 0 ? k.slice(0, k.lastIndexOf('.')) : '';
   }
   return null;
+}
+// #sec with #find (a phrase inside a long section): done(page) for the first page from the section's on that has
+// the phrase, looking a few pages on; done(null) when none has it
+var rulingbooklines = {};   // lines/<NNN>.json url -> its request
+function rulessecfind(book, place, find, done, tries=0) {
+  var p = place.page + tries, url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(book)+'/lines/'+String(p).padStart(3,'0')+'.json';
+  if(tries > 4) { done(null); return; }
+  rulingbooklines[url] = rulingbooklines[url] || $.ajax({url: url, dataType: 'json', cache: true});
+  rulingbooklines[url].done(function(lines) {
+    if(rulesfindwords(lines, rulesnorm(find)).length) { done(p); } else { rulessecfind(book, place, find, done, tries + 1); }
+  }).fail(function() { done(null); });
 }
 // letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
 function rulesnorm(s) {
@@ -9131,13 +9142,18 @@ function rulingresolve(l,done) {
   rulingbooks[url] = rulingbooks[url] || $.ajax({url: url, dataType: 'json', cache: true});
   rulingbooks[url].always(function(book) {
     var place = rulessecplace(book && book.sections, decodeURIComponent(l.mark.sec));
-    if(place) {
-      Object.assign(l, {page: place.page});
-      Object.assign(l.mark, {sec: place.key, at: place.at});
-    } else {
+    if(!place) {
       delete l.mark.sec;
+      done(l);
+      return;
     }
-    done(l);
+    Object.assign(l, {page: place.page});
+    Object.assign(l.mark, {sec: place.key, at: place.at});
+    if(!l.mark.find) { done(l); return; }
+    rulessecfind(l.book, place, decodeURIComponent(l.mark.find), function(p) {   // the phrase's page; else the section's heading
+      if(p) { l.page = p; } else { delete l.mark.find; }
+      done(l);
+    });
   });
 }
 function rulingpageurl(l,size) {
@@ -9148,7 +9164,7 @@ function rulingpageurl(l,size) {
 var rulinglines = {};   // lines/<NNN>.json url -> its request
 function rulingplace(l,done) {
   var mark = rulesmarkparse(l.mark);
-  if(mark.at && !mark.sec) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
+  if(mark.at && !mark.sec && !mark.find) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
   if(!mark.find && !mark.line && !mark.sec) { done(null); return; }
   var url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/lines/'+String(l.page).padStart(3,'0')+'.json';
   rulinglines[url] = rulinglines[url] || $.ajax({url: url, dataType: 'json', cache: true});
