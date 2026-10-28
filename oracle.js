@@ -677,6 +677,12 @@ function activelistmeta(listid) {
   }
   return list;
 }
+// a #listid link while the list and its cards load: the list view at once, not the start page under it
+// (shared deck links looked broken: the About page showed for seconds first)
+function listloading() {
+  $('#resultlist').html('<div class="randarea">Loading the list…</div>');
+  showviewkeepurl('resultlist');
+}
 // a #listid link to a list that's private, deleted or never existed (the API answers all three alike)
 function listunavailable() {
   $('#resultlist').html('<div class="randarea">This list is private or doesn\'t exist.'+
@@ -7691,10 +7697,13 @@ function urlparser(keepfilters=false) {
 	  if($('#lastlistid').val() == matchstruct['listid'] && cache_thing("list",matchstruct['listid'])) {
 	    showlist();   // already drawn
 	  } else if(cache_thing("user","data")) {
+	    listloading();
 	    listinfo(matchstruct['listid'],true);
 	  } else if(signedin()) {
+	    listloading();
 	    urlpendinglist = matchstruct['listid'];   // opened by listinfocallback once the directory loads
 	  } else {
+	    listloading();
 	    listinfo(matchstruct['listid'],true);   // logged out: a public list, read only (listrequest)
 	  }
   } else if(typeof(matchstruct['publiclists']) != 'undefined') {
