@@ -66,8 +66,9 @@ Clicking a book opens it in the page viewer:
     four pages after it (a long section), marked; the section's heading when none has it. For links to a sentence
     inside a section, such as card rulings. A phrase under 10 letters and digits (`#find=E.`) would match almost
     anywhere, so it's dropped and the link goes to the section; copied links leave it out.
-  - In select mode, a single click drops a cursor in the text; the link button then copies the `#sec` link of the
-    section or step the cursor is in (in a book without a section map, the page link as usual).
+  - In select mode, a single click or tap drops a cursor in the text (a blinking bar the viewer draws, since browsers
+    show none in text that can't be edited; the toolbar names its section); the link button then copies the `#sec`
+    link of the section or step the cursor is in (in a book without a section map, the page link as usual).
 
   A book can also carry the links printed in its PDF (`book.json` `links`, below): a click or tap
   on one opens its place as an `#at` link (or a web address in a new tab), as a new history entry,

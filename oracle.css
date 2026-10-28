@@ -2409,6 +2409,9 @@ button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-siz
 .rulesmark { position: absolute; pointer-events: none; mix-blend-mode: multiply; border-radius: 2px; }
 .rulesmarkplace { background: rgba(255, 200, 0, .55); box-shadow: 0 0 0 2px rgba(255, 200, 0, .55); }
 .rulesmarksearch { background: rgba(245, 220, 122, .7); }
+/* the cursor a click leaves in select mode (rulescaretmark): a link copied then goes to its section */
+.rulescaret { position: absolute; z-index: 2; width: 2px; margin-left: -1px; background: #c0392b; pointer-events: none; animation: rulescaretblink 1s steps(1) infinite; }
+@keyframes rulescaretblink { 50% { opacity: 0; } }
 /* select mode (rulestoggleselect): the text takes the mouse and fingers; no page turning or dragging */
 .rulesstage.rulesselecting { touch-action: auto; cursor: text; }
 .rulesselecting .rulestextlayer { pointer-events: auto; user-select: text; -webkit-user-select: text; }
