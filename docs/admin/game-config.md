@@ -81,7 +81,8 @@ which games the main site doesn't list yet), and neither the Discord bot nor Adm
 still opens by direct link (`#game=<table>`), and once open it shows in that page's menu. The flag only
 hides it: the game's config, fields and cards are the same data on both sites, so an edit made while
 previewing is live for anyone who has the link. To release the game, delete `preview` from its entry
-(ootv-client `docs/gameconfig/push.py` with `all-games.json`); no deploy, the menus pick it up on
+(a targeted `update_item` that removes only that flag, or Admin; not `push.py`, which writes the whole
+item back); no deploy, the menus pick it up on
 their next load, the bot within 5 minutes.
 
 ## Templates
@@ -134,4 +135,6 @@ nothing is saved: copy your edit, reload and save again.
 `oracle-all-structure` items `<game>/game`, `all/templates`, and `<game>/fields` / `all/fields`
 (`settings`), read together through `/gameconfig?database=<game>`, saved with `/update` operations
 `gameconfig`, `templates` and `fields` (`docs/API.md`). `docs/gameconfig/push.py` pulls and pushes
-the same items as files, for bulk edits.
+the same items as whole files, **for bulk edits only**: it writes back every key in the file, so a copy
+pulled before someone else's save wipes that save. One value is an Admin edit or a targeted
+`update_item` of that key.

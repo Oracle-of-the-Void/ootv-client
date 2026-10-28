@@ -22,8 +22,12 @@ or tests. The files in this directory are exactly what gets served.
   `templates`, `updates` (symbols) and `blurb` from it; no game has files here. The game menu comes from
   `all/games`. A new game gets structure items, not files. They're edited in Admin → Fields (the field
   list's `settings`, `show: "hidden"`), Game config and Templates (`gameconfigadmin.js`, loaded on first
-  use; guide `docs/admin/game-config.md`), or in bulk as JSON: `python3 docs/gameconfig/push.py pull DIR
-  [game]`, edit, then `push.py DIR` (dry run) and `--go` (production). A master template that fails to
+  use; guide `docs/admin/game-config.md`). **A small change (one key, one flag, one mon) is a conditional
+  `update_item` of only that path on the live item (version check, `version + 1` + history entry), or the
+  Admin editor: never push.py** (workspace `CLAUDE.md`, the user 2026-10-28). Only real bulk edits (many
+  settings, a restructure, a new game's first items) go as JSON: `python3 docs/gameconfig/push.py pull DIR
+  [game]` right before the push (a stale file wipes later saves), edit, then `push.py DIR` (dry run) and
+  `--go` (production). A master template that fails to
   compile or draw falls back to its newest working version from the item's history (`templatesafe`). The card
   page's shared pieces (`card-top`, `-middle`, `-bottom`, `textversion`, `textversionbutton`,
   `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by `templatepartials()`;
