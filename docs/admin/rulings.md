@@ -201,7 +201,7 @@ Written 2026-10-25: 875 answers, 1,148 entries on 816 cards, no needsreview note
 
 Kept current since 2026-10-27 by a weekly job (ootv-tools `rulings/discord-sync.sh`, cron on the ai box, Mondays
 6:47 CDT): it exports the new messages, replans, uploads the pages and, only when something changed, re-syncs the
-cards the usual way (export first, an updatelog row per card, one bulkupdate row, search checked afterwards). An
+cards the usual way (the day's table export, an updatelog row per card, one bulkupdate row, search checked afterwards). An
 unofficial answer comes off a card once the card gets a ruling. A new question that lands on several versions of a
 card goes to each with a "Discord rulings:" needsreview note until a row in `rulings-discord-decisions.tsv` settles it.
 First run 2026-10-27: 9 cards.
