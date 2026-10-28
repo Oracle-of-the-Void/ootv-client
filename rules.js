@@ -723,9 +723,16 @@ function rulessecpage(url) {
     rulesgo(1, url);
     return;
   }
+  var find = rulesstate.find;
   Object.assign(rulesstate, {page: place.page, at: place.at, sec: place.key, find: '', line: 0});
   if(place.key != want) { rulesflash('No '+want+' in this book: showing '+place.key); }
-  rulesgo(place.page, url);
+  if(!find) { rulesgo(place.page, url); return; }
+  // #sec with #find: the phrase, on the section's page or a few after it; else the section's heading
+  rulessecfind(rulesbook.id, place, find, function(p) {
+    if(!rulesbook || rulesstate.sec != place.key) { return; }
+    if(p) { Object.assign(rulesstate, {page: p, find: find, at: 0}); } else { rulesflash('"'+find+'" isn\'t in '+place.key); }
+    rulesgo(rulesstate.page, url);
+  });
 }
 // the section a place on a page is in, for links to it: the last one starting at or before it (a step before its
 // section, a printed number before an id); '' when the book has no section map
@@ -796,7 +803,7 @@ function rulesplacewords(lines) {
 function rulesmarkplace() {
   if(!(rulesstate.find || rulesstate.line || rulesstate.at || rulesstate.sec) || rulesmarkzoomed == rulesmarkkey()) { return; }
   var y = null, lines = ruleslines[rulesstate.page];
-  if(rulesstate.at || rulesstate.sec) {
+  if(!rulesstate.find && (rulesstate.at || rulesstate.sec)) {
     y = rulesstate.at / 100;
   } else if(Array.isArray(lines)) {
     var lw = rulesplacewords(lines);

@@ -59,6 +59,9 @@ Clicking a book opens it in the page viewer:
     dots don't matter (`vii 3.9 e`). A step or section the book lacks opens the one holding it (VII.3.9.Z:
     VII.3.9, with a note), anything else the first page. In those books the link button copies a selection
     as the `#sec` link of the section or step it starts in, not a `#find` link.
+  - `#sec=<section>,#find=<words>`: the phrase, on the section's page or up to four pages after it (a long
+    section), marked; the section's heading when none has it. For links to a sentence inside a section, such
+    as card rulings.
 
   A book can also carry the links printed in its PDF (`book.json` `links`, below): a click or tap
   on one opens its place as an `#at` link (or a web address in a new tab), as a new history entry,
