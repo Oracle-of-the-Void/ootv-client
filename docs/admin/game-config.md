@@ -62,8 +62,8 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   A legality not listed (the formats, Unreleased) gets none.
 - `clanmons`: `{path, mons: {<clan>: <image>}}`, the clan's mon drawn before every `clan` value a card
   row shows (card page, search results) and before a public deck's clan. The clan is its plain text;
-  the image is `<path><image>.png`. L5R: 19 clans, `res/clan-mons/oracle-ink-outlined/` (the outlined
-  brush mons from ootv-assets `mons/oracle_ink/outlined/`). A clan not listed (Ninja, Spirit)
+  the image is `<path><image>.png`. L5R: 19 clans, `res/clan-mons/oracle-plain-color/` (the flat
+  clan-colour mons from ootv-assets `mons/oracle_plain/color/`). A clan not listed (Ninja, Spirit)
   gets none. Toturi's Army is the Wolf.
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
