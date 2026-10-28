@@ -300,6 +300,10 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...; their type is `Multi-Arc` too, or a
     list with it, e.g. `["Rulings", "Multi-Arc"]` for a format's FAQ). Multi-Arc books come last on
     the shelf (by year among themselves), and so does Multi-Arc in the Arc filter (2026-10-22).
+    A book that belongs to more than one arc takes a list, oldest arc first: the Onyx/ShE Comprehensive
+    Rules are `["War of the Seals (Onyx Edition)", "Shattered Empire"]` (2026-10-27). It shows under
+    each arc in the Arc filter, its line reads "2026 · War of the Seals (Onyx Edition) · Shattered Empire · …",
+    and the Discord bot's `/rule arc:` takes it as either arc's book.
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or

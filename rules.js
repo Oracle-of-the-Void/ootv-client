@@ -73,7 +73,7 @@ function rulessortbooks(books) {
   // by date: the book's year, then its place in the list (order) within a year; books of the Multi-Arc
   // formats (Legacy, Modern, Obsidian Hand, ...: cards from many arcs) come last, by date among themselves
   return Object.values(books || {}).sort(function(a,b) {
-    return ((a.arc == RULESMULTIARC) - (b.arc == RULESMULTIARC)) ||
+    return (rulesbookarcs(a).includes(RULESMULTIARC) - rulesbookarcs(b).includes(RULESMULTIARC)) ||
       ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   });
 }
@@ -164,12 +164,14 @@ $(document).on('click', '.rulesshelftabs button.rulesshelftab', function() {
 // ********** shelf filters **********
 // Each book has a type (on the Rulebooks shelf: Complete, Addendum, Special: rules for one format, Play Variant:
 // another way to play, like draft, siege or War of Honor, Multi-Arc: a format with cards from many arcs, like Legacy),
-// or a list of them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. Each shelf has
+// or a list of them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc, or a list of
+// arcs for a book that belongs to more than one (the Onyx/ShE Comprehensive Rules). Each shelf has
 // its own bar, offering only the values its books have; the choice is kept per game and shelf in this browser.
 var RULESMULTIARC = 'Multi-Arc';   // formats spanning arcs: both their arc and their type. Their books, and the arc's
                                    // choice in the Arc filter, come last
 var rulesfilter = null;   // {game, shelf, type, arc, tags: [...]}
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
+function rulesbookarcs(b) { return Array.isArray(b.arc) ? b.arc : (b.arc ? [b.arc] : []); }
 // where the shelf's choice is saved: the game for the Rulebooks shelf (as before there were shelves), else game/shelf
 function rulesfilterkey() {
   return rulesshelf.key == 'rulebooks' ? database : database+'/'+rulesshelf.key;
@@ -194,7 +196,7 @@ function rulesfiltervalues() {
   rulesshelf.books.forEach(function(b) {
     rulesbooktypes(b).forEach(function(t) { if(!types.includes(t)) { types.push(t); } });
     (b.tags || []).forEach(function(t) { if(!tags.includes(t)) { tags.push(t); } });
-    if(b.arc && !arcs.includes(b.arc)) { arcs.push(b.arc); }
+    rulesbookarcs(b).forEach(function(a) { if(!arcs.includes(a)) { arcs.push(a); } });
   });
   var rank = function(t) { var i = order.indexOf(t); return i < 0 ? order.length : i; };
   types.sort(function(a,b) { return rank(a) - rank(b); });
@@ -232,7 +234,7 @@ function rulesfilterbar() {
 }
 function rulesfilterpass(b) {
   var f = rulesfilter;
-  return (!f.type || rulesbooktypes(b).includes(f.type)) && (!f.arc || b.arc == f.arc) &&
+  return (!f.type || rulesbooktypes(b).includes(f.type)) && (!f.arc || rulesbookarcs(b).includes(f.arc)) &&
     f.tags.every(function(t) { return (b.tags || []).includes(t); });
 }
 $(document).on('click', '.rulesfilters button.rulespill', function() {
@@ -284,7 +286,7 @@ function rulesdrawbooks() {
       (b.cover ? ' width="'+b.cover[0]+'" height="'+b.cover[1]+'"' : '')+'></span>'+
       '<span class="rulesbooktitle">'+rulesesc(b.title)+'</span>'+
       (b.subtitle ? '<span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '')+
-      '<span class="rulesbookmeta">'+[b.year, b.arc, b.pages+' pages'].filter(x => x).map(rulesesc).join(' &middot; ')+
+      '<span class="rulesbookmeta">'+[b.year].concat(rulesbookarcs(b), [b.pages+' pages']).filter(x => x).map(rulesesc).join(' &middot; ')+
       (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span>'+
       (marks.length ? '<span class="rulesbookmarks">'+marks.map(function(m) { return '<span class="rulesbookmark">'+rulesesc(m)+'</span>'; }).join('')+'</span>' : '')+
       (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
