@@ -6,7 +6,7 @@ Last updated: 2026-10-29
 Shootout at High Noon, Mouth of Hell, Reaping of Souls, Revelations, Boot Hill Edition, Ashes to
 Ashes, Eye for an Eye, Do Unto Others, Promotional, and the fan sets Brothers' Bounty and The Champions Project. Copyright Pinnacle
 Entertainment Group; published by Wizards of the Coast (Five Rings Publishing) to 1999 and Alderac
-Entertainment Group from 2000. Added and released 2026-10-27, first as "Doomtown CCG", renamed the same day (ootv-claude `projects/newgame-dt.md`).
+Entertainment Group from 2000. Added 2026-10-27 as a preview game, first as "Doomtown CCG", renamed the same day (ootv-claude `projects/newgame-dt.md`).
 
 **Not Doomtown: Reloaded** (the 2014 game, table `dtlcg`). The two are separate games: never match cards
 between them, even where the names are the same.
