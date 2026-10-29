@@ -3684,8 +3684,12 @@ function liststats(listdata,listid=null) {
     }));
     var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
     var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
-    listsummarysave(listid, {"decks": decks.slice(0,10).map(function(d) { return {"name": d.name.slice(0,60), "copies": d.copies}; }),
-			     "buildbad": !!(build && build.problems.length)});
+    // the summary's decks in the game's deck order, whatever sort the list is shown in (dynasty before fate)
+    var decksort = (databasesort[database] || {}).deck;
+    var summarydecks = decksort ? group(cards.slice().sort(function(a,b) { return decksort(a.card,b.card); }), deckkey) : decks;
+    listsummarysave(listid, {"decks": summarydecks.slice(0,10).map(function(d) {
+	return {"name": d.name.slice(0,60), "copies": d.cards.reduce(function(t,c) { return t + c.qty; }, 0)};
+    }), "buildbad": !!(build && build.problems.length)});
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"buildbad": build && build.problems.length ? 1 : 0,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
