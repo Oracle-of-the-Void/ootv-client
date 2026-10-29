@@ -97,6 +97,10 @@ Stronghold, no more than one of each kind of Pre-Game card, and at most three co
   their own limit. So do Experienced 2, Experienced 3 and Inexperienced.
 - A card that is the "Soul of" someone counts as that card, at the same experience level.
 - Some cards change their own limit ("You may include up to six copies of this card").
+- Some cards change the rules while they're in the deck. Each copy of Coastal Lane raises the
+  minimum Dynasty deck size by two, each Strength Remains the Fate minimum by two, and each
+  Hato-gurama lowers the Fate minimum by one. Forgotten Legacy needs at least 16 Holdings in the
+  Dynasty deck, however many copies you have.
 
 A format can change the rules, and the deck's **Legality** picks which: Imperial needs only 30 Fate
 and 30 Dynasty cards; BigDeck needs 80 of each, Modern 50 of each, and both allow one copy of any card, even one that says you may include more. To change them for one
