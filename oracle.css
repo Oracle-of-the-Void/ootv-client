@@ -3,7 +3,12 @@
 :root {
   --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: "L5R Title", Georgia, serif;
-  --panel: rgba(255, 255, 255, 0.9);      /* the white panels over the background art */
+  --panel: #fff;                          /* the panels everything sits on: solid, so text never sits on art */
+  --panel-alt: #f3f2ef;                   /* every other result row */
+  --panel-border: rgba(0, 0, 0, 0.08);
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --backdrop: #ecebe7;                    /* the page behind the panels */
+  --backdrop-tint: rgba(236, 235, 231, 0.86); /* laid over the game's art (body::before): 1 hides it, lower shows more */
   --accent: #e0c35a;                      /* gold: section underlines, focus rings */
   --button-text: #ffd73a;                 /* yellow text on the gray buttons */
   --rule: #69c;                           /* blue left bars (rulings, help) and dotted trait links */
@@ -14,7 +19,7 @@
 
 body {
   font-family: var(--font-ui);
-  background: #dadada;
+  background: var(--backdrop);
   background-image:url('res/background-oracle.jpg'); 
   background-repeat:no-repeat;
   background-attachment:fixed;
@@ -22,6 +27,16 @@ body {
   background-size: cover;
   font-size: 11pt;
   margin: 0;
+}
+
+/* the game's art (the body background, each game's own via gameconfig info.background) fades to a texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--backdrop-tint);
+  pointer-events: none;
 }
 
 [contenteditable="true"] {
@@ -200,8 +215,8 @@ div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchi
   font-size: 13pt;
 /*   color: red; */
   display: inline-block;
-  background-color: rgb(255, 255, 255);
   background-color: var(--panel);
+  box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow);
   padding: 4px;
 
   -moz-border-radius: 7px;
@@ -211,8 +226,8 @@ div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchi
 }
 
 div.menubar {
-  background-color: rgb(255, 255, 255);
   background-color: var(--panel);
+  box-shadow: 0 1px 0 var(--panel-border), var(--panel-shadow);
   width: 100%;
   height: 31px; 
   display: inline-block;
@@ -239,8 +254,8 @@ div.randarea {
   font-family: var(--font-ui);
 
   display: inline-block;
-  background-color: rgb(255, 255, 255);
   background-color: var(--panel);
+  box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow);
 /*  padding: 4px; */
 
   -moz-border-radius: 7px;
@@ -291,11 +306,9 @@ div.listbody, div.listbodyplain, div.listheadplain {
 }
 
 div.listitem:nth-child(odd)>div { 
-  background-color: rgb(218, 218, 218);
-  background-color: rgba(218, 218, 218, 0.9);
+  background-color: var(--panel-alt);
 }
 div.listitem:nth-child(even)>div, div.listitemplain>div {
-  background-color: rgb(255, 255, 255);
   background-color: var(--panel);
 }
 div.listitem:first-child>div, div[class^=result] div.randarea:first-child { 
@@ -1913,7 +1926,7 @@ table.usagerows tr.usage-error td, table.usagerows tr.usage-denied td { color: #
 table.patreonrows tr.patreon-former_patron td, table.patreonrows tr.patreon-free td { color: #666; }
 table.patreonrows tr.patreon-declined_patron td:first-child { color: #a60; }
 /* admin Discord bot settings */
-.discordadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.discordadmin:not(:empty) { background: var(--panel); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 table.discord { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 4px 0 16px; }
 table.discord th, table.discord td { padding: 4px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
 table.discord tr.discordnew td { background: #f6f6f0; }
@@ -1924,16 +1937,16 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .discordnote { background: #eef6ee; padding: 4px 8px; }
 /* admin mass image upload */
 .massimage { max-width: 60em; }
-.limitsadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; max-width: 60em; }
+.limitsadmin:not(:empty) { background: var(--panel); color: #222; padding: 4px 16px 12px; border-radius: 4px; max-width: 60em; }
 .limitstable { border-collapse: collapse; margin: 4px 0; }
 .limitstable td, .limitstable th { border-bottom: 1px solid #ddd; padding: 3px 8px; text-align: left; vertical-align: top; }
 .limitstable input { width: 6em; }
 .limitsnote { color: #666; font-size: 0.9em; }
 .limitsfeature { margin: 10px 0 16px; }
-.massimage:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.massimage:not(:empty) { background: var(--panel); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 /* Admin -> Artist check (artcheck.js) and its result under a printing in the card editor */
 .artcheck { max-width: 60em; }
-.artcheck:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.artcheck:not(:empty) { background: var(--panel); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 .artcheckresult { font-style: normal; color: #222; margin: 6px 0; line-height: 1.5; }
 .artcheckresult > div { margin: 2px 0; }
 .artcheckstrong { font-weight: bold; }
@@ -1973,7 +1986,7 @@ table.massimagelist tr.massimage-irregular td { color: #a60; }
 table.massimagelist tr.massimage-failed td { color: #a00; }
 /* Admin -> Set import / Import profiles (setimport.js) */
 .setimport { max-width: 75em; }
-.setimport:not(:empty) { background: rgba(255,255,255,0.96); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.setimport:not(:empty) { background: var(--panel); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 .setimport h4 { margin: 14px 0 4px; padding-top: 8px; border-top: 1px solid #ddd; }
 .setimport .error { color: #a00; }
 .setimp-ok { color: #170; }
@@ -2024,11 +2037,11 @@ pre.setimp-json { white-space: pre-wrap; word-break: break-word; font-size: 85%;
 .json-p { color: #888; }
 textarea.setimp-editor { width: 100%; height: 60vh; font-family: monospace; font-size: 85%; box-sizing: border-box; }
 .admindoc { max-width: 60em; }
-.admininfo { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 8px; border-radius: 4px; max-width: 60em; margin-top: 8px; }
+.admininfo { background: var(--panel); color: #222; padding: 4px 16px 8px; border-radius: 4px; max-width: 60em; margin-top: 8px; }
 .admininfo p { margin: 6px 0; }
 .admininfo table { border-collapse: collapse; font-size: 90%; }
 .admininfo td { padding: 1px 8px; border-bottom: 1px solid #ddd; }
-.admindoc:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.admindoc:not(:empty) { background: var(--panel); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
 .admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }
 .admindoc th, .admindoc td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
 .admindoc code { background: rgba(127,127,127,0.15); padding: 0 3px; border-radius: 3px; }
@@ -2286,7 +2299,7 @@ div.liststatsbuild { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsbuild a, div.liststatsbuild a:visited { color: #c00; }
 span.liststatsflag { color: #c00; font-weight: bold; }
 div.liststatsbuildok { color: #116b1c; font-weight: normal; }
-div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: rgba(255,255,255,0.92); color: #222; max-width: 34em; }
+div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: var(--panel); color: #222; max-width: 34em; }
 div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }
 div.listbuild table { border-collapse: collapse; margin-bottom: 6px; }
 div.listbuild td, div.listbuild th { padding: 2px 6px 2px 0; text-align: left; vertical-align: middle; }
@@ -2363,7 +2376,7 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditnote { color: #666; font-style: italic; margin: 4px 0; }
 .cardeditupload { margin: 4px 0 8px 0; }
 #cardeditjson { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
-.cardeditfoot { position: sticky; bottom: 0; background: rgba(255,255,255,0.95); padding: 6px 0; border-top: 1px solid #ccc; }
+.cardeditfoot { position: sticky; bottom: 0; background: var(--panel); padding: 6px 0; border-top: 1px solid #ccc; }
 .cardeditlog { margin: 4px 0; padding-left: 18px; }
 #cardeditconfirm .modal-box { margin-top: 10%; }
 @media (max-width: 600px) {
@@ -2378,7 +2391,7 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 #cardeditconfirm .modal-box:has(.cardeditsync) { width: 640px; max-width: 95vw; min-width: 0; }
 
 /* Rules: the rulebook shelf and page viewer (rules.js) */
-div#rulesarea { background-color: rgba(255, 255, 255, 0.92); border-radius: 7px; font-family: var(--font-ui); }
+div#rulesarea { background-color: var(--panel); border-radius: 7px; font-family: var(--font-ui); }
 .rulesshelf { padding: 6px 16px 14px; }
 .rulesshelf h2 { font-family: var(--font-display); font-weight: normal; font-size: 1.8em; margin: 4px 0 6px; }
 .rulesshelf h3 { font-family: var(--font-display); font-weight: normal; font-size: 1.3em; margin: 6px 0 10px; padding-bottom: 3px; border-bottom: 2px solid var(--accent); }
