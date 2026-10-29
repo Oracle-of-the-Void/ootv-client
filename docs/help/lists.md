@@ -36,7 +36,8 @@ Quicker ways:
   up-right adds two. Settings → Gestures changes what each direction does, or turns swipes off.
 - **Add all to list**, above the search results, adds every card found
   ([more](searching.md#add-all)).
-- **Upload**, in the list's menu, adds cards from a file (see [Downloads](#downloads)).
+- **Import**, in the list's menu, fills it from a pasted deck list or a file (see
+  [Downloads](#downloads)).
 
 Lists save themselves shortly after you change them.
 
@@ -89,7 +90,7 @@ if you haven't set one.
 The list's menu (the grid button) has:
 
 - **Duplicate**: a copy to change.
-- **Upload**: add cards from a file.
+- **Import**: fill the list from a pasted deck list or a file.
 - **Download**: the list as a file (below).
 - **Delete list**.
 
@@ -103,5 +104,9 @@ The list's menu (the grid button) has:
   another list. Foil entries end in `[foil]` (or `[foil or not]`), and an upload reads that back.
 - **Headers in downloads** turns the section headings in the files on or off.
 
-**Upload** reads a Sun and Moon file or a Native Oracle file, says which cards it found and
-which it couldn't, and asks before adding them.
+**Import** takes a deck list pasted into its box, or a file: Sun and Moon, Native Oracle, or any
+plain list with one card per line. A line can start with a count (`3x Card`, `3 Card`), end in a
+set in brackets (`Card (Set)`) to pick that printing, and end in `[foil]`; `#` starts a comment,
+and a `Legality: <arc>` line picks printings from that arc. It says which cards it found and which
+it couldn't, and asks before loading them. The import **replaces** the cards already in the list:
+to add to a list, download it first and paste both together, or import into a new list.

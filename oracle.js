@@ -1987,8 +1987,8 @@ function listitemsdone(listid) {
 }
 
 function importlist(listid=null,name=null) {
-    // this will initiate a file dialog to upload a file to a list
-    var title = "Import a file from disk into: "+name;
+    // a pasted deck list or a file from disk, read by the API's /import
+    var title = "Import cards into: "+name;
     var importtemplate = $.templates("#template-import");
     modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed()}));
 }
@@ -2823,6 +2823,15 @@ function massimageupload() {
 }
 
 function importlisttrigger() {
+    // pasted text goes up as the file, so /import reads both the same way
+    var form = new FormData($('#importform')[0]);
+    var pasted = $("#importpaste").val().trim();
+    if(pasted) {
+      form.set('file', new Blob([pasted], {type: 'text/plain'}), 'pasted.txt');
+    } else if(!$('#importform input[name=file]').val()) {
+      $("#importstatus").html('<div class="error">Paste a list or pick a file first.</div>');
+      return;
+    }
     $("#importprogress").show();
     $("#importform").hide();
     $("#importstatus").html("");
@@ -2832,7 +2841,7 @@ function importlisttrigger() {
 	    type: 'POST',
       
 	    // Form data
-	    data: new FormData($('#importform')[0]),
+	    data: form,
       
 	    // Tell jQuery not to process data or worry about content-type
 	    // You *must* include these options!
@@ -2864,14 +2873,19 @@ function importlisttrigger() {
 	      var importsuccess = $.templates("#template-importsuccess");
 	      $("#importfailedval").val(data.failed.join("\n"));
 	      $("#importdataval").val(JSON.stringify(data.list));
-	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n")}));
+	      // the import overwrites the list (importlistfinalize): say so when it has cards
+	      var current = cache_thing("list",$("#importlistid").val());
+	      var replaces = current && current.list && current.list.Items && current.list.Items[0] ? current.list.Items[0].totalcount : 0;
+	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n"),"replaces":replaces}));
 	    },
 
 	    error: function(data) {
 	      console.log("error");
 	      console.log(data);
 	      $("#importprogress").hide();
-	      $("#importstatus").html('<div class="error">Error</div><br /><br />'+(data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1))));
+	      $("#importform").show(); // the paste is still there to fix and retry
+	      var why = data.responseJSON && data.responseJSON.error ? data.responseJSON.error : (data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1)));
+	      $("#importstatus").html('<div class="error">Error</div><br /><br />'+_.escape(why));
 	    }
     });
 }
