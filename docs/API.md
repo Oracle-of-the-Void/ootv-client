@@ -321,10 +321,11 @@ inputs: form/multipart
   * `#` starts a comment; blank lines are skipped
   * `Title (Set)`: the printing from a Sun and Moon edition code, else a set name or set initials
   * a trailing `[foil]` / `[foil or not]` sets the entry's `foil` (`foil` / `either`)
-  * `Legality: <arc>` (`_` read as a space): the following lines get the last stored printing whose
+  * `Legality: <arc>` (`_` read as a space): the following lines get the newest printing whose
     legality is that arc ("Emperor" is Age of Conquest (Emperor), "Ivory" finds "(Ivory Edition)"),
-    skipping `notmrp` printings; a later Legality line takes over. (The site's legality search picks
-    the newest by set order instead: ootv-claude `issues/ootv-search/PROBLEMS.md` #19.)
+    by the set order the site uses (arc group, then `printing.set` `sortregex`; the later stored
+    printing on a tie), skipping `notmrp` printings, as the site's legality search picks (since
+    2026-10-29, ootv-search #152); a later Legality line takes over.
   * a line no title matches falls back to the title without punctuation or a leading "The"/"A", then
     the name before a comma (the experienced level kept), each only when one card fits, then a
     fuzzy search on the name (typos)
@@ -347,8 +348,8 @@ outputs:
 codes:
 
 * 200 success
-* 500 bad input (no table, file or fieldlist) or a search error: `{error}`, empty for bad input (the
-  route throws plain strings, which have no `.message`), so the client shows the status text
+* 500 bad input (no table, file or fieldlist) or a search error: `{error}` (e.g. "fieldlist needed"),
+  which the client shows
 
 ## /list
 
