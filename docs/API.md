@@ -17,7 +17,7 @@
 
 * [/user (GET)](#user)                          -> Verify user account and return user data 
 * [/user (POST)](#user-post)                    -> Change your own name, add or remove your emails
-* [/import (POST)](#import)                     -> import decks/lists from external files
+* [/import (POST)](#import)                     -> read a pasted or uploaded deck/list's cards
 * [/list (GET)](#list)                          -> deck/list handling routines
 * [/update (POST)](#update)                     -> database modification routines
 * [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
@@ -342,41 +342,58 @@ names the sender and links to `#view=messages`; it never carries the message tex
 
 ## /import
 
-Handles deck / list importing from text files
+Reads a deck / list as text and finds its cards; nothing is saved. Used by the list menu's
+Import (`importlist`, `importlisttrigger` and `importlistfinalize` in `oracle.js`), which sends a pasted
+list as the `file` part (`pasted.txt`), so a paste and a file read the same. When its **Printings from**
+is set (it starts on the list's legality; a derived format is sent as its base: Jade Extended → Jade),
+the client puts a `Legality: <arc>` line in front of the text. The client then saves the result:
+Replace as the whole list, Add by counting matching entries (same card, printing, foil) up.
 
-Handled by lambda: ootv-search/routes/import.js
+Handled by lambda: ootv-search/routes/import.js (its header comment has the full matching rules)
 
-Note: I'm restricting the card search to 1000 results for bounding, this is a number pulled out of a hat and may need adjustment
+Note: the card search is capped at 1000 results, a number pulled out of a hat that may need adjustment.
+Lines are searched 25 at a time (the 4096 clause limit).
 
-Note: I'm returning this as list/failed to allow the front-end application to determine if it wants to continue or not instead of just stuffing it into a list directly.
-There is theoretically a little more flexibility here in that lists can be created / manipulated without saving them.
+Note: the result comes back as list/failed so the front end can ask before loading it, instead of
+just stuffing it into a list.
 
 inputs: form/multipart
 
 * table (required)
 * name=file cardlist (required)
-  * text file, one card per line.
-  * leading numbers are treated as quantity
-  * anything after a parenthesis or comment is stripped for purposes of searching
-  * leading/trailing whitespace stripped after the above two things are removed
-  * blank links after stripping are ignored
+  * text, one card per line
+  * a leading count is the quantity: `3 `, `3x `, `3 x ` (not the `1` of "1,000 Cuts Technique")
+  * `#` starts a comment; blank lines are skipped
+  * `Title (Set)`: the printing from a Sun and Moon edition code, else a set name or set initials
+  * a trailing `[foil]` / `[foil or not]` sets the entry's `foil` (`foil` / `either`)
+  * `Legality: <arc>` (`_` read as a space): the following lines get the last stored printing whose
+    legality is that arc ("Emperor" is Age of Conquest (Emperor), "Ivory" finds "(Ivory Edition)"),
+    skipping `notmrp` printings; a later Legality line takes over. (The site's legality search picks
+    the newest by set order instead: ootv-claude `issues/ootv-search/PROBLEMS.md` #19.)
+  * a line no title matches falls back to the title without punctuation or a leading "The"/"A", then
+    the name before a comma (the experienced level kept), each only when one card fits, then a
+    fuzzy search on the name (typos)
 * fieldlist (required)
   * fields to match on in priority order: comma-separated
-  * e.g: textsnm,puretexttitle,title
-    * Sun and Moon adjusted title
-    * Common text representation of title ( Big Dog &amp;149; Experienced  ->  Big Dog - exp )
+  * the client's choices: `textsnm,puretexttitle,title,alttitle` (Sun and Moon; also matches a
+    printing's `titletextsnm`) and `puretexttitle,title` (Native Oracle, or a plain card list)
+    * textsnm: Sun and Moon adjusted title
+    * puretexttitle: common text representation of title ( Big Dog &amp;149; Experienced  ->  Big Dog - exp )
     * title
-  * puretexttitle and textsnm would only exist if they differ from the others
-  * more fields may be added as they are found
+  * puretexttitle and textsnm only exist if they differ from the others
+  * a title several cards share (Border Keep) gets the plain card, not a variant
 
 outputs:
 
-* list: { {cardid: x, quantity: x, printing: x }, ... }
-* failed: array of failed lines in input (blank lines after stripping ignored)   TODO: maybe we should return blanks somehow?
+* list: [ {cardid: x, quantity: x, printing: x[, foil: "foil"|"either"]}, ... ] (printing 0: none picked,
+  the card's default printing)
+* failed: array of failed lines in input (blank lines after stripping ignored)
 
 codes:
 
 * 200 success
+* 500 bad input (no table, file or fieldlist) or a search error: `{error}`, empty for bad input (the
+  route throws plain strings, which have no `.message`), so the client shows the status text
 
 ## /list
 
