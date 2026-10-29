@@ -75,9 +75,8 @@ Trades match on it: a foil want finds only foil haves, a regular want only regul
 Under the list's name is its card count; an L5R deck's starts with its Dynasty/Fate sizes
 (`40/40 - 81 total (52 distinct)`). Open it for the details (it starts open, closed on a
 phone, and stays the way you last left it): how many cards of each type
-are in each deck, their share of the deck, and averages of the cards' numbers (cost, force and
-so on). The shares leave out Pre-Game, cards with no deck and Proxy cards, so an L5R deck's Dynasty and
-Fate are each a share of Dynasty + Fate. Below that, each keyword in the deck and how many of your other cards mention it.
+are in each deck, each type's share of its deck, and averages of the cards' numbers (cost, force and
+so on). Pre-Game, cards with no deck and Proxy cards get no share, and Proxy cards aren't counted in the others'. Below that, each keyword in the deck and how many of your other cards mention it.
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. Proxy cards
