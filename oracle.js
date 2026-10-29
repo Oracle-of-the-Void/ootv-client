@@ -3919,6 +3919,16 @@ function deckbuildcheck(cards, meta, deckkey) {
 		var cc = deckbuildcardconf(c.card);
 		if(cc.hasOwnProperty('max')) { max = cc.max; }
 	    });
+	    // a rule with cap (BigDeck's one copy) holds even cards with their own limit or a rule of their own
+	    copyrules.forEach(function(id) {
+		var r = set.rules[id], decks = r.decks || set.decks;
+		if(!r.cap || r.max === null || r.max === undefined) { return; }
+		var counted = g.cards.filter(function(c) { return !skips(c, id) && (!decks || decks.indexOf(deckkey(c)) >= 0); });
+		if(counted.length && (!r.when || counted.some(function(c) { return test(r.when, c); })) && (max === null || max === undefined || r.max < max)) {
+		    max = r.max;
+		    best = {"id": id, "r": r, "cards": best.cards};
+		}
+	    });
 	    var n = count(best.cards);
 	    if(max !== null && max !== undefined && n > max) {
 		out.push({"rule": best.id, "label": best.r.label || best.id, "text": g.name+': '+n+' copies (max '+max+')',
