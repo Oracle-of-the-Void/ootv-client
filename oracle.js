@@ -5779,6 +5779,49 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 
 // the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
 // (it linkifies carddata in place, as docard always did before picking the printing to show)
+// a card's updatelog rows for the card page's "Latest Updates", newest first
+function updatelogformat(updatelog) {
+  return updatelog.slice().reverse().map(function(ul){
+    var ret = {};
+    if(ul.newdata) {
+      ret['newdata'] = JSON.stringify(ul.newdata);
+    }
+    if(ul.olddata) {
+      ret['olddata'] = JSON.stringify(ul.olddata);
+    }
+    ret['op'] = ul.op;
+    ret['uname'] = ul.uname;
+    ret['timestamp'] = new Date(ul.timestamp).toLocaleString();
+    return ret;
+  });
+}
+// Search answers leave out updatelog (ootv-search PROBLEMS.md #21), so a card drawn from a search hit
+// has a "Loading..." placeholder in #cardupdatesection; the first time "Latest Updates" opens, fetch
+// the card (DynamoDB has the rows) and fill the section. The template's own onclick does the toggle.
+$(document).on('click', 'a[onclick*="cardupdatesection"]', function() {
+  var section = $(this).nextAll('#cardupdatesection').first();
+  var pending = section.find('.updatelogpending');
+  if(!pending.length || section.data('loading')) { return; }
+  section.data('loading', true).html('<div class="updateblock">Loading...</div>');
+  var text = function(x) { return $('<div>').text(x == null ? '' : x).html(); };
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+pending.data('cardid'),
+    dataType: 'json',
+    success: function(data) {
+      section.html(updatelogformat(data.updatelog || []).map(function(ul) {
+        return '<div class="updateblock">'+text(ul.timestamp)+' '+text(ul.op)+' '+
+          (ul.newdata ? '<div class="updatedetails">New: '+text(ul.newdata)+'</div> ' : '')+
+          (ul.olddata ? '<div class="updatedetails">Old: '+text(ul.olddata)+'</div> ' : '')+
+          '['+text(ul.uname)+']</div>';
+      }).join('') || '<div class="updateblock">No updates.</div>');
+    },
+    error: function(error) {
+      section.data('loading', false).html('<div class="updateblock">Could not load the updates. '+pending.prop('outerHTML')+'</div>');
+      console.log("Epic Fail: "+JSON.stringify(error));
+    }
+  });
+});
 function cardhtml(carddata,prid=null,qs=null) {
   var tmpl = {
 	  "labels": labels[database],
@@ -5792,19 +5835,12 @@ function cardhtml(carddata,prid=null,qs=null) {
     "canedit": cardeditallowed()                    // the card editor's Edit button
   };
   if(carddata.updatelog) {
-    carddata['updatelogformatted'] = carddata.updatelog.reverse().map(function(ul){
-      var ret = {};
-      if(ul.newdata) {
-        ret['newdata'] = JSON.stringify(ul.newdata);
-      }
-      if(ul.olddata) {
-        ret['olddata'] = JSON.stringify(ul.olddata);
-      }
-      ret['op'] = ul.op;
-      ret['uname'] = ul.uname;
-      ret['timestamp'] = new Date(ul.timestamp).toLocaleString();
-      return ret;
-    });
+    carddata['updatelogformatted'] = updatelogformat(carddata.updatelog);
+  } else if(carddata.updatelast) {
+    // a search hit has no updatelog, only its newest time (updatelast): that heads "Latest Updates",
+    // and opening it fetches the rows (updatelogload)
+    carddata['updatelogformatted'] = [{'timestamp': new Date(carddata.updatelast).toLocaleString(),
+      'op': '<span class="updatelogpending" data-cardid="'+carddata.cardid+'">Loading...</span>'}];
   }
   for (key in searchables[database]) {
     if(searchables[database][key].clickable || key == "printing.set" || key == "printing.rarity") {
