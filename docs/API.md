@@ -374,11 +374,15 @@ inputs:
 * updatefield (optional)
   * ignored if 'new' operation happening
   * user must be the list's owner
-  * one of ['name','notes','public','type','list','legality','folder']
+  * one of ['name','notes','public','type','list','legality','folder','deckconstruction','summary']
     * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality,
       directory folder: a path like "Tournament/2026" ('' = top level; trimmed, at most 255 characters).
       Empty folders live in the user's settings[database].folders (see /user settings)
-  * if this is set we update that field of the list (updatevalue), and modified, except for folder
+  * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false}`
+    (copies per deck, in deck order, at most 10; whether the deck construction rules fail). The client saves it
+    after drawing one of the user's own lists (`listsummarysave()`); '' removes it. The lists index copies
+    `buildbad` into its summaries for the public listing's Illegal mark
+  * if this is set we update that field of the list (updatevalue), and modified, except for folder and summary
   * saving `list` also adds 1 to the list's `rev` and returns the new one as `rev`
 * baserev (optional, with updatefield=list)
   * the `rev` the client's edits started from (0 if the list has none yet). The save only goes through if
@@ -402,7 +406,7 @@ inputs:
 outputs:
 
 *  listid ''
-  * lists.Items: array of { createdate, listid, notes, public, owner, game, name, modified, type, legality, folder, totalcount, distinctcount }
+  * lists.Items: array of { createdate, listid, notes, public, owner, game, name, modified, type, legality, folder, totalcount, distinctcount, summary }
   * doesn't return actual lists as that can be quite lengthy.
 * listid set or new listid
   * elastic returning the list
@@ -499,7 +503,7 @@ outputs:
 
 * total, from, size, sort
 * hits[]: `listid, game, public, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
-  (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `award {event, result, year}`, `derived`
+  (the owner's own legality label), `created, modified, totalcount, distinctcount, buildbad, sourcelistid`, `award {event, result, year}`, `derived`
   (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
   `cardslegal[], unknowncards`; `fatecount`/`dynastycount` follow the game config's `sort.pick` `moves` for the list's
   own legality: L5R Sensei count as Fate in Jade and Imperial decks), and with

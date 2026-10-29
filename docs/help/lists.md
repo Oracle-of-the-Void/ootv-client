@@ -12,8 +12,11 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 - To rename a list, press and hold its name (or click the pencil beside it). Enter saves.
 - Type straight into a list's **Notes** to change them.
 - **Type** says what the list is: Deck, Collection, Have, Want or Other.
-- **Legality** is the format a deck is for. Its cards are checked against it (see
-  [Statistics](#stats)).
+- **Count** is the deck's dynasty/fate cards and its total ("40/40 (82 total)"; pre-game cards count only in
+  the total), with a red **Illegal** when the deck breaks its [construction rules](#stats). It's kept from the
+  last time you opened the list: a list you haven't opened since this came in shows only its total.
+- Open a list to see or change its **Legality** (the format a deck is for; its cards are checked against it,
+  see [Statistics](#stats)) and its **Id**.
 - **Public** shares the list (see [Sharing](#sharing)).
 
 ## Folders {#folders}
