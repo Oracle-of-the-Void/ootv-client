@@ -2589,3 +2589,8 @@ div.legalitybugline img.legalitybugsmall { height: 20px; width: 20px; vertical-a
 img.clanmon { height: 1.3em; width: auto; vertical-align: -0.3em; margin-right: 0.2em; }
 div.listviewheader .listviewtitle img.clanmon { height: 1.6em; vertical-align: middle; margin-right: 0; }
 span.clanwithmon { white-space: nowrap; }
+/* directory and public listing Count: a deck that breaks its construction rules (deckcounthtml in oracle.js) */
+span.dirillegal {
+  color: #c00;
+  font-weight: bold;
+}

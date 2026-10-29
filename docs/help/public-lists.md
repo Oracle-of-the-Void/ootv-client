@@ -13,7 +13,8 @@ shared, including tournament-winning decks and the pre-constructed starter decks
   only decks with a tournament result.
 - The last pull-down sorts them. **Reset** clears everything.
 
-More load as you scroll down.
+More load as you scroll down. An L5R deck shows its dynasty/fate cards and total ("40/40 (83 total)"),
+with a red **Illegal** when it breaks the deck construction rules (as its owner last saw it).
 
 ## Your own lists {#mine}
 
