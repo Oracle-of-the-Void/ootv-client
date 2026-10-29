@@ -28,7 +28,10 @@ adds a red note when the deck breaks its rules or has cards not legal in its cho
 
 The check's answer is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
 opens it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
-A deck its owner hasn't opened since 2026-10-29, or opened before a rule change, keeps the older answer.
+Every list was backfilled on 2026-10-29 (ootv-tools `lists/list-summary.py`, 18,681 lists; it runs the site's
+own check in a headless browser). **After changing a rule, rerun that script** (scan, compute, write): a deck
+keeps the answer from its last draw until its owner opens it again. Its public listing mark follows through the
+lists index (at once, or the nightly rebuild).
 
 Code: ootv-client `oracle.js`, `deckbuild*` (`deckbuildcheck`, `deckbuildidentity`) and the panel
 `listbuildform`/`listbuildsave`; ootv-search `/list` stores the deck's field (`updatefield=deckconstruction`,
