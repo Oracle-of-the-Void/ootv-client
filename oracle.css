@@ -1220,7 +1220,8 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
 #loginbutton.button:hover { background: #e8cf72; }
 
 /* Showing: printed / MRP button at the top of a card's text (#template-textversion), and the fields it
-   changes (markprinteddiffs, printed wording only) in a light tint of the Printed button's bluer, greenish gold */
+   changes (markprinteddiffs, printed wording only) in a light tint of the Printed button's green. The button is a
+   light .gray chip, so dark olive text on a pale green tint */
 .textversionrow {
   margin-top: 2px;
   margin-bottom: 4px;
@@ -1241,7 +1242,13 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
   z-index: 1001;
 }
 .textversionprinted {
-  color: #c9e65a;
+  color: #3f5c08;
+  background: #eef5d3;
+  border-color: #b9cf6e;
+}
+.textversionprinted:hover {
+  background: #e3edbb;
+  border-color: #9fb84f;
 }
 .printeddiff {
   background: rgba(201, 230, 90, 0.32);
