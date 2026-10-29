@@ -166,6 +166,13 @@ inputs - sent in body querystring:
     * checks terms against the .keyword part of a text field  (can be multi-value)
   * type_xxx = 'exists'
     * if parameter has a value, returns cards that contain the field with data
+  * type_xxx = 'numeric', with field_lower_xxx (min) and/or field_upper_xxx (max)
+    * card fields: matches the plain number or `numrange.xxx`, the integer range dynamo-to-os indexes
+      for every numeric field, by overlap, min and max in one clause: `*`/`X` cards (0 up) match any
+      range they touch, `2*` is 2, `+5/+0` is 5 or 0, a card's `variablevalues.xxx` wins
+      (`docs/admin/field-descriptions.md`, since 2026-10-28)
+    * printing fields (`field_lower_printing_xxx`): plain range on the number
+    * a min that isn't a number (e.g. `*`) is an exact match on `xxx.keyword` instead
   * a select field's value can be a derived name (e.g. l5r `Legacy`, `Paper`) from the game's
     `attributes.<field>.derived` config; the API expands it into its rule
 * require_xxx (optional, one or many values)
