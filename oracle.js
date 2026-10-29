@@ -3664,6 +3664,15 @@ function liststatskeywords(cards, decks) {
 function liststatspct(part, whole) {
     return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
 }
+// the % column is each type's share of its deck (a deck's share of the whole list says nothing). Pre-Game
+// (L5R Stronghold, Sensei, ...) and cards with no deck aren't decks being played, so no shares there; Proxy
+// cards are only there to be printed, so no share of their own and not counted in the others'.
+function liststatsdeckapart(name) {
+    return /^(pre-?game|other)$/i.test(name);
+}
+function liststatsproxy(c) {
+    return [].concat(c.card.type || []).some(function(t) { return liststatsplain(t) == 'Proxy'; });
+}
 function liststats(listdata,listid=null) {
     var cards = listdata.filter(function(c) { return c.cardid > 0; }).map(function(c) {
 	return {"card": c, "qty": parseInt(c.listquantity) || 0};
@@ -3689,14 +3698,17 @@ function liststats(listdata,listid=null) {
 	});
 	return out;
     };
+    var statcopies = function(items) { return items.reduce(function(t,c) { return t + (liststatsproxy(c) ? 0 : c.qty); }, 0); };
     var decks = group(cards, function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; }).map(function(d) {
 	var copies = d.cards.reduce(function(t,c) { return t + c.qty; }, 0);
+	var apart = liststatsdeckapart(d.name);
+	var deckstat = statcopies(d.cards);
 	var types = group(d.cards, function(c) { return join(c.card.type) || 'Other'; }).map(function(t) {
 	    var tc = t.cards.reduce(function(s,c) { return s + c.qty; }, 0);
-	    return {"name": t.name, "copies": tc, "pct": liststatspct(tc, copies),
+	    return {"name": t.name, "copies": tc, "pct": apart || liststatsproxy(t.cards[0]) ? '' : liststatspct(tc, deckstat),
 		    "avgs": liststatsavgs(t.cards, fields, false)};
 	});
-	return {"name": d.name, "copies": copies, "pct": liststatspct(copies, total),
+	return {"name": d.name, "copies": copies,
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
     var deckkey = function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; };
