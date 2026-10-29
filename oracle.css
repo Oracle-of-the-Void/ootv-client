@@ -693,6 +693,20 @@ div.listviewheader .listviewtitle {
 div.listviewheader .listviewtitle .listviewname {
     overflow-wrap: anywhere;
 }
+/* created / modified, small beside the name */
+div.listviewheader .listviewtitle .listviewdates {
+    font-family: "Times New Roman",Georgia,Serif;
+    font-size: small;
+    margin-left: .5em;
+}
+/* the tournament result and pre-constructed marks share one row */
+div.listviewheader .listviewmarks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    margin: 4px 0;
+}
 div.listviewheader .listviewcontrols {
     display: flex;
     flex-wrap: wrap;
@@ -720,17 +734,19 @@ div.listviewheader div.listviewshared {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 10px;
-    margin: 0 0 6px;
-    padding: 8px 10px;
+    gap: 4px 8px;
+    margin: 0 0 4px;
+    padding: 3px 8px;
     background: #fff4d6;
     border: 2px solid #d9a400;
     border-radius: 6px;
     color: #3d2e00;
-    font-size: medium;
+    font-size: small;
 }
 div.listviewheader div.listviewshared > svg {
     flex: none;
+    width: 16px;
+    height: 16px;
     color: #9a7400;
 }
 div.listviewheader div.listviewshared .listviewsharedtext {
