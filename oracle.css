@@ -665,13 +665,28 @@ div.listitem.dirfolderrow.dirdropover > div {
 div.dirempty .randarea {
     padding: 8px;
 }
-/* help page: community links row */
-div.helplinks {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-}
+/* community and support links (home page, sidebar, help page): one pill each, a Feather icon and a word */
+.communitylinks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.communitylinks.communitystack { flex-direction: column; align-items: flex-start; gap: 6px; margin: 10px 4px; }
+a.communitylink { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  background: var(--panel); color: #222; text-decoration: none; font-size: 10.5pt;
+  box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow); }
+a.communitylink:hover { background: var(--surface-warm); box-shadow: 0 0 0 1px var(--accent), var(--panel-shadow); }
+a.communitylink svg.feather { width: 16px; height: 16px; flex: none; }
+a.communitylink small { color: #777; }
+a.chimelink { display: block; margin: 4px; font-size: 9pt; color: #555; }
+.sidebarextras a.chimelink { max-width: 220px; padding: 4px 8px; border-radius: 6px; background: var(--panel); }
+/* the home page (#resultabout) */
+.homepage { padding: 8px 16px 16px; }
+.homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
+.homepage .homelede { font-size: 1.15em; }
+.homepage p { line-height: 1.5; }
+.homepage h2 { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #666;
+  margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--panel-border); }
+.homepage h2 small { text-transform: none; letter-spacing: 0; font-weight: normal; color: #999; }
+.homepage .homesmall { margin: 6px 0 0; }
+.homepage .homesmall a.chimelink { display: inline; margin: 0; }
+div.updateblock .updatewhen { color: #777; font-size: 90%; margin-right: 2px; }
 /* help pages (help.js): the topic list, the topic, and the "?" next to a control (hover: its section in #traitpop) */
 div.helpnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
 div.helpnav a { padding: 4px 10px; border: solid var(--rule) 1px; border-radius: 14px; text-decoration: none; }
