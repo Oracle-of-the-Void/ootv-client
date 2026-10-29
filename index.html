@@ -1012,12 +1012,14 @@ Recent Data Updates for Currently Selected Database:<br>
      share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
      the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
-<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
+<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon), side by side: listawardedit / listpreconedit in oracle.js -->
 <script id="template-listaward" type="text/x-jsrender">
+{{if award || precon || ~awardmod}}<div class="listviewmarks">
 {{if award}}<div class="listaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> {{>award.result || 'Tournament'}}: {{>award.event}}{{if award.year}} ({{>award.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;">Edit result</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listaward"><button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> Add tournament result</button></div>{{/if}}
 {{if precon}}<div class="listprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: {{>precon.product}}{{if precon.year}} ({{>precon.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;">Edit</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listprecon"><button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Mark pre-constructed</button></div>{{/if}}
+</div>{{/if}}
 </script>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
@@ -1030,6 +1032,7 @@ Recent Data Updates for Currently Selected Database:<br>
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
     <span class="dirmenucell">{{include tmpl="#template-listmenu" ~inheader=true/}}</span>
     <span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    <span class="listviewdates">{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
   </div>
   <div class="listviewdetails listviewcontrols">
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
@@ -1038,7 +1041,6 @@ Recent Data Updates for Currently Selected Database:<br>
     {{if type == 'have' || type == 'want'}}<select class="listselect" aria-label="Trade" onchange="listtradeset('{{:listid}}',this);"><option value="false"{{if !trade}} selected{{/if}}>Not for trade</option><option value="true"{{if trade}} selected{{/if}}>Open to trade</option></select> <span class="helpq" data-help="trading#open" aria-label="Help: open to trade">?</span>{{/if}}
     {{if ~deckbuild && (type == 'deck' || !type)}}<button type="button" class="button gray buttonsmaller" title="This deck's construction rules: deck sizes, copy limits, and which deck Sensei or Border Keep go in" onclick="listbuildtoggle(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sliders"></svg> Construction rules</button>{{/if}}
     <span class="helpq" data-help="lists#sharing" aria-label="Help: type, legality and sharing">?</span>
-    <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
   </div>
   {{include tmpl="#template-listsource"/}}
