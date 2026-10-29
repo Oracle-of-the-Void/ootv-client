@@ -469,6 +469,8 @@ Recent Data Updates for Currently Selected Database:<br>
     <label for="importpaste">Paste a deck list, one card per line ("3x Title", "Title (Set)"):</label><br />
     <textarea id="importpaste" class="importpaste" rows="12" placeholder="3x Card Title&#10;Card Title (Set)&#10;# comment"></textarea><br />
     or a file: <input name="file" type="file" /><br /><br />
+    <!-- importlisttrigger puts it in front of the list as a "Legality:" line; the list's own line wins -->
+    <div class="importlegalityrow"><label>Printings from: <select id="importlegality">{{listLegalitySelect:legality}}</select></label><br /><br /></div>
     <label><input type="radio" name="importmode" value="add" checked /> Add to the cards in the list</label><br />
     <label><input type="radio" name="importmode" value="replace" /> Replace the cards in the list</label><br /><br />
     <input type="button" value="Import" onclick="importlisttrigger();" /></form>

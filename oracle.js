@@ -1989,7 +1989,13 @@ function importlist(listid=null,name=null) {
     // a pasted deck list or a file from disk, read by the API's /import
     var title = "Import cards into: "+name;
     var importtemplate = $.templates("#template-import");
-    modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed()}));
+    // the printings default to the list's legality: an Imperial deck gets its Imperial arc printings
+    var cached = cache_thing("list",listid), dir = cache_thing("list","data");
+    var info = cached && cached.list && cached.list.Items && cached.list.Items[0] ? cached.list.Items[0] :
+        (dir && dir.lists && dir.lists.Items || []).find(function(l) { return l.listid == listid; });
+    modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed(), "legality": info ? info.legality : ''}));
+    $('#importlegality option[value=""]').text("Each card's default printing");
+    if($('#importlegality option').length < 2) { $('.importlegalityrow').hide(); }
 }
 
 function deletecardtrigger(database=null,cardid=null,printid=null) {
@@ -2769,13 +2775,26 @@ function massimageupload() {
 function importlisttrigger() {
     // pasted text goes up as the file, so /import reads both the same way
     var form = new FormData($('#importform')[0]);
-    var pasted = $("#importpaste").val().trim();
-    if(pasted) {
-      form.set('file', new Blob([pasted], {type: 'text/plain'}), 'pasted.txt');
-    } else if(!$('#importform input[name=file]').val()) {
+    var pasted = $("#importpaste").val().trim(), file = $('#importform input[name=file]')[0].files[0];
+    if(!pasted && !file) {
       $("#importstatus").html('<div class="error">Paste a list or pick a file first.</div>');
       return;
     }
+    Promise.resolve(pasted || file.text()).then(function(text) {
+      var arc = importlegalityarc($('#importlegality').val());
+      form.set('file', new Blob([(arc ? 'Legality: '+arc+'\n' : '')+text], {type: 'text/plain'}), pasted ? 'pasted.txt' : file.name);
+      importlistsend(form);
+    });
+}
+// "Printings from": the arc whose printings /import picks; a derived format (Ivory Strict) is its base format's
+function importlegalityarc(value) {
+    value = (value || '').replace(/&nbsp;/g," ").trim();
+    var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g," "); })
+        .filter(function(b) { return value == b || value.indexOf(b+" ") == 0; })
+        .sort(function(a,b) { return b.length - a.length; })[0];
+    return base || value;
+}
+function importlistsend(form) {
     $("#importprogress").show();
     $("#importform").hide();
     $("#importstatus").html("");
