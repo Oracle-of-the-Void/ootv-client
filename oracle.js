@@ -5726,7 +5726,7 @@ function cardfull(cardid,handler) {
       if(!data || !data.cardid) { return; }
       data = preparecard(data);
       cache_card(data);
-      handler(data);
+      handler(JSON.parse(JSON.stringify(data)));   // drawing changes the card it's given; the cache keeps its own
     },
     error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
   });
