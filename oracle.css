@@ -965,15 +965,22 @@ table.listtable tr.listtablestripe {
 table.listtable td.listtablestat:nth-child(odd), table.listtable thead th.listtablestat:nth-child(odd) {
     background-color: rgba(90, 110, 160, 0.06);
 }
-/* deck view (template-visual-deck): type rows under a deck header */
+/* deck view (template-visual-deck): each type's label is a narrow spine down the left of its first card, read
+   bottom to top (vertical-rl turned over), not a card-sized box. One line: a height limit would wrap it into
+   columns across the whole row */
 div.deckviewtype {
     display: inline-block;
     vertical-align: top;
-    width: 8em;
-    margin: 4px 4px 0 0;
-    font-size: medium;
-    white-space: normal;
-    border-radius: 7px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    width: max-content;
+    margin: 4px 2px 0 0;
+    padding: 6px 3px;
+    font-family: var(--font-ui);
+    font-size: small;
+    line-height: 1.2;
+    white-space: nowrap;
+    border-radius: 5px;
 }
 div.listhead, div.listheadxl, div.listhead a:visited, div.listhead a:link, div.listhead a:hover, div.listhead a:active, div.listheadplain, div.upperhead, div.listheadmiddle{
     color:  /* var(--button-text); */  #FFFFFF;
