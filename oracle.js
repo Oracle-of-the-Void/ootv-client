@@ -3637,10 +3637,12 @@ function liststats(listdata,listid=null) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
     var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
+    var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
+	"buildbad": build && build.problems.length ? 1 : 0,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"buildhtml": (meta.type == 'deck' || !meta.type) ? deckbuildhtml(deckbuildcheck(cards, meta, deckkey)) : '',
+	"buildhtml": deckbuildhtml(build),
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
 	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
@@ -3661,6 +3663,7 @@ function liststatslegal() {
 	    } else {
 		bad.hide();
 	    }
+	    liststatsflag(el.closest('details.liststats').find('.liststatsflag'), r.illegal && r.illegal.length ? r.format : '');
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
@@ -3674,6 +3677,18 @@ function liststatslegal() {
 	    success: function(r) { liststatslegalcache[key] = r; show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
+}
+// the red note after "N cards (M distinct)" in the stats summary: the deck breaks its construction rules
+// (data-build, set at render) and/or has cards not legal in its chosen format (from /cardslegal)
+function liststatsflag(flag, illegalin) {
+    var parts = [];
+    if(flag.attr('data-build') == '1') {
+	parts.push('breaks the deck construction rules');
+    }
+    if(illegalin) {
+	parts.push('not legal in '+htmlEncode(illegalin));
+    }
+    flag.html(parts.length ? ' &#8212; '+parts.join('; ') : '').toggle(parts.length > 0);
 }
 // ***********************  deck construction rules **************
 // A soft check shown in the stats block (docs/admin/deck-construction.md). The game's rules are game config

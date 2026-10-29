@@ -2239,8 +2239,9 @@ div.liststatslegal { margin: 4px 0 6px; }
 div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
 div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
-div.liststatsbuild { margin: 4px 0; color: #b35900; font-weight: bold; }
-div.liststatsbuild a, div.liststatsbuild a:visited { color: #b35900; }
+div.liststatsbuild { margin: 4px 0; color: #c00; font-weight: bold; }
+div.liststatsbuild a, div.liststatsbuild a:visited { color: #c00; }
+span.liststatsflag { color: #c00; font-weight: bold; }
 div.liststatsbuildok { color: #116b1c; font-weight: normal; }
 div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: rgba(255,255,255,0.92); color: #222; max-width: 34em; }
 div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }
