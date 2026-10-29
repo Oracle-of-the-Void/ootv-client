@@ -674,8 +674,6 @@ a.communitylink { display: inline-flex; align-items: center; gap: 6px; padding: 
 a.communitylink:hover { background: var(--surface-warm); box-shadow: 0 0 0 1px var(--accent), var(--panel-shadow); }
 a.communitylink svg.feather { width: 16px; height: 16px; flex: none; }
 a.communitylink small { color: #777; }
-a.chimelink { display: block; margin: 4px; font-size: 9pt; color: #555; }
-.sidebarextras a.chimelink { max-width: 220px; padding: 4px 8px; border-radius: 6px; background: var(--panel); }
 /* the home page (#resultabout) */
 .homepage { padding: 8px 16px 16px; }
 .homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
@@ -684,8 +682,6 @@ a.chimelink { display: block; margin: 4px; font-size: 9pt; color: #555; }
 .homepage h2 { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #666;
   margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--panel-border); }
 .homepage h2 small { text-transform: none; letter-spacing: 0; font-weight: normal; color: #999; }
-.homepage .homesmall { margin: 6px 0 0; }
-.homepage .homesmall a.chimelink { display: inline; margin: 0; }
 div.updateblock .updatewhen { color: #777; font-size: 90%; margin-right: 2px; }
 /* help pages (help.js): the topic list, the topic, and the "?" next to a control (hover: its section in #traitpop) */
 div.helpnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
