@@ -2817,10 +2817,11 @@ function importlisttrigger() {
 	      var importsuccess = $.templates("#template-importsuccess");
 	      $("#importfailedval").val(data.failed.join("\n"));
 	      $("#importdataval").val(JSON.stringify(data.list));
-	      // the import overwrites the list (importlistfinalize): say so when it has cards
+	      // Replace overwrites the list (importlistfinalize): say so when it has cards
+	      var adds = $('#importform input[name=importmode]:checked').val() != 'replace';
 	      var current = cache_thing("list",$("#importlistid").val());
-	      var replaces = current && current.list && current.list.Items && current.list.Items[0] ? current.list.Items[0].totalcount : 0;
-	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n"),"replaces":replaces}));
+	      var replaces = !adds && current && current.list && current.list.Items && current.list.Items[0] ? current.list.Items[0].totalcount : 0;
+	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n"),"replaces":replaces,"adds":adds}));
 	    },
 
 	    error: function(data) {
@@ -2834,8 +2835,21 @@ function importlisttrigger() {
     });
 }
 
+// the import's Yes: Replace saves the imported entries as the list; Add loads the list and adds them to it
+// (one entry per card, printing and foil, as addlistitem does), then saves it
 function importlistfinalize() {
-    listinfoupdate($("#importlistid").val(),'list',$("#importdataval").val());
+    var listid = $("#importlistid").val(), entries = JSON.parse($("#importdataval").val());
+    if($('#importform input[name=importmode]:checked').val() == 'replace') {
+      listinfoupdate(listid,'list',JSON.stringify(entries));
+    } else if(listeditable(listid)) {
+      listinfo(listid,false,null,function() {
+        var list = cache_thing("list",listid);
+        entries.forEach(function(e) { listitemchange(list,e.cardid,e.printing,parseInt(e.quantity),false,e.foil||''); });
+        listcounts(list);
+        cache_thing("list",listid,list);
+        listitemsdone(listid);
+      });
+    }
     nomodal();
 }
 
