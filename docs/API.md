@@ -186,6 +186,9 @@ outputs:
   * .timed_out: true/false
   * .hits.total: number of results
   * .hits.hits: array of cards
+    * without `updatelog` (it made big answers pass Lambda's 6 MB limit; ootv-search PROBLEMS.md #21):
+      `_source.updatelast` is the newest row's timestamp (ms) instead. The rows come with
+      `/oracle-fetch`; the card page fetches them when "Latest Updates" opens
 
 codes:
 
