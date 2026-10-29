@@ -53,8 +53,8 @@ play. Each card shows:
 one type of card. Click a card to open it. Only decks count, not collections or have and want
 lists. Old tournament archives make up a large share of the L5R decks, so their eras weigh more.
 
-On a card's page, the number next to the globe beside its name is how many public decks play it.
-Click it to see them.
+On a card's page, and beside each card in the detailed search results, the number next to the globe
+is how many public decks play it. Click it to see them.
 
 ## Opening a deck {#open}
 

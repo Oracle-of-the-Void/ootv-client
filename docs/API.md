@@ -536,6 +536,9 @@ inputs (a value list can be repeated or comma separated):
   copies` (summed over them); `order=decks` (default) or `copies`, `cardtype` (one or more) narrows to those card
   types. It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
   `cardtype` filter).
+  `cardcounts` (the Detail search results' globes): every card's deck count at once, unpaged:
+  `{total, group, counts: {cardid: decks}, complete}`. `decks` is the card page's count (decks with at least one
+  copy); only cards in a deck are in `counts`; `complete` is false if it was cut short (more cards than it takes).
 
 outputs:
 
