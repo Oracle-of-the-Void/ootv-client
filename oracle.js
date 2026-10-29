@@ -3664,9 +3664,9 @@ function liststatskeywords(cards, decks) {
 function liststatspct(part, whole) {
     return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
 }
-// cards outside the deck statistics: no share of their own and none of the shares of the others. Pre-Game
-// (L5R Stronghold, Sensei, ...) and cards with no deck aren't part of the decks being played; Proxy cards are
-// only there to be printed. So Dynasty and Fate are each a share of Dynasty + Fate.
+// the % column is each type's share of its deck (a deck's share of the whole list says nothing). Pre-Game
+// (L5R Stronghold, Sensei, ...) and cards with no deck aren't decks being played, so no shares there; Proxy
+// cards are only there to be printed, so no share of their own and not counted in the others'.
 function liststatsdeckapart(name) {
     return /^(pre-?game|other)$/i.test(name);
 }
@@ -3699,9 +3699,7 @@ function liststats(listdata,listid=null) {
 	return out;
     };
     var statcopies = function(items) { return items.reduce(function(t,c) { return t + (liststatsproxy(c) ? 0 : c.qty); }, 0); };
-    var decks = group(cards, function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; });
-    var stattotal = decks.reduce(function(t,d) { return t + (liststatsdeckapart(d.name) ? 0 : statcopies(d.cards)); }, 0);
-    decks = decks.map(function(d) {
+    var decks = group(cards, function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; }).map(function(d) {
 	var copies = d.cards.reduce(function(t,c) { return t + c.qty; }, 0);
 	var apart = liststatsdeckapart(d.name);
 	var deckstat = statcopies(d.cards);
@@ -3710,7 +3708,7 @@ function liststats(listdata,listid=null) {
 	    return {"name": t.name, "copies": tc, "pct": apart || liststatsproxy(t.cards[0]) ? '' : liststatspct(tc, deckstat),
 		    "avgs": liststatsavgs(t.cards, fields, false)};
 	});
-	return {"name": d.name, "copies": copies, "pct": apart ? '' : liststatspct(deckstat, stattotal),
+	return {"name": d.name, "copies": copies,
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
     var deckkey = function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; };
