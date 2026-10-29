@@ -71,9 +71,28 @@ are in each deck, their share of the deck, and averages of the cards' numbers (c
 so on). Below that, each keyword in the deck and how many of your other cards mention it.
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
-and **All cards legal for** lists the formats every card is legal in. Only the cards are checked,
-not the deck as a whole (its size, how many copies of a card, banned-card limits). Proxy cards
+and **All cards legal for** lists the formats every card is legal in. Proxy cards
 aren't checked at all: they're in the deck to be printed and played, not part of its construction.
+
+**Deck construction** checks the deck as a whole against the game's deck construction rules
+(see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
+you can save any deck.
+
+## Deck construction rules {#construction}
+
+Each game has its rules for building a deck. For L5R: at least 40 Fate and 40 Dynasty cards, one
+Stronghold, no more than one of each kind of Pre-Game card, and at most three copies of a card
+(one of a Unique card). Copies are counted by title:
+
+- Experienced versions are different cards: Hida Kisada and Hida Kisada (Experienced) each have
+  their own limit. So do Experienced 2, Experienced 3 and Inexperienced.
+- A card that is the "Soul of" someone counts as that card, at the same experience level.
+- Some cards change their own limit ("You may include up to six copies of this card").
+
+A format can change the rules, and the deck's **Legality** picks which. To change them for one
+deck, open **Construction rules** at the top of the deck: change a number, untick a rule to drop
+it, or say which deck Sensei and Border Keep / Bamboo Harvesters go in for this deck. **Back to
+the legality's rules** clears your changes.
 
 ## Sharing {#sharing}
 
