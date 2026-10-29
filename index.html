@@ -1025,9 +1025,9 @@ Recent Data Updates for Currently Selected Database:<br>
     {{if ~deckbuild && (type == 'deck' || !type)}}<button type="button" class="button gray buttonsmaller" title="This deck's construction rules: deck sizes, copy limits, and which deck Sensei or Border Keep go in" onclick="listbuildtoggle(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sliders"></svg> Construction rules</button>{{/if}}
     <span class="helpq" data-help="lists#sharing" aria-label="Help: type, legality and sharing">?</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
+    {{include tmpl="#template-listaward"/}}
   </div>
   {{include tmpl="#template-listsource"/}}
-  {{include tmpl="#template-listaward"/}}
   <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
   {{else}}
   <div class="listviewshared" role="note">
