@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-29 (`cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-10-29 (Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows in the
 deck's statistics block under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -105,3 +105,8 @@ Hato-gurama ("Your minimum Fate deck size is decreased by one") `{"rules": {"fat
 39, BigDeck 80 → 82 / 79, Modern 50 → 52 / 49, Imperial 30 → 32 / 29.
 A card's `rules` apply once per copy, so each copy's `add` counts (three Coastal Lanes: Dynasty minimum +6; the
 user, 2026-10-29).
+Strength Remains ("Your minimum Fate deck size is increased by two") `{"rules": {"fate": {"add": {"min": 2}}}}`.
+Forgotten Legacy ("You must have at least 16 Holdings in your deck construction") adds a rule of its own:
+`{"rules": {"legacyholdings": {"order": 7, "label": "Holdings (Forgotten Legacy)", "check": "type", "deck": "Dynasty", "type": "Holding", "min": 16}}}`.
+It sets a number rather than adding one, so more copies still mean 16. Only Dynasty Holdings count (the user,
+2026-10-29), so a Celestial deck's Pre-Game Border Keep and Bamboo Harvesters don't.
