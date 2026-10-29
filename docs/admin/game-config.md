@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-29 (deckconstruction)
+Last updated: 2026-10-29 (clanmons on deck names)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -72,7 +72,10 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `res/legality-bugs/renka-gyosho-wax/` (the Renka Gyosho wax seals from ootv-assets `legality-bugs/`).
   A legality not listed (the formats, Unreleased) gets none.
 - `clanmons`: `{path, mons: {<clan>: <image>}}`, the clan's mon drawn before every `clan` value a card
-  row shows (card page, search results) and before a public deck's clan. The clan is its plain text;
+  row shows (card page, search results), before a public deck's clan, and before a deck's name: the open deck's
+  header, Public lists (the deck's clan) and your lists directory (the list summary's `clan`: the first Stronghold
+  whose clan has a mon, saved when the owner opens the list). After adding a mon, rerun ootv-tools
+  `lists/list-summary.py` so the directory shows it on lists nobody opens. The clan is its plain text;
   the image is `<path><image>.png`. L5R: 21 clans, `res/clan-mons/oracle-plain-color/` (the flat
   clan-colour mons from ootv-assets `mons/oracle_plain/color/`). A clan not listed gets none.
   Toturi's Army is the Wolf; Spirit is a vermilion torii gate.
