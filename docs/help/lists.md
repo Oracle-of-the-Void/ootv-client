@@ -79,7 +79,8 @@ aren't checked at all: they're in the deck to be printed and played, not part of
 
 **Deck construction** checks the deck as a whole against the game's deck construction rules
 (see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
-you can save any deck.
+you can save any deck. When a deck breaks its rules, or has cards that aren't legal in its Legality,
+the card count line at the top of the statistics says so in red, even with them folded.
 
 ## Deck construction rules {#construction}
 
@@ -92,7 +93,8 @@ Stronghold, no more than one of each kind of Pre-Game card, and at most three co
 - A card that is the "Soul of" someone counts as that card, at the same experience level.
 - Some cards change their own limit ("You may include up to six copies of this card").
 
-A format can change the rules, and the deck's **Legality** picks which. To change them for one
+A format can change the rules, and the deck's **Legality** picks which: Imperial needs only 30 Fate
+and 30 Dynasty cards; BigDeck needs 100 of each and allows one copy of any card. To change them for one
 deck, open **Construction rules** at the top of the deck: change a number, untick a rule to drop
 it, or say which deck Sensei and Border Keep / Bamboo Harvesters go in for this deck. **Back to
 the legality's rules** clears your changes.

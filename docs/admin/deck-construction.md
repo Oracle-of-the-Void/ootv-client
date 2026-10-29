@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-29 (first version)
+Last updated: 2026-10-29 (Imperial and BigDeck overlays; red summary note)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows in the
 deck's statistics block under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -13,12 +13,16 @@ Four layers, each overlaying the one before rule by rule:
 | Layer | Where | Edited in |
 |---|---|---|
 | The game's rules | `oracle-all-structure` `<game>/game`, `deckconstruction.rules` | Admin → Game config |
-| A legality's changes | the same item, `deckconstruction.legality["<legality>"]` (stored and derived legalities alike, plain spaces) | Admin → Game config |
+| A legality's changes | the same item, `deckconstruction.legality["<legality>"]`, keyed by the value the deck's Legality menu stores (`Imperial`, `BigDeck`: the `legality.sortregex` and derived names, not the cards' `Clan Wars (Imperial)`), plain spaces | Admin → Game config |
 | A deck's changes | the list's `deckconstruction` field: `{"rules": {...}, "pick": {...}}` | the deck's **Construction rules** panel (owner) |
 | A card's own limit, or its change to the rules while it's in the deck | the card field `deckconstruction` | the card editor |
 
 In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) or to `null`, which
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
+
+A broken rule shows in red on the Deck construction line, and the stats summary ("86 cards (49 distinct)")
+adds a red note when the deck breaks its rules or has cards not legal in its chosen Legality
+(`liststatsflag()`), so it shows with the statistics folded too.
 
 Code: ootv-client `oracle.js`, `deckbuild*` (`deckbuildcheck`, `deckbuildidentity`) and the panel
 `listbuildform`/`listbuildsave`; ootv-search `/list` stores the deck's field (`updatefield=deckconstruction`,
@@ -39,7 +43,10 @@ a JSON object, empty removes it).
     "unique":       {"order": 5, "label": "Unique", "check": "copies", "when": {"keywords": "^Unique$"}, "max": 1},
     "copies":       {"order": 6, "label": "Copies", "check": "copies", "max": 3}
   },
-  "legality": {},
+  "legality": {
+    "Imperial": {"fate": {"min": 30}, "dynasty": {"min": 30}},
+    "BigDeck":  {"fate": {"min": 100}, "dynasty": {"min": 100}, "copies": {"max": 1}}
+  },
   "choices": {
     "sensei": {"label": "Sensei", "field": "deck", "when": {"type": "^Sensei$"}, "values": ["Pre-Game", "Fate"]},
     "bkbh": {"label": "Border Keep and Bamboo Harvesters", "field": "deck",
