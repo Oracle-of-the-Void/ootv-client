@@ -520,7 +520,8 @@ outputs:
 * hits[]: `listid, game, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
   (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `award {event, result, year}`, `derived`
   (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
-  `cardslegal[], unknowncards`), and with
+  `cardslegal[], unknowncards`; `fatecount`/`dynastycount` follow the game config's `sort.pick` `moves` for the list's
+  own legality: L5R Sensei count as Fate in Jade and Imperial decks), and with
   cardid, `card {cardid, quantity}` for the first cardid
 * facets: `type, clan, stronghold, format`, each `[{value, count}]` over the whole result; `winner`: a count
 
