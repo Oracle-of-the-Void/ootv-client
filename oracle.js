@@ -6663,6 +6663,8 @@ function gameconfigapply(db, conf) {
 // the first rule whose regex matches the list's legality, else the arc of the listed printing's set (an unmatched
 // legality, like Legacy, leaves it to the printing), else default. Names are matched with &nbsp; as spaces. The
 // value must be one of the card's own; otherwise the card keeps all its values. Saved on the card as listpick.
+// moves: [{legality, when: {field: regex}, value}] put a card under a value it doesn't have when the list's legality
+// matches and every when field does (L5R Sensei count in the Fate deck in Jade and Imperial formats); checked first.
 function gamepicklist(listdata, listid) {
   var pick = ((gameconfig[database] || {}).game || {}).sort;
   pick = pick && pick.pick;
@@ -6686,6 +6688,19 @@ function gamepicklist(listdata, listid) {
     if(!pick || !(c.cardid > 0)) { return; }
     Object.keys(pick).forEach(function(f) {
       var vals = [].concat(c[f] === undefined || c[f] === null ? [] : c[f]), p = pick[f] || {};
+      var test = function(re, v) {
+        try { return new RegExp(re).test(plain(v)); } catch(e) { console.log("sort.pick: bad regex "+re); return false; }
+      };
+      var move = (p.moves || []).find(function(m) {
+        return m.value && plain(meta.legality) && test(m.legality, meta.legality) && Object.keys(m.when || {}).every(function(w) {
+          return [].concat(c[w] === undefined || c[w] === null ? [] : c[w]).some(function(v) { return test(m.when[w], v); });
+        });
+      });
+      if(move) {
+        c.listpick = c.listpick || {};
+        c.listpick[f] = [move.value];
+        return;
+      }
       if(vals.length < 2) { return; }
       var match = function(name) {
         name = plain(name);
