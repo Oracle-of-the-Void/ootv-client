@@ -49,6 +49,7 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   in the Fate total) in the Jade and Imperial formats (Hidden Emperor (Jade), Jade Extended, Jade Extended 2000,
   Clan Wars (Imperial)); elsewhere they stay Pre-Game:
   `"moves": [{"legality": "Jade|Imperial", "when": {"type": "^Sensei$"}, "value": "Fate"}]`.
+  Public lists' fate and dynasty counts follow the moves too (on a list's next save or the nightly rebuild).
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
 - `symbols`: `[pattern, html]` pairs, the text tokens drawn as icons (L5R `:g1:`...).
