@@ -3405,7 +3405,19 @@ function listheader(listid) {
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "deckbuild": !!deckbuildconfig(),
-	"loggedin": listloggedin(), "database": database});
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid)});
+}
+// the clan mon of a deck's Stronghold, before its name in the header ('' with no Stronghold, or one without a mon)
+function liststrongholdmon(listid) {
+    var list = cache_thing("list",listid);
+    var items = (list && list.list.Items[0].list) || [];
+    for(var i = 0; i < items.length; i++) {
+	var card = cache_card_fetch(items[i].cardid);
+	if(![].concat(card.type || []).some(function(t) { return selectplaintext(t) == 'Stronghold'; })) { continue; }
+	var mon = [].concat(card.clan || []).map(clanmon).filter(Boolean)[0];
+	if(mon) { return mon; }
+    }
+    return '';
 }
 // moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
 // action=<kind>. award: a tournament result {event, result, year}; precon: a pre-constructed deck
@@ -3690,7 +3702,14 @@ function liststats(listdata,listid=null) {
     listsummarysave(listid, {"decks": summarydecks.slice(0,10).map(function(d) {
 	return {"name": d.name.slice(0,60), "copies": d.cards.reduce(function(t,c) { return t + c.qty; }, 0)};
     }), "buildbad": !!(build && build.problems.length)});
-    return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
+    // a deck with Dynasty and Fate decks (L5R) leads the summary with their sizes: "40/40 - 82 total"
+    var decksize = function(name) {
+	var d = decks.filter(function(d) { return d.name.toLowerCase() == name; })[0];
+	return d ? d.copies : 0;
+    };
+    var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
+	decksize('dynasty')+'/'+decksize('fate') : '';
+    return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length, "dynfate": dynfate,
 	"buildbad": build && build.problems.length ? 1 : 0,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',

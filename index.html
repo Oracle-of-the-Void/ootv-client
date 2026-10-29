@@ -988,14 +988,16 @@ Recent Data Updates for Currently Selected Database:<br>
 <!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
      controls (activate toggle, actions menu, rename, type/legality/public, notes) and, when it's public, the
      share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
-     the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
+     the API), with Copy to my lists and the downloads. ~mon: the Stronghold's clan mon before the name. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
-<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
+<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon), side by side: listawardedit / listpreconedit in oracle.js -->
 <script id="template-listaward" type="text/x-jsrender">
+{{if award || precon || ~awardmod}}<div class="listviewmarks">
 {{if award}}<div class="listaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> {{>award.result || 'Tournament'}}: {{>award.event}}{{if award.year}} ({{>award.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;">Edit result</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listaward"><button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> Add tournament result</button></div>{{/if}}
 {{if precon}}<div class="listprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: {{>precon.product}}{{if precon.year}} ({{>precon.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;">Edit</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listprecon"><button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Mark pre-constructed</button></div>{{/if}}
+</div>{{/if}}
 </script>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
@@ -1007,7 +1009,8 @@ Recent Data Updates for Currently Selected Database:<br>
   <div class="listviewtitle">
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
     <span class="dirmenucell">{{include tmpl="#template-listmenu" ~inheader=true/}}</span>
-    <span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    {{:~mon}}<span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    <span class="listviewdates">{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}} &#149; Id {{:listid}}</span>
   </div>
   <div class="listviewdetails listviewcontrols">
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
@@ -1015,11 +1018,10 @@ Recent Data Updates for Currently Selected Database:<br>
     <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>Private</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Public</option></select>
     {{if ~deckbuild && (type == 'deck' || !type)}}<button type="button" class="button gray buttonsmaller" title="This deck's construction rules: deck sizes, copy limits, and which deck Sensei or Border Keep go in" onclick="listbuildtoggle(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sliders"></svg> Construction rules</button>{{/if}}
     <span class="helpq" data-help="lists#sharing" aria-label="Help: type, legality and sharing">?</span>
-    <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}} &#149; Id {{:listid}}</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
+    {{include tmpl="#template-listaward"/}}
   </div>
   {{include tmpl="#template-listsource"/}}
-  {{include tmpl="#template-listaward"/}}
   <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
   {{else}}
   <div class="listviewshared" role="note">
@@ -1029,7 +1031,7 @@ Recent Data Updates for Currently Selected Database:<br>
   </div>
   <div class="listviewtitle">
     <span class="dirmenucell">{{include tmpl="#template-sharedlistmenu"/}}</span>
-    <span class="listviewname">{{>name}}</span>
+    {{:~mon}}<span class="listviewname">{{>name}}</span>
   </div>
   <span class="listviewdetails">
     {{:~listtypes[type] || type}}
@@ -1070,13 +1072,14 @@ Recent Data Updates for Currently Selected Database:<br>
 </li></ul></nav>
 </script>
 
-<!-- list view: statistics under the header (liststats in oracle.js). Each deck (the game's deck field, or one
+<!-- list view: statistics under the header (liststats in oracle.js). The summary: copies and distinct cards, for an
+     L5R deck led by its Dynasty/Fate sizes (dynfate). Each deck (the game's deck field, or one
      unnamed group) with its card types: copies, share of the deck, and the averages of the
      game's numeric fields the type's cards have (copies weighted). Then, folded, each deck's keywords and how
      many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
-  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatsflag" data-build="{{:buildbad}}"{{if !buildbad}} style="display:none"{{/if}}>{{if buildbad}} &#8212; breaks the deck construction rules{{/if}}</span><span class="liststatshint"> (Expand for detailed statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
+  <summary>{{if dynfate}}<span title="Dynasty/Fate">{{:dynfate}}</span> - {{:totalcount}} total{{else}}{{:totalcount}} card{{if totalcount!=1}}s{{/if}}{{/if}} ({{:distinctcount}} distinct)<span class="liststatsflag" data-build="{{:buildbad}}"{{if !buildbad}} style="display:none"{{/if}}>{{if buildbad}} &#8212; breaks the deck construction rules{{/if}}</span><span class="liststatshint"> (Expand for detailed statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
   {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>
   <div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>{{/if}}
   {{:buildhtml}}

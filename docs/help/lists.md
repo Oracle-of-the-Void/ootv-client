@@ -48,7 +48,8 @@ Lists save themselves shortly after you change them.
 
 Open a list to see its cards. The buttons on the right of the menu bar change the layout:
 the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
-type, legality and notes are at the top, and can be changed there too. Phones open lists as a
+type, legality and notes are at the top, and can be changed there too, with when it was made and
+last changed beside the name. In L5R a deck's name starts with its Stronghold's clan mon. Phones open lists as a
 simple list of card names, unless you've saved another list view for your phone (Settings).
 
 L5R: Border Keep and Bamboo Harvesters were Pre-Game cards under the Celestial and Emperor rules (and
@@ -68,7 +69,8 @@ too, when any version of the card came in foil.
 
 ## Statistics {#stats}
 
-Under the list's name is its card count. Open it for the details (it starts open, closed on a
+Under the list's name is its card count; an L5R deck's starts with its Dynasty/Fate sizes
+(`40/40 - 81 total (52 distinct)`). Open it for the details (it starts open, closed on a
 phone, and stays the way you last left it): how many cards of each type
 are in each deck, their share of the deck, and averages of the cards' numbers (cost, force and
 so on). Below that, each keyword in the deck and how many of your other cards mention it.
