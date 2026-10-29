@@ -42,6 +42,13 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire", "Dynasty"],
   ["Celestial|\\(Emperor\\)|^Emperor|Three Dynasties|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
   (`\\(Emperor\\)`, not `Emperor`, so The Hidden Emperor (Jade) doesn't match).
+  A field's `moves` (optional, checked before the rules) put a card under a value it doesn't have:
+  `[{"legality": "<regex>", "when": {"<field>": "<regex>", ...}, "value": "<value>"}]`. The first move whose
+  `legality` matches the list's legality and whose every `when` field matches one of the card's values wins; a
+  list with no legality never moves. L5R counts Sensei in the Fate deck (their own Sensei group under Fate, and
+  in the Fate total) in the Jade and Imperial formats (Hidden Emperor (Jade), Jade Extended, Jade Extended 2000,
+  Clan Wars (Imperial)); elsewhere they stay Pre-Game:
+  `"moves": [{"legality": "Jade|Imperial", "when": {"type": "^Sensei$"}, "value": "Fate"}]`.
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
 - `symbols`: `[pattern, html]` pairs, the text tokens drawn as icons (L5R `:g1:`...).
