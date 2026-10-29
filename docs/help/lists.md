@@ -68,7 +68,8 @@ Trades match on it: a foil want finds only foil haves, a regular want only regul
 
 ## Statistics {#stats}
 
-Under the list's name is its card count. Open it for the details (it starts open, closed on a
+Under the list's name is its card count; an L5R deck's starts with its Dynasty/Fate sizes
+(`40/40 - 81 total (52 distinct)`). Open it for the details (it starts open, closed on a
 phone, and stays the way you last left it): how many cards of each type
 are in each deck, their share of the deck, and averages of the cards' numbers (cost, force and
 so on). Below that, each keyword in the deck and how many of your other cards mention it.
