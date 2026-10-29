@@ -5308,6 +5308,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
     set: legality.set[showpr] || [], sets: legality.sets});
   rulingsfold('#resultcard');
   publiccardcount(carddata.cardid);
+  mycardcount(carddata.cardid);
 
   if(!switchview) {
 	  return;
@@ -9494,6 +9495,9 @@ function generalnomodal(div,event) {
 // from People or "by ..."), where the type select appears. Formats counts decks only (server side).
 // Most played (group=cards) ranks the cards of the decks found, by how many decks play each or by copies.
 // Decks, People and Most played load publicpagesize at a time; scrolling to the end loads more (publicloadmore).
+// My lists (the form's mine select, logged in): the same search over your own lists, private ones too, through
+// /list action=search (the same index, always filtered on you); every list type, and no People view.
+// The Card box takes a title, or a card's number (#1234) for exactly that card (two cards can share a title).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
 var publicshown = 0;          // results on screen for it
@@ -9506,6 +9510,10 @@ var publicsearching = false;  // a search is on its way (showview doesn't start 
 var publicformatnote = {'name': ['from the name', 'The owner didn\'t set a format; this one starts the deck\'s name'],
                         'cards': ['guessed', 'The owner didn\'t set a format; guessed from where all the cards are legal']};
 
+// the search is over your own lists (My lists), not the public ones
+function publicmine() {
+  return $('#publicform [name="mine"]').val() == '1' && listloggedin();
+}
 // the form (and extra filters) -> query string, empty fields left out
 function publicquery() {
   var parts = [];
@@ -9515,7 +9523,7 @@ function publicquery() {
     }
   });
   ['cardid','owner'].forEach(function(k) {
-    if(publicextra[k]) {
+    if(publicextra[k] && !(k == 'owner' && publicmine())) {   // My lists: always yours
       parts.push(k+'='+encodeURIComponent(publicextra[k].value));
     }
   });
@@ -9527,8 +9535,17 @@ function publicquery() {
 }
 // what's sent: the query, plus decks only in the Decks view unless it's one person's lists
 function publicrequest(query) {
+  var mine = publicmine();
+  if(mine) {
+    delete publicextra.owner;
+    if($('#publicform [name="group"]').val() == 'people') {   // no People view of your own lists
+      $('#publicform [name="group"]').val('');
+      query = query.replace(/(^|&)group=people/g,'');
+    }
+  }
+  query = query.replace(/(^|&)mine=[^&]*/g,'');
   var group = $('#publicform [name="group"]').val() || '';
-  var deckonly = !group && !publicextra.owner;
+  var deckonly = !group && !publicextra.owner && !mine;
   $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
   // Most played: its own order and card type; the list sort means nothing there
   $('#publicform [name="order"]').toggle(group == 'cards');
@@ -9551,6 +9568,7 @@ function publicfillform(qs) {
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   $('#publicform [name="group"]').val(q.group || '');
+  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : '');
   ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
@@ -9601,8 +9619,10 @@ function publicfetch(query, from, done) {
     publicxhr.abort();
   }
   publicsearching = true;
-  publicxhr = $.ajax({
-    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+(request ? '&'+request : '')+'&from='+from+'&size='+publicpagesize,
+  var tail = (request ? '&'+request : '')+'&from='+from+'&size='+publicpagesize;
+  publicxhr = $.ajax(Object.assign(publicmine() ? publicminerequest(tail) : {
+    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+tail
+  }, {
     dataType: 'json',
     success: function(data) {
       if(seq == publicseq) done(data);
@@ -9618,7 +9638,20 @@ function publicfetch(query, from, done) {
       publicsearching = false;
       publicmorecheck();
     }
-  });
+  }));
+}
+// My lists: the same search over your own lists (ootv-search /list action=search; tail: the query string)
+function publicminerequest(tail) {
+  return {
+    url: apiuri+"/list?uid="+getuid()+"&database="+encodeURIComponent(database)+"&action=search"+tail,
+    contentType: 'application/json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  };
+}
+// "public decks", "of your lists": what the results are, for the status line
+function publicnoun(n, deckonly) {
+  var noun = deckonly ? (n == 1 ? 'deck' : 'decks') : (n == 1 ? 'list' : 'lists');
+  return publicmine() ? 'of your '+noun : 'public '+noun;
 }
 function publicrender(data, append) {
   if(data.groups) {
@@ -9672,7 +9705,7 @@ function renderpublic(data, append) {
       $(this).text($(this).text().replace(this.value, listtypes[this.value]));
     }
   });
-  $('#publicform [name="type"]').toggle(!!publicextra.owner);   // decks only, unless it's one person's lists
+  $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
   publicfacetoptions('clan', data.facets.clan, 'Any clan');
   publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
   publicfacetoptions('format', data.facets.format, 'Any format');
@@ -9681,8 +9714,9 @@ function renderpublic(data, append) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
-  var deckonly = !publicextra.owner;
-  $("#publicstatus").html(chips+' '+data.total+' public '+(deckonly ? (data.total == 1 ? 'deck' : 'decks') : (data.total == 1 ? 'list' : 'lists')));
+  var deckonly = !publicextra.owner && !publicmine();
+  var mine = publicmine();
+  $("#publicstatus").html(chips+' '+data.total+' '+publicnoun(data.total, deckonly));
   var html = data.hits.map(function(h) {
     var d = h.derived || {};
     var meta = [listtypes[h.type] || h.type];
@@ -9705,7 +9739,8 @@ function renderpublic(data, append) {
         '<div class="dircardmeta">'+meta.join(' &middot; ')+'</div>'+
         format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
-        '<div class="dircardmeta">by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>'+(when ? ' &middot; '+when : '')+'</div>'+
+        '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : 'Private') :
+          'by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>')+(when ? ' &middot; '+when : '')+'</div>'+
         formats+
         (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
       '</div></div>';
@@ -9713,7 +9748,7 @@ function renderpublic(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(mine ? 'None of your lists match.' : 'No public lists match.')+'</div>');
   }
 }
 // the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), Most played
@@ -9722,8 +9757,10 @@ function renderpublic(data, append) {
 function updatepublicbuttons() {
   var onpublic = currentresulttab() == 'public';
   var group = $('#publicform [name="group"]').val() || '';
+  var mine = publicmine();
   $("#templatebuttons button[data-publicview]").each(function() {
-    $(this).toggle(onpublic).toggleClass("searchviewactive", String($(this).data("publicview")) == group);
+    var view = String($(this).data("publicview"));
+    $(this).toggle(onpublic && !(mine && view == 'people')).toggleClass("searchviewactive", view == group);
   });
 }
 // the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
@@ -9764,7 +9801,7 @@ function renderpublicgroups(data, append) {
   var people = data.group == 'people';
   $("#publicwinnercount, #publicpreconcount").text('');   // facet counts come with the Decks view only
   $("#publicstatus").html(chips+' '+(people ? data.groupstotal+' people with '+data.total+' public lists' :
-    data.groups.length+' formats over '+data.total+' public decks'));
+    data.groups.length+' formats over '+data.total+' '+publicnoun(data.total, true)));
   var html = data.groups.map(function(g) {
     var when = g.latest ? String(g.latest).slice(0,10) : '';
     if(people) {
@@ -9793,7 +9830,7 @@ function renderpublicgroups(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : 'No public lists match.')+'</div>');
   }
 }
 // Most played: one card per row, its rank, how many of the decks found play it and how many copies.
@@ -9808,7 +9845,7 @@ function renderpubliccards(data, append) {
   publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
   $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
   $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
-  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' public '+(data.total == 1 ? 'deck' : 'decks')+
+  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true)+
     ', '+(data.order == 'copies' ? 'most copies' : 'played in the most decks')+' first <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
   var html = data.groups.map(function(g, n) {
     var pct = data.total ? Math.round(100*g.decks/data.total) : 0;
@@ -9826,7 +9863,7 @@ function renderpubliccards(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">No public decks match.</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your decks match.' : 'No public decks match.')+'</div>');
   }
   publiccardimages(data.groups.map(function(g) { return g.cardid; }));
 }
@@ -9850,6 +9887,30 @@ function publicdeckswith(cardid, title) {
   publicextra = {cardid: {value: cardid, label: 'with '+(title || 'card #'+cardid)}};
   $('#publicform [name="group"]').val('');
   publicsearch(0);
+}
+// the card view's folder link, next to the globe (logged in): your own lists with the card (My lists), with
+// how many hold at least one copy. Not cached: your lists change while you look (the count follows a save
+// within seconds, through the index's stream).
+function mycardcount(cardid) {
+  var globe = $('#resultcard a.cardpubliclists');
+  $('#resultcard a.cardmylists').remove();
+  if(!globe.length || !listloggedin()) {
+    return;
+  }
+  var link = $('<a class="cardmylists" href="" title="Your lists with this card"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></a>');
+  link.on('click', function() { publicwithcard(cardid, true); return false; });
+  globe.after(link);
+  $.ajax(Object.assign(publicminerequest('&cardid='+parseInt(cardid)+'&minqty=1&size=0'), {
+    dataType: 'json',
+    success: function(data) {
+      var n = data.total || 0;
+      if(String($("#lastcardid").val()) != String(cardid) || !n) {
+        return;
+      }
+      link.attr('title', 'In '+n+' of your lists (your lists with this card)');
+      link.append('<span class="cardpubliccount">'+n+'</span>');
+    }
+  }));
 }
 // the card view's globe link gets how many public decks play the card (at least one copy)
 var publiccardcounts = {};
@@ -9939,12 +10000,13 @@ function publicbyowner(uid, el) {
   $('#publicform [name="group"]').val('');
   publicsearch(0);
 }
-// the card view's link: public lists with this card
-function publicwithcard(cardid) {
+// the card view's links: public lists with this card (the globe), or with mine, your own lists (the folder)
+function publicwithcard(cardid, mine=false) {
   var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
   var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
   publicextra = {cardid: {value: cardid, label: 'with '+title}};
   $("#publicform")[0].reset();
+  $('#publicform [name="mine"]').val(mine ? '1' : '');
   showviewkeepurl('resultpublic');
   publicsearch(0);
 }
