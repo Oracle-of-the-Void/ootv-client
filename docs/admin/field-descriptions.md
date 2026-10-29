@@ -46,6 +46,15 @@ replaces the field's settings; clear it to drop them.
   search form only when the game config's `search` list names it ([Game config](game-config.md)).
   `foil` (shared `printing.foil`, every game) is a fixed select: Any foil / Foil only / Regular and
   foil / Not foil, on the printing's `foil` value (`"foil"`, `"both"`, or left out).
+  `numeric` card fields also match cards whose value isn't a plain number (since 2026-10-28): a
+  min/max search finds a card when any value it can have falls in the range. `3`, `+3` and `-1` are
+  themselves; `2*` is 2 (the asterisk is a footnote); `*`, `X`, `+*`, `+X` and 7th Sea `MC+2` can be
+  anything from 0 up, `-*`/`-X` anything from 0 down; `+5/+0` is either 5 or 0. `-` is no value. When the
+  card text pins a value down, the card's `variablevalues` field says what it can be, per field:
+  `{"cost": ["0-6"]}` (a range), `["2", "0"]` (either), `["1+"]` (1 or more); it replaces the rule above
+  for that field. Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
+  `README.md`), and a new numeric field needs `ootv-elastic/numrange-mapping.sh` run for its game,
+  then a repopulate, before the extra matches show (until then it searches the plain number).
 - `show`: `"card"` (the default: shown on the card page), `"internal"` (the editor only), or
   `"hidden"`: nowhere. A hidden field has no card page row, no search box, no Table view
   column, and a template can leave it out with `{{if ~fieldshown('<field>')}}` (see
