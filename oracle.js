@@ -3309,6 +3309,9 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     // games without list sorts/headers (pathfinder-pawns) fall back to title order, no headers
     var gamesort = databasesort[database] || {};
     var gameheaderize = headerize[database] || {};
+    // a deck's headers leave out the distinct counts ("Holding - (14)"); other lists keep them
+    var listmeta = cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
+    var headerdistinct = !(listmeta.type == 'deck' || !listmeta.type);
     listdata.sort(gamesort[sort] != undefined?gamesort[sort]:
 		  function(a,b){
 		      var x = a.title[0].toLowerCase();
@@ -3346,7 +3349,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    $.extend(listtmpl, listtablecolumns(shown));
 	}
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown) : shown),listtmpl);
+	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown, headerdistinct) : shown),listtmpl);
 	} else {
 	    var html = getactivetemplate('list').render(markprinteddiffs(shown),listtmpl);
 	}
@@ -3356,7 +3359,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
 	    var textdata = textparts[0] == 'textsnm' ? snmlistnames(listdata) : listdata;
-	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](textdata) : textdata,{
+	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](textdata, headerdistinct) : textdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
@@ -3733,7 +3736,8 @@ function liststats(listdata,listid=null) {
     };
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
-    return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length, "dynfate": dynfate,
+    return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
+	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
 	"buildbad": build && build.problems.length ? 1 : 0,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
@@ -7209,10 +7213,11 @@ function gamesort(s) {
   };
 }
 // list headers for the "deck" sort: one level (type) or two (deck, then type within it), with copies and
-// distinct cards counted; a card without the field heads "Other"
+// (distinct, not on decks) distinct cards counted; a card without the field heads "Other"
 function gameheaders(headers) {
   var j = function(c, f) { var v = gamepicked(c, f); return [].concat(v === undefined || v === null ? [] : v).join() || 'Other'; };
-  return function(listdata) {
+  return function(listdata, distinct = true) {
+    var label = function(name, k) { return name+" - ("+sums[k]+")"+(distinct ? " ["+counts[k]+" distinct]" : ""); };
     var top = headers.length > 1 ? headers[0] : null, sub = headers[headers.length-1];
     var sums = {}, counts = {};
     var add = function(k, q) { sums[k] = (sums[k] || 0) + q; counts[k] = (counts[k] || 0) + 1; };
@@ -7225,12 +7230,12 @@ function gameheaders(headers) {
       if(top && j(c, top) !== lasttop) {
         lasttop = j(c, top);
         lastsub = null;
-        out.push({cardid: 0, title: lasttop+" - ("+sums['t\u0000'+lasttop]+") ["+counts['t\u0000'+lasttop]+" distinct]", decktitle: true});
+        out.push({cardid: 0, title: label(lasttop, 't\u0000'+lasttop), decktitle: true});
       }
       if(j(c, sub) !== lastsub) {
         lastsub = j(c, sub);
         var k = 's\u0000'+(top ? lasttop : '')+'\u0000'+lastsub;
-        out.push({cardid: 0, subtitle: lastsub+" - ("+sums[k]+") ["+counts[k]+" distinct]", typetitle: true});
+        out.push({cardid: 0, subtitle: label(lastsub, k), typetitle: true});
       }
       out.push(c);
     });
