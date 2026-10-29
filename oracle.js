@@ -3799,7 +3799,15 @@ function deckbuildoverlay(rules, over) {
 	if(over[id] === null) {
 	    delete rules[id];
 	} else if(typeof over[id] === 'object') {
-	    rules[id] = $.extend({}, rules[id] || {}, over[id]);
+	    var add = over[id].add, parts = $.extend({}, over[id]);
+	    delete parts.add;
+	    rules[id] = $.extend({}, rules[id] || {}, parts);
+	    // add: a change to the number already there, in any legality (Coastal Lane: minimum Dynasty deck size +2)
+	    Object.keys(add && typeof add === 'object' ? add : {}).forEach(function(k) {
+		if(typeof rules[id][k] === 'number' && typeof add[k] === 'number') {
+		    rules[id][k] += add[k];
+		}
+	    });
 	}
     });
     return rules;

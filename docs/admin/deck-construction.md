@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-29 (`cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy)
+Last updated: 2026-10-29 (`cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows in the
 deck's statistics block under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -19,6 +19,8 @@ Four layers, each overlaying the one before rule by rule:
 
 In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) or to `null`, which
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
+`add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
+minimum the layers before set, plus two), so one overlay works in every legality.
 
 A broken rule shows in red on the Deck construction line, and the stats summary ("86 cards (49 distinct)")
 adds a red note when the deck breaks its rules or has cards not legal in its chosen Legality
@@ -94,3 +96,6 @@ E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"ma
 Shinomen ("Your deck may include four copies of any non-unique Ratling card")
 `{"rules": {"ratling4": {"label": "Ratling (Depths of the Shinomen)", "check": "copies", "when": {"keywords": "^Ratling$"}, "max": 4}}}`.
 A Unique Ratling still stops at one: both `when` rules apply to it, and the lower max wins.
+Coastal Lane ("Your minimum Dynasty deck size is increased by two") `{"rules": {"dynasty": {"add": {"min": 2}}}}`;
+Hato-gurama ("Your minimum Fate deck size is decreased by one") `{"rules": {"fate": {"add": {"min": -1}}}}`: 40 → 42 /
+39, BigDeck 80 → 82 / 79, Modern 50 → 52 / 49, Imperial 30 → 32 / 29.
