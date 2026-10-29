@@ -1082,12 +1082,18 @@ button .iiconic, span .iiconic {
 }
 .inegative { color: #ee2222; }
 .ipositive { color: #0a8913; }
-.listheadmiddle .ipositive { color: #1aee29; }
 .iyellow { color: yellow; }
 .idyellow { color: #ff4d01; }
 .ipurple { color: purple; }
 .iblue { color: #2222ee; }
 .iblack { color: black; }
+/* the same icons and ? marks on the charcoal title bars (--head-bg): lighter, so they don't sink into it. Not in
+   the bars' dropdown menus (ul.dirlistmenu), which are light */
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .iblue:not(ul.dirlistmenu *),
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .helpq:not(ul.dirlistmenu *) { color: #9ec5ff; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .ipositive:not(ul.dirlistmenu *) { color: #4cdb5a; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .idyellow:not(ul.dirlistmenu *) { color: #ff7a3d; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .inegative:not(ul.dirlistmenu *) { color: #ff6b6b; }
 .iyin { font-size: 15pt; }
 
 .curses { cursor: pointer; }
