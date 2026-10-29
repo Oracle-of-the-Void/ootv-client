@@ -5,14 +5,27 @@ shared, including tournament-winning decks and the pre-constructed starter decks
 
 ## Finding decks {#search}
 
-- The first box searches deck names, notes and players' names. **Contains card** finds decks
-  with a card in them.
+- The first box searches deck names, notes and players' names. The **card** box finds decks
+  with a card in them, by its title. When two cards share a title, type the card's number
+  instead (`#1234`, the number at the end of the card page's link) to find exactly that one.
 - The pull-downs narrow by type, and in L5R by clan, stronghold and format.
 - **Pre-constructed** shows only starter and learn-to-play decks. **Tournament results** shows
   only decks with a tournament result.
 - The last pull-down sorts them. **Reset** clears everything.
 
 More load as you scroll down.
+
+## Your own lists {#mine}
+
+Logged in, the first pull-down switches between **Public lists** and **My lists**. **My lists**
+searches your own lists, private ones too, with the same boxes and pull-downs, and the
+**Decks**, **Formats** and **Most played** views. It shows every kind of list (pick one in the
+type pull-down); each says whether it's public or private. Nobody else sees your private lists
+here. A list you just saved shows up within a few seconds.
+
+On a card's page, the folder next to the globe opens your lists with that card, with how many
+of them hold it. It goes by the card itself, not its title, so two cards with the same name stay
+apart.
 
 ## Decks, People, Formats, Most played {#views}
 

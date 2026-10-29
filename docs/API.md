@@ -431,6 +431,10 @@ inputs:
     and the client merges its changes into it and saves again (#337). Without baserev, the last save wins.
   * TODO: when updating 'list' field, we should have a field that has the quantity of cards in it that gets updated as well, so general listing can have that info
 * action (optional)
+  * search (no listid; database required): the [/publiclists](#publiclists) search over this user's own lists,
+    private ones too, with the same parameters and answer (`game` is `database`; `owner` is ignored: always you).
+    Each hit also has `public`. The client's My lists (`publicmine()` in `oracle.js`) and the card view's folder
+    link (`cardid=N&minqty=1&size=0`, its `total`) use it. A save reaches it within seconds (the index's stream)
   * remove
     * delete that list (owner only, 403 otherwise)
   * duplicate
@@ -502,8 +506,8 @@ codes:
 
 ## /publiclists
 
-GET, no authentication (ootv-search `routes/publiclists.js`). Searches the public lists index (an OpenSearch
-index of every public list with its cards' titles and, for l5r, the stronghold, clan and the formats all of a
+GET, no authentication (ootv-search `routes/publiclists.js`). Searches the public lists (an OpenSearch
+index of every list, which this route sees only the public ones of, with its cards' titles and, for l5r, the stronghold, clan and the formats all of a
 deck's cards are legal in; ootv-search `CLAUDE.md`, "Public lists search"). The client's Public lists view
 (`#view=public`, `#publiclists=<query>`, `publicsearch()` in `oracle.js`) calls it. Send it as a CORS simple
 request, like `/publiclist`.
@@ -512,7 +516,8 @@ inputs (a value list can be repeated or comma separated):
 
 * game (required)
 * q: text over list name, notes, owner name and card titles
-* card: lists with a card whose title matches (phrase)
+* card: lists with a card whose title matches (phrase); a number (`1234` or `#1234`) is that card id, as `cardid`
+  (for two cards with the same title)
 * cardid: lists with all of these cards; minqty: at least this many copies of each (the client sends `minqty=1`:
   the card page's "in N public decks" count is `cardid=N&minqty=1&type=deck&size=0`, its `total`)
 * type, clan, stronghold (title), owner (uid)
@@ -535,7 +540,7 @@ inputs (a value list can be repeated or comma separated):
 outputs:
 
 * total, from, size, sort
-* hits[]: `listid, game, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
+* hits[]: `listid, game, public, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
   (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `award {event, result, year}`, `derived`
   (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
   `cardslegal[], unknowncards`; `fatecount`/`dynastycount` follow the game config's `sort.pick` `moves` for the list's

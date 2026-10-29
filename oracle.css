@@ -2235,6 +2235,8 @@ div.publicpager {
 a.cardpubliclists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
 a.cardpubliclists { text-decoration: none; }
 span.cardpubliccount { font-size: 13px; color: #fff; vertical-align: middle; margin-left: 2px; }
+a.cardmylists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
+a.cardmylists { text-decoration: none; margin-left: 4px; }
 span.publicformatsource { color: #777; font-size: small; }
 div.publicaward, div.listaward { color: #8a6d00; font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
