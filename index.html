@@ -994,7 +994,7 @@ Recent Data Updates for Currently Selected Database:<br>
 <!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
      controls (activate toggle, actions menu, rename, type/legality/public, notes) and, when it's public, the
      share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
-     the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
+     the API), with Copy to my lists and the downloads. ~mon: the Stronghold's clan mon before the name. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
 <!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
 <script id="template-listaward" type="text/x-jsrender">
@@ -1013,7 +1013,7 @@ Recent Data Updates for Currently Selected Database:<br>
   <div class="listviewtitle">
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
     <span class="dirmenucell">{{include tmpl="#template-listmenu" ~inheader=true/}}</span>
-    <span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    {{:~mon}}<span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
   </div>
   <div class="listviewdetails listviewcontrols">
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
@@ -1035,7 +1035,7 @@ Recent Data Updates for Currently Selected Database:<br>
   </div>
   <div class="listviewtitle">
     <span class="dirmenucell">{{include tmpl="#template-sharedlistmenu"/}}</span>
-    <span class="listviewname">{{>name}}</span>
+    {{:~mon}}<span class="listviewname">{{>name}}</span>
   </div>
   <span class="listviewdetails">
     {{:~listtypes[type] || type}}

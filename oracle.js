@@ -3360,7 +3360,19 @@ function listheader(listid) {
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "deckbuild": !!deckbuildconfig(),
-	"loggedin": listloggedin(), "database": database});
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid)});
+}
+// the clan mon of a deck's Stronghold, before its name in the header ('' with no Stronghold, or one without a mon)
+function liststrongholdmon(listid) {
+    var list = cache_thing("list",listid);
+    var items = (list && list.list.Items[0].list) || [];
+    for(var i = 0; i < items.length; i++) {
+	var card = cache_card_fetch(items[i].cardid);
+	if(![].concat(card.type || []).some(function(t) { return selectplaintext(t) == 'Stronghold'; })) { continue; }
+	var mon = [].concat(card.clan || []).map(clanmon).filter(Boolean)[0];
+	if(mon) { return mon; }
+    }
+    return '';
 }
 // moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
 // action=<kind>. award: a tournament result {event, result, year}; precon: a pre-constructed deck
