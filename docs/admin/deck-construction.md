@@ -15,7 +15,7 @@ Four layers, each overlaying the one before rule by rule:
 | The game's rules | `oracle-all-structure` `<game>/game`, `deckconstruction.rules` | Admin → Game config |
 | A legality's changes | the same item, `deckconstruction.legality["<legality>"]` (stored and derived legalities alike, plain spaces) | Admin → Game config |
 | A deck's changes | the list's `deckconstruction` field: `{"rules": {...}, "pick": {...}}` | the deck's **Construction rules** panel (owner) |
-| A card's own limit | the card field `deckconstruction` | the card editor |
+| A card's own limit, or its change to the rules while it's in the deck | the card field `deckconstruction` | the card editor |
 
 In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) or to `null`, which
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
@@ -80,5 +80,9 @@ game-config.md). Public list counts (Fate/Dynasty counts) follow it too.
 | `max` | This card's copy limit, in place of the rule's; `null` = any number. |
 | `countsas` | The title this card counts as for copy limits. |
 | `skip` | Rule ids this card isn't counted in (e.g. a card that doesn't count toward deck size). |
+| `rules` | While this card is in the deck, an overlay on the deck's rules (as a legality's), for cards that change the limits of others. |
 
-E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"max": null}`.
+E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"max": null}`; Depths of the
+Shinomen ("Your deck may include four copies of any non-unique Ratling card")
+`{"rules": {"ratling4": {"label": "Ratling (Depths of the Shinomen)", "check": "copies", "when": {"keywords": "^Ratling$"}, "max": 4}}}`.
+A Unique Ratling still stops at one: both `when` rules apply to it, and the lower max wins.

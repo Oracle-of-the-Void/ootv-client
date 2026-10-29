@@ -3736,7 +3736,8 @@ function liststatslegal() {
 // deckconstruction.rules; deckconstruction.legality[<legality>] overlays them rule by rule for decks of that
 // legality, then the deck's own deckconstruction field (a JSON string: {rules, pick}) overlays again. In an
 // overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
-// limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]}.
+// limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]},
+// and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}.
 // Rule checks:
 //   size     copies in deck (min/max)
 //   type     copies of type in deck (min/max)
@@ -3833,6 +3834,14 @@ function deckbuildcheck(cards, meta, deckkey) {
     if(!set) {
 	return null;
     }
+    // a card in the deck that changes the rules for others (Depths of the Shinomen: four of any non-unique Ratling)
+    cards.forEach(function(c) {
+	var over = deckbuildcardconf(c.card).rules;
+	if(over && typeof over === 'object') {
+	    deckbuildoverlay(set.rules, over);
+	    set.source.push(deckbuildplain([].concat(c.card.title || [])[0]));
+	}
+    });
     var types = function(c) { return [].concat(c.card.type || []).map(deckbuildplain).filter(function(t) { return t && t != 'Proxy'; }); };
     var skips = function(c, id) { return [].concat(deckbuildcardconf(c.card).skip || []).indexOf(id) >= 0; };
     var test = function(when, c) {
