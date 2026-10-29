@@ -52,7 +52,9 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   its arc, where that differs between printings of one card. On the Border Keep and Bamboo Harvesters
   printings (2026-10-27, ootv-tools `printings/printed-deck.py`): Pre-Game for Celestial, Emperor and
   Three Dynasties, Dynasty for the Ivory promos. The card keeps every value (`["Dynasty", "Pre-Game"]`);
-  lists choose one with the game config's `sort.pick` (`docs/admin/game-config.md`).
+  lists choose one with the game config's `sort.pick` (`docs/admin/game-config.md`). Its `moves` put a
+  card under a deck it doesn't have in some formats: Sensei (`deck` Pre-Game) count in the Fate deck in
+  Jade and Imperial lists.
 * printing.foil (optional, every game, string). Left out: the printing is regular only. `"foil"`:
   it only came in foil (a foil that differs from the regular card, a foil-only card, or a foil
   promo, stored as its own printing). `"both"`: it came in regular and in foil in the same

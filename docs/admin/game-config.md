@@ -42,6 +42,14 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire", "Dynasty"],
   ["Celestial|\\(Emperor\\)|^Emperor|Three Dynasties|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
   (`\\(Emperor\\)`, not `Emperor`, so The Hidden Emperor (Jade) doesn't match).
+  A field's `moves` (optional, checked before the rules) put a card under a value it doesn't have:
+  `[{"legality": "<regex>", "when": {"<field>": "<regex>", ...}, "value": "<value>"}]`. The first move whose
+  `legality` matches the list's legality and whose every `when` field matches one of the card's values wins; a
+  list with no legality never moves. L5R counts Sensei in the Fate deck (their own Sensei group under Fate, and
+  in the Fate total) in the Jade and Imperial formats (Hidden Emperor (Jade), Jade Extended, Jade Extended 2000,
+  Clan Wars (Imperial)); elsewhere they stay Pre-Game:
+  `"moves": [{"legality": "Jade|Imperial", "when": {"type": "^Sensei$"}, "value": "Fate"}]`.
+  Public lists' fate and dynasty counts follow the moves too (on a list's next save or the nightly rebuild).
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
 - `symbols`: `[pattern, html]` pairs, the text tokens drawn as icons (L5R `:g1:`...).
@@ -68,8 +76,9 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
-again first and refuses an edit they can't draw. Other people see a save from their next page
-loads; you see it after a reload.
+again first and refuses an edit they can't draw. A browser draws from its stored copy of the config and
+fetches the new one in the background, so a save shows from the second page load after it (the first
+one fetches it), for you and everyone else.
 
 ## The game menu and preview games
 
