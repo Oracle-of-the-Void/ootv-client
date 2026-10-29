@@ -3777,7 +3777,7 @@ function liststatslegal() {
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
 }
-// the red note after "N cards (M distinct)" in the stats summary: the deck breaks its construction rules
+// the red note after "40/40 - 86 total" in the stats summary: the deck breaks its construction rules
 // (data-build, set at render) and/or has cards not legal in its chosen format (from /cardslegal)
 function liststatsflag(flag, illegalin) {
     var parts = [];
@@ -7217,7 +7217,7 @@ function gamesort(s) {
 function gameheaders(headers) {
   var j = function(c, f) { var v = gamepicked(c, f); return [].concat(v === undefined || v === null ? [] : v).join() || 'Other'; };
   return function(listdata, distinct = true) {
-    var label = function(name, k) { return name+" - ("+sums[k]+")"+(distinct ? " ["+counts[k]+" distinct]" : ""); };
+    var label = function(name, k) { return name+" - "+sums[k]+(distinct ? " ["+counts[k]+" distinct]" : ""); };
     var top = headers.length > 1 ? headers[0] : null, sub = headers[headers.length-1];
     var sums = {}, counts = {};
     var add = function(k, q) { sums[k] = (sums[k] || 0) + q; counts[k] = (counts[k] || 0) + 1; };
