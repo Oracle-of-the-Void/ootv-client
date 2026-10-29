@@ -954,6 +954,10 @@ function dircount(list) {
   }
   return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad);
 }
+// the mon before a list's name in the directory: its summary's clan (the first Stronghold's, listsummarysave)
+function dirmon(list) {
+  return list.summary && list.summary.clan ? clanmon(list.summary.clan) : '';
+}
 function deckcounthtml(decks, total, buildbad) {
   decks = decks.filter(function(d) { return !/^pre-?game$/i.test(d.name); });
   var text = decks.length > 1 ? decks.map(function(d) { return d.copies; }).join('/')+' ('+total+' total)' : total+' card'+(total == 1 ? '' : 's');
@@ -994,7 +998,7 @@ function renderdirectory() {
   if(!dir || !dir.lists) { return; }
   var view = dirviewstate(), sort = dirsortstate();
   var path = dirpath();
-  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions, "dircount": dircount};
+  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions, "dircount": dircount, "dirmon": dirmon};
   applyfolderselect();
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
@@ -3411,11 +3415,16 @@ function listheader(listid) {
 function liststrongholdmon(listid) {
     var list = cache_thing("list",listid);
     var items = (list && list.list.Items[0].list) || [];
-    for(var i = 0; i < items.length; i++) {
-	var card = cache_card_fetch(items[i].cardid);
+    var clan = liststrongholdclan(items.map(function(i) { return cache_card_fetch(i.cardid); }));
+    return clan ? clanmon(clan) : '';
+}
+// the clan (plain text) of the first Stronghold among cards whose clan has a mon, or ''
+function liststrongholdclan(cards) {
+    for(var i = 0; i < cards.length; i++) {
+	var card = cards[i] || {};
 	if(![].concat(card.type || []).some(function(t) { return selectplaintext(t) == 'Stronghold'; })) { continue; }
-	var mon = [].concat(card.clan || []).map(clanmon).filter(Boolean)[0];
-	if(mon) { return mon; }
+	var clan = [].concat(card.clan || []).filter(function(c) { return clanmon(c); })[0];
+	if(clan) { return selectplaintext(clan); }
     }
     return '';
 }
@@ -3699,9 +3708,12 @@ function liststats(listdata,listid=null) {
     // the summary's decks in the game's deck order, whatever sort the list is shown in (dynasty before fate)
     var decksort = (databasesort[database] || {}).deck;
     var summarydecks = decksort ? group(cards.slice().sort(function(a,b) { return decksort(a.card,b.card); }), deckkey) : decks;
-    listsummarysave(listid, {"decks": summarydecks.slice(0,10).map(function(d) {
+    var summary = {"decks": summarydecks.slice(0,10).map(function(d) {
 	return {"name": d.name.slice(0,60), "copies": d.cards.reduce(function(t,c) { return t + c.qty; }, 0)};
-    }), "buildbad": !!(build && build.problems.length)});
+    }), "buildbad": !!(build && build.problems.length)};
+    var clan = liststrongholdclan(cards.map(function(c) { return c.card; }));
+    if(clan) { summary.clan = clan.slice(0,60); }
+    listsummarysave(listid, summary);
     // a deck with Dynasty and Fate decks (L5R) leads the summary with their sizes: "40/40 - 82 total"
     var decksize = function(name) {
 	var d = decks.filter(function(d) { return d.name.toLowerCase() == name; })[0];
