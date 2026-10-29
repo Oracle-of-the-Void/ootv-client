@@ -10323,7 +10323,7 @@ function mycardcount(cardid) {
   }
   var link = $('<a class="cardmylists" href="" title="Your lists with this card"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></a>');
   link.on('click', function() { publicwithcard(cardid, true); return false; });
-  globe.after(link);
+  $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(link);   // after the other card-page links
   $.ajax(Object.assign(publicminerequest('&cardid='+parseInt(cardid)+'&minqty=1&size=0'), {
     dataType: 'json',
     success: function(data) {
