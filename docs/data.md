@@ -128,10 +128,17 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
   any other page in a small window). See `docs/admin/rulings.md`.
+  Not in `/search` answers (since 2026-10-29), which carry `rulingcount` instead; the card page fetches
+  the card for it (`docs/API.md`, /search).
 * rulingref (optional, every game, array of HTML strings): the rules team's answers about the card
   (L5R: from the mailing-list rules digests), one per entry, `<b>Q:</b> ...<br><b>A:</b> ...` then an
   `<a href>` to the answer's anchor in a copy of its source. Card details show a "Rules Q&A" button with
   the count, which opens the list in a popup. See `docs/admin/rulings.md`, "Rules Q&A".
+  Not in `/search` answers (since 2026-10-29), which carry `rulingrefcount` instead.
+* updatelog (every card, array of maps): one row per change (`op`, `uid`, `uname`, `timestamp` in ms,
+  `olddata`/`newdata`), shown under "Latest Updates" on the card page. Not in `/search` answers (since
+  2026-10-29), which carry `updatelast` (the newest row's `timestamp`) instead; the card page fetches the
+  rows when "Latest Updates" opens.
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 
