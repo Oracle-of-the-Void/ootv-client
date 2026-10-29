@@ -99,3 +99,5 @@ A Unique Ratling still stops at one: both `when` rules apply to it, and the lowe
 Coastal Lane ("Your minimum Dynasty deck size is increased by two") `{"rules": {"dynasty": {"add": {"min": 2}}}}`;
 Hato-gurama ("Your minimum Fate deck size is decreased by one") `{"rules": {"fate": {"add": {"min": -1}}}}`: 40 → 42 /
 39, BigDeck 80 → 82 / 79, Modern 50 → 52 / 49, Imperial 30 → 32 / 29.
+A card's `rules` apply once per copy, so each copy's `add` counts (three Coastal Lanes: Dynasty minimum +6; the
+user, 2026-10-29).
