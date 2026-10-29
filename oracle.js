@@ -3724,7 +3724,15 @@ function deckbuildoverlay(rules, over) {
 	if(over[id] === null) {
 	    delete rules[id];
 	} else if(typeof over[id] === 'object') {
-	    rules[id] = $.extend({}, rules[id] || {}, over[id]);
+	    var add = over[id].add, parts = $.extend({}, over[id]);
+	    delete parts.add;
+	    rules[id] = $.extend({}, rules[id] || {}, parts);
+	    // add: a change to the number already there, in any legality (Coastal Lane: minimum Dynasty deck size +2)
+	    Object.keys(add && typeof add === 'object' ? add : {}).forEach(function(k) {
+		if(typeof rules[id][k] === 'number' && typeof add[k] === 'number') {
+		    rules[id][k] += add[k];
+		}
+	    });
 	}
     });
     return rules;
@@ -3797,7 +3805,10 @@ function deckbuildcheck(cards, meta, deckkey) {
     cards.forEach(function(c) {
 	var over = deckbuildcardconf(c.card).rules;
 	if(over && typeof over === 'object') {
-	    deckbuildoverlay(set.rules, over);
+	    // once per copy: an add counts each copy (three Coastal Lanes: +6), the rest is the same each time
+	    for(var i = 0; i < Math.max(1, c.qty || 1); i++) {
+		deckbuildoverlay(set.rules, over);
+	    }
 	    set.source.push(deckbuildplain([].concat(c.card.title || [])[0]));
 	}
     });
@@ -3862,6 +3873,16 @@ function deckbuildcheck(cards, meta, deckkey) {
 	    best.cards.forEach(function(c) {
 		var cc = deckbuildcardconf(c.card);
 		if(cc.hasOwnProperty('max')) { max = cc.max; }
+	    });
+	    // a rule with cap (BigDeck's one copy) holds even cards with their own limit or a rule of their own
+	    copyrules.forEach(function(id) {
+		var r = set.rules[id], decks = r.decks || set.decks;
+		if(!r.cap || r.max === null || r.max === undefined) { return; }
+		var counted = g.cards.filter(function(c) { return !skips(c, id) && (!decks || decks.indexOf(deckkey(c)) >= 0); });
+		if(counted.length && (!r.when || counted.some(function(c) { return test(r.when, c); })) && (max === null || max === undefined || r.max < max)) {
+		    max = r.max;
+		    best = {"id": id, "r": r, "cards": best.cards};
+		}
 	    });
 	    var n = count(best.cards);
 	    if(max !== null && max !== undefined && n > max) {

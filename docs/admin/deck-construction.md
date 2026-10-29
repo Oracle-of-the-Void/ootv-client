@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-29 (Imperial and BigDeck overlays; red summary note)
+Last updated: 2026-10-29 (`cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows in the
 deck's statistics block under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -19,6 +19,8 @@ Four layers, each overlaying the one before rule by rule:
 
 In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) or to `null`, which
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
+`add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
+minimum the layers before set, plus two), so one overlay works in every legality.
 
 A broken rule shows in red on the Deck construction line, and the stats summary ("86 cards (49 distinct)")
 adds a red note when the deck breaks its rules or has cards not legal in its chosen Legality
@@ -45,7 +47,8 @@ a JSON object, empty removes it).
   },
   "legality": {
     "Imperial": {"fate": {"min": 30}, "dynasty": {"min": 30}},
-    "BigDeck":  {"fate": {"min": 100}, "dynasty": {"min": 100}, "copies": {"max": 1}}
+    "BigDeck":  {"fate": {"min": 80}, "dynasty": {"min": 80}, "copies": {"max": 1, "cap": true}},
+    "Modern":   {"fate": {"min": 50}, "dynasty": {"min": 50}, "copies": {"max": 1, "cap": true}}
   },
   "choices": {
     "sensei": {"label": "Sensei", "field": "deck", "when": {"type": "^Sensei$"}, "values": ["Pre-Game", "Fate"]},
@@ -64,7 +67,7 @@ a JSON object, empty removes it).
 | `check: size` | Copies in `deck`: `min`, `max`. |
 | `check: type` | Copies of `type` in `deck`: `min`, `max`. |
 | `check: pertype` | Copies of each type in `deck`, less `except`: `max`. Type Proxy is never counted as a type. |
-| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. |
+| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too). |
 
 Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Unique`).
 
@@ -84,7 +87,7 @@ game-config.md). Public list counts (Fate/Dynasty counts) follow it too.
 
 | Key | Meaning |
 |---|---|
-| `max` | This card's copy limit, in place of the rule's, in every legality (BigDeck's one copy too: the user, 2026-10-29); `null` = any number. |
+| `max` | This card's copy limit, in place of the rule's; `null` = any number. A `cap` rule's lower `max` still wins (BigDeck and Modern: one copy, period; the user, 2026-10-29). |
 | `countsas` | The title this card counts as for copy limits. |
 | `skip` | Rule ids this card isn't counted in (e.g. a card that doesn't count toward deck size). |
 | `rules` | While this card is in the deck, an overlay on the deck's rules (as a legality's), for cards that change the limits of others. |
@@ -93,3 +96,8 @@ E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"ma
 Shinomen ("Your deck may include four copies of any non-unique Ratling card")
 `{"rules": {"ratling4": {"label": "Ratling (Depths of the Shinomen)", "check": "copies", "when": {"keywords": "^Ratling$"}, "max": 4}}}`.
 A Unique Ratling still stops at one: both `when` rules apply to it, and the lower max wins.
+Coastal Lane ("Your minimum Dynasty deck size is increased by two") `{"rules": {"dynasty": {"add": {"min": 2}}}}`;
+Hato-gurama ("Your minimum Fate deck size is decreased by one") `{"rules": {"fate": {"add": {"min": -1}}}}`: 40 → 42 /
+39, BigDeck 80 → 82 / 79, Modern 50 → 52 / 49, Imperial 30 → 32 / 29.
+A card's `rules` apply once per copy, so each copy's `add` counts (three Coastal Lanes: Dynasty minimum +6; the
+user, 2026-10-29).
