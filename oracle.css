@@ -15,6 +15,8 @@
   --link: #369;
   --border-warm: #d8d2c2;
   --surface-warm: #faf8f2;
+  --field-border: #c8c6c0;                /* text boxes and dropdowns */
+  --focus-ring: 0 0 0 2px rgba(224, 195, 90, 0.4);
 }
 
 body {
@@ -181,7 +183,7 @@ a.deckswipe > .foilmark.foilboth::before { color: #b04fd0; }
 
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
 div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
-div.searchinput dt { font-size: 11pt; font-weight: 600; }
+div.searchinput dt { font-size: 10pt; font-weight: 600; color: #444; width: 84px; line-height: 30px; }
 div.searchinput input[type=text] { 
   width: 105px;
 }
@@ -194,11 +196,32 @@ div.searchinput select {
 /* Chosen copies the select's on-screen width when it starts: 0px if the sidebar was hidden then (phone layout,
    split screen, browser zoom), or the wrong mode's width after the window crosses 768px. The width comes from here instead */
 div.searchinput .chosen-container {
-  width: 110px !important;
+  width: 100% !important;
 }
 div.searchinput { 
   position: relative;
 }
+/* the search form: every field the full width of its column, one height and border, labels level with them (no
+   colon), flat buttons with Search the one gold one. Not Chosen's own search box (inside .chosen-choices), hence dd > */
+div#sidebar div.searchinput { width: 100%; box-sizing: border-box; }
+div.searchinput dt:not(:empty)::after { content: none; }
+div.searchinput dd { margin-left: 92px; padding-bottom: 6px; font-size: 11pt; }
+div.searchinput dd > input[type=text] { width: 100%; height: 30px; box-sizing: border-box; padding: 3px 7px;
+  border: 1px solid var(--field-border); border-radius: 6px; background: #fff; font: inherit; font-size: 10.5pt; }
+div.searchinput dd > input.searchnumeric[type=text] { width: 44px; }
+div.searchinput dd > input[type=text]:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+div.searchinput .chosen-container-multi .chosen-choices, div.searchinput .chosen-container-single .chosen-single {
+  min-height: 30px; box-sizing: border-box; padding: 1px 4px; border: 1px solid var(--field-border); border-radius: 6px;
+  background: #fff; box-shadow: none; font-size: 10.5pt; }
+div.searchinput .chosen-container-active .chosen-choices, div.searchinput .chosen-container-active .chosen-single {
+  border-color: var(--accent); box-shadow: var(--focus-ring); }
+div.searchinput .button.gray { padding: 4px 10px; border: 1px solid var(--field-border); border-radius: 6px;
+  background: #fff; color: #333; font-size: 10.5pt; text-shadow: none; box-shadow: none; }
+div.searchinput .button.gray:hover { background: var(--surface-warm); border-color: #a9a69e; }
+div.searchinput .button.gray:active { background: #eeece6; }
+div.searchinput .button.gray .iyellow { color: inherit; }
+div.searchinput #dosearchbutton.button { background: var(--accent); border-color: #c4a53e; color: #222; }
+div.searchinput #dosearchbutton.button:hover { background: #e8cf72; }
 /*
 div.ui-layout-center { 
   float: left;
@@ -1899,11 +1922,11 @@ div#phonesearchbar .numresults {
   div#sidebar div.searchinput {
     float: none;
   }
-  div#sidebar div.searchinput input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
-    width: 60vw;
+  div#sidebar div.searchinput dd > input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
+    width: 100%;
   }
   div#sidebar div.searchinput .chosen-container {
-    width: 60vw !important;
+    width: 100% !important;
   }
   div[class^=result] .randarea, .modal-box {
     min-width: 0;
