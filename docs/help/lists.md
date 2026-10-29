@@ -91,7 +91,8 @@ Stronghold, no more than one of each kind of Pre-Game card, and at most three co
 - Some cards change their own limit ("You may include up to six copies of this card").
 
 A format can change the rules, and the deck's **Legality** picks which: Imperial needs only 30 Fate
-and 30 Dynasty cards; BigDeck needs 100 of each and allows one copy of any card. To change them for one
+and 30 Dynasty cards; BigDeck needs 100 of each and allows one copy of any card (a card that says you may include more
+keeps its own limit). To change them for one
 deck, open **Construction rules** at the top of the deck: change a number, untick a rule to drop
 it, or say which deck Sensei and Border Keep / Bamboo Harvesters go in for this deck. **Back to
 the legality's rules** clears your changes.
