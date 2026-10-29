@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-28
+Last updated: 2026-10-29 (deckconstruction)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -29,6 +29,9 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `suffix`, `prefix`, `concat`, `ddclass`. A field marked `show: "hidden"` on Fields drops out of
   every row by itself.
 - `search`: the search form's fields, in order (a field's search settings are on Fields).
+- `deckconstruction` (optional): the deck construction rules, each legality's changes to them, and the
+  choices a deck's owner can make (which deck Sensei go in). A deck's own pick beats `sort.pick` below.
+  Guide: [Deck construction rules](deck-construction.md).
 - `sort`: `{group, first}` for the deck sort; `headers`: the list headers (`["deck", "type"]`).
   `sort.pick` (optional) puts a card that has more than one value in a field under just one in lists:
   `{"<field>": {"rules": [["<regex>", "<value>"], ...], "default": "<value>"}}`. The first rule whose regex

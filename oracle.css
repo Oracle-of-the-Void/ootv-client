@@ -2241,6 +2241,17 @@ div.liststatslegal { margin: 4px 0 6px; }
 div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
 div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
+div.liststatsbuild { margin: 4px 0; color: #c00; font-weight: bold; }
+div.liststatsbuild a, div.liststatsbuild a:visited { color: #c00; }
+span.liststatsflag { color: #c00; font-weight: bold; }
+div.liststatsbuildok { color: #116b1c; font-weight: normal; }
+div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: rgba(255,255,255,0.92); color: #222; max-width: 34em; }
+div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }
+div.listbuild table { border-collapse: collapse; margin-bottom: 6px; }
+div.listbuild td, div.listbuild th { padding: 2px 6px 2px 0; text-align: left; vertical-align: middle; }
+div.listbuild td label { white-space: nowrap; margin-right: 8px; }
+div.listbuild input[type=number] { width: 4.5em; padding: 1px 3px; font-size: inherit; }
+div.listbuild select { font-size: inherit; max-width: 14em; }
 div.publicprecon, div.listprecon { color: #2a5d8a; font-weight: bold; }
 div.publicprecon svg.feather, div.listprecon svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
 #publicresults div.publiccard { cursor: pointer; }
