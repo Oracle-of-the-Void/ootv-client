@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-27 (Three Dynasties Comprehensive Rules draft; Onyx/ShE Comprehensive Rules draft; Ivory expansion rulesheets in the Ivory and 20F Comprehensive Rules)
+Last updated: 2026-10-29 (Warhammer 40,000 CCG Player's Handbooks; book option `ocr_threshold`)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -249,6 +249,10 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   browser prints whose text layer is gibberish); `{"pdf": "<file>"}` takes the text from another PDF
   with the same pages. `ocr_psm` sets tesseract's page segmentation mode (default 3); 4 (one column)
   fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
+- `ocr_threshold` (0–255): gray levels at or above it turn white before tesseract, for text printed over
+  shaded art. The WH40K CCG handbooks lost the start of most lines over their shaded margins without it;
+  80 fixed them (110 for Battle for Pandora Prime, whose print is lighter). Try a few values on one page
+  first (`tesseract` on the page's `_master` after the same threshold): too low drops thin letters.
 - `ligatures: "lost"`: the PDF's fonts give no text for the fi/ff/fl ligatures, so its text reads "battle eld",
   "e ect", "rst". The words are joined back in `text.json` and `lines/` where that makes a dictionary word
   (the 2017 print of the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
@@ -530,3 +534,15 @@ v2.0 (2000-06-07, Floor Rules: the three formats). The 2002 versions come from t
 (PDFs converted to HTML there, printed back page for page, so the cards' ruling links land on the right
 page); the rest from the Crow's Nest, alderac.com and rulespal.com (Wayback copies). Types and tags: proposed
 and approved by the user, 2026-10-27.
+
+## The Warhammer 40,000 CCG books (2026-10-29)
+
+The Warhammer 40,000 CCG (`wh40k`, a preview game), list `rulebooks/wh40k.json`, ids `wh40k-handbook-*`, a
+shelf of its own: the Collectible Card Game Player's Handbook of each set, which each hold the whole rules
+plus that set's card list. Battle for Pandora Prime 2001 (Complete, Base set), Coronis Campaign 2002, Battle
+for Delos 2002, Invasion: Verdicon 2002 (Complete) and Siege of Malogrim Hive 2003 (Complete, Last complete
+rules). From the community scan archive linked from ztcgvault.com (ootv-games `game-wh40k/gdrive-rules/`):
+four scans, OCR'd with `ocr_threshold`; Battle for Delos is Sabertooth's own PDF with its text, laid out as
+reader spreads, split into single pages by crop box (pypdf, `game-wh40k/rules/clean/`; ghostscript's
+re-write turned every space into a junk character). Uploaded for review 2026-10-29 ("upload them to look
+at", the user); types and tags proposed, not yet confirmed.
