@@ -339,8 +339,9 @@ div.listitem:nth-child(odd)>div {
 div.listitem:nth-child(even)>div, div.listitemplain>div {
   background-color: var(--panel);
 }
-/* a header row that's a listitem itself (the directory table's column titles) keeps the title bar, not a stripe */
-div.listitem:nth-child(n)>div.listheadmiddle {
+/* a header row that's a list row itself (the directory table's column titles, the simple list's type headers)
+   keeps the title bar, not a stripe */
+:is(div.listitem:nth-child(n), div.listitemplain)>:is(div.listhead, div.listheadxl, div.listheadplain, div.listheadmiddle) {
   background: var(--head-bg);
 }
 div.listitem:first-child>div, div[class^=result] div.randarea:first-child { 
@@ -2645,3 +2646,14 @@ span.dirillegal {
   color: #c00;
   font-weight: bold;
 }
+
+/* card peek (oracle.js cardpeekshow): a small card image at Detailed size, beside it on hover, or centered over a
+   backdrop after a long-press (a tap closes it) */
+#cardpeek { position: fixed; z-index: 1500; display: none; pointer-events: none; padding: 4px; background: var(--panel);
+  border: 1px solid var(--field-border); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+#cardpeek.cardpeekon { display: block; }
+#cardpeek img { display: block; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); border-radius: 7px; }
+#cardpeek.cardpeektouch { inset: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; pointer-events: auto;
+  background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
+#cardpeek.cardpeektouch.cardpeekon { display: flex; }
+#cardpeek.cardpeektouch img { max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }

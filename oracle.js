@@ -4544,6 +4544,8 @@ var gestureswitches = [
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
   ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"],
+  ['cardpeekmouse', 'Hover over a small card image or a Simple List title to see the card at Detailed size (mouse)'],
+  ['cardpeektouch', 'Long-press a small card image or a Simple List title to see the card at Detailed size (touch)'],
   ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)'],
   ['editswipetouch', "Swipe the card editor's Printing details sideways for the previous/next instance (touch)"]
 ];
@@ -6169,6 +6171,161 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 	e.preventDefault(); // Android's long-press menu would cover the label
     }
 });
+// Card peek: a card image drawn smaller than Detailed (search and list rows, the deck view's stacks, public decks,
+// a Detailed image shrunk to fit a phone) or a card title in the Simple List (search or list) shows its Detailed
+// image on hover (mouse), or on a long-press (touch) until the next tap. The Detailed file comes from the card's
+// printing (file names don't always say _select/_details).
+var cardpeek = {"urls": {}, "timer": null, "press": null, "touch": false};
+// the Detailed image URL for img (or a Simple List title), or null if it isn't a card image or already shows about that much
+function cardpeekurl(img) {
+    if(img.tagName == 'A') {
+	return cardpeektitleurl(img);
+    }
+    var base = dbinfo[database] && dbinfo[database].imageuri;
+    var src = img.src || '';   // resolved: some templates' src attributes start with blank lines
+    if(!base || src.indexOf(base) !== 0 || $(img).closest('#cardpeek, #modal').length) {
+	return null;
+    }
+    var rest = src.slice(base.length).split('?')[0], cut = rest.lastIndexOf('/');
+    var hash = decodeURIComponent(rest.slice(0,cut)), file = decodeURIComponent(rest.slice(cut+1));
+    if(!(src in cardpeek.urls)) {
+	cardpeek.urls[src] = cardpeekfind($(img).closest('[data-card],[data-cardid]'), hash, file);
+    }
+    var found = cardpeek.urls[src];
+    if(!found) {
+	return null;
+    }
+    // a Detailed or full-size file only when it's drawn well under Detailed's 600px long side
+    if(found.file != 'select' && Math.max(img.clientWidth, img.clientHeight) >= 480) {
+	return null;
+    }
+    return base + hash + '/' + found.details;
+}
+// a Simple List title (a.deckswipe with no image): the printing it names (data-printing), else the card's own choice
+function cardpeektitleurl(a) {
+    var data = searchcache[database] ? searchcache[database]['data'] : {};
+    var card = data[String($(a).data('card'))];
+    if(!card || !card.printingreverse || $(a).find('img').length) {
+	return null;
+    }
+    var pr = templatefetch(card, Number($(a).data('printing')) || false);
+    var front = printingimages(pr)[0];
+    return (front && front.details) ? dbinfo[database].imageuri + pr.imagehash + '/' + front.details : null;
+}
+// {file: which size img shows, details: the Detailed file}: from the card the image sits in, else any cached card
+function cardpeekfind(holder, hash, file) {
+    var data = searchcache[database] ? searchcache[database]['data'] : {};
+    var id = holder.length ? String(holder.data('card') || holder.data('cardid')) : '';
+    var cards = (id && data[id]) ? [data[id]] : Object.values(data);
+    for(var c = 0; c < cards.length; c++) {
+	var prints = (cards[c] && cards[c].printing) || [];
+	for(var p = 0; p < prints.length; p++) {
+	    if(prints[p].imagehash !== hash) {
+		continue;
+	    }
+	    var e = printingimages(prints[p]).find(function(e) { return ['select','details','master'].some(function(k) { return e[k] === file; }); });
+	    if(e && e.details) {
+		return {"file": ['select','details','master'].find(function(k) { return e[k] === file; }), "details": e.details};
+	    }
+	}
+    }
+    // not in the cache: the usual naming
+    return /_select\.[a-z]+$/i.test(file) ? {"file": 'select', "details": file.replace(/_select(\.[a-z]+)$/i, '_details$1')} : null;
+}
+// beside the image (mouse) or in the middle of the screen over a backdrop (touch)
+function cardpeekshow(img, url, touch) {
+    var peek = $('#cardpeek');
+    if(!peek.length) {
+	peek = $('<div id="cardpeek"><img alt=""></div>').appendTo('body');
+	peek.on('click', cardpeekhide);
+    }
+    var big = peek.find('img'), place = function() {
+	if(touch) {
+	    peek.css({left: '', top: ''});
+	    return;
+	}
+	var r = img.getBoundingClientRect(), w = peek.outerWidth(), h = peek.outerHeight(), gap = 8;
+	var left = (r.right + gap + w <= window.innerWidth) ? r.right + gap : Math.max(gap, r.left - gap - w);
+	var top = Math.min(Math.max(gap, r.top + r.height/2 - h/2), Math.max(gap, window.innerHeight - h - gap));
+	peek.css({left: left, top: top});
+    };
+    cardpeek.touch = touch;
+    peek.toggleClass('cardpeektouch', touch).removeClass('cardpeekon');
+    big.off('load error').on('load', function() { place(); peek.addClass('cardpeekon'); }).on('error', cardpeekhide);
+    big.attr('src', url);
+    if(big[0].complete && big[0].naturalWidth) {
+	place();
+	peek.addClass('cardpeekon');
+    }
+}
+function cardpeekhide() {
+    clearTimeout(cardpeek.timer);
+    cardpeek.touch = false;
+    $('#cardpeek').removeClass('cardpeekon cardpeektouch').find('img').off('load error');
+}
+$(document).on('mouseenter', 'img, a.deckswipe', function() {
+    if(lastpointertype != 'mouse' || !gestureon('cardpeekmouse')) {
+	return;
+    }
+    // an image's link gets this after the image, so a link with nothing to show mustn't cancel the image's peek
+    var img = this, url = cardpeekurl(img);
+    if(url) {
+	clearTimeout(cardpeek.timer);
+	cardpeek.timer = setTimeout(function() { cardpeekshow(img, url, false); }, 250);
+    }
+});
+$(document).on('mouseleave', 'img, a.deckswipe', function() {
+    if(!cardpeek.touch) {
+	cardpeekhide();
+    }
+});
+// a click-drag swipe or scrolling moves the card away from under the peek
+document.addEventListener('mousedown', function() { if(!cardpeek.touch) { cardpeekhide(); } }, true);
+window.addEventListener('scroll', function() { if(!cardpeek.touch) { cardpeekhide(); } }, true);
+document.addEventListener('pointerdown', function(e) {
+    var img = e.target.tagName == 'IMG' ? e.target : $(e.target).closest('a.deckswipe')[0];
+    if(e.pointerType == 'mouse' || !img || !gestureon('cardpeektouch')) {
+	return;
+    }
+    var url = cardpeekurl(img);
+    if(!url) {
+	return;
+    }
+    img.style.webkitTouchCallout = 'none';   // iOS's image menu
+    cardpeek.press = {"x": e.clientX, "y": e.clientY, "timer": setTimeout(function() {
+	cardpeek.press.shown = true;
+	cardpeekshow(img, url, true);
+    }, 500)};
+});
+document.addEventListener('pointermove', function(e) {
+    // moving the finger is a scroll or a swipe, not a press
+    if(cardpeek.press && !cardpeek.press.shown && Math.hypot(e.clientX-cardpeek.press.x, e.clientY-cardpeek.press.y) > 10) {
+	clearTimeout(cardpeek.press.timer);
+	cardpeek.press = null;
+    }
+});
+document.addEventListener('pointercancel', function() {
+    if(cardpeek.press) {
+	clearTimeout(cardpeek.press.timer);
+	cardpeek.press = null;
+    }
+});
+// the release after a peek isn't a tap on the card (no swipe, no click through to the card view)
+document.addEventListener('touchend', function(e) {
+    if(cardpeek.press) {
+	clearTimeout(cardpeek.press.timer);
+	if(cardpeek.press.shown && e.cancelable) {
+	    e.preventDefault();
+	    deckswipe = null;
+	}
+	cardpeek.press = null;
+    }
+}, {passive: false, capture: true});
+document.addEventListener('contextmenu', function(e) {
+    if(cardpeek.press || cardpeek.touch) {
+	e.preventDefault();   // Android's long-press image menu would cover it
+    }
+}, true);
 // Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
 // swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
 // (swipedefaults: search right +1, left -1, up-right +3; deck/list right +1, left -1, up-right +2; both
