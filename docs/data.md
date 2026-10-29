@@ -117,6 +117,11 @@ What each field holds is also kept on the site, for the card editor: Admin → F
 * needsreview (optional, every game, array of strings): open questions about the card, one plain-text
   reason per entry, shown only to that game's maintainers and searchable with Advanced → Needs review.
   Remove it with its x in the card editor (or `null` in the JSON view). See `docs/admin/needsreview.md`.
+* variablevalues (optional, every game, map of field → array of strings, since 2026-10-28): for a
+  numeric field whose printed value is variable (`*`, `X`, `2*`), the values the card can really have,
+  from its text: `{"cost": ["0-6"]}` (a range), `["2", "0"]` (either), `["1+"]` (1 or more, open-ended).
+  Min/max search uses it instead of the printed value's rule (`*`/`X` = 0 up, `2*` = 2, `+5/+0` = 5 or 0;
+  `docs/admin/field-descriptions.md`). The printed field stays as printed.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
