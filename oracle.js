@@ -3415,7 +3415,7 @@ function listheader(listid) {
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
-	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid),
+	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "deckbuild": !!deckbuildconfig(),
 	"loggedin": listloggedin(), "database": database});
 }
 // moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
@@ -3696,6 +3696,7 @@ function liststats(listdata,listid=null) {
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
+	"buildhtml": (meta.type == 'deck' || !meta.type) ? deckbuildhtml(deckbuildcheck(cards, meta, deckkey)) : '',
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
 	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
@@ -3729,6 +3730,268 @@ function liststatslegal() {
 	    success: function(r) { liststatslegalcache[key] = r; show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
+}
+// ***********************  deck construction rules **************
+// A soft check shown in the stats block (docs/admin/deck-construction.md). The game's rules are game config
+// deckconstruction.rules; deckconstruction.legality[<legality>] overlays them rule by rule for decks of that
+// legality, then the deck's own deckconstruction field (a JSON string: {rules, pick}) overlays again. In an
+// overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
+// limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]}.
+// Rule checks:
+//   size     copies in deck (min/max)
+//   type     copies of type in deck (min/max)
+//   pertype  copies of each type in deck, less except[] (max)
+//   copies   copies of one card (identity below) across decks (default: config decks); a rule with when
+//            ({field: regex}, any card of the identity matching) beats one without; between several, the lower max
+// A card's identity is its title, less a trailing "(Emperor)"-style suffix, at its experience level
+// (Experienced, Experienced 2, Inexperienced in keywords; an experienced "Name, epithet" counts as Name), or the
+// card a "Soul of Name [Experienced n]" keyword names, at that level.
+function deckbuildconfig() {
+    return ((gameconfig[database] || {}).game || {}).deckconstruction || null;
+}
+function deckbuildplain(v) {
+    return String(v === undefined || v === null ? '' : v).replace(/<[^>]*>/g,'').replace(/&nbsp;| /g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+}
+function deckbuildlistoverlay(meta) {
+    var v = (meta || {}).deckconstruction;
+    if(typeof v === 'string') {
+	try { v = v ? JSON.parse(v) : {}; } catch(e) { v = {}; }
+    }
+    return v && typeof v === 'object' ? v : {};
+}
+function deckbuildoverlay(rules, over) {
+    Object.keys(over || {}).forEach(function(id) {
+	if(over[id] === null) {
+	    delete rules[id];
+	} else if(typeof over[id] === 'object') {
+	    rules[id] = $.extend({}, rules[id] || {}, over[id]);
+	}
+    });
+    return rules;
+}
+// the rules for a deck: {rules, decks, source: [where they came from]}; layer 'legality' stops before the deck's own
+function deckbuildrules(meta, layer) {
+    var conf = deckbuildconfig();
+    if(!conf || !conf.rules) {
+	return null;
+    }
+    var rules = deckbuildoverlay({}, conf.rules), source = ['game'];
+    var legality = deckbuildplain((meta || {}).legality);
+    if(legality && conf.legality) {
+	Object.keys(conf.legality).forEach(function(k) {
+	    if(deckbuildplain(k) == legality) {
+		deckbuildoverlay(rules, conf.legality[k]);
+		source.push(legality);
+	    }
+	});
+    }
+    if(layer != 'legality') {
+	var own = deckbuildlistoverlay(meta).rules;
+	if(own && Object.keys(own).length) {
+	    deckbuildoverlay(rules, own);
+	    source.push('deck');
+	}
+    }
+    return {"rules": rules, "decks": conf.decks || null, "source": source};
+}
+function deckbuildcardconf(card) {
+    var v = card.deckconstruction;
+    if(typeof v === 'string') {
+	try { v = JSON.parse(v); } catch(e) { v = null; }
+    }
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+}
+function deckbuildidentity(card) {
+    var kws = [].concat(card.keywords || []).map(deckbuildplain);
+    var level = '', name = null;
+    kws.forEach(function(k) {
+	var soul = k.match(/^Soul of (.+?)(?:\s+((?:In)?[Ee]xperienced(?:\s+\d+(?:\.\d+)?[A-Z]*)?))?$/);
+	if(soul) {
+	    name = soul[1];
+	    level = soul[2] ? soul[2].replace(/^e/,'E') : '';
+	    return;
+	}
+	var exp = name === null ? k.match(/^((?:In)?[Ee]xperienced(?:\s+\d+(?:\.\d+)?[A-Z]*)?)(?:\s+(.+))?$/) : null;
+	if(exp) {
+	    level = exp[1];
+	    if(exp[2]) { name = exp[2]; }
+	}
+    });
+    var title = deckbuildplain([].concat(card.title || [])[0]).replace(/\s*\([^()]*\)$/,'');
+    var countsas = deckbuildcardconf(card).countsas;
+    if(countsas) {
+	name = deckbuildplain(countsas);
+    }
+    if(name === null) {
+	name = level ? title.replace(/\s*(,|•).*$/,'') || title : title;
+    }
+    return {"key": name.toLowerCase()+'\u0000'+level.toLowerCase(), "name": name+(level ? ' ('+level+')' : '')};
+}
+// what breaks: [{rule, label, text}], or null when the game has no rules
+function deckbuildcheck(cards, meta, deckkey) {
+    var set = deckbuildrules(meta);
+    if(!set) {
+	return null;
+    }
+    var types = function(c) { return [].concat(c.card.type || []).map(deckbuildplain).filter(function(t) { return t && t != 'Proxy'; }); };
+    var skips = function(c, id) { return [].concat(deckbuildcardconf(c.card).skip || []).indexOf(id) >= 0; };
+    var test = function(when, c) {
+	return Object.keys(when || {}).every(function(f) {
+	    var re;
+	    try { re = new RegExp(when[f]); } catch(e) { console.log("deckconstruction: bad regex "+when[f]); return false; }
+	    return [].concat(c.card[f] === undefined || c.card[f] === null ? [] : c.card[f]).some(function(v) { return re.test(deckbuildplain(v)); });
+	});
+    };
+    var count = function(list) { return list.reduce(function(n,c) { return n + c.qty; }, 0); };
+    var range = function(n, r) { return (r.min !== undefined && r.min !== null && n < r.min) ? 'min '+r.min : ((r.max !== undefined && r.max !== null && n > r.max) ? 'max '+r.max : ''); };
+    var out = [];
+    var ids = Object.keys(set.rules).sort(function(a,b) { return (set.rules[a].order || 0) - (set.rules[b].order || 0) || a.localeCompare(b); });
+    var copyrules = [];
+    ids.forEach(function(id) {
+	var r = set.rules[id], label = r.label || id;
+	var indeck = cards.filter(function(c) { return !skips(c, id) && (!r.deck || deckkey(c) == r.deck); });
+	if(r.check == 'size') {
+	    var bad = range(count(indeck), r);
+	    if(bad) { out.push({"rule": id, "label": label, "text": count(indeck)+' card'+(count(indeck)==1?'':'s')+' ('+bad+')'}); }
+	} else if(r.check == 'type') {
+	    var n = count(indeck.filter(function(c) { return types(c).indexOf(r.type) >= 0; }));
+	    var bad = range(n, r);
+	    if(bad) { out.push({"rule": id, "label": label, "text": n+' '+r.type+(n==1?'':'s')+' ('+bad+')'}); }
+	} else if(r.check == 'pertype') {
+	    var per = {};
+	    indeck.forEach(function(c) { types(c).forEach(function(t) { if((r.except || []).indexOf(t) < 0) { per[t] = (per[t] || 0) + c.qty; } }); });
+	    Object.keys(per).sort().forEach(function(t) {
+		var bad = range(per[t], r);
+		if(bad) { out.push({"rule": id, "label": label, "text": per[t]+' '+t+(per[t]==1?'':'s')+' ('+bad+')'}); }
+	    });
+	} else if(r.check == 'copies') {
+	    copyrules.push(id);
+	}
+    });
+    if(copyrules.length) {
+	var groups = {}, order = [];
+	cards.forEach(function(c) {
+	    var id = deckbuildidentity(c.card);
+	    if(!groups[id.key]) {
+		groups[id.key] = {"name": id.name, "cards": []};
+		order.push(id.key);
+	    }
+	    groups[id.key].cards.push(c);
+	});
+	order.forEach(function(k) {
+	    var g = groups[k], best = null;
+	    copyrules.forEach(function(id) {
+		var r = set.rules[id], decks = r.decks || set.decks;
+		var counted = g.cards.filter(function(c) { return !skips(c, id) && (!decks || decks.indexOf(deckkey(c)) >= 0); });
+		if(!counted.length || (r.when && !counted.some(function(c) { return test(r.when, c); }))) { return; }
+		var cand = {"id": id, "r": r, "cards": counted, "specific": !!r.when};
+		if(!best || (cand.specific && !best.specific) || (cand.specific == best.specific && (r.max === null || r.max === undefined ? Infinity : r.max) < (best.r.max === null || best.r.max === undefined ? Infinity : best.r.max))) {
+		    best = cand;
+		}
+	    });
+	    if(!best) { return; }
+	    var max = best.r.max;
+	    best.cards.forEach(function(c) {
+		var cc = deckbuildcardconf(c.card);
+		if(cc.hasOwnProperty('max')) { max = cc.max; }
+	    });
+	    var n = count(best.cards);
+	    if(max !== null && max !== undefined && n > max) {
+		out.push({"rule": best.id, "label": best.r.label || best.id, "text": g.name+': '+n+' copies (max '+max+')',
+			  "cardid": best.cards[0].card.cardid});
+	    }
+	});
+    }
+    return {"problems": out, "source": set.source};
+}
+function deckbuildhtml(r) {
+    if(!r) {
+	return '';
+    }
+    var from = 'Rules: '+r.source.map(function(s) { return s == 'game' ? 'the game\'s' : (s == 'deck' ? 'this deck\'s own' : s); }).join(' + ');
+    if(!r.problems.length) {
+	return '<div class="liststatsbuild liststatsbuildok" title="'+htmlEncode(from)+'">Deck construction: meets the rules</div>';
+    }
+    return '<div class="liststatsbuild" title="'+htmlEncode(from)+'">Deck construction: '+r.problems.map(function(p) {
+	var text = htmlEncode(p.text);
+	if(p.cardid) {
+	    text = '<a href="#game='+database+',#cardid='+parseInt(p.cardid)+'">'+text+'</a>';
+	}
+	return '<span class="liststatsbuildrule">'+htmlEncode(p.label)+': '+text+'</span>';
+    }).join('; ')+'</div>';
+}
+// the deck's own rules, in its header (owner only): each rule as its legality sets it, with the deck's change
+// filled in; a box switches a rule off for this deck. Then the game's choices (Sensei in Pre-Game or Fate, ...).
+// Saved as the list's deckconstruction field, only what differs from the legality's rules.
+function listbuildtoggle(el, listid) {
+    var panel = $(el).closest('.listviewheader').find('.listbuild');
+    if(panel.length) {
+	panel.remove();
+	return;
+    }
+    var html = listbuildform(listid);
+    $(el).closest('.listviewdetails').after(html || '<div class="listbuild">This game has no deck construction rules yet.</div>');
+}
+function listbuildform(listid) {
+    var list = cache_thing("list",listid), meta = list && list.list ? list.list.Items[0] || {} : {};
+    var base = deckbuildrules(meta, 'legality'), conf = deckbuildconfig() || {};
+    if(!base) {
+	return '';
+    }
+    var own = deckbuildlistoverlay(meta), ownrules = own.rules || {}, ownpick = own.pick || {};
+    var all = $.extend({}, base.rules);
+    Object.keys(ownrules).forEach(function(id) { if(!all[id] && conf.rules && conf.rules[id]) { all[id] = conf.rules[id]; } });
+    var ids = Object.keys(all).sort(function(a,b) { return (all[a].order || 0) - (all[b].order || 0) || a.localeCompare(b); });
+    var num = function(id, part, r) {
+	var o = ownrules[id] || {}, v = o.hasOwnProperty(part) ? o[part] : r[part];
+	return '<label>'+part+' <input type="number" min="0" step="1" data-rule="'+htmlEncode(id)+'" data-part="'+part+'" data-base="'+(r[part] === null || r[part] === undefined ? '' : r[part])+'" value="'+(v === null || v === undefined ? '' : v)+'"></label>';
+    };
+    var rows = ids.map(function(id) {
+	var r = all[id], on = base.rules[id] ? ownrules[id] !== null : !!ownrules[id];
+	var parts = r.check == 'size' || r.check == 'type' ? ['min','max'] : ['max'];
+	return '<tr><td><label><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="on" data-base="'+(base.rules[id] ? 1 : 0)+'"'+(on ? ' checked' : '')+'> '+htmlEncode(r.label || id)+'</label></td><td>'+
+	    parts.map(function(p) { return num(id, p, base.rules[id] || r); }).join(' ')+'</td></tr>';
+    });
+    var picks = Object.keys(conf.choices || {}).map(function(id) {
+	var ch = conf.choices[id];
+	return '<tr><td>'+htmlEncode(ch.label || id)+'</td><td><select data-pick="'+htmlEncode(id)+'"><option value="">As the legality decides</option>'+
+	    (ch.values || []).map(function(v) { return '<option value="'+htmlEncode(v)+'"'+(ownpick[id] == v ? ' selected' : '')+'>'+htmlEncode(v)+'</option>'; }).join('')+'</select></td></tr>';
+    });
+    var legality = deckbuildplain(meta.legality);
+    return '<div class="listbuild" data-list="'+htmlEncode(listid)+'"><div class="listbuildhead">Deck construction rules for this deck'+
+	(legality ? ' (starting from '+htmlEncode(legality)+')' : ' (the game\'s rules; choose a legality to start from its rules)')+
+	' <span class="helpq" data-help="lists#construction" aria-label="Help: deck construction rules">?</span></div>'+
+	'<table>'+rows.join('')+(picks.length ? '<tr><th colspan="2">Which deck these cards go in</th></tr>'+picks.join('') : '')+'</table>'+
+	'<button type="button" class="button gray buttonsmaller" onclick="listbuildsave(this); return false;">Save</button> '+
+	'<button type="button" class="button gray buttonsmaller" onclick="listbuildsave(this, true); return false;">Back to the legality\'s rules</button></div>';
+}
+function listbuildsave(el, reset) {
+    var panel = $(el).closest('.listbuild'), listid = panel.attr('data-list');
+    var rules = {}, pick = {};
+    if(!reset) {
+	panel.find('input[data-part=on]').each(function() {
+	    var id = $(this).attr('data-rule'), on = this.checked, was = $(this).attr('data-base') == '1';
+	    if(!on && was) {
+		rules[id] = null;
+		return;
+	    }
+	    if(!on) { return; }
+	    var change = {};
+	    panel.find('input[type=number]').filter(function() { return $(this).attr('data-rule') == id; }).each(function() {
+		var v = $(this).val() === '' ? null : parseInt($(this).val());
+		var b = $(this).attr('data-base') === '' ? null : parseInt($(this).attr('data-base'));
+		if(v !== b || !was) { change[$(this).attr('data-part')] = v; }
+	    });
+	    if(Object.keys(change).length) { rules[id] = change; }
+	});
+	panel.find('select[data-pick]').each(function() {
+	    if($(this).val()) { pick[$(this).attr('data-pick')] = $(this).val(); }
+	});
+    }
+    var out = {};
+    if(Object.keys(rules).length) { out.rules = rules; }
+    if(Object.keys(pick).length) { out.pick = pick; }
+    listinfoupdate(listid, 'deckconstruction', Object.keys(out).length ? JSON.stringify(out) : '');
 }
 // keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
 // hides, and so does a deck with none left
@@ -6783,10 +7046,34 @@ function gamepicklist(listdata, listid) {
     }
     return arcs[plain(set)];
   };
+  // the deck's own choices (deckconstruction pick: {<choice id>: value}) beat the rules below; the choices are
+  // game config deckconstruction.choices: {label, field, when: {field: regex}, values}
+  var choices = (deckbuildconfig() || {}).choices || {}, chosen = deckbuildlistoverlay(meta).pick || {};
+  var chosenfor = function(c) {
+    var out = {};
+    Object.keys(chosen).forEach(function(id) {
+      var ch = choices[id];
+      if(!ch || !ch.field || (ch.values || []).indexOf(chosen[id]) < 0 || out[ch.field]) { return; }
+      var hit = Object.keys(ch.when || {}).every(function(w) {
+        var re;
+        try { re = new RegExp(ch.when[w]); } catch(e) { console.log("deckconstruction: bad regex "+ch.when[w]); return false; }
+        return [].concat(c[w] === undefined || c[w] === null ? [] : c[w]).some(function(v) { return re.test(deckbuildplain(v)); });
+      });
+      if(hit) { out[ch.field] = chosen[id]; }
+    });
+    return out;
+  };
   listdata.forEach(function(c) {
     delete c.listpick;
-    if(!pick || !(c.cardid > 0)) { return; }
+    if(!(c.cardid > 0)) { return; }
+    var own = chosenfor(c);
+    Object.keys(own).forEach(function(f) {
+      c.listpick = c.listpick || {};
+      c.listpick[f] = [own[f]];
+    });
+    if(!pick) { return; }
     Object.keys(pick).forEach(function(f) {
+      if(own[f]) { return; }
       var vals = [].concat(c[f] === undefined || c[f] === null ? [] : c[f]), p = pick[f] || {};
       var test = function(re, v) {
         try { return new RegExp(re).test(plain(v)); } catch(e) { console.log("sort.pick: bad regex "+re); return false; }
