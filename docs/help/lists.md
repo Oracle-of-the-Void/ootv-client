@@ -73,7 +73,8 @@ Under the list's name is its card count; an L5R deck's starts with its Dynasty/F
 (`40/40 - 81 total (52 distinct)`). Open it for the details (it starts open, closed on a
 phone, and stays the way you last left it): how many cards of each type
 are in each deck, their share of the deck, and averages of the cards' numbers (cost, force and
-so on). Below that, each keyword in the deck and how many of your other cards mention it.
+so on). The shares leave out Pre-Game, cards with no deck and Proxy cards, so an L5R deck's Dynasty and
+Fate are each a share of Dynasty + Fate. Below that, each keyword in the deck and how many of your other cards mention it.
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. Proxy cards
