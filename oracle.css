@@ -1,4 +1,19 @@
+/* the site's fonts and shared colors: change them here, not in the rules below.
+   UI = every control, label and running text; display = the game's flavor font, only for card, list and section names */
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "L5R Title", Georgia, serif;
+  --panel: rgba(255, 255, 255, 0.9);      /* the white panels over the background art */
+  --accent: #e0c35a;                      /* gold: section underlines, focus rings */
+  --button-text: #ffd73a;                 /* yellow text on the gray buttons */
+  --rule: #69c;                           /* blue left bars (rulings, help) and dotted trait links */
+  --link: #369;
+  --border-warm: #d8d2c2;
+  --surface-warm: #faf8f2;
+}
+
 body {
+  font-family: var(--font-ui);
   background: #dadada;
   background-image:url('res/background-oracle.jpg'); 
   background-repeat:no-repeat;
@@ -55,14 +70,14 @@ div#cardupdatesection {
 }
 /* rulings on a card: one per line; their links open in a popup (rulingpopup) */
 dd.rulings div {
-  border-left: solid #69c 3px;
+  border-left: solid var(--rule) 3px;
   padding-left: 4px;
   margin-bottom: 2px;
 }
 /* rulingsfold: the first 3 shown, the rest behind "Show N more"; the arrow by the label folds them all away */
 dd.rulings.rulingssome > div:nth-of-type(n+4), dd.rulings.rulingsnone > div, dd.rulings.rulingsnone .rulingsmore,
 dd.rulings:not(.rulingsnone) .rulingsopen { display: none; }
-dd.rulings .rulingsmore, dd.rulings .rulingsopen, dt .rulingsfoldbtn { cursor: pointer; color: #369; }
+dd.rulings .rulingsmore, dd.rulings .rulingsopen, dt .rulingsfoldbtn { cursor: pointer; color: var(--link); }
 dd.rulings .rulingsmore, dd.rulings .rulingsopen { display: inline-block; padding-left: 7px; font-size: 90%; text-decoration: underline; }
 dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-align: center; user-select: none; }
 #modal.rulingmodal .modal-box { width: 900px; max-width: 95vw; min-width: 0; margin-top: 2%; }
@@ -72,7 +87,7 @@ dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-
 #modal.artistmodal .artistlinks li { margin: 6px 0; }
 #modal.artistmodal .artisthost { color: #777; font-size: 0.85em; }
 /* search by photo (artphoto.js): the matched card above the results, and the corner editor */
-.artphotopanel { display: flex; align-items: center; gap: 16px; padding: 8px 12px; margin: 4px 4px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.9); color: #000; }
+.artphotopanel { display: flex; align-items: center; gap: 16px; padding: 8px 12px; margin: 4px 4px 8px; border-radius: 6px; background: var(--panel); color: #000; }
 .artphotopreview { max-height: 160px; max-width: 40%; border-radius: 4px; }
 .artphotorot90 { transform: rotate(90deg); margin: 0 24px; }
 .artphotorot180 { transform: rotate(180deg); }
@@ -95,15 +110,15 @@ dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-
 #modal.rulingmodal iframe.rulingview { width: 100%; height: 75vh; border: 0; }
 /* trait links (traitsmark): a book after a keyword, a dotted line under a trait named in the text, the rule on hover */
 #resultcard .traitbook { cursor: pointer; font-size: 85%; }
-#resultcard .traitword { cursor: pointer; border-bottom: dotted #69c 1px; }
-#traitpop { display: none; position: fixed; z-index: 100000; box-sizing: border-box; background: #fff; color: #000; border: solid #69c 1px;
+#resultcard .traitword { cursor: pointer; border-bottom: dotted var(--rule) 1px; }
+#traitpop { display: none; position: fixed; z-index: 100000; box-sizing: border-box; background: #fff; color: #000; border: solid var(--rule) 1px;
   border-radius: 4px; padding: 6px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25); font-size: 90%; pointer-events: none; }
 #traitpop .traitpophead { font-weight: bold; margin-bottom: 4px; }
-#traitpop .traitpopbook { border-left: solid #69c 3px; padding-left: 4px; margin-bottom: 6px; }
+#traitpop .traitpopbook { border-left: solid var(--rule) 3px; padding-left: 4px; margin-bottom: 6px; }
 #traitpop .traitpopfoot, .traitwhy { color: #666; font-size: 90%; }
 .traitfan { color: #a50; border: solid #a50 1px; border-radius: 3px; padding: 0 3px; font-size: 80%; font-weight: normal; white-space: nowrap; }
 .traitprint { color: #fff; background: #2a6e3f; border-radius: 3px; padding: 0 4px; font-size: 85%; font-weight: bold; white-space: nowrap; }
-.traitchoice { border-left: solid #69c 3px; padding-left: 6px; margin-bottom: 8px; }
+.traitchoice { border-left: solid var(--rule) 3px; padding-left: 6px; margin-bottom: 8px; }
 /* touch (a long-press): it takes taps, scrolls when long, and has finger-sized Open and Close buttons */
 #traitpop.traitpoptouch { pointer-events: auto; max-height: 88vh; overflow-y: auto; font-size: 100%; padding: 10px 10px 0; }
 #traitpop.traitpoptouch .traitpopopen, #traitpop.traitpoptouch .traitpopclose { display: block; text-align: center;
@@ -112,7 +127,7 @@ dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-
 /* Rules Q&A on a card (rulingrefs): a button with the count; the list in the modal, each answer clickable */
 dd.rulingrefs .rulingrefbutton svg.feather { width: 14px; height: 14px; vertical-align: -2px; }
 #modal.rulingrefmodal .rulingreflist { max-height: 75vh; overflow: auto; text-align: left; }
-#modal.rulingrefmodal .rulingref { border-left: solid #69c 3px; padding: 6px 8px; margin-bottom: 6px; cursor: pointer; }
+#modal.rulingrefmodal .rulingref { border-left: solid var(--rule) 3px; padding: 6px 8px; margin-bottom: 6px; cursor: pointer; }
 #modal.rulingrefmodal .rulingref:hover { background: rgba(102,153,204,0.12); }
 #modal.rulingrefmodal .rulingref a { display: block; margin-top: 2px; font-size: 90%; }
 /* needsreview notes on a card (maintainers only): one reason per line */
@@ -151,6 +166,7 @@ a.deckswipe > .foilmark.foilboth::before { color: #b04fd0; }
 
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
 div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
+div.searchinput dt { font-size: 11pt; font-weight: 600; }
 div.searchinput input[type=text] { 
   width: 105px;
 }
@@ -179,13 +195,13 @@ div.helloplace { text-align: center; max-width: 750px; display: inline-block;}
 div.infoplace {  max-width: 750px; display: inline-block; text-align: left;}
 
 div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchinput {
-  font-family: "L5R Title","Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
   text-align: center;
-  font-size: 16pt;
+  font-size: 13pt;
 /*   color: red; */
   display: inline-block;
   background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
   padding: 4px;
 
   -moz-border-radius: 7px;
@@ -196,7 +212,7 @@ div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchi
 
 div.menubar {
   background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
   width: 100%;
   height: 31px; 
   display: inline-block;
@@ -220,11 +236,11 @@ span#loginfo:not(:empty)::after, .pullmenu::after {
 }
 
 div.randarea {
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 
   display: inline-block;
   background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
 /*  padding: 4px; */
 
   -moz-border-radius: 7px;
@@ -253,7 +269,7 @@ select.listselect {
 div.listitem, div.listitemplain {
   width: 100%;
   display: table-row;
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 }
 
 div.listimage, div.listmiddle, div.listheadmiddle {
@@ -280,7 +296,7 @@ div.listitem:nth-child(odd)>div {
 }
 div.listitem:nth-child(even)>div, div.listitemplain>div {
   background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
 }
 div.listitem:first-child>div, div[class^=result] div.randarea:first-child { 
    -moz-border-radius-topleft: 0px;  -webkit-border-top-left-radius: 0px;  -khtml-border-top-left-radius: 0px;  border-top-left-radius: 0px;
@@ -319,7 +335,7 @@ div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmidd
   background-color: rgba(39, 39, 39, 0.9);  */
   font-size: large;
   border-top: none;
-  font-family: "L5R Title";
+  font-family: var(--font-display);
   padding: 2px;
 }
 
@@ -340,9 +356,9 @@ div.directorycards {
 div.directorycard {
     display: flex;
     flex-direction: column;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel);
     border-radius: 7px;
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
 }
 div.directorycard .dircardhead {
     display: flex;
@@ -357,7 +373,7 @@ div.directorycard .dircardhead {
 div.directorycard .dircardname {
     flex: 1;
     min-width: 0;
-    font-family: "L5R Title";
+    font-family: var(--font-display);
     font-size: large;
     overflow-wrap: anywhere;
 }
@@ -396,7 +412,7 @@ div.directorycard.dircardnew {
     align-self: start;
     min-height: 60px;
     cursor: pointer;
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: large;
     color: #1aa329;
     border: 2px dashed #1aa329;
@@ -424,7 +440,7 @@ span.dirnewbuttons {
 }
 button.dirnewlist {
     height: auto;
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: medium;
     white-space: nowrap;
 }
@@ -468,7 +484,7 @@ div.dirfolderrow div.dirfolderactions > span {
 a.dirfolderopen, a.dirfolderopen:visited {
     color: #222;
     text-decoration: none;
-    font-family: "L5R Title";
+    font-family: var(--font-display);
     font-size: large;
 }
 a.dirfolderopen:hover {
@@ -478,7 +494,7 @@ a.dirfolderopen svg.feather, div.dirpathbar svg.feather {
     vertical-align: middle;
 }
 a.dirfolderopen small {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: small;
     color: #444;
 }
@@ -526,9 +542,9 @@ div.dirfoldertop a.dirfolderopen > svg.feather {
 div.dirpathbar {
     padding: 4px 8px;
     margin-bottom: 4px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--panel);
     border-radius: 7px;
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: large;
 }
 div.dirpathbar a, div.dirpathbar a:visited {
@@ -564,7 +580,7 @@ div.dirdragghost {
     border: 3px solid #777;
     border-radius: 10px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: x-large;
 }
 div.dirdragghost .dirghostname {
@@ -578,7 +594,7 @@ div.dirdragghost .dirghostname svg.feather {
     vertical-align: -0.15em;
 }
 div.dirdragghost .dirghosttarget {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: large;
     color: #666;
     overflow: hidden;
@@ -645,14 +661,14 @@ div.helplinks {
 }
 /* help pages (help.js): the topic list, the topic, and the "?" next to a control (hover: its section in #traitpop) */
 div.helpnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
-div.helpnav a { padding: 4px 10px; border: solid #69c 1px; border-radius: 14px; text-decoration: none; }
-div.helpnav a.helpnavactive { background: #69c; color: #fff; }
+div.helpnav a { padding: 4px 10px; border: solid var(--rule) 1px; border-radius: 14px; text-decoration: none; }
+div.helpnav a.helpnavactive { background: var(--rule); color: #fff; }
 div.helpdoc { line-height: 1.45; }
 div.helpdoc h2, div.helpdoc h3 { scroll-margin-top: 8px; }
 div.helptoc { display: inline-block; border: solid #ccc 1px; border-radius: 4px; padding: 4px 16px 4px 0; margin-bottom: 8px; }
 div.helptoc ul { margin: 2px 0; padding-left: 22px; }
 div.helptoc ul ul { font-size: 92%; }
-div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
+div.helpdoc .helpsecactive { border-left: solid var(--rule) 4px; padding-left: 6px; }
 div.helpdoc table { border-collapse: collapse; margin: 6px 0; }
 div.helpdoc th, div.helpdoc td { border-bottom: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: middle; }
 div.helpdoc td img { display: block; max-width: 100%; border-radius: 3px; margin: 2px 0; }
@@ -661,7 +677,7 @@ div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
 dl.helpfields dd { margin-left: 16px; }
-.helpq { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #369; vertical-align: super;
+.helpq { font-family: var(--font-ui); font-size: 11px; font-weight: bold; color: var(--link); vertical-align: super;
   line-height: 1; margin-left: 2px;
   cursor: help; user-select: none; }
 /* a label with a "?" (dt::after adds its colon): the colon first, then the "?" */
@@ -680,7 +696,7 @@ div.listviewheader .listviewname {
     margin-right: .5em;
 }
 div.listviewheader .listviewdetails, div.listviewheader .listviewnotes {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: medium;
 }
 /* the user's own list: the directory's controls */
@@ -695,7 +711,7 @@ div.listviewheader .listviewtitle .listviewname {
 }
 /* created / modified, small beside the name */
 div.listviewheader .listviewtitle .listviewdates {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: small;
     margin-left: .5em;
 }
@@ -777,9 +793,9 @@ div.listviewheader div.listviewsource {
 details.liststats {
     margin: 4px 0 8px;
     padding: 4px 6px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel);
     border-radius: 7px;
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
 }
 details.liststatskw {
     margin-top: 6px;
@@ -859,8 +875,8 @@ div.listtablewrap {
 }
 table.listtable {
     border-collapse: collapse;
-    background-color: rgba(255, 255, 255, 0.9);
-    font-family: "Times New Roman",Georgia,Serif;
+    background-color: var(--panel);
+    font-family: var(--font-ui);
     border-radius: 7px;
     overflow: hidden;
 }
@@ -881,7 +897,7 @@ table.listtable tr.listtabledeck th, table.listtable tr.listtabletype th {
     background: #6e6e6e;
     background: linear-gradient(to bottom, #888, #575757);
     color: #fff;
-    font-family: "L5R Title";
+    font-family: var(--font-display);
     font-weight: normal;
     font-size: large;
 }
@@ -906,7 +922,7 @@ div.deckviewtype {
     border-radius: 7px;
 }
 div.listhead, div.listheadxl, div.listhead a:visited, div.listhead a:link, div.listhead a:hover, div.listhead a:active, div.listheadplain, div.upperhead, div.listheadmiddle{
-    color:  /* #ffd73a; */  #FFFFFF;
+    color:  /* var(--button-text); */  #FFFFFF;
     text-decoration: none;
 }
 
@@ -931,7 +947,7 @@ dt:not(:empty)::after {
 dd {
     margin: 0 0 0 100px;
     padding: 0 0 0.25em 0;
-    font-size: 14pt;
+    font-size: 12pt;   /* was 14pt in Times, which runs small: the same visual size in the UI font */
   text-align: left;
 }
 /* card page and Detail search rows: a label taller than its value (one wrapped over several lines)
@@ -1091,8 +1107,9 @@ font-style: normal;
 img.inlinesymbol {   border: none;   vertical-align: middle; }
 img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;}
 .button {
-  font-size: large;
-  font-family: "L5R Title";
+  font-size: 12pt;
+  font-weight: 600;
+  font-family: var(--font-ui);
 
   display: inline-block;
 	zoom: 1; /* zoom and *display = ie7 hack for display:inline-block */
@@ -1126,18 +1143,20 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
 }
 .buttonsmall { 
   font-size: 11pt;
+  font-weight: 500;
 }
 .buttonsmaller { 
   font-size: 10pt;
+  font-weight: 500;
 }
 .nocolor { 
-  color: #ffd73a;
+  color: var(--button-text);
  }
 
 /*   gray   -   good examples at http://webdesignerwall.com/tutorials/css3-gradient-buttons */
 .gray {
 /*	color: #e9e9e9; */
-  color: #ffd73a;
+  color: var(--button-text);
 	border: solid 1px #555;
 	background: #6e6e6e;
 	background: -webkit-gradient(linear, left top, left bottom, from(#888), to(#575757));
@@ -1294,7 +1313,7 @@ body.viewsearch li.textversionmenu .searchtextversion, body.viewsearch li.textve
   display: inline;
 }
 div.menubar nav li.numresultsmenu {
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
   font-size: medium;
   padding-top: 7px;
   cursor: default;
@@ -1317,9 +1336,11 @@ div.menubar nav li {
 /*  padding-right: 1rem; */
   padding-left: 1rem;
 /*  background: rgb(196,196,196); */
-  font-size: large;
-  font-family: "L5R Title";
+  font-size: 12pt;
+  font-family: var(--font-ui);
 }
+/* the game's name in the menubar keeps the flavor font */
+div.menubar .gameinfo-game .gamename { font-family: var(--font-display); font-size: large; }
 nav li {
   position: relative;
   display: block;
@@ -1328,7 +1349,7 @@ nav li {
   text-decoration: none;
 }
 nav li dl {
-    font-family: "Times New Roman","Georgia","Serif";
+    font-family: var(--font-ui);
 }
 nav li.right {
     float: right;
@@ -1573,7 +1594,7 @@ div.menubar nav li.searchviewbuttons ul.dropdown {
   min-width: 400px;
   min-height: 250px; 
   background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
   -moz-border-radius: 7px;
   -webkit-border-radius: 7px;
   -khtml-border-radius: 7px;
@@ -1588,9 +1609,9 @@ div.menubar nav li.searchviewbuttons ul.dropdown {
 /* Settings page */
 div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 12px; max-width: 60em; }
 /* each section is a card, so the sections read apart from the gray buttons inside them */
-.settingsection { margin: 0 0 16px 0; padding: 10px 14px 12px; background: #faf8f2; border: 1px solid #d8d2c2; border-left: 5px solid #575757;
+.settingsection { margin: 0 0 16px 0; padding: 10px 14px 12px; background: var(--surface-warm); border: 1px solid var(--border-warm); border-left: 5px solid #575757;
   border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-.settingsection h3 { font-family: "L5R Title"; font-size: 1.4em; font-weight: normal; color: #333; margin: 0 0 8px 0; padding-bottom: 3px; border-bottom: 2px solid #e0c35a; }
+.settingsection h3 { font-family: var(--font-display); font-size: 1.4em; font-weight: normal; color: #333; margin: 0 0 8px 0; padding-bottom: 3px; border-bottom: 2px solid var(--accent); }
 .settingsection p:last-child, .settingsection .settingstable:last-child { margin-bottom: 0; }
 .settingsection dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 6px 0 10px 0; }
 .settingsection dt { font-weight: bold; text-align: right; }
@@ -1601,9 +1622,9 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
 .settingsection h4 { margin: 10px 0 4px 0; }
 /* tabs above the sections (showsettingstab) */
 .settingstabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 12px 0; border-bottom: 2px solid #575757; }
-.settingstabs button { font: inherit; padding: 6px 14px; background: #eeeae0; color: #333; border: 1px solid #d8d2c2; border-bottom: none;
+.settingstabs button { font: inherit; padding: 6px 14px; background: #eeeae0; color: #333; border: 1px solid var(--border-warm); border-bottom: none;
   border-radius: 6px 6px 0 0; cursor: pointer; margin-bottom: -2px; }
-.settingstabs button:hover { background: #faf8f2; }
+.settingstabs button:hover { background: var(--surface-warm); }
 .settingstabs button.settingstabactive { background: #575757; color: #fff; border-color: #575757; }
 /* the admin page reuses the settings tabs (showadmintab) */
 .adminlinks { margin: 0 0 12px 0; }
@@ -1648,7 +1669,7 @@ div.visualcard {
   padding: 4px;
   border-radius: 7px;
   background-color: rgba(218, 218, 218, 0.9);
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 }
 div.visualcard > a {
   display: block;
@@ -2151,7 +2172,7 @@ div.directorycard .dircardhead ul.dirlistmenu, div.listviewheader ul.dirlistmenu
 }
 ul.dirlistmenu {
   min-width: 15em;
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 }
 nav ul.dirlistmenu li {
   padding: 6px 10px;
@@ -2201,7 +2222,7 @@ form.publicform {
     align-items: center;
     padding: 6px;
     margin-bottom: 6px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel);
     border-radius: 7px;
 }
 form.publicform input[type=search] {
@@ -2306,7 +2327,7 @@ div.publicformats a.publicformatlink:hover { background: #e3f6e5; }
 .cardeditshort .cardeditval { flex: none; min-width: 2.5em; max-width: 100%; }
 input.cardeditval { font-family: monospace; font-size: 0.9em; }
 textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertical; }
-.cardeditval:focus { outline: 2px solid #e0c35a; }
+.cardeditval:focus { outline: 2px solid var(--accent); }
 .cardeditjsonfield { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
 .cardeditbad { border: 2px solid #c00; }
 .cardeditx { cursor: pointer; color: #b00; padding: 0 3px; user-select: none; }
@@ -2327,7 +2348,7 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 .cardeditstepoff { opacity: 0.3; cursor: default; pointer-events: none; }
 .cardeditstepcount { color: #666; font-size: 0.9em; }
 .cardeditdeleted { color: #b00; margin-bottom: 6px; }
-.cardeditmrp { background: #e0c35a; border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
+.cardeditmrp { background: var(--accent); border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
 .cardeditimagelist img { max-height: 120px; margin: 2px; cursor: zoom-in; }
 #cardeditzoom { position: fixed; top: 60px; right: 16px; z-index: 12; width: 440px; height: 640px; min-width: 240px; min-height: 200px;
   max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); resize: both; overflow: hidden; display: flex; flex-direction: column;
@@ -2354,17 +2375,17 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
   .cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: auto; text-align: left; }
   .cardeditrow .cardeditfield.cardeditlong .cardeditlabel { flex: 1 1 100%; }
 }
-.cardeditsync { margin: 6px 0; padding: 4px 6px; border-left: 3px solid #e0c35a; background: #faf8f2; }
+.cardeditsync { margin: 6px 0; padding: 4px 6px; border-left: 3px solid var(--accent); background: var(--surface-warm); }
 .cardeditsync label { white-space: nowrap; margin-right: 8px; }
 .cardeditsyncadd { color: #2a7a2a; margin-right: 6px; }
 .cardeditsyncremove { color: #b00; margin-right: 6px; }
 #cardeditconfirm .modal-box:has(.cardeditsync) { width: 640px; max-width: 95vw; min-width: 0; }
 
 /* Rules: the rulebook shelf and page viewer (rules.js) */
-div#rulesarea { background-color: rgba(255, 255, 255, 0.92); border-radius: 7px; font-family: "Times New Roman",Georgia,Serif; }
+div#rulesarea { background-color: rgba(255, 255, 255, 0.92); border-radius: 7px; font-family: var(--font-ui); }
 .rulesshelf { padding: 6px 16px 14px; }
-.rulesshelf h2 { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-weight: normal; font-size: 1.8em; margin: 4px 0 6px; }
-.rulesshelf h3 { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-weight: normal; font-size: 1.3em; margin: 6px 0 10px; padding-bottom: 3px; border-bottom: 2px solid #e0c35a; }
+.rulesshelf h2 { font-family: var(--font-display); font-weight: normal; font-size: 1.8em; margin: 4px 0 6px; }
+.rulesshelf h3 { font-family: var(--font-display); font-weight: normal; font-size: 1.3em; margin: 6px 0 10px; padding-bottom: 3px; border-bottom: 2px solid var(--accent); }
 .rulesbooks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 14px; }
 a.rulesbookcard { display: flex; flex-direction: column; color: inherit; text-decoration: none; border-radius: 6px; padding: 6px; }
 a.rulesbookcard:hover { background: #f1ecdd; }
@@ -2375,18 +2396,18 @@ a.rulesbookcard:hover { background: #f1ecdd; }
 .rulesbookmeta { color: #777; font-size: .82em; margin-top: 2px; }
 .rulesbooknote { color: #777; font-size: .82em; font-style: italic; margin-top: 2px; }
 /* the Bookshelf's shelves (Rulebooks, Newsletters, ...): tabs in place of the shelf heading when there's more than one */
-.rulesshelftabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 4px; margin: 6px 0 10px; border-bottom: 2px solid #e0c35a; }
+.rulesshelftabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 4px; margin: 6px 0 10px; border-bottom: 2px solid var(--accent); }
 .rulesshelftabs .helpq { align-self: center; }
-button.rulesshelftab { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.3em; margin: 0 0 -2px; padding: 2px 10px 3px; border: 0; border-bottom: 4px solid transparent; background: none; color: #777; cursor: pointer; }
+button.rulesshelftab { font-family: var(--font-display); font-size: 1.3em; margin: 0 0 -2px; padding: 2px 10px 3px; border: 0; border-bottom: 4px solid transparent; background: none; color: #777; cursor: pointer; }
 button.rulesshelftab:hover { color: #333; border-bottom-color: #ecdca0; }
 button.rulesshelftab.rulesshelftabon { color: #000; border-bottom-color: #b89a32; }
-.rulesshelfcount { font-family: Arial,Helvetica,sans-serif; font-size: .55em; color: #888; vertical-align: middle; }
+.rulesshelfcount { font-family: var(--font-ui); font-size: .55em; color: #888; vertical-align: middle; }
 .rulesfilters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: -2px 0 12px; }
 .rulesfiltergroup { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .rulesfilterlabel { color: #555; font-size: .9em; margin-right: 2px; }
 button.rulespill { font: inherit; font-size: .88em; margin: 0; padding: 2px 10px; border: 1px solid #cfc6ab; border-radius: 12px; background: #fff; color: #333; cursor: pointer; }
 button.rulespill:hover { border-color: #a99a6c; background: #f6f1e2; }
-button.rulespill.rulespillon { background: #e0c35a; border-color: #b89a32; color: #000; }
+button.rulespill.rulespillon { background: var(--accent); border-color: #b89a32; color: #000; }
 select.rulesarc { font: inherit; font-size: .9em; padding: 1px 4px; max-width: 100%; }
 .rulesfiltercount { color: #777; font-size: .85em; }
 button.rulespill.rulesfilterclear { color: #555; }
@@ -2398,10 +2419,10 @@ button.rulesfilterclear[hidden] { display: none; }
 /* never wider than the screen: a toolbar that doesn't fit (large text, browser zoom) wraps rather than widening the page */
 .rulesreader { display: flex; flex-direction: column; min-width: 0; max-width: 100%; }
 .rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
-.rulestop { border-bottom: 1px solid #d8d2c2; }
-.rulesbottom { border-top: 1px solid #d8d2c2; }
-.rulestitle { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rulestitle .rulesbooksub { font-family: "Times New Roman",Georgia,Serif; font-size: .75em; }
+.rulestop { border-bottom: 1px solid var(--border-warm); }
+.rulesbottom { border-top: 1px solid var(--border-warm); }
+.rulestitle { font-family: var(--font-display); font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rulestitle .rulesbooksub { font-family: var(--font-ui); font-size: .75em; }
 .rulestools { display: flex; flex-wrap: wrap; gap: 2px; position: relative; min-width: 0; max-width: 100%; }
 .rulestools[data-copied]::after { content: attr(data-copied); position: absolute; right: 0; top: 100%; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: .85em; white-space: nowrap; z-index: 5; }
 button.rulesbtn { padding: 2px 3px; margin: 0; border: 1px solid transparent; border-radius: 3px; background: transparent; color: rgb(96, 96, 96); cursor: pointer; line-height: 0; }
@@ -2415,7 +2436,7 @@ button.rulesbtn.searchviewactive { color: black; border-color: rgb(128, 128, 128
 .rulesdownloads .button { white-space: nowrap; }
 .rulesdownloads .feather { width: 14px; height: 14px; vertical-align: -2px; }
 .rulesbody { display: flex; min-height: 240px; height: 70vh; position: relative; }
-.rulespanel { flex: 0 0 250px; overflow-y: auto; border-right: 1px solid #d8d2c2; padding: 6px 8px; background: #faf8f2; text-align: left; }
+.rulespanel { flex: 0 0 250px; overflow-y: auto; border-right: 1px solid var(--border-warm); padding: 6px 8px; background: var(--surface-warm); text-align: left; }
 .rulesstage { flex: 1 1 auto; position: relative; overflow: hidden; background: #4a4a4a; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; }
 .rulesstage.ruleszoomed { overflow: auto; cursor: grab; }
 .rulesstage.rulesdragging { cursor: grabbing; }
