@@ -84,7 +84,7 @@ game-config.md). Public list counts (Fate/Dynasty counts) follow it too.
 
 | Key | Meaning |
 |---|---|
-| `max` | This card's copy limit, in place of the rule's; `null` = any number. |
+| `max` | This card's copy limit, in place of the rule's, in every legality (BigDeck's one copy too: the user, 2026-10-29); `null` = any number. |
 | `countsas` | The title this card counts as for copy limits. |
 | `skip` | Rule ids this card isn't counted in (e.g. a card that doesn't count toward deck size). |
 | `rules` | While this card is in the deck, an overlay on the deck's rules (as a legality's), for cards that change the limits of others. |
