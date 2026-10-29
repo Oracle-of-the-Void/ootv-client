@@ -22,7 +22,7 @@ switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds
 `add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
 minimum the layers before set, plus two), so one overlay works in every legality.
 
-A broken rule shows in red on the Deck construction line, and the stats summary ("86 cards (49 distinct)")
+A broken rule shows in red on the Deck construction line, and the stats summary ("40/40 - 86 total")
 adds a red note when the deck breaks its rules or has cards not legal in its chosen Legality
 (`liststatsflag()`), so it shows with the statistics folded too.
 
