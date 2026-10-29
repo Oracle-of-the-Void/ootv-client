@@ -26,6 +26,10 @@ A broken rule shows in red on the Deck construction line, and the stats summary 
 adds a red note when the deck breaks its rules or has cards not legal in its chosen Legality
 (`liststatsflag()`), so it shows with the statistics folded too.
 
+The check's answer is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
+opens it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
+A deck its owner hasn't opened since 2026-10-29, or opened before a rule change, keeps the older answer.
+
 Code: ootv-client `oracle.js`, `deckbuild*` (`deckbuildcheck`, `deckbuildidentity`) and the panel
 `listbuildform`/`listbuildsave`; ootv-search `/list` stores the deck's field (`updatefield=deckconstruction`,
 a JSON object, empty removes it).

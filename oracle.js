@@ -894,8 +894,8 @@ function listinfoupdate(listid,field,value,failed=null) {
 // ***********************  directory view and sort **************
 // view: 'table' (detailed list) or 'cards'; phones default to cards. sort: {field, desc}, default newest modified first.
 // Both are kept per browser (not per game) in localStorage.
-var dirsortdefaults = {'modified': true, 'created': true, 'name': false, 'listid': false, 'type': false, 'legality': false};
-var dirsortlabels = {'modified': 'Last Modified', 'created': 'Created', 'name': 'Name', 'listid': 'Id', 'type': 'Type', 'legality': 'Legality'};
+var dirsortdefaults = {'modified': true, 'created': true, 'name': false, 'listid': false, 'type': false};
+var dirsortlabels = {'modified': 'Last Modified', 'created': 'Created', 'name': 'Name', 'listid': 'Id', 'type': 'Type'};
 function dirviewstate() {
   var view = cache_session("dirview");
   return (view == 'table' || view == 'cards') ? view : (narrowscreen() ? 'cards' : 'table');
@@ -944,12 +944,57 @@ function sortlists(lists,sort) {
     return cmp(dirsortkey(b,'modified'),dirsortkey(a,'modified')) || cmp(dirsortkey(a,'name'),dirsortkey(b,'name'));
   });
 }
+// a list's Count in the directory: the copies per deck from its summary (listsummarysave), "40/40 (80 total)"
+// (L5R: dynasty/fate; Pre-Game counts only in the total, as in the public listing), with a red Illegal when the
+// deck breaks its construction rules; the total alone for a list drawn before summaries were saved, or one deck
+function dircount(list) {
+  var total = parseInt(list.totalcount) || 0;
+  if(!total) {
+    return '';
+  }
+  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad);
+}
+function deckcounthtml(decks, total, buildbad) {
+  decks = decks.filter(function(d) { return !/^pre-?game$/i.test(d.name); });
+  var text = decks.length > 1 ? decks.map(function(d) { return d.copies; }).join('/')+' ('+total+' total)' : total+' card'+(total == 1 ? '' : 's');
+  var title = decks.length > 1 ? decks.map(function(d) { return (d.name || 'Other')+' '+d.copies; }).join(', ') : '';
+  return '<span'+(title ? ' title="'+htmlEncode(title)+'"' : '')+'>'+text+'</span>'+
+    (buildbad ? ' <span class="dirillegal" title="Breaks the deck construction rules">Illegal</span>' : '');
+}
+// the list view keeps the directory's Count current: after drawing one of my lists' stats, saves its copies
+// per deck and the construction check as the list's summary (ootv-search /list updatefield=summary; doesn't
+// touch modified), when they changed. Not for lists edited as an admin: their owner's view saves it.
+function listsummarysave(listid, summary) {
+  if(!listid || !listmine(listid) || listadminedit(listid)) {
+    return;
+  }
+  var cached = cache_thing("list",listid);
+  var item = cached && cached.list && cached.list.Items && cached.list.Items[0];
+  if(!item || JSON.stringify(item.summary || null) == JSON.stringify(summary)) {
+    return;
+  }
+  var store = function() {
+    item.summary = summary || undefined;
+    var dir = cache_thing("list","data"), rev = cache_thing("list","datareverse");
+    if(dir && rev && rev[listid] !== undefined) {
+      dir.lists.Items[rev[listid]].summary = summary || undefined;
+    }
+  };
+  $.ajax({
+    type: "GET",
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield=summary&updatevalue="+encodeURIComponent(summary ? JSON.stringify(summary) : ''),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: store,
+    error: function(status) { console.log(["listsummarysave", listid, status]); }
+  });
+}
 function renderdirectory() {
   var dir = cache_thing("list","data");
   if(!dir || !dir.lists) { return; }
   var view = dirviewstate(), sort = dirsortstate();
   var path = dirpath();
-  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
+  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions, "dircount": dircount};
   applyfolderselect();
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
@@ -3604,6 +3649,7 @@ function liststats(listdata,listid=null) {
     }).filter(function(c) { return c.qty > 0; });
     var total = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     if(!cards.length) {
+	listsummarysave(listid, null);
 	return '';
     }
     var deckfield = liststatsdeckfield();
@@ -3638,6 +3684,8 @@ function liststats(listdata,listid=null) {
     }));
     var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
     var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
+    listsummarysave(listid, {"decks": decks.slice(0,10).map(function(d) { return {"name": d.name.slice(0,60), "copies": d.copies}; }),
+			     "buildbad": !!(build && build.problems.length)});
     return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
 	"buildbad": build && build.problems.length ? 1 : 0,
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
@@ -10057,7 +10105,8 @@ function renderpublic(data, append) {
     if(d.stronghold) meta.push(d.stronghold.title);
     meta = meta.map(htmlEncode);
     if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
-    var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
+    var counts = deckcounthtml(d.fatecount || d.dynastycount ? [{"name": "Dynasty", "copies": d.dynastycount}, {"name": "Fate", "copies": d.fatecount}] : [],
+			       h.totalcount || 0, h.buildbad);
     var when = String(h.modified || h.created || '').slice(0,10);
     var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
