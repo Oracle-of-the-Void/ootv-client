@@ -141,6 +141,12 @@ For headless checks, use Playwright with Chromium (installed globally; see the w
 to reproduce a first visit: selects are cached in `localStorage`, so a reload behaves
 differently from a cold load. `page.route()` can delay `/attributes` to force that race.
 
+**Every UI change: check it in WebKit too**, not only Chromium: `webkit.launch()` with
+`devices['iPhone 13']` and `devices['Desktop Safari']`, alongside the phone-size and desktop
+Chromium checks. Many users are on iPhone/Safari, and Safari-only breakage has shipped before
+(#473: iOS Discord hands Safari deck links with the second `#` escaped as `%23`). WebKit setup,
+including the no-sudo libraries: the workspace `ootv-claude/ENVIRONMENT.md`, Playwright section.
+
 `docs/MOBILE.md` lists the remaining mobile/touch work and what still needs a real-phone check.
 `docs/TESTING.md` has the detailed techniques: faking login and admin groups, mocking
 API writes, early vs late login timing, fake lists, and per-game differences to cover.
