@@ -76,8 +76,9 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
-again first and refuses an edit they can't draw. Other people see a save from their next page
-loads; you see it after a reload.
+again first and refuses an edit they can't draw. A browser draws from its stored copy of the config and
+fetches the new one in the background, so a save shows from the second page load after it (the first
+one fetches it), for you and everyone else.
 
 ## The game menu and preview games
 
