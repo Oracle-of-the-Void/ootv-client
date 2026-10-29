@@ -378,8 +378,9 @@ inputs:
     * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality,
       directory folder: a path like "Tournament/2026" ('' = top level; trimmed, at most 255 characters).
       Empty folders live in the user's settings[database].folders (see /user settings)
-  * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false}`
-    (copies per deck, in deck order, at most 10; whether the deck construction rules fail). The client saves it
+  * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false, "clan": "..."}`
+    (copies per deck, in deck order, at most 10; whether the deck construction rules fail; optional `clan`, plain
+    text, at most 60 characters: the first Stronghold whose clan has a mon, drawn before the list's name). The client saves it
     after drawing one of the user's own lists (`listsummarysave()`); '' removes it. The lists index copies
     `buildbad` into its summaries for the public listing's Illegal mark
   * if this is set we update that field of the list (updatevalue), and modified, except for folder and summary
