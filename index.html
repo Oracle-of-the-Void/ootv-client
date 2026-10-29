@@ -480,6 +480,8 @@ Recent Data Updates for Currently Selected Database:<br>
     <label for="importpaste">Paste a deck list, one card per line ("3x Title", "Title (Set)"):</label><br />
     <textarea id="importpaste" class="importpaste" rows="12" placeholder="3x Card Title&#10;Card Title (Set)&#10;# comment"></textarea><br />
     or a file: <input name="file" type="file" /><br /><br />
+    <label><input type="radio" name="importmode" value="add" checked /> Add to the cards in the list</label><br />
+    <label><input type="radio" name="importmode" value="replace" /> Replace the cards in the list</label><br /><br />
     <input type="button" value="Import" onclick="importlisttrigger();" /></form>
   <progress id="importprogress" style="display:none"></progress>
   <div id="importstatus"></div>
@@ -491,7 +493,7 @@ Recent Data Updates for Currently Selected Database:<br>
   <br /><br />
   {{:numresults}} cards imported successfully<br />
   {{:numfailed}} cards failed to import<br />
-  {{if replaces}}This replaces the {{:replaces}} cards now in the list.<br />{{/if}}
+  {{if replaces}}This replaces the {{:replaces}} cards now in the list.<br />{{else adds}}These are added to the cards already in the list.<br />{{/if}}
   Do you wish to continue loading?
   <span class="button gray" onclick="importlistfinalize();">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
   <span class="button gray" onclick="nomodal();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
