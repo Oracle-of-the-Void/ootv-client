@@ -243,8 +243,12 @@
 <div class="resultpublic" id="resultpublic">
   <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
     <input type="hidden" name="group" value="">
+    <select name="mine" class="showonlogin" style="display:none" title="Search the lists other players made public, or your own (private ones too)">
+      <option value="">Public lists</option>
+      <option value="1">My lists</option>
+    </select> <span class="helpq showonlogin" style="display:none" data-help="public-lists#mine" aria-label="Help: searching your own lists">?</span>
     <input type="search" name="q" placeholder="Name, notes or player">
-    <input type="search" name="card" placeholder="Contains card (title)">
+    <input type="search" name="card" placeholder="Card title or #number" title="A card title, or a card's number (#1234) for exactly that card when two share a title">
     <select name="type"><option value="">Any type</option></select>
     <select name="clan" style="display:none"><option value="">Any clan</option></select>
     <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
