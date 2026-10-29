@@ -462,12 +462,14 @@ Recent Data Updates for Currently Selected Database:<br>
     <input name="data" id="importdataval" type="hidden" value="" />
     <input name="failed" id="importfailedval" type="hidden" value="" />
     <select style="width: 100%" name="fieldlist" data-placeholder="Select input type" class="chosen-select">
-      <option value=""></option>
       {{if snm}}<option value="textsnm,puretexttitle,title,alttitle">Sun and Moon</option>{{/if}}
-      <option value="puretexttitle,title">Native Oracle (Tab-delimited)</option>
+      <option value="puretexttitle,title" selected>Native Oracle, or a plain card list</option>
     </select><br /><br />
-    <input name="file" type="file" /><br /><br />
-    <input type="button" value="Upload" onclick="importlisttrigger();" /></form>
+    <!-- no name: importlisttrigger sends pasted text as the file -->
+    <label for="importpaste">Paste a deck list, one card per line ("3x Title", "Title (Set)"):</label><br />
+    <textarea id="importpaste" class="importpaste" rows="12" placeholder="3x Card Title&#10;Card Title (Set)&#10;# comment"></textarea><br />
+    or a file: <input name="file" type="file" /><br /><br />
+    <input type="button" value="Import" onclick="importlisttrigger();" /></form>
   <progress id="importprogress" style="display:none"></progress>
   <div id="importstatus"></div>
 </script>
@@ -478,6 +480,7 @@ Recent Data Updates for Currently Selected Database:<br>
   <br /><br />
   {{:numresults}} cards imported successfully<br />
   {{:numfailed}} cards failed to import<br />
+  {{if replaces}}This replaces the {{:replaces}} cards now in the list.<br />{{/if}}
   Do you wish to continue loading?
   <span class="button gray" onclick="importlistfinalize();">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
   <span class="button gray" onclick="nomodal();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
@@ -881,7 +884,7 @@ Recent Data Updates for Currently Selected Database:<br>
   <ul class="dirlistmenu">
   {{if !~inheader}}<li onclick="listinfo('{{:listid}}',true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#eye"></svg> View list</li>{{/if}}
   <li onclick="duplicatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Duplicate</li>
-  <li onclick="importlist('{{:listid}}','{{:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> Upload (import cards into it)</li>
+  <li onclick="importlist('{{:listid}}','{{:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> Import (paste or upload cards)</li>
   <li class="sortmodehead">Download</li>
   {{if ~pdfallowed}}
   <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</li>
