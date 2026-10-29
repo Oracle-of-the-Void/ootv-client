@@ -3805,7 +3805,10 @@ function deckbuildcheck(cards, meta, deckkey) {
     cards.forEach(function(c) {
 	var over = deckbuildcardconf(c.card).rules;
 	if(over && typeof over === 'object') {
-	    deckbuildoverlay(set.rules, over);
+	    // once per copy: an add counts each copy (three Coastal Lanes: +6), the rest is the same each time
+	    for(var i = 0; i < Math.max(1, c.qty || 1); i++) {
+		deckbuildoverlay(set.rules, over);
+	    }
 	    set.source.push(deckbuildplain([].concat(c.card.title || [])[0]));
 	}
     });
