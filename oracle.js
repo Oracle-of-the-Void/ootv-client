@@ -5671,6 +5671,7 @@ function searchpageable(qs) {
 function dosearchpostcallback(qs) {
     searchtextversion(qs);
     searchaddall(qs);
+    searchdeckcounts();
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
@@ -9911,6 +9912,49 @@ function mycardcount(cardid) {
       link.append('<span class="cardpubliccount">'+n+'</span>');
     }
   }));
+}
+// the Detail search results get the card view's globe, with how many public decks play each card (only cards
+// in a deck). Every card's count comes in one /publiclists group=cardcounts call per game, kept for the visit:
+// a call per row would cost a Lambda and a search each, on every results page.
+var publicgamecounts = {};
+function searchdeckcounts() {
+  var game = database;
+  if(templates[game]['active']['search'] != 'search') {
+    return;
+  }
+  var fill = function() {
+    var counts = publicgamecounts[game];
+    if(database != game || !counts || templates[game]['active']['search'] != 'search') {
+      return;
+    }
+    $('#resultsearch .listitem').each(function() {
+      var head = $(this).find('.listhead').first();
+      var cardid = parseInt($(this).find('.deckswipe').first().data('card'));
+      var n = counts[cardid] || 0;
+      if(!n || !head.length || head.find('a.cardpubliclists').length) {
+        return;
+      }
+      var link = $('<a class="cardpubliclists" href="" title="In '+n+' public '+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg><span class="cardpubliccount">'+n+'</span></a>');
+      link.on('click', function() { publicwithcard(cardid); return false; });
+      head.children('a').first().after(' ', link);
+    });
+  };
+  if(game in publicgamecounts) {
+    fill();   // still loading (null): the answer fills every row on screen then
+    return;
+  }
+  publicgamecounts[game] = null;
+  $.ajax({
+    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts',
+    dataType: 'json',
+    success: function(data) {
+      publicgamecounts[game] = data.counts || {};
+      fill();
+    },
+    error: function() {
+      delete publicgamecounts[game];
+    }
+  });
 }
 // the card view's globe link gets how many public decks play the card (at least one copy)
 var publiccardcounts = {};

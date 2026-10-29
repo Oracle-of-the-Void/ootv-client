@@ -76,6 +76,8 @@ the Foil choice (its image, set and rarity).
 - More results load as you scroll down. The count is in the menu bar.
 - The buttons on the right of the menu bar change how results look (detailed list, card images,
   simple list), their size, and their order (**Sort**).
+- In the detailed list, a globe with a number beside a card's name is how many public decks play
+  it. Click it to see them ([public lists](public-lists.md)).
 - Click a card to open it. On the card, the arrows (or arrow keys, or a sideways swipe on a
   phone) go to the next or previous result.
 - Searches are kept in the address bar, so you can bookmark or share them, and Back returns to
