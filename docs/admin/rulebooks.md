@@ -518,3 +518,15 @@ errata link to it), Skirmish Learn to Play, Skirmish Rules Reference, Skirmish R
 Multiplayer Rules (Enlightenment), Draft Rules v3, Under Fu Leng's Shadow Rules (Play Variant),
 Tournament Regulations v2.3 (the text version as a second download) and FFG Floor Rules (Floor Rules).
 No arcs; the PDFs have no bookmarks, so no contents yet. Types and tags: the user, 2026-10-24.
+
+## The Deadlands: Doomtown books (2026-10-29)
+
+The 1998 Doomtown CCG (`dtccg`), list `rulebooks/dtccg.json`, ids `dtccg-*`, a shelf of its own. No PDFs of
+these survive, so each is the archived web page printed to PDF (ootv-games `game-dtccg/rules/pdf/`): the
+Doomtown Rulebook, Ashes to Ashes (Complete, Last complete rules) and April 2000 (Complete, Base set);
+the Accumulated Rulings v4.0.6 (2002-06-23, Rulings) and v4.0.4 (2000-10-16, Rulings); the Official FAQ
+v5.0.1 (2002-06-23, Addendum) and v4.0.4 (2000-10-16, Addendum); and AEG's "Gomorra After Boot Hill"
+v2.0 (2000-06-07, Floor Rules: the three formats). The 2002 versions come from the Doomtown OCTGN plugin
+(PDFs converted to HTML there, printed back page for page, so the cards' ruling links land on the right
+page); the rest from the Crow's Nest, alderac.com and rulespal.com (Wayback copies). Types and tags: proposed
+and approved by the user, 2026-10-27.
