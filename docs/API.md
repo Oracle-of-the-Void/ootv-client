@@ -146,6 +146,7 @@ inputs - sent in body querystring:
   * tops out around 1000, please don't abuse this and run more than once a day
 * from (default 0)
   * Pagination page number (0 indexed)
+* rulings (optional): `1` keeps `ruling` and `rulingref` in the hits (the Discord bot's `/rulings`)
 * querystring (optional)
   * string to do an elastic query_string (operator AND)
 * pairs of field_xxx (contains the data) and type_xxx (defines the operation)
@@ -186,9 +187,11 @@ outputs:
   * .timed_out: true/false
   * .hits.total: number of results
   * .hits.hits: array of cards
-    * without `updatelog` (it made big answers pass Lambda's 6 MB limit; ootv-search PROBLEMS.md #21):
-      `_source.updatelast` is the newest row's timestamp (ms) instead. The rows come with
-      `/oracle-fetch`; the card page fetches them when "Latest Updates" opens
+    * without `updatelog`, `ruling` and `rulingref` (they made big answers pass Lambda's 6 MB limit;
+      ootv-search PROBLEMS.md #21). In their place `_source.updatelast` (the newest updatelog row's
+      timestamp, ms), `rulingcount` and `rulingrefcount` (left out when 0). The whole card comes
+      with `/oracle-fetch`: the card page fetches it for a card with rulings or Rules Q&A, and the
+      update log when "Latest Updates" opens
 
 codes:
 

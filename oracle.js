@@ -5690,6 +5690,50 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  return;
   }
   $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
+  drawcard(carddata,prid,qs);
+  if(cardpartial(carddata)) {
+    // a search hit: draw it now, then again with its rulings and Rules Q&A once the whole card comes
+    cardfull(carddata.cardid, function(full) {
+      if($("#lastcardid").val() != String(full.cardid)) { return; }   // moved on to another card
+      var mine = $('#resultcard a.cardmylists').detach();   // its count may still be on the way (mycardcount)
+      drawcard(full, lastcardprid() || prid, qs);
+      $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
+      if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
+    });
+  }
+  publiccardcount(carddata.cardid);
+  mycardcount(carddata.cardid);
+
+  if(!switchview) {
+	  return;
+  }
+  // the url: a new entry from another view, the same one when the card view redraws (prev/next)
+  showcard();
+}
+
+// Search answers leave out a card's rulings and Rules Q&A (ootv-search PROBLEMS.md #21), sending only
+// rulingcount/rulingrefcount: such a card is partial until fetched whole (cardfull)
+function cardpartial(carddata) {
+  return !!((carddata.rulingcount && !carddata.ruling) || (carddata.rulingrefcount && !carddata.rulingref));
+}
+// the whole card from DynamoDB (/oracle-fetch: rulings, Rules Q&A and update log), cached in place of the search hit
+function cardfull(cardid,handler) {
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+cardid,
+    dataType: 'json',
+    success: function(data) {
+      if(!data || !data.cardid) { return; }
+      data = preparecard(data);
+      cache_card(data);
+      handler(data);
+    },
+    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+  });
+}
+
+// the card view's #resultcard: the card drawn, its printing shown, trait links and rulings folded
+function drawcard(carddata,prid=null,qs=null) {
   // legalities and sets for the trait links, before cardhtml linkifies them
   var legality = {card: [].concat(carddata.legality || []), printing: {}, set: {}, sets: []};
   (carddata.printing || []).forEach(function(p) {
@@ -5710,14 +5754,6 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
     set: legality.set[showpr] || [], sets: legality.sets});
   rulingsfold('#resultcard');
-  publiccardcount(carddata.cardid);
-  mycardcount(carddata.cardid);
-
-  if(!switchview) {
-	  return;
-  }
-  // the url: a new entry from another view, the same one when the card view redraws (prev/next)
-  showcard();
 }
 
 // the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
