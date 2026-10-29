@@ -37,6 +37,8 @@ Quicker ways:
 - **Swipe** a card's picture sideways (or click-drag it with a mouse) to change its count:
   right adds one, up-right adds three, left removes one, up-left removes them all. In a list,
   up-right adds two. Settings → Gestures changes what each direction does, or turns swipes off.
+- **Hover** over a small card picture, or a name in the simple list, to see the card at full
+  size. On a phone, press and hold it; tap to close.
 - **Add all to list**, above the search results, adds every card found
   ([more](searching.md#add-all)).
 - **Import**, in the list's menu, adds cards from a pasted deck list or a file (see
