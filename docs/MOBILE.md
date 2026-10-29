@@ -62,10 +62,20 @@ Swipes on card images and Simple List titles (click-drag with a mouse). By defau
 left −1, up-right +3; deck/list view: right +1, left −1, up-right +2; in both, up-left removes every copy.
 Settings → Gestures changes what each direction does (add, remove, set the count to, remove all, nothing),
 separately for search and for the deck/list view, and turns each gesture off (deck swipe touch and mouse,
-directory drag touch and mouse, long-press labels; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
+directory drag touch and mouse, long-press labels, card peek touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
 drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16.
+
+Card peek (2026-10-29, [PR #502](https://github.com/Oracle-of-the-Void/ootv-client/pull/502), emulated touch
+on Chrome only): a card image drawn smaller than Detailed (search and list rows, Deck view stacks, public
+decks, a Detailed image shrunk under ~480px) or a Simple List title (search and lists) shows the Detailed
+image: on hover after 250 ms beside it (mouse, switch `cardpeekmouse`), or after a 500 ms press centered
+over a backdrop until the next tap (touch, `cardpeektouch`). The release after a peek doesn't open the
+card or swipe; Android's long-press menu is blocked. The Detailed file comes from the card's printing
+(`cardpeekfind`), since Dune's files aren't named `_select`/`_details`. **Not checked on iOS Safari**: the
+image/link callout is turned off with `-webkit-touch-callout` set on the press, which may be too late; if the
+iOS menu or link preview still opens, set it in CSS on `a.deckswipe` and its image instead.
 
 Card view (2026-10-21, [#372](https://github.com/Oracle-of-the-Void/ootv-client/issues/372), emulated touch only):
 a sideways swipe on a card opened from a search goes to the next (left) or previous (right) result,
