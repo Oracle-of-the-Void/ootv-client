@@ -707,6 +707,10 @@ div.listviewheader .listviewmarks {
     gap: 4px 12px;
     margin: 4px 0;
 }
+/* on your own list they go at the end of the controls row */
+div.listviewheader .listviewcontrols .listviewmarks {
+    display: contents;
+}
 div.listviewheader .listviewcontrols {
     display: flex;
     flex-wrap: wrap;
