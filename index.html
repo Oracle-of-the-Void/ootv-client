@@ -1075,7 +1075,8 @@ proxies and public decklists (each game's card pages and set lists are linked be
 <!-- list view: the statistics box (liststats in oracle.js), two folding parts that share a row when both fit (oracle.css).
      Statistics: copies and distinct cards (not on a deck), for an L5R deck led by its Dynasty/Fate sizes (dynfate); then
      each deck (the game's deck field, or one unnamed group) with its card types: copies, share of the deck, and the
-     averages of the game's numeric fields the type's cards have (copies weighted). Keyword counts: each deck's keywords and
+     averages of the game's numeric fields the type's cards have (copies weighted), over a bar of its copies against
+     the deck's biggest type (liststatsbar; not on deck rows or types with no share). Keyword counts: each deck's keywords and
      how many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <div class="liststatsbox">
@@ -1088,7 +1089,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
     <tbody>
     {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>{{/if}}
     {{for types}}
-    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
+    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs{{if bar}} liststatsbar" style="--bar:{{:bar}}%{{/if}}">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
     {{/for}}
     </tbody>
     {{/for}}

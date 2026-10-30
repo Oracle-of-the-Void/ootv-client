@@ -3929,6 +3929,9 @@ function liststats(listdata,listid=null) {
 	    return {"name": t.name, "copies": tc, "pct": apart || liststatsproxy(t.cards[0]) ? '' : liststatspct(tc, deckstat),
 		    "avgs": liststatsavgs(t.cards, fields, false)};
 	});
+	// the bar behind each type's averages: its copies against the deck's biggest type, for the types with a share
+	var most = Math.max.apply(null, types.filter(function(t) { return t.pct; }).map(function(t) { return t.copies; }).concat(0));
+	types.forEach(function(t) { if(t.pct && most) { t.bar = liststatsround(t.copies*100/most); } });
 	return {"name": d.name, "copies": copies,
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
     });
