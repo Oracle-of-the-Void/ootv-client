@@ -150,7 +150,9 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
   `session_liststatskwopen` for the folds): clear them to see the defaults (to the side, both open).
   Check Simple List / Text / Table (sticky right column) and Detailed / Visual / Deck (float
   at the upper right, cards flowing round it), and in the deck view that Pre-Game sits beside
-  Dynasty (`div.deckviewsmall`) and Fate clears (`div.listhead.deckviewbreak`). A public deck
+  Dynasty (`div.deckviewsmall`) and Fate clears (`div.listhead.deckviewbreak`). Each type label is wrapped with its first card
+  (`span.deckviewlead`): resize through several widths and check no label is left alone at the end of a row
+  (compare the label's and its first card's `getBoundingClientRect().top`). A public deck
   that breaks a construction rule, for the red header note: `#game=l5r,#listid=5372212275690645`.
 
 ## Backend changes
