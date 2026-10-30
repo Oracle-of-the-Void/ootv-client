@@ -75,7 +75,10 @@ $.views.converters("listTypeSelect",function(type) {
     }
     return sel;
 });
-$.views.converters("listLegalitySelect",function(legality) {
+// a deck's own Legality choice, in every game: not a format cards have, so it's no search filter, import arc or
+// /cardslegal format, and it starts with no deck construction rules (deckbuildrules)
+var decklegalityspecial = 'Special';
+function listlegalityoptions(legality) {
   var sel='<option value=""></option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
@@ -99,6 +102,11 @@ $.views.converters("listLegalitySelect",function(legality) {
     sel += '<option value="'+thislegality+'"'+(thislegality==current?' selected':'')+'>'+thislegality+'</option>';
   });
   return sel;
+}
+$.views.converters("listLegalitySelect",listlegalityoptions);
+$.views.converters("deckLegalitySelect",function(legality) {
+  var current = (legality||'').replace(/&nbsp;/g, " ");
+  return listlegalityoptions(legality)+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
 });
 $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
@@ -4029,8 +4037,9 @@ function liststatslegal() {
 // ***********************  deck construction rules **************
 // A soft check shown at the foot of the list header (template-listcheck; docs/admin/deck-construction.md). The game's rules are game config
 // deckconstruction.rules; deckconstruction.legality[<legality>] overlays them rule by rule for decks of that
-// legality, then the deck's own deckconstruction field (a JSON string: {rules, pick}) overlays again. In an
-// overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
+// legality, then the deck's own deckconstruction field (a JSON string: {rules, pick}) overlays again. The Special
+// legality starts from no rules instead of the game's: the deck's layers turn on the ones it wants, and cards
+// change only those. In an overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
 // limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]},
 // and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}.
 // Rule checks:
@@ -4079,24 +4088,31 @@ function deckbuildrules(meta, layer) {
     if(!conf || !conf.rules) {
 	return null;
     }
-    var rules = deckbuildoverlay({}, conf.rules), source = ['game'];
-    var legality = deckbuildplain((meta || {}).legality);
+    var legality = deckbuildplain((meta || {}).legality), special = legality == decklegalityspecial;
+    var rules = special ? {} : deckbuildoverlay({}, conf.rules), source = [special ? legality : 'game'];
+    // a layer changing a rule that's gone (in Special, any of them) brings the whole rule back, not just the change
+    var layered = function(over) {
+	Object.keys(over).forEach(function(id) {
+	    if(over[id] && !rules[id] && conf.rules[id]) { rules[id] = $.extend({}, conf.rules[id]); }
+	});
+	deckbuildoverlay(rules, over);
+    };
     if(legality && conf.legality) {
 	Object.keys(conf.legality).forEach(function(k) {
 	    if(deckbuildplain(k) == legality) {
-		deckbuildoverlay(rules, conf.legality[k]);
-		source.push(legality);
+		layered(conf.legality[k]);
+		if(!special) { source.push(legality); }
 	    }
 	});
     }
     if(layer != 'legality') {
 	var own = deckbuildlistoverlay(meta).rules;
 	if(own && Object.keys(own).length) {
-	    deckbuildoverlay(rules, own);
+	    layered(own);
 	    source.push('deck');
 	}
     }
-    return {"rules": rules, "decks": conf.decks || null, "source": source};
+    return {"rules": rules, "decks": conf.decks || null, "source": source, "special": special};
 }
 function deckbuildcardconf(card) {
     var v = card.deckconstruction;
@@ -4141,9 +4157,12 @@ function deckbuildcheck(cards, meta, deckkey) {
     cards.forEach(function(c) {
 	var over = deckbuildcardconf(c.card).rules;
 	if(over && typeof over === 'object') {
+	    var change = {};
+	    Object.keys(over).forEach(function(id) { if(!set.special || set.rules[id]) { change[id] = over[id]; } });
+	    if(!Object.keys(change).length) { return; }
 	    // once per copy: an add counts each copy (three Coastal Lanes: +6), the rest is the same each time
 	    for(var i = 0; i < Math.max(1, c.qty || 1); i++) {
-		deckbuildoverlay(set.rules, over);
+		deckbuildoverlay(set.rules, change);
 	    }
 	    set.source.push(deckbuildplain([].concat(c.card.title || [])[0]));
 	}
@@ -4227,13 +4246,16 @@ function deckbuildcheck(cards, meta, deckkey) {
 	    }
 	});
     }
-    return {"problems": out, "source": set.source};
+    return {"problems": out, "source": set.source, "norules": !ids.length};
 }
 function deckbuildhtml(r) {
     if(!r) {
 	return '';
     }
     var from = 'Rules: '+r.source.map(function(s) { return s == 'game' ? 'the game\'s' : (s == 'deck' ? 'this deck\'s own' : s); }).join(' + ');
+    if(r.norules) {
+	return '<div class="liststatsbuild liststatsbuildok" title="'+htmlEncode(from)+'">Deck construction: no limits</div>';
+    }
     if(!r.problems.length) {
 	return '<div class="liststatsbuild liststatsbuildok" title="'+htmlEncode(from)+'">Deck construction: meets the rules</div>';
     }
@@ -4264,8 +4286,7 @@ function listbuildform(listid) {
 	return '';
     }
     var own = deckbuildlistoverlay(meta), ownrules = own.rules || {}, ownpick = own.pick || {};
-    var all = $.extend({}, base.rules);
-    Object.keys(ownrules).forEach(function(id) { if(!all[id] && conf.rules && conf.rules[id]) { all[id] = conf.rules[id]; } });
+    var all = $.extend({}, conf.rules, base.rules);
     var ids = Object.keys(all).sort(function(a,b) { return (all[a].order || 0) - (all[b].order || 0) || a.localeCompare(b); });
     var num = function(id, part, r) {
 	var o = ownrules[id] || {}, v = o.hasOwnProperty(part) ? o[part] : r[part];
@@ -4284,7 +4305,7 @@ function listbuildform(listid) {
     });
     var legality = deckbuildplain(meta.legality);
     return '<div class="listbuild" data-list="'+htmlEncode(listid)+'"><div class="listbuildhead">Deck construction rules for this deck'+
-	(legality ? ' (starting from '+htmlEncode(legality)+')' : ' (the game\'s rules; choose a legality to start from its rules)')+
+	(base.special ? ' (Special starts with no rules: tick the ones this deck uses)' : (legality ? ' (starting from '+htmlEncode(legality)+')' : ' (the game\'s rules; choose a legality to start from its rules)'))+
 	' <span class="helpq" data-help="lists#construction" aria-label="Help: deck construction rules">?</span></div>'+
 	'<table>'+rows.join('')+(picks.length ? '<tr><th colspan="2">Which deck these cards go in</th></tr>'+picks.join('') : '')+'</table>'+
 	'<button type="button" class="button gray buttonsmaller" onclick="listbuildsave(this); return false;">Save</button> '+
