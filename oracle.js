@@ -5952,7 +5952,20 @@ function getDataUri(url, callback, landscape=false, finish=null) {
 function checkfilename(data) {
     return data.startsWith("filename:");
 }
+// pdfkit (~1.9 MB) and blob-stream are only for PDFs, so they load on the first one, not with the page
+function loadpdfkit(callback) {
+  if(typeof PDFDocument !== 'undefined' && typeof blobStream !== 'undefined') { callback(); return; }
+  var get = f => $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
+  $.when(get('pdfkit.min.js'), get('blob-stream.min.js'))
+    .done(callback)
+    .fail(function() { alert("Could not load the PDF maker. Check your connection and try again."); });
+}
+
 function createpdf(data,listoutput='') {
+    if(typeof PDFDocument === 'undefined' || typeof blobStream === 'undefined') {
+      loadpdfkit(function() { createpdf(data, listoutput); });
+      return;
+    }
     var metadata = listoutput.split(",");
     var fn = metadata.find(checkfilename)?metadata.find(checkfilename).replace("filename:",''):"decklist";
     var o = pdfoptions || pdfbaseoptions();
