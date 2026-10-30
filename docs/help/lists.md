@@ -91,6 +91,13 @@ Under it: how many cards of each type
 are in each deck, each type's share of its deck, and averages of the cards' numbers (cost, force and
 so on). Pre-Game, cards with no deck and Proxy cards get no share, and Proxy cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
 
+In **Keyword counts**, the **Hide counts under** slider (1 to 15) hides the keywords that are rare in the deck and rarely
+named: a keyword shows when either its card count or its "Named in text of" count reaches the slider, and then both
+numbers show. Click a keyword to highlight it: its card count turns blue and its "Named in text of" count red, and the
+cards in the list glow to match, blue for the cards in that deck with the keyword and red for the cards naming it. Click
+more keywords to add them (a card that matches one in blue and another in red glows magenta), and click one again to
+drop it. The highlights stay when you change views.
+
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. Proxy cards
 aren't checked at all: they're in the deck to be printed and played, not part of its construction.

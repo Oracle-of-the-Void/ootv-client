@@ -1072,14 +1072,14 @@ proxies and public decklists (each game's card pages and set lists are linked be
 {{if keywords.length}}
 <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="liststatstoggle(this);">
   <summary>Keyword counts<span class="liststatshint"> (expand for details)</span></summary>
-  <label class="liststatscutoff">Hide counts under <input type="number" min="0" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"></label>
+  <label class="liststatscutoff">Hide counts under <input type="range" min="1" max="15" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"> <span class="liststatscutoffn">{{:kwcutoff}}</span></label>
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
     {{for keywords ~textfield=textfield}}
     <tbody>
     {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
-    {{for keywords}}
-    <tr class="liststatskwrow"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
+    {{for keywords ~deck=name}}
+    <tr class="liststatskwrow" data-kwkey="{{>~deck}}|{{>name}}" data-kwcards="{{:cardids}}" data-kwrefs="{{:refids}}" onclick="liststatskwpick(this);" title="Click to highlight the cards with this keyword (blue) and the cards naming it (red); click again to stop"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
     {{/for}}
     </tbody>
     {{/for}}
