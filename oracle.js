@@ -3452,7 +3452,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 }
 
 // The Simple List's count on your own list (the list template's span.editquantity, id
-// clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>): plain text, dotted underline on hover. A click, tap,
+// clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>): bold, dotted underline (solid on hover). A click, tap,
 // Enter or Space opens a - [n] + stepper in its place; Enter or leaving it saves, Esc puts it back, 0 asks before
 // removing the card. The template still marks it contenteditable (typed into before 2026-10-29): dropped here.
 function listcountready(where) {
