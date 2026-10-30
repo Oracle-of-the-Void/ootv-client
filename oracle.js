@@ -4170,32 +4170,32 @@ function liststatsstripe() {
 }
 // open or closed (the section, and its keyword part), kept per browser
 // the statistics box starts open, folded on phones so the cards come first; once toggled it stays as left
-// the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). The box
-// sits above the cards, beside them in the narrow views (Simple List, Text, Table) on a wide screen, and below
-// them on a phone, where the cards come first. It's first in the page (a float has to be), and the CSS orders it.
-// In the other views (Detail, Visual, Deck) its pin button (wide screens only) floats it to the upper right with
-// the cards flowing around it (listlayoutpinned), remembered across visits (liststatspinned).
+// the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). On a wide
+// screen the box goes to the side (the default) or above the cards, by its pin button (liststatspinned, remembered
+// across visits). To the side it's a column beside the narrow views (Simple List, Text, Table: listlayoutside) and
+// floats at the upper right of the others (Detail, Visual, Deck: listlayoutpinned), the cards flowing around it. On a
+// phone it comes after the cards, with no button. It's first in the page (a float has to be); the CSS orders it.
 var listlayoutside = ['list', 'html', 'table'];
 function listlayout(stats, cards) {
     var view = (templates[database]['active']['list'] || '').replace(/-premium$/,'');
-    var side = listlayoutside.includes(view);
-    var pin = !side && stats ? '<button type="button" class="iiconic listlayoutpin" onclick="liststatspin();"></button>' : '';
-    return '<div class="listlayout'+(side ? ' listlayoutside' : '')+(!side && liststatspinned() ? ' listlayoutpinned' : '')+'">'+
+    var sideclass = listlayoutside.includes(view) ? 'listlayoutside' : 'listlayoutpinned';
+    var pin = stats ? '<button type="button" class="iiconic listlayoutpin" onclick="liststatspin();"></button>' : '';
+    return '<div class="listlayout'+(liststatspinned() ? ' '+sideclass : '')+'" data-sideclass="'+sideclass+'">'+
 	'<div class="listlayoutstats">'+pin+stats+'</div><div class="listlayoutcards">'+cards+'</div></div>';
 }
 function liststatspinned() {
-    return cache_session("liststatspinned") === true;
+    return cache_session("liststatspinned") !== false;
 }
-// the pin button: the statistics between the header and the cards, or floated to the side
+// the pin button: the statistics to the side of the cards, or between the header and the cards
 function liststatspin() {
     var pinned = !liststatspinned();
     cache_session("liststatspinned", pinned);
-    $('#resultlist div.listlayout:not(.listlayoutside)').toggleClass('listlayoutpinned', pinned);
+    $('#resultlist div.listlayout').each(function() { $(this).toggleClass($(this).attr('data-sideclass'), pinned); });
     liststatspinbutton();
 }
 function liststatspinbutton() {
     var pinned = liststatspinned();
-    $('#resultlist button.listlayoutpin').attr('aria-label', pinned ? 'Statistics back above the cards' : 'Statistics to the side, cards around them')
+    $('#resultlist button.listlayoutpin').attr('aria-label', pinned ? 'Statistics above the cards' : 'Statistics to the side of the cards')
 	.attr('data-balloon-pos', 'left')
 	.html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#'+(pinned ? 'chevrons-up' : 'sidebar')+'"></svg>');
 }

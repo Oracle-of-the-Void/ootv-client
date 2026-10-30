@@ -78,11 +78,11 @@ A deck's header ends with its check: the cards not legal in its Legality, the fo
 in, and the deck construction check (below). It's always in view, whatever the statistics are doing.
 
 Under the header are two folding sections, **Statistics** and **Keyword counts**. Both start open and stay the
-way you last left them. In the Simple List, Text and Table views on a wide screen they're to the right of the
-cards instead, and stay in view as you scroll; on a phone they come after the cards, so the deck itself is first.
-On a wide screen they sit side by side when there's room. In the Detailed, Visual and Deck views, the button at the
-top right of the box moves it to the upper right of the cards, which flow around it; the button again puts it back on
-top. The site remembers which you chose.
+way you last left them. On a wide screen they're to the side of the cards: a column on the right in the Simple List,
+Text and Table views (it stays in view as you scroll), and a box at the upper right in the Detailed, Visual and Deck
+views, with the cards flowing around it. The button at the top right of the box moves them above the cards instead
+(side by side when there's room), and back; the site remembers which you chose. On a phone they come after the
+cards, so the deck itself is first.
 
 Statistics starts with the card count; an L5R deck's starts with its Dynasty/Fate sizes
 (`40/40 - 81 total`); other lists also say how many different cards they have (`120 cards [85 distinct]`).
