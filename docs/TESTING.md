@@ -141,6 +141,13 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
 - To test adding a card without saving it: `addlistitem('t1', id, prid, 1)`, then check
   `updatepending['t1']` (the save got queued) and `clearTimeout(savetimeout)` so the
   60 s save never fires.
+- Count editing (Simple List and Table, `listcountready`): the count is `span.editquantity`, id
+  `clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>`. The count is part of the id and changes with every save,
+  so find it by prefix and foil (`[id^="clist_quantity:t1:<card>:<printing>:"][id$=":<foil>"]`). Check: click (tap on a
+  touch device) opens `− [n] +`; + and − keep the focus in the box; Enter and clicking away save, Esc doesn't; 0 brings up a
+  `confirm` (handle `page.on('dialog')`, dismiss then accept). Add a regular and a foil entry of one printing: both are
+  editable in the Simple List and both stay plain in the Table (its template has no foil). In WebKit a tap on −/+ sends no
+  `click` (its pointerdown is cancelled), so run the touch case in `devices['iPhone 13']` too.
 - Header rows are `cardid: 0` entries: `decktitle` rows (`div.listhead`) and `typetitle`
   rows (`div.deckviewtype` in the deck view, `.listheadplain` in Simple List). Check the
   counts text, and that each deck header appears once.
