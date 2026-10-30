@@ -91,8 +91,7 @@ aren't checked at all: they're in the deck to be printed and played, not part of
 
 **Deck construction** checks the deck as a whole against the game's deck construction rules
 (see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
-you can save any deck. When a deck breaks its rules, or has cards that aren't legal in its Legality,
-the card count line at the top of the statistics says so in red too.
+you can save any deck. When a deck breaks its rules, the header's check line says so in red.
 
 ## Deck construction rules {#construction}
 

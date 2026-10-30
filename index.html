@@ -1011,25 +1011,25 @@ and search on the left.</p>
 </script>
 
 <!-- list view: the deck check at the foot of the list header (listheader's ~check, from liststats in oracle.js): the
-     cards not legal in the deck's Legality, the formats every card is legal in (liststatslegal) and the deck construction
+     cards not legal in the deck's Legality, the formats every card is legal in (liststatslegal), a red note when it breaks its construction rules, and the deck construction
      check (deckbuildhtml), as one line of phrases that wraps (oracle.css). Decks only; empty for other lists. -->
 <script id="template-listcheck" type="text/x-jsrender">
 {{if legalids || buildhtml}}<div class="listviewcheck">
   {{if legalids}}<div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>
-  <div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>{{/if}}
+  {{/if}}{{if buildbad}}<div class="liststatsflag">Breaks the deck construction rules</div>{{/if}}
+  {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>{{/if}}
   {{:buildhtml}}
 </div>{{/if}}
 </script>
 <!-- list view: the statistics box (liststats in oracle.js), two folding parts that share a row when both fit (oracle.css).
-     Statistics: copies and distinct cards (not on a deck), for an L5R deck led by its Dynasty/Fate sizes (dynfate), and in red
-     when the deck breaks its construction rules or its Legality (liststatsflag); then
+     Statistics: copies and distinct cards (not on a deck), for an L5R deck led by its Dynasty/Fate sizes (dynfate); then
      each deck (the game's deck field, or one unnamed group) with its card types: copies, share of the deck, and the
      averages of the game's numeric fields the type's cards have (copies weighted). Keyword counts: each deck's keywords and
      how many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <div class="liststatsbox">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
-  <summary>{{if dynfate}}<span title="Dynasty/Fate">{{:dynfate}}</span> - {{:totalcount}} total{{else}}{{:totalcount}} card{{if totalcount!=1}}s{{/if}}{{/if}}{{if distinctcount}} [{{:distinctcount}} distinct]{{/if}}<span class="liststatsflag" data-build="{{:buildbad}}"{{if !buildbad}} style="display:none"{{/if}}>{{if buildbad}} &#8212; breaks the deck construction rules{{/if}}</span><span class="liststatshint"> (expand for statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
+  <summary>{{if dynfate}}<span title="Dynasty/Fate">{{:dynfate}}</span> - {{:totalcount}} total{{else}}{{:totalcount}} card{{if totalcount!=1}}s{{/if}}{{/if}}{{if distinctcount}} [{{:distinctcount}} distinct]{{/if}}<span class="liststatshint"> (expand for statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
   {{if decks.length}}
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th><th>%</th><th class="liststatsavgs">Averages</th></tr></thead>
