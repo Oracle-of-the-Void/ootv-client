@@ -8,6 +8,11 @@ or tests. The files in this directory are exactly what gets served.
 - `index.html` is the single page. It loads jQuery and lodash from CDNs, plus local
   `chosen.jquery.min.js`/`chosen.min.css` (vendored Chosen 1.8.7; the CSS needs the
   `chosen-sprite*.png` files beside it), `jsviews.min.js` and `amazon-cognito-auth.min.js`. No game has files of its own (below).
+- Search engines: `index.html`'s `<title>`, description, canonical and Open Graph tags and the About page's game list are
+  what crawlers and link previews see first; `pagetitle()` in `oracle.js` retitles the page per game, card and deck
+  (called from `showview`, `drawcard`, `refreshlist`, `gameconfigapply`). `robots.txt` allows everything. The deploy
+  adds `<meta name="robots" content="noindex">` to preview's `index.html` (dev branch only). Plan and findings:
+  ootv-claude `issues/ootv-client/TODO.md`, "Search engine tuning".
 - `oracle.js` (~2500 lines, global functions and `var`s) holds all app logic: Cognito
   login, search (`dosearch`), card view (`docard`), lists/decks (`listinfo`,
   `addlistitem`, `renderlist`), PDF proxies (`createpdf`),
