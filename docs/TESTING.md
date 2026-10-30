@@ -18,6 +18,9 @@ talks to the **dev API** (`apiuri` is `api-dev.oracleofthevoid.com` on localhost
 runs the `dev-ootv-search` Lambda). Its data is the live data, so searching and browsing
 are real, and any write is a write to production. See "Faking login and the API" below.
 
+PDFs need preview or the live site: from localhost the card images fail to load, so the PDF comes out with no cards.
+`PDFDocument` and `blobStream` are undefined until the first `createpdf` (`loadpdfkit`).
+
 ## Page state worth inspecting
 
 Everything is a global, so `page.evaluate(() => ...)` can read it directly:

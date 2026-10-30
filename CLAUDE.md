@@ -40,6 +40,9 @@ or tests. The files in this directory are exactly what gets served.
   `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by `templatepartials()`;
   nothing view-related is left in `index.html`. The old `templates/` directory (per-game `.js`, per-game
   and generic `.html` views) is gone: ootv-claude `DEPRECATED.md`.
+- The home page's Recent updates (`loadupdates`): `homeupdatecount` rows at a time with an Older updates button, and each
+  row fetches up to 10 whole cards, so keep the count low (30 rows was 1.7 MB). It draws `#template-homeupdate`, with plain
+  labels from `homeupdatelabels`; a new operation needs one there. The admin update log keeps `#template-updatelog` and the raw names.
 - Sun and Moon codes (for the S&M text export and ootv-search's `/import`): set codes are the
   `oracle-all-structure` item `l5r/snm` (`sets`), which `oracle.js` loads through `/structure` on
   the first S&M export; a printing S&M files under another edition carries its own code in the
