@@ -4188,6 +4188,7 @@ function listlayout(stats, cards) {
 // Deck view (visual-deck): a deck of a few cards (L5R's Pre-Game) needn't take a whole row. Its header and cards are
 // wrapped and floated left (deckviewsmall), so the next deck's header and cards sit beside it; every other deck header
 // starts a new line (deckviewbreak: Dynasty to Fate). Not the last deck, which has nothing to sit beside it.
+// Each type label is then tied to its first card (deckviewlead).
 var deckviewsmallmax = 8; // card images (a stack counts once)
 function deckviewflow() {
     if(templates[database]['active']['list'] != 'visual-deck') {
@@ -4202,6 +4203,10 @@ function deckviewflow() {
     });
     $('#resultlist div.listlayoutcards > div.listhead').each(function() {
 	$(this).toggleClass('deckviewbreak', !$(this).prev().hasClass('deckviewsmall'));
+    });
+    // a type's label and its first card wrap to a new line together, not the label alone at the end of the row
+    $('#resultlist div.listlayoutcards div.deckviewtype').each(function() {
+	$(this).add($(this).nextAll('a.deckswipe').first()).wrapAll('<span class="deckviewlead"></span>');
     });
 }
 function liststatspinned() {
