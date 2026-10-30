@@ -65,8 +65,9 @@ or tests. The files in this directory are exactly what gets served.
   and the Table view (`span.deckvalue`). L5R Deck GP and Gold:Cost ratio GC: `liststatsgoldcost`. Help `lists#stats`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
-  calls. Its image upload is `uploadimagetrigger` in `oracle.js`. User guide:
-  `docs/admin/card-editor.md`.
+  calls. Its image upload is `uploadimagetrigger` in `oracle.js`, in its own box over the editor
+  (`#cardeditupload`, filled by `cardedituploadopen`). The image zoom panel's foot deletes an image and
+  reorders them by dragging thumbnails (`cardeditzoomfoot`). User guide: `docs/admin/card-editor.md`.
 - The Bookshelf (the Rules section until 2026-10-23; menubar book button, `#view=rules`, a shelf
   `#shelf=<key>`; a page is `#rulebook=<id>,#page=<n>`, whatever shelf the book is on) is
   `rules.js`, loaded on first use by `rulesshow()`; `rulesstate` in `oracle.js` is what the url

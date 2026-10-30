@@ -1123,6 +1123,9 @@ proxies and public decklists (each game's card pages and set lists are linked be
   <span class="button gray" onclick="$('#cardeditconfirm').hide();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
 </div></div></div>
 
+<!-- card editor (cardeditor.js) image upload: its own box over the editor, which stays open behind it -->
+<div id="cardeditupload" class="modal" style="z-index: 15;"><div class="modal-box"><div class="listhead upperhead"><span id="cardeditupload-title"></span><button class="iiconic inegative headsetrar" onclick="cardedituploadclose();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></use></svg></button></div><div class="modal-content" id="cardeditupload-content"></div></div></div>
+
 <!-- login expired (loginagain): its own box, so a card edit open in #modal survives -->
 <div id="loginmodal" class="modal" style="z-index: 20;"><div class="modal-box"><div class="listhead upperhead"><span>Your login has expired</span></div><div class="modal-content">
   <p>Log in again to carry on. Deck change saves will automatically be retried. Card edits may not be: check them, and retry the edit if necessary.</p>

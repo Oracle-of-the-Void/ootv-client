@@ -1,6 +1,6 @@
 # Card editor
 
-Last updated: 2026-10-21
+Last updated: 2026-10-30
 
 The **Edit** button at the top right of a card (shown to anyone with an edit permission on the
 game) opens one editor for the whole card: its own fields, every instance (printing), and which
@@ -59,8 +59,19 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   slider, **+**/**−**, the mouse wheel (zooms where the pointer is) or a double-click; drag the
   image to look around, **Fit** to see it all again. Drag the panel's title bar to move it and its
   bottom-right corner to resize it. It follows the instance you pick.
-- **Upload image** (instances already saved) uploads to S3 straight away, as before, but adds
-  the image to the instance only in the editor. Commit to save it on the card.
+- **Delete** under the panel's image takes that image off the instance, after a Yes/No. Like every
+  other edit it only happens on commit, and the file stays on the server (the commit puts it on the
+  image trash list). Deleting an instance's last image also removes its `imagehash`. A deleted
+  image can only be brought back with Reset, or by uploading it again.
+- An instance with several images shows them as thumbnails under the panel's image: click one to
+  show it, drag one to change the order, then commit. The first image is the one drawn first and
+  the one art search uses, and a thumbnail marked **back** is the back of the image just before
+  it, so keep the two together (`printing.image` in `docs/data.md`). Committing any change to an
+  instance's images, a new order included, drops its art vector until the vectors are recomputed.
+- **Upload image** (instances already saved, next to **Delete instance**) opens a box over the
+  editor to pick the file, directory and file name. The upload goes to S3 straight away, but the
+  image joins the instance only in the editor: when it's done the box closes, and you Commit to
+  save it on the card. The box can't be closed while an upload is running.
 - **Delete card** asks, then deletes the card immediately rather than on commit.
 
 ## Commit
