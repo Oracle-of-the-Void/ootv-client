@@ -359,6 +359,12 @@ div.listitem:first-child>div, div[class^=result] div.randarea:first-child {
  
  }
 
+/* the plain rows fill the results, not just the longest title's width */
+div.listitemplain, div.listitemplain>div {
+  display: block;
+  width: auto;
+}
+
 div.listitemplain:first-child>div {
 	     /* round right corners */
   -moz-border-radius-topright: 7px;  -webkit-border-top-right-radius: 7px;  -khtml-border-top-right-radius: 7px;  border-top-right-radius: 7px;
