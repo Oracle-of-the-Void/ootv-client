@@ -3383,6 +3383,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
+	    deckviewflow();
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
@@ -4126,6 +4127,25 @@ function listlayout(stats, cards) {
     var pin = stats ? '<button type="button" class="button gray buttonsmaller listlayoutpin" onclick="liststatspin();"></button>' : '';
     return '<div class="listlayout'+(liststatspinned() ? ' '+sideclass : '')+'" data-sideclass="'+sideclass+'">'+
 	'<div class="listlayoutstats">'+pin+stats+'</div><div class="listlayoutcards">'+cards+'</div></div>';
+}
+// Deck view (visual-deck): a deck of a few cards (L5R's Pre-Game) needn't take a whole row. Its header and cards are
+// wrapped and floated left (deckviewsmall), so the next deck's header and cards sit beside it; every other deck header
+// starts a new line (deckviewbreak: Dynasty to Fate). Not the last deck, which has nothing to sit beside it.
+var deckviewsmallmax = 8; // card images (a stack counts once)
+function deckviewflow() {
+    if(templates[database]['active']['list'] != 'visual-deck') {
+	return;
+    }
+    var heads = $('#resultlist div.listlayoutcards > div.listhead');
+    heads.each(function(i) {
+	var run = $(this).nextUntil('div.listhead');
+	if(i < heads.length-1 && run.filter('a.deckswipe').length <= deckviewsmallmax) {
+	    $(this).add(run).wrapAll('<div class="deckviewsmall"></div>');
+	}
+    });
+    $('#resultlist div.listlayoutcards > div.listhead').each(function() {
+	$(this).toggleClass('deckviewbreak', !$(this).prev().hasClass('deckviewsmall'));
+    });
 }
 function liststatspinned() {
     return cache_session("liststatspinned") !== false;
