@@ -4358,36 +4358,82 @@ function listtablecolumns(listdata) {
 	    }};
 }
 // With header rows (the Deck sort), each type section gets its own columns: only the stat fields its cards have a
-// number for, in the game's order, filled in from the left. The stat columns become slots (as many as the widest
-// section needs), each card carries its section's fields (listtablefields), and each header row's labels go in
-// tableheads, which listtableheads() writes into the drawn header rows. A list with no header rows keeps one set
-// of columns, labelled in the table head.
+// number for. The stat columns become slots (as many as the widest section needs), each card carries its section's
+// field per slot (listtablefields, a gap is an empty cell), and each header row's labels go in tableheads, which
+// listtableheads() writes into the drawn header rows. Two fields keep a place of their own so the same thing lines
+// up down the table: the field most sections share (L5R: Cost) is always the first column, empty where a section
+// lacks it, and a field every type section of a deck has (L5R Fate: Focus) is that deck's last column. The rest
+// fill in from the left, in the game's order. A list with no header rows keeps one set of columns, labelled in
+// the table head.
 function listtablesections(rows, cols) {
     if(!rows.some(function(c) { return c.cardid == 0; })) {
 	return;
     }
-    var heads = [], section = [];
-    var close = function() {
-	var cards = section.filter(function(c) { return c.cardid > 0; });
-	var fields = cols.tablefields.filter(function(f) {
-	    return cards.some(function(c) { return liststatsnumber(c[f.field]) !== null; });
-	});
-	cards.forEach(function(c) { c.listtablefields = fields; });
-	if(heads.length) {
-	    heads[heads.length-1].fields = fields;
-	}
-	section = [];
-    };
+    var heads = [], sections = [], deck = 0, section = null;
     rows.forEach(function(c) {
 	if(c.cardid == 0) {
-	    close();
-	    heads.push({"fields": []});
+	    if(c.title) {
+		deck++;
+	    }
+	    section = {"deck": deck, "cards": [], "head": {"fields": [], "cards": false}};
+	    heads.push(section.head);
+	    sections.push(section);
 	} else {
-	    section.push(c);
+	    if(!section) {
+		section = {"deck": deck, "cards": [], "head": null};
+		sections.push(section);
+	    }
+	    section.cards.push(c);
 	}
     });
-    close();
-    var n = Math.max.apply(null, [0].concat(heads.map(function(h) { return h.fields.length; })));
+    sections = sections.filter(function(sec) { return sec.cards.length; });
+    sections.forEach(function(sec) {
+	sec.fields = cols.tablefields.filter(function(f) {
+	    return sec.cards.some(function(c) { return liststatsnumber(c[f.field]) !== null; });
+	});
+    });
+    var has = function(sec, f) { return sec.fields.indexOf(f) >= 0; };
+    // the first column: the field in the most sections, if it's in more than one (the game's order breaks a tie)
+    var first = null, firstn = 1;
+    cols.tablefields.forEach(function(f) {
+	var n = sections.filter(function(sec) { return has(sec, f); }).length;
+	if(n > firstn) {
+	    first = f;
+	    firstn = n;
+	}
+    });
+    // each deck's last column: a field all its type sections have, if it has more than one
+    var last = {};
+    sections.forEach(function(sec) {
+	if(last[sec.deck] !== undefined) {
+	    return;
+	}
+	var mine = sections.filter(function(s) { return s.deck == sec.deck; });
+	last[sec.deck] = mine.length < 2 ? null : (cols.tablefields.find(function(f) {
+	    return f !== first && mine.every(function(s) { return has(s, f); });
+	}) || null);
+    });
+    var n = 0;
+    sections.forEach(function(sec) {
+	var l = last[sec.deck];
+	sec.middle = sec.fields.filter(function(f) { return f !== first && f !== l; });
+	n = Math.max(n, (first ? 1 : 0) + sec.middle.length + (l ? 1 : 0));
+    });
+    sections.forEach(function(sec) {
+	var l = last[sec.deck], slots = new Array(n);
+	if(first && has(sec, first)) {
+	    slots[0] = first;
+	}
+	sec.middle.forEach(function(f, i) { slots[(first ? 1 : 0) + i] = f; });
+	if(l) {
+	    slots[n-1] = l;
+	}
+	sec.cards.forEach(function(c) { c.listtablefields = slots; });
+	if(sec.head) {
+	    sec.head.fields = slots;
+	    sec.head.cards = true;
+	}
+    });
     cols.tableheads = heads;
     cols.tablefields = [];
     for(var i = 0; i < n; i++) {
@@ -4403,7 +4449,7 @@ function listtableheads(cols) {
     $('#resultlist table.listtable tbody tr.listtabledeck, #resultlist table.listtable tbody tr.listtabletype').each(function(i) {
 	var h = heads[i];
 	// a deck header straight above a type header has no cards of its own: it keeps its full width
-	if(!h || (!h.fields.length && $(this).next().is('.listtabledeck, .listtabletype'))) {
+	if(!h || !h.cards) {
 	    return;
 	}
 	var cells = $(this).children('th').first().attr('colspan', 2);
