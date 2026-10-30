@@ -604,7 +604,9 @@ A plain `*` in a game's own groups is **not** enough (ootv-search `lib/admin.js`
   or the card changes for `list`) **before** the write; if the row can't be written, nothing is saved.
 * Deleting (`action=remove`) stays the owner's.
 
-The client keeps the lists being edited in memory only (`adminediting` in `oracle.js`): a reload ends editing.
+The client keeps the lists being edited in memory only (`adminediting` in `oracle.js`): a reload ends editing, and any
+save still waiting (card edits go 15 s after the last one) never goes out. **Stop editing** waits for those saves. A 409's
+`list` is the bare item, without `adminedit` or `ownername`: the client keeps its own, or its merged save would be refused.
 
 ## /update
 
