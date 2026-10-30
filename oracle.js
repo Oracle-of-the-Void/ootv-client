@@ -3430,7 +3430,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+liststats(listdata,listid)+listmissing(listid,missing)+html);
+	    $("#resultlist").html(listheader(listid)+listlayout(liststats(listdata,listid), listmissing(listid,missing)+html));
 	    liststatslegal();
 	    liststatscutoff();
 	    listtablestripe();
@@ -4178,6 +4178,15 @@ function liststatsstripe() {
 }
 // open or closed (the section, and its keyword part), kept per browser
 // the statistics box starts open, folded on phones so the cards come first; once toggled it stays as left
+// the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). The box
+// sits above the cards, beside them in the narrow views (Simple List, Text, Table) on a wide screen, and below
+// them on a phone, where the cards come first. It's after the cards in the page, and the CSS moves it up.
+var listlayoutside = ['list', 'html', 'table'];
+function listlayout(stats, cards) {
+    var view = (templates[database]['active']['list'] || '').replace(/-premium$/,'');
+    return '<div class="listlayout'+(listlayoutside.includes(view) ? ' listlayoutside' : '')+'">'+
+	'<div class="listlayoutcards">'+cards+'</div><div class="listlayoutstats">'+stats+'</div></div>';
+}
 function liststatsopen() {
     var open = cache_session("liststatsopen");
     return open === null ? !narrowscreen() : open !== false;
