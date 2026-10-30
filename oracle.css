@@ -724,6 +724,7 @@ a.communitylink small { color: #777; }
 .homepage { padding: 8px 16px 16px; }
 .homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
 .homepage .homelede { font-size: 1.15em; }
+.homepage .homecardlists { margin-top: 24px; font-size: 0.9em; }
 .homepage p { line-height: 1.5; }
 .homepage h2 { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #666;
   margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--panel-border); }
