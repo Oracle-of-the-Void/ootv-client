@@ -129,6 +129,9 @@ or tests. The files in this directory are exactly what gets served.
 - `dev` → `preview.oracleofthevoid.com` (CloudFront `E2S43UTDKL45NF`)
 - `master` → `oracleofthevoid.com` (CloudFront `E6ECGAAP7LNKR`)
 
+A push to `master` also runs `discord-push`, which finishes first: to wait for a deploy, watch the run named `Deploy`
+(`gh run list --workflow deploy.yml`), then check `version.json`.
+
 Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stamps the
 checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
 `var ootvversion` in `index.html` gets the sha, and it writes `version.json` (the sha plus a UTC
