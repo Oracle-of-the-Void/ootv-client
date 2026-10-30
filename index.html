@@ -1072,7 +1072,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
 {{if keywords.length}}
 <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="liststatstoggle(this);">
   <summary>Keyword counts<span class="liststatshint"> (expand for details)</span></summary>
-  <label class="liststatscutoff">Hide counts under <input type="number" min="0" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"></label>
+  <label class="liststatscutoff">Hide counts under <input type="range" min="1" max="15" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"> <span class="liststatscutoffn">{{:kwcutoff}}</span></label>
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
     {{for keywords ~textfield=textfield}}

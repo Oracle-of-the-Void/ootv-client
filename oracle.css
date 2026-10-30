@@ -969,7 +969,14 @@ label.liststatscutoff {
     margin: 2px 0;
 }
 label.liststatscutoff input {
-    width: 3.5em;
+    width: 10em;
+    max-width: 50%;
+    vertical-align: middle;
+}
+/* the slider's value */
+label.liststatscutoff .liststatscutoffn {
+    display: inline-block;
+    min-width: 1.5em;
 }
 div.liststatsbox summary {
     cursor: pointer;
