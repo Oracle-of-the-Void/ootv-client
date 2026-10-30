@@ -2398,11 +2398,15 @@ label.publicwinner { white-space: nowrap; }
 /* the deck check at the foot of the list header (template-listcheck): a light strip, so its red and green read */
 div.listviewheader div.listviewcheck { margin: 6px -4px -4px; padding: 2px 8px; background: var(--panel); color: #222; font-family: var(--font-ui); font-size: medium; border-radius: 0 0 7px 7px; }
 div.liststatslegal { margin: 4px 0 6px; }
+/* in the header strip the three parts run as one line of phrases, wrapping as needed; a hidden part takes its dot with it */
+div.listviewcheck > div { display: inline; }
+div.listviewcheck > div + div::before { content: " \2022  "; color: #666; font-weight: normal; }
 div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
 div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
 div.liststatsbuild { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsbuild a, div.liststatsbuild a:visited { color: #c00; }
+span.liststatsflag { color: #c00; font-weight: bold; }
 div.liststatsbuildok { color: #116b1c; font-weight: normal; }
 div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: var(--panel); color: #222; max-width: 34em; }
 div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }
