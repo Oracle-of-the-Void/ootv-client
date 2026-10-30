@@ -7995,6 +7995,7 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 // the API unreachable, the start page says the game couldn't be loaded.
 var gameconfig = {};
 var gamemenu = null;   // all/games: the game menu, in order
+var gamepreviewonly = []; // all/games entries marked preview: true (highlighted in the menu)
 var gamehidden = {};   // per game, the fields its field list marks show: "hidden"
 function gameconfigload(db, ready) {
   var stored = cache_thing('gameconfig', db);
@@ -8043,6 +8044,7 @@ function gamemenuapply(conf) {
   if(!conf.games || !Array.isArray(conf.games.games)) { return; }
   var games = conf.games.games.filter(function(g) { return previewsite || !g.preview; });
   gamemenu = games.map(function(g) { return g.table; });
+  gamepreviewonly = games.filter(function(g) { return g.preview; }).map(function(g) { return g.table; });
   games.forEach(function(g) {
     if(!dbinfo[g.table]) { dbinfo[g.table] = {name: g.name, nameshort: g.nameshort, logo: g.logo}; }
   });
@@ -9004,7 +9006,10 @@ function chosenify() {
 }
 
 function addgametolist(db) {
-  $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+'</a></li>');
+  var cls = (database == db ? ['menuactive'] : []).concat(gamepreviewonly.includes(db) ? ['gamepreviewonly'] : []);
+  $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"'+
+    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+
+    (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</a></li>');
 }
 
 
