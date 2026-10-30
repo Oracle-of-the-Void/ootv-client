@@ -1124,7 +1124,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
 </table></div>
 </script>
 <script id="template-liststatsavgs" type="text/x-jsrender">
-{{for avgs}}<span class="liststatsavg" title="{{>label}}: average of {{:copies}} card{{if copies!=1}}s{{/if}}{{if skipped}} ({{:skipped}} with no number, e.g. * or X, left out){{/if}}{{if deckvalued}}; {{:deckvalued}} at the value they have in this deck (clan, Sensei or Stronghold discounts){{/if}}">{{>short}} <b>{{:avg}}</b></span>{{/for}}
+{{for avgs}}<span class="liststatsavg" title="{{>label}}: {{>sum}}/{{:copies}} card{{if copies!=1}}s{{/if}}{{if skipped}} ({{:skipped}} with no number, e.g. * or X, left out){{/if}}{{if deckvalued}}; {{:deckvalued}} at the value they have in this deck (clan, Sensei or Stronghold discounts){{/if}}">{{>short}} <b>{{:avg}}</b></span>{{/for}}
 </script>
 <!-- the card page pieces (card-top, card-middle, card-bottom, textversion, textversionbutton, decklistcontrols) are
      all/templates partials, put here by templatepartials() when the game config loads -->
