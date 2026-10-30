@@ -3800,10 +3800,9 @@ function liststats(listdata,listid=null) {
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"buildhtml": deckbuildhtml(build)});
+	"buildbad": !!(build && build.problems.length), "buildhtml": deckbuildhtml(build)});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
 	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
-	"buildbad": build && build.problems.length ? 1 : 0,
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
 	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
@@ -3824,7 +3823,6 @@ function liststatslegal() {
 	    } else {
 		bad.hide();
 	    }
-	    liststatsflag($('#resultlist .liststatsflag'), r.illegal && r.illegal.length ? r.format : '');
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
@@ -3838,18 +3836,6 @@ function liststatslegal() {
 	    success: function(r) { liststatslegalcache[key] = r; show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
-}
-// the red note after "40/40 - 86 total" on the Statistics count line: the deck breaks its construction rules
-// (data-build, set at render) and/or has cards not legal in its chosen format (from /cardslegal)
-function liststatsflag(flag, illegalin) {
-    var parts = [];
-    if(flag.attr('data-build') == '1') {
-	parts.push('breaks the deck construction rules');
-    }
-    if(illegalin) {
-	parts.push('not legal in '+htmlEncode(illegalin));
-    }
-    flag.html(parts.length ? ' &#8212; '+parts.join('; ') : '').toggle(parts.length > 0);
 }
 // ***********************  deck construction rules **************
 // A soft check shown at the foot of the list header (template-listcheck; docs/admin/deck-construction.md). The game's rules are game config

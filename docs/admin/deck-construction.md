@@ -23,8 +23,7 @@ switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds
 minimum the layers before set, plus two), so one overlay works in every legality.
 
 A broken rule shows in red on the Deck construction line, part of the list header
-(`template-listcheck`). The Statistics count line ("40/40 - 86 total") also adds a red note when the deck
-breaks its rules or has cards not legal in its chosen Legality (`liststatsflag()`).
+(`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
 
 The check's answer is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
 opens it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
