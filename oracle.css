@@ -1128,6 +1128,12 @@ table.listtable tr.listtabledeck th.listtablecolhead, table.listtable tr.listtab
     vertical-align: bottom;
     white-space: nowrap;
 }
+/* a stat at the value the card has in this deck, not the printed one (clan discounts; listtablecolumns) */
+table.listtable span.deckvalue {
+    font-weight: bold;
+    text-decoration: underline dotted;
+    cursor: help;
+}
 table.listtable tr.listtablestripe {
     background-color: rgba(0, 0, 0, 0.05);
 }

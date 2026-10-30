@@ -62,6 +62,10 @@ type has its own columns, named in its header row: only the numbers that type's 
 share (L5R: Cost) always takes the first column, and a number every type in a deck has (L5R Fate: Focus) that deck's
 last, so they line up down the table.
 
+In a deck, a card that costs less (or produces more) for the deck's clan, Sensei or Stronghold shows that number,
+in bold and underlined: hover over it to see the printed number and why (*Toturi* costs 15 in a Lion deck). The
+averages under the deck's name use those numbers too. Other lists show the printed numbers.
+
 L5R: Border Keep and Bamboo Harvesters were Pre-Game cards under the Celestial and Emperor rules (and
 Three Dynasties), and Dynasty cards from Ivory on. Versions that were both sit in the section the
 deck's **Legality** calls for: Pre-Game in Celestial, Emperor, BigDeck and Obsidian Hand decks, Dynasty in
