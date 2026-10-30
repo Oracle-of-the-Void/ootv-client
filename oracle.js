@@ -3389,6 +3389,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort,field_listid[5]||'');
 		}
 	    });
+	    pagetitle();
 	}
     }
 }
@@ -5760,6 +5761,8 @@ function drawcard(carddata,prid=null,qs=null) {
   traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
     set: legality.set[showpr] || [], sets: legality.sets});
   rulingsfold('#resultcard');
+  pagetitlecard = {cardid: String(carddata.cardid), title: selectplaintext([].concat(carddata.title || [])[0] || '')};
+  pagetitle();
 }
 
 // the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
@@ -6704,6 +6707,7 @@ function showview(view) {
     $('body').toggleClass('viewlist', view == 'resultlist'); // the list's text version button (menubar, phones above the list)
     if($('#' + view).is(":visible")) {
 	seturl(viewstate(view.replace(/^result/,'')), true);
+	pagetitle();
 	return;
     }
     $(".ui-layout-center div[id^=result]").hide(); // Hide all content
@@ -6711,6 +6715,7 @@ function showview(view) {
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
     $('#' + view).fadeIn();
     seturl(viewstate(view.replace(/^result/,'')));
+    pagetitle();
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
     if(view == 'resultadmin') showadmintab(admintab);
@@ -6735,6 +6740,24 @@ function showsearch() {
 //    $("#resultsearch").show();
 //    $("#resultlist").hide();
 //    $("#resultcard").hide();
+}
+// the browser tab and search engine title for what's shown: the card or deck name and the game (Google reads it
+// after running the page; index.html has the start page's). drawcard keeps the card's name here.
+var pagetitlecard = {cardid: null, title: ''};
+function pagetitle() {
+  var game = (dbinfo[database] || {}).name;
+  var title = 'Oracle of the Void';
+  var view = $(".ui-layout-center div[id^=result]:visible").attr('id');
+  if(view == 'resultcard' && pagetitlecard.title && pagetitlecard.cardid == $('#lastcardid').val()) {
+    title = pagetitlecard.title + (game ? ' – ' + game + ' card' : '') + ' | ' + title;
+  } else if(view == 'resultlist' && $('#lastlistid').val()) {
+    var list = cache_thing("list", $('#lastlistid').val());
+    var name = list && list.list && list.list.Items[0] ? selectplaintext(list.list.Items[0].name || '') : '';
+    title = (name || 'Deck') + (game ? ' – ' + game + ' deck' : '') + ' | ' + title;
+  } else if(game) {
+    title = game + ' card database and deck builder | ' + title;
+  }
+  document.title = title;
 }
 
 
@@ -7294,6 +7317,9 @@ function gameconfigapply(db, conf) {
   }
   if(g.info.background && db == database) {
     $('body').css('background-image', "url('"+g.info.background+"')");
+  }
+  if(db == database) {
+    pagetitle();
   }
 }
 // sort.pick: {field: {rules: [[regex, value], ...], default}}. A card in a list with more than one value in that
