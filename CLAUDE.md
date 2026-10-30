@@ -40,6 +40,10 @@ or tests. The files in this directory are exactly what gets served.
   `decklistcontrols`) are `all/templates` `partials`, put into `#all_template` by `templatepartials()`;
   nothing view-related is left in `index.html`. The old `templates/` directory (per-game `.js`, per-game
   and generic `.html` views) is gone: ootv-claude `DEPRECATED.md`.
+- The search sidebar on wide screens (`sidebarfit` in `oracle.js`, called from `showview`): the views in `sidebarnosearch` (Help, Bookshelf,
+  Public lists) start with it collapsed; opening or closing it by hand holds for those views together, and separately for the others
+  (`sidebaropen`). The ad and links under the form hide with it. The phone layout's `!important` rules ignore this. A new view with no use for the form goes in `sidebarnosearch`.
+- Link color: `--link` on `:root`, applied by `:where(a[href])` in `oracle.css`, which any other link rule beats.
 - The home page's Recent updates (`loadupdates`): `homeupdatecount` rows at a time with an Older updates button, and each
   row fetches up to 10 whole cards, so keep the count low (30 rows was 1.7 MB). It draws `#template-homeupdate`, with plain
   labels from `homeupdatelabels`; a new operation needs one there. The admin update log keeps `#template-updatelog` and the raw names.
