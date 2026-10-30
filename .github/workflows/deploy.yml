@@ -64,6 +64,14 @@ jobs:
         if: steps.newest.outputs.current == 'true'
         run: .github/stamp-version.sh "${GITHUB_SHA::12}"
 
+      # preview is a copy of the live site: keep it out of search results (its canonical link already names
+      # oracleofthevoid.com). A meta tag, not a robots.txt Disallow, so crawlers can read it and drop the pages.
+      - name: Noindex preview
+        if: steps.newest.outputs.current == 'true' && github.ref_name == 'dev'
+        run: |
+          sed -i 's#<meta charset="utf-8">#&\n  <meta name="robots" content="noindex">#' index.html
+          grep -q 'name="robots" content="noindex"' index.html
+
       # Caching (see .github/stamp-version.sh):
       #   *.js, *.css               versioned (?v=<commit>) -> cached a year, immutable
       #   pages, version.json, docs  revalidated on every load (no-cache; 304 when unchanged)
