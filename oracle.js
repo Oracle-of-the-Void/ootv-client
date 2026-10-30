@@ -3442,6 +3442,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    updates[database]('#resultlist');
 	    deckviewflow();
 	    listcountready('#resultlist');
+	    liststatskwmark(); // after the symbols, deck flow and counts, which rebuild the cards' html
 	    pagetitle();
 	}
     }
@@ -3760,6 +3761,7 @@ function liststatskeywords(cards, decks) {
 	    var re = new RegExp('(^|[^A-Za-z0-9])'+escape(k)+'s?(?![A-Za-z0-9])');
 	    var by = texts.filter(function(t) { return t.kws.indexOf(k) < 0 && re.test(t.text); });
 	    refs[k] = {"refcopies": by.reduce(function(n,t) { return n + t.c.qty; }, 0), "refcards": by.length,
+		       "refids": by.map(function(t) { return t.c.card.cardid; }).join(','),
 		       "reftitles": by.map(function(t) { return liststatsplain((t.c.card.title || []).join ? t.c.card.title.join(' ') : t.c.card.title); }).join(', ')};
 	}
 	return refs[k];
@@ -3769,12 +3771,13 @@ function liststatskeywords(cards, decks) {
 	cards.filter(function(c) { return d.match(c); }).forEach(function(c) {
 	    kws(c).forEach(function(k) {
 		if(!counts[k]) {
-		    counts[k] = {"name": k, "copies": 0};
+		    counts[k] = {"name": k, "copies": 0, "ids": []};
 		}
 		counts[k].copies += c.qty;
+		counts[k].ids.push(c.card.cardid);
 	    });
 	});
-	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], references(k)); });
+	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], {"cardids": counts[k].ids.join(',')}, references(k)); });
 	list.sort(function(a,b) { return b.copies - a.copies || a.name.localeCompare(b.name); });
 	return {"name": d.name, "keywords": list};
     }).filter(function(d) { return d.keywords.length; });
@@ -4210,6 +4213,36 @@ function liststatscutoff(value) {
 	$(this).toggle(shown > 0);
     });
     liststatsstripe();
+}
+// a click on a keyword row picks it (another click drops it; several can be picked): its Cards count shades blue and
+// its "Named in text of" count red, and the cards in the list glow to match, blue for having it (in that deck), red for
+// naming it, magenta for both (two keywords picked). Kept by deck and keyword across redraws of the list.
+var liststatskwpicked = {};
+function liststatskwpick(row) {
+    var key = $(row).attr('data-kwkey');
+    if(liststatskwpicked[key]) {
+	delete liststatskwpicked[key];
+    } else {
+	liststatskwpicked[key] = true;
+    }
+    liststatskwmark();
+}
+function liststatskwmark() {
+    var own = {}, ref = {};
+    var add = function(set, ids) { (ids || '').split(',').forEach(function(id) { if(id) { set[id] = true; } }); };
+    $('#resultlist tr.liststatskwrow').each(function() {
+	var picked = !!liststatskwpicked[$(this).attr('data-kwkey')];
+	$(this).toggleClass('liststatskwpicked', picked);
+	if(picked) {
+	    add(own, $(this).attr('data-kwcards'));
+	    add(ref, $(this).attr('data-kwrefs'));
+	}
+    });
+    $('#resultlist div.listlayoutcards a.deckswipe').each(function() {
+	var id = String($(this).attr('data-card'));
+	var hit = $(this).add($(this).closest('tr.listtablecard'));
+	hit.toggleClass('kwown', !!own[id]).toggleClass('kwref', !!ref[id]).toggleClass('kwglow', !!(own[id] || ref[id]));
+    });
 }
 // every other shown row in each deck is shaded (counted here, since the cutoff hides rows)
 function liststatsstripe() {
