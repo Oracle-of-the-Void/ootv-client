@@ -140,6 +140,17 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   from its text: `{"cost": ["0-6"]}` (a range), `["2", "0"]` (either), `["1+"]` (1 or more, open-ended).
   Min/max search uses it instead of the printed value's rule (`*`/`X` = 0 up, `2*` = 2, `+5/+0` = 5 or 0;
   `docs/admin/field-descriptions.md`). The printed field stays as printed.
+  L5R since 2026-10-30: the Strategies whose action pays Gold equal to something (Certain Death, cost 0:
+  `["0+"]`), from ootv-tools `field-fixes/fill-variable-values.py`.
+* conditionalvalues (optional, every game, map of field → array of objects, since 2026-10-30): a numeric
+  field's value in a deck that meets a condition, from the card's text: `{"cost": [{"value": "2", "when":
+  {"clan": ["Scorpion"]}}]}` (Complications: "costs 2 less Gold for Scorpion Clan players"). `when` keys:
+  `clan` (the deck's Stronghold clan, as the clan mon names it: `Scorpion`, `Ratling`, `Brotherhood of
+  Shinsei`), `sensei` (the deck's Sensei title), `stronghold` (the Stronghold's title); any listed value
+  matches, and the first entry that matches wins. Search ignores it (the index stores it unmapped,
+  `enabled: false`): a min/max search still finds Complications at 4. Meant for the deck view (Table
+  columns, averages); not shown yet. L5R: 83 cards (clan discounts, clan Gold productions), from
+  ootv-tools `field-fixes/fill-variable-values.py`, whose `--revert` puts a run back.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;

@@ -1,6 +1,6 @@
 # Fields: descriptions and settings
 
-Last updated: 2026-10-23
+Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck; L5R Holding Gold Production filled)
 
 Every card field has a short description of what it holds, so the card editor can say what a
 field is for before you fill it in, and **settings** that say how the site uses it: its labels,
@@ -52,7 +52,12 @@ replaces the field's settings; clear it to drop them.
   anything from 0 up, `-*`/`-X` anything from 0 down; `+5/+0` is either 5 or 0. `-` is no value. When the
   card text pins a value down, the card's `variablevalues` field says what it can be, per field:
   `{"cost": ["0-6"]}` (a range), `["2", "0"]` (either), `["1+"]` (1 or more); it replaces the rule above
-  for that field. Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
+  for that field. A value that depends on the deck (Complications: 4, but "2 less Gold for Scorpion Clan
+  players") is in `conditionalvalues` instead (`{"cost": [{"value": "2", "when": {"clan": ["Scorpion"]}}]}`,
+  `when` on the deck's Stronghold `clan`, `sensei` or `stronghold`; [card data](../data.md)): search keeps
+  the printed value, and the deck view will show the other. L5R Holdings with no Gold Production field
+  had it filled from their ":bow:: Produce N Gold" on 2026-10-30, `N*` when the text changes it (as AEG
+  printed later Holdings: Marshalling Grounds `2*`). Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
   `README.md`), and a new numeric field needs `ootv-elastic/numrange-mapping.sh` run for its game,
   then a repopulate, before the extra matches show (until then it searches the plain number).
 - `show`: `"card"` (the default: shown on the card page), `"internal"` (the editor only), or
