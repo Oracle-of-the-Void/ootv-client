@@ -887,7 +887,6 @@ div.listlayout div.listlayoutcards {
 div.listlayoutstats {
     position: relative;
 }
-/* (div.listlayoutstats >: beats balloon.css's position: relative on [aria-label][data-balloon-pos]) */
 div.listlayoutstats > button.listlayoutpin {
     display: none;
     position: absolute;
@@ -899,10 +898,7 @@ div.listlayoutstats > button.listlayoutpin {
   div.listlayoutstats > button.listlayoutpin {
     display: block;
   }
-  /* room for the button, so it never sits on a summary */
-  div.listlayoutstats > div.liststatsbox {
-    padding-right: 28px;
-  }
+
   div.listlayoutpinned {
     display: block;
   }
