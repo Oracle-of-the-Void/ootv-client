@@ -17,7 +17,7 @@
   --chip-hover: #e6e2d7;
   --chip-text: #2b2a27;
   --rule: #69c;                           /* blue left bars (rulings, help) and dotted trait links */
-  --link: #369;
+  --link: #369;                           /* every link, visited or not (a[href], below) */
   --border-warm: #d8d2c2;
   --surface-warm: #faf8f2;
   --field-border: #c8c6c0;                /* text boxes and dropdowns */
@@ -35,6 +35,9 @@ body {
   font-size: 11pt;
   margin: 0;
 }
+
+/* one link color in place of the browser's blue and purple; :where keeps it weaker than any other link rule */
+:where(a[href]) { color: var(--link); }
 
 /* the game's art (the body background, each game's own via gameconfig info.background) fades to a texture */
 body::before {

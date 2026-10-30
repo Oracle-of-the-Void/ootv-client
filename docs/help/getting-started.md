@@ -13,6 +13,8 @@ form and rules. The site remembers the last game you used.
 Type in the search form on the left (on a phone, under **Edit search**) and press **Search**.
 The [Searching](searching.md) page explains every box and the search language of the All box.
 
+On Help, the Bookshelf and Public lists the form starts collapsed. The small arrow at the left edge of the page opens it.
+
 A small **?** next to a control shows its help when you hover over it (on a phone, press and
 hold it). Click or tap it to open the whole help page there.
 
