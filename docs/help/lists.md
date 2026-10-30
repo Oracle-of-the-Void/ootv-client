@@ -134,7 +134,8 @@ Stronghold, no more than one of each kind of Pre-Game card, and at most three co
 - Some cards change the rules while they're in the deck. Each copy of Coastal Lane raises the
   minimum Dynasty deck size by two, each Strength Remains the Fate minimum by two, and each
   Hato-gurama lowers the Fate minimum by one. Forgotten Legacy needs at least 16 Holdings in the
-  Dynasty deck, however many copies you have.
+  Dynasty deck, however many copies you have. Eternal Victory Dojo allows four copies each of one
+  or two non-Unique Strategies with Battle abilities: a third title at four copies breaks the rule.
 
 A format can change the rules, and the deck's **Legality** picks which: Imperial needs only 30 Fate
 and 30 Dynasty cards; BigDeck needs 80 of each, Modern 50 of each, and both allow one copy of any card, even one that says you may include more. To change them for one

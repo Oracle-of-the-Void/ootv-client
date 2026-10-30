@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-30 (the Special legality); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows at the
 foot of the deck's list header, under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -82,7 +82,7 @@ a JSON object, empty removes it).
 | `check: size` | Copies in `deck`: `min`, `max`. |
 | `check: type` | Copies of `type` in `deck`: `min`, `max`. |
 | `check: pertype` | Copies of each type in `deck`, less `except`: `max`. Type Proxy is never counted as a type. |
-| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too). |
+| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too). With `titles: n` only n different cards may go past the limit they'd have without this rule; more than that is a problem naming them all, since the check can't tell which ones the player meant (Eternal Victory Dojo). |
 
 Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Unique`).
 
@@ -121,3 +121,10 @@ Forgotten Legacy ("You must have at least 16 Holdings in your deck construction"
 `{"rules": {"legacyholdings": {"order": 7, "label": "Holdings (Forgotten Legacy)", "check": "type", "deck": "Dynasty", "type": "Holding", "min": 16}}}`.
 It sets a number rather than adding one, so more copies still mean 16. Only Dynasty Holdings count (the user,
 2026-10-29), so a Celestial deck's Pre-Game Border Keep and Bamboo Harvesters don't.
+Eternal Victory Dojo ("Your deck may include four copies each of one or two non-Unique Strategies with Battle abilities"):
+`{"rules": {"battlestrategy4": {"label": "Battle Strategies (Eternal Victory Dojo)", "check": "copies", "when": {"type": "^Strategy$", "text": "Battle(/[A-Za-z]+)?(, :[A-Za-z0-9*]+:)?\\s*:"}, "max": 4, "titles": 2}}}`.
+A third title at four is a problem; any number at three is fine. `when` reads the card's own `text` when the check runs
+(nothing is stored on the list), and the regex finds a Battle ability's heading (`Battle:`, `Battle/Open:`, `Battle, :g2::`),
+so a Strategy that only mentions Battle ("After your Battle action resolves") stays at three. Checked against all 3,370
+L5R Strategies, 2026-10-30: it finds all 1,933 with a bold Battle heading but Discovering the Shakuhachi of Air
+(Battle/Open only for a Unicorn player), plus The Lesson of Earth, whose heading isn't bold in our data.
