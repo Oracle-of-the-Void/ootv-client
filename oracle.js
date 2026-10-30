@@ -6022,7 +6022,20 @@ function getDataUri(url, callback, landscape=false, finish=null) {
 function checkfilename(data) {
     return data.startsWith("filename:");
 }
+// pdfkit (~1.9 MB) and blob-stream are only for PDFs, so they load on the first one, not with the page
+function loadpdfkit(callback) {
+  if(typeof PDFDocument !== 'undefined' && typeof blobStream !== 'undefined') { callback(); return; }
+  var get = f => $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
+  $.when(get('pdfkit.min.js'), get('blob-stream.min.js'))
+    .done(callback)
+    .fail(function() { alert("Could not load the PDF maker. Check your connection and try again."); });
+}
+
 function createpdf(data,listoutput='') {
+    if(typeof PDFDocument === 'undefined' || typeof blobStream === 'undefined') {
+      loadpdfkit(function() { createpdf(data, listoutput); });
+      return;
+    }
     var metadata = listoutput.split(",");
     var fn = metadata.find(checkfilename)?metadata.find(checkfilename).replace("filename:",''):"decklist";
     var o = pdfoptions || pdfbaseoptions();
@@ -9742,6 +9755,12 @@ function loadadmindoc(name) {
 
 // cards linked per updatelog row; matches FETCH_PER_ROW in ootv-search routes/updatelog.js
 const updatelogshown = 10;
+// the home page's Recent updates: this many rows at a time (each fetches up to updatelogshown cards),
+// and what its operations are called there. The admin update log keeps the raw names.
+const homeupdatecount = 10;
+const homeupdatelabels = {'new': 'New card', 'newinstance': 'New printing', 'remove': 'Card removed',
+  'removeinstance': 'Printing removed', 'update': 'Card updated', 'updateinstance': 'Printing updated',
+  'upload': 'Image added', 'bulkupdate': 'Cards updated'};
 // /updatelog?fetchcards=true -> one template-updatelog row per log entry, newest first.
 // Caches the fetched cards. A bulkupdate can list thousands of cards: link only the
 // first updatelogshown (the ones the API fetched) and count the rest, so the page
@@ -9755,6 +9774,8 @@ function updatelogrows(raw, db) {
   return raw.logs.map(function(uplog) {
     var printlog = JSON.parse(JSON.stringify(uplog));
     printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
+    printlog.date = new Date(uplog.timestamp).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+    printlog.label = homeupdatelabels[printlog.operation] || printlog.operation;
     var cardids = printlog.cardids || [];
     printlog.total = cardids.length;
     printlog.cards = cardids.slice(0, updatelogshown).map(function(uplogcard) {
@@ -9768,14 +9789,15 @@ function updatelogrows(raw, db) {
   });
 }
 
-function loadupdates(db,start=null) {
+// older: the next page's maxtime, for the Older updates button
+function loadupdates(db,start=null,older=null) {
   // TODO: set timer for start on max last card
   var req = { 
     type: 'GET',
     url: apiuri+"/updatelog",
     data: {
       table: database,
-      limit: 110, 
+      limit: homeupdatecount,
       fetchcards: true
     },
     contentType: 'application/json',
@@ -9783,10 +9805,18 @@ function loadupdates(db,start=null) {
     responseType: 'application/json',
     success: function(raw) {
       console.log(['loadupdates success',raw]);
-      var updatelogtemplate = $.templates("#template-updatelog");
-      updatelogrows(raw, database).reverse().forEach(function(printlog) {
-        $('#updatelog').prepend(updatelogtemplate.render(printlog));
-      });
+      var updatelogtemplate = $.templates("#template-homeupdate");
+      var rows = updatelogrows(raw, database);
+      if(older) {
+        $('#updatelog').append(rows.map(function(printlog) { return updatelogtemplate.render(printlog); }).join(''));
+      } else {
+        rows.reverse().forEach(function(printlog) {
+          $('#updatelog').prepend(updatelogtemplate.render(printlog));
+        });
+      }
+      if(!start) {
+        $('#updatelogolder').data('next', raw.next).toggle(!!raw.next);
+      }
     },
     error: function(raw) {
       console.log(['loadupdates fail',raw]);
@@ -9794,6 +9824,10 @@ function loadupdates(db,start=null) {
   };
   if(start) {
     req.data['mintime'] = start;
+  }
+  if(older) {
+    req.data['maxtime'] = older;
+    $('#updatelogolder').hide();
   }
   $.ajax(req);
 }
