@@ -5379,7 +5379,8 @@ function fillsearchform(values) {
   // chained selects (set -> rarity) redraw from their parent, then take their values
   form.find('select[onchange]').trigger('change');
   setvalues();
-  form.find('.chosen-select').trigger('chosen:updated');
+  // Tom Select keeps its own picks: match them to the selects (it also moves picked options, so no sync())
+  form.find('select.tomselected').each(function() { this.tomselect.setValue($(this).val(), true); });
   if(advanced) {
     showadvancedsearch(true);
   }
@@ -8883,8 +8884,6 @@ function startpage() {
   (gamemenu || []).concat(Object.keys(dbinfo).filter(function(k) { return !(gamemenu || []).includes(k); }))
     .forEach(function(k) { if(dbinfo[k]) { addgametolist(k); } });
   
-  //    $('.document').bind("DOMSUbtreeModified",chosenify);
-  //    chosenify();
 
 }
 
@@ -8996,14 +8995,22 @@ function templateerrtext(e) {
   return String(e && e.message || e).split(/,? in template:/)[0].replace(/\s+/g, ' ').trim();
 }
 
-function chosenify() {
-    console.log("chosenify");
-    $(".chosen-select").chosen({
-//	no_results_text: "Oops, nothing found!",
-	allow_single_deselect: true,
-	placeholder_text_multiple: "Select"
-//	width: "200px"
+// the search form's multiple selects, as Tom Select controls (the selects stay, hidden, and serialize as usual)
+function tomselectify() {
+  $('select.tomselect:not(.tomselected)').each(function() {
+    new TomSelect(this, {
+      plugins: ['remove_button', 'checkbox_options'],
+      maxOptions: null,        // the default stops at 50: L5R has more sets than that
+      refreshThrottle: 0,      // the default filters 300 ms late: a quick Enter would pick the old top option
+      placeholder: 'Select',
+      hidePlaceholder: true
     });
+  });
+}
+// before redrawing a select: takes its control away
+function tomselectdrop(sel) {
+  var el = $(sel)[0];
+  if(el && el.tomselect) { el.tomselect.destroy(); }
 }
 
 function addgametolist(db) {
@@ -9391,7 +9398,7 @@ function initializeform(db) {
   while (populatecallback.length){
 	  populatecallback.shift().call();
   }
-  chosenify();
+  tomselectify();
   $('dd.advanced').hide();
   $('dt.advanced').hide();
   advancedshown = false;
@@ -9403,7 +9410,7 @@ function initializeform(db) {
 // the Foil search (type "foil", every game; ootv-search routes/search.js): fixed choices, ORed
 var foilsearch = [['any', 'Any foil'], ['foil', 'Foil only'], ['both', 'Regular and foil'], ['none', 'Not foil']];
 function foilselect(nound) {
-  return '<select class="chosen-select" multiple id="field_'+nound+'" name="field_'+nound+'">'+
+  return '<select class="tomselect" multiple id="field_'+nound+'" name="field_'+nound+'">'+
     foilsearch.map(function(o) { return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join('')+'</select>';
 }
 // a search form select, from the cached values
@@ -9425,7 +9432,7 @@ function selectfield(db,key) {
 function onchangesub(key,nound,noundsub,db) {
   console.log(key,nound,noundsub,db);
   var fval = $('#field_'+noundsub).val();
-  $('#field_'+noundsub+'_chosen').remove();
+  tomselectdrop('#field_'+noundsub);
   var newvals = [];
   var sel = cache_select(key);
   if(//!Array.isArray(sel[0])) {
@@ -9454,7 +9461,7 @@ function onchangesub(key,nound,noundsub,db) {
 		               )
   );
   $('#field_'+noundsub).val(fval);
-  chosenify();
+  tomselectify();
 }
 
 // admin login log: newest 50 per page from /loginlog (site admins only).
@@ -10262,10 +10269,10 @@ function refreshselectfield(db,key) {
 	  return;
   }
   var val = $('#field_'+nound).val();
-  $('#field_'+nound+'_chosen').remove();
+  tomselectdrop('#field_'+nound);
   $('#field_'+nound).replaceWith(selectfield(db,key));
   $('#field_'+nound).val(val);
-  chosenify();
+  tomselectify();
   // the select chained to this one (set -> rarity) takes its values from this one
   if(searchables[db][key]['sub'] !== undefined) {
 	  onchangesub(key,nound,searchables[db][key]['sub'].replace("printing.","printing_"),db);
@@ -10329,7 +10336,7 @@ function uri2json(uri) {
 // make a select with attrs from att.   values and display are identical
 function makeselectarray(arr,atts={}) {
   //  console.log(arr);
-  var sel = '<select class="chosen-select" multiple '+
+  var sel = '<select class="tomselect" multiple '+
     $.map(atts,function(v,i){ // atts pair value id=, name=, etc.
       return i+'="'+v+'"';
     }).join(" ")+'>';
@@ -10559,7 +10566,6 @@ function modal(title,content) {
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
-    chosenify();
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
@@ -10567,7 +10573,6 @@ function modalconfirm(title,content,handler,contentafter='') {
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
-  chosenify();
 }
 
 function erasemodal() {
