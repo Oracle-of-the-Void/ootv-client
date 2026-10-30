@@ -88,6 +88,11 @@ Card editor (2026-10-21, emulated touch only): a sideways swipe on Printing deta
 `editswipetouch`; also skipped over a value box, in the image zoom panel, in the JSON view and with a
 confirm box up). The ◀ ▶ arrows beside "Instance N (i of n)" are 36px tap targets.
 
+Card editor image panel (2026-10-30, emulated touch only; **not checked on iOS Safari**): thumbnails under the
+zoom panel's image reorder by dragging, through pointer events with `touch-action: none` on each thumbnail, and a tap
+shows that image. The pointer is captured on the thumbnail row, not the thumbnail, because moving the thumbnail in the
+page would release it.
+
 Added 2026-10-16 (emulated touch only; see the checklist above): with no active list, an adding
 swipe in search results asks which list to activate (folder tree, plus New list); a Gestures switch
 hides the directory's Folder pulldown (move lists by dragging only); New list asks for a name and
