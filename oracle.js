@@ -4132,11 +4132,11 @@ function listbuildsave(el, reset) {
     if(Object.keys(pick).length) { out.pick = pick; }
     listinfoupdate(listid, 'deckconstruction', Object.keys(out).length ? JSON.stringify(out) : '');
 }
-// keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
-// hides, and so does a deck with none left
+// keyword counts under the cutoff (a 1-15 slider, default 4, kept per browser) are hidden; a keyword with every
+// count hidden hides, and so does a deck with none left
 function liststatskwcutoff() {
     var n = parseInt(cache_session("liststatskwcutoff"));
-    return isNaN(n) ? 4 : n;
+    return isNaN(n) ? 4 : Math.min(15, Math.max(1, n)); // older saves could be 0 or above 15
 }
 function liststatscutoff(value) {
     if(value !== undefined) {
@@ -4144,6 +4144,7 @@ function liststatscutoff(value) {
 	cache_session("liststatskwcutoff", isNaN(n) ? '' : n); // blank: back to the default
     }
     var cutoff = liststatskwcutoff();
+    $('#resultlist label.liststatscutoff .liststatscutoffn').text(cutoff);
     $('#resultlist details.liststatskw tbody').each(function() {
 	var shown = 0;
 	$(this).find('tr.liststatskwrow').each(function() {
