@@ -72,8 +72,8 @@ const ctx = await browser.newContext({hasTouch: true, isMobile: true,
   so a centred `down` tooltip on a right-edge button can cause it; use `down-right` there.
 - `max-width: %` on images inside the `display: table-cell` layouts collapses them to nothing;
   cap with `vw` instead.
-- Chromium draws Chosen's mobile fallback (plain `<select multiple>`) as tall list boxes;
-  real iOS Safari shows a one-line picker. Check those on a real phone.
+- Search form selects are Tom Select on phones too: tap `#field_<name>-ts-control`, then an `.option` in
+  `#field_<name>-ts-dropdown`. The keyboard and any zoom on focus only show on a real phone.
 
 ## Cover every game
 

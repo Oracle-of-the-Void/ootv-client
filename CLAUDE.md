@@ -6,8 +6,7 @@ or tests. The files in this directory are exactly what gets served.
 ## Layout
 
 - `index.html` is the single page. It loads jQuery and lodash from CDNs, plus local
-  `chosen.jquery.min.js`/`chosen.min.css` (vendored Chosen 1.8.7; the CSS needs the
-  `chosen-sprite*.png` files beside it), `jsviews.min.js` and `amazon-cognito-auth.min.js`. No game has files of its own (below).
+  `tom-select.complete.min.js`/`tom-select.min.css` (vendored Tom Select 2.6.2, the search form's multiple selects: `tomselectify` in `oracle.js`; after setting a select's value in code, call its `tomselect.setValue`, not `sync()`, which loses the optgroups once options are picked), `jsviews.min.js` and `amazon-cognito-auth.min.js`. No game has files of its own (below).
 - Search engines: `index.html`'s `<title>`, description, canonical and Open Graph tags and the About page's game list are
   what crawlers and link previews see first; `pagetitle()` in `oracle.js` retitles the page per game, card and deck
   (called from `showview`, `drawcard`, `refreshlist`, `gameconfigapply`). `robots.txt` allows everything and names the sitemap. `/browse/` (card, set and deck pages plus `browse/sitemap.xml`, for
