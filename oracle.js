@@ -3385,6 +3385,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
 	    deckviewflow();
+	    liststatskwmark(); // after the symbols and deck flow, which rebuild the cards' html
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
@@ -3652,6 +3653,7 @@ function liststatskeywords(cards, decks) {
 	    var re = new RegExp('(^|[^A-Za-z0-9])'+escape(k)+'s?(?![A-Za-z0-9])');
 	    var by = texts.filter(function(t) { return t.kws.indexOf(k) < 0 && re.test(t.text); });
 	    refs[k] = {"refcopies": by.reduce(function(n,t) { return n + t.c.qty; }, 0), "refcards": by.length,
+		       "refids": by.map(function(t) { return t.c.card.cardid; }).join(','),
 		       "reftitles": by.map(function(t) { return liststatsplain((t.c.card.title || []).join ? t.c.card.title.join(' ') : t.c.card.title); }).join(', ')};
 	}
 	return refs[k];
@@ -3661,12 +3663,13 @@ function liststatskeywords(cards, decks) {
 	cards.filter(function(c) { return d.match(c); }).forEach(function(c) {
 	    kws(c).forEach(function(k) {
 		if(!counts[k]) {
-		    counts[k] = {"name": k, "copies": 0};
+		    counts[k] = {"name": k, "copies": 0, "ids": []};
 		}
 		counts[k].copies += c.qty;
+		counts[k].ids.push(c.card.cardid);
 	    });
 	});
-	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], references(k)); });
+	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], {"cardids": counts[k].ids.join(',')}, references(k)); });
 	list.sort(function(a,b) { return b.copies - a.copies || a.name.localeCompare(b.name); });
 	return {"name": d.name, "keywords": list};
     }).filter(function(d) { return d.keywords.length; });
@@ -4076,11 +4079,11 @@ function listbuildsave(el, reset) {
     if(Object.keys(pick).length) { out.pick = pick; }
     listinfoupdate(listid, 'deckconstruction', Object.keys(out).length ? JSON.stringify(out) : '');
 }
-// keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
-// hides, and so does a deck with none left
+// a keyword shows (with all its counts) when any of its counts reaches the cutoff (a 1-15 slider, default 4,
+// kept per browser); a deck with no keyword left hides
 function liststatskwcutoff() {
     var n = parseInt(cache_session("liststatskwcutoff"));
-    return isNaN(n) ? 4 : n;
+    return isNaN(n) ? 4 : Math.min(15, Math.max(1, n)); // older saves could be 0 or above 15
 }
 function liststatscutoff(value) {
     if(value !== undefined) {
@@ -4088,21 +4091,50 @@ function liststatscutoff(value) {
 	cache_session("liststatskwcutoff", isNaN(n) ? '' : n); // blank: back to the default
     }
     var cutoff = liststatskwcutoff();
+    $('#resultlist label.liststatscutoff .liststatscutoffn').text(cutoff);
     $('#resultlist details.liststatskw tbody').each(function() {
 	var shown = 0;
 	$(this).find('tr.liststatskwrow').each(function() {
 	    var any = false;
 	    $(this).find('td[data-n]').each(function() {
-		var keep = parseInt($(this).attr('data-n')) >= cutoff;
-		$(this).children('span').toggle(keep);
-		any = any || keep;
+		any = any || parseInt($(this).attr('data-n')) >= cutoff;
 	    });
-	    $(this).toggle(any);
+	    $(this).toggle(any); // a shown keyword shows both its counts, whatever they are
 	    shown += any ? 1 : 0;
 	});
 	$(this).toggle(shown > 0);
     });
     liststatsstripe();
+}
+// a click on a keyword row picks it (another click drops it; several can be picked): its Cards count shades blue and
+// its "Named in text of" count red, and the cards in the list glow to match, blue for having it (in that deck), red for
+// naming it, magenta for both (two keywords picked). Kept by deck and keyword across redraws of the list.
+var liststatskwpicked = {};
+function liststatskwpick(row) {
+    var key = $(row).attr('data-kwkey');
+    if(liststatskwpicked[key]) {
+	delete liststatskwpicked[key];
+    } else {
+	liststatskwpicked[key] = true;
+    }
+    liststatskwmark();
+}
+function liststatskwmark() {
+    var own = {}, ref = {};
+    var add = function(set, ids) { (ids || '').split(',').forEach(function(id) { if(id) { set[id] = true; } }); };
+    $('#resultlist tr.liststatskwrow').each(function() {
+	var picked = !!liststatskwpicked[$(this).attr('data-kwkey')];
+	$(this).toggleClass('liststatskwpicked', picked);
+	if(picked) {
+	    add(own, $(this).attr('data-kwcards'));
+	    add(ref, $(this).attr('data-kwrefs'));
+	}
+    });
+    $('#resultlist div.listlayoutcards a.deckswipe').each(function() {
+	var id = String($(this).attr('data-card'));
+	var hit = $(this).add($(this).closest('tr.listtablecard'));
+	hit.toggleClass('kwown', !!own[id]).toggleClass('kwref', !!ref[id]).toggleClass('kwglow', !!(own[id] || ref[id]));
+    });
 }
 // every other shown row in each deck is shaded (counted here, since the cutoff hides rows)
 function liststatsstripe() {

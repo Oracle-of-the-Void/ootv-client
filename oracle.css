@@ -969,7 +969,14 @@ label.liststatscutoff {
     margin: 2px 0;
 }
 label.liststatscutoff input {
-    width: 3.5em;
+    width: 10em;
+    max-width: 50%;
+    vertical-align: middle;
+}
+/* the slider's value */
+label.liststatscutoff .liststatscutoffn {
+    display: inline-block;
+    min-width: 1.5em;
 }
 div.liststatsbox summary {
     cursor: pointer;
@@ -1013,6 +1020,50 @@ table.liststatstable tr.liststatsstripe {
 }
 table.liststatstable td:nth-child(even), table.liststatstable thead th:nth-child(even) {
     background-color: rgba(90, 110, 160, 0.06);
+}
+/* a picked keyword (liststatskwpick): its Cards count blue, its "Named in text of" count red, and the cards in the
+   list glowing to match: blue has it, red names it, magenta (the two added) both */
+table.liststatstable tr.liststatskwrow {
+    cursor: pointer;
+}
+table.liststatstable tr.liststatskwrow:hover th {
+    text-decoration: underline;
+}
+table.liststatstable tr.liststatskwpicked th {
+    font-weight: bold;
+}
+table.liststatstable tr.liststatskwpicked > td:nth-child(2) {
+    background-color: rgba(40, 110, 255, 0.3);
+}
+table.liststatstable tr.liststatskwpicked > td.liststatsavgs:not([data-n="0"]) {
+    background-color: rgba(255, 50, 40, 0.3);
+}
+.kwown {
+    --kwglow: rgba(40, 110, 255, 0.9);
+    --kwtint: rgba(40, 110, 255, 0.18);
+}
+.kwref {
+    --kwglow: rgba(255, 50, 40, 0.9);
+    --kwtint: rgba(255, 50, 40, 0.18);
+}
+.kwown.kwref {
+    --kwglow: rgba(220, 40, 255, 0.9);
+    --kwtint: rgba(220, 40, 255, 0.2);
+}
+a.deckswipe.kwglow img {
+    box-shadow: 0 0 3px 3px var(--kwglow), 0 0 12px 6px var(--kwglow);
+}
+a.deckswipe.kwglow:not(:has(img)) {
+    background-color: var(--kwtint);
+    box-shadow: 0 0 4px 2px var(--kwglow);
+    border-radius: 3px;
+}
+tr.listtablecard.kwglow {
+    background-color: var(--kwtint);
+}
+tr.listtablecard.kwglow a.deckswipe {
+    box-shadow: none;
+    background-color: transparent;
 }
 span.liststatsavg {
     display: inline-block;
