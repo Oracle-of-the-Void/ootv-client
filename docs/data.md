@@ -148,8 +148,9 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   `clan` (the deck's Stronghold clan, as the clan mon names it: `Scorpion`, `Ratling`, `Brotherhood of
   Shinsei`), `sensei` (the deck's Sensei title), `stronghold` (the Stronghold's title); any listed value
   matches, and the first entry that matches wins. Search ignores it (the index stores it unmapped,
-  `enabled: false`): a min/max search still finds Complications at 4. Meant for the deck view (Table
-  columns, averages); not shown yet. L5R: 83 cards (clan discounts, clan Gold productions), from
+  `enabled: false`): a min/max search still finds Complications at 4. The deck view uses it: a deck's
+  Table cells (`span.deckvalue`, title = printed value and why) and stats averages (`deckcontext`,
+  `deckstatvalue` in `oracle.js`; lists of another type keep the printed value). L5R: 83 cards (clan discounts, clan Gold productions), from
   ootv-tools `field-fixes/fill-variable-values.py`, whose `--revert` puts a run back.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
