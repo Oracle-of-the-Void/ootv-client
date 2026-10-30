@@ -4520,7 +4520,23 @@ function deckviewflow() {
     $('#resultlist div.listlayoutcards div.deckviewtype').each(function() {
 	$(this).add($(this).nextAll('a.deckswipe').first()).wrapAll('<span class="deckviewlead"></span>');
     });
+    deckviewfit();
+    $('#resultlist div.deckviewsmall img').on('load', deckviewfit);
 }
+// A small deck only floats if the room left in its row, past the statistics when they're to the side, holds the next
+// deck's header and a card. Otherwise a float would drop below the statistics or squeeze the next deck's header.
+var deckviewfitmin = 200;
+function deckviewfit() {
+    $('#resultlist div.listlayoutcards').each(function() {
+	var stats = $(this).siblings('div.listlayoutstats');
+	var room = $(this).width() - (stats.css('float') == 'right' ? stats.outerWidth(true) : 0);
+	$(this).find('> div.deckviewsmall').each(function() {
+	    $(this).removeClass('deckviewstack');
+	    $(this).toggleClass('deckviewstack', $(this).outerWidth(true) + deckviewfitmin > room);
+	});
+    });
+}
+$(window).on('resize', deckviewfit);
 function liststatspinned() {
     return cache_session("liststatspinned") !== false;
 }
@@ -4530,6 +4546,7 @@ function liststatspin() {
     cache_session("liststatspinned", pinned);
     $('#resultlist div.listlayout').each(function() { $(this).toggleClass($(this).attr('data-sideclass'), pinned); });
     liststatspinbutton();
+    deckviewfit();
 }
 function liststatspinbutton() {
     var pinned = liststatspinned();
@@ -4542,6 +4559,7 @@ function liststatsopen() {
 }
 function liststatstoggle(el) {
     cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
+    deckviewfit(); // folding changes how wide the statistics are
 }
 // ***********************  list Table view (template-table) **************
 // One row per card, in the list's sort (deck/type header rows as the Simple List and Deck views have them).
