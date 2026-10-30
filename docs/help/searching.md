@@ -59,6 +59,12 @@ Terms are joined with AND unless you say otherwise.
 - **A colon means a field name.** To search for text with a colon in it, put a backslash before
   it: `Reaction\: battle`. The other characters that need one are `+ - && || ! ( ) { } [ ] ^ " ~ * ? \ /`.
 - **Upper and lower case don't matter**: `clan:crab` and `clan:Crab` are the same.
+- **A minus in front of a word leaves it out.** `-1C` finds every card *without* `1C`. For a
+  negative number, use quotes or a backslash: `chi:"-1"` or `chi:\-1`. `chi:-1` is an error.
+  In card text the minus isn't searched at all, so `text:"-1C"` also finds `1C`.
+- **Double quotes must come in pairs.** `"Suzume'` is an error; `"Suzume"` is fine.
+- **Type plain letters.** Use `kyuden`, not `Kyūden`, and a straight apostrophe in
+  `Shinsei's Shrine`, not a curly one, or the search finds nothing.
 - **`cost:>15` only sees plain numbers.** Cards with a cost of `*` or `X` are left out. See the
   next section.
 
@@ -78,6 +84,8 @@ of the field name:
 It works for every field that has number boxes on the form (Force, Chi, Gold Production...).
 `*` and `X` match any number, `2*` counts as 2, and a card that lists its possible values
 matches any of them. `numrange.cost:>15` finds 63 L5R cards, where `cost:>15` finds 17.
+You can't pick out `2*` on its own: `cost:2*` finds nothing, and `numrange.cost:2` finds every
+card that can cost 2.
 
 A cost that's lower only for one clan (*"costs 2 less Gold for Scorpion Clan players"*) is
 searched at its printed cost. A deck's table and averages use the lower cost when the deck qualifies.
