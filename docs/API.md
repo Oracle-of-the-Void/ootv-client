@@ -22,6 +22,7 @@
 * [/update (POST)](#update)                     -> database modification routines
 * [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
 * [/loginlog (GET)](#loginlog)                 -> sign-in log for the admin page (site admins only)
+* [/admin (POST)](#admin)                      -> user lookup/edit and the audit log for the admin page (site admins only)
 * [/discord (GET, POST)](#discord)            -> Discord bot settings for the admin page (site admins only)
 * [/setimport (POST)](#setimport)              -> Admin set import and import profiles (ootv-admin Lambda)
 * [/setimportverify (POST)](#setimportverify)  -> after a set import: the written cards vs search
@@ -586,11 +587,21 @@ way (`product` required). `/publiclists` takes `precon=1` and returns `precon` a
 
 ## /list: admin edits of anyone's list
 
-Users whose `groups[<game>]` or `groups['*']` hold `listedit` or `*` (site admins) can read any list, private ones
-too, and save it with `updatefield` like the owner (cards, name, notes, type, legality, public, folder; `baserev`
-works the same). Their read answers `adminedit: true` (with `ownername`), and the client then shows the owner's edit
-controls under a red "editing as an admin" banner (`listadminedit()` / `listeditable()` in `oracle.js`). Deleting
-(`action=remove`) stays the owner's. Each such save logs `admin_list_edit` (listid, owner, uid, field) in CloudWatch.
+Who: `groups[<game>]` or `groups['*']` holding the explicit op `listedit`, or a site admin (`groups['*']` holding `*`).
+A plain `*` in a game's own groups is **not** enough (ootv-search `lib/admin.js` `listeditallowed`; the client's
+`listeditpermission()`). Admin guide: [admin-editing.md](admin/admin-editing.md).
+
+* Reading any list, private ones too, answers `adminedit: true` (with `ownername`): "this admin may edit it". The client
+  still shows it read only, with an **Edit as admin** button.
+* `action=adminopen&warning=<popup version>&notify=0|1`: the admin accepted the popup. Writes an audit row
+  (`listedit-open`) and answers `{adminopen: true}`; 403 without the permission (audited as `denied`).
+* Saves (`updatefield`, `baserev` as for the owner) on someone else's list need `adminedit=1`, plus `notify=1` to email
+  the owner (mailer template `listedited`, at most once an hour per admin and list). Without `adminedit=1`, or for
+  `folder` / `summary` (the owner's filing), 403. Each save writes an audit row (`listedit-save`: field, old/new value,
+  or the card changes for `list`) **before** the write; if the row can't be written, nothing is saved.
+* Deleting (`action=remove`) stays the owner's.
+
+The client keeps the lists being edited in memory only (`adminediting` in `oracle.js`): a reload ends editing.
 
 ## /update
 
@@ -787,6 +798,31 @@ Output: `{entries, next}`
 
 Data: DynamoDB `oracle-all-logins`, read through its `feed-time` index. Written by the
 `cognito-post-auth` Lambdas in ootv-search.
+
+## /admin
+
+Site admins only (`groups['*']` includes `'*'`; 403 otherwise; 404 if the token's email isn't one of the uid's).
+The Admin → Audit → Users and Audit log pages (`useradmin.js`). Answers hold emails and names: don't cache them.
+
+Handled by lambda: ootv-search/routes/admin.js
+
+Input: POST JSON `{uid, action, ...}`
+* `usersearch` `{q}`: an email (exact), a uid, or part of a name / display name / email (a scan) → `{users: [{uid,
+  firstname, lastname, displayname, email, emails, insert_date}], more}` (at most 50). Audited (`user-search`).
+* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, logins: [{time, result, provider, ip, newDeviceUsed}]}`.
+  `user` is the users row without `settings`, `emailsends` or the pending code's hash, plus `patreon`. Audited (`user-view`).
+* `useredit` `{target, field, ...}`, one change, conditional on the value just read (409 if it changed), audited
+  (`user-edit`, old and new) before the write; answers as `userget` (+ `warning`):
+  * `field: 'name'`: `firstname` (required), `lastname`, `displayname` (`''` clears it; resyncs their public lists)
+  * `field: 'groups'`: `groups` `{<game> | '*': [ops]}`; `{}` removes them. Your own `groups['*']` must keep `*`.
+  * `field: 'addemail'`: `email`, added at once (no code); 409 if it belongs to another account
+  * `field: 'removeemail'`: `email`, not the last one; the address gets the `removed` notice
+* `auditlog` `{from, to, admin?, target?, limit?}`: days `YYYY-MM-DD` (UTC, at most 31), by admin uid or target
+  (`list#<id>`, `user#<uid>`) → `{rows, more}`, newest first (default 500, max 2000).
+
+Data: DynamoDB `oracle-all-auditlog` (ootv-search `lib/auditlog.js`, `infrastructure/create-auditlog-table.sh`).
+Row: `{day, id, time, admin, adminname, action, target, result, game, owner, field, old, new, cards, cardsmore,
+warning, listpublic, notify, notified, query}`. Append-only (the API's role is denied update and delete on it), kept for good.
 
 ## /discord
 
