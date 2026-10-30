@@ -1065,6 +1065,14 @@ table.listtable tr.listtabletype th {
     font-size: medium;
     padding-left: 1.5em;
 }
+/* a section's own column labels, in its header row (listtableheads) */
+table.listtable tr.listtabledeck th.listtablecolhead, table.listtable tr.listtabletype th.listtablecolhead {
+    font-family: var(--font-ui);
+    font-size: small;
+    padding-left: 8px;
+    vertical-align: bottom;
+    white-space: nowrap;
+}
 table.listtable tr.listtablestripe {
     background-color: rgba(0, 0, 0, 0.05);
 }

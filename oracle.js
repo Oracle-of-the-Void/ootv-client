@@ -3346,14 +3346,16 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	var shown = bubbleup(listdata,{'listid':listid});
 	pagetextversion('.listtextversion', shown, 'list');
 	var table = templates[database]['active']['list'] == 'table';
+	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
+	    var rows = markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown, headerdistinct) : shown);
+	} else {
+	    var rows = markprinteddiffs(shown);
+	}
 	if(table) {
 	    $.extend(listtmpl, listtablecolumns(shown));
+	    listtablesections(rows, listtmpl);
 	}
-	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown, headerdistinct) : shown),listtmpl);
-	} else {
-	    var html = getactivetemplate('list').render(markprinteddiffs(shown),listtmpl);
-	}
+	var html = getactivetemplate('list').render(rows,listtmpl);
 	if(table) {
 	    html = listtablewrap(html, listtmpl);
 	}
@@ -3380,6 +3382,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    liststatslegal();
 	    liststatscutoff();
 	    liststatspinbutton();
+	    listtableheads(listtmpl);
 	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
@@ -4191,9 +4194,75 @@ function listtablecolumns(listdata) {
     return {"tablefields": fields, "kwfield": kwfield, "kwlabel": kwfield ? (l['tag'+kwfield] || kwfield) : '',
 	    "tablecols": 2 + fields.length + (kwfield ? 1 : 0),
 	    "tablecell": function(card, f) {
+		// a column slot (listtablesections): the field of the card's own type section in that place
+		if(typeof f == 'number') {
+		    f = ((card.listtablefields || [])[f] || {}).field;
+		    if(f === undefined) {
+			return '';
+		    }
+		}
 		var v = card[f];
 		return Array.isArray(v) ? v.join(', ') : (v === undefined || v === null ? '' : v);
 	    }};
+}
+// With header rows (the Deck sort), each type section gets its own columns: only the stat fields its cards have a
+// number for, in the game's order, filled in from the left. The stat columns become slots (as many as the widest
+// section needs), each card carries its section's fields (listtablefields), and each header row's labels go in
+// tableheads, which listtableheads() writes into the drawn header rows. A list with no header rows keeps one set
+// of columns, labelled in the table head.
+function listtablesections(rows, cols) {
+    if(!rows.some(function(c) { return c.cardid == 0; })) {
+	return;
+    }
+    var heads = [], section = [];
+    var close = function() {
+	var cards = section.filter(function(c) { return c.cardid > 0; });
+	var fields = cols.tablefields.filter(function(f) {
+	    return cards.some(function(c) { return liststatsnumber(c[f.field]) !== null; });
+	});
+	cards.forEach(function(c) { c.listtablefields = fields; });
+	if(heads.length) {
+	    heads[heads.length-1].fields = fields;
+	}
+	section = [];
+    };
+    rows.forEach(function(c) {
+	if(c.cardid == 0) {
+	    close();
+	    heads.push({"fields": []});
+	} else {
+	    section.push(c);
+	}
+    });
+    close();
+    var n = Math.max.apply(null, [0].concat(heads.map(function(h) { return h.fields.length; })));
+    cols.tableheads = heads;
+    cols.tablefields = [];
+    for(var i = 0; i < n; i++) {
+	cols.tablefields.push({"field": i, "label": '', "short": ''});
+    }
+}
+// the header row above a section's cards: its name over # and Card, then its own column labels
+function listtableheads(cols) {
+    if(!cols.tableheads) {
+	return;
+    }
+    var heads = cols.tableheads;
+    $('#resultlist table.listtable tbody tr.listtabledeck, #resultlist table.listtable tbody tr.listtabletype').each(function(i) {
+	var h = heads[i];
+	// a deck header straight above a type header has no cards of its own: it keeps its full width
+	if(!h || (!h.fields.length && $(this).next().is('.listtabledeck, .listtabletype'))) {
+	    return;
+	}
+	var cells = $(this).children('th').first().attr('colspan', 2);
+	cols.tablefields.forEach(function(slot, j) {
+	    var f = h.fields[j];
+	    cells = $('<th class="listtablestat listtablecolhead"></th>').text(f ? f.short : '').attr('title', f ? f.label : null).insertAfter(cells);
+	});
+	if(cols.kwfield) {
+	    $('<th class="listtablekw listtablecolhead"></th>').text(cols.kwlabel).insertAfter(cells);
+	}
+    });
 }
 function listtablewrap(rows, cols) {
     return $.templates("#template-listtable").render(cols, {"rows": rows});
