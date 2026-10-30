@@ -33,7 +33,7 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
 | `largeview` | per-view size toggle `{search, card, list}` |
 | `currentresulttab()` / `viewbuttontype()` | tab on screen; which view the menubar buttons drive |
 | `searchcache[database].querydata[qs]` | **plain card ids** for a search, not card objects |
-| `cache_card_fetch(id)` | the cached card (fields are arrays: `title[0]`, `type.join()`) |
+| `cache_card_fetch(id)` | a copy of the cached card (fields are arrays: `title[0]`, `type.join()`); to try a change, edit it and store it with `cache_card(card)`, or the code under test never sees the change |
 | `cache_thing(kind, key[, value])` | localStorage-backed cache (`<game>_<kind>_<key>`) |
 
 ## Timing and navigation
