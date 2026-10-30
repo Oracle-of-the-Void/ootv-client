@@ -81,9 +81,6 @@ printing are two entries, so a Have list can hold both. A printing only ever pri
 just shows its **✦ Foil** mark. Lists without a printing chosen (any version) can be marked foil
 too, when any version of the card came in foil.
 
-Trades match on it: a foil want finds only foil haves, a regular want only regular ones, and
-**Foil or not** finds either (see Help → Trading and messages).
-
 ## Statistics {#stats}
 
 A deck's header ends with its check: the cards not legal in its Legality, the formats every card is legal
@@ -104,8 +101,9 @@ are in each deck, each type's share of its deck, and averages of the cards' numb
 so on), over a bar showing how many cards of that type there are next to the deck's biggest type. Hover over an average to
 see how it was worked out. In an L5R deck, the Pre-Game line has **Deck GP**: the Gold Production of every card in the deck (the
 Stronghold and Sensei too, negatives included) divided by the number of Dynasty cards. The Dynasty and Fate lines have **GC**,
-the Gold:Cost ratio: Deck GP divided by that deck's average Gold Cost. A higher GC means the deck's Gold goes further.
-Pre-Game, cards with no deck and Proxy cards get no share or bar, and Proxy cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
+the Gold:Cost ratio: Deck GP divided by that deck's average Gold Cost. A higher GC means the deck's Gold goes further (**∞**
+when the deck's cards cost nothing on average). Pre-Game, cards with no deck and Proxy cards get no share or bar, and Proxy
+cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
 
 In **Keyword counts**, the **Hide counts under** slider (1 to 15) hides the keywords that are rare in the deck and rarely
 named: a keyword shows when either its card count or its "Named in text of" count reaches the slider, and then both
