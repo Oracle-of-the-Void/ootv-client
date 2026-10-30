@@ -744,8 +744,18 @@ function listadminaccept(listid) {
     $('.admineditstatus').text('Could not open it: '+((xhr.responseJSON && xhr.responseJSON.error) || xhr.status));
   });
 }
-// Stop editing: back to read only (and off the active lists)
+// Stop editing: back to read only (and off the active lists). Card edits save after a wait (listedited) and
+// the save needs the admin edit still on, so any waiting go now and this finishes once they're in
+// (listinfoupdate); a save that fails leaves the banner up, and retries
 function listadminstop(listid) {
+  if(adminediting[listid] && listunsaved(listid)) {
+    adminediting[listid].stopping = true;
+    $('#resultlist .listadminstop').prop('disabled',true).text('Saving...');
+    if(updatepending[listid]) {
+      savecallback();
+    }
+    return;
+  }
   delete adminediting[listid];
   if(activelists.indexOf(listid) > -1) {
     deactivatelist(listid);
@@ -835,6 +845,12 @@ function listmerge(listid,server) {
     }
   });
   console.log("list changed elsewhere, merged: "+listid);
+  // the 409's copy is the bare item: keep what /list adds for this reader, or an admin's merged save is refused
+  ['ownername','adminedit'].forEach(function(f) {
+    if(local.list.Items[0][f] !== undefined) {
+      server.Items[0][f] = local.list.Items[0][f];
+    }
+  });
   var data = {"list": server};
   listsortdefault(data);
   listsetbase(listid,server.Items[0].list,server.Items[0].rev);
@@ -977,10 +993,16 @@ function listinfoupdate(listid,field,value,failed=null) {
 	    if(failed) {
 		failed();
 	    }
+	    if(adminediting[listid] && adminediting[listid].stopping) {
+		$('#resultlist .listadminstop').text('Not saved, retrying...');
+	    }
 	  }
   }).always(function() {
     if(field == 'list' && !--listsaving[listid]) {
       delete listsaving[listid];
+    }
+    if(adminediting[listid] && adminediting[listid].stopping && !listunsaved(listid)) {
+      listadminstop(listid);
     }
   });
 }
