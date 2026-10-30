@@ -3378,6 +3378,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html));
 	    liststatslegal();
 	    liststatscutoff();
+	    liststatspinbutton();
 	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
@@ -4115,12 +4116,32 @@ function liststatsstripe() {
 // the statistics box starts open, folded on phones so the cards come first; once toggled it stays as left
 // the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). The box
 // sits above the cards, beside them in the narrow views (Simple List, Text, Table) on a wide screen, and below
-// them on a phone, where the cards come first. It's after the cards in the page, and the CSS moves it up.
+// them on a phone, where the cards come first. It's first in the page (a float has to be), and the CSS orders it.
+// In the other views (Detail, Visual, Deck) its pin button (wide screens only) floats it to the upper right with
+// the cards flowing around it (listlayoutpinned), remembered across visits (liststatspinned).
 var listlayoutside = ['list', 'html', 'table'];
 function listlayout(stats, cards) {
     var view = (templates[database]['active']['list'] || '').replace(/-premium$/,'');
-    return '<div class="listlayout'+(listlayoutside.includes(view) ? ' listlayoutside' : '')+'">'+
-	'<div class="listlayoutcards">'+cards+'</div><div class="listlayoutstats">'+stats+'</div></div>';
+    var side = listlayoutside.includes(view);
+    var pin = !side && stats ? '<button type="button" class="iiconic listlayoutpin" onclick="liststatspin();"></button>' : '';
+    return '<div class="listlayout'+(side ? ' listlayoutside' : '')+(!side && liststatspinned() ? ' listlayoutpinned' : '')+'">'+
+	'<div class="listlayoutstats">'+pin+stats+'</div><div class="listlayoutcards">'+cards+'</div></div>';
+}
+function liststatspinned() {
+    return cache_session("liststatspinned") === true;
+}
+// the pin button: the statistics between the header and the cards, or floated to the side
+function liststatspin() {
+    var pinned = !liststatspinned();
+    cache_session("liststatspinned", pinned);
+    $('#resultlist div.listlayout:not(.listlayoutside)').toggleClass('listlayoutpinned', pinned);
+    liststatspinbutton();
+}
+function liststatspinbutton() {
+    var pinned = liststatspinned();
+    $('#resultlist button.listlayoutpin').attr('aria-label', pinned ? 'Statistics back above the cards' : 'Statistics to the side, cards around them')
+	.attr('data-balloon-pos', 'left')
+	.html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#'+(pinned ? 'chevrons-up' : 'sidebar')+'"></svg>');
 }
 // both parts of the statistics box start open, and stay the way they were last left this session
 function liststatsopen() {
