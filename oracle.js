@@ -3717,6 +3717,42 @@ function liststatsavgs(cards, fields, most, ctx) {
     });
     return out;
 }
+// L5R Gold:Cost (the user, 2026-10-30). Deck GP, on the Pre-Game row: the Gold Production of every card in the deck
+// (Stronghold, Sensei and negatives too; N* counts as N) over the Dynasty card count, since the Dynasty deck is what
+// produces. GC, on the Dynasty and Fate rows: Deck GP over that deck's average Cost; higher is better. Needs Dynasty
+// and Fate decks and the production and cost stat fields. Values are the deck's own (deckstatvalue).
+function liststatsgoldcost(decks, cards, fields, ctx) {
+    var find = function(re) { return decks.filter(function(d) { return re.test(d.name); })[0]; };
+    var dynasty = find(/^dynasty$/i), fate = find(/^fate$/i), pregame = find(/^pre-?game$/i) || dynasty;
+    if(!dynasty || !fate || fields.indexOf('production') < 0 || fields.indexOf('cost') < 0) {
+	return;
+    }
+    var round2 = function(n) { return Math.round(n*100)/100; };
+    var total = 0, terms = [];
+    cards.forEach(function(c) {
+	var raw = deckstatvalue(c.card, 'production', ctx);
+	var v = liststatsnumber(String([].concat(raw === undefined ? [] : raw).join('')).replace(/(\d)\*$/, '$1'));
+	if(v) {
+	    total += v*c.qty;
+	    terms.push(c.qty+'*'+v);
+	}
+    });
+    var gp = total/dynasty.copies;
+    pregame.avgs.push({"short": "Deck GP", "avg": round2(gp), "title": "Deck Gold Production: the Gold all the deck's cards produce, "+
+	"per Dynasty card. "+(terms.length > 1 ? '('+terms.join(' + ')+')' : (terms[0] || '0'))+" = "+total+" Gold, divided by "+
+	dynasty.copies+" Dynasty cards = "+round2(gp)+". It counts the Stronghold, Holdings, Personalities and Sensei, negatives too: "+
+	"Gold from Pre-Game or Fate cards raises it a little, but the Dynasty deck is what counts."});
+    [dynasty, fate].forEach(function(d) {
+	var avg = liststatsavgs(d.cards, ['cost'], false, ctx)[0];
+	if(!avg || !avg.avg) {
+	    return;
+	}
+	d.avgs.push({"short": "GC", "avg": round2(gp/avg.avg), "title": "Gold:Cost ratio of the "+d.name+" deck: how well the deck's "+
+	    "Gold pays for these cards. Higher is better. Deck GP "+round2(gp)+" (Gold produced per Dynasty card, on the Pre-Game "+
+	    "line) divided by the "+d.name+" cards' average Gold Cost "+avg.avg+" (of "+avg.copies+" cards"+
+	    (avg.skipped ? ", "+avg.skipped+" with no number left out" : "")+") = "+round2(gp/avg.avg)+"."});
+    });
+}
 // keyword analysis: the game's first keyword-type searchable (L5R keywords, 7th Sea trait, Initial D traits) and
 // its 'text' field; dbinfo[game].statkeywords / stattext override (false = no keyword section)
 function liststatskeywordfield() {
@@ -3832,8 +3868,9 @@ function liststats(listdata,listid=null) {
 		    "avgs": liststatsavgs(t.cards, fields, false, ctx)};
 	});
 	return {"name": d.name, "copies": copies,
-		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true, ctx), "types": types};
+		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true, ctx), "types": types, "cards": d.cards};
     });
+    liststatsgoldcost(decks, cards, fields, ctx);
     var deckkey = function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; };
     var keywords = liststatskeywords(cards, decks.map(function(d) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
