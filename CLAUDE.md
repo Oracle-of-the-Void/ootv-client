@@ -75,6 +75,11 @@ or tests. The files in this directory are exactly what gets served.
   links next to controls show a section on hover or long-press (`helpstate` in `oracle.js` is
   what the url says). A new feature gets its help section, and a "?" where people will look for
   it. How to write them: `docs/HELP-AUTHORING.md`.
+- Admin editing of someone else's list (`listadminopen` / `adminediting` in `oracle.js`): read only until
+  **Edit as admin** and its popup (text version `ADMINEDITWARNING`: bump it when the wording changes), then the
+  owner's controls under the red banner; saves send `adminedit=1&notify=`. Admin → Audit → Users and Audit log
+  are `useradmin.js` (`POST /admin`, loaded on first use). Who may: `listeditpermission()` (explicit `listedit`
+  or a site admin). Guides `docs/admin/admin-editing.md`, `docs/admin/users.md`; ootv-claude `ADMIN-EDIT-AUDIT.md`.
 - Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
   import profile; also run by ootv-import `SCRIPTS/etl-compare.js` under Node) and `setimport.js`
   (the page). Both load on demand (`loadsetimport`); `setimport-preview.html` is the empty page

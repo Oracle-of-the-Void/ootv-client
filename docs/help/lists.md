@@ -135,6 +135,8 @@ the legality's rules** clears your changes.
 ## Sharing {#sharing}
 
 Set a list to **Public** and anyone can see it, logged in or not, but only you can change it.
+(Site admins can open any list, private ones too, to fix a mistake or something that breaks the
+site's rules. Every admin change is recorded, and you may get an email saying one was made.)
 **Copy link** (at the top of the open list) copies a link to send. Public lists also show in
 [Public lists](public-lists.md), under your display name (Settings → Account), or your initials
 if you haven't set one.
