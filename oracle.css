@@ -848,6 +848,19 @@ div.listviewheader div.listviewshared.listviewadminedit {
 div.listviewheader div.listviewshared.listviewadminedit > svg {
     color: #c0392b;
 }
+div.listviewheader div.listviewshared.listviewadminedit .listadminnotify {
+    font-size: small;
+    white-space: nowrap;
+}
+/* the Edit as admin popup (listadminopen) */
+div.admineditwarning ul { margin: 6px 0 10px 18px; }
+div.admineditwarning li { margin-bottom: 4px; }
+.admineditnote { color: #666; font-size: small; }
+/* Admin → Audit → Users and Audit log (useradmin.js) */
+table.useredit td:first-child { padding-right: 8px; white-space: nowrap; }
+table.auditrows tr.audit-denied td { background: #fde4e1; }
+table.auditrows .auditold { color: #8a1c10; }
+table.auditrows .auditnew { color: #1d6b2a; }
 /* a copy of a shared deck: where it came from */
 div.listviewheader div.listviewsource {
     margin: 2px 0 4px;
