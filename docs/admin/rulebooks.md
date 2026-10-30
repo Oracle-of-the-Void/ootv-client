@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-29 (Warhammer 40,000 CCG Player's Handbooks; book option `ocr_threshold`)
+Last updated: 2026-10-30 (Android: Netrunner and Doomtown: Reloaded shelves)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -534,6 +534,21 @@ v2.0 (2000-06-07, Floor Rules: the three formats). The 2002 versions come from t
 (PDFs converted to HTML there, printed back page for page, so the cards' ruling links land on the right
 page); the rest from the Crow's Nest, alderac.com and rulespal.com (Wayback copies). Types and tags: proposed
 and approved by the user, 2026-10-27.
+
+## The Android: Netrunner book (2026-10-30)
+
+Android: Netrunner (`netrunner`, a preview game), list `rulebooks/netrunner.json`: Null Signal Games'
+Comprehensive Rules v26.03 (`nr-comprehensive-rules`; ootv-games `game-netrunner/rules/`). Type and tags are
+proposals until the user's check-off on preview: Complete, Last complete rules.
+
+## The Doomtown: Reloaded books (2026-10-30)
+
+Doomtown: Reloaded (`dtlcg`, a preview game; not the 1998 `dtccg`), list `rulebooks/dtlcg.json`, ids `dtr-*`, a
+shelf of its own. Pine Box's Weird West Edition rulebook, 2nd printing (Complete; Last complete rules, Base set),
+Floor Rules v1.5 (Floor Rules), Weird West Format Legal Cards (Addendum), Multiplayer Rules and Solo Mode v1.1
+(Play Variant), from ootv-games `game-dtlcg/rules/`; AEG's 2014 Base Set rulebook (Complete; Base set) from its
+press file in `game-dtlcg/aeg-print/`, pages cut to the PDF's TrimBox with `crop` (its PDF download keeps the crop
+marks). Types and tags are proposals until the user's check-off on preview.
 
 ## The Warhammer 40,000 CCG books (2026-10-29)
 
