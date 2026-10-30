@@ -171,7 +171,8 @@ inputs - sent in body querystring:
     * card fields: matches the plain number or `numrange.xxx`, the integer range dynamo-to-os indexes
       for every numeric field, by overlap, min and max in one clause: `*`/`X` cards (0 up) match any
       range they touch, `2*` is 2, `+5/+0` is 5 or 0, a card's `variablevalues.xxx` wins
-      (`docs/admin/field-descriptions.md`, since 2026-10-28)
+      (`docs/admin/field-descriptions.md`, since 2026-10-28); `conditionalvalues` (a value in a deck of
+      some clan) is never searched
     * printing fields (`field_lower_printing_xxx`): plain range on the number
     * a min that isn't a number (e.g. `*`) is an exact match on `xxx.keyword` instead
   * a select field's value can be a derived name (e.g. l5r `Legacy`, `Paper`) from the game's
