@@ -144,6 +144,14 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
 - Header rows are `cardid: 0` entries: `decktitle` rows (`div.listhead`) and `typetitle`
   rows (`div.deckviewtype` in the deck view, `.listheadplain` in Simple List). Check the
   counts text, and that each deck header appears once.
+- Statistics layout: the side column/float and the **Above** / **To the side** button only
+  apply at 1100px or wider (browser zoom counts), so test at 1280+ and at phone width. The
+  choice is kept in localStorage (`session_liststatspinned`, and `session_liststatsopen` /
+  `session_liststatskwopen` for the folds): clear them to see the defaults (to the side, both open).
+  Check Simple List / Text / Table (sticky right column) and Detailed / Visual / Deck (float
+  at the upper right, cards flowing round it), and in the deck view that Pre-Game sits beside
+  Dynasty (`div.deckviewsmall`) and Fate clears (`div.listhead.deckviewbreak`). A public deck
+  that breaks a construction rule, for the red header note: `#game=l5r,#listid=5372212275690645`.
 
 ## Backend changes
 
