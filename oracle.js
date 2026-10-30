@@ -2416,7 +2416,9 @@ function imageuploaddefaults(cardid,printid,printing) {
            : cardid+'_'+printid;
   if(hasimages) {
     // another image of the same printing: number it past the ones already there
-    stem += '_'+(printing.image.length+1);
+    var n = printing.image.length+1;
+    while(printing.image.some(e => e.master && e.master.startsWith(stem+'_'+n+'_master.'))) { n++; }
+    stem += '_'+n;
   }
   return {"imagehash": hash, "stem": stem.replace(/[^A-Za-z0-9_.-]/g,''), "locked": hasimages};
 }
@@ -2574,12 +2576,12 @@ function uploadimagetrigger() {
       if(at >= 0) { image[at] = names; } else { image.push(names); }
       printing.imagehash = hash;
       printing.image = image;
-      // redraw the editor (its image list, image fields and the next file name), upload form left open
+      // redraw the editor (its image list and image fields), and back to it: the box's work is done
       if(cardedit && cardedit.printid == printid && cardedit.view != 'json') {
         cardeditrender();
-        $('#cardedit .cardeditupload').prop('open',true);
       }
-      status('Uploaded '+htmlEncode(names.master)+'. The instance now has '+image.length+' image(s): press Commit to save it to the card.');
+      $('#cardeditupload').hide();
+      cardeditstatus('Uploaded '+htmlEncode(names.master)+'. The instance now has '+image.length+' image(s): press Commit to save it to the card.');
     })
     .catch(function(e) {
       status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
