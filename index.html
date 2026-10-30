@@ -510,6 +510,10 @@ proxies and public decklists (each game's card pages and set lists are linked be
       <label class="wide">Sort <select name="sort">
         {{props sorts}}<option value="{{:key}}" {{if key==~root.o.sort}}selected{{/if}}>{{:prop}}</option>{{/props}}
       </select></label>
+      <label class="wide" {{if o.layout=='mpc'}}style="display: none"{{/if}}>Backs <select name="backs">
+        <option value="none" {{if o.backs!='duplex'}}selected{{/if}}>Fronts only</option>
+        <option value="duplex" {{if o.backs=='duplex'}}selected{{/if}}>Duplex: backs on every other page (flip on the long edge)</option>
+      </select></label>
     </fieldset>
     <div id="pdfsummary" class="pdfsummary"></div>
     {{if mode=='print'}}

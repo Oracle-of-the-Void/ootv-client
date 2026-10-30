@@ -178,6 +178,16 @@ a.ex { float: right; font-size: large;}
 .foiltoggle { cursor: pointer; }
 .foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
+/* the card page's sides (~cardsides, oracle.js "CARD BACKS"): each front full size, with "Print n of m" when the
+   printing was printed more than one way, and its back always as a thumbnail under it, never as another card */
+.cardside { margin-bottom: 8px; }
+.cardsidebar { display: flex; align-items: flex-start; gap: 10px; margin-top: 3px; font-size: smaller; }
+.cardsideprint { padding: 1px 6px; border-radius: 3px; background: #444; color: #fff; white-space: nowrap; }
+.cardbackthumb { display: flex; align-items: flex-start; gap: 6px; cursor: pointer; }
+.cardbackthumb img.cardbackimg { width: 60px; min-height: 20px; border-radius: 3px; }
+.cardbackthumb.cardbackown img.cardbackimg { outline: 2px solid #c9a227; }
+.cardbackflip { text-decoration: underline; }
+.cardside.cardsideback img.cardsidefront { outline: 3px dashed #c9a227; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 /* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells

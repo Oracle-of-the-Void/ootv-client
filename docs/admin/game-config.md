@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-29 (clanmons on deck names)
+Last updated: 2026-10-29 (cardbacks)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -79,6 +79,24 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   the image is `<path><image>.png`. L5R: 21 clans, `res/clan-mons/oracle-plain-color/` (the flat
   clan-colour mons from ootv-assets `mons/oracle_plain/color/`). A clan not listed gets none.
   Toturi's Army is the Wolf; Spirit is a vermilion torii gate.
+- `cardbacks` (optional): which back each printing has, for the small **Back** picture on the card page
+  and the PDF's duplex option. `{rules: [{when, set, before, from, cardid}, ...]}`: the first rule
+  that fits the printing gives `cardid`, the card whose image is the back (backs are cards of their own).
+  All the conditions in a rule must hold, and each is optional: `when` `{"<field>": "<regex>"}` matches one
+  of the printing's values of that field, else the card's (`deck`, `type`, ...); `set` is a regex on the
+  printing's set; `before` and `from` name a set, and fit a printing whose set comes before it, or is it or
+  after it, in the game's set order (the `printing.set` sort order; a game without one never fits them).
+  Two things come before the rules: a double-sided printing (`doublesided`) uses its own second image,
+  and a printing's own `back` (`["<cardid>"]` or `["none"]`, docs `data.md`) wins over them. A printing
+  no rule fits has no back. L5R: Fate and Dynasty cards before The War of Spirits get the old backs
+  (12665, 12664), from it on the new ones (12666, 12667):
+  `{"rules": [{"when": {"deck": "^Fate$"}, "before": "The War of Spirits", "cardid": 12665},
+  {"when": {"deck": "^Fate$"}, "cardid": 12666}, {"when": {"deck": "^Dynasty$"}, "before": "The War of
+  Spirits", "cardid": 12664}, {"when": {"deck": "^Dynasty$"}, "cardid": 12667}, {"when": {"type": "^Stronghold$"},
+  "before": "The War of Spirits", "cardid": 12664}]}`: strongholds before The War of Spirits without a printed back
+  of their own (the Fixed ones) get the old Dynasty back, with a few exceptions to set with `back`. Other Pre-Game
+  cards (Sensei, Winds) and later strongholds get none unless they have their own back image or carry `back`.
+  The Soul of the Empire proxies carry `back: ["12668"]` (the SotE back). Live 2026-10-29 (`l5r/game` version 18).
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them

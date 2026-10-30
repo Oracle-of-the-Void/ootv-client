@@ -27,6 +27,7 @@ $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); }
 $.views.helpers("foilmark",templatefoilmark);
 $.views.helpers("foilof",templatefoilof);
 $.views.helpers("listfoil",templatelistfoil);
+$.views.helpers("cardsides",templatecardsides);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -5147,9 +5148,11 @@ var pdfdefaults = {
   'margin': 18, 'spacing': 0, 'offsetx': 0, 'offsety': 0,
   'columns': 0, 'rows': 0, // 0 = as many as fit
   'quantity': 'proxy', // proxy = the list's quantities, spoiler = one of each
-  'sort': 'list' // list = the list's own order, or a key of databasesort[database], or title
+  'sort': 'list', // list = the list's own order, or a key of databasesort[database], or title
+  'backs': 'none' // sheet: none = fronts only, duplex = each sheet's backs on the next page, mirrored for a long-edge flip
 };
 var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
+var pdfbacksready = false; // createpdf with duplex: the back cards are fetched, make the PDF
 
 // Sun and Moon is an L5R client: its list export/import only applies to games with a textsnm template
 function snmallowed() {
@@ -5308,7 +5311,7 @@ function pdfreadform(units=null) {
   var o = Object.assign(pdfbaseoptions(), {
     'layout': form.layout, 'bleedfill': form.bleedfill, 'fixcorners': form.fixcorners == 'on',
     'paper': form.paper, 'orientation': form.orientation, 'units': form.units,
-    'quantity': form.quantity, 'sort': form.sort,
+    'quantity': form.quantity, 'sort': form.sort, 'backs': form.backs || 'none',
     'columns': Math.max(0, parseInt(form.columns) || 0), 'rows': Math.max(0, parseInt(form.rows) || 0)
   });
   ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety','bleed'].forEach(function(k) {
@@ -5568,6 +5571,22 @@ function createpdf(data,listoutput='') {
       return;
     }
     console.log(['createpdf',o,layout,data]);
+    var duplex = (o.backs == 'duplex' && o.layout != 'mpc');
+    if(duplex && !pdfbacksready) {
+      // the back cards are fetched first, then the same PDF is made again
+      var pairs = [];
+      data.forEach(function(card) {
+        var pid = (card.listprinting>0) ? card.listprinting : card.printingprimary;
+        (card.printing || []).forEach(function(p) { if(p.printingid == pid) { pairs.push([card,p]); } });
+      });
+      cardbacksload(pairs, function() {
+        pdfbacksready = true;
+        pdfoptions = o;
+        createpdf(data, listoutput);
+      });
+      return;
+    }
+    pdfbacksready = false;
     if(o.sort != 'list') {
       var gamesort = databasesort[database] || {};
       data = data.slice().sort(gamesort[o.sort] != undefined ? gamesort[o.sort] : pdftitlesort);
@@ -5575,30 +5594,37 @@ function createpdf(data,listoutput='') {
     // MPC prints at 300 dpi: the _master scans (~750 x 1050) instead of _details (600px long side)
     var size = (o.layout == 'mpc') ? 'master' : 'details';
     var newurl = function(p,i) { return dbinfo[database].imageuri+p.imagehash+'/'+(i[size] || i.details)+'?x-corsworkaround=true'; };
-    var images = [];
+    // one entry per card printed: {front, back}, from the printing's first front (printingsides). Without duplex
+    // a front's own back is a card of its own and back is null; with it, back is that front's back (its own,
+    // else the standard one: cardbackurl), or null to leave that spot blank. Other prints of the printing aren't printed.
+    var cards = [];
     for(card of data) {
       var copies = (o.quantity == 'spoiler') ? 1 : card.listquantity;
       for(p of (card.printing || [])) {
         if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
-          var pimages = printingimages(p).filter(i => i[size] || i.details);  // no usable scan: no page for it
-          if(pimages.length) {
+          var side = printingsides(p).filter(s => s.front[size] || s.front.details)[0];  // no usable scan: no page for it
+          if(side) {
+              var back = duplex ? cardbackurl(card, p, side, size) : null;
               for(cn = 0; cn < copies; cn++) {
-                if(p.doublesided) {
-  	              for(i of pimages) {
-                    images.push(newurl(p,i));
-                  }
+                if(duplex) {
+                  cards.push({'front': newurl(p,side.front), 'back': back ? back+'?x-corsworkaround=true' : null});
                 } else {
-                  images.push(newurl(p,pimages[0]));
+                  cards.push({'front': newurl(p,side.front), 'back': null});
+                  if(side.back) {
+                    cards.push({'front': newurl(p,side.back), 'back': null});
+                  }
                 }
               }
           }
         }
       }
     }
-    console.log(images);
+    console.log(cards);
 
     // images load asynchronously and finish in any order, so keep each one's data by URL
-    // and lay out the pages from `images`, which is in list order. Each URL loads once.
+    // and lay out the pages from `cards`, which is in list order. Each URL loads once.
+    var images = [];
+    cards.forEach(function(c) { images.push(c.front); if(c.back) { images.push(c.back); } });
     var urls = images.filter(function(url,i) { return images.indexOf(url) == i; });
     var imagedata = {};
     var imagefailed = [];
@@ -5617,13 +5643,13 @@ function createpdf(data,listoutput='') {
         }
         loaded++;
 	      if(loaded == urls.length) {
-          var pages = images.filter(function(url) { return imagedata[url]; });
+          var pages = cards.filter(function(c) { return imagedata[c.front]; });
           if(imagefailed.length>0) {
             console.log("Failed"+JSON.stringify(imagefailed));
             alert("Failed to load some images:"+JSON.stringify(imagefailed));
           }
           if(o.layout == 'mpc') {
-            pdfmpczip(pages.map(function(url) { return imagedata[url]; }), layout, fn);
+            pdfmpczip(pages.map(function(c) { return imagedata[c.front]; }), layout, fn);
             return;
           }
 		      const doc = new PDFDocument({
@@ -5632,16 +5658,25 @@ function createpdf(data,listoutput='') {
 		      });
 		      doc.info['Title'] = fn;
 		      const stream = doc.pipe(blobStream());
-		      for(var i=0 ; i < pages.length; i++) {
-              var slot = i % perpage;
-              doc.image(imagedata[pages[i]],
-                        layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
-                        layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
-                        {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
-              if(slot == perpage-1 && (i<pages.length -1)) {
-                doc.addPage();
-              }
-		      }
+          var place = function(url, slot, mirror) {
+            var x = layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing);
+            if(mirror) {
+              x = layout.pagewidth - x - o.cardwidth;  // flipped on the long edge: columns and offsets mirror
+            }
+            doc.image(imagedata[url], x, layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
+                      {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
+          };
+          for(var start = 0; start < pages.length; start += perpage) {
+            var sheet = pages.slice(start, start + perpage);
+            if(start > 0) {
+              doc.addPage();
+            }
+            sheet.forEach(function(c, slot) { place(c.front, slot, false); });
+            if(duplex) {
+              doc.addPage();
+              sheet.forEach(function(c, slot) { if(c.back && imagedata[c.back]) { place(c.back, slot, true); } });
+            }
+          }
 		      doc.end();
 		      stream.on('finish', function() {
 		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
@@ -7226,6 +7261,178 @@ function printingimages(p) {
     if(!p || typeof p.imagehash !== 'string' || !Array.isArray(p.image)) { return []; }
     return p.image.filter(e => e && typeof e === 'object' && ['select','details','master'].some(k => typeof e[k] === 'string' && e[k]));
 }
+
+// ******************** CARD BACKS ********************
+// A printing's images are its fronts and its own backs (docs/data.md printing.image, printing.back):
+//   an image entry with side: "back" is the back of the front just before it (a stronghold's story or mon back).
+//   doublesided (the older marker, exactly two images): image[1] is image[0]'s back.
+//   Every other image is a front: more than one front means different prints of the printing.
+// A front without its own back gets the printing's back, the first that applies:
+//   printing.back: ["<cardid>"] of the back card, or ["none"] for no back
+//   the first rule in the game config's cardbacks.rules that fits the printing:
+//     {"when": {"<field>": "<regex>"}, "set": "<regex>", "before": "<set>", "from": "<set>", "cardid": <back card>}
+//     when fields are read from the printing if it has them, else from the card. before/from place the
+//     printing's set in the chronological set order (selectorder("printing.set")), so they never fit
+//     in a game without one.
+// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs), fetched when first needed.
+var cardbackcards = {};   // {game: {cardid: card, false when it isn't there}}
+var cardbackwaiting = {}; // {game: {cardid: [callbacks]}} while fetching
+function cardbackrules() {
+    var g = (gameconfig[database] || {}).game || {};
+    return (g.cardbacks && Array.isArray(g.cardbacks.rules)) ? g.cardbacks.rules : [];
+}
+function cardbackruleok(rule, card, p) {
+    var set = selectplaintext([].concat(p.setclean || p.set || [""])[0]);
+    var ok = Object.keys(rule.when || {}).every(function(f) {
+        var re = new RegExp(rule.when[f]);
+        return [].concat((f in p) ? p[f] : (card[f] || [])).some(function(v) { return re.test(selectplaintext(v)); });
+    });
+    if(ok && rule.set) {
+        ok = new RegExp(rule.set).test(set);
+    }
+    if(ok && (rule.before || rule.from)) {
+        var order = selectorder("printing.set") || [];
+        var pos = order.indexOf(set);
+        var before = rule.before ? order.indexOf(selectplaintext(rule.before)) : order.length;
+        var from = rule.from ? order.indexOf(selectplaintext(rule.from)) : 0;
+        ok = pos >= 0 && before >= 0 && from >= 0 && pos < before && pos >= from;
+    }
+    return ok;
+}
+// the printing's sides: [{front: image entry, back: image entry or null}], one per front, in order
+function printingsides(p) {
+    var images = printingimages(p), sides = [];
+    images.forEach(function(e, i) {
+        var isback = (e.side == 'back') || (p.doublesided && images.length == 2 && i == 1);
+        if(isback && sides.length && !sides[sides.length-1].back) {
+            sides[sides.length-1].back = e;
+        } else {
+            sides.push({'front': e, 'back': null});  // a back with no front of its own before it is still shown
+        }
+    });
+    return sides;
+}
+// the printing's standard back card ({cardid}), for fronts without a back of their own, or null
+function cardbackstandard(card, p) {
+    if(!card || !p) { return null; }
+    var own = [].concat(p.back || [])[0];
+    if(own) {
+        return (own == 'none') ? null : {'cardid': String(own)};
+    }
+    var rule = cardbackrules().find(function(r) { return r.cardid && cardbackruleok(r, card, p); });
+    return rule ? {'cardid': String(rule.cardid)} : null;
+}
+// a back card's image (its primary printing's front) in a size, or ''
+function cardbackcardurl(back, size) {
+    if(!back || !back.printing) { return ''; }
+    var p = back.printing.find(function(bp) { return bp.printingid == back.printingprimary; }) || back.printing[0];
+    var front = printingimages(p)[0];
+    return front ? dbinfo[database].imageuri + p.imagehash + '/' + (front[size] || front.details) : '';
+}
+// fetch the back cards not loaded yet, then done()
+function cardbacksfetch(ids, done=null) {
+    var game = database;
+    var have = cardbackcards[game] = cardbackcards[game] || {};
+    var waiting = cardbackwaiting[game] = cardbackwaiting[game] || {};
+    ids = ids.filter(function(id, i) { return ids.indexOf(id) == i && !(id in have); });
+    if(!ids.length) {
+        if(done) { done(); }
+        return;
+    }
+    var pending = ids.length;
+    var arrived = function() { if(--pending == 0 && done) { done(); } };
+    var tofetch = ids.filter(function(id) { return !(id in waiting); });
+    ids.forEach(function(id) { waiting[id] = (waiting[id] || []).concat([arrived]); });
+    if(!tofetch.length) { return; }
+    var finish = function(cards) {
+        tofetch.forEach(function(id) {
+            have[id] = cards.find(function(c) { return c && String(c.cardid) == id; }) || false;
+            var calls = waiting[id] || [];
+            delete waiting[id];
+            calls.forEach(function(f) { f(); });
+        });
+    };
+    $.ajax({
+        type: 'GET',
+        url: apiuri+"/oracle-fetch?table="+game+"&cardid="+tofetch.join(),
+        contentType: 'application/json',
+        dataType: 'json',
+        responseType: 'application/json',
+        success: function(data) { finish([].concat(data)); },
+        error: function(error) {
+            console.log("Card back fetch failed: "+JSON.stringify(error));
+            finish([]);
+        }
+    });
+}
+// fetch the standard back cards of these printings ([[card, printing], ...]), then done()
+function cardbacksload(pairs, done) {
+    var ids = [];
+    pairs.forEach(function(cp) {
+        var b = cardbackstandard(cp[0], cp[1]);
+        if(b) { ids.push(b.cardid); }
+    });
+    cardbacksfetch(ids, done);
+}
+// the URL of a side's back in a size (select, details, master): its own back, else the standard back
+// ('' while that card is loading), or null for none
+function cardbackurl(card, p, side, size) {
+    if(side.back) {
+        return dbinfo[database].imageuri + p.imagehash + '/' + (side.back[size] || side.back.details);
+    }
+    var b = cardbackstandard(card, p);
+    return b ? cardbackcardurl((cardbackcards[database] || {})[b.cardid], size) : null;
+}
+// ~cardsides(card, printing) for the card page: one entry per front,
+//   {front: url, print: "Print 2 of 3" or '', back: null or {own, url, details, cardid, title}}
+// own: true for a back printed with this card, false for the standard back (a card of its own, cardid).
+// A standard back still loading gets url '': its img.cardbackimg[data-backid] is filled in when it arrives.
+function templatecardsides(card, p) {
+    var base = dbinfo[database].imageuri + p.imagehash + '/';
+    var sides = printingsides(p), game = database;
+    var standard = sides.some(function(s) { return !s.back; }) ? cardbackstandard(card, p) : null;
+    var stdback = null;
+    if(standard) {
+        var back = (cardbackcards[game] || {})[standard.cardid];
+        if(back) {
+            stdback = {'own': false, 'cardid': standard.cardid, 'title': selectplaintext([].concat(back.title || [''])[0]),
+                       'url': cardbackcardurl(back, 'select'), 'details': cardbackcardurl(back, 'details')};
+        } else if(back === undefined) {
+            stdback = {'own': false, 'cardid': standard.cardid, 'title': '', 'url': '', 'details': ''};
+            cardbacksfetch([standard.cardid], function() {
+                var got = (cardbackcards[game] || {})[standard.cardid];
+                var img = $('img.cardbackimg[data-backid="'+standard.cardid+'"]');
+                if(got && game == database) {
+                    img.attr('src', cardbackcardurl(got, 'select')).attr('data-details', cardbackcardurl(got, 'details'));
+                    img.closest('.cardbackthumb').find('.cardbackname').text(selectplaintext([].concat(got.title || [''])[0]));
+                } else {
+                    img.closest('.cardbackthumb').remove();
+                }
+            });
+        }
+    }
+    return sides.map(function(s, i) {
+        return {
+            'front': base + (s.front.details || s.front.select || s.front.master),
+            'print': sides.length > 1 ? 'Print '+(i+1)+' of '+sides.length : '',
+            'back': s.back ? {'own': true, 'url': base + (s.back.select || s.back.details), 'details': base + (s.back.details || s.back.select)} : stdback
+        };
+    });
+}
+// the card page's Back thumbnail: show that side in the big image, or the front again
+function cardsideflip(thumb) {
+    var wrap = $(thumb).closest('.cardside'), big = wrap.find('img.cardsidefront');
+    var showingback = wrap.toggleClass('cardsideback').hasClass('cardsideback');
+    if(!big.data('front')) { big.data('front', big.attr('src')); }
+    var back = $(thumb).find('img.cardbackimg').attr('data-details');
+    if(showingback && !back) {
+        wrap.removeClass('cardsideback');
+        return;
+    }
+    big.attr('src', showingback ? back : big.data('front'));
+    $(thumb).find('.cardbackflip').text(showingback ? 'Show front' : 'Show back');
+}
+
 function templatefetchimage(card,size,id=false,datarequest={}) {
     console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);

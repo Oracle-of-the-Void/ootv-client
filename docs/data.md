@@ -87,6 +87,15 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   finds these through the printing's printed name (`printedtitle`, `title`: "Kamoto" in Anvil of
   Despair), S&M's double-sided strongholds (side "(1)"), and `ALIASES` in `snm-map.py` for names
   only S&M uses (its typos also sit in the card's `alttitle`, so a pasted S&M name finds the card).
+* printing.doublesided (optional, `1`, the older marker): the printing has exactly two images, a front and
+  its back (`image[1]`), e.g. the Ivory/Twenty Festivals and Onyx strongholds. Same as `side: "back"` on
+  `image[1]`; new data uses `side`.
+* printing.back (optional, every game, array of one string, since 2026-10-29): the cardid of the card
+  whose image is the back of this printing's fronts that have no back of their own (the game's card backs are cards: L5R's are 12664 to 12668 in
+  the Oracle of the Void set), or `["none"]` for no back. Leave it out to get the game's standard back
+  from the game config's `cardbacks` rules (`docs/admin/game-config.md`); set it only on a printing
+  the rules get wrong. The card page shows the back under the image, and the PDF's duplex option
+  prints it.
 * printing.image (array, one entry per image, front first). Each entry names the files of one image
   in the printing's `imagehash` directory:
  * ```json
@@ -95,9 +104,16 @@ What each field holds is also kept on the site, for the card editor: Admin → F
  "details": filename,   long side 600px  (other 288 or so)
  "master": filename,    no spec yet
  "original": filename (optional),
- "numeric": filename (optional sizing)
+ "numeric": filename (optional sizing),
+ "side": "back" (optional)
 }
 ```
+  An entry with `"side": "back"` is the printed back of the front just before it (a stronghold's story or
+  mon back): order the list front, back, front, back. Every other entry is a front, and more than one front
+  means the printing was printed more than one way (different art or typesetting under one set and
+  rarity). The card page draws each front full size with "Print n of m" when there are several, and a
+  front's back only as a thumbnail under it ("Printed back", or the standard back's name), so the two
+  never look alike. The PDF prints the first front (and, with duplex, its back).
   A printing with no scan has neither `image` nor `imagehash` (never an empty `image: []`). Since
   2026-10-21 the card images and the proxy export skip an empty list, entries that name no file, and
   an `image` without `imagehash` (`printingimages` in oracle.js: the missing-image stamp, no proxy

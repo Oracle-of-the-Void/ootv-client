@@ -138,7 +138,10 @@ The list's menu (the grid button) has:
 
 - **PDF Print-n-Play**: the cards on sheets of paper to print and cut out. **PDF for
   MakePlayingCards** makes one PDF per card, with bleed, for ordering printed cards. (Not every
-  game has PDF printing; the print options are in Settings → Printing.)
+  game has PDF printing; the print options are in Settings → Printing.) Its **Backs** option
+  can add a page of backs after each sheet of fronts, laid out so they line up when you print
+  double-sided and flip on the long edge: each card gets the back it was sold with, and a
+  double-sided card its own other side.
 - **Sun and Moon** (L5R): a deck file for the Sun and Moon program.
 - **Native Oracle (Tab-delimited)**: a text file you can open in a spreadsheet, or upload into
   another list. Foil entries end in `[foil]` (or `[foil or not]`), and an upload reads that back.
