@@ -1108,7 +1108,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
 <!-- deck/list Table view: the table around template-table's rows (listtablewrap); ~rows is that html -->
 <script id="template-listtable" type="text/x-jsrender">
 <div class="listtablewrap"><table class="listtable">
-  <thead><tr><th class="listtableqty">#</th><th class="listtabletitle">Card</th>{{for tablefields}}<th class="listtablestat" title="{{>label}}">{{>short}}</th>{{/for}}{{if kwfield}}<th class="listtablekw">{{>kwlabel}}</th>{{/if}}</tr></thead>
+  <thead><tr><th class="listtableqty">#</th><th class="listtabletitle">Card</th>{{for tablefields}}<th class="listtablestat"{{if label}} title="{{>label}}"{{/if}}>{{>short}}</th>{{/for}}{{if kwfield}}<th class="listtablekw">{{if !tableheads}}{{>kwlabel}}{{/if}}</th>{{/if}}</tr></thead>
   <tbody>{{:~rows}}</tbody>
 </table></div>
 </script>
