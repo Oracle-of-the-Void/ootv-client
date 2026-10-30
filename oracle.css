@@ -1065,6 +1065,14 @@ tr.listtablecard.kwglow a.deckswipe {
     box-shadow: none;
     background-color: transparent;
 }
+/* a bar behind a type's averages: its copies against the deck's biggest type (--bar, set in liststats), across the
+   middle third of the cell */
+table.liststatstable td.liststatsbar {
+    background-image: linear-gradient(rgba(90, 110, 160, 0.25), rgba(90, 110, 160, 0.25));
+    background-repeat: no-repeat;
+    background-size: var(--bar) 33.3%;
+    background-position: left center;
+}
 span.liststatsavg {
     display: inline-block;
     margin-right: .8em;
