@@ -3456,6 +3456,18 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 // Enter or Space opens a - [n] + stepper in its place; Enter or leaving it saves, Esc puts it back, 0 asks before
 // removing the card. The template still marks it contenteditable (typed into before 2026-10-29): dropped here.
 function listcountready(where) {
+    // the Table view's count cell (template table, which has no foil): the same span, made here, where the list
+    // holds that card and printing once; with a regular and a foil entry the row can't tell which it is
+    $(where).find('tr.listtablecard').each(function() {
+	var a = $(this).find('a.deckswipe'), td = $(this).children('td.listtableqty');
+	var listid = a.attr('data-list'), cardid = a.attr('data-card'), prid = a.attr('data-printing') || 0;
+	if(!listid || !listeditable(listid) || td.children('span').length) { return; }
+	var list = cache_thing("list",listid);
+	var hits = list ? list.list.Items[0].list.filter(function(e) { return e.cardid == cardid && (e.printing||0) == prid; }) : [];
+	if(hits.length != 1) { return; }
+	$('<span class="editquantity">').attr('id', ['clist_quantity',listid,cardid,prid,hits[0].quantity,hits[0].foil||''].join(':'))
+	    .text(td.text().trim()).appendTo(td.empty());
+    });
     $(where).find('span.editquantity[id^="clist_quantity"]').removeAttr('contenteditable')
 	.attr({'tabindex': 0, 'role': 'button', 'aria-label': 'Change count'});
 }
