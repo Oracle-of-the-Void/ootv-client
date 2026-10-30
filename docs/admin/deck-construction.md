@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-10-30 (the Special legality); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows at the
 foot of the deck's list header, under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -21,6 +21,14 @@ In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) 
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
 `add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
 minimum the layers before set, plus two), so one overlay works in every legality.
+
+**Special** (every game, last in the deck's Legality menu; `decklegalityspecial` in `oracle.js`) is a value only a
+list can have: no card, search filter, import arc or `legality.sortregex` knows it, and `/cardslegal` doesn't check
+cards against it. It starts from **no rules** rather than the game's, so the check says "no limits". A later layer
+that names a rule brings the whole rule back from `deckconstruction.rules`: the deck's panel lists the game's rules
+unticked for the owner to tick, and `deckconstruction.legality["Special"]` would give a game's Special decks some by
+default (no game has one). A card's `rules` change only the rules a Special deck has; they don't add any
+(Forgotten Legacy's Holdings rule stays out).
 
 A broken rule shows in red on the Deck construction line, part of the list header
 (`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
