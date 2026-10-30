@@ -122,7 +122,7 @@ Forgotten Legacy ("You must have at least 16 Holdings in your deck construction"
 It sets a number rather than adding one, so more copies still mean 16. Only Dynasty Holdings count (the user,
 2026-10-29), so a Celestial deck's Pre-Game Border Keep and Bamboo Harvesters don't.
 Eternal Victory Dojo ("Your deck may include four copies each of one or two non-Unique Strategies with Battle abilities"):
-`{"rules": {"battlestrategy4": {"label": "Battle Strategies (Eternal Victory Dojo)", "check": "copies", "when": {"type": "^Strategy$", "text": "Battle(/[A-Za-z]+)?(, ?:[^ ]+:)?\\s*:"}, "max": 4, "titles": 2}}}`.
+`{"rules": {"battlestrategy4": {"label": "Battle Strategies (Eternal Victory Dojo)", "check": "copies", "when": {"type": "^Strategy$", "text": "Battle(/[A-Za-z]+)?(, :[A-Za-z0-9*]+:)?\\s*:"}, "max": 4, "titles": 2}}}`.
 A third title at four is a problem; any number at three is fine. `when` reads the card's own `text` when the check runs
 (nothing is stored on the list), and the regex finds a Battle ability's heading (`Battle:`, `Battle/Open:`, `Battle, :g2::`),
 so a Strategy that only mentions Battle ("After your Battle action resolves") stays at three. Checked against all 3,370
