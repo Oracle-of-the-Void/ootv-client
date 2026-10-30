@@ -16,7 +16,8 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
   the total), with a red **Illegal** when the deck breaks its [construction rules](#stats). It's kept from the
   last time you opened the list: a list you haven't opened since this came in shows only its total.
 - Open a list to see or change its **Legality** (the format a deck is for; its cards are checked against it,
-  see [Statistics](#stats)) and its **Id**.
+  see [Statistics](#stats)) and its **Id**. **Special** is for a deck that isn't built for a format: see
+  [the rules](#stats).
 - **Public** shares the list (see [Sharing](#sharing)).
 
 ## Folders {#folders}
@@ -140,6 +141,11 @@ and 30 Dynasty cards; BigDeck needs 80 of each, Modern 50 of each, and both allo
 deck, open **Construction rules** at the top of the deck: change a number, untick a rule to drop
 it, or say which deck Sensei and Border Keep / Bamboo Harvesters go in for this deck. **Back to
 the legality's rules** clears your changes.
+
+**Special** at the end of the Legality menu is for a deck outside the formats: a theme deck, a house
+rules game. It has no limits at all, so the check says **no limits**, its cards aren't checked against a format, and
+cards that change the rules don't add any. Tick rules in **Construction rules** if you want some of them
+for this deck.
 
 ## Sharing {#sharing}
 
