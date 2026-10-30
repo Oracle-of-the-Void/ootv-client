@@ -55,6 +55,11 @@ last changed beside the name. In the deck view, a short section (8 cards or fewe
 instead of taking a whole row, so Pre-Game sits beside Dynasty and Fate starts below. In L5R a deck's name starts with its Stronghold's clan mon, here, in your lists and in Public lists. Phones open lists as a
 simple list of card names, unless you've saved another list view for your phone (Settings).
 
+The table has a row per card with its numbers (L5R: Force, Chi, Cost, Focus...) and keywords. In a deck, each
+type has its own columns, named in its header row: only the numbers that type's cards have. The number most types
+share (L5R: Cost) always takes the first column, and a number every type in a deck has (L5R Fate: Focus) that deck's
+last, so they line up down the table.
+
 L5R: Border Keep and Bamboo Harvesters were Pre-Game cards under the Celestial and Emperor rules (and
 Three Dynasties), and Dynasty cards from Ivory on. Versions that were both sit in the section the
 deck's **Legality** calls for: Pre-Game in Celestial, Emperor, BigDeck and Obsidian Hand decks, Dynasty in
