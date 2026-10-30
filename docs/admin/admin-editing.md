@@ -25,6 +25,11 @@ written to the **audit log** under the admin's name, before it happens.
    **Email the owner** switch (change it any time) and **Stop editing**. Reloading the page also
    stops editing.
 
+Card changes save about 15 seconds after the last one. **Stop editing** saves any still waiting
+and finishes once they're in (it shows *Saving...*, or *Not saved, retrying...* if the save fails,
+and the list stays open for editing until it works). Reloading doesn't wait: card changes from the
+last 15 seconds are lost, so use Stop editing first.
+
 What you can change: the cards, name, notes, type, legality, public/private and the deck
 construction rules. What you can't: delete it, or change its folder (that's the owner's filing).
 Changes save straight to the owner's list. There is no undo, but the audit log keeps the old

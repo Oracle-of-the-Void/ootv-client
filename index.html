@@ -974,7 +974,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
     <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg>
     <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared{{else}}Private{{/if}} list by <b>{{>ownername || 'another player'}}</b> &#149; you're editing it as an admin; changes save to their list and are logged</span>
     <label class="listadminnotify"><input type="checkbox"{{if ~adminnotify}} checked{{/if}} onchange="listadminnotify('{{:listid}}',this.checked);"> Email the owner</label>
-    <button type="button" class="button gray buttonsmaller" onclick="listadminstop('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg> Stop editing</button>
+    <button type="button" class="button gray buttonsmaller listadminstop" onclick="listadminstop('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg> Stop editing</button>
   </div>{{/if}}
   <div class="listviewtitle">
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
