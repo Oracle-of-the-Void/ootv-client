@@ -71,11 +71,19 @@ too, when any version of the card came in foil.
 
 ## Statistics {#stats}
 
-Under the list's name is its card count; an L5R deck's starts with its Dynasty/Fate sizes
-(`40/40 - 81 total`); other lists also say how many different cards they have (`120 cards [85 distinct]`). Open it for the details (it starts open, closed on a
-phone, and stays the way you last left it): how many cards of each type
+A deck's header ends with its check: the cards not legal in its Legality, the formats every card is legal
+in, and the deck construction check (below). It's always in view, whatever the statistics are doing.
+
+Under the header are two folding sections, **Statistics** and **Keyword counts**. Both start open and stay the
+way you last left them. In the Simple List, Text and Table views on a wide screen they're to the right of the
+cards instead, and stay in view as you scroll; on a phone they come after the cards, so the deck itself is first.
+On a wide screen they sit side by side when there's room.
+
+Statistics starts with the card count; an L5R deck's starts with its Dynasty/Fate sizes
+(`40/40 - 81 total`); other lists also say how many different cards they have (`120 cards [85 distinct]`).
+Under it: how many cards of each type
 are in each deck, each type's share of its deck, and averages of the cards' numbers (cost, force and
-so on). Pre-Game, cards with no deck and Proxy cards get no share, and Proxy cards aren't counted in the others'. Below that, each keyword in the deck and how many of your other cards mention it.
+so on). Pre-Game, cards with no deck and Proxy cards get no share, and Proxy cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. Proxy cards
@@ -83,8 +91,7 @@ aren't checked at all: they're in the deck to be printed and played, not part of
 
 **Deck construction** checks the deck as a whole against the game's deck construction rules
 (see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
-you can save any deck. When a deck breaks its rules, or has cards that aren't legal in its Legality,
-the card count line at the top of the statistics says so in red, even with them folded.
+you can save any deck. When a deck breaks its rules, the header's check line says so in red.
 
 ## Deck construction rules {#construction}
 

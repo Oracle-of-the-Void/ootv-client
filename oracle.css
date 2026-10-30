@@ -845,16 +845,60 @@ div.listviewheader div.listviewsource {
     font-size: small;
     overflow-wrap: anywhere;
 }
-/* list view statistics (liststats) */
-details.liststats {
+/* the list page (listlayout in oracle.js): statistics above the cards; beside them in the narrow views on a wide
+   screen; below them on a phone (the phone layout's media query, further down) */
+div.listlayout {
+    display: flex;
+    flex-direction: column;
+}
+div.listlayout div.listlayoutstats {
+    order: -1;
+    min-width: 0;
+}
+div.listlayout div.listlayoutcards {
+    min-width: 0;
+}
+/* the narrow views beside the box, once the window has room for both (under it, the box stays above them) */
+@media (min-width: 1100px) {
+  div.listlayoutside {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  div.listlayoutside div.listlayoutstats {
+    order: 1;
+    flex: 0 1 auto;
+    max-width: min(45%, 36em);
+    position: sticky;
+    top: 4px;
+    max-height: calc(100vh - 8px);
+    overflow-y: auto;
+  }
+  div.listlayoutside div.listlayoutcards {
+    flex: 1 1 0;
+  }
+  div.listlayoutside div.liststatsbox {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+}
+/* list view statistics (liststats): Statistics and Keyword counts side by side when both fit (stacked in the
+   sidebar, above) */
+div.liststatsbox {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 24px;
+    row-gap: 6px;
     margin: 4px 0 8px;
     padding: 4px 6px;
     background-color: var(--panel);
     border-radius: 7px;
     font-family: var(--font-ui);
 }
-details.liststatskw {
-    margin-top: 6px;
+div.liststatsbox > details {
+    min-width: 0;
+    max-width: 100%;
 }
 label.liststatscutoff {
     display: block;
@@ -863,12 +907,9 @@ label.liststatscutoff {
 label.liststatscutoff input {
     width: 3.5em;
 }
-details.liststats summary {
+div.liststatsbox summary {
     cursor: pointer;
     font-size: large;
-}
-details.liststats details.liststatskw summary {
-    font-size: medium;
 }
 /* "(expand for ...)" only while folded */
 details[open] > summary > .liststatshint {
@@ -1804,6 +1845,10 @@ div#phonesearchbar .numresults {
 }
 /* phone layout: narrow screens, and phones held sideways; keep in step with narrowscreen() in oracle.js */
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  /* the list page: the cards first, the statistics after them, whatever the view */
+  div.listlayout div.listlayoutstats {
+    order: 1;
+  }
   .phoneonly {
     display: inline;
   }
@@ -2350,13 +2395,18 @@ span.publicformatsource { color: #777; font-size: small; }
 div.publicaward, div.listaward { color: #8a6d00; font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
 label.publicwinner { white-space: nowrap; }
+/* the deck check at the foot of the list header (template-listcheck): a light strip, so its red and green read */
+div.listviewheader div.listviewcheck { margin: 6px -4px -4px; padding: 2px 8px; background: var(--panel); color: #222; font-family: var(--font-ui); font-size: medium; border-radius: 0 0 7px 7px; }
 div.liststatslegal { margin: 4px 0 6px; }
+/* in the header strip the three parts run as one line of phrases, wrapping as needed; a hidden part takes its dot with it */
+div.listviewcheck > div { display: inline; }
+div.listviewcheck > div + div::before { content: " \2022  "; color: #666; font-weight: normal; }
 div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
 div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
 div.liststatsbuild { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsbuild a, div.liststatsbuild a:visited { color: #c00; }
-span.liststatsflag { color: #c00; font-weight: bold; }
+div.liststatsflag { color: #c00; font-weight: bold; }
 div.liststatsbuildok { color: #116b1c; font-weight: normal; }
 div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: var(--panel); color: #222; max-width: 34em; }
 div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }

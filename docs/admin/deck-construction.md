@@ -1,9 +1,9 @@
 # Deck construction rules
 
-Last updated: 2026-10-29 (Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
-A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows in the
-deck's statistics block under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
+A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows at the
+foot of the deck's list header, under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
 deck that breaks a rule saves as before. Lists of type Deck (or with no type) are checked.
 
 ## Where it lives
@@ -22,9 +22,8 @@ switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds
 `add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
 minimum the layers before set, plus two), so one overlay works in every legality.
 
-A broken rule shows in red on the Deck construction line, and the stats summary ("40/40 - 86 total")
-adds a red note when the deck breaks its rules or has cards not legal in its chosen Legality
-(`liststatsflag()`), so it shows with the statistics folded too.
+A broken rule shows in red on the Deck construction line, part of the list header
+(`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
 
 The check's answer is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
 opens it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
