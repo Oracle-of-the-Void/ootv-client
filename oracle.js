@@ -27,7 +27,7 @@ $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); }
 $.views.helpers("foilmark",templatefoilmark);
 $.views.helpers("foilof",templatefoilof);
 $.views.helpers("listfoil",templatelistfoil);
-$.views.helpers("cardback",templatecardback);
+$.views.helpers("cardsides",templatecardsides);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -5657,25 +5657,25 @@ function createpdf(data,listoutput='') {
     // MPC prints at 300 dpi: the _master scans (~750 x 1050) instead of _details (600px long side)
     var size = (o.layout == 'mpc') ? 'master' : 'details';
     var newurl = function(p,i) { return dbinfo[database].imageuri+p.imagehash+'/'+(i[size] || i.details)+'?x-corsworkaround=true'; };
-    // one entry per card printed: {front, back}. Without duplex a double-sided printing is a card per side
-    // and back is null; with it, back is the printing's back (cardbackurl), or null to leave that spot blank.
+    // one entry per card printed: {front, back}, from the printing's first front (printingsides). Without duplex
+    // a front's own back is a card of its own and back is null; with it, back is that front's back (its own,
+    // else the standard one: cardbackurl), or null to leave that spot blank. Other prints of the printing aren't printed.
     var cards = [];
     for(card of data) {
       var copies = (o.quantity == 'spoiler') ? 1 : card.listquantity;
       for(p of (card.printing || [])) {
         if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
-          var pimages = printingimages(p).filter(i => i[size] || i.details);  // no usable scan: no page for it
-          if(pimages.length) {
-              var back = duplex ? cardbackurl(card, p, size) : null;
+          var side = printingsides(p).filter(s => s.front[size] || s.front.details)[0];  // no usable scan: no page for it
+          if(side) {
+              var back = duplex ? cardbackurl(card, p, side, size) : null;
               for(cn = 0; cn < copies; cn++) {
                 if(duplex) {
-                  cards.push({'front': newurl(p,pimages[0]), 'back': back ? back+'?x-corsworkaround=true' : null});
-                } else if(p.doublesided) {
-  	              for(i of pimages) {
-                    cards.push({'front': newurl(p,i), 'back': null});
-                  }
+                  cards.push({'front': newurl(p,side.front), 'back': back ? back+'?x-corsworkaround=true' : null});
                 } else {
-                  cards.push({'front': newurl(p,pimages[0]), 'back': null});
+                  cards.push({'front': newurl(p,side.front), 'back': null});
+                  if(side.back) {
+                    cards.push({'front': newurl(p,side.back), 'back': null});
+                  }
                 }
               }
           }
@@ -7357,15 +7357,18 @@ function printingimages(p) {
 }
 
 // ******************** CARD BACKS ********************
-// The back of a printing (docs/data.md printing.back, docs/admin/game-config.md cardbacks), first that applies:
-//   a double-sided printing (doublesided, two images): its own second image
+// A printing's images are its fronts and its own backs (docs/data.md printing.image, printing.back):
+//   an image entry with side: "back" is the back of the front just before it (a stronghold's story or mon back).
+//   doublesided (the older marker, exactly two images): image[1] is image[0]'s back.
+//   Every other image is a front: more than one front means different prints of the printing.
+// A front without its own back gets the printing's back, the first that applies:
 //   printing.back: ["<cardid>"] of the back card, or ["none"] for no back
 //   the first rule in the game config's cardbacks.rules that fits the printing:
 //     {"when": {"<field>": "<regex>"}, "set": "<regex>", "before": "<set>", "from": "<set>", "cardid": <back card>}
 //     when fields are read from the printing if it has them, else from the card. before/from place the
 //     printing's set in the chronological set order (selectorder("printing.set")), so they never fit
 //     in a game without one.
-// The backs are cards (L5R: the Oracle of the Void set's Card Backs), fetched when first needed.
+// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs), fetched when first needed.
 var cardbackcards = {};   // {game: {cardid: card, false when it isn't there}}
 var cardbackwaiting = {}; // {game: {cardid: [callbacks]}} while fetching
 function cardbackrules() {
@@ -7390,13 +7393,22 @@ function cardbackruleok(rule, card, p) {
     }
     return ok;
 }
-// {image, imagehash} for a double-sided printing's own back, {cardid} for a back card, or null
-function cardbackof(card, p) {
+// the printing's sides: [{front: image entry, back: image entry or null}], one per front, in order
+function printingsides(p) {
+    var images = printingimages(p), sides = [];
+    images.forEach(function(e, i) {
+        var isback = (e.side == 'back') || (p.doublesided && images.length == 2 && i == 1);
+        if(isback && sides.length && !sides[sides.length-1].back) {
+            sides[sides.length-1].back = e;
+        } else {
+            sides.push({'front': e, 'back': null});  // a back with no front of its own before it is still shown
+        }
+    });
+    return sides;
+}
+// the printing's standard back card ({cardid}), for fronts without a back of their own, or null
+function cardbackstandard(card, p) {
     if(!card || !p) { return null; }
-    var images = printingimages(p);
-    if(p.doublesided && images.length > 1) {
-        return {'image': images[1], 'imagehash': p.imagehash};
-    }
     var own = [].concat(p.back || [])[0];
     if(own) {
         return (own == 'none') ? null : {'cardid': String(own)};
@@ -7447,46 +7459,74 @@ function cardbacksfetch(ids, done=null) {
         }
     });
 }
-// fetch the back cards of these printings ([[card, printing], ...]), then done()
+// fetch the standard back cards of these printings ([[card, printing], ...]), then done()
 function cardbacksload(pairs, done) {
     var ids = [];
     pairs.forEach(function(cp) {
-        var b = cardbackof(cp[0], cp[1]);
-        if(b && b.cardid) { ids.push(b.cardid); }
+        var b = cardbackstandard(cp[0], cp[1]);
+        if(b) { ids.push(b.cardid); }
     });
     cardbacksfetch(ids, done);
 }
-// the back's image URL in a size (select, details, master): '' while its back card is loading, null for none
-function cardbackurl(card, p, size) {
-    var b = cardbackof(card, p);
-    if(!b) { return null; }
-    if(b.image) {
-        return dbinfo[database].imageuri + b.imagehash + '/' + (b.image[size] || b.image.details);
+// the URL of a side's back in a size (select, details, master): its own back, else the standard back
+// ('' while that card is loading), or null for none
+function cardbackurl(card, p, side, size) {
+    if(side.back) {
+        return dbinfo[database].imageuri + p.imagehash + '/' + (side.back[size] || side.back.details);
     }
-    return cardbackcardurl((cardbackcards[database] || {})[b.cardid], size);
+    var b = cardbackstandard(card, p);
+    return b ? cardbackcardurl((cardbackcards[database] || {})[b.cardid], size) : null;
 }
-// ~cardback(card, printing) for the card page: {cardid, title, url} of the back card, or null (no back,
-// or a double-sided printing, whose images are drawn already). One still loading gets url '': its
-// img.cardbackimg[data-backid] is filled in when it arrives.
-function templatecardback(card, p) {
-    var b = cardbackof(card, p);
-    if(!b || !b.cardid) { return null; }
-    var game = database, back = (cardbackcards[game] || {})[b.cardid];
-    if(back === false) { return null; }
-    if(back === undefined) {
-        cardbacksfetch([b.cardid], function() {
-            var got = (cardbackcards[game] || {})[b.cardid];
-            var img = $('img.cardbackimg[data-backid="'+b.cardid+'"]');
-            if(got && game == database) {
-                img.attr('src', cardbackcardurl(got, 'select')).closest('a').attr('title', 'Card back: '+selectplaintext([].concat(got.title || [''])[0]));
-            } else {
-                img.closest('a').remove();
-            }
-        });
-        return {'cardid': b.cardid, 'title': '', 'url': ''};
+// ~cardsides(card, printing) for the card page: one entry per front,
+//   {front: url, print: "Print 2 of 3" or '', back: null or {own, url, details, cardid, title}}
+// own: true for a back printed with this card, false for the standard back (a card of its own, cardid).
+// A standard back still loading gets url '': its img.cardbackimg[data-backid] is filled in when it arrives.
+function templatecardsides(card, p) {
+    var base = dbinfo[database].imageuri + p.imagehash + '/';
+    var sides = printingsides(p), game = database;
+    var standard = sides.some(function(s) { return !s.back; }) ? cardbackstandard(card, p) : null;
+    var stdback = null;
+    if(standard) {
+        var back = (cardbackcards[game] || {})[standard.cardid];
+        if(back) {
+            stdback = {'own': false, 'cardid': standard.cardid, 'title': selectplaintext([].concat(back.title || [''])[0]),
+                       'url': cardbackcardurl(back, 'select'), 'details': cardbackcardurl(back, 'details')};
+        } else if(back === undefined) {
+            stdback = {'own': false, 'cardid': standard.cardid, 'title': '', 'url': '', 'details': ''};
+            cardbacksfetch([standard.cardid], function() {
+                var got = (cardbackcards[game] || {})[standard.cardid];
+                var img = $('img.cardbackimg[data-backid="'+standard.cardid+'"]');
+                if(got && game == database) {
+                    img.attr('src', cardbackcardurl(got, 'select')).attr('data-details', cardbackcardurl(got, 'details'));
+                    img.closest('.cardbackthumb').find('.cardbackname').text(selectplaintext([].concat(got.title || [''])[0]));
+                } else {
+                    img.closest('.cardbackthumb').remove();
+                }
+            });
+        }
     }
-    return {'cardid': b.cardid, 'title': selectplaintext([].concat(back.title || [''])[0]), 'url': cardbackcardurl(back, 'select')};
+    return sides.map(function(s, i) {
+        return {
+            'front': base + (s.front.details || s.front.select || s.front.master),
+            'print': sides.length > 1 ? 'Print '+(i+1)+' of '+sides.length : '',
+            'back': s.back ? {'own': true, 'url': base + (s.back.select || s.back.details), 'details': base + (s.back.details || s.back.select)} : stdback
+        };
+    });
 }
+// the card page's Back thumbnail: show that side in the big image, or the front again
+function cardsideflip(thumb) {
+    var wrap = $(thumb).closest('.cardside'), big = wrap.find('img.cardsidefront');
+    var showingback = wrap.toggleClass('cardsideback').hasClass('cardsideback');
+    if(!big.data('front')) { big.data('front', big.attr('src')); }
+    var back = $(thumb).find('img.cardbackimg').attr('data-details');
+    if(showingback && !back) {
+        wrap.removeClass('cardsideback');
+        return;
+    }
+    big.attr('src', showingback ? back : big.data('front'));
+    $(thumb).find('.cardbackflip').text(showingback ? 'Show front' : 'Show back');
+}
+
 function templatefetchimage(card,size,id=false,datarequest={}) {
     console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);

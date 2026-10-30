@@ -22,9 +22,17 @@ details.
 
 ## Card backs {#backs}
 
-Under the card's image is a small picture of its **Back**: the back that printing was sold with
-(in L5R, the old or new Fate or Dynasty back, by set). Click it to open the back. A double-sided
-card (the Ivory and Twenty Festivals strongholds, for example) shows both of its sides instead.
+Under the card's image is a small picture of its back. Click it to see the back full size, and
+again for the front.
+
+- **Printed back** (with a gold edge): this card has a back of its own, like the story backs of the
+  Time of the Void strongholds or the double-sided Ivory strongholds.
+- **Back: Fate Card Back (Old)** and the like: the ordinary back cards of that set were sold with.
+  **open** goes to that back.
+
+When a version was printed more than one way (different art or typesetting in the same set),
+each print is shown full size, marked **Print 1 of 2**, **Print 2 of 2**. Each print has its own
+back thumbnail, so a second print is never mistaken for a back.
 
 ## Foil {#foil}
 
