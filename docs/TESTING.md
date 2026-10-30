@@ -49,6 +49,10 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
   (`listinfo(id,false)`) when the List view is empty.
   The menubar code re-renders only the tab on screen; test that switching from another tab
   doesn't jump.
+- **List load order.** A list asked for (a `#listid` link, a directory click: `listinfo(id,true)`, `listopening`) outranks
+  background loads however they finish; `activatelist` still fills the view. To test, delay the `/list` answers with
+  `page.route` and try each order: directory, then the linked list, then the first list in the directory (it used to draw
+  over the link), and a link answering 404 (the "private or doesn't exist" message must stay).
 - Hover a menu (`page.hover`) before clicking its items; move the mouse away before
   screenshots so balloon tooltips don't cover things.
 

@@ -63,6 +63,9 @@ or tests. The files in this directory are exactly what gets served.
   card page draws them through `~cardsides` in the `card-top` partial (extra fronts as "Print n of m", backs only as
   thumbnails that flip the big image), and `createpdf` uses them for Backs: Duplex. Docs: `docs/data.md`, admin
   `game-config.md` (`cardbacks`), help `cards#backs`.
+- Which list the List view shows (`listinfo` in `oracle.js`): a list someone asked for (`#listid` link, directory click) is
+  `listopening` until it arrives, and background loads (the directory's first list, restored active lists, card fetches
+  finishing late) only fill the cache, never the view: `liststale`, checked in `refreshlist` and `dolist`. Test: `docs/TESTING.md`.
 - Deck statistics (`liststats` in `oracle.js`, template `#template-liststats`): type counts, shares and averages
   (`liststatsavgs`; the hover shows the working). In a deck, card numbers are the deck's own (`deckcontext`,
   `deckstatvalue`: card `conditionalvalues` on the Stronghold clan, Sensei, Stronghold; `docs/data.md`), in the averages
