@@ -3430,7 +3430,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+listlayout(liststats(listdata,listid), listmissing(listid,missing)+html));
+	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
+	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html));
 	    liststatslegal();
 	    liststatscutoff();
 	    listtablestripe();
@@ -3452,6 +3453,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 
 // header for the list view: the list's details as the directory shows them, and its controls when it's the
 // user's own. The list's own item wins over the directory's: an edit refetches the list before the directory.
+var listcheckhtml = {}; // listid: the deck check at the foot of its header (template-listcheck), kept from the last liststats
 function listheader(listid) {
     var meta = null;
     var dir = cache_thing("list","data");
@@ -3469,7 +3471,7 @@ function listheader(listid) {
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "deckbuild": !!deckbuildconfig(),
-	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid)});
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || ''});
 }
 // the clan mon of a deck's Stronghold, before its name in the header ('' with no Stronghold, or one without a mon)
 function liststrongholdmon(listid) {
@@ -3503,6 +3505,7 @@ function listmarksave(listid, kind, value) {
 		cache_thing("list",listid,list);
 	    }
 	    $(".listviewheader[data-list='"+listid+"']").replaceWith(listheader(listid));
+	    liststatslegal(); // the new header's deck check (cached answer)
 	},
 	error: function(xhr) { alert('Not saved'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : '')); }
     });
@@ -3740,6 +3743,7 @@ function liststats(listdata,listid=null) {
     var total = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     if(!cards.length) {
 	listsummarysave(listid, null);
+	delete listcheckhtml[listid];
 	return '';
     }
     var deckfield = liststatsdeckfield();
@@ -3793,16 +3797,16 @@ function liststats(listdata,listid=null) {
     };
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
-    return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
-	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
-	"buildbad": build && build.problems.length ? 1 : 0,
+    listcheckhtml[listid] = $.templates("#template-listcheck").render({
 	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"buildhtml": deckbuildhtml(build),
+	"buildhtml": deckbuildhtml(build)});
+    return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
+	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
-	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
-// the stats block's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
+// the list header's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
 // not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
 // kept per card set and format for the page's life.
 var liststatslegalcache = {};
@@ -3819,7 +3823,6 @@ function liststatslegal() {
 	    } else {
 		bad.hide();
 	    }
-	    liststatsflag(el.closest('details.liststats').find('.liststatsflag'), r.illegal && r.illegal.length ? r.format : '');
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
@@ -3834,20 +3837,8 @@ function liststatslegal() {
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
 }
-// the red note after "40/40 - 86 total" in the stats summary: the deck breaks its construction rules
-// (data-build, set at render) and/or has cards not legal in its chosen format (from /cardslegal)
-function liststatsflag(flag, illegalin) {
-    var parts = [];
-    if(flag.attr('data-build') == '1') {
-	parts.push('breaks the deck construction rules');
-    }
-    if(illegalin) {
-	parts.push('not legal in '+htmlEncode(illegalin));
-    }
-    flag.html(parts.length ? ' &#8212; '+parts.join('; ') : '').toggle(parts.length > 0);
-}
 // ***********************  deck construction rules **************
-// A soft check shown in the stats block (docs/admin/deck-construction.md). The game's rules are game config
+// A soft check shown at the foot of the list header (template-listcheck; docs/admin/deck-construction.md). The game's rules are game config
 // deckconstruction.rules; deckconstruction.legality[<legality>] overlays them rule by rule for decks of that
 // legality, then the deck's own deckconstruction field (a JSON string: {rules, pick}) overlays again. In an
 // overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
@@ -4187,9 +4178,9 @@ function listlayout(stats, cards) {
     return '<div class="listlayout'+(listlayoutside.includes(view) ? ' listlayoutside' : '')+'">'+
 	'<div class="listlayoutcards">'+cards+'</div><div class="listlayoutstats">'+stats+'</div></div>';
 }
+// both parts of the statistics box start open, and stay the way they were last left this session
 function liststatsopen() {
-    var open = cache_session("liststatsopen");
-    return open === null ? !narrowscreen() : open !== false;
+    return cache_session("liststatsopen") !== false;
 }
 function liststatstoggle(el) {
     cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);

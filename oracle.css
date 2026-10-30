@@ -877,28 +877,28 @@ div.listlayout div.listlayoutcards {
   div.listlayoutside div.listlayoutcards {
     flex: 1 1 0;
   }
-  div.listlayoutside div.liststatsbody {
+  div.listlayoutside div.liststatsbox {
     flex-direction: column;
     flex-wrap: nowrap;
   }
 }
-/* statistics and keyword counts side by side when both fit (stacked in the sidebar, above) */
-div.liststatsbody {
+/* list view statistics (liststats): Statistics and Keyword counts side by side when both fit (stacked in the
+   sidebar, above) */
+div.liststatsbox {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     column-gap: 24px;
-}
-/* list view statistics (liststats) */
-details.liststats {
+    row-gap: 6px;
     margin: 4px 0 8px;
     padding: 4px 6px;
     background-color: var(--panel);
     border-radius: 7px;
     font-family: var(--font-ui);
 }
-details.liststatskw {
-    margin-top: 6px;
+div.liststatsbox > details {
+    min-width: 0;
+    max-width: 100%;
 }
 label.liststatscutoff {
     display: block;
@@ -907,12 +907,9 @@ label.liststatscutoff {
 label.liststatscutoff input {
     width: 3.5em;
 }
-details.liststats summary {
+div.liststatsbox summary {
     cursor: pointer;
     font-size: large;
-}
-details.liststats details.liststatskw summary {
-    font-size: medium;
 }
 /* "(expand for ...)" only while folded */
 details[open] > summary > .liststatshint {
@@ -2402,13 +2399,14 @@ span.publicformatsource { color: #777; font-size: small; }
 div.publicaward, div.listaward { color: #8a6d00; font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
 label.publicwinner { white-space: nowrap; }
+/* the deck check at the foot of the list header (template-listcheck): a light strip, so its red and green read */
+div.listviewheader div.listviewcheck { margin: 6px -4px -4px; padding: 2px 8px; background: var(--panel); color: #222; font-family: var(--font-ui); font-size: medium; border-radius: 0 0 7px 7px; }
 div.liststatslegal { margin: 4px 0 6px; }
 div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
 div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
 div.liststatsbuild { margin: 4px 0; color: #c00; font-weight: bold; }
 div.liststatsbuild a, div.liststatsbuild a:visited { color: #c00; }
-span.liststatsflag { color: #c00; font-weight: bold; }
 div.liststatsbuildok { color: #116b1c; font-weight: normal; }
 div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid #bbb; border-radius: 6px; background: var(--panel); color: #222; max-width: 34em; }
 div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }
