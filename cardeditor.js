@@ -1036,7 +1036,7 @@ function cardeditzoom(src) {
       '<span class="cardeditx" title="Close" onclick="cardeditzoomclose();">&#x2715;</span></div>'+
       '<div id="cardeditzoombox"><img id="cardeditzoomimg" alt="" draggable="false" /></div>'+
       '<div id="cardeditzoomfoot"><div id="cardeditzoomthumbs"></div>'+
-      '<span class="cardeditzoombtn" title="Remove this image from the instance" onclick="cardeditzoomdelete();">Delete</span></div></div>');
+      '<span class="button gray buttonsmall" title="Remove this image from the instance" onclick="cardeditzoomdelete();">Delete<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></span></div></div>');
     cardeditzoomwire();
   }
   if(cardeditzoomstate && cardeditzoomstate.src == src) { return; }
