@@ -125,7 +125,8 @@ Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stam
 checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
 `var ootvversion` in `index.html` gets the sha, and it writes `version.json` (the sha plus a UTC
 `timestamp`, shown on the admin page with when this browser cached each select). `.js` and `.css` are then served `immutable` for a year, the pages, `version.json` and `docs/admin`
-as `no-cache`, and images for a day. So anything new that `oracle.js` loads at runtime from
+as `no-cache`, and images for a day. CloudFront gzips text files on both distributions (`Compress` on the default
+cache behavior, since 2026-10-30; no brotli, which would need a cache policy instead of the legacy cache settings). So anything new that `oracle.js` loads at runtime from
 this repo needs `'?v='+ootvversion` on its URL (see the cardeditor.js, help.js and pica loads), or
 browsers keep a stale copy for a year. CloudFront ignores query strings, so the deploy
 uploads assets, invalidates and waits (the deploy roles need `cloudfront:GetInvalidation`),
