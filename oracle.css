@@ -882,8 +882,8 @@ div.listlayout div.listlayoutcards {
     flex-wrap: nowrap;
   }
 }
-/* the pin button (listlayout in oracle.js), Detail/Visual/Deck views on a wide screen: the statistics float to the upper
-   right and the cards flow around them. Headers and Detail rows stop short of the box (flow-root) rather than run under it */
+/* the pin button (listlayout in oracle.js), every view on a wide screen: statistics to the side or above. To the side in
+   Detail/Visual/Deck (listlayoutpinned), they float to the upper right and the cards flow around them. Headers and Detail rows stop short of the box (flow-root) rather than run under it */
 div.listlayoutstats {
     position: relative;
 }
@@ -898,6 +898,10 @@ div.listlayoutstats > button.listlayoutpin {
 @media (min-width: 1100px) {
   div.listlayoutstats > button.listlayoutpin {
     display: block;
+  }
+  /* room for the button, so it never sits on a summary */
+  div.listlayoutstats > div.liststatsbox {
+    padding-right: 28px;
   }
   div.listlayoutpinned {
     display: block;
