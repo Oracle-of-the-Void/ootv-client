@@ -3744,7 +3744,14 @@ function liststatsgoldcost(decks, cards, fields, ctx) {
 	"Gold from Pre-Game or Fate cards raises it a little, but the Dynasty deck is what counts."});
     [dynasty, fate].forEach(function(d) {
 	var avg = liststatsavgs(d.cards, ['cost'], false, ctx)[0];
-	if(!avg || !avg.avg) {
+	if(!avg) {
+	    return;
+	}
+	// cards that cost nothing on average (an L5R Fate deck of 0-cost Strategies): any Gold pays for them
+	if(!avg.avg) {
+	    d.avgs.push({"short": "GC", "avg": "\u221e", "title": "Gold:Cost ratio of the "+d.name+" deck: how well the deck's "+
+		"Gold pays for these cards. Higher is better. The "+d.name+" cards' average Gold Cost is 0 (of "+avg.copies+" cards"+
+		(avg.skipped ? ", "+avg.skipped+" with no number left out" : "")+"), so the deck's Gold always covers them: no limit."});
 	    return;
 	}
 	d.avgs.push({"short": "GC", "avg": round2(gp/avg.avg), "title": "Gold:Cost ratio of the "+d.name+" deck: how well the deck's "+
