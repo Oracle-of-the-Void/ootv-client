@@ -1955,21 +1955,27 @@ span.listqty {
   min-width: 1.2em;
   text-align: center;
 }
-/* the Simple List's count on your own list (listcountready in oracle.js): plain until hovered; a click opens
-   the - [n] + stepper in its place */
+/* the Simple List's count on your own list (listcountready in oracle.js): bold, with a faint dotted underline
+   to say it can be changed (solid on hover); a click opens the - [n] + stepper in its place */
 #resultlist span.editquantity {
   display: inline-block;
   min-width: 1.4em;
   text-align: right;
+  font-weight: bold;
   font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted #777;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
   cursor: pointer;
   border: none;
   border-radius: 0;
 }
 #resultlist span.editquantity:not(.listcountopen):is(:hover, :focus-visible) {
-  text-decoration: underline dotted;
-  text-underline-offset: 3px;
+  text-decoration: underline solid currentColor;
   outline: none;
+}
+#resultlist span.editquantity.listcountopen {
+  text-decoration: none;
 }
 #resultlist span.editquantity.listcountopen {
   display: inline-flex;
