@@ -52,7 +52,8 @@ or tests. The files in this directory are exactly what gets served.
 - `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin
-  mass image upload (`massimagetrigger`) load it on demand.
+  mass image upload (`massimagetrigger`) load it on demand. Nor are `pdfkit.min.js` (~1.9 MB)
+  and `blob-stream.min.js`: `createpdf` loads them on the first PDF (`loadpdfkit`).
 - Card backs (2026-10-29, #22): the "CARD BACKS" block in `oracle.js`. `printingsides()` pairs a printing's fronts with
   their own printed backs (image `side: "back"`, or `doublesided`); fronts without one get `printing.back` or the first
   game config `cardbacks` rule that fits (`cardbackstandard`); back cards are fetched on demand (`cardbacksfetch`). The
