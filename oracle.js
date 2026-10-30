@@ -3492,7 +3492,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    var rows = markprinteddiffs(shown);
 	}
 	if(table) {
-	    $.extend(listtmpl, listtablecolumns(shown));
+	    $.extend(listtmpl, listtablecolumns(shown, listid));
 	    listtablesections(rows, listtmpl);
 	}
 	var html = getactivetemplate('list').render(rows,listtmpl);
@@ -3791,28 +3791,65 @@ function liststatsnumber(v) {
 function liststatsround(n) {
     return Math.round(n*10)/10;
 }
+// what a deck's cards say about it, for conditionalvalues (docs/data.md): its Stronghold's clan (liststrongholdclan)
+// and the titles of its Sensei and Strongholds. null for a list that isn't a deck (a trade or collection list).
+function deckcontext(cards, meta) {
+    if(meta && meta.type && meta.type != 'deck') {
+	return null;
+    }
+    var titles = function(type) {
+	return cards.filter(function(c) {
+	    return [].concat(c.type || []).some(function(t) { return selectplaintext(t) == type; });
+	}).map(function(c) { return selectplaintext([].concat(c.title || []).join('')); });
+    };
+    return {"clan": liststrongholdclan(cards), "sensei": titles('Sensei'), "stronghold": titles('Stronghold')};
+}
+// the card's conditionalvalues entry for a field that the deck meets (every when key has a value the deck has;
+// the first such entry wins), or null
+function deckcondition(card, f, ctx) {
+    var entries = ctx && card.conditionalvalues && card.conditionalvalues[f];
+    if(!entries) {
+	return null;
+    }
+    return entries.find(function(e) {
+	return Object.keys(e.when || {}).every(function(k) {
+	    var have = [].concat(ctx[k] || []);
+	    return [].concat(e.when[k]).some(function(v) { return have.indexOf(v) >= 0; });
+	});
+    }) || null;
+}
+// a stat field's value in this deck: the conditional value if the deck meets it, else the printed one
+function deckstatvalue(card, f, ctx) {
+    var cond = deckcondition(card, f, ctx);
+    return cond ? cond.value : card[f];
+}
 // averages of the fields at least one of the cards has; on a deck's own row (most) only the fields
-// liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types
-function liststatsavgs(cards, fields, most) {
+// liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types.
+// With a deck context (deckcontext), a card's value is the one it has in that deck (deckstatvalue).
+function liststatsavgs(cards, fields, most, ctx) {
     var copies = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     var out = [];
     fields.forEach(function(f) {
-	var sum = 0, n = 0, has = 0;
+	var sum = 0, n = 0, has = 0, deckvalued = 0;
 	cards.forEach(function(c) {
-	    if(c.card[f] === undefined || !String(c.card[f].join ? c.card[f].join('') : c.card[f]).trim()) {
+	    var raw = deckstatvalue(c.card, f, ctx);
+	    if(raw === undefined || !String(raw.join ? raw.join('') : raw).trim()) {
 		return;
 	    }
 	    has += c.qty;
-	    var v = liststatsnumber(c.card[f]);
+	    var v = liststatsnumber(raw);
 	    if(v !== null) {
 		sum += v*c.qty;
 		n += c.qty;
+		if(raw !== c.card[f]) {
+		    deckvalued += c.qty;
+		}
 	    }
 	});
 	if(n > 0 && (!most || n >= copies*liststatsdeckshare)) {
 	    var l = labels[database] || {};
 	    out.push({"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f, "avg": liststatsround(sum/n),
-		      "copies": n, "skipped": has-n});
+		      "copies": n, "skipped": has-n, "deckvalued": deckvalued});
 	}
     });
     return out;
@@ -3905,6 +3942,8 @@ function liststats(listdata,listid=null) {
     }
     var deckfield = liststatsdeckfield();
     var fields = liststatsfields();
+    var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
+    var ctx = deckcontext(cards.map(function(c) { return c.card; }), meta);
     var join = function(v) { return (Array.isArray(v) ? v.join(', ') : String(v || '')).replace(/&nbsp;/g,' ').trim(); };
     // groups in list order (the list is already in the game's deck sort)
     var group = function(items, key) {
@@ -3927,19 +3966,18 @@ function liststats(listdata,listid=null) {
 	var types = group(d.cards, function(c) { return join(c.card.type) || 'Other'; }).map(function(t) {
 	    var tc = t.cards.reduce(function(s,c) { return s + c.qty; }, 0);
 	    return {"name": t.name, "copies": tc, "pct": apart || liststatsproxy(t.cards[0]) ? '' : liststatspct(tc, deckstat),
-		    "avgs": liststatsavgs(t.cards, fields, false)};
+		    "avgs": liststatsavgs(t.cards, fields, false, ctx)};
 	});
 	// the bar behind each type's averages: its copies against the deck's biggest type, for the types with a share
 	var most = Math.max.apply(null, types.filter(function(t) { return t.pct; }).map(function(t) { return t.copies; }).concat(0));
 	types.forEach(function(t) { if(t.pct && most) { t.bar = liststatsround(t.copies*100/most); } });
 	return {"name": d.name, "copies": copies,
-		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
+		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true, ctx), "types": types};
     });
     var deckkey = function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; };
     var keywords = liststatskeywords(cards, decks.map(function(d) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
-    var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
     var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
     // the summary's decks in the game's deck order, whatever sort the list is shown in (dynasty before fate)
     var decksort = (databasesort[database] || {}).deck;
@@ -4421,17 +4459,21 @@ function liststatstoggle(el) {
 // One row per card, in the list's sort (deck/type header rows as the Simple List and Deck views have them).
 // Its stat columns follow the statistics box: the game's averaged fields (liststatsfields), each shown when a
 // card in the list has a number for it; then the keyword field the box analyses (liststatskeywordfield).
-function listtablecolumns(listdata) {
+// A deck's stat cells show each card's value in that deck (deckstatvalue): one that differs from the printed value
+// is marked (span.deckvalue) and its title says what's printed and why it changed.
+function listtablecolumns(listdata, listid=null) {
     var cards = listdata.filter(function(c) { return c.cardid > 0; });
     var l = labels[database] || {};
+    var ctx = deckcontext(cards, listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {});
     var fields = liststatsfields().filter(function(f) {
-	return cards.some(function(c) { return liststatsnumber(c[f]) !== null; });
+	return cards.some(function(c) { return liststatsnumber(deckstatvalue(c, f, ctx)) !== null; });
     }).map(function(f) {
 	return {"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f};
     });
     var kwfield = liststatskeywordfield();
+    var cell = function(v) { return Array.isArray(v) ? v.join(', ') : (v === undefined || v === null ? '' : v); };
     return {"tablefields": fields, "kwfield": kwfield, "kwlabel": kwfield ? (l['tag'+kwfield] || kwfield) : '',
-	    "tablecols": 2 + fields.length + (kwfield ? 1 : 0),
+	    "tablecols": 2 + fields.length + (kwfield ? 1 : 0), "tablectx": ctx,
 	    "tablecell": function(card, f) {
 		// a column slot (listtablesections): the field of the card's own type section in that place
 		if(typeof f == 'number') {
@@ -4440,8 +4482,17 @@ function listtablecolumns(listdata) {
 			return '';
 		    }
 		}
-		var v = card[f];
-		return Array.isArray(v) ? v.join(', ') : (v === undefined || v === null ? '' : v);
+		var cond = deckcondition(card, f, ctx);
+		if(!cond) {
+		    return cell(card[f]);
+		}
+		var why = Object.keys(cond.when || {}).map(function(k) {
+		    var vals = [].concat(cond.when[k]).join(' or ');
+		    return k == 'clan' ? 'a ' + vals + ' deck' : vals;
+		}).join(', ');
+		var title = 'Printed: ' + selectplaintext(cell(card[f])) + '. ' + cond.value + ' with ' + why + '.';
+		return '<span class="deckvalue" title="' + $('<div>').text(title).html().replace(/"/g,'&quot;') + '">' +
+		    $('<div>').text(cond.value).html() + '</span>';
 	    }};
 }
 // With header rows (the Deck sort), each type section gets its own columns: only the stat fields its cards have a
@@ -4476,7 +4527,7 @@ function listtablesections(rows, cols) {
     sections = sections.filter(function(sec) { return sec.cards.length; });
     sections.forEach(function(sec) {
 	sec.fields = cols.tablefields.filter(function(f) {
-	    return sec.cards.some(function(c) { return liststatsnumber(c[f.field]) !== null; });
+	    return sec.cards.some(function(c) { return liststatsnumber(deckstatvalue(c, f.field, cols.tablectx)) !== null; });
 	});
     });
     var has = function(sec, f) { return sec.fields.indexOf(f) >= 0; };

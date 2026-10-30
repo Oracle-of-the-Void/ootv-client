@@ -80,7 +80,7 @@ It works for every field that has number boxes on the form (Force, Chi, Gold Pro
 matches any of them. `numrange.cost:>15` finds 63 L5R cards, where `cost:>15` finds 17.
 
 A cost that's lower only for one clan (*"costs 2 less Gold for Scorpion Clan players"*) is
-searched at its printed cost.
+searched at its printed cost. A deck's table and averages use the lower cost when the deck qualifies.
 
 ## Printing fields {#printing}
 

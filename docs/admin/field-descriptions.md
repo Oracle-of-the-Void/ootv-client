@@ -1,6 +1,6 @@
 # Fields: descriptions and settings
 
-Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck; L5R Holding Gold Production filled)
+Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck, shown in a deck's Table view and averages; L5R Holding Gold Production filled)
 
 Every card field has a short description of what it holds, so the card editor can say what a
 field is for before you fill it in, and **settings** that say how the site uses it: its labels,
@@ -55,7 +55,7 @@ replaces the field's settings; clear it to drop them.
   for that field. A value that depends on the deck (Complications: 4, but "2 less Gold for Scorpion Clan
   players") is in `conditionalvalues` instead (`{"cost": [{"value": "2", "when": {"clan": ["Scorpion"]}}]}`,
   `when` on the deck's Stronghold `clan`, `sensei` or `stronghold`; [card data](../data.md)): search keeps
-  the printed value, and the deck view will show the other. L5R Holdings with no Gold Production field
+  the printed value, and a deck's Table view and averages show the other (bold, underlined, the printed value on hover). L5R Holdings with no Gold Production field
   had it filled from their ":bow:: Produce N Gold" on 2026-10-30, `N*` when the text changes it (as AEG
   printed later Holdings: Marshalling Grounds `2*`). Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
   `README.md`), and a new numeric field needs `ootv-elastic/numrange-mapping.sh` run for its game,
