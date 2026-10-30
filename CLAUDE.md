@@ -59,6 +59,10 @@ or tests. The files in this directory are exactly what gets served.
   card page draws them through `~cardsides` in the `card-top` partial (extra fronts as "Print n of m", backs only as
   thumbnails that flip the big image), and `createpdf` uses them for Backs: Duplex. Docs: `docs/data.md`, admin
   `game-config.md` (`cardbacks`), help `cards#backs`.
+- Deck statistics (`liststats` in `oracle.js`, template `#template-liststats`): type counts, shares and averages
+  (`liststatsavgs`; the hover shows the working). In a deck, card numbers are the deck's own (`deckcontext`,
+  `deckstatvalue`: card `conditionalvalues` on the Stronghold clan, Sensei, Stronghold; `docs/data.md`), in the averages
+  and the Table view (`span.deckvalue`). L5R Deck GP and Gold:Cost ratio GC: `liststatsgoldcost`. Help `lists#stats`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
   calls. Its image upload is `uploadimagetrigger` in `oracle.js`. User guide:
