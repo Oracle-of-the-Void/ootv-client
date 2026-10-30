@@ -4132,8 +4132,8 @@ function listbuildsave(el, reset) {
     if(Object.keys(pick).length) { out.pick = pick; }
     listinfoupdate(listid, 'deckconstruction', Object.keys(out).length ? JSON.stringify(out) : '');
 }
-// keyword counts under the cutoff (a 1-15 slider, default 4, kept per browser) are hidden; a keyword with every
-// count hidden hides, and so does a deck with none left
+// a keyword shows (with all its counts) when any of its counts reaches the cutoff (a 1-15 slider, default 4,
+// kept per browser); a deck with no keyword left hides
 function liststatskwcutoff() {
     var n = parseInt(cache_session("liststatskwcutoff"));
     return isNaN(n) ? 4 : Math.min(15, Math.max(1, n)); // older saves could be 0 or above 15
@@ -4150,11 +4150,9 @@ function liststatscutoff(value) {
 	$(this).find('tr.liststatskwrow').each(function() {
 	    var any = false;
 	    $(this).find('td[data-n]').each(function() {
-		var keep = parseInt($(this).attr('data-n')) >= cutoff;
-		$(this).children('span').toggle(keep);
-		any = any || keep;
+		any = any || parseInt($(this).attr('data-n')) >= cutoff;
 	    });
-	    $(this).toggle(any);
+	    $(this).toggle(any); // a shown keyword shows both its counts, whatever they are
 	    shown += any ? 1 : 0;
 	});
 	$(this).toggle(shown > 0);
