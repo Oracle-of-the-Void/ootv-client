@@ -1,6 +1,6 @@
 # Fields: descriptions and settings
 
-Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck, shown in a deck's Table view and averages; L5R Holding Gold Production filled)
+Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck, shown in a deck's Table view and averages; L5R Gold Production filled: Holdings from text and card images, general-purpose Gold on other cards)
 
 Every card field has a short description of what it holds, so the card editor can say what a
 field is for before you fill it in, and **settings** that say how the site uses it: its labels,
@@ -57,7 +57,10 @@ replaces the field's settings; clear it to drop them.
   `when` on the deck's Stronghold `clan`, `sensei` or `stronghold`; [card data](../data.md)): search keeps
   the printed value, and a deck's Table view and averages show the other (bold, underlined, the printed value on hover). L5R Holdings with no Gold Production field
   had it filled from their ":bow:: Produce N Gold" on 2026-10-30, `N*` when the text changes it (as AEG
-  printed later Holdings: Marshalling Grounds `2*`). Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
+  printed later Holdings: Marshalling Grounds `2*`). The rest were read from the GP coin in the card image's
+  upper-right corner the same day (Suana Dojo `4*`, `*` where printed; 225 Holdings print none), and non-Holdings
+  got Gold Production when their text produces a flat amount for any Gold cost (One Koku 1, Seppun Washi 2), not
+  Gold that only pays for one kind of card. Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
   `README.md`), and a new numeric field needs `ootv-elastic/numrange-mapping.sh` run for its game,
   then a repopulate, before the extra matches show (until then it searches the plain number).
 - `show`: `"card"` (the default: shown on the card page), `"internal"` (the editor only), or
