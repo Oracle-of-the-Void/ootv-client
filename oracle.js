@@ -3685,12 +3685,13 @@ function deckstatvalue(card, f, ctx) {
 }
 // averages of the fields at least one of the cards has; on a deck's own row (most) only the fields
 // liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types.
-// With a deck context (deckcontext), a card's value is the one it has in that deck (deckstatvalue).
+// With a deck context (deckcontext), a card's value is the one it has in that deck (deckstatvalue). sum is the
+// working for the hover, one copies*value term per card in list order: "3*3 + 2*2 + 1*4".
 function liststatsavgs(cards, fields, most, ctx) {
     var copies = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     var out = [];
     fields.forEach(function(f) {
-	var sum = 0, n = 0, has = 0, deckvalued = 0;
+	var sum = 0, n = 0, has = 0, deckvalued = 0, terms = [];
 	cards.forEach(function(c) {
 	    var raw = deckstatvalue(c.card, f, ctx);
 	    if(raw === undefined || !String(raw.join ? raw.join('') : raw).trim()) {
@@ -3700,6 +3701,7 @@ function liststatsavgs(cards, fields, most, ctx) {
 	    var v = liststatsnumber(raw);
 	    if(v !== null) {
 		sum += v*c.qty;
+		terms.push(c.qty+'*'+v);
 		n += c.qty;
 		if(raw !== c.card[f]) {
 		    deckvalued += c.qty;
@@ -3709,7 +3711,8 @@ function liststatsavgs(cards, fields, most, ctx) {
 	if(n > 0 && (!most || n >= copies*liststatsdeckshare)) {
 	    var l = labels[database] || {};
 	    out.push({"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f, "avg": liststatsround(sum/n),
-		      "copies": n, "skipped": has-n, "deckvalued": deckvalued});
+		      "copies": n, "skipped": has-n, "deckvalued": deckvalued,
+		      "sum": terms.length > 1 ? '('+terms.join(' + ')+')' : terms[0]});
 	}
     });
     return out;
