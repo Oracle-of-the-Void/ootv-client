@@ -1105,6 +1105,10 @@ table.listtable .listtableqty, table.listtable .listtablestat {
     text-align: right;
     white-space: nowrap;
 }
+/* "3x", as the Simple List has it (template table prints only the number) */
+table.listtable tr.listtablecard td.listtableqty::after {
+    content: "x";
+}
 table.listtable tr.listtabledeck th, table.listtable tr.listtabletype th {
     background: var(--head-bg);
     color: #fff;
