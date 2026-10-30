@@ -87,7 +87,7 @@ or tests. The files in this directory are exactly what gets served.
   it. How to write them: `docs/HELP-AUTHORING.md`.
 - Admin editing of someone else's list (`listadminopen` / `adminediting` in `oracle.js`): read only until
   **Edit as admin** and its popup (text version `ADMINEDITWARNING`: bump it when the wording changes), then the
-  owner's controls under the red banner; saves send `adminedit=1&notify=`. Admin → Audit → Users and Audit log
+  owner's controls under the red banner; saves send `adminedit=1&notify=`, so **Stop editing** (`listadminstop`) waits for card saves still pending. Admin → Audit → Users and Audit log
   are `useradmin.js` (`POST /admin`, loaded on first use). Who may: `listeditpermission()` (explicit `listedit`
   or a site admin). Guides `docs/admin/admin-editing.md`, `docs/admin/users.md`; ootv-claude `ADMIN-EDIT-AUDIT.md`.
 - Admin → Set import and Import profiles: `setimport-etl.js` (the CSV → card engine, driven by an
