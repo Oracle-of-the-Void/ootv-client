@@ -589,14 +589,34 @@ function signedin() {
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...
+// the list someone asked to see (a shared link, a directory click) until it arrives. Loads behind the scenes
+// (the first list in the directory, restored active lists) must not draw over it, whichever answers last.
+// Stays set when the list can't be opened, so they don't replace "private or doesn't exist" either.
+var listopening = null;
+var listopencount = 0;   // counts those requests: a load that began before the latest one lost to it
+function listsuperseded(listid) {
+  return listopening !== null && listopening != listid;
+}
+// this list's cards just arrived: is it still the one to draw?
+function liststale(listid) {
+  return listsuperseded(listid) || $("#lastlistid").val() != listid;
+}
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
+  if(listid && switchview && !listoutput) {
+    listopening = listid;
+    listopencount++;
+  }
+  var openseen = listopencount, outranked = listsuperseded(listid);
   // exports (listoutput: text, Sun and Moon, PDF) skip the cache, so they never use a copy another computer has changed
   if(listid && !listoutput && cache_thing("list",listid) != null) {
 	  console.log("cached");
-	  $("#lastlistid").val(listid);
-	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+	  if(!listsuperseded(listid)) {
+	    listopening = null;
+	    $("#lastlistid").val(listid);
+	    renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+	  }
 	  if(done) {
 	    done();
 	  }
@@ -618,8 +638,13 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 		      }
 		      listsortdefault(data);
 		      cache_thing("list",listid,data);
-		      $("#lastlistid").val(listid);
-		      renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+		      if(listoutput || (!outranked && openseen == listopencount)) {
+			if(!listoutput) {
+			  listopening = null;
+			}
+			$("#lastlistid").val(listid);
+			renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+		      }
 		      renderlisteditarea();
 		      if(done) {
 			done();
@@ -1827,6 +1852,7 @@ function activatelist(listid, done=null) {
     showlisttoggle(listid,true);
     saveactivelists();
     renderlisteditarea();
+    listopening = null; // picked by hand: it fills the list view, even after a link that couldn't open
     // after activelists has it: a cached list calls back at once, and the refresh renders its controls
     listinfo(listid,false,null,function() {
 	refreshactivelistviews();
@@ -3397,6 +3423,10 @@ function docardid(id,prid=null,qs=null,pop=false,switchview=true) {
 }
 function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["rendering list: "+sort,listid,listoutput]);
+    if(listid && !listoutput && liststale(listid)) {
+	console.log("list no longer wanted: "+listid);
+	return;
+    }
     if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
 	return;
@@ -4701,6 +4731,9 @@ function removemissing(listid) {
 
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
+    if(listid && !listoutput && liststale(listid)) {
+	return;
+    }
     refreshlist(listdata,listlist,sort,listid,listoutput);
     showlist(); // the url (showview)
 }
