@@ -903,6 +903,12 @@ div.listlayout div.listlayoutcards {
   div.listlayoutside div.listlayoutcards {
     flex: 1 1 0;
   }
+  /* overflow would make #maincontent the sticky box's scroller, though the window is what scrolls. flow-root still keeps
+     it beside the sidebar's float */
+  div#maincontent:has(div.listlayoutside) {
+    display: flow-root;
+    overflow: visible;
+  }
   div.listlayoutside div.liststatsbox {
     flex-direction: column;
     flex-wrap: nowrap;
@@ -1074,7 +1080,7 @@ a.deckswipe.kwglow:not(:has(img)) {
     box-shadow: 0 0 4px 2px var(--kwglow);
     border-radius: 3px;
 }
-tr.listtablecard.kwglow {
+table.listtable tr.listtablecard.kwglow {
     background-color: var(--kwtint);
 }
 tr.listtablecard.kwglow a.deckswipe {
@@ -1170,6 +1176,11 @@ div.deckviewsmall {
     float: left;
     max-width: 100%;
     margin-right: 8px;
+}
+/* too wide to leave the next deck any room (deckviewfit in oracle.js): an ordinary block */
+div.deckviewsmall.deckviewstack {
+    float: none;
+    margin-right: 0;
 }
 div.listlayoutcards div.listhead {
     display: flow-root;
