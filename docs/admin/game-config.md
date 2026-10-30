@@ -92,8 +92,11 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   (12665, 12664), from it on the new ones (12666, 12667):
   `{"rules": [{"when": {"deck": "^Fate$"}, "before": "The War of Spirits", "cardid": 12665},
   {"when": {"deck": "^Fate$"}, "cardid": 12666}, {"when": {"deck": "^Dynasty$"}, "before": "The War of
-  Spirits", "cardid": 12664}, {"when": {"deck": "^Dynasty$"}, "cardid": 12667}]}`. Pre-Game cards
-  (strongholds, Sensei, Winds) get none unless they're double-sided or carry `back`.
+  Spirits", "cardid": 12664}, {"when": {"deck": "^Dynasty$"}, "cardid": 12667}, {"when": {"type": "^Stronghold$"},
+  "before": "The War of Spirits", "cardid": 12664}]}`: strongholds before The War of Spirits without a printed back
+  of their own (the Fixed ones) get the old Dynasty back, with a few exceptions to set with `back`. Other Pre-Game
+  cards (Sensei, Winds) and later strongholds get none unless they have their own back image or carry `back`.
+  The Soul of the Empire proxies carry `back: ["12668"]` (the SotE back). Live 2026-10-29 (`l5r/game` version 18).
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
