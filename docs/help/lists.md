@@ -80,8 +80,9 @@ in, and the deck construction check (below). It's always in view, whatever the s
 Under the header are two folding sections, **Statistics** and **Keyword counts**. Both start open and stay the
 way you last left them. On a wide screen they're to the side of the cards: a column on the right in the Simple List,
 Text and Table views (it stays in view as you scroll), and a box at the upper right in the Detailed, Visual and Deck
-views, with the cards flowing around it. The button at the top right of the box moves them above the cards instead
-(side by side when there's room), and back; the site remembers which you chose. On a phone they come after the
+views, with the cards flowing around it. The **Above** button at the top right of the box moves them above the cards
+instead (side by side when there's room), and **To the side** moves them back; the site remembers which you chose.
+The button shows only when the window is at least 1100 pixels wide. On a phone they come after the
 cards, so the deck itself is first.
 
 Statistics starts with the card count; an L5R deck's starts with its Dynasty/Fate sizes

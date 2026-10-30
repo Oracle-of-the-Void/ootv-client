@@ -4179,7 +4179,7 @@ var listlayoutside = ['list', 'html', 'table'];
 function listlayout(stats, cards) {
     var view = (templates[database]['active']['list'] || '').replace(/-premium$/,'');
     var sideclass = listlayoutside.includes(view) ? 'listlayoutside' : 'listlayoutpinned';
-    var pin = stats ? '<button type="button" class="iiconic listlayoutpin" onclick="liststatspin();"></button>' : '';
+    var pin = stats ? '<button type="button" class="button gray buttonsmaller listlayoutpin" onclick="liststatspin();"></button>' : '';
     return '<div class="listlayout'+(liststatspinned() ? ' '+sideclass : '')+'" data-sideclass="'+sideclass+'">'+
 	'<div class="listlayoutstats">'+pin+stats+'</div><div class="listlayoutcards">'+cards+'</div></div>';
 }
@@ -4195,9 +4195,8 @@ function liststatspin() {
 }
 function liststatspinbutton() {
     var pinned = liststatspinned();
-    $('#resultlist button.listlayoutpin').attr('aria-label', pinned ? 'Statistics above the cards' : 'Statistics to the side of the cards')
-	.attr('data-balloon-pos', 'left')
-	.html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#'+(pinned ? 'chevrons-up' : 'sidebar')+'"></svg>');
+    $('#resultlist button.listlayoutpin').attr('title', pinned ? 'Move the statistics above the cards' : 'Move the statistics to the side of the cards')
+	.html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#'+(pinned ? 'chevrons-up' : 'sidebar')+'"></svg> '+(pinned ? 'Above' : 'To the side'));
 }
 // both parts of the statistics box start open, and stay the way they were last left this session
 function liststatsopen() {
