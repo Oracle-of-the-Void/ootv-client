@@ -383,7 +383,8 @@ inputs:
   * ignored if 'new' operation happening
   * user must be the list's owner
   * one of ['name','notes','public','type','list','legality','folder','deckconstruction','summary']
-    * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality,
+    * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality
+      (any text; the client's menu offers the game's formats, plus Special on a list's own Legality menu),
       directory folder: a path like "Tournament/2026" ('' = top level; trimmed, at most 255 characters).
       Empty folders live in the user's settings[database].folders (see /user settings)
   * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false, "clan": "..."}`
@@ -527,10 +528,12 @@ codes:
 
 ## /cardslegal
 
-POST (form: `table`, `cardids=1,2,3`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
+POST (form: `table`, `cardids=1,2,3`, optional `format`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
 these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
 deck check. Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
-<cards not found>}`; 400 without a table or with over 5000 cards.
+<cards not found>}`; 400 without a table or with over 5000 cards. With `format` (the list's legality) it also answers
+`format` and `illegal: [{cardid, title}]`, the cards not legal in it; `illegal` is null for a value the game doesn't
+check, such as Proxy or a deck's Special.
 
 ## /list action=award, action=precon
 

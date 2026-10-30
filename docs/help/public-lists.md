@@ -35,7 +35,8 @@ The buttons on the right of the menu bar group the results:
 - **Decks**: one card per deck.
 - **People**: one card per player, with how many of each kind of list they've shared. Click to
   see their lists.
-- **Formats**: how many decks there are for each format. Click one to see them.
+- **Formats**: how many decks there are for each format. Click one to see them. Decks set to
+  **Special** ([no limits](lists.md#stats)) have a row of their own.
 - **Most played**: the cards the decks play most ([below](#most-played)).
 
 "by *name*" on a deck shows that player's other lists.

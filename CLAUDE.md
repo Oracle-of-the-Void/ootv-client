@@ -63,6 +63,10 @@ or tests. The files in this directory are exactly what gets served.
   (`liststatsavgs`; the hover shows the working). In a deck, card numbers are the deck's own (`deckcontext`,
   `deckstatvalue`: card `conditionalvalues` on the Stronghold clan, Sensei, Stronghold; `docs/data.md`), in the averages
   and the Table view (`span.deckvalue`). L5R Deck GP and Gold:Cost ratio GC: `liststatsgoldcost`. Help `lists#stats`.
+- Deck construction check (`deckbuild*` in `oracle.js`, panel `listbuildform`): the game's rules, overlaid by the deck's
+  legality, the deck's own changes and its cards'. The **Special** legality (`decklegalityspecial`) is a deck-only value in
+  every game, added by the `deckLegalitySelect` converter (`listLegalitySelect` is the plain list, also used by import): no
+  card has it, and it starts with no rules. Guide `docs/admin/deck-construction.md`, help `lists#stats`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
   calls. Its image upload is `uploadimagetrigger` in `oracle.js`, in its own box over the editor
