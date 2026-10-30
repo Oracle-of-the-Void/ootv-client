@@ -1105,6 +1105,10 @@ table.listtable .listtableqty, table.listtable .listtablestat {
     text-align: right;
     white-space: nowrap;
 }
+/* "3x", as the Simple List has it (template table prints only the number) */
+table.listtable tr.listtablecard td.listtableqty::after {
+    content: "x";
+}
 table.listtable tr.listtabledeck th, table.listtable tr.listtabletype th {
     background: var(--head-bg);
     color: #fff;
@@ -1950,6 +1954,65 @@ span.listqty {
   display: inline-block;
   min-width: 1.2em;
   text-align: center;
+}
+/* the Simple List's count on your own list (listcountready in oracle.js): bold, with a faint dotted underline
+   to say it can be changed (solid on hover); a click opens the - [n] + stepper in its place */
+#resultlist span.editquantity {
+  display: inline-block;
+  min-width: 1.4em;
+  text-align: right;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted #777;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+}
+#resultlist span.editquantity:not(.listcountopen):is(:hover, :focus-visible) {
+  text-decoration: underline solid currentColor;
+  outline: none;
+}
+#resultlist span.editquantity.listcountopen {
+  text-decoration: none;
+}
+#resultlist span.editquantity.listcountopen {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+}
+#resultlist button.listcountstep {
+  min-width: 1.6em;
+  padding: 0 4px;
+  font: inherit;
+  font-weight: bold;
+  line-height: 1.4;
+  cursor: pointer;
+}
+#resultlist input.listcountinput {
+  width: 2.6em;
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+#resultlist input.listcountinput::-webkit-inner-spin-button,
+#resultlist input.listcountinput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+@media (pointer: coarse) {
+  #resultlist button.listcountstep {
+    min-width: 2.2em;
+    min-height: 2em;
+  }
+  #resultlist input.listcountinput {
+    min-height: 2em;
+    font-size: 16px; /* under 16px iOS Safari zooms the page on focus */
+  }
 }
 .phoneonly {
   display: none;

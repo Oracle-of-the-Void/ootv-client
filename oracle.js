@@ -3386,18 +3386,82 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    updates[database]('#resultlist');
 	    deckviewflow();
 	    liststatskwmark(); // after the symbols and deck flow, which rebuild the cards' html
-	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
-		var field_listid = $(this).attr("id").split(/:/) ;
-		var value = $(this).text() ;
-		if(field_listid[4] != value) {
-		    console.log(field_listid);
-		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort,field_listid[5]||'');
-		}
-	    });
+	    listcountready('#resultlist');
 	    pagetitle();
 	}
     }
 }
+
+// The Simple List's count on your own list (the list template's span.editquantity, id
+// clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>): bold, dotted underline (solid on hover). A click, tap,
+// Enter or Space opens a - [n] + stepper in its place; Enter or leaving it saves, Esc puts it back, 0 asks before
+// removing the card. The template still marks it contenteditable (typed into before 2026-10-29): dropped here.
+function listcountready(where) {
+    // the Table view's count cell (template table, which has no foil): the same span, made here, where the list
+    // holds that card and printing once; with a regular and a foil entry the row can't tell which it is
+    $(where).find('tr.listtablecard').each(function() {
+	var a = $(this).find('a.deckswipe'), td = $(this).children('td.listtableqty');
+	var listid = a.attr('data-list'), cardid = a.attr('data-card'), prid = a.attr('data-printing') || 0;
+	if(!listid || !listeditable(listid) || td.children('span').length) { return; }
+	var list = cache_thing("list",listid);
+	var hits = list ? list.list.Items[0].list.filter(function(e) { return e.cardid == cardid && (e.printing||0) == prid; }) : [];
+	if(hits.length != 1) { return; }
+	$('<span class="editquantity">').attr('id', ['clist_quantity',listid,cardid,prid,hits[0].quantity,hits[0].foil||''].join(':'))
+	    .text(td.text().trim()).appendTo(td.empty());
+    });
+    $(where).find('span.editquantity[id^="clist_quantity"]').removeAttr('contenteditable')
+	.attr({'tabindex': 0, 'role': 'button', 'aria-label': 'Change count'});
+}
+function listcountopen(span) {
+    if(span.find('input').length) { return; }
+    var have = span.text().trim();
+    span.addClass('listcountopen').html('<button type="button" tabindex="-1" class="listcountstep" data-step="-1" aria-label="One fewer">−</button>'+
+	'<input type="number" inputmode="numeric" min="0" step="1" class="listcountinput" aria-label="Count">'+
+	'<button type="button" tabindex="-1" class="listcountstep" data-step="1" aria-label="One more">+</button>');
+    span.find('input').val(have).data('have', have).focus().select();
+}
+// save: keep the typed count (Enter, leaving it); refocus: back on the count (keyboard)
+function listcountclose(span, save, refocus) {
+    var input = span.find('input');
+    if(!input.length || span.data('listcountclosing')) { return; }
+    span.data('listcountclosing', true);  // emptying the span blurs the input in some browsers
+    var have = input.data('have'), value = String(input.val()).trim();
+    span.removeClass('listcountopen').text(have).removeData('listcountclosing');
+    if(refocus) { span.focus(); }
+    var n = parseInt(value, 10);
+    if(!save || !/^\d+$/.test(value) || n == have) { return; }
+    var f = span.attr('id').split(/:/);
+    if(n == 0) {
+	var card = cache_card_fetch(f[2]);
+	var title = card ? $('<div>').html([].concat(card.title).join()).text() : 'card #'+f[2];
+	if(!confirm('Remove '+title+' ('+have+') from the list?')) { return; }
+	addlistitem(f[1],f[2],f[3]||0,null,false,null,f[5]||'');
+    } else {
+	addlistitem(f[1],f[2],f[3]||0,n,true,null,f[5]||'');
+    }
+}
+$(document).on('click', '#resultlist span.editquantity:not(.listcountopen)', function() { listcountopen($(this)); });
+$(document).on('keydown', '#resultlist span.editquantity:not(.listcountopen)', function(e) {
+    if(e.key == 'Enter' || e.key == ' ') { e.preventDefault(); listcountopen($(this)); }
+});
+$(document).on('keydown', '#resultlist input.listcountinput', function(e) {
+    if(e.key == 'Enter' || e.key == 'Escape') {
+	e.preventDefault();
+	listcountclose($(this).closest('span.editquantity'), e.key == 'Enter', true);
+    }
+});
+$(document).on('blur', '#resultlist input.listcountinput', function() {
+    listcountclose($(this).closest('span.editquantity'), true, false);
+});
+// the - and + buttons only change the box, on press: they mustn't take its focus (that would save and close it),
+// and once a press is cancelled WebKit sends no click. Not in the tab order: the box's arrow keys step it.
+$(document).on('pointerdown', '#resultlist button.listcountstep', function(e) {
+    e.preventDefault();
+    if(e.button > 0) { return; }
+    var input = $(this).siblings('input.listcountinput');
+    input.val(Math.max(0, (parseInt(input.val(), 10) || 0) + Number($(this).data('step'))));
+});
+$(document).on('mousedown', '#resultlist button.listcountstep', function(e) { e.preventDefault(); });
 
 // header for the list view: the list's details as the directory shows them, and its controls when it's the
 // user's own. The list's own item wins over the directory's: an edit refetches the list before the directory.
