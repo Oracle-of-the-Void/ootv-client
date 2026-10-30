@@ -4292,9 +4292,11 @@ function deckbuildcheck(cards, meta, deckkey) {
 	    }
 	    groups[id.key].cards.push(c);
 	});
-	order.forEach(function(k) {
-	    var g = groups[k], best = null;
+	// one card's limit, {best, max}; without a rule id, as if that rule weren't in the deck
+	var limit = function(g, without) {
+	    var best = null;
 	    copyrules.forEach(function(id) {
+		if(id == without) { return; }
 		var r = set.rules[id], decks = r.decks || set.decks;
 		var counted = g.cards.filter(function(c) { return !skips(c, id) && (!decks || decks.indexOf(deckkey(c)) >= 0); });
 		if(!counted.length || (r.when && !counted.some(function(c) { return test(r.when, c); }))) { return; }
@@ -4303,7 +4305,7 @@ function deckbuildcheck(cards, meta, deckkey) {
 		    best = cand;
 		}
 	    });
-	    if(!best) { return; }
+	    if(!best) { return {"best": null, "max": null}; }
 	    var max = best.r.max;
 	    best.cards.forEach(function(c) {
 		var cc = deckbuildcardconf(c.card);
@@ -4319,10 +4321,30 @@ function deckbuildcheck(cards, meta, deckkey) {
 		    best = {"id": id, "r": r, "cards": best.cards};
 		}
 	    });
+	    return {"best": best, "max": max};
+	};
+	var raised = {};
+	order.forEach(function(k) {
+	    var g = groups[k], l = limit(g), best = l.best, max = l.max;
+	    if(!best) { return; }
 	    var n = count(best.cards);
 	    if(max !== null && max !== undefined && n > max) {
 		out.push({"rule": best.id, "label": best.r.label || best.id, "text": g.name+': '+n+' copies (max '+max+')',
 			  "cardid": best.cards[0].card.cardid});
+	    }
+	    // titles: only so many different cards may go past the limit they'd have without this rule
+	    // (Eternal Victory Dojo: four copies each of one or two Battle Strategies)
+	    if(best.r.titles) {
+		var was = limit(g, best.id).max;
+		if(typeof was === 'number' && n > was) {
+		    (raised[best.id] = raised[best.id] || []).push(g.name);
+		}
+	    }
+	});
+	Object.keys(raised).forEach(function(id) {
+	    var r = set.rules[id];
+	    if(raised[id].length > r.titles) {
+		out.push({"rule": id, "label": r.label || id, "text": raised[id].length+' cards use it (max '+r.titles+'): '+raised[id].join(', ')});
 	    }
 	});
     }
