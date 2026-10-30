@@ -23,9 +23,9 @@ entry all work. Headless Chromium can't stand in for these on iOS:
   and close by tap ([#79](https://github.com/Oracle-of-the-Void/ootv-client/issues/79)).
   If they work, release to `master` with `Fixes #79` in the PR body and move #79 out of
   "Almost done" in `ootv-claude/issues/ootv-client/INDEX.md`.
-- [ ] Search form selects. Chosen disables itself on phones, so these are plain
-  `<select multiple>`. iOS should show a one-line picker; Chromium draws tall list boxes.
-  If they're unusable, consider a compact custom control for the panel.
+- [ ] Search form selects (Tom Select, 2026-10-30; replaced Chosen, which turned itself off on phones and left
+  tall list boxes). Check that tapping a field doesn't zoom the page, how much of the list the keyboard leaves
+  (the keyboard opens because the field filters), and that the page behind doesn't jump.
 - [ ] Search panel: phones start with it open; it opens from the Edit search bar above the results
   (added 2026-10-15: a tester couldn't find the second tap on the Search Results button) or that button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
