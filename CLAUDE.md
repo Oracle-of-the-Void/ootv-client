@@ -95,6 +95,9 @@ or tests. The files in this directory are exactly what gets served.
   tab indentation (it is mixed, so follow the surrounding lines). Don't introduce
   modules, frameworks or a build.
 - Card fields are arrays (`a.title.join()`). Templates must guard against missing fields.
+- balloon.css sets `position: relative` on every `[aria-label][data-balloon-pos]`, which beats a
+  plain class selector: a positioned element with a balloon tooltip needs a more specific
+  selector, or use `title` (as the list stats **Above** / **To the side** button does).
 
 ## Deploy
 

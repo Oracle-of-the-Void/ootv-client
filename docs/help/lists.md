@@ -51,7 +51,8 @@ Lists save themselves shortly after you change them.
 Open a list to see its cards. The buttons on the right of the menu bar change the layout:
 the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
 type, legality and notes are at the top, and can be changed there too, with when it was made and
-last changed beside the name. In L5R a deck's name starts with its Stronghold's clan mon, here, in your lists and in Public lists. Phones open lists as a
+last changed beside the name. In the deck view, a short section (8 cards or fewer, usually Pre-Game) sits beside the next one
+instead of taking a whole row, so Pre-Game sits beside Dynasty and Fate starts below. In L5R a deck's name starts with its Stronghold's clan mon, here, in your lists and in Public lists. Phones open lists as a
 simple list of card names, unless you've saved another list view for your phone (Settings).
 
 L5R: Border Keep and Bamboo Harvesters were Pre-Game cards under the Celestial and Emperor rules (and
