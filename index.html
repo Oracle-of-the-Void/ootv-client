@@ -1078,8 +1078,8 @@ proxies and public decklists (each game's card pages and set lists are linked be
     {{for keywords ~textfield=textfield}}
     <tbody>
     {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
-    {{for keywords}}
-    <tr class="liststatskwrow"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
+    {{for keywords ~deck=name}}
+    <tr class="liststatskwrow" data-kwkey="{{>~deck}}|{{>name}}" data-kwcards="{{:cardids}}" data-kwrefs="{{:refids}}" onclick="liststatskwpick(this);" title="Click to highlight the cards with this keyword (blue) and the cards naming it (red); click again to stop"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
     {{/for}}
     </tbody>
     {{/for}}
