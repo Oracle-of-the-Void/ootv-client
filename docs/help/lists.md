@@ -71,7 +71,11 @@ too, when any version of the card came in foil.
 
 ## Statistics {#stats}
 
-Under the list's name is its card count; an L5R deck's starts with its Dynasty/Fate sizes
+The statistics box sits under the list's name. In the Simple List, Text and Table views on a wide screen it's to
+the right of the cards instead, and stays in view as you scroll; on a phone it comes after the cards, so the deck
+itself is first. On a wide screen the keyword counts sit beside the card types when there's room.
+
+The box starts with the card count; an L5R deck's starts with its Dynasty/Fate sizes
 (`40/40 - 81 total`); other lists also say how many different cards they have (`120 cards [85 distinct]`). Open it for the details (it starts open, closed on a
 phone, and stays the way you last left it): how many cards of each type
 are in each deck, each type's share of its deck, and averages of the cards' numbers (cost, force and

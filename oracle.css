@@ -845,6 +845,50 @@ div.listviewheader div.listviewsource {
     font-size: small;
     overflow-wrap: anywhere;
 }
+/* the list page (listlayout in oracle.js): statistics above the cards; beside them in the narrow views on a wide
+   screen; below them on a phone (the phone layout's media query, further down) */
+div.listlayout {
+    display: flex;
+    flex-direction: column;
+}
+div.listlayout div.listlayoutstats {
+    order: -1;
+    min-width: 0;
+}
+div.listlayout div.listlayoutcards {
+    min-width: 0;
+}
+/* the narrow views beside the box, once the window has room for both (under it, the box stays above them) */
+@media (min-width: 1100px) {
+  div.listlayoutside {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  div.listlayoutside div.listlayoutstats {
+    order: 1;
+    flex: 0 1 auto;
+    max-width: min(45%, 36em);
+    position: sticky;
+    top: 4px;
+    max-height: calc(100vh - 8px);
+    overflow-y: auto;
+  }
+  div.listlayoutside div.listlayoutcards {
+    flex: 1 1 0;
+  }
+  div.listlayoutside div.liststatsbody {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+}
+/* statistics and keyword counts side by side when both fit (stacked in the sidebar, above) */
+div.liststatsbody {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 24px;
+}
 /* list view statistics (liststats) */
 details.liststats {
     margin: 4px 0 8px;
@@ -1804,6 +1848,10 @@ div#phonesearchbar .numresults {
 }
 /* phone layout: narrow screens, and phones held sideways; keep in step with narrowscreen() in oracle.js */
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  /* the list page: the cards first, the statistics after them, whatever the view */
+  div.listlayout div.listlayoutstats {
+    order: 1;
+  }
   .phoneonly {
     display: inline;
   }
