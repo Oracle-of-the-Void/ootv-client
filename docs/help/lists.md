@@ -94,7 +94,7 @@ Statistics starts with the card count; an L5R deck's starts with its Dynasty/Fat
 (`40/40 - 81 total`); other lists also say how many different cards they have (`120 cards [85 distinct]`).
 Under it: how many cards of each type
 are in each deck, each type's share of its deck, and averages of the cards' numbers (cost, force and
-so on). Pre-Game, cards with no deck and Proxy cards get no share, and Proxy cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
+so on), over a bar showing how many cards of that type there are next to the deck's biggest type. Pre-Game, cards with no deck and Proxy cards get no share or bar, and Proxy cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
 
 In **Keyword counts**, the **Hide counts under** slider (1 to 15) hides the keywords that are rare in the deck and rarely
 named: a keyword shows when either its card count or its "Named in text of" count reaches the slider, and then both
