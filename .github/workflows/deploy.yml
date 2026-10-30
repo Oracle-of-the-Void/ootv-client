@@ -107,7 +107,9 @@ jobs:
 
           # 2. pages and version.json, then drop files that are gone from the repo
           aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --cache-control 'no-cache'
-          aws s3 sync . "s3://$BUCKET/" --delete "${junk[@]}" \
+          # browse/ is the static card, set and deck pages for search engines, built and uploaded by
+          # ootv-tools seo/build.py, not in this repo: never delete it
+          aws s3 sync . "s3://$BUCKET/" --delete "${junk[@]}" --exclude 'browse/*' \
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
             --include 'docs/admin/*' --include 'docs/help/*'
 

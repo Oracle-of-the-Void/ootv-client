@@ -10,7 +10,9 @@ or tests. The files in this directory are exactly what gets served.
   `chosen-sprite*.png` files beside it), `jsviews.min.js` and `amazon-cognito-auth.min.js`. No game has files of its own (below).
 - Search engines: `index.html`'s `<title>`, description, canonical and Open Graph tags and the About page's game list are
   what crawlers and link previews see first; `pagetitle()` in `oracle.js` retitles the page per game, card and deck
-  (called from `showview`, `drawcard`, `refreshlist`, `gameconfigapply`). `robots.txt` allows everything. The deploy
+  (called from `showview`, `drawcard`, `refreshlist`, `gameconfigapply`). `robots.txt` allows everything and names the sitemap. `/browse/` (card, set and deck pages plus `browse/sitemap.xml`, for
+  search engines) isn't in this repo: ootv-tools `seo/build.py` builds and uploads it daily, and the deploy's `--delete` sync
+  excludes it. The About page's game list links each game's `/browse/<game>` page. The deploy
   adds `<meta name="robots" content="noindex">` to preview's `index.html` (dev branch only). Plan and findings:
   ootv-claude `issues/ootv-client/TODO.md`, "Search engine tuning".
 - `oracle.js` (~2500 lines, global functions and `var`s) holds all app logic: Cognito
