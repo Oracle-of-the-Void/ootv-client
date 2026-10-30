@@ -7380,6 +7380,7 @@ function showview(view) {
     if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
+    sidebarfit(view);
     $('body').toggleClass('viewsearch', view == 'resultsearch'); // phones: shows the Edit search bar
     $('body').toggleClass('viewlist', view == 'resultlist'); // the list's text version button (menubar, phones above the list)
     if($('#' + view).is(":visible")) {
@@ -10563,17 +10564,30 @@ function searchviewbutton() {
 	sidebaropener();
     }
 }
+// wide screens: Help, the Bookshelf and Public lists don't use the search form, so it starts collapsed there. Opening or
+// closing it by hand holds for those views together, and separately for the others. The phone layout ignores this (oracle.css).
+var sidebarnosearch = {resulthelp: true, resultrules: true, resultpublic: true};
+var sidebaropen = {search: true, nosearch: false};
+var sidebarview = '';
+function sidebarkind() {
+    return sidebarnosearch[sidebarview] ? 'nosearch' : 'search';
+}
+function sidebarfit(view) {
+    sidebarview = view;
+    $('#sidebar').toggle(sidebaropen[sidebarkind()]);
+    $('#sidebaropener').toggle(!sidebaropen[sidebarkind()]);
+}
 function sidebarcloser() {
     if(narrowscreen()) {
 	mobilesearchtoggle(false);
 	return;
     }
-    $('#sidebar').hide();
-    $('#sidebaropener').show();
+    sidebaropen[sidebarkind()] = false;
+    sidebarfit(sidebarview);
 }
 function sidebaropener() {
-    $('#sidebar').show();
-    $('#sidebaropener').hide();
+    sidebaropen[sidebarkind()] = true;
+    sidebarfit(sidebarview);
 }
 
 //TDOO;  maybe ex should go back to search period - maybe scrolling through cards in search should do replacestate
