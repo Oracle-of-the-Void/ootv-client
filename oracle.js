@@ -667,13 +667,93 @@ function listmine(listid) {
   var list = cache_thing("list",listid);
   return !!(list && list.list && list.list.Items[0] && list.list.Items[0].owner == getuid());
 }
-// someone else's list an admin may edit (groups holding 'listedit' or '*'; ootv-search /list marks it adminedit)
-function listadminedit(listid) {
-  if(!listid || listmine(listid) || !gamepermission('listedit')) {
+// Admin editing of someone else's list (docs/admin/admin-editing.md; ootv-search /list, lib/admin.js): an
+// admin with list editing opens it read only, clicks Edit as admin, accepts the popup (listadminopen), and
+// edits it under a banner until Stop editing or a reload. Every open and save is in the audit log.
+// listid: {notify} for the lists being edited now; in memory only, never saved
+var adminediting = {};
+// the popup text's version, kept in the open's audit row: change it whenever the text changes
+var ADMINEDITWARNING = '2026-10-30';
+// may edit anyone's list in this game: the 'listedit' operation for this game or every game, or a site
+// admin. A '*' in a game's own groups isn't enough (as ootv-search lib/admin.js listeditallowed)
+function listeditpermission() {
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(Array.isArray(groups['*']) && groups['*'].includes('*')) {
+    return true;
+  }
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('listedit'); });
+}
+// someone else's list an admin may open for editing (ootv-search /list marks it adminedit)
+function listadmincan(listid) {
+  if(!listid || listmine(listid) || !listeditpermission()) {
     return false;
   }
   var list = cache_thing("list",listid);
   return !!(list && list.list && list.list.Items[0] && list.list.Items[0].adminedit);
+}
+// someone else's list an admin is editing now (accepted the popup)
+function listadminedit(listid) {
+  return !!adminediting[listid] && listadmincan(listid);
+}
+// Edit as admin: the popup, then the open's audit row, then the edit controls
+function listadminopen(listid) {
+  var list = cache_thing("list",listid);
+  var item = list && list.list && list.list.Items[0];
+  if(!item || !listadmincan(listid)) {
+    return;
+  }
+  var owner = htmlEncode(item.ownername || 'another player');
+  var ispub = item.public === true || item.public === 'true';
+  modal('Edit '+owner+'\'s list as an admin',
+    '<div class="admineditwarning">'+
+    '<p><b>This list belongs to '+owner+'.</b> It is '+(ispub ? 'shared publicly' : '<b>private</b>: only its owner normally sees it')+
+    ', and it is their personal data.</p>'+
+    '<ul><li>Only change it for a good reason: fixing a mistake the owner asked about, or moderating something that breaks the site\'s rules.</li>'+
+    '<li>Everything you do, starting now, is recorded in the audit log under your name: opening it, and each change with the old and new values.</li>'+
+    '<li>Changes save straight to their list. There is no undo, and you can\'t delete it or change its folder.</li>'+
+    '<li>Don\'t copy or pass on what\'s in a private list.</li></ul>'+
+    '<p><label><input type="checkbox" id="adminnotify" checked> Email the owner that an admin changed their list</label>'+
+    ' <span class="admineditnote">(at most once an hour; you can change this while editing)</span></p>'+
+    '<p><button type="button" class="button" onclick="listadminaccept(\''+listid+'\'); return false;">I understand, edit it</button> '+
+    '<button type="button" class="button gray" onclick="nomodal(); return false;">Cancel</button> <span class="admineditstatus"></span></p>'+
+    '</div>');
+}
+function listadminaccept(listid) {
+  var notify = $('#adminnotify').prop('checked');
+  $('.admineditstatus').text('Opening...');
+  $.ajax({
+    type: "GET",
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=adminopen&warning="+ADMINEDITWARNING+"&notify="+(notify ? 1 : 0),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  }).done(function() {
+    adminediting[listid] = {notify: notify};
+    nomodal();
+    listadminredraw(listid);
+  }).fail(function(xhr) {
+    $('.admineditstatus').text('Could not open it: '+((xhr.responseJSON && xhr.responseJSON.error) || xhr.status));
+  });
+}
+// Stop editing: back to read only (and off the active lists)
+function listadminstop(listid) {
+  delete adminediting[listid];
+  if(activelists.indexOf(listid) > -1) {
+    deactivatelist(listid);
+  }
+  listadminredraw(listid);
+}
+function listadminnotify(listid, on) {
+  if(adminediting[listid]) {
+    adminediting[listid].notify = !!on;
+  }
+}
+function listadminredraw(listid) {
+  var list = cache_thing("list",listid);
+  if(list && list.list && list.list.Items[0] && $("#lastlistid").val() == listid) {
+    renderlist(list.list.Items[0],false);
+    renderlisteditarea();
+  }
 }
 // the list's cards and details can be changed: your own, or as an admin
 function listeditable(listid) {
@@ -829,6 +909,10 @@ function listinfoupdate(listid,field,value,failed=null) {
   // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
   var message_status = $('#list_modified\\:'+listid);
   var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
+  if(listadminedit(listid)) {
+    // someone else's list, opened as an admin (listadminopen); the server audits each save
+    url += "&adminedit=1&notify="+(adminediting[listid].notify ? 1 : 0);
+  }
   console.log(url);
   var cachedlist = cache_thing("list",listid);
   if(field == 'list') {
@@ -2457,7 +2541,7 @@ var massimagerun = null;    // the upload in progress: {stop}
 var massimageplan = null;   // the checked files waiting for Upload: {db, stub, imageuri, items, todo}
 function loadmassimage() {
   showadmintab('data');
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -2540,7 +2624,7 @@ function massimagerow(item,imageuri) {
 // setimportopen() or importprofilesopen() (in setimport.js) draws the panel
 function loadsetimport(open) {
   showadmintab(open == 'importprofilesopen' ? 'config' : 'data');
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -2564,7 +2648,7 @@ function artcheckload() {
 function loadartcheck(cardid, printingid) {
   showadmintab('data');
   $('#artistsadmin').empty();
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
@@ -3485,7 +3569,7 @@ function listheader(listid) {
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
-	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "deckbuild": !!deckbuildconfig(),
+	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "admincan": listadmincan(listid), "adminnotify": !!(adminediting[listid] && adminediting[listid].notify), "deckbuild": !!deckbuildconfig(),
 	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || ''});
 }
 // the clan mon of a deck's Stronghold, before its name in the header ('' with no Stronghold, or one without a mon)
@@ -3874,6 +3958,9 @@ function liststats(listdata,listid=null) {
 	    return {"name": t.name, "copies": tc, "pct": apart || liststatsproxy(t.cards[0]) ? '' : liststatspct(tc, deckstat),
 		    "avgs": liststatsavgs(t.cards, fields, false, ctx)};
 	});
+	// the bar behind each type's averages: its copies against the deck's biggest type, for the types with a share
+	var most = Math.max.apply(null, types.filter(function(t) { return t.pct; }).map(function(t) { return t.copies; }).concat(0));
+	types.forEach(function(t) { if(t.pct && most) { t.bar = liststatsround(t.copies*100/most); } });
 	return {"name": d.name, "copies": copies,
 		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true, ctx), "types": types, "cards": d.cards};
     });
@@ -9246,7 +9333,7 @@ function loadloginlog(page) {
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
-  $('#updatelogpage, #usageadmin, #patreonadmin').empty();
+  $('#updatelogpage, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
@@ -9284,7 +9371,7 @@ var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'R
 function loaddiscord(note) {
   showadmintab('config');
   $('#limitsadmin').empty();
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
@@ -9494,7 +9581,7 @@ function discordtest(btn) {
 var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js';
 function loadadmindoc(name) {
   showadmintab('docs');
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -9656,7 +9743,7 @@ function loadgameconfigadmin(which) {
 // features (all/artphoto); site admins only
 function loadlimitsadmin() {
   showadmintab('config');
-  $('#loginlog, #usageadmin, #patreonadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
@@ -9672,7 +9759,7 @@ function loadlimitsadmin() {
 // from oracle-all-usage; site admins only
 function loadusageadmin() {
   showadmintab('audit');
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #patreonadmin').empty();
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
@@ -9684,11 +9771,33 @@ function loadusageadmin() {
     .fail(function() { $('#usageadmin').html('<span class="error">Could not load the usage log.</span>'); });
 }
 
+// Admin → Audit → Users and Audit log (useradmin.js, loaded on first use; POST /admin): look up and edit
+// accounts, and what admins did with other people's data; site admins only. uid / target open one at once.
+function useradminload(panel, open) {
+  showadmintab('audit');
+  $('#loginlog, #usageadmin, #patreonadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #useradmin, #auditlogadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $(panel).text('This needs full permission on every game.'); return; }
+  if(window.useradminloaded) { open(); return; }
+  $(panel).text('Loading...');
+  $.ajax({url: 'useradmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { open(); })
+    .fail(function() { $(panel).html('<span class="error">Could not load the admin page.</span>'); });
+}
+function loaduseradmin(uid) {
+  useradminload('#useradmin', function() { useropen(); if(uid) { userget(uid); } });
+}
+function loadauditlogadmin(target) {
+  useradminload('#auditlogadmin', function() { auditopen(typeof target == 'string' ? target : ''); });
+}
+
 // Admin → Audit → Patreon supporters (patreonadmin.js, loaded on first use): every Patreon member with
 // their Oracle account and Discord user, from oracle-all-patreon; site admins only
 function loadpatreonadmin() {
   showadmintab('audit');
-  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin').empty();
+  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #useradmin, #auditlogadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
@@ -9704,7 +9813,7 @@ function loadpatreonadmin() {
 // modal shows. name: an entry to open (the modal's Edit link).
 function loadartistsadmin(name) {
   showadmintab('data');
-  $('#loginlog, #usageadmin, #patreonadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
@@ -9726,7 +9835,7 @@ function artistsallowed() {
 var fielddescsview = {target: null, only: false};
 function loadfielddescs(target) {
   showadmintab('config');
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
@@ -9847,7 +9956,7 @@ const updatelogpagesize = 30;
 var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, updatelogfacets = {};
 function loadupdatelogpage() {
   showadmintab('audit');
-  $('#loginlog, #usageadmin, #patreonadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();

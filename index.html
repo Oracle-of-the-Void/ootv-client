@@ -318,6 +318,8 @@
       <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
       <li><a href="" onclick="loadusageadmin(); return false">Usage</a> (photo features: Find the card, Find the artist, Artist check; every game; site admins)</li>
       <li><a href="" onclick="loadpatreonadmin(); return false">Patreon supporters</a> (tiers, Oracle accounts, Discord users; site admins)</li>
+      <li><a href="" onclick="loaduseradmin(); return false">Users</a> (look up and edit accounts: names, emails, permission groups; site admins)</li>
+      <li><a href="" onclick="loadauditlogadmin(); return false">Audit log</a> (admins editing other people's lists, user lookups and edits; site admins)</li>
       <li>Reporting</li>
     </ul>
     <div id="admininfo" class="admininfo"></div>
@@ -325,6 +327,8 @@
     <div id="loginlog"></div>
     <div id="usageadmin" class="fielddescs limitsadmin usageadmin"></div>
     <div id="patreonadmin" class="fielddescs limitsadmin usageadmin patreonadmin"></div>
+    <div id="useradmin" class="fielddescs limitsadmin usageadmin useradmin"></div>
+    <div id="auditlogadmin" class="fielddescs limitsadmin usageadmin auditlogadmin"></div>
   </div>
   <div data-admintab="docs">
     <!-- docs/admin/*.md; add a link here for each new document -->
@@ -345,6 +349,8 @@
       <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
       <li><a href="" onclick="loadadmindoc('limits'); return false">Limits (photo features)</a></li>
       <li><a href="" onclick="loadadmindoc('patreon'); return false">Patreon supporters</a></li>
+      <li><a href="" onclick="loadadmindoc('admin-editing'); return false">Editing other people's lists, and the audit log</a></li>
+      <li><a href="" onclick="loadadmindoc('users'); return false">Users (look up and edit accounts)</a></li>
       <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
       <li><a href="" onclick="loadadmindoc('artist-check'); return false">Artist check (style and signature)</a></li>
       <li><a href="" onclick="loadadmindoc('most-played'); return false">Most played cards (public decks)</a></li>
@@ -949,7 +955,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
 
 <!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
      controls (activate toggle, actions menu, rename, type/legality/public, notes) and, when it's public, the
-     share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
+     share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner (after Edit as admin, ~admincan, and its popup: listadminopen); anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
      the API), with Copy to my lists and the downloads. ~mon: the Stronghold's clan mon before the name. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
 <!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon), side by side: listawardedit / listpreconedit in oracle.js -->
@@ -966,7 +972,9 @@ proxies and public decklists (each game's card pages and set lists are linked be
   {{if ~mine}}
   {{if ~adminedit}}<div class="listviewshared listviewadminedit" role="note">
     <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg>
-    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared{{else}}Private{{/if}} list by <b>{{>ownername || 'another player'}}</b> &#149; you're editing it as an admin; changes save to their list</span>
+    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared{{else}}Private{{/if}} list by <b>{{>ownername || 'another player'}}</b> &#149; you're editing it as an admin; changes save to their list and are logged</span>
+    <label class="listadminnotify"><input type="checkbox"{{if ~adminnotify}} checked{{/if}} onchange="listadminnotify('{{:listid}}',this.checked);"> Email the owner</label>
+    <button type="button" class="button gray buttonsmaller" onclick="listadminstop('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg> Stop editing</button>
   </div>{{/if}}
   <div class="listviewtitle">
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
@@ -988,7 +996,8 @@ proxies and public decklists (each game's card pages and set lists are linked be
   {{else}}
   <div class="listviewshared" role="note">
     <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#eye"></svg>
-    <span class="listviewsharedtext">Shared deck by <b>{{>ownername || 'another player'}}</b> &#149; read only</span>
+    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared deck{{else}}Private list{{/if}} by <b>{{>ownername || 'another player'}}</b> &#149; read only</span>
+    {{if ~admincan}}<button type="button" class="button gray buttonsmaller" title="Change this list as an admin. You'll be asked to confirm first, and everything you do is logged." onclick="listadminopen('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg> Edit as admin</button>{{/if}}
     {{if ~loggedin}}<button type="button" class="button gray buttonsmaller" title="Make your own private copy to change. It keeps a note of where it came from." onclick="copysharedlist(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Copy to my lists</button>{{else}}<button type="button" class="button gray buttonsmaller" onclick="dologin(); return false;">Log in to copy it</button>{{/if}}
   </div>
   <div class="listviewtitle">
@@ -1049,7 +1058,8 @@ proxies and public decklists (each game's card pages and set lists are linked be
 <!-- list view: the statistics box (liststats in oracle.js), two folding parts that share a row when both fit (oracle.css).
      Statistics: copies and distinct cards (not on a deck), for an L5R deck led by its Dynasty/Fate sizes (dynfate); then
      each deck (the game's deck field, or one unnamed group) with its card types: copies, share of the deck, and the
-     averages of the game's numeric fields the type's cards have (copies weighted). Keyword counts: each deck's keywords and
+     averages of the game's numeric fields the type's cards have (copies weighted), over a bar of its copies against
+     the deck's biggest type (liststatsbar; not on deck rows or types with no share). Keyword counts: each deck's keywords and
      how many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
 <div class="liststatsbox">
@@ -1062,7 +1072,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
     <tbody>
     {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>{{/if}}
     {{for types}}
-    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
+    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs{{if bar}} liststatsbar" style="--bar:{{:bar}}%{{/if}}">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
     {{/for}}
     </tbody>
     {{/for}}

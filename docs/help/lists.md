@@ -98,10 +98,12 @@ Statistics starts with the card count; an L5R deck's starts with its Dynasty/Fat
 (`40/40 - 81 total`); other lists also say how many different cards they have (`120 cards [85 distinct]`).
 Under it: how many cards of each type
 are in each deck, each type's share of its deck, and averages of the cards' numbers (cost, force and
-so on). Hover over an average to see how it was worked out. In an L5R deck, the Pre-Game line has **Deck GP**: the Gold
-Production of every card in the deck (the Stronghold and Sensei too, negatives included) divided by the number of Dynasty
-cards. The Dynasty and Fate lines have **GC**, the Gold:Cost ratio: Deck GP divided by that deck's average Gold Cost. A
-higher GC means the deck's Gold goes further. Pre-Game, cards with no deck and Proxy cards get no share, and Proxy cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
+so on), over a bar showing how many cards of that type there are next to the deck's biggest type. Hover over an average to
+see how it was worked out. In an L5R deck, the Pre-Game line has **Deck GP**: the Gold Production of every card in the deck (the
+Stronghold and Sensei too, negatives included) divided by the number of Dynasty cards. The Dynasty and Fate lines have **GC**,
+the Gold:Cost ratio: Deck GP divided by that deck's average Gold Cost. A higher GC means the deck's Gold goes further (**∞**
+when the deck's cards cost nothing on average). Pre-Game, cards with no deck and Proxy cards get no share or bar, and Proxy
+cards aren't counted in the others'. Keyword counts lists each keyword in the deck and how many of your other cards mention it.
 
 In **Keyword counts**, the **Hide counts under** slider (1 to 15) hides the keywords that are rare in the deck and rarely
 named: a keyword shows when either its card count or its "Named in text of" count reaches the slider, and then both
@@ -142,6 +144,8 @@ the legality's rules** clears your changes.
 ## Sharing {#sharing}
 
 Set a list to **Public** and anyone can see it, logged in or not, but only you can change it.
+(Site admins can open any list, private ones too, to fix a mistake or something that breaks the
+site's rules. Every admin change is recorded, and you may get an email saying one was made.)
 **Copy link** (at the top of the open list) copies a link to send. Public lists also show in
 [Public lists](public-lists.md), under your display name (Settings → Account), or your initials
 if you haven't set one.
