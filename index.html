@@ -395,6 +395,7 @@ proxies and public decklists (each game's card pages and set lists are linked be
 <h2>Recent updates <small>this game</small></h2>
 <div id="updatelog">
 </div>
+<span id="updatelogolder" class="button gray" style="display:none" onclick="loadupdates(database,null,$(this).data('next'))">Older updates</span>
 
 </div>
 </div>
@@ -542,6 +543,21 @@ proxies and public decklists (each game's card pages and set lists are linked be
       </details>
     {{else}}
       {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+    {{/if}}
+  </div>
+</script>
+<!-- home page Recent updates (loadupdates): the same rows in plain words; the admin update log keeps template-updatelog -->
+<script id="template-homeupdate" type="text/jsrender">
+  <div class="updateblock">
+    <span class="updatewhen" title="{{:timestamp}}">{{:date}}</span> <span class="updatelabel">{{:label}}</span>{{if description}}: {{>description}}{{/if}}
+    {{if collapse}}
+      <span class="updateby">{{>uname}}</span>
+      <details class="updatecards"><summary>{{:total}} cards</summary>
+        {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}{{if more}} and {{:more}} more{{/if}}
+      </details>
+    {{else}}
+      {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+      <span class="updateby">{{>uname}}</span>
     {{/if}}
   </div>
 </script>
