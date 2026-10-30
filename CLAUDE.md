@@ -53,6 +53,12 @@ or tests. The files in this directory are exactly what gets served.
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin
   mass image upload (`massimagetrigger`) load it on demand.
+- Card backs (2026-10-29, #22): the "CARD BACKS" block in `oracle.js`. `printingsides()` pairs a printing's fronts with
+  their own printed backs (image `side: "back"`, or `doublesided`); fronts without one get `printing.back` or the first
+  game config `cardbacks` rule that fits (`cardbackstandard`); back cards are fetched on demand (`cardbacksfetch`). The
+  card page draws them through `~cardsides` in the `card-top` partial (extra fronts as "Print n of m", backs only as
+  thumbnails that flip the big image), and `createpdf` uses them for Backs: Duplex. Docs: `docs/data.md`, admin
+  `game-config.md` (`cardbacks`), help `cards#backs`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
   calls. Its image upload is `uploadimagetrigger` in `oracle.js`. User guide:
