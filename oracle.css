@@ -846,13 +846,13 @@ div.listviewheader div.listviewsource {
     overflow-wrap: anywhere;
 }
 /* the list page (listlayout in oracle.js): statistics above the cards; beside them in the narrow views on a wide
-   screen; below them on a phone (the phone layout's media query, further down) */
+   screen; below them on a phone (the phone layout's media query, further down). The box is first in the page (the
+   pinned float needs that); flex order moves it after the cards */
 div.listlayout {
     display: flex;
     flex-direction: column;
 }
 div.listlayout div.listlayoutstats {
-    order: -1;
     min-width: 0;
 }
 div.listlayout div.listlayoutcards {
@@ -880,6 +880,60 @@ div.listlayout div.listlayoutcards {
   div.listlayoutside div.liststatsbox {
     flex-direction: column;
     flex-wrap: nowrap;
+  }
+}
+/* the pin button (listlayout in oracle.js), every view on a wide screen: statistics to the side or above. To the side in
+   Detail/Visual/Deck (listlayoutpinned), they float to the upper right and the cards flow around them. Headers and Detail rows stop short of the box (flow-root) rather than run under it */
+div.listlayoutstats {
+    position: relative;
+}
+div.listlayoutstats > button.listlayoutpin {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 1;
+}
+@media (min-width: 1100px) {
+  div.listlayoutstats > button.listlayoutpin {
+    display: block;
+  }
+
+  div.listlayoutpinned {
+    display: block;
+  }
+  div.listlayoutpinned::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  div.listlayoutpinned div.listlayoutstats {
+    float: right;
+    max-width: min(45%, 36em);
+    margin: 0 0 8px 12px;
+  }
+  div.listlayoutpinned div.liststatsbox {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  div.listlayoutpinned div.listhead, div.listlayoutpinned div.listheadxl, div.listlayoutpinned div.listheadplain:not(.deckviewtype),
+  div.listlayoutpinned div.listmissing {
+    display: flow-root;
+  }
+  /* Detail rows are table rows of one table, which would stay narrow all the way down: each row its own flex box
+     instead, narrow beside the box and full width below it */
+  div.listlayoutpinned div.listlayoutcards > div.listitem {
+    display: flex;
+    width: auto;
+  }
+  div.listlayoutpinned div.listlayoutcards > div.listitem > div.listimage {
+    display: block;
+    flex: 0 0 auto;
+  }
+  div.listlayoutpinned div.listlayoutcards > div.listitem > div.listbody {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
   }
 }
 /* list view statistics (liststats): Statistics and Keyword counts side by side when both fit (stacked in the
@@ -1006,6 +1060,19 @@ table.listtable tr.listtablestripe {
 }
 table.listtable td.listtablestat:nth-child(odd), table.listtable thead th.listtablestat:nth-child(odd) {
     background-color: rgba(90, 110, 160, 0.06);
+}
+/* deck view: a small deck (Pre-Game) floats left with the next deck beside it (deckviewflow in oracle.js); deck
+   headers stop short of a float (flow-root), and the others start a new line */
+div.deckviewsmall {
+    float: left;
+    max-width: 100%;
+    margin-right: 8px;
+}
+div.listlayoutcards div.listhead {
+    display: flow-root;
+}
+div.listlayoutcards div.listhead.deckviewbreak {
+    clear: left;
 }
 /* deck view (template-visual-deck): each type's label is a narrow spine down the left of its first card, read
    bottom to top (vertical-rl turned over), not a card-sized box. One line: a height limit would wrap it into

@@ -3378,10 +3378,12 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html));
 	    liststatslegal();
 	    liststatscutoff();
+	    liststatspinbutton();
 	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
+	    deckviewflow();
 	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
 		var field_listid = $(this).attr("id").split(/:/) ;
 		var value = $(this).text() ;
@@ -4113,14 +4115,52 @@ function liststatsstripe() {
 }
 // open or closed (the section, and its keyword part), kept per browser
 // the statistics box starts open, folded on phones so the cards come first; once toggled it stays as left
-// the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). The box
-// sits above the cards, beside them in the narrow views (Simple List, Text, Table) on a wide screen, and below
-// them on a phone, where the cards come first. It's after the cards in the page, and the CSS moves it up.
+// the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). On a wide
+// screen the box goes to the side (the default) or above the cards, by its pin button (liststatspinned, remembered
+// across visits). To the side it's a column beside the narrow views (Simple List, Text, Table: listlayoutside) and
+// floats at the upper right of the others (Detail, Visual, Deck: listlayoutpinned), the cards flowing around it. On a
+// phone it comes after the cards, with no button. It's first in the page (a float has to be); the CSS orders it.
 var listlayoutside = ['list', 'html', 'table'];
 function listlayout(stats, cards) {
     var view = (templates[database]['active']['list'] || '').replace(/-premium$/,'');
-    return '<div class="listlayout'+(listlayoutside.includes(view) ? ' listlayoutside' : '')+'">'+
-	'<div class="listlayoutcards">'+cards+'</div><div class="listlayoutstats">'+stats+'</div></div>';
+    var sideclass = listlayoutside.includes(view) ? 'listlayoutside' : 'listlayoutpinned';
+    var pin = stats ? '<button type="button" class="button gray buttonsmaller listlayoutpin" onclick="liststatspin();"></button>' : '';
+    return '<div class="listlayout'+(liststatspinned() ? ' '+sideclass : '')+'" data-sideclass="'+sideclass+'">'+
+	'<div class="listlayoutstats">'+pin+stats+'</div><div class="listlayoutcards">'+cards+'</div></div>';
+}
+// Deck view (visual-deck): a deck of a few cards (L5R's Pre-Game) needn't take a whole row. Its header and cards are
+// wrapped and floated left (deckviewsmall), so the next deck's header and cards sit beside it; every other deck header
+// starts a new line (deckviewbreak: Dynasty to Fate). Not the last deck, which has nothing to sit beside it.
+var deckviewsmallmax = 8; // card images (a stack counts once)
+function deckviewflow() {
+    if(templates[database]['active']['list'] != 'visual-deck') {
+	return;
+    }
+    var heads = $('#resultlist div.listlayoutcards > div.listhead');
+    heads.each(function(i) {
+	var run = $(this).nextUntil('div.listhead');
+	if(i < heads.length-1 && run.filter('a.deckswipe').length <= deckviewsmallmax) {
+	    $(this).add(run).wrapAll('<div class="deckviewsmall"></div>');
+	}
+    });
+    $('#resultlist div.listlayoutcards > div.listhead').each(function() {
+	$(this).toggleClass('deckviewbreak', !$(this).prev().hasClass('deckviewsmall'));
+    });
+}
+function liststatspinned() {
+    return cache_session("liststatspinned") !== false;
+}
+// the pin button: the statistics to the side of the cards, or between the header and the cards
+function liststatspin() {
+    var pinned = !liststatspinned();
+    cache_session("liststatspinned", pinned);
+    $('#resultlist div.listlayout').each(function() { $(this).toggleClass($(this).attr('data-sideclass'), pinned); });
+    liststatspinbutton();
+}
+function liststatspinbutton() {
+    var pinned = liststatspinned();
+    $('#resultlist button.listlayoutpin').attr('title', pinned ? 'Move the statistics above the cards' : 'Move the statistics to the side of the cards')
+	.html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#'+(pinned ? 'chevrons-up' : 'sidebar')+'"></svg> '+(pinned ? 'Above' : 'To the side'));
 }
 // both parts of the statistics box start open, and stay the way they were last left this session
 function liststatsopen() {
