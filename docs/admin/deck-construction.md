@@ -28,7 +28,8 @@ cards against it. It starts from **no rules** rather than the game's, so the che
 that names a rule brings the whole rule back from `deckconstruction.rules`: the deck's panel lists the game's rules
 unticked for the owner to tick, and `deckconstruction.legality["Special"]` would give a game's Special decks some by
 default (no game has one). A card's `rules` change only the rules a Special deck has; they don't add any
-(Forgotten Legacy's Holdings rule stays out).
+(Forgotten Legacy's Holdings rule stays out). The public listing shows Special as the deck's format, like any owner's
+legality; the search-engine deck pages (ootv-tools `seo/build.py`) leave it out of "legal in".
 
 A broken rule shows in red on the Deck construction line, part of the list header
 (`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
