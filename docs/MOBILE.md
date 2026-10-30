@@ -73,7 +73,7 @@ decks, a Detailed image shrunk under ~480px) or a Simple List title (search and 
 image: on hover after 250 ms beside it (mouse, switch `cardpeekmouse`), or after a 500 ms press centered
 over a backdrop until the next tap (touch, `cardpeektouch`). The release after a peek doesn't open the
 card or swipe; Android's long-press menu is blocked. The Detailed file comes from the card's printing
-(`cardpeekfind`), since Dune's files aren't named `_select`/`_details`. **Not checked on iOS Safari**: the
+(`cardpeekfind`), since Dune's files aren't named `_select`/`_details`. WebKit runs it (2026-10-30, synthetic press). **Not checked on real iOS Safari**: the
 image/link callout is turned off with `-webkit-touch-callout` set on the press, which may be too late; if the
 iOS menu or link preview still opens, set it in CSS on `a.deckswipe` and its image instead.
 
