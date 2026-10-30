@@ -37,6 +37,8 @@ Quicker ways:
 - **Swipe** a card's picture sideways (or click-drag it with a mouse) to change its count:
   right adds one, up-right adds three, left removes one, up-left removes them all. In a list,
   up-right adds two. Settings → Gestures changes what each direction does, or turns swipes off.
+- **Click or tap a count** in the simple list of your own list to change it: type a number or use
+  − and +, then press Enter or click away (Esc puts it back). 0 asks, then takes the card out.
 - **Hover** over a small card picture, or a name in the simple list, to see the card at full
   size. On a phone, press and hold it; tap to close.
 - **Add all to list**, above the search results, adds every card found
