@@ -178,6 +178,9 @@ a.ex { float: right; font-size: large;}
 .foiltoggle { cursor: pointer; }
 .foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
+/* the card back under a printing's front on the card page (~cardback, oracle.js "CARD BACKS") */
+a.cardback { display: block; width: 105px; margin-top: 4px; text-align: center; font-size: smaller; color: inherit; }
+a.cardback img.cardbackimg { display: block; width: 105px; min-height: 20px; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 /* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells

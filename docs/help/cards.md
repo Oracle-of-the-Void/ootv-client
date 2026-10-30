@@ -20,6 +20,12 @@ the card's current text.
 Each printing's own set, rarity, flavor text, artist and so on are listed below the card's
 details.
 
+## Card backs {#backs}
+
+Under the card's image is a small picture of its **Back**: the back that printing was sold with
+(in L5R, the old or new Fate or Dynasty back, by set). Click it to open the back. A double-sided
+card (the Ivory and Twenty Festivals strongholds, for example) shows both of its sides instead.
+
 ## Foil {#foil}
 
 A printing that came in foil carries a foil mark, on its Versions button, in its details and in

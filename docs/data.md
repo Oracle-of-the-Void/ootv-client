@@ -87,6 +87,15 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   finds these through the printing's printed name (`printedtitle`, `title`: "Kamoto" in Anvil of
   Despair), S&M's double-sided strongholds (side "(1)"), and `ALIASES` in `snm-map.py` for names
   only S&M uses (its typos also sit in the card's `alttitle`, so a pasted S&M name finds the card).
+* printing.doublesided (optional, `1`): both sides of the card are in `image` (`image[1]` is the back),
+  e.g. the Ivory/Twenty Festivals and Onyx strongholds. The PDF prints both sides, and the card page
+  shows them; no other back is looked for.
+* printing.back (optional, every game, array of one string, since 2026-10-29): the cardid of the card
+  whose image is this printing's back (the game's card backs are cards: L5R's are 12664 to 12668 in
+  the Oracle of the Void set), or `["none"]` for no back. Leave it out to get the game's standard back
+  from the game config's `cardbacks` rules (`docs/admin/game-config.md`); set it only on a printing
+  the rules get wrong. The card page shows the back under the image, and the PDF's duplex option
+  prints it.
 * printing.image (array, one entry per image, front first). Each entry names the files of one image
   in the printing's `imagehash` directory:
  * ```json
