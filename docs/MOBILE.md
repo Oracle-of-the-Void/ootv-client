@@ -98,4 +98,4 @@ swipe in search results asks which list to activate (folder tree, plus New list)
 hides the directory's Folder pulldown (move lists by dragging only); New list asks for a name and
 makes the list active; in the directory a tap on a name opens the list and a long-press renames it
 (a pencil does it with a mouse); list actions (View, Duplicate, Upload, downloads, Delete) are in a
-⌘ menu by the activate toggle, in the table and the cards; list notes keep their line breaks.
+⌘ menu by the activate toggle, in the table and the cards; list notes keep their line breaks. In an open list's header, long notes start at three lines with Show more / Show less.

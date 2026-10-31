@@ -11,7 +11,6 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 - **New list** makes one. Click a list's name to open it.
 - To rename a list, press and hold its name (or click the pencil beside it). Enter saves.
 - Type straight into a list's **Notes** to change them.
-- Long notes at the top of an open list start cut to three lines: **Show more** opens them, and so does clicking in to edit.
 - **Type** says what the list is: Deck, Collection, Have, Want or Other.
 - **Count** is the deck's dynasty/fate cards and its total ("40/40 (82 total)"; pre-game cards count only in
   the total), with a red **Illegal** when the deck breaks its [construction rules](#stats). It's kept from the
@@ -55,7 +54,7 @@ Lists save themselves shortly after you change them.
 Open a list to see its cards. The buttons on the right of the menu bar change the layout:
 the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
 type, legality and notes are at the top, and can be changed there too, with when it was made and
-last changed beside the name. In the deck view, a short section (8 cards or fewer, usually Pre-Game) sits beside the next one
+last changed beside the name. Long notes start cut to three lines: **Show more** opens them, and so does clicking in to edit. In the deck view, a short section (8 cards or fewer, usually Pre-Game) sits beside the next one
 instead of taking a whole row, when there's room, so Pre-Game sits beside Dynasty and Fate starts below. In L5R a deck's name starts with its Stronghold's clan mon, here, in your lists and in Public lists. Phones open lists as a
 simple list of card names, unless you've saved another list view for your phone (Settings).
 
