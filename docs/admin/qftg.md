@@ -9,7 +9,7 @@ Isle, was never released. Added 2026-10-28 as a preview game (ootv-claude `proje
 ## Where the data came from
 
 - **Cards**: ztcgvault.com's card database (Zarthbenn's TCG Vault), converted by ootv-games
-  `game-qftg/scripts/convert.py`. **275 cards, 409 printings.**
+  `scripts/game-qftg/scripts/convert.py`. **275 cards, 409 printings.**
 - **Images**: Zarthbenn's own scans (745×1040, 2023) of every Limited Edition and promo card: 283.
   The Preview Edition has no images yet.
 - **Checked against the cards**: every scan was read by a vision model and every difference from
@@ -53,6 +53,6 @@ prints Warrior Knight where ztcgvault says Warrior King.
 
 ## Rebuilding
 
-A dead game: no refresh. If the source data changes, rerun ootv-games `game-qftg/scripts/convert.py`
-(values read from the cards are in `work/verified.json` and `work/credits-printed.tsv`) and write
-changes with the bulk recipe. `ADD-GAME.md` and `GO-LIVE.md` there record how the game was added.
+A dead game: no refresh. If the source data changes, rerun ootv-games `scripts/game-qftg/scripts/convert.py`
+(values read from the cards are in ootv-games `scripts/game-qftg/scripts/`: `verified.json`, `credits-printed.tsv`) and write
+changes with the bulk recipe. `game-qftg/ADD-GAME.md` and `GO-LIVE.md` record how the game was added.
