@@ -7150,10 +7150,18 @@ document.addEventListener('contextmenu', function(e) {
 // up-left all copies). Going to 0 asks before removing the card. In the list view it changes the list shown; in
 // search, the first active list. With none active (logged in), a swipe that adds asks which list to activate
 // (deckswipepicklist); other swipes do nothing. On touch, a mostly vertical drag still scrolls.
+// The card page's own picture swipes too, like search, once a list is active: without one its swipe stays prev/next.
 var deckswipe = null;
 var deckswipedone = 0;
-function deckswipestart(target, x, y, mouse=false) {
+function deckswipelink(target) {
     var a = $(target).closest('a.deckswipe');
+    if(!a.length && activelists.length && $(target).closest('#resultcard .printingimages img:not(.cardbackimg)').length) {
+	return $('<a>').data({card: Number($('#lastcardid').val()), printing: Number(lastcardprid()) || 0});
+    }
+    return a;
+}
+function deckswipestart(target, x, y, mouse=false) {
+    var a = deckswipelink(target);
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
     deckswipe = null;
     if(a.data('list') && !listeditable(String(a.data('list')))) {
@@ -9395,11 +9403,12 @@ $(document).on('keydown', function ( e ) {
 
 // Touch: a sideways swipe on the card view goes to the next (swipe left) or previous (swipe right) result,
 // the same as the arrow keys. Passive, so a vertical drag still scrolls; skipped when pinch-zoomed, over a form
-// field, inside something that scrolls sideways, or with the card editor or a modal open.
+// field, inside something that scrolls sideways, or with the card editor or a modal open. The picture's own swipe
+// changes its count instead (deckswipelink), when that swipe is on.
 var cardswipe = null;
 document.addEventListener('touchstart', function(e) {
     cardswipe = null;
-    if(e.touches.length != 1 || !$("#resultcard").is(":visible") || $("#modal").is(":visible") || !gestureon('cardswipetouch')) {
+    if(e.touches.length != 1 || deckswipe || !$("#resultcard").is(":visible") || $("#modal").is(":visible") || !gestureon('cardswipetouch')) {
 	return;
     }
     if(window.visualViewport && window.visualViewport.scale > 1.05) {

@@ -7,6 +7,8 @@ address bar then points at that card (and that printing), so the link can be sha
 
 - The arrows beside the card's name go to the previous and next search result. So do the
   arrow keys, and a sideways swipe on a phone (Settings → Gestures can turn the swipe off).
+  With a list active, swiping the card's picture changes its count in that list instead, as in
+  [search results](lists.md).
 - **X** goes back to where you were. Escape does the same.
 - The globe beside the name shows the [public lists](public-lists.md) that have this card.
 
