@@ -501,7 +501,9 @@ div.searchinput .ts-wrapper.plugin-remove_button .item .remove { flex: none; mar
 /* hanging indent, not flex: a flex row would space out the highlighted part of a filter match */
 div.searchinput .ts-dropdown .option { padding-left: 28px; }
 div.searchinput .ts-dropdown .option input.tomselect-checkbox { margin: 0 6px 0 -20px; vertical-align: -2px; }
-div.searchinput .ts-dropdown { z-index: 1010; font-size: 10.5pt; }
+/* as wide as its longest option, past the form's column and over the page, never off the window's right edge
+   (--tsdropdownmax, from tomselectify: only the script knows where the field starts) */
+div.searchinput .ts-dropdown { z-index: 1010; font-size: 10.5pt; width: max-content; min-width: 100%; max-width: var(--tsdropdownmax, none); }
 div.searchinput .ts-dropdown .ts-dropdown-content { max-height: 240px; }
 div.searchinput .ts-dropdown .optgroup-header { font-weight: bold; }
 div.searchinput .button.gray { padding: 4px 10px; border: 1px solid var(--field-border); border-radius: 6px;
