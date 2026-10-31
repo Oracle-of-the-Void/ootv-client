@@ -35,7 +35,7 @@ A broken rule shows in red on the Deck construction line, part of the list heade
 (`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
 
 The check's answer is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
-opens it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
+opens it or an admin edits it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
 Every list was backfilled on 2026-10-29 (ootv-tools `lists/list-summary.py`, 18,681 lists; it runs the site's
 own check in a headless browser). **After changing a rule, rerun that script** (scan, compute, write): a deck
 keeps the answer from its last draw until its owner opens it again. Its public listing mark follows through the
