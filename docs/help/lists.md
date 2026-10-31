@@ -82,6 +82,9 @@ printing are two entries, so a Have list can hold both. A printing only ever pri
 just shows its **✦ Foil** mark. Lists without a printing chosen (any version) can be marked foil
 too, when any version of the card came in foil.
 
+Trades match on it: a foil want finds only foil haves, a regular want only regular ones, and
+**Foil or not** finds either (see Help → Trading and messages).
+
 ## Statistics {#stats}
 
 A deck's header ends with its check: the cards not legal in its Legality, the formats every card is legal

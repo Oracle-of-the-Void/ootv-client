@@ -11,6 +11,7 @@
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
 * [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
 * [/publiclists (GET)](#publiclists)           -> Search every public deck/list (the Public lists view)
+* [/trade (GET)](#trade)                       -> Trade matching over lists open to trade (the Trades view)
 
 ### Needing Authentication
 
@@ -25,6 +26,7 @@
 * [/discord (GET, POST)](#discord)            -> Discord bot settings for the admin page (site admins only)
 * [/setimport (POST)](#setimport)              -> Admin set import and import profiles (ootv-admin Lambda)
 * [/setimportverify (POST)](#setimportverify)  -> after a set import: the written cards vs search
+* [/messages (GET, POST)](#messages)          -> Messages between users (the Messages view)
 
 ## Note
 
@@ -288,6 +290,7 @@ Changes the signed-in user's own row in `oracle-all-users` (issue #21). The body
 | `addemail` | `email` | emails a 6-digit code to the address (expires in 15 minutes) and sets `emailpending: {email, expires}`. At most one code a minute and 5 a day. 400 if the address is already on the account. |
 | `verifyemail` | `email`, `code` | with the right code, adds an `oracle-all-emails` row (lowercase) and appends the address to `emails`. 5 wrong codes and it's dropped. 409 if the address already belongs to another account (a merge, done by hand). |
 | `cancelemail` | | drops `emailpending` |
+| `messaging` | `acceptmessages` (boolean), `messageemail` (`each` \| `off`), either or both | messages from other users ([/messages](#messages)). `acceptmessages: false`: nobody can start a conversation with you, and all your lists stop being open to trade. `messageemail: 'off'`: no email on new messages. The defaults (`true`, `each`) are stored as no field. |
 | `removeemail` | `email` | removes the address from `emails` and deletes its `oracle-all-emails` row, then emails the removed address a notice. Not the address in the token (the one you're signed in with). The answer has `warning` if the notice couldn't be queued. |
 
 The emails go out through the `oracle-all-mail` outbox and the `oracle-mailer` Lambda (ootv-search `mailer/`). Only the code's hash is stored, and neither GET nor POST returns it.
@@ -303,6 +306,48 @@ codes:
 * 404: no user for the token's email; `removeemail` for an address not on the account
 * 409: address belongs to another account, or the user changed while saving
 * 429: asked for codes too often
+
+## /trade
+<a id="trade"></a>
+
+Trade matching (ootv-claude `TRADE-LISTS.md`). No auth: it reads only lists their owners opened to trade
+(`/list` `updatefield=trade`), which are public, and only `tradeable` ones (owner has a display name, accepts
+messages, hasn't gone quiet for 60 days).
+
+| param | |
+|---|---|
+| `mode` | `cards` or `matches` (required) |
+| `game` | required |
+| `cardid` | `cards`: one or more card ids (comma-separated) |
+| `side` | `cards`: `have` (default, who has them) or `want` |
+| `owner` | `matches`: the uid whose trade lists are matched |
+
+outputs:
+
+* `cards`: `{side, traders: [{owner, ownername, ownerlastseen, lists: [{listid, name, type}], cards: [entry]}]}`
+* `matches`: `{mine: {wants, haves, lists}, traders: [{owner, ownername, ownerlastseen, lists, theyhave: [entry], theywant: [entry], score: {theyhave, theywant}}]}`, two-way matches first
+* entry: `{cardid, title, quantity, printing, foil, listid}`, plus `yours` in matches (your quantity of it)
+
+Matching is by card. A known printing on both sides must agree, and `foil` must agree unless either side says `either`.
+
+## /messages
+<a id="messages"></a>
+
+Messages between users, one conversation per pair (`threadid` = `<smaller uid>-<larger uid>`).
+
+* Header: Authorization (required); `uid` (query or body) must be the token's user
+
+| request | does |
+|---|---|
+| `GET ?uid=` | inbox, newest first: `{threads: [{threadid, other, othername, lastmessage, lastfrom, unread, subject, muted, blocked, reported}], unread, next}`; `&before=<next>` for the next 50 |
+| `GET ?uid=&unread=1` | `{unread}`: unread messages, not counting muted or blocked conversations |
+| `GET ?uid=&threadid=` | a conversation, marked read: `{thread, other: {uid, name}, names, messages: [{msgkey, from, text, context, time}], next}`, 50 at a time, oldest first. 404 if there's none yet. A site admin can read a conversation one side reported |
+| `POST {uid, to, text[, context]}` | send. `text` plain text, up to 2,000 characters. `context` `{game, listids, cardids}` (a trade) is kept on the message. Needs a verified email and a display name; 20 new conversations and 200 messages a day. 403 when blocked or the recipient doesn't accept messages |
+| `POST {uid, action: mute\|unmute\|block\|unblock, other}` | mute: no email or unread count from them; block: no messages either way |
+| `POST {uid, action: report, threadid[, reason]}` | emails the site admins; they can then read the conversation |
+
+The recipient gets one email per conversation until they read it (none if muted or `messageemail` is `off`). It
+names the sender and links to `#view=messages`; it never carries the message text.
 
 ## /import
 

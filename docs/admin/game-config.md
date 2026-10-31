@@ -81,7 +81,7 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `onlight` `res/clan-mons/oracle-plain-contrast-onlight/`, `ondark` `res/clan-mons/oracle-plain-contrast-ondark/` (the flat
   mons recoloured to show on each, from ootv-assets `mons/oracle_plain/contrast/`); `path`
   `res/clan-mons/oracle-plain-color/` (the original colours). A clan not listed gets none.
-  Toturi's Army is the Wolf; Spirit is a vermilion torii gate.
+  Toturi's Army is the Wolf; Spirit is a vermilion torii gate; Ninja a silver shuriken.
 - `cardbacks` (optional): which back each printing has, for the small **Back** picture on the card page
   and the PDF's duplex option. `{rules: [{when, set, before, from, cardid}, ...]}`: the first rule
   that fits the printing gives `cardid`, the card whose image is the back (backs are cards of their own).
