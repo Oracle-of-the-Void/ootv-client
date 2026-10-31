@@ -21,7 +21,8 @@ written to the **audit log** under the admin's name, before it happens.
    **Email the owner** is ticked by default: the owner gets a short email saying an admin changed
    one of their lists, with a link to it (no names, no details). It goes at most once an hour per
    admin and list, however many changes you make.
-3. After you accept, the list has its owner's edit controls under a red banner. The banner has the
+3. After you accept, the list has its owner's edit controls under a red banner and is already an
+   **active list**, so cards add to it from search. **Stop editing** takes it off. The banner has the
    **Email the owner** switch (change it any time) and **Stop editing**. Reloading the page also
    stops editing.
 
