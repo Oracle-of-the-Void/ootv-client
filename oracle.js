@@ -268,14 +268,16 @@ function dologin() {
 }
 function dologout() {
     auth.signOut();
+    var theme = cache_session("theme");
     localStorage.clear();
     sessionStorage.clear();
+    if(theme) cache_session("theme",theme);
 }
 // Clear Cache menu: drop cached data but keep the Cognito login tokens
 function clearcache() {
     for (var i = localStorage.length - 1; i >= 0; i--) {
 	var key = localStorage.key(i);
-	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0) {
+	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0 && key != "session_theme") {
 	    localStorage.removeItem(key);
 	}
     }
@@ -539,6 +541,7 @@ function userinfocallback() {
     applysearchdefault();
     applyfavoritegame();
     msgunread();
+    applysavedtheme();
 }
 // the name to show: the one saved on the user (firstname/lastname, editable on Settings, #21), else the login's
 function username(user) {
@@ -5128,6 +5131,48 @@ function patreonreturn() {
   patreonmsg = PATREON_RESULTS[m[1]] || PATREON_RESULTS['failed'];
   settingstab = 'account';
   patreonrefresh();
+}
+
+//**********************************************************  Theme ****************
+// Light, Dark or Auto (the device's setting), from the menu. This browser keeps it in localStorage (session_theme), which
+// the script at the top of index.html reads before anything draws; logged in, users.settings.all.theme carries it to
+// other devices (none stored = Auto). Clear Cache and logging out keep it.
+var themes = {'auto': 'Auto', 'light': 'Light', 'dark': 'Dark'};
+var themesavetimer = null;
+function themenow() {
+  var t = cache_session("theme");
+  return themes[t] ? t : 'auto';
+}
+function themeapply() {
+  var t = themenow();
+  var dark = t == 'dark' || (t == 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  $('.themelabel').text(themes[t]);
+}
+function themecycle() {
+  var order = Object.keys(themes);
+  var t = order[(order.indexOf(themenow()) + 1) % order.length];
+  cache_session("theme", t);
+  themeapply();
+  if(searchloggedin()) { // clicking through the three saves once
+    clearTimeout(themesavetimer);
+    themesavetimer = setTimeout(function() {
+      saveallsetting('theme', t == 'auto' ? null : t, $(), function() {});
+    }, 1000);
+  }
+}
+function applysavedtheme() {
+  var user = cache_thing("user","data");
+  var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
+  if(all && themes[all['theme']]) {
+    cache_session("theme", all['theme']);
+    themeapply();
+  }
+}
+$(themeapply);
+if(window.matchMedia) {
+  var themequery = matchMedia('(prefers-color-scheme: dark)');
+  if(themequery.addEventListener) themequery.addEventListener('change', themeapply);
 }
 
 //**********************************************************  Favorite game ****************
