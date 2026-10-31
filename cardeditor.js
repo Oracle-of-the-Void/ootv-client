@@ -961,7 +961,7 @@ function cardeditrun(plan) {
     cardedit = null;
     $('#modal').removeData('guard');
     cache_card_remove(cardid);
-    cardfetch(cardid,show,$('#lastsearchquery').val(),nomodal);
+    cardfetch(cardid,show,cardqs(),nomodal);
   }).catch(function(e) {
     cardedit.running = false;
     $('#cardeditcommit').prop('disabled',false);
