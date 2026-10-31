@@ -78,7 +78,9 @@ or tests. The files in this directory are exactly what gets served.
 - Deck construction check (`deckbuild*` in `oracle.js`, panel `listbuildform`): the game's rules, overlaid by the deck's
   legality, the deck's own changes and its cards'. The **Special** legality (`decklegalityspecial`) is a deck-only value in
   every game, added by the `deckLegalitySelect` converter (`listLegalitySelect` is the plain list, also used by import): no
-  card has it, and it starts with no rules. Guide `docs/admin/deck-construction.md`, help `lists#stats`.
+  card has it, and it starts with no rules. A card not legal in the deck's legality fails the check too (`liststatslegal`,
+  from `/cardslegal`), so a deck's `summary` is saved there, after that answer, not in `liststats` (`listsummaryheld`).
+  Guide `docs/admin/deck-construction.md`, help `lists#stats`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
   calls. Its image upload is `uploadimagetrigger` in `oracle.js`, in its own box over the editor

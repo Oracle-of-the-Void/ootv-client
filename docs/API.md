@@ -530,8 +530,9 @@ codes:
 ## /cardslegal
 
 POST (form: `table`, `cardids=1,2,3`, optional `format`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
-these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
-deck check. Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
+these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). It looks
+only at the cards, not at the deck's size or copy limits; the client adds its `illegal` to the deck construction check
+(the summary's `buildbad`). Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
 <cards not found>}`; 400 without a table or with over 5000 cards. With `format` (the list's legality) it also answers
 `format` and `illegal: [{cardid, title}]`, the cards not legal in it; `illegal` is null for a value the game doesn't
 check, such as Proxy or a deck's Special.
