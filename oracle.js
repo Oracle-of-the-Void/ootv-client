@@ -730,7 +730,11 @@ function listadmincan(listid) {
 }
 // someone else's list an admin is editing now (accepted the popup)
 function listadminedit(listid) {
-  return !!adminediting[listid] && listadmincan(listid);
+  if(!adminediting[listid]) {
+    return false;
+  }
+  // each save empties the list's cache until the refetch answers: still being edited in that gap
+  return cache_thing("list",listid) ? listadmincan(listid) : listeditpermission();
 }
 // Edit as admin: the popup, then the open's audit row, then the edit controls
 function listadminopen(listid) {
@@ -766,7 +770,7 @@ function listadminaccept(listid) {
   }).done(function() {
     adminediting[listid] = {notify: notify};
     nomodal();
-    listadminredraw(listid);
+    activatelist(listid); // straight into editing: cards add from search, and it redraws the list with the edit controls
   }).fail(function(xhr) {
     $('.admineditstatus').text('Could not open it: '+((xhr.responseJSON && xhr.responseJSON.error) || xhr.status));
   });
@@ -1825,6 +1829,10 @@ function toggleheaders() {
 
 // ***********************  list edits **************
 function renderlisteditarea() {
+    // the list view's toggle always says what this bar says
+    $('#resultlist .listviewheader').each(function() {
+	showlisttoggle($(this).attr('data-list'),activelists.indexOf($(this).attr('data-list')) > -1);
+    });
     if(activelists.length < 1) {
 	$("#deckarea").html(Object.keys(updatepending).length >0 ? '<div class="randarea"><span style="background-color:red;" onclick="savecallback();">Updates Pending</span></div>' :'');
     } else {
