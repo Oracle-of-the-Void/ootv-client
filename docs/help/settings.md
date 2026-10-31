@@ -20,6 +20,12 @@ settings are kept in that browser only, and **Clear Cache** deletes them.
   Patreon to tie it instead. **Unlink** unties it, and the email match won't tie it again.
 - **Favorite game**: the game the site opens with in a new browser.
 
+## Theme {#theme}
+
+The menu (the three lines at the top left) has **Theme**: click it to go through **Auto** (the same as your
+device's light or dark setting), **Light** and **Dark**. It works without logging in; if you are logged in, your
+other devices pick it up too. **Clear Cache** and logging out keep it.
+
 ## Display {#display}
 
 - **Card text**: whether cards start with their printed wording or their current wording
