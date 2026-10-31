@@ -76,6 +76,7 @@ or tests. The files in this directory are exactly what gets served.
   `listopening` until it arrives, and background loads (the directory's first list, restored active lists, card fetches
   finishing late) only fill the cache, never the view: `liststale`, checked in `refreshlist` and `dolist`. Test: `docs/TESTING.md`.
 - List ids: the API's items hold numbers (`list.listid`), while `activelists` and anything from a template's `onclick` hold strings, so compare with `String(listid)` (#542). `showlisttoggle` draws a list's toggle, and `renderlisteditarea` keeps the list view's in step with the Active Lists bar.
+- List counts (`40/40 (80 total)`, Pre-Game only in the total): `deckcounthtml` in `oracle.js`, for the directory (`dircount`, from the saved `summary`), the Active Lists bar (`activelistcount`: live from the last draw, `listdeckdrawn`, redrawn by `refreshlist`; the total alone when the decks don't add up) and a deck's header (`#template-listcheck`, before All cards legal for). Only the directory and public listing show the red Illegal next to it.
 - Deck statistics (`liststats` in `oracle.js`, template `#template-liststats`): type counts, shares and averages
   (`liststatsavgs`; the hover shows the working). In a deck, card numbers are the deck's own (`deckcontext`,
   `deckstatvalue`: card `conditionalvalues` on the Stronghold clan, Sensei, Stronghold; `docs/data.md`), in the averages
