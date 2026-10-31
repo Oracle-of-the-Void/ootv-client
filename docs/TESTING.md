@@ -79,6 +79,7 @@ const ctx = await browser.newContext({hasTouch: true, isMobile: true,
   so a centred `down` tooltip on a right-edge button can cause it; use `down-right` there.
 - `max-width: %` on images inside the `display: table-cell` layouts collapses them to nothing;
   cap with `vw` instead.
+- Other pulldowns convert only once on screen (`tomselectauto`): scroll a select into view and wait a moment before looking for its `.ts-wrapper`; its dropdown is `.tomselectdrop` on `body`. Two options or fewer stay plain selects.
 - Search form selects are Tom Select on phones too: tap `#field_<name>-ts-control`, then an `.option` in
   `#field_<name>-ts-dropdown`. The keyboard and any zoom on focus only show on a real phone. To measure a
   dropdown, open it with a real click or tap: `tomselect.open()` from script draws no options, so it sizes to nothing.

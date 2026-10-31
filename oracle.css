@@ -510,6 +510,23 @@ div.searchinput .ts-dropdown .option input.tomselect-checkbox { margin: 0 6px 0 
 div.searchinput .ts-dropdown { z-index: 1010; font-size: 10.5pt; width: max-content; min-width: 100%; max-width: var(--tsdropdownmax, none); }
 div.searchinput .ts-dropdown .ts-dropdown-content { max-height: 240px; }
 div.searchinput .ts-dropdown .optgroup-header { font-weight: bold; }
+/* every other pulldown (tomselectauto in oracle.js): the size and look of the select it replaces, one line, cut short by its width;
+   the dropdown hangs off body, as wide as its longest option (its min and max widths come from the script) */
+.ts-wrapper.tomselectsingle { display: inline-block; max-width: 100%; vertical-align: middle; text-align: left; font-size: 10pt; }
+.ts-wrapper.tomselectsingle .ts-control { min-height: 0; padding: 2px 18px 2px 5px !important; flex-wrap: nowrap; overflow: hidden; border: 1px solid var(--field-border); border-radius: 4px;
+  background: var(--panel); color: var(--text); box-shadow: none; font-size: inherit; }
+.ts-wrapper.tomselectsingle.input-active .ts-control { background: var(--panel); }
+.ts-wrapper.tomselectsingle.focus .ts-control { border-color: var(--accent); box-shadow: var(--focus-ring); }
+.ts-wrapper.tomselectsingle .ts-control > .item { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ts-wrapper.tomselectsingle .ts-control > input { font-size: inherit; }
+/* open: the search box lies over the current pick, which fades, and goes once typing starts */
+.ts-wrapper.tomselectsingle.input-active .ts-control > input { position: absolute; top: 0; bottom: 0; left: 5px; right: 18px; width: auto !important; min-width: 0; margin: 0 !important; background: transparent; }
+.ts-wrapper.tomselectsingle.input-active .ts-control > .item { opacity: .5; }
+.ts-wrapper.tomselectsingle.tomselecttyping .ts-control > .item { visibility: hidden; }
+/* 16px: iOS zooms the page when a smaller field takes focus */
+@media (hover: none) { .ts-wrapper.tomselectsingle .ts-control > input { font-size: 16px; } }
+.ts-dropdown.tomselectdrop { z-index: 100010; width: max-content !important; font-size: 10.5pt; text-align: left; }
+.ts-dropdown.tomselectdrop .optgroup-header { font-weight: bold; }
 div.searchinput .button.gray { padding: 4px 10px; border: 1px solid var(--field-border); border-radius: 6px;
   background: var(--panel); color: var(--text-2); font-size: 10.5pt; text-shadow: none; box-shadow: none; }
 div.searchinput .button.gray:hover { background: var(--surface-warm); border-color: var(--field-hover); }
