@@ -13,6 +13,11 @@ python3 -m http.server 8765 &          # from the repo root
 NODE_PATH=$(npm root -g) node script.js
 ```
 
+**Check the port is yours.** The box is shared with other sessions and users, and a backgrounded `http.server` that
+can't bind fails silently, so the tests quietly run against someone else's checkout. Take a free port
+(`python3 -c "import socket;s=socket.socket();s.bind(('127.0.0.1',0));print(s.getsockname()[1])"`) and `curl` the served
+file for your change before testing. Tests that all fail on something undefined usually mean this.
+
 Keep scripts out of the repo (the deploy syncs every top-level file). The local page
 talks to the **dev API** (`apiuri` is `api-dev.oracleofthevoid.com` on localhost, which
 runs the `dev-ootv-search` Lambda). Its data is the live data, so searching and browsing
@@ -33,6 +38,8 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
 | `largeview` | per-view size toggle `{search, card, list}` |
 | `currentresulttab()` / `viewbuttontype()` | tab on screen; which view the menubar buttons drive |
 | `searchcache[database].querydata[qs]` | **plain card ids** for a search, not card objects |
+| `listcardorder[listid]` | a list's rows as drawn, `{cardid, printing}`, for stepping from a card; in memory only, so empty after a reload |
+| `$('#lastcardid').data('qs')` / `.data('prid')` | what the card on screen was opened with: a search, or `listid=N` from a list (`cardqs()`); the printing |
 | `cache_card_fetch(id)` | a copy of the cached card (fields are arrays: `title[0]`, `type.join()`); to try a change, edit it and store it with `cache_card(card)`, or the code under test never sees the change |
 | `cache_thing(kind, key[, value])` | localStorage-backed cache (`<game>_<kind>_<key>`) |
 
@@ -112,7 +119,9 @@ await page.evaluate(() => {
 - `groups` drives admin-only UI (`fullgamepermission()`: `groups[game]` or `groups['*']`
   containing `'*'`). Test partial permissions (`{l5r: ['update']}`), another game's
   permission, and logged out (`logoutcallback()`).
-- **Mock any endpoint that writes** with `page.route`, so nothing reaches prod:
+- **Mock any endpoint that writes** with `page.route`, so nothing reaches prod. Not every POST is a write: `/search`
+  and `/attributes` only read, and blocking `/attributes` breaks `renderlist` (`cache_select`), which looks like a bug in
+  whatever runs after it. Let those through, block the rest, and record what you blocked:
 
   ```js
   await page.route(/api\.oracleofthevoid\.com\/user/, r => {
@@ -158,6 +167,8 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
 - To test adding a card without saving it: `addlistitem('t1', id, prid, 1)`, then check
   `updatepending['t1']` (the save got queued) and `clearTimeout(savetimeout)` so the
   60 s save never fires.
+- Stepping from a list card: try all five views, since Table and Deck links pass no `qs` and `listcardqs` in `docard` works it out. Check two printings of a card (two stops), a regular and a foil copy (one stop), a card not in the list (no arrows), a reload (no arrows), and taking the card's last copy out, then stepping both ways.
+- The card page's count (`#cardlistbar`): add a card as printing 0 and as a printing, to see *n in all*, and pick a Version to check the bar follows it. After a click, a plain arrow must still step (the button gives up focus); from the keyboard, Enter must keep it. Going to 0 is a `confirm`.
 - Count editing (Simple List and Table, `listcountready`): the count is `span.editquantity`, id
   `clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>`. The count is part of the id and changes with every save,
   so find it by prefix and foil (`[id^="clist_quantity:t1:<card>:<printing>:"][id$=":<foil>"]`). Check: click (tap on a

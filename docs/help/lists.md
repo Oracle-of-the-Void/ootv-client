@@ -43,6 +43,8 @@ Quicker ways:
   there a finger swipe [goes to the next or previous card](cards.md#moving).
 - **Click or tap a count** in the simple list or table of your own list to change it: type a number or use
   − and +, then press Enter or click away (Esc puts it back). 0 asks, then takes the card out.
+- **Open a card** from a list, then use − and + [under its name](cards.md#lists). The
+  [arrows](cards.md#moving) go on to the next card in the list, so you can work down it.
 - **Hover** over a small card picture, or a name in the simple list, to see the card at full
   size. On a phone, press and hold it; tap to close. On your own lists that press
   [changes a version](#versions) instead: tap the picture in that menu for full size.
