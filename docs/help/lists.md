@@ -13,7 +13,8 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 - Type straight into a list's **Notes** to change them.
 - **Type** says what the list is: Deck, Collection, Have, Want or Other.
 - **Count** is the deck's dynasty/fate cards and its total ("40/40 (82 total)"; pre-game cards count only in
-  the total), with a red **Illegal** when the deck breaks its [construction rules](#stats). It's kept from the
+  the total), with a red **Illegal** when the deck breaks its [construction rules](#stats) or holds a card
+  that isn't legal in its Legality. It's kept from the
   last time you opened the list: a list you haven't opened since this came in shows only its total.
 - Open a list to see or change its **Legality** (the format a deck is for; its cards are checked against it,
   see [Statistics](#stats)) and its **Id**. **Special** is for a deck that isn't built for a format: see
@@ -117,12 +118,13 @@ more keywords to add them (a card that matches one in blue and another in red gl
 drop it. The highlights stay when you change views.
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
-and **All cards legal for** lists the formats every card is legal in. Proxy cards
+and **All cards legal for** lists the formats every card is legal in. A deck with a card that
+isn't legal counts as breaking its construction, just like breaking a rule. Proxy cards
 aren't checked at all: they're in the deck to be printed and played, not part of its construction.
 
 **Deck construction** checks the deck as a whole against the game's deck construction rules
 (see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
-you can save any deck. When a deck breaks its rules, the header's check line says so in red.
+you can save any deck. When a deck breaks its rules or has a card that isn't legal, the header's check line says so in red.
 
 ## Deck construction rules {#construction}
 
