@@ -164,6 +164,8 @@ inputs - sent in body querystring:
     * elastic match_phrase
   * type_xxx = 'select'
     * checks terms against the .keyword part of a text field  (can be multi-value)
+  * field_banned: cards with a `legalityderivedexception.remove` entry; field_legality / field_printing_legality, if any, say which
+    names it must hold, and don't otherwise filter (admin `derived-legality.md`, "Bans")
   * type_xxx = 'exists'
     * if parameter has a value, returns cards that contain the field with data
   * type_xxx = 'numeric', with field_lower_xxx (min) and/or field_upper_xxx (max)
