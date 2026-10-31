@@ -35,6 +35,10 @@ on a phone) to see its name.
 The buttons on the right change how results look and how they're sorted. Settings is in the
 menu under your name, or the first menu when logged out ([Account and settings](settings.md)).
 
+## Pulldowns {#pulldowns}
+
+Click or tap a pulldown and start typing to narrow its choices, then press Enter or pick one. Short ones with only two choices are ordinary pulldowns.
+
 ## Links and sharing {#links}
 
 The address bar always shows what's on screen: a search, a card, a list, a rulebook page or a
