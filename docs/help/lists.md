@@ -39,7 +39,8 @@ Quicker ways:
 - **Swipe** a card's picture sideways (or click-drag it with a mouse) to change its count:
   right adds one, up-right adds three, left removes one, up-left removes them all. In a list,
   up-right adds two. Settings → Gestures changes what each direction does, adds down-right and
-  down-left (off to begin with), or turns swipes off.
+  down-left (off to begin with), or turns swipes off. In Card Details this works with a mouse only;
+  there a finger swipe [goes to the next or previous card](cards.md#moving).
 - **Click or tap a count** in the simple list or table of your own list to change it: type a number or use
   − and +, then press Enter or click away (Esc puts it back). 0 asks, then takes the card out.
 - **Hover** over a small card picture, or a name in the simple list, to see the card at full
