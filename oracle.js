@@ -1090,7 +1090,7 @@ function sortlists(lists,sort) {
 }
 // a list's Count in the directory: the copies per deck from its summary (listsummarysave), "40/40 (80 total)"
 // (L5R: dynasty/fate; Pre-Game counts only in the total, as in the public listing), with a red Illegal when the
-// deck breaks its construction rules; the total alone for a list drawn before summaries were saved, or one deck
+// deck breaks its construction rules, its cards being legal in its format among them; the total alone for a list drawn before summaries were saved, or one deck
 function dircount(list) {
   var total = parseInt(list.totalcount) || 0;
   if(!total) {
@@ -1109,8 +1109,8 @@ function deckcounthtml(decks, total, buildbad) {
   return '<span'+(title ? ' title="'+htmlEncode(title)+'"' : '')+'>'+text+'</span>'+
     (buildbad ? ' <span class="dirillegal" title="Breaks the deck construction rules">Illegal</span>' : '');
 }
-// the list view keeps the directory's Count current: after drawing one of my lists' stats, saves its copies
-// per deck and the construction check as the list's summary (ootv-search /list updatefield=summary; doesn't
+// the list view keeps the directory's Count current: after drawing one of my lists' stats (a deck's after
+// its cards' legality too, liststatslegal), saves its copies per deck and the construction check as the list's summary (ootv-search /list updatefield=summary; doesn't
 // touch modified), when they changed. An admin editing the list saves it too (audited, the owner isn't emailed):
 // its owner may never open it again, and the public listing's Illegal reads the summary.
 function listsummarysave(listid, summary) {
@@ -4051,6 +4051,7 @@ function liststats(listdata,listid=null) {
     if(!cards.length) {
 	listsummarysave(listid, null);
 	delete listcheckhtml[listid];
+	delete listsummaryheld[listid];
 	return '';
     }
     var deckfield = liststatsdeckfield();
@@ -4101,7 +4102,12 @@ function liststats(listdata,listid=null) {
     }), "buildbad": !!(build && build.problems.length)};
     var clan = liststrongholdclan(cards.map(function(c) { return c.card; }));
     if(clan) { summary.clan = clan.slice(0,60); }
-    listsummarysave(listid, summary);
+    var legalids = (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '';
+    if(legalids) {
+	listsummaryheld[listid] = summary;
+    } else {
+	listsummarysave(listid, summary);
+    }
     // a deck with Dynasty and Fate decks (L5R) leads the summary with their sizes: "40/40 - 82 total"
     var decksize = function(name) {
 	var d = decks.filter(function(d) { return d.name.toLowerCase() == name; })[0];
@@ -4110,7 +4116,7 @@ function liststats(listdata,listid=null) {
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
-	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
+	"listid": listid, "legalids": legalids,
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
 	"buildbad": !!(build && build.problems.length), "buildhtml": deckbuildhtml(build)});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
@@ -4121,14 +4127,25 @@ function liststats(listdata,listid=null) {
 // the list header's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
 // not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
 // kept per card set and format for the page's life.
+// A card not legal in the deck's format breaks its construction, as a broken rule does: the header says so instead of
+// "meets the rules", and it goes in the summary's buildbad, so a deck's summary is saved here rather than in liststats.
+// A failed check saves nothing: the list keeps its last summary, and the next draw tries again.
 var liststatslegalcache = {};
+var listsummaryheld = {}; // listid: the summary from the last liststats, buildbad from the rules alone
 function liststatslegal() {
     $(".liststatslegal[data-cardids]").each(function() {
 	var el = $(this), ids = el.attr('data-cardids'), format = el.attr('data-format') || '';
-	var key = format+'|'+ids;
+	var key = format+'|'+ids, listid = el.attr('data-listid'), held = listsummaryheld[listid];
 	var show = function(r) {
 	    var bad = el.siblings('.liststatsillegal');
-	    if(r.illegal && r.illegal.length) {
+	    var illegal = !!(r.illegal && r.illegal.length);
+	    el.siblings('.liststatsflag').toggle(!!(held && held.buildbad) || illegal);
+	    el.siblings('.liststatsbuildok').toggle(!illegal);
+	    // an answer that lands after a newer draw leaves that draw's summary alone
+	    if(held && listsummaryheld[listid] === held) {
+		listsummarysave(listid, $.extend({}, held, {"buildbad": held.buildbad || illegal}));
+	    }
+	    if(illegal) {
 		bad.html('Not legal in '+htmlEncode(r.format)+': '+r.illegal.map(function(c) {
 		    return '<a href="#game='+database+',#cardid='+parseInt(c.cardid)+'">'+htmlEncode(c.title)+'</a>';
 		}).join(', ')).show();

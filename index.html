@@ -1084,12 +1084,12 @@ proxies and public decklists, for:</p>
 </script>
 
 <!-- list view: the deck check at the foot of the list header (listheader's ~check, from liststats in oracle.js): the
-     cards not legal in the deck's Legality, the formats every card is legal in (liststatslegal), a red note when it breaks its construction rules, and the deck construction
-     check (deckbuildhtml), as one line of phrases that wraps (oracle.css). Decks only; empty for other lists. -->
+     cards not legal in the deck's Legality, the formats every card is legal in (liststatslegal), a red note when it breaks its construction rules (a rule, or
+     a card not legal in its Legality: liststatslegal shows it for those), and the deck construction check (deckbuildhtml), as one line of phrases that wraps (oracle.css). Decks only; empty for other lists. -->
 <script id="template-listcheck" type="text/x-jsrender">
 {{if legalids || buildhtml}}<div class="listviewcheck">
-  {{if legalids}}<div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>
-  {{/if}}{{if buildbad}}<div class="liststatsflag">Breaks the deck construction rules</div>{{/if}}
+  {{if legalids}}<div class="liststatslegal" data-listid="{{:listid}}" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>
+  {{/if}}<div class="liststatsflag"{{if !buildbad}} style="display:none"{{/if}}>Breaks the deck construction rules</div>
   {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>{{/if}}
   {{:buildhtml}}
 </div>{{/if}}
