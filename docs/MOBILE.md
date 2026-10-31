@@ -26,6 +26,7 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] Search form selects (Tom Select, 2026-10-30; replaced Chosen, which turned itself off on phones and left
   tall list boxes). Check that tapping a field doesn't zoom the page, how much of the list the keyboard leaves
   (the keyboard opens because the field filters), and that the page behind doesn't jump.
+- [ ] Every other pulldown with more than two options (Tom Select too, 2026-10-31, [PR #548](https://github.com/Oracle-of-the-Void/ootv-client/pull/548)): same checks on a real phone, plus whether the keyboard is welcome on the short ones (three to five options). iOS should not zoom: the search box is 16px on touch.
 - [ ] Search panel: phones start with it open; it opens from the Edit search bar above the results
   (added 2026-10-15: a tester couldn't find the second tap on the Search Results button) or that button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
