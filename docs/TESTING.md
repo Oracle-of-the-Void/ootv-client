@@ -88,6 +88,13 @@ Games differ in ways that break shared code. Loop over all seven
 - To confirm a fix, run the same script with the change stashed (`git stash`, run,
   `git stash pop`) and compare.
 
+## Browser shortcuts
+
+Playwright's `keyboard.press` never reaches the browser's own shortcuts, so a page's handling of Alt+Left looks
+fine while the real key also goes Back. To test one, run headed under `xvfb-run` and send the key from outside with
+XTest (ctypes on `libXtst.so.6`: `XTestFakeMotionEvent` over the window, then `XTestFakeKeyEvent`). Compare against
+`master`: there, Alt+Left on a search result's card stepped back and then left the card for the search results.
+
 ## Faking login and the API
 
 Headless Chromium can't do the Cognito login, so fake the logged-in state instead:

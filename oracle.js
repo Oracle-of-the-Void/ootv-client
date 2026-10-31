@@ -1935,7 +1935,7 @@ function refreshactivelistviews() {
 	scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
     }
     if($("#lastcardid").val()) {
-	docardid($("#lastcardid").val(), lastcardprid(), qs || null, false, false);
+	docardid($("#lastcardid").val(), lastcardprid(), cardqs(), false, false);
     }
 }
 
@@ -3158,7 +3158,7 @@ function redrawcardforselect() {
     // on a cold cache the card can render before a select it sorts by arrives (sortlegality,
     // sortprintings); redraw it once the select is cached, if the card view is showing
     if($("#resultcard").is(":visible") && $("#lastcardid").val() && cache_card_is($("#lastcardid").val())) {
-	docardid( $("#lastcardid").val(), lastcardprid(),$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	docardid( $("#lastcardid").val(), lastcardprid(), cardqs());
     }
 }
 
@@ -3551,6 +3551,9 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    liststatskwmark(); // after the symbols and deck flow, which rebuild the cards' html
 	    listcountready('#resultlist');
 	    pagetitle();
+	    if(listid) {
+		listcardorder[listid] = listcardsdrawn();
+	    }
 	}
     }
 }
@@ -6405,6 +6408,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  console.log("templates not loaded yet");
 	  return;
   }
+  qs = listcardqs(carddata.cardid,prid,qs,switchview);
   $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
   drawcard(carddata,prid,qs);
   if(cardpartial(carddata)) {
@@ -8491,7 +8495,7 @@ function activatetemplate(type,template) {
   }
   if(type == 'card') {
 	  if( $("#lastcardid").val() ) {
-	    docardid( $("#lastcardid").val(), lastcardprid(),$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	    docardid( $("#lastcardid").val(), lastcardprid(), cardqs());
 	  }
   }
   updatemenubar(type);
@@ -9275,11 +9279,17 @@ $(window).on('popstate', function (e) {
   urlparser(!e.originalEvent.state);
 });
 
-// Keyboard navigation inside a list of cards
+// Keyboard navigation inside a list of cards: the arrows, with or without Alt. Alt also works with focus on a link or
+// button, and stops the browser's own Alt+Left/Right from going Back or Forward on top of the step. A card with no
+// results to step through (opened from a link) leaves them to the browser. Alt in a form field is the browser's too.
 $(document).on('keydown', function ( e ) {
-    if(e.target.nodeName=='BODY') {
+    var altstep = e.altKey && (e.key == "ArrowRight" || e.key == "ArrowLeft") && !$(e.target).closest('input, select, textarea, [contenteditable=true]').length;
+    if(e.target.nodeName=='BODY' || altstep) {
 	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it
 	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible"))) {
+	    if(altstep && $("#cardnext").length) {
+		e.preventDefault();
+	    }
 	    if(e.key == "ArrowRight") {
 		$("#cardnext").click();
 	    }
@@ -10517,7 +10527,65 @@ function changeprinting(id,prid,qs,title) {
   // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
 }
 
+// The search a card was opened from, or the list ('listid=N'), for redrawing it where it is
+function cardqs() {
+    return $('#lastcardid').data('qs') || $('#lastsearchquery').val() || null;
+}
+// A card opened from the list on screen steps through that list as it's drawn: its qs is 'listid=N' (the views' own
+// card links don't say, and Table and Deck pass no qs at all), so the card page's arrows, keys and swipe come with it.
+// refreshlist keeps the order here. Two printings of a card are two stops; a regular and a foil copy of one printing are one.
+var listcardorder = {};
+var listcardspot = 0;   // where the card on screen is, or was before its last copy left the list
+function cardqslist(qs) {
+    var match = /^listid=(\d+)$/.exec(qs || '');
+    return match ? match[1] : null;
+}
+function listcardsdrawn() {
+    var seen = {};
+    return $('#resultlist a.deckswipe[data-card]').map(function() {
+	var card = {cardid: Number($(this).data('card')), printing: Number($(this).data('printing')) || 0};
+	var key = card.cardid+'/'+card.printing, first = !seen[key];
+	seen[key] = true;
+	return first ? card : null;
+    }).get();
+}
+// the printing it was opened on, else any row of the card (a picked Version needn't be a row of the list)
+function listcardindex(listid,id,prid) {
+    var order = listcardorder[listid] || [];
+    var index = order.findIndex(function(c) { return c.cardid == id && c.printing == (prid || 0); });
+    return index < 0 ? order.findIndex(function(c) { return c.cardid == id; }) : index;
+}
+// docard: the qs to draw this card with
+function listcardqs(id,prid,qs,opening) {
+    var listid = cardqslist(qs);
+    if(!qs && opening && currentresulttab() == 'list' && $('#lastlistid').val()) {
+	listid = $('#lastlistid').val();
+    }
+    var index = listid ? listcardindex(listid, id, prid) : -1;
+    if(index >= 0) {
+	listcardspot = index;
+	return 'listid='+listid;
+    }
+    // a list's qs with the card not in it: its last copy left (stepping carries on), or a reload, and the list isn't drawn
+    return cardqslist(qs) && !(listcardorder[listid] || []).length ? null : qs;
+}
+function listcardstep(id,qs,step) {
+    var listid = cardqslist(qs), order = listcardorder[listid] || [];
+    var index = listcardindex(listid, id, $('#lastcardid').data('prid'));
+    // left the list: the row after it now sits at its old spot
+    var to = order[index < 0 ? listcardspot + Math.min(step, 0) : index + step];
+    if(to && cache_card_is(to.cardid)) {
+	docardid(to.cardid, to.printing || null, qs);
+    } else if(to) {
+	cardfetch(to.cardid, to.printing || null, qs);
+    }
+}
+
 function cardprev(id,qs) {
+    if(cardqslist(qs)) {
+	listcardstep(id,qs,-1);
+	return;
+    }
     var index = searchcache[database]['querydata'][qs].indexOf(id);
     if(index>0) {
 	docardid(searchcache[database]['querydata'][qs][index-1],null,qs);
@@ -10526,6 +10594,10 @@ function cardprev(id,qs) {
 
 // TODO: er.. .lastsearchquery is getting messy with being able to load searches?  or will it work...
 function cardnext(id,qs) {
+    if(cardqslist(qs)) {
+	listcardstep(id,qs,1);
+	return;
+    }
     var index = searchcache[database]['querydata'][qs].indexOf(id);
     if((index >= searchcache[database]['querydata'][qs].length - 5) && (searchcache[database]['querydata'][qs].length < searchpageable(qs))) {
 	searchnextpage(qs);
