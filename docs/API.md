@@ -389,7 +389,7 @@ inputs:
       directory folder: a path like "Tournament/2026" ('' = top level; trimmed, at most 255 characters).
       Empty folders live in the user's settings[database].folders (see /user settings)
   * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false, "clan": "..."}`
-    (copies per deck, in deck order, at most 10; whether the deck construction rules fail; optional `clan`, plain
+    (copies per deck, in deck order, at most 10; whether the deck construction check fails, its rules or a card not legal in the deck's format; optional `clan`, plain
     text, at most 60 characters: the first Stronghold whose clan has a mon, drawn before the list's name). The client saves it
     after drawing one of the user's own lists, or one being edited as an admin (`listsummarysave()`); '' removes it. The lists index copies
     `buildbad` into its summaries for the public listing's Illegal mark
