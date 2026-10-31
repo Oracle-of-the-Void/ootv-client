@@ -7594,14 +7594,19 @@ function legalitybug(value, small) {
     return '<img class="legalitybug'+(small ? ' legalitybugsmall' : '')+'" src="'+lb.path+lb.bugs[name]+'.png" alt="'+
         (small ? htmlEncode(name) : '')+'" title="'+htmlEncode(name)+'" />';
 }
-// the clan's mon drawn before a clan's name, like the legality bugs: game config clanmons {path, mons: {<clan,
-// plain text>: <image name>}} (docs/admin/game-config.md; L5R: the flat clan-colour mons from ootv-assets
-// mons/oracle_plain/color). '' for a clan with none, or a game without them.
+// the clan's mon drawn before a clan's name, like the legality bugs: game config clanmons {path, onlight, ondark,
+// mons: {<clan, plain text>: <image name>}} (docs/admin/game-config.md; L5R: the flat clan-colour mons from ootv-assets
+// mons/oracle_plain/color, with a glow). With onlight + ondark both images are drawn and oracle.css shows the one that
+// suits what's behind it, so a theme change needs no redraw. '' for a clan with none, or a game without them.
 function clanmon(value) {
     var cm = ((gameconfig[database] || {}).game || {}).clanmons;
     var name = selectplaintext(value || '');
     if(!cm || !cm.mons || !cm.mons[name]) { return ''; }
-    return '<img class="clanmon" src="'+cm.path+cm.mons[name]+'.png" alt="" title="'+htmlEncode(name)+'" />';
+    var img = function(path, cls) {
+	return '<img class="clanmon'+cls+'" src="'+path+cm.mons[name]+'.png" alt="" title="'+htmlEncode(name)+'" />';
+    };
+    if(!cm.onlight || !cm.ondark) { return img(cm.path, ''); }
+    return img(cm.onlight, ' clanmonglow clanmononlight')+img(cm.ondark, ' clanmonglow clanmonondark');
 }
 function clanmonned(value) {
     var mon = clanmon(value);
