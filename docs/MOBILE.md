@@ -82,7 +82,7 @@ card or swipe; Android's long-press menu is blocked. The Detailed file comes fro
 image/link callout is turned off with `-webkit-touch-callout` set on the press, which may be too late; if the
 iOS menu or link preview still opens, set it in CSS on `a.deckswipe` and its image instead.
 
-Version menu (2026-10-31, emulated touch on Chromium, synthetic press on WebKit): in the list view, on a list you can
+Version menu (2026-10-31, [PR #544](https://github.com/Oracle-of-the-Void/ootv-client/pull/544), emulated touch on Chromium, synthetic press on WebKit): in the list view, on a list you can
 edit, a 500 ms press on a card's picture, name or version opens the menu of versions (`versionmenuopen`, switch
 `versionmenutouch`). It shares card peek's press (`cardpeek.press`), so the release is handled the same way, and takes
 that press from peek on these rows; the menu shows the picture, and a tap on it is the full-size peek. With the switch
