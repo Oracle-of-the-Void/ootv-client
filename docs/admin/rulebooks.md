@@ -535,6 +535,13 @@ v2.0 (2000-06-07, Floor Rules: the three formats). The 2002 versions come from t
 page); the rest from the Crow's Nest, alderac.com and rulespal.com (Wayback copies). Types and tags: proposed
 and approved by the user, 2026-10-27.
 
+## The 7th Sea: Five Sails books (2026-10-31)
+
+7th Sea: Five Sails (`7s5s`, a preview game; not the 1999 `7thsea`), list `rulebooks/7s5s.json`, ids `7s5s-*`, a
+shelf of its own. Pine Box's Comprehensive Rulebook (Complete; Base set, Last complete rules), Learn to Play
+(Learn to Play; Base set) and Floor Rules v3.0 of 2026-08-18 (Floor Rules), from ootv-games `game-7s5s/rules/`.
+Types and tags are proposals, not yet looked at by the user.
+
 ## The Android: Netrunner book (2026-10-30)
 
 Android: Netrunner (`netrunner`, a preview game), list `rulebooks/netrunner.json`: Null Signal Games'
