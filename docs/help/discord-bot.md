@@ -107,6 +107,7 @@ Not every game has every option, just as on the site's search form:
 | Pathfinder Pawns | `set`, `type` |
 | Legend of the Five Rings: The Card Game | `set`, `type`, `clan`, `text`, `legality` |
 | Deadlands: Doomtown (1998) | `set`, `type`, `outfit`, `text`, `legality` |
+| 7th Sea: Five Sails | `set`, `type`, `text` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.

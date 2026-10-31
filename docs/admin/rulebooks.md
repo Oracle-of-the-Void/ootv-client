@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-30 (Warhammer 40,000 CCG types and tags OK'd; Android: Netrunner and Doomtown: Reloaded shelves)
+Last updated: 2026-10-31 (7th Sea: Five Sails shelf)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -534,6 +534,13 @@ v2.0 (2000-06-07, Floor Rules: the three formats). The 2002 versions come from t
 (PDFs converted to HTML there, printed back page for page, so the cards' ruling links land on the right
 page); the rest from the Crow's Nest, alderac.com and rulespal.com (Wayback copies). Types and tags: proposed
 and approved by the user, 2026-10-27.
+
+## The 7th Sea: Five Sails books (2026-10-31)
+
+7th Sea: Five Sails (`7s5s`, a preview game; not the 1999 `7thsea`), list `rulebooks/7s5s.json`, ids `7s5s-*`, a
+shelf of its own. Pine Box's Comprehensive Rulebook (Complete; Base set, Last complete rules), Learn to Play
+(Learn to Play; Base set) and Floor Rules v3.0 of 2026-08-18 (Floor Rules), from ootv-games `game-7s5s/rules/`.
+Types and tags are proposals, not yet looked at by the user.
 
 ## The Android: Netrunner book (2026-10-30)
 
