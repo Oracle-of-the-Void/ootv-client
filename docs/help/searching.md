@@ -22,6 +22,9 @@ The boxes are different for each game: they're that game's card fields.
   phrase; in L5R each word has to be there, and the subtitle counts too.
 - **Pull-downs** match the value exactly. Pick more than one and a card can have any of them.
 - **Number boxes** come in pairs, lowest and highest. Leave one empty for "at least" or "at most".
+  They also find cards whose number isn't a plain number: a cost of `*` or `X` could be anything,
+  so it matches any range, and `2*` counts as 2. To do the same in the All box, see
+  [numbers with * or X](#variable-numbers).
 
 ## The All box {#all}
 
@@ -56,6 +59,36 @@ Terms are joined with AND unless you say otherwise.
 - **A colon means a field name.** To search for text with a colon in it, put a backslash before
   it: `Reaction\: battle`. The other characters that need one are `+ - && || ! ( ) { } [ ] ^ " ~ * ? \ /`.
 - **Upper and lower case don't matter**: `clan:crab` and `clan:Crab` are the same.
+- **A minus in front of a word leaves it out.** `-1C` finds every card *without* `1C`. For a
+  negative number, use quotes or a backslash: `chi:"-1"` or `chi:\-1`. `chi:-1` is an error.
+  In card text the minus isn't searched at all, so `text:"-1C"` also finds `1C`.
+- **Double quotes must come in pairs.** `"Suzume'` is an error; `"Suzume"` is fine.
+- **Type plain letters.** Use `kyuden`, not `Kyūden`, and a straight apostrophe in
+  `Shinsei's Shrine`, not a curly one, or the search finds nothing.
+- **`cost:>15` only sees plain numbers.** Cards with a cost of `*` or `X` are left out. See the
+  next section.
+
+### Numbers with * or X {#variable-numbers}
+
+A number search like `cost:>15` only looks at cards with a plain number there. To also find
+cards whose number is `*`, `X` or `2*`, the way the number boxes do, put `numrange.` in front
+of the field name:
+
+| To find | Type |
+|---|---|
+| cost over 15, including `*` and `X` | `numrange.cost:>15` |
+| cost 2 to 4, including `*`, `X` and `2*` | `numrange.cost:[2 TO 4]` |
+| cards that can cost exactly 3 | `numrange.cost:3` |
+| Strategies costing 0 or 1, or `*` | `type:strategy AND numrange.cost:[0 TO 1]` |
+
+It works for every field that has number boxes on the form (Force, Chi, Gold Production...).
+`*` and `X` match any number, `2*` counts as 2, and a card that lists its possible values
+matches any of them. `numrange.cost:>15` finds 63 L5R cards, where `cost:>15` finds 17.
+You can't pick out `2*` on its own: `cost:2*` finds nothing, and `numrange.cost:2` finds every
+card that can cost 2.
+
+A cost that's lower only for one clan (*"costs 2 less Gold for Scorpion Clan players"*) is
+searched at its printed cost. A deck's table and averages use the lower cost when the deck qualifies.
 
 ## Printing fields {#printing}
 
@@ -76,6 +109,10 @@ the Foil choice (its image, set and rarity).
 - More results load as you scroll down. The count is in the menu bar.
 - The buttons on the right of the menu bar change how results look (detailed list, card images,
   simple list), their size, and their order (**Sort**).
+- In the detailed list, a globe with a number beside a card's name is how many public decks play
+  it. Click it to see them ([public lists](public-lists.md)).
+- Hover over a small card picture, or a name in the simple list, to see the card at full size.
+  On a phone, press and hold it; tap to close.
 - Click a card to open it. On the card, the arrows (or arrow keys, or a sideways swipe on a
   phone) go to the next or previous result.
 - Searches are kept in the address bar, so you can bookmark or share them, and Back returns to

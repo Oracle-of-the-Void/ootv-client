@@ -20,6 +20,20 @@ the card's current text.
 Each printing's own set, rarity, flavor text, artist and so on are listed below the card's
 details.
 
+## Card backs {#backs}
+
+Under the card's image is a small picture of its back. Click it to see the back full size, and
+again for the front.
+
+- **Printed back** (with a gold edge): this card has a back of its own, like the story backs of the
+  Time of the Void strongholds or the double-sided Ivory strongholds.
+- **Back: Fate Card Back (Old)** and the like: the ordinary back cards of that set were sold with.
+  **open** goes to that back.
+
+When a version was printed more than one way (different art or typesetting in the same set),
+each print is shown full size, marked **Print 1 of 2**, **Print 2 of 2**. Each print has its own
+back thumbnail, so a second print is never mistaken for a back.
+
 ## Foil {#foil}
 
 A printing that came in foil carries a foil mark, on its Versions button, in its details and in
@@ -46,7 +60,8 @@ Many values on the card are links: a clan, a type, a keyword, an artist. Clickin
 for every card with it, keeping the rest of your search form.
 
 In L5R a clan has its mon beside it, here and in search results and Public lists, the way each
-legality has its arc bug.
+legality has its arc bug. A deck's name starts with its Stronghold's mon, in your lists, in Public
+lists and when you open it.
 
 An artist works a little differently: clicking the name opens a small box with **Search cards by**
 that artist, then the artist's own pages (portfolio, gallery, social media) where we know them.

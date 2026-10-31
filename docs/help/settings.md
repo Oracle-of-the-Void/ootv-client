@@ -20,6 +20,12 @@ settings are kept in that browser only, and **Clear Cache** deletes them.
   Patreon to tie it instead. **Unlink** unties it, and the email match won't tie it again.
 - **Favorite game**: the game the site opens with in a new browser.
 
+## Theme {#theme}
+
+The menu (the three lines at the top left) has **Theme**: click it to go through **Auto** (the same as your
+device's light or dark setting), **Light** and **Dark**. It works without logging in; if you are logged in, your
+other devices pick it up too. **Clear Cache** and logging out keep it.
+
 ## Display {#display}
 
 - **Card text**: whether cards start with their printed wording or their current wording
@@ -34,8 +40,9 @@ so on). The print dialog starts from them each time. See [Downloads](lists.md#do
 
 ## Gestures {#gestures}
 
-Swipes and long-presses, each one on or off: swiping cards to change their count, dragging in
-the list directory, long-pressing a button to see its name, swiping between cards. Turn one off
+Swipes, long-presses and hovers, each one on or off: swiping cards to change their count, dragging in
+the list directory, long-pressing a button to see its name, swiping between cards, hovering or
+long-pressing a small card picture or a simple list name to see the card at full size. Turn one off
 to get the browser's usual behavior back. For card swipes, choose what each direction does (add,
 remove, set the count, remove all), separately for search results and for lists.
 

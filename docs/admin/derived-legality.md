@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -24,8 +24,9 @@ show them on the card page instead (below, "Showing derived values on the card p
 - **Deck/list legality menu:** ootv-client `listLegalitySelect` lists `legality.sortregex`,
   then adds each derived name right after the format it starts with (Ivory → Ivory Strict),
   with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
-  need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's
-  legality is only a label and isn't checked.
+  need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's own
+  menu ends with **Special**, which isn't a format or a derived rule ([Deck construction rules](deck-construction.md)).
+  A list's legality checks its cards (`/cardslegal`) and picks its construction rules; nothing is blocked.
 - **Search form checkbox:** the field `paper` in the L5R field list's settings
   (`l5r/fields`, Admin → Config → Fields: `"search": {"type": "require", "field": "legality", "value": "Paper"}`,
   label `only`, short `Paper`), listed in `l5r/game` `search`, renders a checkbox that sends `require_legality=Paper`. The API ANDs

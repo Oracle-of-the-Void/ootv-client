@@ -88,7 +88,7 @@ function cardeditstart(db,cardid,base,printid) {
   cardedit.printid = ids.includes(String(printid)) ? String(printid) : (ids.includes(String(card.printingprimary)) ? String(card.printingprimary) : ids[0]);
   modal(base ? 'Edit card: '+[].concat(base.title || '')[0] : 'Insert new card','<div id="cardedit"></div>');
   $('#modal').addClass('cardeditmodal').data('guard',cardeditclose);
-  $('#cardeditzoom').remove();
+  cardeditzoomclose();
   cardeditrender();
 }
 
@@ -238,6 +238,7 @@ function cardeditrender() {
         step(1,'right','Next instance (&rarr;)')+
         (p.printingid == c.printingprimary ? ' <span class="cardeditmrp">MRP</span>'
           : ' <span class="button gray buttonsmall" onclick="cardeditmrp();">Make MRP<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg></span></span>')+
+        (isnew ? '' : ' <span class="button gray buttonsmall" onclick="cardedituploadopen();">Upload image<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></span></span>')+
         ' <span class="button gray buttonsmall" onclick="cardeditdeleteprinting();">Delete instance<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#file-minus"></svg></span></span>'+
         '</div>';
       html += cardeditimages(p,isnew);
@@ -340,7 +341,7 @@ function cardeditprintings() {
   return html;
 }
 
-// the printing's images, and the upload form (uploadimagetrigger in oracle.js) once it's saved
+// the printing's images
 function cardeditimages(p,isnew) {
   var html = '';
   if(p.image && p.image.length && typeof p.imagehash === 'string') {
@@ -365,14 +366,30 @@ function cardeditimages(p,isnew) {
   if(isnew) {
     return html+'<div class="cardeditnote">Commit the new instance before uploading its image.</div>';
   }
+  return html;
+}
+
+// the upload form (uploadimagetrigger in oracle.js) in its own box over the editor, with the instance's
+// values as they are now
+function cardedituploadopen() {
+  var p = cardeditprinting();
   var up = imageuploaddefaults(cardedit.cardid,p.printingid,p);
-  return html+'<details class="cardeditupload"><summary>Upload image</summary><fieldset id="editimage">'+
-    '<input type="file" id="editimagefile" accept="image/png,image/jpeg" /><br />'+
-    'Directory <input type="text" id="editimagehash" size="12" value="'+htmlEncode(up.imagehash)+'"'+(up.locked ? ' readonly title="All images of an instance share its directory"' : '')+' /> '+
-    'File name <input type="text" id="editimagestem" size="16" value="'+htmlEncode(up.stem)+'" />_master / _details / _select '+
-    '<label><input type="checkbox" id="editimageoverwrite" /> Replace existing files</label><br />'+
-    '<input type="button" id="editimagebutton" value="Upload image" onclick="uploadimagetrigger();" />'+
-    '<div id="editimagestatus"></div><div id="editimagepreview"></div></fieldset></details>';
+  $('#cardeditupload-title').text('Upload image: instance '+p.printingid);
+  $('#cardeditupload-content').html('<div class="cardedituploadform">'+
+    '<div><input type="file" id="editimagefile" accept="image/png,image/jpeg" /></div>'+
+    '<div>Directory <input type="text" id="editimagehash" size="12" value="'+htmlEncode(up.imagehash)+'"'+(up.locked ? ' readonly title="All images of an instance share its directory"' : '')+' /></div>'+
+    '<div>File name <input type="text" id="editimagestem" size="16" value="'+htmlEncode(up.stem)+'" />_master / _details / _select</div>'+
+    '<div><label><input type="checkbox" id="editimageoverwrite" /> Replace existing files</label></div>'+
+    '<div><input type="button" id="editimagebutton" value="Upload image" onclick="uploadimagetrigger();" /> '+
+    '<input type="button" value="Cancel" onclick="cardedituploadclose();" /></div>'+
+    '<div id="editimagestatus"></div></div>');
+  $('#cardeditupload').show();
+}
+
+// stays open while an upload runs: the image joins the instance when it finishes
+function cardedituploadclose() {
+  if($('#editimagebutton').prop('disabled')) { return; }
+  $('#cardeditupload').hide();
 }
 
 // ************* editing (all in memory) *************
@@ -529,7 +546,7 @@ function cardeditstep(d) {
 
 // the left/right arrows step through instances when no field has the focus, as on the card page
 $(document).on('keydown', function(e) {
-  if(!cardedit || !$('#modal').hasClass('cardeditmodal') || !$('#modal').is(':visible') || $('#cardeditconfirm').is(':visible')) { return; }
+  if(!cardedit || !$('#modal').hasClass('cardeditmodal') || !$('#modal').is(':visible') || $('#cardeditconfirm, #cardeditupload').is(':visible')) { return; }
   if(e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || $(e.target).is('input, textarea, select, [contenteditable=true]')) { return; }
   var d = e.key == 'ArrowLeft' ? -1 : e.key == 'ArrowRight' ? 1 : 0;
   if(!d) { return; }
@@ -1002,7 +1019,8 @@ function cardeditreset() {
 // A thumbnail opens the instance's _master image in a panel over the page that stays open while
 // fields are edited: drag its title bar to move it, its corner to resize it. The slider, the wheel
 // (at the pointer) and a double-click zoom from fit (1x) to 16x; drag the image to pan. The panel
-// sits inside #modal, so it hides with the editor (CSS: #modal:not(.cardeditmodal)).
+// sits inside #modal, so it hides with the editor (CSS: #modal:not(.cardeditmodal)). Its foot deletes
+// the image shown and, with several images, has their thumbnails: click to show one, drag to reorder.
 var cardeditzoommax = 16;
 var cardeditzoomstate = null; // {src, fit, zoom, x, y}: scale = fit*zoom, image offset x,y in the box
 
@@ -1016,7 +1034,9 @@ function cardeditzoom(src) {
       '<span id="cardeditzoomlabel">1x</span> '+
       '<span class="cardeditzoombtn" title="Fit the whole image" onclick="cardeditzoomset(1);">Fit</span>'+
       '<span class="cardeditx" title="Close" onclick="cardeditzoomclose();">&#x2715;</span></div>'+
-      '<div id="cardeditzoombox"><img id="cardeditzoomimg" alt="" draggable="false" /></div></div>');
+      '<div id="cardeditzoombox"><img id="cardeditzoomimg" alt="" draggable="false" /></div>'+
+      '<div id="cardeditzoomfoot"><div id="cardeditzoomthumbs"></div>'+
+      '<span class="button gray buttonsmall" title="Remove this image from the instance" onclick="cardeditzoomdelete();">Delete<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg></span></span></div></div>');
     cardeditzoomwire();
   }
   if(cardeditzoomstate && cardeditzoomstate.src == src) { return; }
@@ -1025,6 +1045,7 @@ function cardeditzoom(src) {
     cardeditzoomfit();
     $(this).css('visibility','visible');
   }).attr('src',src);
+  cardeditzoomfoot();
 }
 
 function cardeditzoomclose() {
@@ -1037,6 +1058,52 @@ function cardeditzoomfollow() {
   if(!cardeditzoomstate || !$('#cardeditzoom').length) { return; }
   var srcs = $('#cardedit .cardeditimagelist img').map(function() { return ($(this).attr('onclick').match(/'(.*)'/) || [])[1]; }).get();
   if(srcs.length && !srcs.includes(cardeditzoomstate.src)) { cardeditzoom(srcs[0]); }
+  cardeditzoomfoot();
+}
+
+// the images of the instance shown: [{i: its place in printing.image, src, thumb, back}]; none in the JSON view
+function cardeditzoomimages() {
+  var p = cardedit && cardedit.view != 'json' ? cardeditprinting() : null;
+  var base = p ? dbinfo[cardedit.db].imageuri+p.imagehash+'/' : '';
+  return printingimages(p).map(function(e) {
+    var i = p.image.indexOf(e);
+    return {i: i, src: base+(e.master || e.details || e.select), thumb: base+(e.select || e.details || e.master),
+            back: e.side == 'back' || (!!p.doublesided && p.image.length == 2 && i == 1)};
+  });
+}
+
+// the foot: only for an image of the instance shown; the thumbnails only when there are several
+function cardeditzoomfoot() {
+  var images = cardeditzoomimages();
+  var src = cardeditzoomstate ? cardeditzoomstate.src : null;
+  $('#cardeditzoomfoot').toggle(images.some(x => x.src == src));
+  $('#cardeditzoomthumbs').html(images.length < 2 ? '' : images.map(x =>
+    '<div class="cardeditzoomthumb'+(x.src == src ? ' cardeditzoomcurrent' : '')+'" data-i="'+x.i+'" data-src="'+htmlEncode(x.src)+'" title="Click to show, drag to reorder">'+
+    '<img src="'+htmlEncode(x.thumb)+'" alt="" draggable="false" />'+(x.back ? '<span>back</span>' : '')+'</div>').join(''));
+}
+
+// out of the instance's image list; the file stays on the server. A printing with no scan has neither
+// image nor imagehash, and doublesided means exactly two images (docs/data.md).
+function cardeditzoomdelete() {
+  var images = cardeditzoomimages(), at = images.findIndex(x => x.src == cardeditzoomstate.src);
+  if(at < 0 || cardedit.running) { return; }
+  var p = cardeditprinting();
+  cardeditconfirm('Delete image','Remove this image from instance '+htmlEncode(p.printingid)+'? It is only removed when you commit, and the file stays on the server.', function() {
+    var next = images[at+1] || images[at-1];
+    p.image = p.image.filter((e,i) => i != images[at].i);
+    if(!p.image.length) { delete p.image; delete p.imagehash; delete p.imagecleaned; }
+    if(!p.image || p.image.length != 2) { delete p.doublesided; }
+    if(next) { cardeditzoom(next.src); } else { cardeditzoomclose(); }
+    cardeditrender();
+  });
+}
+
+// order: the places in printing.image, in their new order
+function cardeditzoomorder(order) {
+  if(cardedit.running) { cardeditzoomfoot(); return; }
+  var p = cardeditprinting();
+  p.image = order.map(i => p.image[i]);
+  cardeditrender();
 }
 
 // slider position (0..1000) <-> zoom (1..max), logarithmic so each step is the same ratio
@@ -1130,6 +1197,32 @@ function cardeditzoomwire() {
   panel.on('pointerup pointercancel', function() {
     drag = null;
     box.removeClass('cardeditzoompanning');
+  });
+  // a thumbnail: a press shows it, a drag moves it among the others, saved on release. The capture is on
+  // the row, since moving the thumbnail in the page would drop one held on the thumbnail itself.
+  var thumbs = $('#cardeditzoomthumbs'), thumb = null;
+  thumbs.on('pointerdown', '.cardeditzoomthumb', function(e) {
+    thumb = {el: this, x: e.clientX, y: e.clientY, moved: false};
+    thumbs[0].setPointerCapture(e.pointerId);
+  });
+  thumbs.on('pointermove', function(e) {
+    if(!thumb || (!thumb.moved && Math.abs(e.clientX-thumb.x)+Math.abs(e.clientY-thumb.y) < 6)) { return; }
+    thumb.moved = true;
+    $(thumb.el).addClass('cardeditzoomdragging');
+    thumbs.children().not(thumb.el).each(function() {
+      var o = this.getBoundingClientRect();
+      if(e.clientX < o.left || e.clientX > o.right || e.clientY < o.top || e.clientY > o.bottom) { return; }
+      thumbs[0].insertBefore(thumb.el, e.clientX < o.left+o.width/2 ? this : this.nextSibling);
+      return false;
+    });
+  });
+  thumbs.on('pointerup pointercancel', function(e) {
+    var t = thumb;
+    thumb = null;
+    if(!t) { return; }
+    if(e.type == 'pointercancel') { cardeditzoomfoot(); }
+    else if(t.moved) { cardeditzoomorder(thumbs.children().map(function() { return Number($(this).attr('data-i')); }).get()); }
+    else { cardeditzoom($(t.el).attr('data-src')); }
   });
   if(window.ResizeObserver) { new ResizeObserver(() => cardeditzoomfit()).observe(box[0]); }
 }

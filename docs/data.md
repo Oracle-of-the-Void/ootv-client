@@ -52,7 +52,9 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   its arc, where that differs between printings of one card. On the Border Keep and Bamboo Harvesters
   printings (2026-10-27, ootv-tools `printings/printed-deck.py`): Pre-Game for Celestial, Emperor and
   Three Dynasties, Dynasty for the Ivory promos. The card keeps every value (`["Dynasty", "Pre-Game"]`);
-  lists choose one with the game config's `sort.pick` (`docs/admin/game-config.md`).
+  lists choose one with the game config's `sort.pick` (`docs/admin/game-config.md`). Its `moves` put a
+  card under a deck it doesn't have in some formats: Sensei (`deck` Pre-Game) count in the Fate deck in
+  Jade and Imperial lists.
 * printing.foil (optional, every game, string). Left out: the printing is regular only. `"foil"`:
   it only came in foil (a foil that differs from the regular card, a foil-only card, or a foil
   promo, stored as its own printing). `"both"`: it came in regular and in foil in the same
@@ -85,6 +87,15 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   finds these through the printing's printed name (`printedtitle`, `title`: "Kamoto" in Anvil of
   Despair), S&M's double-sided strongholds (side "(1)"), and `ALIASES` in `snm-map.py` for names
   only S&M uses (its typos also sit in the card's `alttitle`, so a pasted S&M name finds the card).
+* printing.doublesided (optional, `1`, the older marker): the printing has exactly two images, a front and
+  its back (`image[1]`), e.g. the Ivory/Twenty Festivals and Onyx strongholds. Same as `side: "back"` on
+  `image[1]`; new data uses `side`.
+* printing.back (optional, every game, array of one string, since 2026-10-29): the cardid of the card
+  whose image is the back of this printing's fronts that have no back of their own (the game's card backs are cards: L5R's are 12664 to 12668 in
+  the Oracle of the Void set), or `["none"]` for no back. Leave it out to get the game's standard back
+  from the game config's `cardbacks` rules (`docs/admin/game-config.md`); set it only on a printing
+  the rules get wrong. The card page shows the back under the image, and the PDF's duplex option
+  prints it.
 * printing.image (array, one entry per image, front first). Each entry names the files of one image
   in the printing's `imagehash` directory:
  * ```json
@@ -93,9 +104,16 @@ What each field holds is also kept on the site, for the card editor: Admin → F
  "details": filename,   long side 600px  (other 288 or so)
  "master": filename,    no spec yet
  "original": filename (optional),
- "numeric": filename (optional sizing)
+ "numeric": filename (optional sizing),
+ "side": "back" (optional)
 }
 ```
+  An entry with `"side": "back"` is the printed back of the front just before it (a stronghold's story or
+  mon back): order the list front, back, front, back. Every other entry is a front, and more than one front
+  means the printing was printed more than one way (different art or typesetting under one set and
+  rarity). The card page draws each front full size with "Print n of m" when there are several, and a
+  front's back only as a thumbnail under it ("Printed back", or the standard back's name), so the two
+  never look alike. The PDF prints the first front (and, with duplex, its back).
   A printing with no scan has neither `image` nor `imagehash` (never an empty `image: []`). Since
   2026-10-21 the card images and the proxy export skip an empty list, entries that name no file, and
   an `image` without `imagehash` (`printingimages` in oracle.js: the missing-image stamp, no proxy
@@ -117,14 +135,38 @@ What each field holds is also kept on the site, for the card editor: Admin → F
 * needsreview (optional, every game, array of strings): open questions about the card, one plain-text
   reason per entry, shown only to that game's maintainers and searchable with Advanced → Needs review.
   Remove it with its x in the card editor (or `null` in the JSON view). See `docs/admin/needsreview.md`.
+* variablevalues (optional, every game, map of field → array of strings, since 2026-10-28): for a
+  numeric field whose printed value is variable (`*`, `X`, `2*`), the values the card can really have,
+  from its text: `{"cost": ["0-6"]}` (a range), `["2", "0"]` (either), `["1+"]` (1 or more, open-ended).
+  Min/max search uses it instead of the printed value's rule (`*`/`X` = 0 up, `2*` = 2, `+5/+0` = 5 or 0;
+  `docs/admin/field-descriptions.md`). The printed field stays as printed.
+  L5R since 2026-10-30: the Strategies whose action pays Gold equal to something (Certain Death, cost 0:
+  `["0+"]`), from ootv-tools `field-fixes/fill-variable-values.py`.
+* conditionalvalues (optional, every game, map of field → array of objects, since 2026-10-30): a numeric
+  field's value in a deck that meets a condition, from the card's text: `{"cost": [{"value": "2", "when":
+  {"clan": ["Scorpion"]}}]}` (Complications: "costs 2 less Gold for Scorpion Clan players"). `when` keys:
+  `clan` (the deck's Stronghold clan, as the clan mon names it: `Scorpion`, `Ratling`, `Brotherhood of
+  Shinsei`), `sensei` (the deck's Sensei title), `stronghold` (the Stronghold's title); any listed value
+  matches, and the first entry that matches wins. Search ignores it (the index stores it unmapped,
+  `enabled: false`): a min/max search still finds Complications at 4. The deck view uses it: a deck's
+  Table cells (`span.deckvalue`, title = printed value and why) and stats averages (`deckcontext`,
+  `deckstatvalue` in `oracle.js`; lists of another type keep the printed value). L5R: 83 cards (clan discounts, clan Gold productions), from
+  ootv-tools `field-fixes/fill-variable-values.py`, whose `--revert` puts a run back.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
   any other page in a small window). See `docs/admin/rulings.md`.
+  Not in `/search` answers (since 2026-10-29), which carry `rulingcount` instead; the card page fetches
+  the card for it (`docs/API.md`, /search).
 * rulingref (optional, every game, array of HTML strings): the rules team's answers about the card
   (L5R: from the mailing-list rules digests), one per entry, `<b>Q:</b> ...<br><b>A:</b> ...` then an
   `<a href>` to the answer's anchor in a copy of its source. Card details show a "Rules Q&A" button with
   the count, which opens the list in a popup. See `docs/admin/rulings.md`, "Rules Q&A".
+  Not in `/search` answers (since 2026-10-29), which carry `rulingrefcount` instead.
+* updatelog (every card, array of maps): one row per change (`op`, `uid`, `uname`, `timestamp` in ms,
+  `olddata`/`newdata`), shown under "Latest Updates" on the card page. Not in `/search` answers (since
+  2026-10-29), which carry `updatelast` (the newest row's `timestamp`) instead; the card page fetches the
+  rows when "Latest Updates" opens.
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 

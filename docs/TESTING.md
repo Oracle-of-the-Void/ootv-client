@@ -18,6 +18,9 @@ talks to the **dev API** (`apiuri` is `api-dev.oracleofthevoid.com` on localhost
 runs the `dev-ootv-search` Lambda). Its data is the live data, so searching and browsing
 are real, and any write is a write to production. See "Faking login and the API" below.
 
+PDFs need preview or the live site: from localhost the card images fail to load, so the PDF comes out with no cards.
+`PDFDocument` and `blobStream` are undefined until the first `createpdf` (`loadpdfkit`).
+
 ## Page state worth inspecting
 
 Everything is a global, so `page.evaluate(() => ...)` can read it directly:
@@ -30,7 +33,7 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
 | `largeview` | per-view size toggle `{search, card, list}` |
 | `currentresulttab()` / `viewbuttontype()` | tab on screen; which view the menubar buttons drive |
 | `searchcache[database].querydata[qs]` | **plain card ids** for a search, not card objects |
-| `cache_card_fetch(id)` | the cached card (fields are arrays: `title[0]`, `type.join()`) |
+| `cache_card_fetch(id)` | a copy of the cached card (fields are arrays: `title[0]`, `type.join()`); to try a change, edit it and store it with `cache_card(card)`, or the code under test never sees the change |
 | `cache_thing(kind, key[, value])` | localStorage-backed cache (`<game>_<kind>_<key>`) |
 
 ## Timing and navigation
@@ -46,6 +49,10 @@ Everything is a global, so `page.evaluate(() => ...)` can read it directly:
   (`listinfo(id,false)`) when the List view is empty.
   The menubar code re-renders only the tab on screen; test that switching from another tab
   doesn't jump.
+- **List load order.** A list asked for (a `#listid` link, a directory click: `listinfo(id,true)`, `listopening`) outranks
+  background loads however they finish; `activatelist` still fills the view. To test, delay the `/list` answers with
+  `page.route` and try each order: directory, then the linked list, then the first list in the directory (it used to draw
+  over the link), and a link answering 404 (the "private or doesn't exist" message must stay).
 - Hover a menu (`page.hover`) before clicking its items; move the mouse away before
   screenshots so balloon tooltips don't cover things.
 
@@ -65,8 +72,8 @@ const ctx = await browser.newContext({hasTouch: true, isMobile: true,
   so a centred `down` tooltip on a right-edge button can cause it; use `down-right` there.
 - `max-width: %` on images inside the `display: table-cell` layouts collapses them to nothing;
   cap with `vw` instead.
-- Chromium draws Chosen's mobile fallback (plain `<select multiple>`) as tall list boxes;
-  real iOS Safari shows a one-line picker. Check those on a real phone.
+- Search form selects are Tom Select on phones too: tap `#field_<name>-ts-control`, then an `.option` in
+  `#field_<name>-ts-dropdown`. The keyboard and any zoom on focus only show on a real phone.
 
 ## Cover every game
 
@@ -141,9 +148,38 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
 - To test adding a card without saving it: `addlistitem('t1', id, prid, 1)`, then check
   `updatepending['t1']` (the save got queued) and `clearTimeout(savetimeout)` so the
   60 s save never fires.
+- Count editing (Simple List and Table, `listcountready`): the count is `span.editquantity`, id
+  `clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>`. The count is part of the id and changes with every save,
+  so find it by prefix and foil (`[id^="clist_quantity:t1:<card>:<printing>:"][id$=":<foil>"]`). Check: click (tap on a
+  touch device) opens `− [n] +`; + and − keep the focus in the box; Enter and clicking away save, Esc doesn't; 0 brings up a
+  `confirm` (handle `page.on('dialog')`, dismiss then accept). Add a regular and a foil entry of one printing: both are
+  editable in the Simple List and both stay plain in the Table (its template has no foil). In WebKit a tap on −/+ sends no
+  `click` (its pointerdown is cancelled), so run the touch case in `devices['iPhone 13']` too.
 - Header rows are `cardid: 0` entries: `decktitle` rows (`div.listhead`) and `typetitle`
   rows (`div.deckviewtype` in the deck view, `.listheadplain` in Simple List). Check the
   counts text, and that each deck header appears once.
+- Statistics layout: the side column/float and the **Above** / **To the side** button only
+  apply at 1100px or wider (browser zoom counts), so test at 1280+ and at phone width. The
+  choice is kept in localStorage (`session_liststatspinned`, and `session_liststatsopen` /
+  `session_liststatskwopen` for the folds): clear them to see the defaults (to the side, both open).
+  Check Simple List / Text / Table (sticky right column) and Detailed / Visual / Deck (float
+  at the upper right, cards flowing round it), and in the deck view that Pre-Game sits beside
+  Dynasty (`div.deckviewsmall`) when there's room, else above it (`deckviewstack`, set by `deckviewfit` on resize, pin and fold), and Fate clears (`div.listhead.deckviewbreak`). The sticky column needs `:has()` on `#maincontent` (Safari 15.4+). Each type label is wrapped with its first card
+  (`span.deckviewlead`): resize through several widths and check no label is left alone at the end of a row
+  (compare the label's and its first card's `getBoundingClientRect().top`). A public deck
+  for these views: `#game=l5r,#listid=5372212275690645` (legal since its 2026-10-30 edit, so it no longer shows the red header note).
+
+## Dark mode
+
+Pick a theme before the page loads: `newContext({colorScheme: 'dark'})` for the device (`page.emulateMedia` changes it live, which Auto
+should follow), or an init script setting `localStorage.session_theme` to `'"dark"'` (JSON, as `cache_session` stores it).
+
+- **A color change that shouldn't touch light:** serve `master` and the branch side by side, and compare `getComputedStyle` color,
+  background and border colors element by element in each view. Leave out the menu's Theme item if `master` hasn't got it, or everything after it is off by one.
+- **Dark contrast:** walk the elements with their own text, blend the background layers up to the first solid one, and list anything under
+  4:1. It can't judge text over an image or a gradient, so look at screenshots too.
+- Move the mouse away first: at 0,0 it holds the first menu open. Switching views in code with the mouse over a card leaves the card peek up.
+- Blocked ads leave an empty frame, which is why `ins.adsbygoogle` keeps `color-scheme: light`: dark, it draws a white block.
 
 ## Backend changes
 

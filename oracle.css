@@ -1,5 +1,298 @@
+/* the site's fonts and shared colors: change them here, not in the rules below.
+   UI = every control, label and running text; display = the game's flavor font, only for card, list and section names */
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "L5R Title", Georgia, serif;
+  --panel: #fff;                          /* the panels everything sits on: solid, so text never sits on art */
+  --panel-alt: #f3f2ef;                   /* every other result row */
+  --panel-border: rgba(0, 0, 0, 0.08);
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --backdrop: #ecebe7;                    /* the page behind the panels */
+  --backdrop-tint: rgba(236, 235, 231, 0.86); /* laid over the game's art (body::before): 1 hides it, lower shows more */
+  --accent: #e0c35a;                      /* gold: section underlines, focus rings */
+  --button-text: #ffd73a;                 /* yellow text and icons on dark bars (.nocolor) */
+  --head-bg: #3a3833;                     /* card, list and dialog title bars */
+  --chip-bg: #f1efe9;                     /* the .gray buttons: printings, actions */
+  --chip-border: #d6d1c4;
+  --chip-hover: #e6e2d7;
+  --chip-text: #2b2a27;
+  --rule: #69c;                           /* blue left bars (rulings, help) and dotted trait links */
+  --link: #369;                           /* every link, visited or not (a[href], below) */
+  --border-warm: #d8d2c2;
+  --surface-warm: #faf8f2;
+  --field-border: #c8c6c0;                /* text boxes and dropdowns */
+  --focus-ring: 0 0 0 2px rgba(224, 195, 90, 0.4);
+  color-scheme: light;
+  /* every other color the rules use, by what it's for; each has its dark value below */
+  --line-strong: black;
+  --text-6: #777;
+  --text: black;
+  --text-4: #555;
+  --line-3: #ccc;
+  --text-5: #666;
+  --warn-2: #a50;
+  --foil-text: #5b4a86;
+  --foil-border: #b6a6de;
+  --foil-star: #b04fd0;
+  --line-4: #bbb;
+  --text-3: #444;
+  --text-2: #333;
+  --field-hover: #a9a69e;
+  --fill-12: #eeece6;
+  --text-8: #999;
+  --good-1: #1aa329;
+  --folder-solid: #b9b9b9;
+  --folder: rgba(185, 185, 185, 0.95);
+  --folder-tree: rgba(214, 214, 214, 0.95);
+  --text-1: #222;
+  --line-faint: rgba(0, 0, 0, 0.15);
+  --info-1: #1a4fa3;
+  --ghost: rgba(255, 255, 255, 0.97);
+  --line-7: #777;
+  --good-3: #137a1f;
+  --drop: rgba(203, 236, 207, 0.97);
+  --drop-row: rgba(170, 222, 176, 0.95);
+  --line-2: #ddd;
+  --fill-7: #f2f2f2;
+  --shared-bg: #fff4d6;
+  --shared-text: #3d2e00;
+  --shared-icon: #9a7400;
+  --bad-bg-1: #fde4e1;
+  --bad-6: #c0392b;
+  --admin-text: #4a0f08;
+  --bad-5: #8a1c10;
+  --good-4: #1d6b2a;
+  --shade-1: rgba(0, 0, 0, 0.07);
+  --shade-2: rgba(0, 0, 0, 0.035);
+  --shade-col: rgba(90, 110, 160, 0.06);
+  --bad-1: #a00;
+  --shade-3: rgba(0, 0, 0, 0.05);
+  --bad-8: #ee2222;
+  --good-10: #0a8913;
+  --icon-yellow: yellow;
+  --icon-orange: #ff4d01;
+  --icon-purple: purple;
+  --info-4: #2222ee;
+  --chip-border-hover: #b9b3a3;
+  --chip-active: #dcd7ca;
+  --icon-gold: #b08a12;
+  --printed-text: #3f5c08;
+  --printed-bg: #eef5d3;
+  --printed-border: #b9cf6e;
+  --printed-hover: #e3edbb;
+  --printed-border-hover: #9fb84f;
+  --bad-7: red;
+  --preview-row: rgb(255,236,179);
+  --menu-hover: rgb(128, 128, 128);
+  --menu-head: rgb(230,230,230);
+  --view-box: rgb(128, 128, 128);
+  --view-line: rgb(192, 192, 192);
+  --good-9: green;
+  --text-icon: rgb(96, 96, 96);
+  --view-active: rgb(224, 224, 224);
+  --tab-bg: #eeeae0;
+  --text-7: #888;
+  --visual-card: rgba(218, 218, 218, 0.9);
+  --phone-bar: rgba(235, 235, 235, 0.95);
+  --phone-panel: rgb(235, 235, 235);
+  --line-5: #999;
+  --warn-1: #a60;
+  --fill-4: #f6f6f0;
+  --good-bg-2: #eef6ee;
+  --good-5: #170;
+  --line-1: #eee;
+  --fill-5: #f4f4ec;
+  --bad-bg-3: #fff2f0;
+  --info-bg: #e6eefa;
+  --info-2: #245;
+  --bad-bg-2: #fbe3e0;
+  --good-bg-1: #e2f4e2;
+  --good-6: #262;
+  --warn-bg: #fdf0d0;
+  --warn-3: #750;
+  --fill-9: #e8e8e8;
+  --bad-4: #900;
+  --good-7: #060;
+  --fill-3: #f6f6f6;
+  --fill-2: #fafaf6;
+  --json-k: #7a3e9d;
+  --json-s: #1a6b2f;
+  --json-n: #b35c00;
+  --json-l: #0b5cad;
+  --shade-4: rgba(0,0,0,0.08);
+  --bad-2: #b00;
+  --fill-11: #ddd;
+  --good-2: #116b1c;
+  --award: #8a6d00;
+  --bad-3: #c00;
+  --info-3: #2a5d8a;
+  --good-bg-5: #e3f6e5;
+  --bad-bg-4: #fdd;
+  --good-8: #2a7a2a;
+  --good-bg-3: #dfd;
+  --warm-hover: #f1ecdd;
+  --tab-hover: #ecdca0;
+  --pill-border: #cfc6ab;
+  --pill-hover: #a99a6c;
+  --warm-hover-2: #f6f1e2;
+  --mark-bg: #efe7cc;
+  --mark-text: #5a4a14;
+  --warm-current: #e9dfb8;
+  --line-warm: #e6e0d0;
+  --mark-hit: #f5dc7a;
+  --fill-1: #fafafa;
+  --fill-6: #f3f3f3;
+  --good-bg-4: #e6ffe6;
+  --bad-bg-5: #ffe6e6;
+  --bad-bg-6: #fff3f3;
+  --fill-10: #e6e6e6;
+}
+/* dark mode: html[data-theme=dark], set by the script at the top of index.html and themeapply() in oracle.js.
+   Colors on the charcoal bars, gold buttons, card art and book pages stay literal in their rules: they don't change */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --panel: #23221f;
+  --panel-alt: #2b2a26;
+  --panel-border: rgba(255, 255, 255, 0.09);
+  --panel-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --backdrop: #171613;
+  --backdrop-tint: rgba(23, 22, 19, 0.92);
+  --head-bg: #3a3833;
+  --chip-bg: #33322d;
+  --chip-border: #4f4d46;
+  --chip-hover: #3f3d37;
+  --chip-text: #e6e4de;
+  --rule: #7fb0dc;
+  --link: #8cb8e6;
+  --border-warm: #45433c;
+  --surface-warm: #2a2925;
+  --field-border: #5c5a53;
+  --line-strong: #6b6962;
+  --text-6: #a3a19b;
+  --text: #e8e6e1;
+  --text-4: #c0beb8;
+  --line-3: #4f4d46;
+  --text-5: #b0aea8;
+  --foil-text: #c9b8f0;
+  --foil-border: #7a6aa8;
+  --foil-star: #d59af0;
+  --line-4: #5c5a53;
+  --text-3: #d0cec8;
+  --text-2: #dedcd6;
+  --field-hover: #7a7871;
+  --fill-12: #3f3d37;
+  --text-8: #8e8c86;
+  --folder-solid: #45433c;
+  --folder: rgba(72, 70, 63, 0.95);
+  --folder-tree: rgba(58, 56, 51, 0.95);
+  --text-1: #e6e4de;
+  --line-faint: rgba(255, 255, 255, 0.15);
+  --info-1: #8cb8e6;
+  --ghost: rgba(45, 44, 40, 0.97);
+  --line-7: #7a7871;
+  --good-3: #7fdc88;
+  --drop: rgba(40, 84, 46, 0.97);
+  --drop-row: rgba(48, 100, 55, 0.95);
+  --line-2: #45433c;
+  --fill-7: #3a3833;
+  --shared-bg: #3d3312;
+  --shared-text: #f3dfa0;
+  --shared-icon: #e0c35a;
+  --bad-bg-1: #4a1f1a;
+  --bad-6: #ff8a80;
+  --admin-text: #ffc9c2;
+  --bad-5: #ff9d92;
+  --good-4: #7fdc88;
+  --shade-1: rgba(255, 255, 255, 0.07);
+  --shade-2: rgba(255, 255, 255, 0.035);
+  --shade-col: rgba(140, 170, 230, 0.08);
+  --bad-1: #ff8a80;
+  --shade-3: rgba(255, 255, 255, 0.05);
+  --bad-8: #ff6b6b;
+  --good-10: #4cdb5a;
+  --icon-yellow: #ffe14d;
+  --icon-orange: #ff7a3d;
+  --icon-purple: #d59af0;
+  --info-4: #9ec5ff;
+  --chip-border-hover: #6b6962;
+  --chip-active: #4a4842;
+  --icon-gold: #e0c35a;
+  --printed-text: #cfe58a;
+  --printed-bg: #333d15;
+  --printed-border: #6f8530;
+  --printed-hover: #3f4b1a;
+  --printed-border-hover: #8aa23f;
+  --bad-7: #ff8a80;
+  --preview-row: #4d3f12;
+  --menu-hover: #55534c;
+  --menu-head: #3a3833;
+  --view-box: #6b6962;
+  --view-line: #55534c;
+  --good-9: #7fdc88;
+  --text-icon: #b8b6b0;
+  --view-active: #4a4842;
+  --tab-bg: #33322d;
+  --text-7: #96948e;
+  --visual-card: rgba(50, 49, 44, 0.92);
+  --phone-bar: rgba(45, 44, 40, 0.95);
+  --phone-panel: #23221f;
+  --line-5: #6b6962;
+  --warn-1: #f0b35a;
+  --fill-4: #2d2c28;
+  --good-bg-2: #1f3d22;
+  --good-5: #7fdc88;
+  --line-1: #3a3833;
+  --fill-5: #33322d;
+  --bad-bg-3: #3d1f1b;
+  --info-bg: #22344d;
+  --info-2: #b4d0f0;
+  --bad-bg-2: #4a1f1a;
+  --good-bg-1: #1f3d22;
+  --good-6: #9fe0a6;
+  --warn-bg: #4d3f12;
+  --warn-3: #f0c878;
+  --fill-9: #3f3d37;
+  --bad-4: #ffb0a8;
+  --good-7: #9fe0a6;
+  --fill-3: #2d2c28;
+  --fill-2: #2a2925;
+  --json-k: #d59af0;
+  --json-s: #7fdc88;
+  --json-n: #f0b35a;
+  --json-l: #8cb8e6;
+  --shade-4: rgba(255, 255, 255, 0.08);
+  --bad-2: #ff8a80;
+  --fill-11: #45433c;
+  --good-2: #7fdc88;
+  --award: #e0c35a;
+  --bad-3: #ff8a80;
+  --info-3: #8cb8e6;
+  --good-bg-5: #25502a;
+  --bad-bg-4: #5a2620;
+  --good-8: #7fdc88;
+  --good-bg-3: #25502a;
+  --warm-hover: #3a3730;
+  --tab-hover: #8a7c50;
+  --pill-border: #5c5a53;
+  --pill-hover: #8a7c50;
+  --warm-hover-2: #3a3730;
+  --mark-bg: #4d4524;
+  --mark-text: #ecdca0;
+  --warm-current: #4d4524;
+  --line-warm: #3f3d37;
+  --mark-hit: #7a6520;
+  --fill-1: #2a2925;
+  --fill-6: #33322d;
+  --good-bg-4: #1f3d22;
+  --bad-bg-5: #4a1f1a;
+  --bad-bg-6: #3d1f1b;
+  --fill-10: #3f3d37;
+}
+
 body {
-  background: #dadada;
+  font-family: var(--font-ui);
+  color: var(--text);
+  background: var(--backdrop);
   background-image:url('res/background-oracle.jpg'); 
   background-repeat:no-repeat;
   background-attachment:fixed;
@@ -9,8 +302,21 @@ body {
   margin: 0;
 }
 
+/* one link color in place of the browser's blue and purple; :where keeps it weaker than any other link rule */
+:where(a[href]) { color: var(--link); }
+
+/* the game's art (the body background, each game's own via gameconfig info.background) fades to a texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--backdrop-tint);
+  pointer-events: none;
+}
+
 [contenteditable="true"] {
-  border: 1px solid black;
+  border: 1px solid var(--line-strong);
   border-radius: 5px;
   outline: none; /* Removes default browser outline on focus */
 }
@@ -48,21 +354,21 @@ div.updateblock details.updatecards summary {
   cursor: pointer;
 }
 div.updatedetails {
-  border: solid black 1px;
+  border: solid var(--line-strong) 1px;
 }
 div#cardupdatesection { 
   display: none;
 }
 /* rulings on a card: one per line; their links open in a popup (rulingpopup) */
 dd.rulings div {
-  border-left: solid #69c 3px;
+  border-left: solid var(--rule) 3px;
   padding-left: 4px;
   margin-bottom: 2px;
 }
 /* rulingsfold: the first 3 shown, the rest behind "Show N more"; the arrow by the label folds them all away */
 dd.rulings.rulingssome > div:nth-of-type(n+4), dd.rulings.rulingsnone > div, dd.rulings.rulingsnone .rulingsmore,
 dd.rulings:not(.rulingsnone) .rulingsopen { display: none; }
-dd.rulings .rulingsmore, dd.rulings .rulingsopen, dt .rulingsfoldbtn { cursor: pointer; color: #369; }
+dd.rulings .rulingsmore, dd.rulings .rulingsopen, dt .rulingsfoldbtn { cursor: pointer; color: var(--link); }
 dd.rulings .rulingsmore, dd.rulings .rulingsopen { display: inline-block; padding-left: 7px; font-size: 90%; text-decoration: underline; }
 dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-align: center; user-select: none; }
 #modal.rulingmodal .modal-box { width: 900px; max-width: 95vw; min-width: 0; margin-top: 2%; }
@@ -70,16 +376,16 @@ dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-
 #modal.artistmodal .modal-box { width: 420px; max-width: 95vw; min-width: 0; }
 #modal.artistmodal .artistlinks ul { list-style: none; padding: 0; margin: 0; }
 #modal.artistmodal .artistlinks li { margin: 6px 0; }
-#modal.artistmodal .artisthost { color: #777; font-size: 0.85em; }
+#modal.artistmodal .artisthost { color: var(--text-6); font-size: 0.85em; }
 /* search by photo (artphoto.js): the matched card above the results, and the corner editor */
-.artphotopanel { display: flex; align-items: center; gap: 16px; padding: 8px 12px; margin: 4px 4px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.9); color: #000; }
+.artphotopanel { display: flex; align-items: center; gap: 16px; padding: 8px 12px; margin: 4px 4px 8px; border-radius: 6px; background: var(--panel); color: var(--text); }
 .artphotopreview { max-height: 160px; max-width: 40%; border-radius: 4px; }
 .artphotorot90 { transform: rotate(90deg); margin: 0 24px; }
 .artphotorot180 { transform: rotate(180deg); }
 .artphotorot270 { transform: rotate(270deg); margin: 0 24px; }
 .artphotonote { line-height: 1.8; }
-.artphotoleft { margin-left: auto; align-self: flex-end; font-size: 0.85em; color: #555; }
-.photolimit { font-size: 0.85em; color: #555; }
+.artphotoleft { margin-left: auto; align-self: flex-end; font-size: 0.85em; color: var(--text-4); }
+.photolimit { font-size: 0.85em; color: var(--text-4); }
 #modal.artphotomodal .modal-box { width: 760px; max-width: 95vw; min-width: 0; margin-top: 2%; }
 .artphotoedit { position: relative; display: inline-block; max-width: 100%; margin: 8px 0; touch-action: none; user-select: none; }
 .artphotoedit img { display: block; max-width: 100%; max-height: 70vh; }
@@ -91,19 +397,19 @@ dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-
 #modal.rulingmodal .rulingview img { max-width: 100%; }
 .rulingview .rulingpage { position: relative; }
 .rulingview .rulingpage img { display: block; width: 100%; }
-#traitpop .rulingpeek { height: 180px; overflow: hidden; border: solid #ccc 1px; margin-bottom: 4px; }
+#traitpop .rulingpeek { height: 180px; overflow: hidden; border: solid var(--line-3) 1px; margin-bottom: 4px; }
 #modal.rulingmodal iframe.rulingview { width: 100%; height: 75vh; border: 0; }
 /* trait links (traitsmark): a book after a keyword, a dotted line under a trait named in the text, the rule on hover */
 #resultcard .traitbook { cursor: pointer; font-size: 85%; }
-#resultcard .traitword { cursor: pointer; border-bottom: dotted #69c 1px; }
-#traitpop { display: none; position: fixed; z-index: 100000; box-sizing: border-box; background: #fff; color: #000; border: solid #69c 1px;
+#resultcard .traitword { cursor: pointer; border-bottom: dotted var(--rule) 1px; }
+#traitpop { display: none; position: fixed; z-index: 100000; box-sizing: border-box; background: var(--panel); color: var(--text); border: solid var(--rule) 1px;
   border-radius: 4px; padding: 6px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25); font-size: 90%; pointer-events: none; }
 #traitpop .traitpophead { font-weight: bold; margin-bottom: 4px; }
-#traitpop .traitpopbook { border-left: solid #69c 3px; padding-left: 4px; margin-bottom: 6px; }
-#traitpop .traitpopfoot, .traitwhy { color: #666; font-size: 90%; }
-.traitfan { color: #a50; border: solid #a50 1px; border-radius: 3px; padding: 0 3px; font-size: 80%; font-weight: normal; white-space: nowrap; }
+#traitpop .traitpopbook { border-left: solid var(--rule) 3px; padding-left: 4px; margin-bottom: 6px; }
+#traitpop .traitpopfoot, .traitwhy { color: var(--text-5); font-size: 90%; }
+.traitfan { color: var(--warn-2); border: solid var(--warn-2) 1px; border-radius: 3px; padding: 0 3px; font-size: 80%; font-weight: normal; white-space: nowrap; }
 .traitprint { color: #fff; background: #2a6e3f; border-radius: 3px; padding: 0 4px; font-size: 85%; font-weight: bold; white-space: nowrap; }
-.traitchoice { border-left: solid #69c 3px; padding-left: 6px; margin-bottom: 8px; }
+.traitchoice { border-left: solid var(--rule) 3px; padding-left: 6px; margin-bottom: 8px; }
 /* touch (a long-press): it takes taps, scrolls when long, and has finger-sized Open and Close buttons */
 #traitpop.traitpoptouch { pointer-events: auto; max-height: 88vh; overflow-y: auto; font-size: 100%; padding: 10px 10px 0; }
 #traitpop.traitpoptouch .traitpopopen, #traitpop.traitpoptouch .traitpopclose { display: block; text-align: center;
@@ -112,7 +418,7 @@ dt .rulingsfoldbtn { display: inline-block; width: 1em; margin-left: -1em; text-
 /* Rules Q&A on a card (rulingrefs): a button with the count; the list in the modal, each answer clickable */
 dd.rulingrefs .rulingrefbutton svg.feather { width: 14px; height: 14px; vertical-align: -2px; }
 #modal.rulingrefmodal .rulingreflist { max-height: 75vh; overflow: auto; text-align: left; }
-#modal.rulingrefmodal .rulingref { border-left: solid #69c 3px; padding: 6px 8px; margin-bottom: 6px; cursor: pointer; }
+#modal.rulingrefmodal .rulingref { border-left: solid var(--rule) 3px; padding: 6px 8px; margin-bottom: 6px; cursor: pointer; }
 #modal.rulingrefmodal .rulingref:hover { background: rgba(102,153,204,0.12); }
 #modal.rulingrefmodal .rulingref a { display: block; margin-top: 2px; font-size: 90%; }
 /* needsreview notes on a card (maintainers only): one reason per line */
@@ -134,23 +440,34 @@ a.ex { float: right; font-size: large;}
   white-space: nowrap; font-weight: bold; vertical-align: 1px; letter-spacing: 0.02em; }
 .foilmark.foilonly { color: #3b2766; border: 1px solid #a993d6;
   background: linear-gradient(115deg, #ffd3ec 0%, #d2ecff 28%, #dcffd8 52%, #fff1b8 76%, #ecd4ff 100%); }
-.foilmark.foilboth { color: #5b4a86; border: 1px solid #b6a6de; background: #fff; }
-.foilmark.foilboth::first-letter { color: #b04fd0; }
-.foilwords { font-size: 0.85em; color: #666; }
-.foilmark.foilregular { color: #666; border: 1px dashed #bbb; background: #fff; font-weight: normal; }
+.foilmark.foilboth { color: var(--foil-text); border: 1px solid var(--foil-border); background: var(--panel); }
+.foilmark.foilboth::first-letter { color: var(--foil-star); }
+.foilwords { font-size: 0.85em; color: var(--text-5); }
+.foilmark.foilregular { color: var(--text-5); border: 1px dashed var(--line-4); background: var(--panel); font-weight: normal; }
 .foiltoggle { cursor: pointer; }
 .foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
+/* the card page's sides (~cardsides, oracle.js "CARD BACKS"): each front full size, with "Print n of m" when the
+   printing was printed more than one way, and its back always as a thumbnail under it, never as another card */
+.cardside { margin-bottom: 8px; }
+.cardsidebar { display: flex; align-items: flex-start; gap: 10px; margin-top: 3px; font-size: smaller; }
+.cardsideprint { padding: 1px 6px; border-radius: 3px; background: #444; color: #fff; white-space: nowrap; }
+.cardbackthumb { display: flex; align-items: flex-start; gap: 6px; cursor: pointer; }
+.cardbackthumb img.cardbackimg { width: 60px; min-height: 20px; border-radius: 3px; }
+.cardbackthumb.cardbackown img.cardbackimg { outline: 2px solid #c9a227; }
+.cardbackflip { text-decoration: underline; }
+.cardside.cardsideback img.cardsidefront { outline: 3px dashed #c9a227; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 /* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells
    "Foil" (rainbow) from "Also foil" (white, purple star); the card page shows the words */
 a.deckswipe > .foilmark { font-size: 0; width: 18px; height: 18px; padding: 0; border-radius: 50%; top: 5px; left: 5px; text-align: center; }
 a.deckswipe > .foilmark::before { content: '\2726'; font-size: 12px; line-height: 18px; }
-a.deckswipe > .foilmark.foilboth::before { color: #b04fd0; }
+a.deckswipe > .foilmark.foilboth::before { color: var(--foil-star); }
 
 div.searchinput, div.searchchecklist { float: left; padding: 2px; }
 div.searchinput dl { margin-block-start: 0; margin-block-end: 0; }
+div.searchinput dt { font-size: 10pt; font-weight: 600; color: var(--text-3); width: 84px; line-height: 30px; }
 div.searchinput input[type=text] { 
   width: 105px;
 }
@@ -160,14 +477,40 @@ div.searchinput input.searchnumeric[type=text] {
 div.searchinput select { 
   width: 110px;
 }
-/* Chosen copies the select's on-screen width when it starts: 0px if the sidebar was hidden then (phone layout,
-   split screen, browser zoom), or the wrong mode's width after the window crosses 768px. The width comes from here instead */
-div.searchinput .chosen-container {
-  width: 110px !important;
-}
 div.searchinput { 
   position: relative;
 }
+/* the search form: every field the full width of its column, one height and border, labels level with them (no
+   colon), flat buttons with Search the one gold one. Not Tom Select's own search box (inside .ts-control), hence dd > */
+div#sidebar div.searchinput { width: 100%; box-sizing: border-box; }
+div.searchinput dt:not(:empty)::after { content: none; }
+div.searchinput dd { margin-left: 92px; padding-bottom: 6px; font-size: 11pt; }
+div.searchinput dd > input[type=text] { width: 100%; height: 30px; box-sizing: border-box; padding: 3px 7px;
+  border: 1px solid var(--field-border); border-radius: 6px; background: var(--panel); font: inherit; font-size: 10.5pt; }
+div.searchinput dd > input.searchnumeric[type=text] { width: 44px; }
+div.searchinput dd > input[type=text]:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+div.searchinput .ts-wrapper.multi .ts-control {
+  min-height: 30px; box-sizing: border-box; padding: 2px 3px; border: 1px solid var(--field-border); border-radius: 6px;
+  background: var(--panel); box-shadow: none; font-size: 10.5pt; }
+div.searchinput .ts-wrapper.multi.focus .ts-control { border-color: var(--accent); box-shadow: var(--focus-ring); }
+div.searchinput .ts-wrapper.multi .ts-control > input[type=text] { width: auto; min-width: 2rem !important; font-size: 10.5pt; }
+/* the desktop column is narrow: a long pick wraps and keeps its x, a long option keeps its checkbox beside it */
+div.searchinput .ts-wrapper.multi .ts-control > .item { display: flex; align-items: center; min-width: 0; max-width: 100%; margin: 1px 3px 1px 0;
+  padding: 1px 0 1px 4px; overflow-wrap: anywhere; font-size: 9pt; }
+div.searchinput .ts-wrapper.plugin-remove_button .item .remove { flex: none; margin-left: 2px; padding: 0 3px; }
+/* hanging indent, not flex: a flex row would space out the highlighted part of a filter match */
+div.searchinput .ts-dropdown .option { padding-left: 28px; }
+div.searchinput .ts-dropdown .option input.tomselect-checkbox { margin: 0 6px 0 -20px; vertical-align: -2px; }
+div.searchinput .ts-dropdown { z-index: 1010; font-size: 10.5pt; }
+div.searchinput .ts-dropdown .ts-dropdown-content { max-height: 240px; }
+div.searchinput .ts-dropdown .optgroup-header { font-weight: bold; }
+div.searchinput .button.gray { padding: 4px 10px; border: 1px solid var(--field-border); border-radius: 6px;
+  background: var(--panel); color: var(--text-2); font-size: 10.5pt; text-shadow: none; box-shadow: none; }
+div.searchinput .button.gray:hover { background: var(--surface-warm); border-color: var(--field-hover); }
+div.searchinput .button.gray:active { background: var(--fill-12); }
+div.searchinput .button.gray .iyellow { color: inherit; }
+div.searchinput #dosearchbutton.button { background: var(--accent); border-color: #c4a53e; color: #222; }
+div.searchinput #dosearchbutton.button:hover { background: #e8cf72; }
 /*
 div.ui-layout-center { 
   float: left;
@@ -179,13 +522,13 @@ div.helloplace { text-align: center; max-width: 750px; display: inline-block;}
 div.infoplace {  max-width: 750px; display: inline-block; text-align: left;}
 
 div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchinput {
-  font-family: "L5R Title","Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
   text-align: center;
-  font-size: 16pt;
+  font-size: 13pt;
 /*   color: red; */
   display: inline-block;
-  background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
+  box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow);
   padding: 4px;
 
   -moz-border-radius: 7px;
@@ -195,8 +538,8 @@ div.error, div.more, div.moreloading, div.morelimit, div.numresults, div.searchi
 }
 
 div.menubar {
-  background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
+  box-shadow: 0 1px 0 var(--panel-border), var(--panel-shadow);
   width: 100%;
   height: 31px; 
   display: inline-block;
@@ -220,11 +563,11 @@ span#loginfo:not(:empty)::after, .pullmenu::after {
 }
 
 div.randarea {
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 
   display: inline-block;
-  background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
+  box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow);
 /*  padding: 4px; */
 
   -moz-border-radius: 7px;
@@ -240,7 +583,7 @@ select.listselect {
   -webkit-appearance: none;
   -moz-appearance: none; */
   /* border: none; */
-  border: 1px solid black;
+  border: 1px solid var(--line-strong);
   border-radius: 5px;
   
   outline: none;
@@ -253,7 +596,7 @@ select.listselect {
 div.listitem, div.listitemplain {
   width: 100%;
   display: table-row;
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 }
 
 div.listimage, div.listmiddle, div.listheadmiddle {
@@ -275,17 +618,26 @@ div.listbody, div.listbodyplain, div.listheadplain {
 }
 
 div.listitem:nth-child(odd)>div { 
-  background-color: rgb(218, 218, 218);
-  background-color: rgba(218, 218, 218, 0.9);
+  background-color: var(--panel-alt);
 }
 div.listitem:nth-child(even)>div, div.listitemplain>div {
-  background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
+}
+/* a header row that's a list row itself (the directory table's column titles, the simple list's type headers)
+   keeps the title bar, not a stripe */
+:is(div.listitem:nth-child(n), div.listitemplain)>:is(div.listhead, div.listheadxl, div.listheadplain, div.listheadmiddle) {
+  background: var(--head-bg);
 }
 div.listitem:first-child>div, div[class^=result] div.randarea:first-child { 
    -moz-border-radius-topleft: 0px;  -webkit-border-top-left-radius: 0px;  -khtml-border-top-left-radius: 0px;  border-top-left-radius: 0px;
  
  }
+
+/* the plain rows fill the results, not just the longest title's width */
+div.listitemplain, div.listitemplain>div {
+  display: block;
+  width: auto;
+}
 
 div.listitemplain:first-child>div {
 	     /* round right corners */
@@ -311,16 +663,11 @@ div.listbody {
 .listing>tbody>tr.sectionspacer:nth-child(n)>td, .listing>tbody>tr.pageheader>td , .LO_card_format_1>tbody>tr:last-child { background-color: transparent; background-color: rgba (0,0,0,0); color: white; )}
 */
 div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle{
-    background: #6e6e6e;
-	background: -webkit-gradient(linear, left top, left bottom, from(#888), to(#575757));
-	background: -moz-linear-gradient(top,  #888,  #575757);
-	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#888888', endColorstr='#575757');
-  /*   background-color: rgb(39, 39, 39);
-  background-color: rgba(39, 39, 39, 0.9);  */
+  background: var(--head-bg);
   font-size: large;
   border-top: none;
-  font-family: "L5R Title";
-  padding: 2px;
+  font-family: var(--font-display);
+  padding: 3px 6px;
 }
 
 div.listhead, div.listheadxl, div.listheadplain, div.upperhead {
@@ -340,9 +687,9 @@ div.directorycards {
 div.directorycard {
     display: flex;
     flex-direction: column;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel);
     border-radius: 7px;
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
 }
 div.directorycard .dircardhead {
     display: flex;
@@ -350,14 +697,13 @@ div.directorycard .dircardhead {
     gap: 6px;
     padding: 4px 6px;
     color: #fff;
-    background: #6e6e6e;
-    background: linear-gradient(#888, #575757);
+    background: var(--head-bg);
     border-radius: 7px 7px 0 0;
 }
 div.directorycard .dircardname {
     flex: 1;
     min-width: 0;
-    font-family: "L5R Title";
+    font-family: var(--font-display);
     font-size: large;
     overflow-wrap: anywhere;
 }
@@ -380,13 +726,13 @@ div.directorycard .dircardmeta {
 div.directorycard .dircardnotes {
     min-height: 1.2em;
     padding: 2px 4px;
-    border: 1px dashed #bbb;
+    border: 1px dashed var(--line-4);
     border-radius: 4px;
     overflow-wrap: anywhere;
 }
 div.directorycard .dircardnotes:empty::before {
     content: attr(data-placeholder);
-    color: #999;
+    color: var(--text-8);
 }
 div.directorycard.dircardnew {
     align-items: center;
@@ -396,10 +742,10 @@ div.directorycard.dircardnew {
     align-self: start;
     min-height: 60px;
     cursor: pointer;
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: large;
-    color: #1aa329;
-    border: 2px dashed #1aa329;
+    color: var(--good-1);
+    border: 2px dashed var(--good-1);
 }
 /* directory table: always the full width. With only folder rows (whose names and buttons are positioned,
    so they size nothing) it would otherwise shrink to the header labels, and New list would cover Notes. */
@@ -424,15 +770,15 @@ span.dirnewbuttons {
 }
 button.dirnewlist {
     height: auto;
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: medium;
     white-space: nowrap;
 }
 /* directory folders: a header band over the folder's lists. In the table its name and buttons are
    positioned over the row's empty cells, so they don't widen the Id and action columns. */
 div.listitem.dirfolderrow > div {
-    background: #b9b9b9;
-    background: rgba(185, 185, 185, 0.95);
+    background: var(--folder-solid);
+    background: var(--folder);
     height: 1.7em;
 }
 div.dirfolderrow div.dirfoldername, div.dirfolderrow div.dirfolderactions {
@@ -446,7 +792,7 @@ div.dirfolderrow div.dirfoldername > span {
 }
 /* a folder's tree: the folders under it, indented, a lighter band than the open folder's own subfolders */
 div.listitem.dirfolderrow.dirtreeitem > div {
-    background: rgba(214, 214, 214, 0.95);
+    background: var(--folder-tree);
 }
 button.dirtoggle, span.dirtoggleblank {
     display: inline-block;
@@ -466,9 +812,9 @@ div.dirfolderrow div.dirfolderactions > span {
     white-space: nowrap;
 }
 a.dirfolderopen, a.dirfolderopen:visited {
-    color: #222;
+    color: var(--text-1);
     text-decoration: none;
-    font-family: "L5R Title";
+    font-family: var(--font-display);
     font-size: large;
 }
 a.dirfolderopen:hover {
@@ -478,15 +824,15 @@ a.dirfolderopen svg.feather, div.dirpathbar svg.feather {
     vertical-align: middle;
 }
 a.dirfolderopen small {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: small;
-    color: #444;
+    color: var(--text-3);
 }
 /* cards view: a folder is a tile like the lists' (the whole name opens it) */
 div.directorycard.dirfoldercard {
     padding: 6px;
     align-self: start;
-    background: rgba(185, 185, 185, 0.95);
+    background: var(--folder);
 }
 div.dirfoldercard div.dirfoldertop {
     display: flex;
@@ -496,7 +842,7 @@ div.dirfoldercard div.dirfoldertop {
 /* the card's tree: one line per folder under it (each opens, takes drops, and toggles its own tree) */
 div.dirfoldercard div.dirfoldertree {
     margin-top: 4px;
-    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--line-faint);
     padding-top: 2px;
 }
 div.dirfoldercard div.dirsubfolder {
@@ -526,16 +872,16 @@ div.dirfoldertop a.dirfolderopen > svg.feather {
 div.dirpathbar {
     padding: 4px 8px;
     margin-bottom: 4px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--panel);
     border-radius: 7px;
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: large;
 }
 div.dirpathbar a, div.dirpathbar a:visited {
-    color: #1a4fa3;
+    color: var(--info-1);
 }
 div.dirpathbar .dirpathsep {
-    color: #777;
+    color: var(--text-6);
 }
 /* drag and drop (lists by their move handle, folders whole) */
 .dirdraghandle {
@@ -560,11 +906,11 @@ div.dirdragghost {
     padding: 8px 14px;
     max-width: 85vw;
     box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.97);
-    border: 3px solid #777;
+    background: var(--ghost);
+    border: 3px solid var(--line-7);
     border-radius: 10px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-    font-family: "L5R Title";
+    font-family: var(--font-ui);
     font-size: x-large;
 }
 div.dirdragghost .dirghostname {
@@ -578,18 +924,18 @@ div.dirdragghost .dirghostname svg.feather {
     vertical-align: -0.15em;
 }
 div.dirdragghost .dirghosttarget {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: large;
-    color: #666;
+    color: var(--text-5);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 div.dirdragghost.dirghostok {
-    border-color: #1aa329;
+    border-color: var(--good-1);
 }
 div.dirdragghost.dirghostok .dirghosttarget {
-    color: #137a1f;
+    color: var(--good-3);
     font-weight: bold;
 }
 /* the list or folder being dragged */
@@ -599,7 +945,7 @@ div.dirdragghost.dirghostok .dirghosttarget {
 div.listimage.dirdraghandle svg.feather {
     width: 12px;
     height: 12px;
-    color: #777;
+    color: var(--text-6);
     vertical-align: middle;
 }
 /* the card's handle: the whole left end of the title bar, top to bottom, set off from the editable name */
@@ -622,46 +968,61 @@ div.dirfolderrow a, div.dirfoldercard a, div.dirfolderrow button, div.dirfolderc
     cursor: pointer;
 }
 #resultdir.dirdragging div.dirfoldercard, #resultdir.dirdragging div.dirsubfolder, #resultdir.dirdragging div.dirpathbar [data-dirdrop] {
-    outline: 1px dashed #777;
+    outline: 1px dashed var(--line-7);
     outline-offset: -1px;
 }
 #resultdir .dirdropover, #resultdir.dirdragging .dirdropover {
-    outline: 2px solid #1aa329;
+    outline: 2px solid var(--good-1);
     outline-offset: -2px;
-    background: rgba(203, 236, 207, 0.97);
+    background: var(--drop);
 }
 div.listitem.dirfolderrow.dirdropover > div {
-    background: rgba(170, 222, 176, 0.95);
+    background: var(--drop-row);
 }
 div.dirempty .randarea {
     padding: 8px;
 }
-/* help page: community links row */
-div.helplinks {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-}
+/* community and support links (home page, sidebar, help page): one pill each, a Feather icon and a word */
+.communitylinks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.communitylinks.communitystack { flex-direction: column; align-items: flex-start; gap: 6px; margin: 10px 4px; }
+a.communitylink { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  background: var(--panel); color: var(--text-1); text-decoration: none; font-size: 10.5pt;
+  box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow); }
+a.communitylink:hover { background: var(--surface-warm); box-shadow: 0 0 0 1px var(--accent), var(--panel-shadow); }
+a.communitylink svg.feather { width: 16px; height: 16px; flex: none; }
+a.communitylink small { color: var(--text-6); }
+/* the home page (#resultabout) */
+.homepage { padding: 8px 16px 16px; }
+.homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
+.homepage .homelede { font-size: 1.15em; }
+.homepage .homecardlists { margin-top: 24px; font-size: 0.9em; }
+.homepage p { line-height: 1.5; }
+.homepage h2 { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-5);
+  margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--panel-border); }
+.homepage h2 small { text-transform: none; letter-spacing: 0; font-weight: normal; color: var(--text-8); }
+div.updateblock .updatewhen { color: var(--text-6); font-size: 90%; margin-right: 2px; }
+div.updateblock .updatelabel { font-weight: 600; }
+div.updateblock .updateby { color: var(--text-6); font-size: 90%; margin-left: 4px; }
+#updatelogolder { display: inline-block; margin-top: 8px; }
 /* help pages (help.js): the topic list, the topic, and the "?" next to a control (hover: its section in #traitpop) */
 div.helpnav { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
-div.helpnav a { padding: 4px 10px; border: solid #69c 1px; border-radius: 14px; text-decoration: none; }
-div.helpnav a.helpnavactive { background: #69c; color: #fff; }
+div.helpnav a { padding: 4px 10px; border: solid var(--rule) 1px; border-radius: 14px; text-decoration: none; }
+div.helpnav a.helpnavactive { background: var(--rule); color: #fff; }
 div.helpdoc { line-height: 1.45; }
 div.helpdoc h2, div.helpdoc h3 { scroll-margin-top: 8px; }
-div.helptoc { display: inline-block; border: solid #ccc 1px; border-radius: 4px; padding: 4px 16px 4px 0; margin-bottom: 8px; }
+div.helptoc { display: inline-block; border: solid var(--line-3) 1px; border-radius: 4px; padding: 4px 16px 4px 0; margin-bottom: 8px; }
 div.helptoc ul { margin: 2px 0; padding-left: 22px; }
 div.helptoc ul ul { font-size: 92%; }
-div.helpdoc .helpsecactive { border-left: solid #69c 4px; padding-left: 6px; }
+div.helpdoc .helpsecactive { border-left: solid var(--rule) 4px; padding-left: 6px; }
 div.helpdoc table { border-collapse: collapse; margin: 6px 0; }
-div.helpdoc th, div.helpdoc td { border-bottom: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: middle; }
+div.helpdoc th, div.helpdoc td { border-bottom: 1px solid var(--line-2); padding: 4px 8px; text-align: left; vertical-align: middle; }
 div.helpdoc td img { display: block; max-width: 100%; border-radius: 3px; margin: 2px 0; }
 div.helpdoc td img[src*="/bug-"] { display: inline-block; width: 56px; height: 56px; margin-right: 4px; }
-div.helpdoc code, #traitpop .helppeek code { background: #f2f2f2; padding: 0 3px; border-radius: 3px; }
+div.helpdoc code, #traitpop .helppeek code { background: var(--fill-7); padding: 0 3px; border-radius: 3px; }
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
 dl.helpfields dd { margin-left: 16px; }
-.helpq { font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: bold; color: #369; vertical-align: super;
+.helpq { font-family: var(--font-ui); font-size: 11px; font-weight: bold; color: var(--link); vertical-align: super;
   line-height: 1; margin-left: 2px;
   cursor: help; user-select: none; }
 /* a label with a "?" (dt::after adds its colon): the colon first, then the "?" */
@@ -680,7 +1041,7 @@ div.listviewheader .listviewname {
     margin-right: .5em;
 }
 div.listviewheader .listviewdetails, div.listviewheader .listviewnotes {
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
     font-size: medium;
 }
 /* the user's own list: the directory's controls */
@@ -693,6 +1054,24 @@ div.listviewheader .listviewtitle {
 div.listviewheader .listviewtitle .listviewname {
     overflow-wrap: anywhere;
 }
+/* created / modified, small beside the name */
+div.listviewheader .listviewtitle .listviewdates {
+    font-family: var(--font-ui);
+    font-size: small;
+    margin-left: .5em;
+}
+/* the tournament result and pre-constructed marks share one row */
+div.listviewheader .listviewmarks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    margin: 4px 0;
+}
+/* on your own list they go at the end of the controls row */
+div.listviewheader .listviewcontrols .listviewmarks {
+    display: contents;
+}
 div.listviewheader .listviewcontrols {
     display: flex;
     flex-wrap: wrap;
@@ -703,35 +1082,42 @@ div.listviewheader .listviewcontrols {
 div.listviewheader .listviewcontrols select.listselect {
     width: auto;
     max-width: 100%;
+    /* light fields on the charcoal bar (listselect itself is transparent, for the light directory rows) */
+    background: var(--panel);
+    color: var(--chip-text);
+    border-color: var(--field-border);
+    padding: 1px 2px;
 }
 div.listviewheader div.listviewnotes[contenteditable] {
     min-height: 1.2em;
     padding: 2px 4px;
-    border: 1px dashed #bbb;
+    border: 1px dashed var(--line-4);
     border-radius: 4px;
     overflow-wrap: anywhere;
 }
 div.listviewheader div.listviewnotes[contenteditable]:empty::before {
     content: attr(data-placeholder);
-    color: #999;
+    color: var(--text-8);
 }
 /* someone else's shared deck: who owns it, above everything else, and that it's read only */
 div.listviewheader div.listviewshared {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 10px;
-    margin: 0 0 6px;
-    padding: 8px 10px;
-    background: #fff4d6;
+    gap: 4px 8px;
+    margin: 0 0 4px;
+    padding: 3px 8px;
+    background: var(--shared-bg);
     border: 2px solid #d9a400;
     border-radius: 6px;
-    color: #3d2e00;
-    font-size: medium;
+    color: var(--shared-text);
+    font-size: small;
 }
 div.listviewheader div.listviewshared > svg {
     flex: none;
-    color: #9a7400;
+    width: 16px;
+    height: 16px;
+    color: var(--shared-icon);
 }
 div.listviewheader div.listviewshared .listviewsharedtext {
     flex: 1 1 14em;
@@ -739,44 +1125,165 @@ div.listviewheader div.listviewshared .listviewsharedtext {
 }
 /* someone else's list an admin is editing: red, so it isn't taken for your own */
 div.listviewheader div.listviewshared.listviewadminedit {
-    background: #fde4e1;
-    border-color: #c0392b;
-    color: #4a0f08;
+    background: var(--bad-bg-1);
+    border-color: var(--bad-6);
+    color: var(--admin-text);
 }
 div.listviewheader div.listviewshared.listviewadminedit > svg {
-    color: #c0392b;
+    color: var(--bad-6);
 }
+div.listviewheader div.listviewshared.listviewadminedit .listadminnotify {
+    font-size: small;
+    white-space: nowrap;
+}
+/* the Edit as admin popup (listadminopen) */
+div.admineditwarning ul { margin: 6px 0 10px 18px; }
+div.admineditwarning li { margin-bottom: 4px; }
+.admineditnote { color: var(--text-5); font-size: small; }
+/* Admin → Audit → Users and Audit log (useradmin.js) */
+table.useredit td:first-child { padding-right: 8px; white-space: nowrap; }
+table.auditrows tr.audit-denied td { background: var(--bad-bg-1); }
+table.auditrows .auditold { color: var(--bad-5); }
+table.auditrows .auditnew { color: var(--good-4); }
 /* a copy of a shared deck: where it came from */
 div.listviewheader div.listviewsource {
     margin: 2px 0 4px;
-    color: #666;
+    color: var(--text-5);
     font-size: small;
     overflow-wrap: anywhere;
 }
-/* list view statistics (liststats) */
-details.liststats {
+/* the list page (listlayout in oracle.js): statistics above the cards; beside them in the narrow views on a wide
+   screen; below them on a phone (the phone layout's media query, further down). The box is first in the page (the
+   pinned float needs that); flex order moves it after the cards */
+div.listlayout {
+    display: flex;
+    flex-direction: column;
+}
+div.listlayout div.listlayoutstats {
+    min-width: 0;
+}
+div.listlayout div.listlayoutcards {
+    min-width: 0;
+}
+/* the narrow views beside the box, once the window has room for both (under it, the box stays above them) */
+@media (min-width: 1100px) {
+  div.listlayoutside {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  div.listlayoutside div.listlayoutstats {
+    order: 1;
+    flex: 0 1 auto;
+    max-width: min(45%, 36em);
+    position: sticky;
+    top: 4px;
+    max-height: calc(100vh - 8px);
+    overflow-y: auto;
+  }
+  div.listlayoutside div.listlayoutcards {
+    flex: 1 1 0;
+  }
+  /* overflow would make #maincontent the sticky box's scroller, though the window is what scrolls. flow-root still keeps
+     it beside the sidebar's float */
+  div#maincontent:has(div.listlayoutside) {
+    display: flow-root;
+    overflow: visible;
+  }
+  div.listlayoutside div.liststatsbox {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+}
+/* the pin button (listlayout in oracle.js), every view on a wide screen: statistics to the side or above. To the side in
+   Detail/Visual/Deck (listlayoutpinned), they float to the upper right and the cards flow around them. Headers and Detail rows stop short of the box (flow-root) rather than run under it */
+div.listlayoutstats {
+    position: relative;
+}
+div.listlayoutstats > button.listlayoutpin {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 1;
+}
+@media (min-width: 1100px) {
+  div.listlayoutstats > button.listlayoutpin {
+    display: block;
+  }
+
+  div.listlayoutpinned {
+    display: block;
+  }
+  div.listlayoutpinned::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  div.listlayoutpinned div.listlayoutstats {
+    float: right;
+    max-width: min(45%, 36em);
+    margin: 0 0 8px 12px;
+  }
+  div.listlayoutpinned div.liststatsbox {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  div.listlayoutpinned div.listhead, div.listlayoutpinned div.listheadxl, div.listlayoutpinned div.listheadplain:not(.deckviewtype),
+  div.listlayoutpinned div.listmissing {
+    display: flow-root;
+  }
+  /* Detail rows are table rows of one table, which would stay narrow all the way down: each row its own flex box
+     instead, narrow beside the box and full width below it */
+  div.listlayoutpinned div.listlayoutcards > div.listitem {
+    display: flex;
+    width: auto;
+  }
+  div.listlayoutpinned div.listlayoutcards > div.listitem > div.listimage {
+    display: block;
+    flex: 0 0 auto;
+  }
+  div.listlayoutpinned div.listlayoutcards > div.listitem > div.listbody {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+/* list view statistics (liststats): Statistics and Keyword counts side by side when both fit (stacked in the
+   sidebar, above) */
+div.liststatsbox {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 24px;
+    row-gap: 6px;
     margin: 4px 0 8px;
     padding: 4px 6px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel);
     border-radius: 7px;
-    font-family: "Times New Roman",Georgia,Serif;
+    font-family: var(--font-ui);
 }
-details.liststatskw {
-    margin-top: 6px;
+div.liststatsbox > details {
+    min-width: 0;
+    max-width: 100%;
 }
 label.liststatscutoff {
     display: block;
     margin: 2px 0;
 }
 label.liststatscutoff input {
-    width: 3.5em;
+    width: 10em;
+    max-width: 50%;
+    vertical-align: middle;
 }
-details.liststats summary {
+/* the slider's value */
+label.liststatscutoff .liststatscutoffn {
+    display: inline-block;
+    min-width: 1.5em;
+}
+div.liststatsbox summary {
     cursor: pointer;
     font-size: large;
-}
-details.liststats details.liststatskw summary {
-    font-size: medium;
 }
 /* "(expand for ...)" only while folded */
 details[open] > summary > .liststatshint {
@@ -799,23 +1306,75 @@ table.liststatstable tbody th {
     padding-left: 1.5em;
 }
 table.liststatstable thead th {
-    border-bottom: 1px solid #bbb;
+    border-bottom: 1px solid var(--line-4);
 }
 table.liststatstable tr.liststatsdeck th, table.liststatstable tr.liststatsdeck td {
     font-weight: bold;
     padding-left: 8px;
-    border-top: 1px solid #bbb;
+    border-top: 1px solid var(--line-4);
 }
 /* light shading to read across and down: deck rows, alternate rows in each deck (liststatsstripe), and the
    count columns; they layer, so a striped row over a shaded column is a shade darker */
 table.liststatstable tr.liststatsdeck {
-    background-color: rgba(0, 0, 0, 0.07);
+    background-color: var(--shade-1);
 }
 table.liststatstable tr.liststatsstripe {
-    background-color: rgba(0, 0, 0, 0.035);
+    background-color: var(--shade-2);
 }
 table.liststatstable td:nth-child(even), table.liststatstable thead th:nth-child(even) {
-    background-color: rgba(90, 110, 160, 0.06);
+    background-color: var(--shade-col);
+}
+/* a picked keyword (liststatskwpick): its Cards count blue, its "Named in text of" count red, and the cards in the
+   list glowing to match: blue has it, red names it, magenta (the two added) both */
+table.liststatstable tr.liststatskwrow {
+    cursor: pointer;
+}
+table.liststatstable tr.liststatskwrow:hover th {
+    text-decoration: underline;
+}
+table.liststatstable tr.liststatskwpicked th {
+    font-weight: bold;
+}
+table.liststatstable tr.liststatskwpicked > td:nth-child(2) {
+    background-color: rgba(40, 110, 255, 0.3);
+}
+table.liststatstable tr.liststatskwpicked > td.liststatsavgs:not([data-n="0"]) {
+    background-color: rgba(255, 50, 40, 0.3);
+}
+.kwown {
+    --kwglow: rgba(40, 110, 255, 0.9);
+    --kwtint: rgba(40, 110, 255, 0.18);
+}
+.kwref {
+    --kwglow: rgba(255, 50, 40, 0.9);
+    --kwtint: rgba(255, 50, 40, 0.18);
+}
+.kwown.kwref {
+    --kwglow: rgba(220, 40, 255, 0.9);
+    --kwtint: rgba(220, 40, 255, 0.2);
+}
+a.deckswipe.kwglow img {
+    box-shadow: 0 0 3px 3px var(--kwglow), 0 0 12px 6px var(--kwglow);
+}
+a.deckswipe.kwglow:not(:has(img)) {
+    background-color: var(--kwtint);
+    box-shadow: 0 0 4px 2px var(--kwglow);
+    border-radius: 3px;
+}
+table.listtable tr.listtablecard.kwglow {
+    background-color: var(--kwtint);
+}
+tr.listtablecard.kwglow a.deckswipe {
+    box-shadow: none;
+    background-color: transparent;
+}
+/* a bar behind a type's averages: its copies against the deck's biggest type (--bar, set in liststats), across the
+   middle third of the cell */
+table.liststatstable td.liststatsbar {
+    background-image: linear-gradient(rgba(90, 110, 160, 0.25), rgba(90, 110, 160, 0.25));
+    background-repeat: no-repeat;
+    background-size: var(--bar) 33.3%;
+    background-position: left center;
 }
 span.liststatsavg {
     display: inline-block;
@@ -827,7 +1386,7 @@ table.liststatstable tbody tr:not(.liststatsdeck) span.liststatsavg b {
 }
 div.listmissing {
     margin: 4px 0;
-    color: #a00;
+    color: var(--bad-1);
 }
 div.listheadxl {
     font-size: x-large;
@@ -839,8 +1398,8 @@ div.listtablewrap {
 }
 table.listtable {
     border-collapse: collapse;
-    background-color: rgba(255, 255, 255, 0.9);
-    font-family: "Times New Roman",Georgia,Serif;
+    background-color: var(--panel);
+    font-family: var(--font-ui);
     border-radius: 7px;
     overflow: hidden;
 }
@@ -850,18 +1409,21 @@ table.listtable th, table.listtable td {
     vertical-align: top;
 }
 table.listtable thead th {
-    border-bottom: 1px solid #bbb;
+    border-bottom: 1px solid var(--line-4);
     white-space: nowrap;
 }
 table.listtable .listtableqty, table.listtable .listtablestat {
     text-align: right;
     white-space: nowrap;
 }
+/* "3x", as the Simple List has it (template table prints only the number) */
+table.listtable tr.listtablecard td.listtableqty::after {
+    content: "x";
+}
 table.listtable tr.listtabledeck th, table.listtable tr.listtabletype th {
-    background: #6e6e6e;
-    background: linear-gradient(to bottom, #888, #575757);
+    background: var(--head-bg);
     color: #fff;
-    font-family: "L5R Title";
+    font-family: var(--font-display);
     font-weight: normal;
     font-size: large;
 }
@@ -869,24 +1431,68 @@ table.listtable tr.listtabletype th {
     font-size: medium;
     padding-left: 1.5em;
 }
+/* a section's own column labels, in its header row (listtableheads) */
+table.listtable tr.listtabledeck th.listtablecolhead, table.listtable tr.listtabletype th.listtablecolhead {
+    font-family: var(--font-ui);
+    font-size: small;
+    padding-left: 8px;
+    vertical-align: bottom;
+    white-space: nowrap;
+}
+/* a stat at the value the card has in this deck, not the printed one (clan discounts; listtablecolumns) */
+table.listtable span.deckvalue {
+    font-weight: bold;
+    text-decoration: underline dotted;
+    cursor: help;
+}
 table.listtable tr.listtablestripe {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--shade-3);
 }
 table.listtable td.listtablestat:nth-child(odd), table.listtable thead th.listtablestat:nth-child(odd) {
-    background-color: rgba(90, 110, 160, 0.06);
+    background-color: var(--shade-col);
 }
-/* deck view (template-visual-deck): type rows under a deck header */
+/* deck view: a small deck (Pre-Game) floats left with the next deck beside it (deckviewflow in oracle.js); deck
+   headers stop short of a float (flow-root), and the others start a new line */
+div.deckviewsmall {
+    float: left;
+    max-width: 100%;
+    margin-right: 8px;
+}
+/* too wide to leave the next deck any room (deckviewfit in oracle.js): an ordinary block */
+div.deckviewsmall.deckviewstack {
+    float: none;
+    margin-right: 0;
+}
+div.listlayoutcards div.listhead {
+    display: flow-root;
+}
+div.listlayoutcards div.listhead.deckviewbreak {
+    clear: left;
+}
+/* deck view: a type's label and its first card, kept on one line (deckviewflow in oracle.js) */
+span.deckviewlead {
+    display: inline-block;
+    white-space: nowrap;
+}
+/* deck view (template-visual-deck): each type's label is a narrow spine down the left of its first card, read
+   bottom to top (vertical-rl turned over), not a card-sized box. One line: a height limit would wrap it into
+   columns across the whole row */
 div.deckviewtype {
     display: inline-block;
     vertical-align: top;
-    width: 8em;
-    margin: 4px 4px 0 0;
-    font-size: medium;
-    white-space: normal;
-    border-radius: 7px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    width: max-content;
+    margin: 4px 2px 0 0;
+    padding: 6px 3px;
+    font-family: var(--font-ui);
+    font-size: small;
+    line-height: 1.2;
+    white-space: nowrap;
+    border-radius: 5px;
 }
 div.listhead, div.listheadxl, div.listhead a:visited, div.listhead a:link, div.listhead a:hover, div.listhead a:active, div.listheadplain, div.upperhead, div.listheadmiddle{
-    color:  /* #ffd73a; */  #FFFFFF;
+    color:  /* var(--button-text); */  #FFFFFF;
     text-decoration: none;
 }
 
@@ -911,7 +1517,7 @@ dt:not(:empty)::after {
 dd {
     margin: 0 0 0 100px;
     padding: 0 0 0.25em 0;
-    font-size: 14pt;
+    font-size: 12pt;   /* was 14pt in Times, which runs small: the same visual size in the UI font */
   text-align: left;
 }
 /* card page and Detail search rows: a label taller than its value (one wrapped over several lines)
@@ -987,17 +1593,23 @@ button .iiconic, span .iiconic {
     text-align: right;
 }
 .listmanagement div {
-    border: solid black 1px;
+    border: solid var(--line-strong) 1px;
     -moz-border-radius: 3px;  -webkit-border-radius: 3px;  -khtml-border-radius: 7px;  border-radius: 3px;
 }
-.inegative { color: #ee2222; }
-.ipositive { color: #0a8913; }
-.listheadmiddle .ipositive { color: #1aee29; }
-.iyellow { color: yellow; }
-.idyellow { color: #ff4d01; }
-.ipurple { color: purple; }
-.iblue { color: #2222ee; }
-.iblack { color: black; }
+.inegative { color: var(--bad-8); }
+.ipositive { color: var(--good-10); }
+.iyellow { color: var(--icon-yellow); }
+.idyellow { color: var(--icon-orange); }
+.ipurple { color: var(--icon-purple); }
+.iblue { color: var(--info-4); }
+.iblack { color: var(--text); }
+/* the same icons and ? marks on the charcoal title bars (--head-bg): lighter, so they don't sink into it. Not in
+   the bars' dropdown menus (ul.dirlistmenu), which are light */
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .iblue:not(ul.dirlistmenu *),
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .helpq:not(ul.dirlistmenu *) { color: #9ec5ff; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .ipositive:not(ul.dirlistmenu *) { color: #4cdb5a; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .idyellow:not(ul.dirlistmenu *) { color: #ff7a3d; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) .inegative:not(ul.dirlistmenu *) { color: #ff6b6b; }
 .iyin { font-size: 15pt; }
 
 .curses { cursor: pointer; }
@@ -1071,8 +1683,9 @@ font-style: normal;
 img.inlinesymbol {   border: none;   vertical-align: middle; }
 img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;}
 .button {
-  font-size: large;
-  font-family: "L5R Title";
+  font-size: 12pt;
+  font-weight: 600;
+  font-family: var(--font-ui);
 
   display: inline-block;
 	zoom: 1; /* zoom and *display = ie7 hack for display:inline-block */
@@ -1106,39 +1719,39 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
 }
 .buttonsmall { 
   font-size: 11pt;
+  font-weight: 500;
 }
 .buttonsmaller { 
   font-size: 10pt;
+  font-weight: 500;
 }
 .nocolor { 
-  color: #ffd73a;
+  color: var(--button-text);
  }
 
-/*   gray   -   good examples at http://webdesignerwall.com/tutorials/css3-gradient-buttons */
+/* gray = the everyday button and the printing chips: flat and light, dark text */
 .gray {
-/*	color: #e9e9e9; */
-  color: #ffd73a;
-	border: solid 1px #555;
-	background: #6e6e6e;
-	background: -webkit-gradient(linear, left top, left bottom, from(#888), to(#575757));
-	background: -moz-linear-gradient(top,  #888,  #575757);
-	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#888888', endColorstr='#575757');
+  color: var(--chip-text);
+  border: solid 1px var(--chip-border);
+  background: var(--chip-bg);
+  text-shadow: none;
+  box-shadow: none;
 }
 .gray:hover {
-	background: #616161;
-	background: -webkit-gradient(linear, left top, left bottom, from(#757575), to(#4b4b4b));
-	background: -moz-linear-gradient(top,  #757575,  #4b4b4b);
-	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#757575', endColorstr='#4b4b4b');
+  background: var(--chip-hover);
+  border-color: var(--chip-border-hover);
 }
 .gray:active {
-/*	color: #afafaf; */
-	background: -webkit-gradient(linear, left top, left bottom, from(#575757), to(#888));
-	background: -moz-linear-gradient(top,  #575757,  #888);
-	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#575757', endColorstr='#888888');
+  background: var(--chip-active);
 }
+.gray .iyellow { color: var(--icon-gold); }
+/* the one call to action in the menubar, gold like the Search button */
+#loginbutton.button { background: var(--accent); border-color: #c4a53e; color: #222; }
+#loginbutton.button:hover { background: #e8cf72; }
 
 /* Showing: printed / MRP button at the top of a card's text (#template-textversion), and the fields it
-   changes (markprinteddiffs, printed wording only) in a light tint of the Printed button's bluer, greenish gold */
+   changes (markprinteddiffs, printed wording only) in a light tint of the Printed button's green. The button is a
+   light .gray chip, so dark olive text on a pale green tint */
 .textversionrow {
   margin-top: 2px;
   margin-bottom: 4px;
@@ -1159,7 +1772,13 @@ img.inlinesymbolbounded {   border: none;   vertical-align: middle; height: 1em;
   z-index: 1001;
 }
 .textversionprinted {
-  color: #c9e65a;
+  color: var(--printed-text);
+  background: var(--printed-bg);
+  border-color: var(--printed-border);
+}
+.textversionprinted:hover {
+  background: var(--printed-hover);
+  border-color: var(--printed-border-hover);
 }
 .printeddiff {
   background: rgba(201, 230, 90, 0.32);
@@ -1189,7 +1808,7 @@ background-image: url("/oracle/resources/icon-buttons/led_red_on.png");
 background-image: url("/oracle/resources/icon-buttons/led_red_off.png");
 }
 .buttonimageadmin { 
-  color: red;
+  color: var(--bad-7);
 }
 /* ********************   end buttons ******************** */
 
@@ -1274,7 +1893,7 @@ body.viewsearch li.textversionmenu .searchtextversion, body.viewsearch li.textve
   display: inline;
 }
 div.menubar nav li.numresultsmenu {
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
   font-size: medium;
   padding-top: 7px;
   cursor: default;
@@ -1297,9 +1916,11 @@ div.menubar nav li {
 /*  padding-right: 1rem; */
   padding-left: 1rem;
 /*  background: rgb(196,196,196); */
-  font-size: large;
-  font-family: "L5R Title";
+  font-size: 12pt;
+  font-family: var(--font-ui);
 }
+/* the game's name in the menubar keeps the flavor font */
+div.menubar .gameinfo-game .gamename { font-family: var(--font-display); font-size: large; }
 nav li {
   position: relative;
   display: block;
@@ -1308,7 +1929,7 @@ nav li {
   text-decoration: none;
 }
 nav li dl {
-    font-family: "Times New Roman","Georgia","Serif";
+    font-family: var(--font-ui);
 }
 nav li.right {
     float: right;
@@ -1319,7 +1940,7 @@ div.menubar nav>ul>li {
 }
 nav li a:link, nav li a:hover, nav li a:active, nav li a:visited {
   text-decoration: none;
-  color: black;
+  color: var(--text);
 }
 
 /* pointer cursor on every menu item: iOS Safari only sends taps on plain elements to click handlers when they have it */
@@ -1370,13 +1991,17 @@ div.menubar nav ul li ul li {
 nav ul li ul li {
   clear: both;
   width: 100%;
-  background: rgb(255,255,255);
+  background: var(--panel);
 }
+
+/* a game in all/games with preview: true (listed on preview/localhost only) */
+nav ul li ul li.gamepreviewonly { background: var(--preview-row); }
+.gamepreviewtag { margin-left: .5em; padding: 0 .35em; border-radius: 3px; background: rgb(214,120,0); color: #fff; font-size: 75%; font-weight: bold; text-transform: uppercase; vertical-align: middle; }
 
 nav ul li ul li:focus-within,
 nav ul li ul li:focus,
 nav ul li ul li:hover {
-  background-color: rgb(128, 128, 128); 
+  background-color: var(--menu-hover); 
 }
 /*
 nav ul li ul li.menuactive { 
@@ -1404,21 +2029,21 @@ li.menusort ul li.sortmodeitem::after {
 }
 nav ul li ul li.sortmodehead,
 nav ul li ul li.sortmodehead:hover {
-  border-top: solid black 1px;
-  background: rgb(230,230,230);
+  border-top: solid var(--line-strong) 1px;
+  background: var(--menu-head);
   font-size: smaller;
   cursor: default;
 }
 nav ul li ul li {
   white-space: nowrap;
-  border-right: solid black 1px;
-  border-left: solid black 1px;
+  border-right: solid var(--line-strong) 1px;
+  border-left: solid var(--line-strong) 1px;
 }
 nav ul li ul li:last-child {
-  border-bottom: solid black 1px;
+  border-bottom: solid var(--line-strong) 1px;
 }
 .listblock {
-    border: solid black 1px;
+    border: solid var(--line-strong) 1px;
 /*    clear: both;
     width: auto;  */
     -moz-border-radius: 5px;
@@ -1467,14 +2092,14 @@ div.menubar nav ul.viewblock > li {
   border: none;
 }
 div.menubar nav li.searchviewbuttons > ul.viewblock {
-  border: 1px solid rgb(128, 128, 128);
+  border: 1px solid var(--view-box);
   border-radius: 4px;
 }
 div.menubar nav ul.viewblock .searchviewgroup {
   border: none;
 }
 div.menubar nav ul.viewblock > li + li > .searchviewgroup {
-  border-left: 1px solid rgb(192, 192, 192);
+  border-left: 1px solid var(--view-line);
   border-radius: 0;
 }
 /* the sort dropdowns hang right below the whole box (no gap, so a mouse can reach them), right-aligned with it */
@@ -1488,13 +2113,13 @@ div.menubar nav li.searchviewbuttons ul.dropdown {
   display: inline-flex;
   gap: 1px;
   padding: 1px;
-  border: 1px solid rgb(128, 128, 128);
+  border: 1px solid var(--view-box);
   border-radius: 4px;
 }
 /* Settings page "Save" view defaults: brief confirmation after saving */
 .saveviewdefaults.saved::after, #savesearchbutton.saved::after, #savedefaultbutton.saved::after {
   content: " \2714";
-  color: green;
+  color: var(--good-9);
 }
 .searchviewgroup + .searchviewgroup {
   margin-left: 6px;
@@ -1505,17 +2130,17 @@ div.menubar nav li.searchviewbuttons ul.dropdown {
   border: 1px solid transparent;
   border-radius: 3px;
   background-color: transparent;
-  color: rgb(96, 96, 96);
+  color: var(--text-icon);
   cursor: pointer;
 }
 .searchviewgroup button:hover {
-  color: black;
-  border-color: rgb(192, 192, 192);
+  color: var(--text);
+  border-color: var(--view-line);
 }
 .searchviewgroup button.searchviewactive {
-  color: black;
-  border-color: rgb(128, 128, 128);
-  background-color: rgb(224, 224, 224);
+  color: var(--text);
+  border-color: var(--view-box);
+  background-color: var(--view-active);
 }
 
 .button .iiconic .feather {
@@ -1549,7 +2174,7 @@ div.menubar nav li.searchviewbuttons ul.dropdown {
   min-width: 400px;
   min-height: 250px; 
   background-color: rgb(255, 255, 255);
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--panel);
   -moz-border-radius: 7px;
   -webkit-border-radius: 7px;
   -khtml-border-radius: 7px;
@@ -1564,9 +2189,9 @@ div.menubar nav li.searchviewbuttons ul.dropdown {
 /* Settings page */
 div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 12px; max-width: 60em; }
 /* each section is a card, so the sections read apart from the gray buttons inside them */
-.settingsection { margin: 0 0 16px 0; padding: 10px 14px 12px; background: #faf8f2; border: 1px solid #d8d2c2; border-left: 5px solid #575757;
+.settingsection { margin: 0 0 16px 0; padding: 10px 14px 12px; background: var(--surface-warm); border: 1px solid var(--border-warm); border-left: 5px solid #575757;
   border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-.settingsection h3 { font-family: "L5R Title"; font-size: 1.4em; font-weight: normal; color: #333; margin: 0 0 8px 0; padding-bottom: 3px; border-bottom: 2px solid #e0c35a; }
+.settingsection h3 { font-family: var(--font-display); font-size: 1.4em; font-weight: normal; color: var(--text-2); margin: 0 0 8px 0; padding-bottom: 3px; border-bottom: 2px solid var(--accent); }
 .settingsection p:last-child, .settingsection .settingstable:last-child { margin-bottom: 0; }
 .settingsection dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 6px 0 10px 0; }
 .settingsection dt { font-weight: bold; text-align: right; }
@@ -1577,16 +2202,16 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
 .settingsection h4 { margin: 10px 0 4px 0; }
 /* tabs above the sections (showsettingstab) */
 .settingstabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 12px 0; border-bottom: 2px solid #575757; }
-.settingstabs button { font: inherit; padding: 6px 14px; background: #eeeae0; color: #333; border: 1px solid #d8d2c2; border-bottom: none;
+.settingstabs button { font: inherit; padding: 6px 14px; background: var(--tab-bg); color: var(--text-2); border: 1px solid var(--border-warm); border-bottom: none;
   border-radius: 6px 6px 0 0; cursor: pointer; margin-bottom: -2px; }
-.settingstabs button:hover { background: #faf8f2; }
+.settingstabs button:hover { background: var(--surface-warm); }
 .settingstabs button.settingstabactive { background: #575757; color: #fff; border-color: #575757; }
 /* the admin page reuses the settings tabs (showadmintab) */
 .adminlinks { margin: 0 0 12px 0; }
 .savedsearchtable td { vertical-align: top; }
 .gestureswitch { display: block; margin: 2px 0; }
 .swipetable .swipecount { width: 4em; margin-left: 6px; }
-.searchsummary { color: #555; }
+.searchsummary { color: var(--text-4); }
 /* saved searches under the Search button */
 #savedsearches { margin-top: 8px; text-align: left; }
 #savedsearches .savedsearchtitle { font-weight: bold; margin-bottom: 2px; }
@@ -1596,12 +2221,14 @@ div[class^=result] .randarea.settingsarea { text-align: left; padding: 4px 16px 
 #savedsearches .feather { width: 12px; height: 12px; vertical-align: -1px; }
 
 /* PDF print-n-play options */
+/* the list import modal's paste box (template-import) */
+.importpaste { width: 100%; box-sizing: border-box; font-family: monospace; }
 .modal-box:has(.pdfform) { width: 640px; max-width: 95vw; min-width: 0; margin-top: 5%; }
-.pdfform fieldset { border: 1px solid #ccc; border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 12px; }
+.pdfform fieldset { border: 1px solid var(--line-3); border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 12px; }
 .pdfform label { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
 .pdfform input[type=number] { width: 6em; }
 .pdfform label.wide { grid-column: 1 / -1; justify-content: flex-start; }
-.pdfform input:disabled { color: #888; }
+.pdfform input:disabled { color: var(--text-7); }
 .pdfsummary { margin: 4px 0 10px 0; font-weight: bold; }
 
 /* ********************** narrow screens (phones) **********************
@@ -1621,8 +2248,8 @@ div.visualcard {
   margin: 3px;
   padding: 4px;
   border-radius: 7px;
-  background-color: rgba(218, 218, 218, 0.9);
-  font-family: "Times New Roman",Georgia,Serif;
+  background-color: var(--visual-card);
+  font-family: var(--font-ui);
 }
 div.visualcard > a {
   display: block;
@@ -1662,6 +2289,65 @@ span.listqty {
   min-width: 1.2em;
   text-align: center;
 }
+/* the Simple List's count on your own list (listcountready in oracle.js): bold, with a faint dotted underline
+   to say it can be changed (solid on hover); a click opens the - [n] + stepper in its place */
+#resultlist span.editquantity {
+  display: inline-block;
+  min-width: 1.4em;
+  text-align: right;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted var(--text-6);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border: none;
+  border-radius: 0;
+}
+#resultlist span.editquantity:not(.listcountopen):is(:hover, :focus-visible) {
+  text-decoration: underline solid currentColor;
+  outline: none;
+}
+#resultlist span.editquantity.listcountopen {
+  text-decoration: none;
+}
+#resultlist span.editquantity.listcountopen {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+}
+#resultlist button.listcountstep {
+  min-width: 1.6em;
+  padding: 0 4px;
+  font: inherit;
+  font-weight: bold;
+  line-height: 1.4;
+  cursor: pointer;
+}
+#resultlist input.listcountinput {
+  width: 2.6em;
+  font: inherit;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+#resultlist input.listcountinput::-webkit-inner-spin-button,
+#resultlist input.listcountinput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+@media (pointer: coarse) {
+  #resultlist button.listcountstep {
+    min-width: 2.2em;
+    min-height: 2em;
+  }
+  #resultlist input.listcountinput {
+    min-height: 2em;
+    font-size: 16px; /* under 16px iOS Safari zooms the page on focus */
+  }
+}
 .phoneonly {
   display: none;
 }
@@ -1679,16 +2365,20 @@ div#phonesearchbar {
   margin: 4px;
   padding: 8px 12px;
   border-radius: 7px;
-  background: rgba(235, 235, 235, 0.95);
+  background: var(--phone-bar);
   box-shadow: 0 1px 4px rgba(0,0,0,.4);
   cursor: pointer;
 }
 div#phonesearchbar .numresults {
   margin-left: auto;
-  color: #555;
+  color: var(--text-4);
 }
 /* phone layout: narrow screens, and phones held sideways; keep in step with narrowscreen() in oracle.js */
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  /* the list page: the cards first, the statistics after them, whatever the view */
+  div.listlayout div.listlayoutstats {
+    order: 1;
+  }
   .phoneonly {
     display: inline;
   }
@@ -1818,7 +2508,7 @@ div#phonesearchbar .numresults {
     width: auto;
     overflow-y: auto;
     z-index: 8;
-    background: rgb(235, 235, 235);
+    background: var(--phone-panel);
     box-shadow: 2px 0 8px rgba(0,0,0,.5);
   }
   body.mobilesearch div#sidebar {
@@ -1832,11 +2522,22 @@ div#phonesearchbar .numresults {
   div#sidebar div.searchinput {
     float: none;
   }
-  div#sidebar div.searchinput input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
-    width: 60vw;
+  div#sidebar div.searchinput dd > input[type=text]:not(.searchnumeric), div#sidebar div.searchinput select {
+    width: 100%;
   }
-  div#sidebar div.searchinput .chosen-container {
-    width: 60vw !important;
+  /* 16px: iOS zooms the page when a smaller field takes focus. Fingers need taller rows and more of the list */
+  div#sidebar div.searchinput .ts-wrapper.multi .ts-control > input[type=text] {
+    font-size: 16px;
+  }
+  div#sidebar div.searchinput .ts-wrapper.multi .ts-control > .item {
+    font-size: 10.5pt;
+  }
+  div#sidebar div.searchinput .ts-dropdown .option {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  div#sidebar div.searchinput .ts-dropdown .ts-dropdown-content {
+    max-height: 45vh;
   }
   div[class^=result] .randarea, .modal-box {
     min-width: 0;
@@ -1859,57 +2560,57 @@ div#phonesearchbar .numresults {
 /* admin login log */
 .loginlog-nav { margin: 10px 0; }
 .updatelogform label { display: inline-block; margin: 0 12px 6px 0; white-space: nowrap; }
-table.loginlog { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
-table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
-table.loginlog tr.loginlog-failed td { color: #a00; }
+table.loginlog { border-collapse: collapse; font-size: 90%; background: var(--panel); color: var(--text-1); }
+table.loginlog th, table.loginlog td { padding: 2px 8px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: top; }
+table.loginlog tr.loginlog-failed td { color: var(--bad-1); }
 div.usageadmin:not(:empty) { max-width: none; overflow-x: auto; }
 table.usagetable td:not(:first-child), table.usagetable th { text-align: right; }
-table.usagetable tr.usagetotal td { border-top: 2px solid #999; }
-table.usagerows tr.usage-limited td { color: #a60; }
-table.usagerows tr.usage-error td, table.usagerows tr.usage-denied td { color: #a00; }
-table.patreonrows tr.patreon-former_patron td, table.patreonrows tr.patreon-free td { color: #666; }
-table.patreonrows tr.patreon-declined_patron td:first-child { color: #a60; }
+table.usagetable tr.usagetotal td { border-top: 2px solid var(--line-5); }
+table.usagerows tr.usage-limited td { color: var(--warn-1); }
+table.usagerows tr.usage-error td, table.usagerows tr.usage-denied td { color: var(--bad-1); }
+table.patreonrows tr.patreon-former_patron td, table.patreonrows tr.patreon-free td { color: var(--text-5); }
+table.patreonrows tr.patreon-declined_patron td:first-child { color: var(--warn-1); }
 /* admin Discord bot settings */
-.discordadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
-table.discord { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 4px 0 16px; }
-table.discord th, table.discord td { padding: 4px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
-table.discord tr.discordnew td { background: #f6f6f0; }
-.discordid { font-family: monospace; color: #666; font-size: 90%; }
+.discordadmin:not(:empty) { background: var(--panel); color: var(--text-1); padding: 4px 16px 12px; border-radius: 4px; }
+table.discord { border-collapse: collapse; font-size: 90%; background: var(--panel); color: var(--text-1); margin: 4px 0 16px; }
+table.discord th, table.discord td { padding: 4px 8px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: top; }
+table.discord tr.discordnew td { background: var(--fill-4); }
+.discordid { font-family: monospace; color: var(--text-5); font-size: 90%; }
 .discordfilter { white-space: nowrap; margin-bottom: 2px; }
-.discordcmd { display: inline-block; min-width: 6em; color: #555; }
-.discordmsg { color: #a00; max-width: 20em; }
-.discordnote { background: #eef6ee; padding: 4px 8px; }
+.discordcmd { display: inline-block; min-width: 6em; color: var(--text-4); }
+.discordmsg { color: var(--bad-1); max-width: 20em; }
+.discordnote { background: var(--good-bg-2); padding: 4px 8px; }
 /* admin mass image upload */
 .massimage { max-width: 60em; }
-.limitsadmin:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; max-width: 60em; }
+.limitsadmin:not(:empty) { background: var(--panel); color: var(--text-1); padding: 4px 16px 12px; border-radius: 4px; max-width: 60em; }
 .limitstable { border-collapse: collapse; margin: 4px 0; }
-.limitstable td, .limitstable th { border-bottom: 1px solid #ddd; padding: 3px 8px; text-align: left; vertical-align: top; }
+.limitstable td, .limitstable th { border-bottom: 1px solid var(--line-2); padding: 3px 8px; text-align: left; vertical-align: top; }
 .limitstable input { width: 6em; }
-.limitsnote { color: #666; font-size: 0.9em; }
+.limitsnote { color: var(--text-5); font-size: 0.9em; }
 .limitsfeature { margin: 10px 0 16px; }
-.massimage:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
+.massimage:not(:empty) { background: var(--panel); color: var(--text-1); padding: 4px 16px 12px; border-radius: 4px; }
 /* Admin -> Artist check (artcheck.js) and its result under a printing in the card editor */
 .artcheck { max-width: 60em; }
-.artcheck:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
-.artcheckresult { font-style: normal; color: #222; margin: 6px 0; line-height: 1.5; }
+.artcheck:not(:empty) { background: var(--panel); color: var(--text-1); padding: 4px 16px 12px; border-radius: 4px; }
+.artcheckresult { font-style: normal; color: var(--text-1); margin: 6px 0; line-height: 1.5; }
 .artcheckresult > div { margin: 2px 0; }
 .artcheckstrong { font-weight: bold; }
-.artchecknote { color: #666; font-size: 0.9em; }
+.artchecknote { color: var(--text-5); font-size: 0.9em; }
 .artcheckpicture { float: right; max-width: 200px; max-height: 200px; margin: 0 0 8px 10px; border-radius: 3px; }
 @media (max-width: 700px) { .artcheckpicture { max-width: 40%; } }
 .artcheckresult details { clear: both; }
 .artchecksigfound { display: flex; align-items: flex-end; gap: 10px; margin: 4px 0; }
-.artchecksigfound img { max-height: 160px; max-width: 60%; border: 1px solid #ccc; border-radius: 3px; image-rendering: auto; }
+.artchecksigfound img { max-height: 160px; max-width: 60%; border: 1px solid var(--line-3); border-radius: 3px; image-rendering: auto; }
 .artchecksigartist { margin: 4px 0; }
 .artchecksigstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
 .artchecksigstrip img { height: 72px; max-width: 140px; object-fit: contain; background: #eee; border: 1px solid #ddd; border-radius: 3px; }
 .artchecksigclosest a { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; max-width: 140px; }
 .artchecksigcap { font-size: 0.8em; text-align: center; line-height: 1.2; margin-top: 2px; }
 @media (max-width: 700px) { .artchecksigstrip img { height: 56px; max-width: 30vw; } }
-.artchecksubmit { margin: 6px 0; padding: 6px; border: 1px dashed #bbb; border-radius: 3px; }
+.artchecksubmit { margin: 6px 0; padding: 6px; border: 1px dashed var(--line-4); border-radius: 3px; }
 .artchecksubmit input[type=text] { max-width: 100%; }
-.artchecksubs img { max-height: 72px; max-width: 160px; border: 1px solid #ccc; border-radius: 3px; }
-.artcheckpick { margin-top: 6px; padding: 4px 6px; background: #f6f6f0; border-radius: 3px; }
+.artchecksubs img { max-height: 72px; max-width: 160px; border: 1px solid var(--line-3); border-radius: 3px; }
+.artcheckpick { margin-top: 6px; padding: 4px 6px; background: var(--fill-4); border-radius: 3px; }
 .artcheckpick label { display: inline-block; margin: 2px 10px 2px 0; white-space: nowrap; }
 .bugcheckcrops { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0; }
 .bugcheckcrop { margin: 0; text-align: center; }
@@ -1918,43 +2619,43 @@ table.discord tr.discordnew td { background: #f6f6f0; }
 .bugcheckcrop figcaption { font-size: 0.9em; }
 .artcheckresult ul { margin: 2px 0 2px 1.2em; padding: 0; }
 .artchecklist { border-collapse: collapse; font-size: 0.9em; }
-.artchecklist td, .artchecklist th { border-bottom: 1px solid #ddd; padding: 2px 6px; text-align: left; vertical-align: top; }
+.artchecklist td, .artchecklist th { border-bottom: 1px solid var(--line-2); padding: 2px 6px; text-align: left; vertical-align: top; }
 @media (max-width: 700px) { .artchecklist td:nth-child(3), .artchecklist th:nth-child(3), .artchecklist td:nth-child(8), .artchecklist th:nth-child(8) { display: none; } }
 #massimagestatus { margin: 8px 0; }
-table.massimagelist { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; }
-table.massimagelist th, table.massimagelist td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
-table.massimagelist tr.massimage-skipped td, table.massimagelist tr.massimage-waiting td { color: #777; }
-table.massimagelist tr.massimage-exists td { color: #a60; }
-table.massimagelist tr.massimage-irregular td { color: #a60; }
-#massimagereport:not(:empty) { margin: 8px 0; padding: 4px 8px; background: #f6f6f0; }
-table.massimagelist tr.massimage-failed td { color: #a00; }
+table.massimagelist { border-collapse: collapse; font-size: 90%; background: var(--panel); color: var(--text-1); }
+table.massimagelist th, table.massimagelist td { padding: 2px 8px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: top; }
+table.massimagelist tr.massimage-skipped td, table.massimagelist tr.massimage-waiting td { color: var(--text-6); }
+table.massimagelist tr.massimage-exists td { color: var(--warn-1); }
+table.massimagelist tr.massimage-irregular td { color: var(--warn-1); }
+#massimagereport:not(:empty) { margin: 8px 0; padding: 4px 8px; background: var(--fill-4); }
+table.massimagelist tr.massimage-failed td { color: var(--bad-1); }
 /* Admin -> Set import / Import profiles (setimport.js) */
 .setimport { max-width: 75em; }
-.setimport:not(:empty) { background: rgba(255,255,255,0.96); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
-.setimport h4 { margin: 14px 0 4px; padding-top: 8px; border-top: 1px solid #ddd; }
-.setimport .error { color: #a00; }
-.setimp-ok { color: #170; }
-.setimp-warn { color: #a60; }
+.setimport:not(:empty) { background: var(--panel); color: var(--text-1); padding: 4px 16px 12px; border-radius: 4px; }
+.setimport h4 { margin: 14px 0 4px; padding-top: 8px; border-top: 1px solid var(--line-2); }
+.setimport .error { color: var(--bad-1); }
+.setimp-ok { color: var(--good-5); }
+.setimp-warn { color: var(--warn-1); }
 .setimp-params td { padding: 2px 8px 2px 0; vertical-align: top; }
-.setimp-table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 6px 0; }
-.setimp-table th, .setimp-table td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
-.setimp-cards { max-height: 70vh; overflow: auto; border: 1px solid #ddd; background: #fff; }
-.setimp-card { border-bottom: 1px solid #eee; }
+.setimp-table { border-collapse: collapse; font-size: 90%; background: var(--panel); color: var(--text-1); margin: 6px 0; }
+.setimp-table th, .setimp-table td { padding: 2px 8px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: top; }
+.setimp-cards { max-height: 70vh; overflow: auto; border: 1px solid var(--line-2); background: var(--panel); }
+.setimp-card { border-bottom: 1px solid var(--line-1); }
 .setimp-card > summary { padding: 3px 8px; cursor: pointer; }
-.setimp-card > summary:hover { background: #f4f4ec; }
-.setimp-card.setimp-haserr > summary { background: #fff2f0; }
-.setimp-file { font-family: monospace; color: #666; display: inline-block; min-width: 7em; }
-.setimp-meta { color: #666; font-size: 90%; }
-.setimp-badge { font-size: 80%; padding: 0 5px; border-radius: 3px; background: #e6eefa; color: #245; }
-.setimp-badge.setimp-badgeerr { background: #fbe3e0; color: #a00; }
-.setimp-badge.setimp-badgenew { background: #e2f4e2; color: #262; }
-.setimp-badge.setimp-badgewarn { background: #fdf0d0; color: #750; }
-.setimp-badge.setimp-badgedup { background: #e8e8e8; color: #555; }
-.setimp-diffs del { background: #fbe3e0; color: #900; }
-.setimp-diffs ins { background: #e2f4e2; color: #060; }
-.setimp-missing { max-height: 20em; overflow: auto; font-size: 85%; margin: 2px 0 6px; padding: 4px 8px; background: #f6f6f6; }
-.setimp-cardview { border: 1px solid #ddd; border-radius: 4px; padding: 6px; margin: 4px 0; background: #fff; }
-.setimp-cardnote { margin: 0 0 6px; font-size: 90%; color: #555; }
+.setimp-card > summary:hover { background: var(--fill-5); }
+.setimp-card.setimp-haserr > summary { background: var(--bad-bg-3); }
+.setimp-file { font-family: monospace; color: var(--text-5); display: inline-block; min-width: 7em; }
+.setimp-meta { color: var(--text-5); font-size: 90%; }
+.setimp-badge { font-size: 80%; padding: 0 5px; border-radius: 3px; background: var(--info-bg); color: var(--info-2); }
+.setimp-badge.setimp-badgeerr { background: var(--bad-bg-2); color: var(--bad-1); }
+.setimp-badge.setimp-badgenew { background: var(--good-bg-1); color: var(--good-6); }
+.setimp-badge.setimp-badgewarn { background: var(--warn-bg); color: var(--warn-3); }
+.setimp-badge.setimp-badgedup { background: var(--fill-9); color: var(--text-4); }
+.setimp-diffs del { background: var(--bad-bg-2); color: var(--bad-4); }
+.setimp-diffs ins { background: var(--good-bg-1); color: var(--good-7); }
+.setimp-missing { max-height: 20em; overflow: auto; font-size: 85%; margin: 2px 0 6px; padding: 4px 8px; background: var(--fill-3); }
+.setimp-cardview { border: 1px solid var(--line-2); border-radius: 4px; padding: 6px; margin: 4px 0; background: var(--panel); }
+.setimp-cardnote { margin: 0 0 6px; font-size: 90%; color: var(--text-4); }
 /* a picture of the Card Details page: its links and buttons would act on the real view */
 .setimp-cardviewbody { pointer-events: none; }
 .setimp-cardviewbody > div.listitem { display: table; width: 100%; table-layout: fixed; }
@@ -1962,32 +2663,32 @@ table.massimagelist tr.massimage-failed td { color: #a00; }
 /* the card image only: inline symbols (img.inlinesymbolbounded, 1em) keep the site's size */
 .setimp-cardviewbody div.listimage img { max-width: 100%; height: auto; }
 .setimp-noimage { width: 300px; height: 420px; max-width: 100%; display: flex; align-items: center; justify-content: center;
-                  text-align: center; border: 2px dashed #bbb; border-radius: 12px; color: #777; font-size: 90%; }
+                  text-align: center; border: 2px dashed var(--line-4); border-radius: 12px; color: var(--text-6); font-size: 90%; }
 @media (max-width: 700px) {
   .setimp-cardviewbody > div.listitem, .setimp-cardviewbody div.listimage, .setimp-cardviewbody div.listbody { display: block; width: auto; }
 }
 .setimp-cardbody { padding: 0 8px 8px 24px; }
-.setimp-raw > summary { color: #666; font-size: 90%; cursor: pointer; }
+.setimp-raw > summary { color: var(--text-5); font-size: 90%; cursor: pointer; }
 .setimport details > summary { cursor: pointer; }
-.setimp-problems > summary { color: #a00; font-weight: bold; }
-.setimp-warnings > summary { color: #a60; }
-.setimp-infos > summary { color: #666; }
+.setimp-problems > summary { color: var(--bad-1); font-weight: bold; }
+.setimp-warnings > summary { color: var(--warn-1); }
+.setimp-infos > summary { color: var(--text-5); }
 pre.setimp-json { white-space: pre-wrap; word-break: break-word; font-size: 85%; line-height: 1.35; margin: 4px 0;
-                  padding: 6px 8px; background: #fafaf6; border: 1px solid #eee; border-radius: 3px; }
-.json-k { color: #7a3e9d; }
-.json-s { color: #1a6b2f; }
-.json-n { color: #b35c00; }
-.json-l { color: #0b5cad; font-weight: bold; }
-.json-p { color: #888; }
+                  padding: 6px 8px; background: var(--fill-2); border: 1px solid var(--line-1); border-radius: 3px; }
+.json-k { color: var(--json-k); }
+.json-s { color: var(--json-s); }
+.json-n { color: var(--json-n); }
+.json-l { color: var(--json-l); font-weight: bold; }
+.json-p { color: var(--text-7); }
 textarea.setimp-editor { width: 100%; height: 60vh; font-family: monospace; font-size: 85%; box-sizing: border-box; }
 .admindoc { max-width: 60em; }
-.admininfo { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 8px; border-radius: 4px; max-width: 60em; margin-top: 8px; }
+.admininfo { background: var(--panel); color: var(--text-1); padding: 4px 16px 8px; border-radius: 4px; max-width: 60em; margin-top: 8px; }
 .admininfo p { margin: 6px 0; }
 .admininfo table { border-collapse: collapse; font-size: 90%; }
-.admininfo td { padding: 1px 8px; border-bottom: 1px solid #ddd; }
-.admindoc:not(:empty) { background: rgba(255,255,255,0.94); color: #222; padding: 4px 16px 12px; border-radius: 4px; }
-.admindoc table { border-collapse: collapse; font-size: 90%; background: #fff; color: #222; margin: 8px 0; }
-.admindoc th, .admindoc td { padding: 2px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+.admininfo td { padding: 1px 8px; border-bottom: 1px solid var(--line-2); }
+.admindoc:not(:empty) { background: var(--panel); color: var(--text-1); padding: 4px 16px 12px; border-radius: 4px; }
+.admindoc table { border-collapse: collapse; font-size: 90%; background: var(--panel); color: var(--text-1); margin: 8px 0; }
+.admindoc th, .admindoc td { padding: 2px 8px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: top; }
 .admindoc code { background: rgba(127,127,127,0.15); padding: 0 3px; border-radius: 3px; }
 /* reload offer in the menu bar when a newer deploy is live (checkversion in oracle.js) */
 #newversion .button { color: #fff; border: solid 1px #7a0a0a; background: linear-gradient(#d23a3a, #9c1414); }
@@ -2009,11 +2710,11 @@ textarea.setimp-editor { width: 100%; height: 60vh; font-family: monospace; font
 }
 .swipepicklistitem {
   padding: 8px 6px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--line-3);
   cursor: pointer;
 }
 .swipepicklistitem:hover {
-  background-color: rgba(0,0,0,0.08);
+  background-color: var(--shade-4);
 }
 .swipepickfolder:not(.open) > ul {
   display: none;
@@ -2025,14 +2726,14 @@ textarea.setimp-editor { width: 100%; height: 60vh; font-family: monospace; font
   transform: rotate(90deg);
 }
 .swipepickwhere {
-  color: #666;
+  color: var(--text-5);
   font-size: smaller;
 }
 .swipepicksep {
   padding: 10px 6px 4px 6px;
-  color: #666;
+  color: var(--text-5);
   font-size: smaller;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--line-3);
 }
 
 /* Gestures setting "Folder pulldown" off (applyfolderselect in oracle.js) */
@@ -2057,7 +2758,7 @@ div.listmiddle.dirlistid {
   font-size: smaller;
 }
 div.listmiddle.dirlistid a {
-  color: #555;
+  color: var(--text-4);
 }
 
 /* list directory names: click opens the list, long press or the pencil renames (dirnameedit in oracle.js) */
@@ -2125,7 +2826,7 @@ div.directorycard .dircardhead ul.dirlistmenu, div.listviewheader ul.dirlistmenu
 }
 ul.dirlistmenu {
   min-width: 15em;
-  font-family: "Times New Roman",Georgia,Serif;
+  font-family: var(--font-ui);
 }
 nav ul.dirlistmenu li {
   padding: 6px 10px;
@@ -2138,8 +2839,8 @@ nav ul.dirlistmenu li svg.feather {
   margin-right: 4px;
 }
 nav ul.dirlistmenu li.dirmenudelete {
-  color: #b00;
-  border-top: solid black 1px;
+  color: var(--bad-2);
+  border-top: solid var(--line-strong) 1px;
 }
 div.directorylistheader > div.dirnotescell {
   min-width: 8em;
@@ -2175,7 +2876,7 @@ form.publicform {
     align-items: center;
     padding: 6px;
     margin-bottom: 6px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: var(--panel);
     border-radius: 7px;
 }
 form.publicform input[type=search] {
@@ -2193,8 +2894,8 @@ span.publicchip {
     display: inline-block;
     padding: 1px 6px;
     border-radius: 10px;
-    background: #ddd;
-    color: #000;
+    background: var(--fill-11);
+    color: var(--text);
 }
 span.publicchip a { text-decoration: none; }
 div.publiccard .dircardhead a.dircardname, div.publiccard .dircardhead a.dircardname:visited {
@@ -2210,14 +2911,14 @@ div.publicformats {
 }
 div.publicformats span {
     padding: 0 5px;
-    border: 1px solid #1aa329;
+    border: 1px solid var(--good-1);
     border-radius: 8px;
-    color: #116b1c;
+    color: var(--good-2);
 }
 div.publicnotes {
     margin-top: 4px;
     font-size: small;
-    color: #444;
+    color: var(--text-3);
     overflow-wrap: anywhere;
     max-height: 4.5em;
     overflow: hidden;
@@ -2229,30 +2930,48 @@ div.publicpager {
 a.cardpubliclists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
 a.cardpubliclists { text-decoration: none; }
 span.cardpubliccount { font-size: 13px; color: #fff; vertical-align: middle; margin-left: 2px; }
-span.publicformatsource { color: #777; font-size: small; }
-div.publicaward, div.listaward { color: #8a6d00; font-weight: bold; }
+a.cardmylists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
+a.cardmylists { text-decoration: none; margin-left: 4px; }
+span.publicformatsource { color: var(--text-6); font-size: small; }
+div.publicaward, div.listaward { color: var(--award); font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
 label.publicwinner { white-space: nowrap; }
+/* the deck check at the foot of the list header (template-listcheck): a light strip, so its red and green read */
+div.listviewheader div.listviewcheck { margin: 6px -4px -4px; padding: 2px 8px; background: var(--panel); color: var(--text-1); font-family: var(--font-ui); font-size: medium; border-radius: 0 0 7px 7px; }
 div.liststatslegal { margin: 4px 0 6px; }
-div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; font-size: small; }
-div.liststatsillegal { margin: 4px 0; color: #c00; font-weight: bold; }
-div.liststatsillegal a, div.liststatsillegal a:visited { color: #c00; }
-div.publicprecon, div.listprecon { color: #2a5d8a; font-weight: bold; }
+/* in the header strip the three parts run as one line of phrases, wrapping as needed; a hidden part takes its dot with it */
+div.listviewcheck > div { display: inline; }
+div.listviewcheck > div + div::before { content: " \2022  "; color: var(--text-5); font-weight: normal; }
+div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid var(--good-1); border-radius: 8px; color: var(--good-2); font-size: small; }
+div.liststatsillegal { margin: 4px 0; color: var(--bad-3); font-weight: bold; }
+div.liststatsillegal a, div.liststatsillegal a:visited { color: var(--bad-3); }
+div.liststatsbuild { margin: 4px 0; color: var(--bad-3); font-weight: bold; }
+div.liststatsbuild a, div.liststatsbuild a:visited { color: var(--bad-3); }
+div.liststatsflag { color: var(--bad-3); font-weight: bold; }
+div.liststatsbuildok { color: var(--good-2); font-weight: normal; }
+div.listbuild { margin: 6px 0; padding: 6px 10px; border: 1px solid var(--line-4); border-radius: 6px; background: var(--panel); color: var(--text-1); max-width: 34em; }
+div.listbuild div.listbuildhead { font-weight: bold; margin-bottom: 4px; }
+div.listbuild table { border-collapse: collapse; margin-bottom: 6px; }
+div.listbuild td, div.listbuild th { padding: 2px 6px 2px 0; text-align: left; vertical-align: middle; }
+div.listbuild td label { white-space: nowrap; margin-right: 8px; }
+div.listbuild input[type=number] { width: 4.5em; padding: 1px 3px; font-size: inherit; }
+div.listbuild select { font-size: inherit; max-width: 14em; }
+div.publicprecon, div.listprecon { color: var(--info-3); font-weight: bold; }
 div.publicprecon svg.feather, div.listprecon svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
 #publicresults div.publiccard { cursor: pointer; }
-div.publicformats a.publicformatlink { padding: 0 5px; border: 1px solid #1aa329; border-radius: 8px; color: #116b1c; text-decoration: none; }
-div.publicformats a.publicformatlink:hover { background: #e3f6e5; }
+div.publicformats a.publicformatlink { padding: 0 5px; border: 1px solid var(--good-1); border-radius: 8px; color: var(--good-2); text-decoration: none; }
+div.publicformats a.publicformatlink:hover { background: var(--good-bg-5); }
 
 /* Card editor (cardeditor.js) */
 #modal.cardeditmodal .modal-box { width: 960px; max-width: 95vw; min-width: 0; margin-top: 3%; }
 #modal.cardeditmodal .modal-content { padding: 12px 16px; }
 .cardedittop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
 .cardeditviews label { margin-right: 10px; white-space: nowrap; }
-.cardeditsection { border: 1px solid #ccc; border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; }
+.cardeditsection { border: 1px solid var(--line-3); border-radius: 4px; margin: 0 0 10px 0; padding: 6px 10px; }
 .cardeditsection legend { font-weight: bold; }
 .cardeditfields { display: flex; flex-direction: column; }
 /* a row: the card page's row (F/C, HR/Cost/PH), or short fields side by side; long fields take the full width */
-.cardeditrow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px 18px; padding: 3px 0; border-top: 1px solid #eee; }
+.cardeditrow { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px 18px; padding: 3px 0; border-top: 1px solid var(--line-1); }
 .cardeditrow:first-child { border-top: none; }
 .cardeditfield { display: flex; align-items: flex-start; gap: 6px; min-width: 0; max-width: 100%; }
 .cardeditlong, .cardeditfull { flex: 1 1 100%; }
@@ -2262,33 +2981,33 @@ div.publicformats a.publicformatlink:hover { background: #e3f6e5; }
 .cardeditvals { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 3px 4px; flex: 1; min-width: 0; }
 .cardeditvalue { display: flex; align-items: flex-start; gap: 1px; min-width: 0; max-width: 100%; }
 .cardeditlong .cardeditvalue { flex: 1 1 100%; }
-.cardeditval { flex: 1; min-width: 0; min-height: 1.3em; padding: 2px 4px; border: 1px solid #ccc; border-radius: 3px; background: #fff;
+.cardeditval { flex: 1; min-width: 0; min-height: 1.3em; padding: 2px 4px; border: 1px solid var(--line-3); border-radius: 3px; background: var(--panel);
   font: inherit; box-sizing: border-box; overflow-wrap: anywhere; }
 .cardeditshort .cardeditval { flex: none; min-width: 2.5em; max-width: 100%; }
 input.cardeditval { font-family: monospace; font-size: 0.9em; }
 textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertical; }
-.cardeditval:focus { outline: 2px solid #e0c35a; }
+.cardeditval:focus { outline: 2px solid var(--accent); }
 .cardeditjsonfield { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
-.cardeditbad { border: 2px solid #c00; }
-.cardeditx { cursor: pointer; color: #b00; padding: 0 3px; user-select: none; }
-.cardeditx:hover { background: #fdd; border-radius: 3px; }
-.cardeditaddvalue { cursor: pointer; color: #2a7a2a; font-weight: bold; padding: 0 3px; user-select: none; }
-.cardeditaddvalue:hover { background: #dfd; border-radius: 3px; }
-.cardeditaddrow { padding-top: 8px; border-top: 1px solid #eee; }
+.cardeditbad { border: 2px solid var(--bad-3); }
+.cardeditx { cursor: pointer; color: var(--bad-2); padding: 0 3px; user-select: none; }
+.cardeditx:hover { background: var(--bad-bg-4); border-radius: 3px; }
+.cardeditaddvalue { cursor: pointer; color: var(--good-8); font-weight: bold; padding: 0 3px; user-select: none; }
+.cardeditaddvalue:hover { background: var(--good-bg-3); border-radius: 3px; }
+.cardeditaddrow { padding-top: 8px; border-top: 1px solid var(--line-1); }
 .cardeditaddfield { max-width: 26em; }
-.cardeditadddesc { color: #555; font-size: 0.9em; margin-top: 3px; white-space: pre-line; }
+.cardeditadddesc { color: var(--text-4); font-size: 0.9em; margin-top: 3px; white-space: pre-line; }
 .cardeditadddesc:empty { display: none; }
-.cardeditdesc { text-decoration: underline dotted #999; cursor: help; }
+.cardeditdesc { text-decoration: underline dotted var(--text-8); cursor: help; }
 .cardeditversions { margin-bottom: 6px; }
 .cardeditversions .printinglink { cursor: pointer; }
-.cardeditversions .cardeditselected { background: #575757; color: #fff; }
+.cardeditversions .cardeditselected { background: var(--head-bg); border-color: var(--head-bg); color: #fff; }
 .cardeditprintingbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0; }
 .cardeditstep { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; cursor: pointer; }
 .cardeditstep img { width: 23px; height: auto; }
 .cardeditstepoff { opacity: 0.3; cursor: default; pointer-events: none; }
-.cardeditstepcount { color: #666; font-size: 0.9em; }
-.cardeditdeleted { color: #b00; margin-bottom: 6px; }
-.cardeditmrp { background: #e0c35a; border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
+.cardeditstepcount { color: var(--text-5); font-size: 0.9em; }
+.cardeditdeleted { color: var(--bad-2); margin-bottom: 6px; }
+.cardeditmrp { background: var(--accent); border-radius: 3px; padding: 0 5px; font-size: 0.85em; }
 .cardeditimagelist img { max-height: 120px; margin: 2px; cursor: zoom-in; }
 #cardeditzoom { position: fixed; top: 60px; right: 16px; z-index: 12; width: 440px; height: 640px; min-width: 240px; min-height: 200px;
   max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); resize: both; overflow: hidden; display: flex; flex-direction: column;
@@ -2304,10 +3023,19 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
 #cardeditzoombox { position: relative; flex: 1; overflow: hidden; background: #333; cursor: grab; touch-action: none; }
 #cardeditzoombox.cardeditzoompanning { cursor: grabbing; }
 #cardeditzoomimg { position: absolute; max-width: none; user-select: none; image-rendering: auto; }
-.cardeditnote { color: #666; font-style: italic; margin: 4px 0; }
-.cardeditupload { margin: 4px 0 8px 0; }
+#cardeditzoomfoot { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #575757; color: #fff; }
+#cardeditzoomthumbs { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; }
+.cardeditzoomthumb { position: relative; border: 2px solid transparent; border-radius: 3px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.cardeditzoomthumb img { display: block; height: 56px; width: auto; pointer-events: none; }
+.cardeditzoomthumb span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); font-size: 0.75em; text-align: center; }
+.cardeditzoomcurrent { border-color: var(--accent); }
+.cardeditzoomdragging { opacity: 0.5; cursor: grabbing; }
+.cardeditnote { color: var(--text-5); font-style: italic; margin: 4px 0; }
+#cardeditupload .modal-box { width: 480px; max-width: 95vw; min-width: 0; min-height: 0; margin-top: 10%; }
+.cardedituploadform > div { margin-bottom: 10px; }
+.cardedituploadform input[type=file] { max-width: 100%; }
 #cardeditjson { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 0.85em; }
-.cardeditfoot { position: sticky; bottom: 0; background: rgba(255,255,255,0.95); padding: 6px 0; border-top: 1px solid #ccc; }
+.cardeditfoot { position: sticky; bottom: 0; background: var(--panel); padding: 6px 0; border-top: 1px solid var(--line-3); }
 .cardeditlog { margin: 4px 0; padding-left: 18px; }
 #cardeditconfirm .modal-box { margin-top: 10%; }
 @media (max-width: 600px) {
@@ -2315,68 +3043,68 @@ textarea.cardeditval { font-family: monospace; font-size: 0.9em; resize: vertica
   .cardeditfield:first-child .cardeditlabel, .cardeditfull .cardeditlabel { width: auto; text-align: left; }
   .cardeditrow .cardeditfield.cardeditlong .cardeditlabel { flex: 1 1 100%; }
 }
-.cardeditsync { margin: 6px 0; padding: 4px 6px; border-left: 3px solid #e0c35a; background: #faf8f2; }
+.cardeditsync { margin: 6px 0; padding: 4px 6px; border-left: 3px solid var(--accent); background: var(--surface-warm); }
 .cardeditsync label { white-space: nowrap; margin-right: 8px; }
-.cardeditsyncadd { color: #2a7a2a; margin-right: 6px; }
-.cardeditsyncremove { color: #b00; margin-right: 6px; }
+.cardeditsyncadd { color: var(--good-8); margin-right: 6px; }
+.cardeditsyncremove { color: var(--bad-2); margin-right: 6px; }
 #cardeditconfirm .modal-box:has(.cardeditsync) { width: 640px; max-width: 95vw; min-width: 0; }
 
 /* Rules: the rulebook shelf and page viewer (rules.js) */
-div#rulesarea { background-color: rgba(255, 255, 255, 0.92); border-radius: 7px; font-family: "Times New Roman",Georgia,Serif; }
+div#rulesarea { background-color: var(--panel); border-radius: 7px; font-family: var(--font-ui); }
 .rulesshelf { padding: 6px 16px 14px; }
-.rulesshelf h2 { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-weight: normal; font-size: 1.8em; margin: 4px 0 6px; }
-.rulesshelf h3 { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-weight: normal; font-size: 1.3em; margin: 6px 0 10px; padding-bottom: 3px; border-bottom: 2px solid #e0c35a; }
+.rulesshelf h2 { font-family: var(--font-display); font-weight: normal; font-size: 1.8em; margin: 4px 0 6px; }
+.rulesshelf h3 { font-family: var(--font-display); font-weight: normal; font-size: 1.3em; margin: 6px 0 10px; padding-bottom: 3px; border-bottom: 2px solid var(--accent); }
 .rulesbooks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 14px; }
 a.rulesbookcard { display: flex; flex-direction: column; color: inherit; text-decoration: none; border-radius: 6px; padding: 6px; }
-a.rulesbookcard:hover { background: #f1ecdd; }
+a.rulesbookcard:hover { background: var(--warm-hover); }
 .rulescover { display: flex; align-items: flex-end; justify-content: center; height: 190px; margin-bottom: 6px; }
 .rulescover img { max-width: 100%; max-height: 190px; width: auto; height: auto; box-shadow: 0 2px 6px rgba(0,0,0,.35); background: #ddd; }
 .rulesbooktitle { font-weight: bold; font-size: 1.05em; }
-.rulesbooksub { color: #555; font-size: .92em; }
-.rulesbookmeta { color: #777; font-size: .82em; margin-top: 2px; }
-.rulesbooknote { color: #777; font-size: .82em; font-style: italic; margin-top: 2px; }
+.rulesbooksub { color: var(--text-4); font-size: .92em; }
+.rulesbookmeta { color: var(--text-6); font-size: .82em; margin-top: 2px; }
+.rulesbooknote { color: var(--text-6); font-size: .82em; font-style: italic; margin-top: 2px; }
 /* the Bookshelf's shelves (Rulebooks, Newsletters, ...): tabs in place of the shelf heading when there's more than one */
-.rulesshelftabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 4px; margin: 6px 0 10px; border-bottom: 2px solid #e0c35a; }
+.rulesshelftabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 4px; margin: 6px 0 10px; border-bottom: 2px solid var(--accent); }
 .rulesshelftabs .helpq { align-self: center; }
-button.rulesshelftab { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.3em; margin: 0 0 -2px; padding: 2px 10px 3px; border: 0; border-bottom: 4px solid transparent; background: none; color: #777; cursor: pointer; }
-button.rulesshelftab:hover { color: #333; border-bottom-color: #ecdca0; }
-button.rulesshelftab.rulesshelftabon { color: #000; border-bottom-color: #b89a32; }
-.rulesshelfcount { font-family: Arial,Helvetica,sans-serif; font-size: .55em; color: #888; vertical-align: middle; }
+button.rulesshelftab { font-family: var(--font-display); font-size: 1.3em; margin: 0 0 -2px; padding: 2px 10px 3px; border: 0; border-bottom: 4px solid transparent; background: none; color: var(--text-6); cursor: pointer; }
+button.rulesshelftab:hover { color: var(--text-2); border-bottom-color: var(--tab-hover); }
+button.rulesshelftab.rulesshelftabon { color: var(--text); border-bottom-color: #b89a32; }
+.rulesshelfcount { font-family: var(--font-ui); font-size: .55em; color: var(--text-7); vertical-align: middle; }
 .rulesfilters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: -2px 0 12px; }
 .rulesfiltergroup { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.rulesfilterlabel { color: #555; font-size: .9em; margin-right: 2px; }
-button.rulespill { font: inherit; font-size: .88em; margin: 0; padding: 2px 10px; border: 1px solid #cfc6ab; border-radius: 12px; background: #fff; color: #333; cursor: pointer; }
-button.rulespill:hover { border-color: #a99a6c; background: #f6f1e2; }
-button.rulespill.rulespillon { background: #e0c35a; border-color: #b89a32; color: #000; }
+.rulesfilterlabel { color: var(--text-4); font-size: .9em; margin-right: 2px; }
+button.rulespill { font: inherit; font-size: .88em; margin: 0; padding: 2px 10px; border: 1px solid var(--pill-border); border-radius: 12px; background: var(--panel); color: var(--text-2); cursor: pointer; }
+button.rulespill:hover { border-color: var(--pill-hover); background: var(--warm-hover-2); }
+button.rulespill.rulespillon { background: var(--accent); border-color: #b89a32; color: #000; }
 select.rulesarc { font: inherit; font-size: .9em; padding: 1px 4px; max-width: 100%; }
-.rulesfiltercount { color: #777; font-size: .85em; }
-button.rulespill.rulesfilterclear { color: #555; }
+.rulesfiltercount { color: var(--text-6); font-size: .85em; }
+button.rulespill.rulesfilterclear { color: var(--text-4); }
 button.rulesfilterclear .feather { width: 1em; height: 1em; vertical-align: -2px; }
 button.rulesfilterclear[hidden] { display: none; }
 .rulesbookmarks { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
-.rulesbookmark { font-size: .72em; padding: 0 6px; border-radius: 8px; background: #efe7cc; color: #5a4a14; white-space: nowrap; }
-.rulesnomatch { color: #777; font-style: italic; grid-column: 1 / -1; }
+.rulesbookmark { font-size: .72em; padding: 0 6px; border-radius: 8px; background: var(--mark-bg); color: var(--mark-text); white-space: nowrap; }
+.rulesnomatch { color: var(--text-6); font-style: italic; grid-column: 1 / -1; }
 /* never wider than the screen: a toolbar that doesn't fit (large text, browser zoom) wraps rather than widening the page */
 .rulesreader { display: flex; flex-direction: column; min-width: 0; max-width: 100%; }
 .rulestop, .rulesbottom { display: flex; align-items: center; gap: 4px; padding: 3px 6px; flex-wrap: wrap; }
-.rulestop { border-bottom: 1px solid #d8d2c2; }
-.rulesbottom { border-top: 1px solid #d8d2c2; }
-.rulestitle { font-family: "L5R Title","Times New Roman",Georgia,Serif; font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rulestitle .rulesbooksub { font-family: "Times New Roman",Georgia,Serif; font-size: .75em; }
+.rulestop { border-bottom: 1px solid var(--border-warm); }
+.rulesbottom { border-top: 1px solid var(--border-warm); }
+.rulestitle { font-family: var(--font-display); font-size: 1.25em; margin: 0 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rulestitle .rulesbooksub { font-family: var(--font-ui); font-size: .75em; }
 .rulestools { display: flex; flex-wrap: wrap; gap: 2px; position: relative; min-width: 0; max-width: 100%; }
 .rulestools[data-copied]::after { content: attr(data-copied); position: absolute; right: 0; top: 100%; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: .85em; white-space: nowrap; z-index: 5; }
-button.rulesbtn { padding: 2px 3px; margin: 0; border: 1px solid transparent; border-radius: 3px; background: transparent; color: rgb(96, 96, 96); cursor: pointer; line-height: 0; }
-button.rulesbtn:hover { color: black; border-color: rgb(192, 192, 192); }
-button.rulesbtn.searchviewactive { color: black; border-color: rgb(128, 128, 128); background-color: rgb(224, 224, 224); }
+button.rulesbtn { padding: 2px 3px; margin: 0; border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--text-icon); cursor: pointer; line-height: 0; }
+button.rulesbtn:hover { color: var(--text); border-color: var(--view-line); }
+button.rulesbtn.searchviewactive { color: var(--text); border-color: var(--view-box); background-color: var(--view-active); }
 .rulespageno { white-space: nowrap; margin: 0 4px; }
 .rulespageinput { width: 4.5em; text-align: center; }
 .rulesslider { flex: 1 1 120px; min-width: 80px; margin: 0 8px; }
-.rulesnote { color: #777; font-size: .85em; font-style: italic; margin: 0 6px; }
+.rulesnote { color: var(--text-6); font-size: .85em; font-style: italic; margin: 0 6px; }
 .rulesdownloads { display: flex; gap: 4px; }
 .rulesdownloads .button { white-space: nowrap; }
 .rulesdownloads .feather { width: 14px; height: 14px; vertical-align: -2px; }
 .rulesbody { display: flex; min-height: 240px; height: 70vh; position: relative; }
-.rulespanel { flex: 0 0 250px; overflow-y: auto; border-right: 1px solid #d8d2c2; padding: 6px 8px; background: #faf8f2; text-align: left; }
+.rulespanel { flex: 0 0 250px; overflow-y: auto; border-right: 1px solid var(--border-warm); padding: 6px 8px; background: var(--surface-warm); text-align: left; }
 .rulesstage { flex: 1 1 auto; position: relative; overflow: hidden; background: #4a4a4a; outline: none; touch-action: none; user-select: none; -webkit-user-select: none; }
 .rulesstage.ruleszoomed { overflow: auto; cursor: grab; }
 .rulesstage.rulesdragging { cursor: grabbing; }
@@ -2421,21 +3149,21 @@ button.rulesbtn.ruleszoomlabel { line-height: normal; min-width: 3.4em; font-siz
 .rulestoc li { display: flex; justify-content: space-between; gap: 6px; padding: 2px 4px; border-radius: 3px; }
 .rulestoc li a { color: inherit; text-decoration: none; }
 .rulestoc li a:hover { text-decoration: underline; }
-.rulestoc li.rulescurrent { background: #e9dfb8; }
+.rulestoc li.rulescurrent { background: var(--warm-current); }
 .rulestoclevel1 { padding-left: 16px !important; }
 .rulestoclevel2, .rulestoclevel3 { padding-left: 30px !important; font-size: .92em; }
-.rulestocpage { color: #777; }
+.rulestocpage { color: var(--text-6); }
 .rulesthumbs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-a.rulesthumb { display: flex; flex-direction: column; align-items: center; color: #555; text-decoration: none; font-size: .8em; padding: 3px; border-radius: 4px; }
+a.rulesthumb { display: flex; flex-direction: column; align-items: center; color: var(--text-4); text-decoration: none; font-size: .8em; padding: 3px; border-radius: 4px; }
 a.rulesthumb img { box-shadow: 0 1px 3px rgba(0,0,0,.4); background: #ddd; }
-a.rulesthumb.rulescurrent { background: #e9dfb8; color: black; }
+a.rulesthumb.rulescurrent { background: var(--warm-current); color: var(--text); }
 .rulessearchform input { width: 100%; box-sizing: border-box; }
 .rulesresults ul { list-style: none; margin: 0; padding: 0; }
-.rulesresults li a { display: block; color: inherit; text-decoration: none; padding: 4px; border-bottom: 1px solid #e6e0d0; font-size: .9em; }
-.rulesresults li a:hover { background: #f1ecdd; }
-.rulesresults mark { background: #f5dc7a; }
+.rulesresults li a { display: block; color: inherit; text-decoration: none; padding: 4px; border-bottom: 1px solid var(--line-warm); font-size: .9em; }
+.rulesresults li a:hover { background: var(--warm-hover); }
+.rulesresults mark { background: var(--mark-hit); }
 /* full screen (rulesfullscreen): the reader covers the window */
-body.rulesfull .rulesreader { position: fixed; inset: 0; z-index: 1000; background: #fff; }
+body.rulesfull .rulesreader { position: fixed; inset: 0; z-index: 1000; background: var(--panel); }
 body.rulesfull { overflow: hidden; }
 @media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
   .rulesbooks { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px 8px; }
@@ -2448,12 +3176,12 @@ body.rulesfull { overflow: hidden; }
 }
 
 /* Admin → Artists (artistsadmin.js) */
-.artistsadmin .artistsform { border: 1px solid #ccc; border-radius: 4px; padding: 4px 12px; margin-bottom: 12px; background: #fafafa; }
+.artistsadmin .artistsform { border: 1px solid var(--line-3); border-radius: 4px; padding: 4px 12px; margin-bottom: 12px; background: var(--fill-1); }
 .artistsadmin .artistsform label { white-space: normal; }
 .artistsadmin .artistsform input[type=text] { max-width: 100%; box-sizing: border-box; }
 .artistssigstrip a { display: inline-block; border: 2px solid transparent; border-radius: 4px; }
 .artistssigstrip a.artistssigpicked { border-color: #c33; }
-.artistssigpanel { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 8px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+.artistssigpanel { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 8px 0; padding: 8px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--panel); }
 .artistssigpanel .artistssigbig { max-width: 320px; max-height: 200px; object-fit: contain; background: #eee; border: 1px solid #ddd; }
 .artistssigpanel .artistssigfields { flex: 1 1 280px; min-width: 0; }
 .artistssigpanel .artistssigfields p { margin: 4px 0; }
@@ -2463,34 +3191,34 @@ body.rulesfull { overflow: hidden; }
 .artistsadmin .artistslinks td:nth-child(3), .artistsadmin .artistslinks td:last-child { width: auto; text-align: center; }
 .artistsadmin .artiststable td:first-child { white-space: normal; }
 .artistsadmin .artiststable td:nth-child(2) { white-space: normal; width: 40%; }
-.artistsadmin .artiststable td:last-child { width: 35%; color: #555; }
+.artistsadmin .artiststable td:last-child { width: 35%; color: var(--text-4); }
 #artistsfilter { width: 260px; max-width: 100%; }
 
 /* Admin → Field descriptions (loadfielddescs in oracle.js) */
 .fielddescs label { margin-right: 12px; white-space: nowrap; }
-.fielddescsnote { color: #555; }
+.fielddescsnote { color: var(--text-4); }
 .fielddescstable { border-collapse: collapse; width: 100%; margin-bottom: 12px; }
-.fielddescstable th, .fielddescstable td { border-top: 1px solid #ddd; padding: 3px 6px; vertical-align: top; text-align: left; }
+.fielddescstable th, .fielddescstable td { border-top: 1px solid var(--line-2); padding: 3px 6px; vertical-align: top; text-align: left; }
 .fielddescstable td:first-child { white-space: nowrap; }
-.fielddescstable td:nth-child(2) { color: #555; white-space: nowrap; }
+.fielddescstable td:nth-child(2) { color: var(--text-4); white-space: nowrap; }
 .fielddescstable td:last-child { width: 35%; }
 .fielddescstext { width: 100%; box-sizing: border-box; font-family: inherit; resize: vertical; }
-.fielddescstext::placeholder { color: #999; }
+.fielddescstext::placeholder { color: var(--text-8); }
 .fielddescstable td:nth-child(3) { width: 45%; }
 .fieldsettingtext { font-family: monospace; font-size: 90%; }
-.fieldsettinghidden { background: #f3f3f3; color: #777; }
+.fieldsettinghidden { background: var(--fill-6); color: var(--text-6); }
 /* Admin → Game config and Templates (gameconfigadmin.js) */
 .gcjson { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 90%; resize: vertical; }
 .gcstandard { width: 60%; font-family: monospace; }
-.gcpreview { border-top: 1px solid #ddd; margin-top: 8px; }
-.gcpreviewpart { border: 1px dashed #bbb; margin: 8px 0; padding: 6px; overflow: auto; }
+.gcpreview { border-top: 1px solid var(--line-2); margin-top: 8px; }
+.gcpreviewpart { border: 1px dashed var(--line-4); margin: 8px 0; padding: 6px; overflow: auto; }
 .gcpreviewtext { white-space: pre-wrap; font-size: 90%; }
-.gcdiff { max-height: 360px; overflow: auto; font-size: 85%; background: #fafafa; padding: 4px; }
-.gcdiffadd { color: #060; background: #e6ffe6; }
-.gcdiffdel { color: #900; background: #ffe6e6; }
-.gcdiffsame { color: #777; }
-.gchistory { font-size: 90%; color: #555; }
-.templatefailed { border: 1px solid #c66; background: #fff3f3; padding: 4px 8px; }
+.gcdiff { max-height: 360px; overflow: auto; font-size: 85%; background: var(--fill-1); padding: 4px; }
+.gcdiffadd { color: var(--good-7); background: var(--good-bg-4); }
+.gcdiffdel { color: var(--bad-4); background: var(--bad-bg-5); }
+.gcdiffsame { color: var(--text-6); }
+.gchistory { font-size: 90%; color: var(--text-4); }
+.templatefailed { border: 1px solid #c66; background: var(--bad-bg-6); padding: 4px 8px; }
 
 /* Public lists, Most played: image, rank, counts, a bar for the share of decks */
 div.publiccardrow div.publiccardmain { display: flex; gap: 4px; align-items: flex-start; padding: 6px 0 0 6px; }
@@ -2498,8 +3226,8 @@ div.publiccardrow img.publiccardimg { width: 70px; flex: none; border-radius: 4p
 div.publiccardrow div.dircardbody { min-width: 0; padding-top: 0; }
 div.publiccardrow div.dircardmeta:first-child { margin-top: 0; }
 span.publicrank { color: #fff; font-weight: bold; min-width: 1.5em; }
-div.publicbar { height: 6px; background: #e6e6e6; border-radius: 3px; margin-top: 4px; overflow: hidden; }
-div.publicbar span { display: block; height: 100%; background: #1aa329; }
+div.publicbar { height: 6px; background: var(--fill-10); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+div.publicbar span { display: block; height: 100%; background: var(--good-1); }
 
 /* L5R arc bugs (legality kanji) before a legality's name (legalitybug in oracle.js); the Detailed Search
    result's line of small ones under the set names (legalitybugline) */
@@ -2511,4 +3239,42 @@ div.legalitybugline img.legalitybugsmall { height: 20px; width: 20px; vertical-a
 
 /* L5R clan mons before a clan's name (clanmon in oracle.js), the same size as the legality bugs */
 img.clanmon { height: 1.3em; width: auto; vertical-align: -0.3em; margin-right: 0.2em; }
+div.listviewheader .listviewtitle img.clanmon { height: 1.6em; vertical-align: middle; margin-right: 0; }
+/* each mon has a colour for light backgrounds and one for dark: dark mode, and the charcoal title bars (--head-bg) in either theme */
+img.clanmonondark { display: none; }
+html[data-theme=dark] img.clanmononlight,
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) img.clanmononlight { display: none; }
+html[data-theme=dark] img.clanmonondark,
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) img.clanmonondark { display: inline; }
 span.clanwithmon { white-space: nowrap; }
+/* directory and public listing Count: a deck that breaks its construction rules (deckcounthtml in oracle.js) */
+span.dirillegal {
+  color: var(--bad-3);
+  font-weight: bold;
+}
+
+/* card peek (oracle.js cardpeekshow): a small card image at Detailed size, beside it on hover, or centered over a
+   backdrop after a long-press (a tap closes it) */
+#cardpeek { position: fixed; z-index: 1500; display: none; pointer-events: none; padding: 4px; background: var(--panel);
+  border: 1px solid var(--field-border); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+#cardpeek.cardpeekon { display: block; }
+#cardpeek img { display: block; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); border-radius: 7px; }
+#cardpeek.cardpeektouch { inset: 0; padding: 0; border: 0; border-radius: 0; box-shadow: none; pointer-events: auto;
+  background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
+#cardpeek.cardpeektouch.cardpeekon { display: flex; }
+#cardpeek.cardpeektouch img { max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+
+/* dark mode: what the variables can't reach. Tom Select's own stylesheet, and the highlighted text its filter and the
+   book search mark */
+:root[data-theme="dark"] .ts-control, :root[data-theme="dark"] .ts-control input, :root[data-theme="dark"] .ts-dropdown { background: var(--panel); color: var(--text); border-color: var(--field-border); }
+:root[data-theme="dark"] .ts-wrapper.multi .ts-control > .item { background: var(--chip-bg); color: var(--chip-text); border-color: var(--chip-border); }
+:root[data-theme="dark"] .ts-dropdown .active { background: var(--chip-hover); color: var(--text); }
+:root[data-theme="dark"] .ts-dropdown .optgroup-header { background: var(--panel-alt); color: var(--text-5); }
+:root[data-theme="dark"] .ts-dropdown .highlight { background: var(--mark-hit); color: #fff; }
+:root[data-theme="dark"] .rulesresults mark { color: #fff; }
+:root[data-theme="dark"] div.helpnav a.helpnavactive { color: #000; }
+/* the light tabs that open and close the search form */
+:root[data-theme="dark"] img#sidebarcloser, :root[data-theme="dark"] div#sidebaropener img { filter: invert(1) hue-rotate(180deg) brightness(1.3); }
+/* an ad's frame draws on its own light page: left dark it would get an opaque white background */
+ins.adsbygoogle, ins.adsbygoogle iframe { color-scheme: light; }
+.cardeditmrp { color: #000; }

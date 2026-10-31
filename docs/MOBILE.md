@@ -23,9 +23,9 @@ entry all work. Headless Chromium can't stand in for these on iOS:
   and close by tap ([#79](https://github.com/Oracle-of-the-Void/ootv-client/issues/79)).
   If they work, release to `master` with `Fixes #79` in the PR body and move #79 out of
   "Almost done" in `ootv-claude/issues/ootv-client/INDEX.md`.
-- [ ] Search form selects. Chosen disables itself on phones, so these are plain
-  `<select multiple>`. iOS should show a one-line picker; Chromium draws tall list boxes.
-  If they're unusable, consider a compact custom control for the panel.
+- [ ] Search form selects (Tom Select, 2026-10-30; replaced Chosen, which turned itself off on phones and left
+  tall list boxes). Check that tapping a field doesn't zoom the page, how much of the list the keyboard leaves
+  (the keyboard opens because the field filters), and that the page behind doesn't jump.
 - [ ] Search panel: phones start with it open; it opens from the Edit search bar above the results
   (added 2026-10-15: a tester couldn't find the second tap on the Search Results button) or that button when
   already on the results and closes on Search, the arrow, a tap on the results, or switching
@@ -62,10 +62,20 @@ Swipes on card images and Simple List titles (click-drag with a mouse). By defau
 left −1, up-right +3; deck/list view: right +1, left −1, up-right +2; in both, up-left removes every copy.
 Settings → Gestures changes what each direction does (add, remove, set the count to, remove all, nothing),
 separately for search and for the deck/list view, and turns each gesture off (deck swipe touch and mouse,
-directory drag touch and mouse, long-press labels; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
+directory drag touch and mouse, long-press labels, card peek touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
 drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16.
+
+Card peek (2026-10-29, [PR #502](https://github.com/Oracle-of-the-Void/ootv-client/pull/502), emulated touch
+on Chrome only): a card image drawn smaller than Detailed (search and list rows, Deck view stacks, public
+decks, a Detailed image shrunk under ~480px) or a Simple List title (search and lists) shows the Detailed
+image: on hover after 250 ms beside it (mouse, switch `cardpeekmouse`), or after a 500 ms press centered
+over a backdrop until the next tap (touch, `cardpeektouch`). The release after a peek doesn't open the
+card or swipe; Android's long-press menu is blocked. The Detailed file comes from the card's printing
+(`cardpeekfind`), since Dune's files aren't named `_select`/`_details`. WebKit runs it (2026-10-30, synthetic press). **Not checked on real iOS Safari**: the
+image/link callout is turned off with `-webkit-touch-callout` set on the press, which may be too late; if the
+iOS menu or link preview still opens, set it in CSS on `a.deckswipe` and its image instead.
 
 Card view (2026-10-21, [#372](https://github.com/Oracle-of-the-Void/ootv-client/issues/372), emulated touch only):
 a sideways swipe on a card opened from a search goes to the next (left) or previous (right) result,
@@ -77,6 +87,11 @@ Card editor (2026-10-21, emulated touch only): a sideways swipe on Printing deta
 (left) or previous (right) instance, the same rules as the card view's swipe (Gestures switch
 `editswipetouch`; also skipped over a value box, in the image zoom panel, in the JSON view and with a
 confirm box up). The ◀ ▶ arrows beside "Instance N (i of n)" are 36px tap targets.
+
+Card editor image panel (2026-10-30, emulated touch only; **not checked on iOS Safari**): thumbnails under the
+zoom panel's image reorder by dragging, through pointer events with `touch-action: none` on each thumbnail, and a tap
+shows that image. The pointer is captured on the thumbnail row, not the thumbnail, because moving the thumbnail in the
+page would release it.
 
 Added 2026-10-16 (emulated touch only; see the checklist above): with no active list, an adding
 swipe in search results asks which list to activate (folder tree, plus New list); a Gestures switch

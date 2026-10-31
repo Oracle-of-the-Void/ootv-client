@@ -4,15 +4,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- search engines and link previews; oracle.js pagetitle() retitles each game, card and deck -->
+  <title>Oracle of the Void: L5R CCG card database and deck builder</title>
+  <meta name="description" content="Search every card and printing, build and share decks, and browse public decklists for Legend of the Five Rings CCG, Legend of the Burning Sands, 7th Sea CCG, Initial D CCG, Warlord: Saga of the Storm and Dune CCG.">
+  <link rel="canonical" href="https://oracleofthevoid.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Oracle of the Void">
+  <meta property="og:title" content="Oracle of the Void: L5R CCG card database and deck builder">
+  <meta property="og:description" content="Card search, deck builder and decklists for L5R, Legend of the Burning Sands, 7th Sea, Initial D, Warlord and Dune CCGs.">
+  <meta property="og:url" content="https://oracleofthevoid.com/">
+  <meta property="og:image" content="https://oracleofthevoid.com/res/logo.png">
+  <meta name="twitter:card" content="summary">
   <!-- stamped with the commit by .github/stamp-version.sh on deploy -->
   <script>var ootvversion = 'dev';</script>
+  <!-- the theme before anything draws, so dark mode doesn't flash white: themeapply() in oracle.js keeps it current -->
+  <script>(function() { var t = null; try { t = JSON.parse(localStorage.getItem('session_theme')); } catch(e) {}
+    document.documentElement.setAttribute('data-theme', (t == 'dark' || t == 'light') ? t : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); })();</script>
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
 <!--  <script src="https://cdn.jsdelivr.net/npm/jquery.ui.layout@1.0.0/jquery.layout.min.js"></script> -->
 <!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/draggable/1.0.0-beta.8/draggable.min.js"></script>  -->
-<script src="chosen.jquery.min.js"></script>
-<link href="chosen.min.css" rel="stylesheet"/>
+<script src="tom-select.complete.min.js"></script>
+<link href="tom-select.min.css" rel="stylesheet"/>
   <script src="jsviews.min.js"></script>
   <script src="jsonview.js"></script>
   <script src="amazon-cognito-auth.min.js"></script>
@@ -21,8 +35,7 @@
 <!--  <script src="aws-cognito-sdk.min.js"></script> -->
   <script src="oracle.js"></script>
   <!-- TODO:  dynamic this: -->
-  <script src="pdfkit.min.js" defer></script>
-  <script src="blob-stream.min.js" defer></script>
+  <!-- pdfkit.min.js and blob-stream.min.js load on the first PDF: loadpdfkit() in oracle.js -->
 
 <!--  <link href="https://www.jsviews.com/samples/samples.css" rel="stylesheet" /> -->
 <!-- <link rel="stylesheet" href="https://unpkg.com/balloon-css/balloon.min.css"> -->
@@ -42,6 +55,7 @@
 	<ul>
 	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="clearcache();" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
+	  <li onclick="themecycle();">Theme: <span class="themelabel">Auto</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#moon"></svg></li>
 	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
     <!-- TODO: make this reload a little more friendly with push/pop history state -->
     <!--	  <li>Settings/whatnot here</li> -->
@@ -139,7 +153,7 @@
 </dl>
 <div id="searchbottom">
 <span class="gameinfo-gameshort"></span> <span class="gameinfo-gamelogo15"></span><br />
-<span class="button gray" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></svg></span></span>
+<span class="button gray" id="dosearchbutton" onclick="dosearch();">Search<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#loader"></svg></span></span>
 <span class="button gray artphotobutton" style="display: none;" onclick="photochooser();" aria-label="From a photo or picture: find the card, or find the artist" data-balloon-pos="up">Photo<span class="iiconic iyellow"><svg class="feather"><use xlink:href="res/feather-sprite.svg#camera"></svg></span></span>
 <span class="helpq" data-help="searching#form" aria-label="Help: the search form">?</span>
 <div id="savedsearches"></div>
@@ -173,30 +187,14 @@
      <script src="//z-na.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&Operation=GetScript&ID=OneJS&WS=1"></script>
     </div>
 -->
-<a href="https://www.facebook.com/pg/oracleofthevoid" target="_new">
-<img src="res/FindUs-FB-RGB-BRC-Site-500.png" width="125px"> </a>
-<br>
-<a href="https://discord.gg/3ahYmwn" target="_new">
-<img src="res/Discord-Logo%2BWordmark-Color.png" width="125px"> </a>
-<br>
-<a href="https://www.patreon.com/oracleofthevoid" target="_new">
-<img src="res/become_a_patron_button@2x.png" width="125px"> </a>
-<br>
-<a href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new"><div style="background-color: white; display: inline-block; margin: 3px; height: 32px;">
-<svg style="float: left;" class="octicon octicon-mark-github v-align-middle" height="30" viewBox="0 0 16 16" version="1.1" width="30" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-<!-- <img src="https://avatars2.githubusercontent.com/u/61508750?s=200&v=4" height="30px"> --><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration:none;">&nbsp;Report&nbsp;Problems</span>
-</div></a>
-<br>
-<a href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new">
-<div style="background-color: white; display: inline-block; margin: 3px; height: 32px;">
-<img style="margin-top: 4px; float: left;" src="res/social-youtube-small.png" width="32"><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration: none;">&nbsp;Youtube</span>
+<!-- community links: the same set on the home page and the help page -->
+<div class="communitylinks communitystack">
+<a class="communitylink" href="https://discord.gg/3ahYmwn" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#message-circle"></svg> Discord</a>
+<a class="communitylink" href="https://www.facebook.com/pg/oracleofthevoid" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#facebook"></svg> Facebook</a>
+<a class="communitylink" href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#youtube"></svg> YouTube</a>
+<a class="communitylink" href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#github"></svg> Report a problem</a>
+<a class="communitylink" href="https://www.patreon.com/oracleofthevoid" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#heart"></svg> Patreon</a>
 </div>
-</a>
-<br>
-<a href="https://chime.com/r/doneisele" target="_new">
-<div style="background-color: white">
-  <img style="float: left;" src="res/chime.png" width="32" /><span style="margin-right: 3px; color: green; a:active: green; a:hover: green; a:link: green; a:visited: green; text-decoration: none;">&nbsp; Make a Chime account, set up direct deposit, get $100 and start getting 3.75%</span>
-</div></a>
 <br><br><br><br>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- square -->
@@ -226,7 +224,6 @@
     <div class="listheadmiddle">Name <span class="helpq" data-help="lists#directory" aria-label="Help: your lists">?</span></div>
     <div class="listheadmiddle dirfoldercell">Folder <span class="helpq" data-help="lists#folders" aria-label="Help: folders">?</span></div>
     <div class="listheadmiddle">Type</div>
-    <div class="listheadmiddle">Legality</div>
     <div class="listheadmiddle">Count</div>
     <div class="listheadmiddle">Created / Modified</div>
     <div class="listheadmiddle">Public</div>
@@ -243,8 +240,12 @@
 <div class="resultpublic" id="resultpublic">
   <form class="publicform" id="publicform" onsubmit="publicsearch(0); return false;" onchange="if(event.target.tagName == 'SELECT') publicsearch(0);">
     <input type="hidden" name="group" value="">
+    <select name="mine" class="showonlogin" style="display:none" title="Search the lists other players made public, or your own (private ones too)">
+      <option value="">Public lists</option>
+      <option value="1">My lists</option>
+    </select> <span class="helpq showonlogin" style="display:none" data-help="public-lists#mine" aria-label="Help: searching your own lists">?</span>
     <input type="search" name="q" placeholder="Name, notes or player">
-    <input type="search" name="card" placeholder="Contains card (title)">
+    <input type="search" name="card" placeholder="Card title or #number" title="A card title, or a card's number (#1234) for exactly that card when two share a title">
     <select name="type"><option value="">Any type</option></select>
     <select name="clan" style="display:none"><option value="">Any clan</option></select>
     <select name="stronghold" style="display:none"><option value="">Any stronghold</option></select>
@@ -320,6 +321,8 @@
       <li><a href="" onclick="loadloginlog(); return false">Login log</a></li>
       <li><a href="" onclick="loadusageadmin(); return false">Usage</a> (photo features: Find the card, Find the artist, Artist check; every game; site admins)</li>
       <li><a href="" onclick="loadpatreonadmin(); return false">Patreon supporters</a> (tiers, Oracle accounts, Discord users; site admins)</li>
+      <li><a href="" onclick="loaduseradmin(); return false">Users</a> (look up and edit accounts: names, emails, permission groups; site admins)</li>
+      <li><a href="" onclick="loadauditlogadmin(); return false">Audit log</a> (admins editing other people's lists, user lookups and edits; site admins)</li>
       <li>Reporting</li>
     </ul>
     <div id="admininfo" class="admininfo"></div>
@@ -327,6 +330,8 @@
     <div id="loginlog"></div>
     <div id="usageadmin" class="fielddescs limitsadmin usageadmin"></div>
     <div id="patreonadmin" class="fielddescs limitsadmin usageadmin patreonadmin"></div>
+    <div id="useradmin" class="fielddescs limitsadmin usageadmin useradmin"></div>
+    <div id="auditlogadmin" class="fielddescs limitsadmin usageadmin auditlogadmin"></div>
   </div>
   <div data-admintab="docs">
     <!-- docs/admin/*.md; add a link here for each new document -->
@@ -335,6 +340,7 @@
       <li><a href="" onclick="loadadmindoc('field-descriptions'); return false">Fields (descriptions and settings)</a></li>
       <li><a href="" onclick="loadadmindoc('game-config'); return false">Game config and templates</a></li>
       <li><a href="" onclick="loadadmindoc('derived-legality'); return false">Derived legalities (L5R)</a></li>
+      <li><a href="" onclick="loadadmindoc('deck-construction'); return false">Deck construction rules</a></li>
       <li><a href="" onclick="loadadmindoc('l5rlcg'); return false">L5R LCG: data, legality, errata</a></li>
       <li><a href="" onclick="loadadmindoc('dtccg'); return false">Deadlands: Doomtown: data, legality, rulings</a></li>
       <li><a href="" onclick="loadadmindoc('7s5s'); return false">7th Sea: Five Sails: data, fixes, refresh</a></li>
@@ -347,6 +353,8 @@
       <li><a href="" onclick="loadadmindoc('art-search'); return false">Similar art (art vectors)</a></li>
       <li><a href="" onclick="loadadmindoc('limits'); return false">Limits (photo features)</a></li>
       <li><a href="" onclick="loadadmindoc('patreon'); return false">Patreon supporters</a></li>
+      <li><a href="" onclick="loadadmindoc('admin-editing'); return false">Editing other people's lists, and the audit log</a></li>
+      <li><a href="" onclick="loadadmindoc('users'); return false">Users (look up and edit accounts)</a></li>
       <li><a href="" onclick="loadadmindoc('artists'); return false">Artist entries (artist modal links)</a></li>
       <li><a href="" onclick="loadadmindoc('artist-check'); return false">Artist check (style and signature)</a></li>
       <li><a href="" onclick="loadadmindoc('most-played'); return false">Most played cards (public decks)</a></li>
@@ -358,70 +366,44 @@
 <div class="resultsettings" id="resultsettings"><div class="randarea settingsarea" id="settingsarea"></div></div>
 <div class="resultabout" id="resultabout">
 <div class="randarea">
-<!-- TODO:    integrate this documentation into stuff -->
 <div class="helloplace"></div>
-<br /><div class="infoplace">
-Welcome to the L5R Oracle of the Void Database
-<br>
-<br>
+<div class="infoplace homepage">
+<h1 class="hometitle">Oracle of the Void</h1>
+<p class="homelede">A card database and deck builder for collectible card games. Pick a game from the menu at the top
+and search on the left.</p>
+<p>Every card and printing, with rulings, legality and card images, plus a deck builder, deck statistics, printable
+proxies and public decklists, for:</p>
+<ul class="homegames">
+<li><a href="#game=l5r"><b>Legend of the Five Rings</b></a> (L5R CCG, AEG 1995–2015), every arc</li>
+<li><a href="#game=lbs"><b>Legend of the Burning Sands</b></a> (LBS)</li>
+<li><a href="#game=7thsea"><b>7th Sea CCG</b></a></li>
+<li><a href="#game=initiald"><b>Initial D CCG</b></a></li>
+<li><a href="#game=warlord"><b>Warlord: Saga of the Storm CCG</b></a></li>
+<li><a href="#game=dune"><b>Dune CCG</b></a></li>
+</ul>
+<p>After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Don Eisele (Author of the Oracle of the Void) has continued to fund and run the Oracle of the Void.  He has revamped the Oracle into a serverless cloud architecture on AWS.  The new version is faster, more resilient, has more features, and supports other games.</p>
 
-<div class="floatblock">
-  After Legend of the Five Rings was sold to Fantasy Flight at the end of 2015, Don Eisele (Author of the Oracle of the Void) has continued to fund and run the Oracle of the Void.  He has revamped the Oracle into a serverless cloud architecture on AWS.  The new version is faster, more resilient, has more features, and supports other games.
-  </div>
-<div class="floatblock">
-If you like the Oracle of the Void,<br>please Like our Facebook page: <br>
-<a href="https://www.facebook.com/pg/oracleofthevoid" target="_new">
-  <img src="res/social-facebook.png" width="300px"> </a>
-  </div>
-<div class="floatblock">
-Join us on Discord to discuss future plans,<br> or just hang out: <br>
-<a href="https://discord.gg/3ahYmwn" target="_new">
-<img src="res/social-discord.png" width="300px"> </a>
-  </div>
-<div class="floatblock">
-Consider donating to the Oracle's Patreon<br>to support the effort:<br>
-<a href="https://www.patreon.com/oracleofthevoid" target="_new">
-<img src="res/social-patreon.png" width="300px"> </a>
-  </div>
-<div class="floatblock">
-Report issues or request new features on Github issues:<br>
-<a href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new">
-<img src="https://avatars2.githubusercontent.com/u/61508750?s=200&v=4" width="150px">
-</a>
-  </div>
-<div class="floatblock">
-Youtube channel with some help videos!<br>
-<a href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new">
-  <img src="res/social-youtube.jpg" width="300px"> </a>
-</div>
-<!--
-<br><br>
-<script type="text/javascript">
-amzn_terms = [ 'l5r lcg', 'l5r ccg', '7th sea ccg', 'warlord ccg', 'dune ccg', 'legend of the burning sands ccg', 'strategy board games', 'ccg', 'board game deals', 'board game sales', 'fantasy flight games', 'collectible card game' ];
-amzn_assoc_placement = "adunit0";
-amzn_assoc_search_bar = "false";
-amzn_assoc_tracking_id = "ootv-20";
-amzn_assoc_ad_mode = "search";
-amzn_assoc_ad_type = "smart";
-amzn_assoc_marketplace = "amazon";
-amzn_assoc_region = "US";
-amzn_assoc_title = "Support the Oracle and get something for yourself, too:";
-amzn_assoc_default_search_phrase =  amzn_terms[amzn_terms.length * Math.random() | 0];
-amzn_assoc_default_category = "Toys";
-amzn_assoc_linkid = "2d5eefcc9964a6d5ac179b2e95b28bf9";
-amzn_assoc_default_browse_node = "165793011";
-</script>
-<script src="//z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US"></script>
--->
-<div class="floatblock">
-Buying cards from Don also supports the site!<br>(L5R, LBS, SW:CCG, V:TES)<br>
-<a href="https://imperialblock.com/store?user=quixote"><img src="res/banner2-266x60.jpg"></a>
+<h2>Community</h2>
+<div class="communitylinks">
+<a class="communitylink" href="https://discord.gg/3ahYmwn" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#message-circle"></svg> Discord <small>plans, questions, hanging out</small></a>
+<a class="communitylink" href="https://www.facebook.com/pg/oracleofthevoid" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#facebook"></svg> Facebook</a>
+<a class="communitylink" href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#youtube"></svg> YouTube <small>help videos</small></a>
+<a class="communitylink" href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#github"></svg> Report a problem <small>or ask for a feature</small></a>
 </div>
 
-<br clear="all"><br>
-Recent Data Updates for Currently Selected Database:<br>
+<h2>Support the site</h2>
+<div class="communitylinks">
+<a class="communitylink" href="https://www.patreon.com/oracleofthevoid" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#heart"></svg> Patreon</a>
+<a class="communitylink" href="https://imperialblock.com/store?user=quixote" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#shopping-bag"></svg> Buy cards from Don <small>L5R, LBS, SW:CCG, V:TES</small></a>
+</div>
+
+<h2>Recent updates <small>this game</small></h2>
 <div id="updatelog">
-</div>  
+</div>
+<span id="updatelogolder" class="button gray" style="display:none" onclick="loadupdates(database,null,$(this).data('next'))">Older updates</span>
+
+<p class="homecardlists">Card lists: <a href="browse/l5r">L5R</a> · <a href="browse/lbs">LBS</a> · <a href="browse/7thsea">7th Sea</a> · <a href="browse/initiald">Initial D</a> · <a href="browse/warlord">Warlord</a> · <a href="browse/dune">Dune</a></p>
+<p class="homecardlists">About the tools: <a href="browse/deck-builder">Deck builder</a> · <a href="browse/card-search">Card search</a> · <a href="browse/public-decks">Public decks</a> · <a href="browse/bookshelf">Rulebooks, FAQs and rulings</a> · <a href="browse/discord-bot">Discord bot</a> · <a href="browse/help">Help</a></p>
 
 </div>
 </div>
@@ -431,18 +413,11 @@ Recent Data Updates for Currently Selected Database:<br>
 <div class="randarea">
 <div class="infoplace">
 <!-- community links (same as the sidebar) -->
-<div class="helplinks">
-<a href="https://discord.gg/3ahYmwn" target="_new">
-<img src="res/Discord-Logo%2BWordmark-Color.png" width="125px"></a>
-<a href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new"><div style="background-color: white; display: inline-block; margin: 3px; height: 32px;">
-<svg style="float: left;" class="octicon octicon-mark-github v-align-middle" height="30" viewBox="0 0 16 16" version="1.1" width="30" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration:none;">&nbsp;Report&nbsp;Problems</span>
-</div></a>
-<a href="https://www.patreon.com/oracleofthevoid" target="_new">
-<img src="res/become_a_patron_button@2x.png" width="125px"></a>
-<a href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new">
-<div style="background-color: white; display: inline-block; margin: 3px; height: 32px;">
-<img style="margin-top: 4px; float: left;" src="res/social-youtube-small.png" width="32"><span style="line-height: 30px; margin-right: 3px; color: black; text-decoration: none;">&nbsp;Youtube</span>
-</div></a>
+<div class="helplinks communitylinks">
+<a class="communitylink" href="https://discord.gg/3ahYmwn" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#message-circle"></svg> Discord</a>
+<a class="communitylink" href="https://github.com/Oracle-of-the-Void/ootv-client/issues" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#github"></svg> Report a problem</a>
+<a class="communitylink" href="https://www.patreon.com/oracleofthevoid" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#heart"></svg> Patreon</a>
+<a class="communitylink" href="https://www.youtube.com/channel/UCBR9rTYdKUYSwEAmShJyjDw" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#youtube"></svg> YouTube</a>
 </div>
 <!-- the topics: help.js, from docs/help/*.md -->
 <div class="helpnav" id="helpnav"></div>
@@ -462,13 +437,19 @@ Recent Data Updates for Currently Selected Database:<br>
     <input name="table" type="hidden" value="{{:database}}" />
     <input name="data" id="importdataval" type="hidden" value="" />
     <input name="failed" id="importfailedval" type="hidden" value="" />
-    <select style="width: 100%" name="fieldlist" data-placeholder="Select input type" class="chosen-select">
-      <option value=""></option>
+    <select style="width: 100%" name="fieldlist">
       {{if snm}}<option value="textsnm,puretexttitle,title,alttitle">Sun and Moon</option>{{/if}}
-      <option value="puretexttitle,title">Native Oracle (Tab-delimited)</option>
+      <option value="puretexttitle,title" selected>Native Oracle, or a plain card list</option>
     </select><br /><br />
-    <input name="file" type="file" /><br /><br />
-    <input type="button" value="Upload" onclick="importlisttrigger();" /></form>
+    <!-- no name: importlisttrigger sends pasted text as the file -->
+    <label for="importpaste">Paste a deck list, one card per line ("3x Title", "Title (Set)"):</label><br />
+    <textarea id="importpaste" class="importpaste" rows="12" placeholder="3x Card Title&#10;Card Title (Set)&#10;# comment"></textarea><br />
+    or a file: <input name="file" type="file" /><br /><br />
+    <!-- importlisttrigger puts it in front of the list as a "Legality:" line; the list's own line wins -->
+    <div class="importlegalityrow"><label>Printings from: <select id="importlegality">{{listLegalitySelect:legality}}</select></label><br /><br /></div>
+    <label><input type="radio" name="importmode" value="add" checked /> Add to the cards in the list</label><br />
+    <label><input type="radio" name="importmode" value="replace" /> Replace the cards in the list</label><br /><br />
+    <input type="button" value="Import" onclick="importlisttrigger();" /></form>
   <progress id="importprogress" style="display:none"></progress>
   <div id="importstatus"></div>
 </script>
@@ -479,6 +460,7 @@ Recent Data Updates for Currently Selected Database:<br>
   <br /><br />
   {{:numresults}} cards imported successfully<br />
   {{:numfailed}} cards failed to import<br />
+  {{if replaces}}This replaces the {{:replaces}} cards now in the list.<br />{{else adds}}These are added to the cards already in the list.<br />{{/if}}
   Do you wish to continue loading?
   <span class="button gray" onclick="importlistfinalize();">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
   <span class="button gray" onclick="nomodal();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
@@ -542,6 +524,10 @@ Recent Data Updates for Currently Selected Database:<br>
       <label class="wide">Sort <select name="sort">
         {{props sorts}}<option value="{{:key}}" {{if key==~root.o.sort}}selected{{/if}}>{{:prop}}</option>{{/props}}
       </select></label>
+      <label class="wide" {{if o.layout=='mpc'}}style="display: none"{{/if}}>Backs <select name="backs">
+        <option value="none" {{if o.backs!='duplex'}}selected{{/if}}>Fronts only</option>
+        <option value="duplex" {{if o.backs=='duplex'}}selected{{/if}}>Duplex: backs on every other page (flip on the long edge)</option>
+      </select></label>
     </fieldset>
     <div id="pdfsummary" class="pdfsummary"></div>
     {{if mode=='print'}}
@@ -558,13 +544,28 @@ Recent Data Updates for Currently Selected Database:<br>
 <!-- template for updatelog entries -->
 <script id="template-updatelog" type="text/jsrender">
   <div class="updateblock">
-    {{:timestamp}} {{:operation}} [{{:uname}}]{{if description}}: {{>description}}{{/if}}
+    <span class="updatewhen">{{:timestamp}}</span> {{:operation}} [{{:uname}}]{{if description}}: {{>description}}{{/if}}
     {{if collapse}}
       <details class="updatecards"><summary>{{:total}} cards</summary>
         {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}{{if more}} and {{:more}} more{{/if}}
       </details>
     {{else}}
       {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+    {{/if}}
+  </div>
+</script>
+<!-- home page Recent updates (loadupdates): the same rows in plain words; the admin update log keeps template-updatelog -->
+<script id="template-homeupdate" type="text/jsrender">
+  <div class="updateblock">
+    <span class="updatewhen" title="{{:timestamp}}">{{:date}}</span> <span class="updatelabel">{{:label}}</span>{{if description}}: {{>description}}{{/if}}
+    {{if collapse}}
+      <span class="updateby">{{>uname}}</span>
+      <details class="updatecards"><summary>{{:total}} cards</summary>
+        {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}{{if more}} and {{:more}} more{{/if}}
+      </details>
+    {{else}}
+      {{for cards}}{{include tmpl="#template-updatelog-card"/}}{{if #getIndex() < #parent.data.length-1}}, {{/if}}{{/for}}
+      <span class="updateby">{{>uname}}</span>
     {{/if}}
   </div>
 </script>
@@ -882,7 +883,7 @@ Recent Data Updates for Currently Selected Database:<br>
   <ul class="dirlistmenu">
   {{if !~inheader}}<li onclick="listinfo('{{:listid}}',true);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#eye"></svg> View list</li>{{/if}}
   <li onclick="duplicatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Duplicate</li>
-  <li onclick="importlist('{{:listid}}','{{:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> Upload (import cards into it)</li>
+  <li onclick="importlist('{{:listid}}','{{:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> Import (paste or upload cards)</li>
   <li class="sortmodehead">Download</li>
   {{if ~pdfallowed}}
   <li onclick="pdfdialog('{{:listid}}','ootv_{{filenamecleaner:name}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg> PDF Print-n-Play</li>
@@ -898,18 +899,14 @@ Recent Data Updates for Currently Selected Database:<br>
 <script id="template-lists" type="text/x-jsrender">
 <div class="listitem directorylistitem" id="listitem_{{:listid}}">
   <div class="listimage dirdraghandle" draggable="true" data-draglist="{{:listid}}" aria-label="View List (drag to move it into a folder)" data-balloon-pos="up-left" onclick="listinfo('{{:listid}}',true)"; return false;><svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#move"></svg></div>
-  <div class="listmiddle dirnamecell"><button aria-label="Activate List to Add cards from search" data-balloon-pos="up-left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button><span class="dirmenucell">{{include tmpl="#template-listmenu"/}}</span> <span class="dirlistname" id="list_name:{{:listid}}" data-list="{{:listid}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="up" class="iiconic iblue dirnameedit" onclick="dirnameedit(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button></div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
+  <div class="listmiddle dirnamecell"><button aria-label="Activate List to Add cards from search" data-balloon-pos="up-left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button><span class="dirmenucell">{{include tmpl="#template-listmenu"/}}</span> {{:~dirmon(#data)}}<span class="dirlistname" id="list_name:{{:listid}}" data-list="{{:listid}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="up" class="iiconic iblue dirnameedit" onclick="dirnameedit(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button></div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div>
   <div class="listmiddle dirfoldercell"><select class="listselect dirnarrowselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select></div>
   <div class="listmiddle"><select class="listselect dirnarrowselect dirtypeselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select></div>
-  <div class="listmiddle"><select class="listselect dirnarrowselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select></div>
-  <div class="listmiddle">{{if distinctcount>0}}{{:distinctcount}}/{{:totalcount}}{{/if}}</div>
+  <div class="listmiddle dircount">{{:~dircount(#data)}}</div>
   <div class="listmiddle dirdates"><span class="dirdate" title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}} /</span> <span class="dirdate" id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span></div>
   <div class="listmiddle"><select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>No</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Yes</option></select></div><!-- TODO  figure out how to list public lists -->
   <div class="listmiddle dirnotes" id="list_notes:{{:listid}}" contenteditable="true">{{>notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{>notes}}</div>
-
-
-<div class="listmiddle dirlistid"><a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></div>
-
+  <div class="listmiddle"></div>
 </div>
 </script> <!-- template-lists -->
 
@@ -932,7 +929,7 @@ Recent Data Updates for Currently Selected Database:<br>
 <script id="template-dirfolderrow" type="text/x-jsrender">
 <div class="listitem directorylistitem dirfolderrow{{if depth}} dirtreeitem{{/if}}" data-folder="{{>folder}}" data-dirdrop="1" data-dragfolder="1" draggable="true">
   <div class="listmiddle dirfoldername"><span style="left: {{:4+depth*24}}px">{{include tmpl="#template-dirtoggle"/}}<a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> {{>name}} <small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></a></span></div>
-  <div class="listmiddle"></div><div class="listmiddle dirfoldercell"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
+  <div class="listmiddle"></div><div class="listmiddle dirfoldercell"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div><div class="listmiddle"></div>
   <div class="listmiddle"></div>
   <div class="listmiddle dirfolderactions"><span>
     <button aria-label="Rename folder" data-balloon-pos="left" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
@@ -959,7 +956,7 @@ Recent Data Updates for Currently Selected Database:<br>
 <div class="directorycard directorylistitem" id="listitem_{{:listid}}">
   <div class="dircardhead">
     <span class="dirdraghandle" draggable="true" data-draglist="{{:listid}}" aria-label="Drag to a folder"><svg class="feather"><use xlink:href="res/feather-sprite.svg#move"></svg></span>
-    <div class="dircardname dirlistname" id="list_name:{{:listid}}" data-list="{{:listid}}">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div><button aria-label="Rename" data-balloon-pos="up" class="iiconic iblue dirnameedit" onclick="dirnameedit(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    {{:~dirmon(#data)}}<div class="dircardname dirlistname" id="list_name:{{:listid}}" data-list="{{:listid}}">{{:name}}</div><div style="display: none;" id="list_prev_name:{{:listid}}">{{:name}}</div><button aria-label="Rename" data-balloon-pos="up" class="iiconic iblue dirnameedit" onclick="dirnameedit(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="left" class="iiconic idyellow" id="listinactive{{:listid}}" onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button>
     <button style="display:none" class="iiconic ipositive" id="listactive{{:listid}}" onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
     <div class="dirmenucell">{{include tmpl="#template-listmenu"/}}</div>
@@ -968,12 +965,11 @@ Recent Data Updates for Currently Selected Database:<br>
     <div class="dircardselects">
       <select class="listselect dirfoldercell dirnarrowselect" aria-label="Folder" onchange="setlistfolder('{{:listid}}',this);">{{:~folderoptions(folder)}}</select>
       <select class="listselect dirnarrowselect dirtypeselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
-      <select class="listselect dirnarrowselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value);">{{listLegalitySelect:legality}}</select>
       <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>Private</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Public</option></select>
     </div>
     <div class="dircardmeta">
-      {{if distinctcount>0}}{{:totalcount}} cards ({{:distinctcount}} distinct) &#149; {{/if}}Modified <span id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span>
-      <br /><small>Created <span title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}}</span> &#149; Id <a href="#" onclick="listinfo('{{:listid}}',true); return false;">{{:listid}}</a></small>
+      {{if totalcount>0}}<span class="dircount">{{:~dircount(#data)}}</span> &#149; {{/if}}Modified <span id="list_modified:{{:listid}}" title="Modified {{formatDate:modified}}">{{formatDateShort:modified}}</span>
+      <br /><small>Created <span title="Created {{formatDate:createdate}}">{{formatDateShort:createdate}}</span></small>
     </div>
     <div class="dircardnotes" id="list_notes:{{:listid}}" contenteditable="true" data-placeholder="Notes">{{>notes}}</div><div style="display: none;" id="list_prev_notes:{{:listid}}">{{>notes}}</div>
   </div>
@@ -982,59 +978,67 @@ Recent Data Updates for Currently Selected Database:<br>
 
 <!-- list view: the list's directory details as a header. ~mine: the user's own list, with the directory's
      controls (activate toggle, actions menu, rename, type/legality/public, notes) and, when it's public, the
-     share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner; anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
-     the API), with Copy to my lists and the downloads. source: where a copy came from (template-listsource).
+     share link; ~adminedit: someone else's list an admin edits with those controls (no Delete), under a banner (after Edit as admin, ~admincan, and its popup: listadminopen); anyone else's (a shared deck) is read only, under a banner naming the owner (ownername, from
+     the API), with Copy to my lists and the downloads. ~mon: the Stronghold's clan mon before the name. source: where a copy came from (template-listsource).
      The fields save on blur through data-listfield (listheaderfield in oracle.js). -->
-<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon): listawardedit / listpreconedit in oracle.js -->
+<!-- list header: moderator marks, a tournament result (award) and pre-constructed (precon), side by side: listawardedit / listpreconedit in oracle.js -->
 <script id="template-listaward" type="text/x-jsrender">
+{{if award || precon || ~awardmod}}<div class="listviewmarks">
 {{if award}}<div class="listaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> {{>award.result || 'Tournament'}}: {{>award.event}}{{if award.year}} ({{>award.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;">Edit result</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listaward"><button type="button" class="button gray buttonsmaller" onclick="listawardedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> Add tournament result</button></div>{{/if}}
 {{if precon}}<div class="listprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: {{>precon.product}}{{if precon.year}} ({{>precon.year}}){{/if}}{{if ~awardmod}} <button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;">Edit</button>{{/if}}</div>
 {{else ~awardmod}}<div class="listprecon"><button type="button" class="button gray buttonsmaller" onclick="listpreconedit('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Mark pre-constructed</button></div>{{/if}}
+</div>{{/if}}
 </script>
 <script id="template-listheader" type="text/x-jsrender">
 <div class="listviewheader upperhead" data-list="{{:listid}}">
   {{if ~mine}}
   {{if ~adminedit}}<div class="listviewshared listviewadminedit" role="note">
     <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#alert-triangle"></svg>
-    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared{{else}}Private{{/if}} list by <b>{{>ownername || 'another player'}}</b> &#149; you're editing it as an admin; changes save to their list</span>
+    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared{{else}}Private{{/if}} list by <b>{{>ownername || 'another player'}}</b> &#149; you're editing it as an admin; changes save to their list and are logged</span>
+    <label class="listadminnotify"><input type="checkbox"{{if ~adminnotify}} checked{{/if}} onchange="listadminnotify('{{:listid}}',this.checked);"> Email the owner</label>
+    <button type="button" class="button gray buttonsmaller listadminstop" onclick="listadminstop('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg> Stop editing</button>
   </div>{{/if}}
   <div class="listviewtitle">
     <button aria-label="Activate List to Add cards from search" data-balloon-pos="down-left" class="iiconic idyellow listtoggleoff"{{if ~active}} style="display:none"{{/if}} onclick="activatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-left"></svg></button><button aria-label="Deactivate List" data-balloon-pos="down-left" class="iiconic ipositive listtoggleon"{{if !~active}} style="display:none"{{/if}} onclick="deactivatelist('{{:listid}}');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#toggle-right"></svg></button>
     <span class="dirmenucell">{{include tmpl="#template-listmenu" ~inheader=true/}}</span>
-    <span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    {{:~mon}}<span class="listviewname" data-list="{{:listid}}" data-listfield="name" data-prev="{{>name}}">{{:name}}</span><button aria-label="Rename" data-balloon-pos="down" class="iiconic iblue" onclick="listheaderrename(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
+    <span class="listviewdates">{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}} &#149; Id {{:listid}}</span>
   </div>
   <div class="listviewdetails listviewcontrols">
     <select class="listselect" aria-label="Type" onchange="listinfoupdate('{{:listid}}','type',this.value);">{{listTypeSelect:type}}</select>
-    <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value); $('#resultlist .liststatslegal').attr('data-format',this.value); liststatslegal(); $(this).next('.listlegalitybug').html(legalitybug(this.value));">{{listLegalitySelect:legality}}</select><span class="listlegalitybug">{{legalitybug:legality}}</span>
+    <select class="listselect" aria-label="Legality" onchange="listinfoupdate('{{:listid}}','legality',this.value); $('#resultlist .liststatslegal').attr('data-format',this.value); liststatslegal(); $(this).next('.listlegalitybug').html(legalitybug(this.value));">{{deckLegalitySelect:legality}}</select><span class="listlegalitybug">{{legalitybug:legality}}</span>
     <select class="listselect" aria-label="Public" onchange="listinfoupdate('{{:listid}}','public',this.value);"><option value="false"{{if public !== true && public !== 'true'}} selected{{/if}}>Private</option><option value="true"{{if public === true || public === 'true'}} selected{{/if}}>Public</option></select>
+    {{if ~deckbuild && (type == 'deck' || !type)}}<button type="button" class="button gray buttonsmaller" title="This deck's construction rules: deck sizes, copy limits, and which deck Sensei or Border Keep go in" onclick="listbuildtoggle(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#sliders"></svg> Construction rules</button>{{/if}}
     <span class="helpq" data-help="lists#sharing" aria-label="Help: type, legality and sharing">?</span>
-    <span>{{if createdate}}Created {{formatDate:createdate}}{{/if}}{{if modified}} &#149; Modified <span id="listhdr_modified:{{:listid}}">{{formatDate:modified}}</span>{{/if}}</span>
     {{if public === true || public === 'true'}}<button type="button" class="button gray buttonsmaller" title="Copy a link to this list. Anyone with it can see the list, logged in or not, but not change it." onclick="copysharelink(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Copy share link</button>{{/if}}
+    {{include tmpl="#template-listaward"/}}
   </div>
   {{include tmpl="#template-listsource"/}}
-  {{include tmpl="#template-listaward"/}}
   <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
   {{else}}
   <div class="listviewshared" role="note">
     <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#eye"></svg>
-    <span class="listviewsharedtext">Shared deck by <b>{{>ownername || 'another player'}}</b> &#149; read only</span>
+    <span class="listviewsharedtext">{{if public === true || public === 'true'}}Shared deck{{else}}Private list{{/if}} by <b>{{>ownername || 'another player'}}</b> &#149; read only</span>
+    {{if ~admincan}}<button type="button" class="button gray buttonsmaller" title="Change this list as an admin. You'll be asked to confirm first, and everything you do is logged." onclick="listadminopen('{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg> Edit as admin</button>{{/if}}
     {{if ~loggedin}}<button type="button" class="button gray buttonsmaller" title="Make your own private copy to change. It keeps a note of where it came from." onclick="copysharedlist(this,'{{:listid}}'); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Copy to my lists</button>{{else}}<button type="button" class="button gray buttonsmaller" onclick="dologin(); return false;">Log in to copy it</button>{{/if}}
   </div>
   <div class="listviewtitle">
     <span class="dirmenucell">{{include tmpl="#template-sharedlistmenu"/}}</span>
-    <span class="listviewname">{{>name}}</span>
+    {{:~mon}}<span class="listviewname">{{>name}}</span>
   </div>
   <span class="listviewdetails">
     {{:~listtypes[type] || type}}
     {{if legality}} &#149; {{legalitybugged:legality}}{{/if}}
     {{if createdate}} &#149; Created {{formatDate:createdate}}{{/if}}
     {{if modified}} &#149; Modified {{formatDate:modified}}{{/if}}
+    &#149; Id {{:listid}}
   </span>
   {{include tmpl="#template-listsource"/}}
   {{include tmpl="#template-listaward"/}}
   {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
   {{/if}}
+  {{:~check}}
 </div>
 </script>
 
@@ -1063,15 +1067,27 @@ Recent Data Updates for Currently Selected Database:<br>
 </li></ul></nav>
 </script>
 
-<!-- list view: statistics under the header (liststats in oracle.js). Each deck (the game's deck field, or one
-     unnamed group) with its card types: copies, share of the deck, and the averages of the
-     game's numeric fields the type's cards have (copies weighted). Then, folded, each deck's keywords and how
-     many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
+<!-- list view: the deck check at the foot of the list header (listheader's ~check, from liststats in oracle.js): the
+     cards not legal in the deck's Legality, the formats every card is legal in (liststatslegal), a red note when it breaks its construction rules, and the deck construction
+     check (deckbuildhtml), as one line of phrases that wraps (oracle.css). Decks only; empty for other lists. -->
+<script id="template-listcheck" type="text/x-jsrender">
+{{if legalids || buildhtml}}<div class="listviewcheck">
+  {{if legalids}}<div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>
+  {{/if}}{{if buildbad}}<div class="liststatsflag">Breaks the deck construction rules</div>{{/if}}
+  {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>{{/if}}
+  {{:buildhtml}}
+</div>{{/if}}
+</script>
+<!-- list view: the statistics box (liststats in oracle.js), two folding parts that share a row when both fit (oracle.css).
+     Statistics: copies and distinct cards (not on a deck), for an L5R deck led by its Dynasty/Fate sizes (dynfate); then
+     each deck (the game's deck field, or one unnamed group) with its card types: copies, share of the deck, and the
+     averages of the game's numeric fields the type's cards have (copies weighted), over a bar of its copies against
+     the deck's biggest type (liststatsbar; not on deck rows or types with no share). Keyword counts: each deck's keywords and
+     how many other cards name them in their text (liststatskeywords); counts under the cutoff hide (liststatscutoff). -->
 <script id="template-liststats" type="text/x-jsrender">
+<div class="liststatsbox">
 <details class="liststats"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
-  <summary>{{:totalcount}} card{{if totalcount!=1}}s{{/if}} ({{:distinctcount}} distinct)<span class="liststatshint"> (Expand for detailed statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
-  {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>
-  <div class="liststatslegal" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck itself isn't checked (size, MRPs, ban limits).">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>{{/if}}
+  <summary>{{if dynfate}}<span title="Dynasty/Fate">{{:dynfate}}</span> - {{:totalcount}} total{{else}}{{:totalcount}} card{{if totalcount!=1}}s{{/if}}{{/if}}{{if distinctcount}} [{{:distinctcount}} distinct]{{/if}}<span class="liststatshint"> (expand for statistics)</span> <span class="helpq" data-help="lists#stats" aria-label="Help: statistics">?</span></summary>
   {{if decks.length}}
   <table class="liststatstable">
     <thead><tr><th></th><th>Cards</th><th>%</th><th class="liststatsavgs">Averages</th></tr></thead>
@@ -1079,40 +1095,42 @@ Recent Data Updates for Currently Selected Database:<br>
     <tbody>
     {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>{{/if}}
     {{for types}}
-    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
+    <tr><th>{{>name}}</th><td>{{:copies}}</td><td>{{:pct}}</td><td class="liststatsavgs{{if bar}} liststatsbar" style="--bar:{{:bar}}%{{/if}}">{{include tmpl="#template-liststatsavgs"/}}</td></tr>
     {{/for}}
     </tbody>
     {{/for}}
   </table>
   {{/if}}
-  {{if keywords.length}}
-  <details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="event.stopPropagation(); liststatstoggle(this);">
-    <summary>Keyword counts<span class="liststatshint"> (expand for details)</span></summary>
-    <label class="liststatscutoff">Hide counts under <input type="number" min="0" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"></label>
-    <table class="liststatstable">
-      <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
-      {{for keywords ~textfield=textfield}}
-      <tbody>
-      {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
-      {{for keywords}}
-      <tr class="liststatskwrow"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
-      {{/for}}
-      </tbody>
-      {{/for}}
-    </table>
-  </details>
-  {{/if}}
 </details>
+{{if keywords.length}}
+<details class="liststatskw"{{if kwopen}} open{{/if}} ontoggle="liststatstoggle(this);">
+  <summary>Keyword counts<span class="liststatshint"> (expand for details)</span></summary>
+  <label class="liststatscutoff">Hide counts under <input type="range" min="1" max="15" step="1" value="{{:kwcutoff}}" oninput="liststatscutoff(this.value);"> <span class="liststatscutoffn">{{:kwcutoff}}</span></label>
+  <table class="liststatstable">
+    <thead><tr><th></th><th>Cards</th>{{if textfield}}<th class="liststatsavgs" title="Other cards in this list whose text names the keyword (a card's own keywords don't count)">Named in text of</th>{{/if}}</tr></thead>
+    {{for keywords ~textfield=textfield}}
+    <tbody>
+    {{if name}}<tr class="liststatsdeck"><th>{{>name}}</th><td></td>{{if ~textfield}}<td></td>{{/if}}</tr>{{/if}}
+    {{for keywords ~deck=name}}
+    <tr class="liststatskwrow" data-kwkey="{{>~deck}}|{{>name}}" data-kwcards="{{:cardids}}" data-kwrefs="{{:refids}}" onclick="liststatskwpick(this);" title="Click to highlight the cards with this keyword (blue) and the cards naming it (red); click again to stop"><th>{{>name}}</th><td data-n="{{:copies}}"><span>{{:copies}}</span></td>{{if ~textfield}}<td class="liststatsavgs" data-n="{{:refcopies}}"{{if refcards}} title="{{>reftitles}}"{{/if}}><span>{{if refcards}}{{:refcopies}} card{{if refcopies!=1}}s{{/if}}{{/if}}</span></td>{{/if}}</tr>
+    {{/for}}
+    </tbody>
+    {{/for}}
+  </table>
+</details>
+{{/if}}
+</div>
 </script>
-<!-- deck/list Table view: the table around template-table's rows (listtablewrap); ~rows is that html -->
+<!-- deck/list Table view: the table around template-table's rows (listtablewrap); ~rows is that html. With header
+     rows each section's labels are in its own header row (listtableheads), so there's no table head -->
 <script id="template-listtable" type="text/x-jsrender">
 <div class="listtablewrap"><table class="listtable">
-  <thead><tr><th class="listtableqty">#</th><th class="listtabletitle">Card</th>{{for tablefields}}<th class="listtablestat" title="{{>label}}">{{>short}}</th>{{/for}}{{if kwfield}}<th class="listtablekw">{{>kwlabel}}</th>{{/if}}</tr></thead>
+  {{if !tableheads}}<thead><tr><th class="listtableqty">#</th><th class="listtabletitle">Card</th>{{for tablefields}}<th class="listtablestat" title="{{>label}}">{{>short}}</th>{{/for}}{{if kwfield}}<th class="listtablekw">{{>kwlabel}}</th>{{/if}}</tr></thead>{{/if}}
   <tbody>{{:~rows}}</tbody>
 </table></div>
 </script>
 <script id="template-liststatsavgs" type="text/x-jsrender">
-{{for avgs}}<span class="liststatsavg" title="{{>label}}: average of {{:copies}} card{{if copies!=1}}s{{/if}}{{if skipped}} ({{:skipped}} with no number, e.g. * or X, left out){{/if}}">{{>short}} <b>{{:avg}}</b></span>{{/for}}
+{{for avgs}}<span class="liststatsavg" title="{{if title}}{{>title}}{{else}}{{>label}}: {{>sum}}/{{:copies}} card{{if copies!=1}}s{{/if}}{{if skipped}} ({{:skipped}} with no number, e.g. * or X, left out){{/if}}{{if deckvalued}}; {{:deckvalued}} at the value they have in this deck (clan, Sensei or Stronghold discounts){{/if}}{{/if}}">{{>short}} <b>{{:avg}}</b></span>{{/for}}
 </script>
 <!-- the card page pieces (card-top, card-middle, card-bottom, textversion, textversionbutton, decklistcontrols) are
      all/templates partials, put here by templatepartials() when the game config loads -->
@@ -1127,6 +1145,9 @@ Recent Data Updates for Currently Selected Database:<br>
   <span class="button gray" id="cardeditconfirm-yes">Yes<span class="iiconic ipositive"><svg class="feather"><use xlink:href="res/feather-sprite.svg#check-circle"></svg></span></span>
   <span class="button gray" onclick="$('#cardeditconfirm').hide();">No<span class="iiconic inegative"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></span></span>
 </div></div></div>
+
+<!-- card editor (cardeditor.js) image upload: its own box over the editor, which stays open behind it -->
+<div id="cardeditupload" class="modal" style="z-index: 15;"><div class="modal-box"><div class="listhead upperhead"><span id="cardeditupload-title"></span><button class="iiconic inegative headsetrar" onclick="cardedituploadclose();"><svg class="feather"><use xlink:href="res/feather-sprite.svg#x-square"></use></svg></button></div><div class="modal-content" id="cardeditupload-content"></div></div></div>
 
 <!-- login expired (loginagain): its own box, so a card edit open in #modal survives -->
 <div id="loginmodal" class="modal" style="z-index: 20;"><div class="modal-box"><div class="listhead upperhead"><span>Your login has expired</span></div><div class="modal-content">

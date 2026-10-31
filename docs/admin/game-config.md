@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-28
+Last updated: 2026-10-31 (clanmons recoloured for light and dark)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -29,6 +29,9 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `suffix`, `prefix`, `concat`, `ddclass`. A field marked `show: "hidden"` on Fields drops out of
   every row by itself.
 - `search`: the search form's fields, in order (a field's search settings are on Fields).
+- `deckconstruction` (optional): the deck construction rules, each legality's changes to them, and the
+  choices a deck's owner can make (which deck Sensei go in). A deck's own pick beats `sort.pick` below.
+  Guide: [Deck construction rules](deck-construction.md).
 - `sort`: `{group, first}` for the deck sort; `headers`: the list headers (`["deck", "type"]`).
   `sort.pick` (optional) puts a card that has more than one value in a field under just one in lists:
   `{"<field>": {"rules": [["<regex>", "<value>"], ...], "default": "<value>"}}`. The first rule whose regex
@@ -42,6 +45,14 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire", "Dynasty"],
   ["Celestial|\\(Emperor\\)|^Emperor|Three Dynasties|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
   (`\\(Emperor\\)`, not `Emperor`, so The Hidden Emperor (Jade) doesn't match).
+  A field's `moves` (optional, checked before the rules) put a card under a value it doesn't have:
+  `[{"legality": "<regex>", "when": {"<field>": "<regex>", ...}, "value": "<value>"}]`. The first move whose
+  `legality` matches the list's legality and whose every `when` field matches one of the card's values wins; a
+  list with no legality never moves. L5R counts Sensei in the Fate deck (their own Sensei group under Fate, and
+  in the Fate total) in the Jade and Imperial formats (Hidden Emperor (Jade), Jade Extended, Jade Extended 2000,
+  Clan Wars (Imperial)); elsewhere they stay Pre-Game:
+  `"moves": [{"legality": "Jade|Imperial", "when": {"type": "^Sensei$"}, "value": "Fate"}]`.
+  Public lists' fate and dynasty counts follow the moves too (on a list's next save or the nightly rebuild).
 - `views`: `{add, remove}` against the standard views (Templates); `default`: the view each place
   starts in.
 - `symbols`: `[pattern, html]` pairs, the text tokens drawn as icons (L5R `:g1:`...).
@@ -60,23 +71,49 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   legality is its plain text (spaces, not `&nbsp;`); the image is `<path><image>.png`. L5R: the 13 arcs,
   `res/legality-bugs/renka-gyosho-wax/` (the Renka Gyosho wax seals from ootv-assets `legality-bugs/`).
   A legality not listed (the formats, Unreleased) gets none.
-- `clanmons`: `{path, mons: {<clan>: <image>}}`, the clan's mon drawn before every `clan` value a card
-  row shows (card page, search results) and before a public deck's clan. The clan is its plain text;
-  the image is `<path><image>.png`. L5R: 21 clans, `res/clan-mons/oracle-plain-color/` (the flat
-  clan-colour mons from ootv-assets `mons/oracle_plain/color/`). A clan not listed gets none.
+- `clanmons`: `{path, onlight, ondark, mons: {<clan>: <image>}}`, the clan's mon drawn before every `clan` value a card
+  row shows (card page, search results), before a public deck's clan, and before a deck's name: the open deck's
+  header, Public lists (the deck's clan) and your lists directory (the list summary's `clan`: the first Stronghold
+  whose clan has a mon, saved when the owner opens the list). After adding a mon, rerun ootv-tools
+  `lists/list-summary.py` so the directory shows it on lists nobody opens. The clan is its plain text;
+  the image is `<path><image>.png`. With both `onlight` and `ondark` set, those paths replace `path`: the site
+  shows the `ondark` image in dark mode and on the charcoal title bars, the `onlight` one elsewhere. L5R: 21 clans,
+  `onlight` `res/clan-mons/oracle-plain-contrast-onlight/`, `ondark` `res/clan-mons/oracle-plain-contrast-ondark/` (the flat
+  mons recoloured to show on each, from ootv-assets `mons/oracle_plain/contrast/`); `path`
+  `res/clan-mons/oracle-plain-color/` (the original colours). A clan not listed gets none.
   Toturi's Army is the Wolf; Spirit is a vermilion torii gate.
+- `cardbacks` (optional): which back each printing has, for the small **Back** picture on the card page
+  and the PDF's duplex option. `{rules: [{when, set, before, from, cardid}, ...]}`: the first rule
+  that fits the printing gives `cardid`, the card whose image is the back (backs are cards of their own).
+  All the conditions in a rule must hold, and each is optional: `when` `{"<field>": "<regex>"}` matches one
+  of the printing's values of that field, else the card's (`deck`, `type`, ...); `set` is a regex on the
+  printing's set; `before` and `from` name a set, and fit a printing whose set comes before it, or is it or
+  after it, in the game's set order (the `printing.set` sort order; a game without one never fits them).
+  Two things come before the rules: a double-sided printing (`doublesided`) uses its own second image,
+  and a printing's own `back` (`["<cardid>"]` or `["none"]`, docs `data.md`) wins over them. A printing
+  no rule fits has no back. L5R: Fate and Dynasty cards before The War of Spirits get the old backs
+  (12665, 12664), from it on the new ones (12666, 12667):
+  `{"rules": [{"when": {"deck": "^Fate$"}, "before": "The War of Spirits", "cardid": 12665},
+  {"when": {"deck": "^Fate$"}, "cardid": 12666}, {"when": {"deck": "^Dynasty$"}, "before": "The War of
+  Spirits", "cardid": 12664}, {"when": {"deck": "^Dynasty$"}, "cardid": 12667}, {"when": {"type": "^Stronghold$"},
+  "before": "The War of Spirits", "cardid": 12664}]}`: strongholds before The War of Spirits without a printed back
+  of their own (the Fixed ones) get the old Dynasty back, with a few exceptions to set with `back`. Other Pre-Game
+  cards (Sensei, Winds) and later strongholds get none unless they have their own back image or carry `back`.
+  The Soul of the Empire proxies carry `back: ["12668"]` (the SotE back). Live 2026-10-29 (`l5r/game` version 18).
 
 **Preview** draws the card whose id is in the box (the card you last opened, by default) with your
 edit, as Card Details, a search result and a list, without saving anything. **Save** draws them
-again first and refuses an edit they can't draw. Other people see a save from their next page
-loads; you see it after a reload.
+again first and refuses an edit they can't draw. A browser draws from its stored copy of the config and
+fetches the new one in the background, so a save shows from the second page load after it (the first
+one fetches it), for you and everyone else.
 
 ## The game menu and preview games
 
 The game menu is the `oracle-all-structure` item `all` / `games`: `games`, a list of
 `{table, name, nameshort, logo}` in menu order. A game can sit in it with **`"preview": true`**
 while it's being set up (the L5R LCG, 2026-10-25): preview.oracleofthevoid.com (and localhost) list it,
-the main site doesn't, and neither the Discord bot nor Admin → Discord settings offers it. On every site it
+the main site doesn't (on preview its menu entry is highlighted, amber with a PREVIEW tag, so it's clear
+which games the main site doesn't list yet), and neither the Discord bot nor Admin → Discord settings offers it. On every site it
 still opens by direct link (`#game=<table>`), and once open it shows in that page's menu. The flag only
 hides it: the game's config, fields and cards are the same data on both sites, so an edit made while
 previewing is live for anyone who has the link. To release the game, delete `preview` from its entry
