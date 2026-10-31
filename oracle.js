@@ -3644,7 +3644,7 @@ function listheader(listid) {
 	return '';
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
-	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
+	"active": activelists.indexOf(String(listid)) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "admincan": listadmincan(listid), "adminnotify": !!(adminediting[listid] && adminediting[listid].notify), "deckbuild": !!deckbuildconfig(),
 	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid]});
 }
