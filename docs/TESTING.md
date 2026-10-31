@@ -169,6 +169,18 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
   (compare the label's and its first card's `getBoundingClientRect().top`). A public deck
   for these views: `#game=l5r,#listid=5372212275690645` (legal since its 2026-10-30 edit, so it no longer shows the red header note).
 
+## Dark mode
+
+Pick a theme before the page loads: `newContext({colorScheme: 'dark'})` for the device (`page.emulateMedia` changes it live, which Auto
+should follow), or an init script setting `localStorage.session_theme` to `'"dark"'` (JSON, as `cache_session` stores it).
+
+- **A color change that shouldn't touch light:** serve `master` and the branch side by side, and compare `getComputedStyle` color,
+  background and border colors element by element in each view. Leave out the menu's Theme item if `master` hasn't got it, or everything after it is off by one.
+- **Dark contrast:** walk the elements with their own text, blend the background layers up to the first solid one, and list anything under
+  4:1. It can't judge text over an image or a gradient, so look at screenshots too.
+- Move the mouse away first: at 0,0 it holds the first menu open. Switching views in code with the mouse over a card leaves the card peek up.
+- Blocked ads leave an empty frame, which is why `ins.adsbygoogle` keeps `color-scheme: light`: dark, it draws a white block.
+
 ## Backend changes
 
 The site, preview included, always calls the prod API, so a client feature that needs a

@@ -256,6 +256,7 @@ inputs:
   * tokens from Cognito
 * database (with settings)
 * settings (optional): JSON object of client settings for that database, saved to the user's `settings[database]`
+  (`database=all`: settings for every game, such as `theme`, `game`, `textversion`, `gestures`)
   * any object up to 4096 bytes and 4 levels deep; the client checks values before using them
   * today: `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "sort": "<searchsorts key>", "sortdir": "asc"|"desc", "sortmode": "lex"|"punct"|"library"}`
     plus `"mobile": {same keys}`: phones (narrow screens) save and read their own set there
