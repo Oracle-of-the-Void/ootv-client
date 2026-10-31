@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-10-31 (an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits. The result shows at the
 foot of the deck's list header, under "All cards legal for" ("Deck construction: ..."). Nothing is blocked; a
@@ -38,7 +38,8 @@ The check's answer is also saved on the list (`summary.buildbad`, with the copie
 opens it or an admin edits it (`listsummarysave()`): the directory's Count and the public deck listing show a red Illegal from it.
 Every list was backfilled on 2026-10-29 (ootv-tools `lists/list-summary.py`, 18,681 lists; it runs the site's
 own check in a headless browser). **After changing a rule, rerun that script** (scan, compute, write): a deck
-keeps the answer from its last draw until its owner opens it again. Its public listing mark follows through the
+keeps the answer from its last draw until its owner opens it or an admin edits it, and some owners never come
+back (the Kempy archive decks), so don't count on a visit to clear a mark. Its public listing mark follows through the
 lists index (at once, or the nightly rebuild).
 
 Code: ootv-client `oracle.js`, `deckbuild*` (`deckbuildcheck`, `deckbuildidentity`) and the panel
