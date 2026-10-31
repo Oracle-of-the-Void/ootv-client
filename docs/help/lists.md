@@ -31,7 +31,7 @@ move up a level.
 ## Adding cards {#active}
 
 Click the switch beside a list's name to make it **active**. Then every card in the search
-results and on the card page gets + and − buttons for that list. You can have several lists
+results and on the [card page](cards.md#lists) gets + and − buttons for that list. You can have several lists
 active at once. They stay active in that browser tab until you switch them off.
 
 Quicker ways:

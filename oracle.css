@@ -2312,6 +2312,54 @@ span.listqty {
   min-width: 1.2em;
   text-align: center;
 }
+/* the card page's count under its name, per active list (cardlistbar in oracle.js) */
+#cardlistbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: 6px 0;
+}
+.cardlistrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+}
+.cardlistname {
+  max-width: 16em;
+  margin-right: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cardliststep {
+  min-width: 2em;
+  min-height: 2em;
+  padding: 0 6px;
+  font: inherit;
+  font-weight: bold;
+  color: var(--text);
+  background: var(--panel-alt);
+  border: solid var(--line-strong) 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  touch-action: manipulation;   /* quick taps count, rather than zoom */
+}
+.cardliststep:disabled {
+  color: var(--text-8);
+  cursor: default;
+}
+.cardlistall {
+  color: var(--text-6);
+  font-size: smaller;
+}
+@media (pointer: coarse) {
+  .cardliststep {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 /* the Simple List's count on your own list (listcountready in oracle.js): bold, with a faint dotted underline
    to say it can be changed (solid on hover); a click opens the - [n] + stepper in its place */
 #resultlist span.editquantity {
