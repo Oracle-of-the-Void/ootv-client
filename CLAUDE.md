@@ -67,6 +67,7 @@ or tests. The files in this directory are exactly what gets served.
   card page draws them through `~cardsides` in the `card-top` partial (extra fronts as "Print n of m", backs only as
   thumbnails that flip the big image), and `createpdf` uses them for Backs: Duplex. Docs: `docs/data.md`, admin
   `game-config.md` (`cardbacks`), help `cards#backs`.
+- List header notes start at three lines (`listnotesclosed`, 4.05em in `oracle.css`); `listnotesfit` shows Show more / Show less only when they don't fit, re-measured by a `ResizeObserver` on `#resultlist`, and needs calling after a header is redrawn without `#resultlist` changing size. `listnotesopen` keeps them open per list through redraws until reload; focus opens them.
 - Which list the List view shows (`listinfo` in `oracle.js`): a list someone asked for (`#listid` link, directory click) is
   `listopening` until it arrives, and background loads (the directory's first list, restored active lists, card fetches
   finishing late) only fill the cache, never the view: `liststale`, checked in `refreshlist` and `dolist`. Test: `docs/TESTING.md`.
