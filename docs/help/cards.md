@@ -13,6 +13,18 @@ address bar then points at that card (and that printing), so the link can be sha
 - **X** goes back to where you were. Escape does the same.
 - The globe beside the name shows the [public lists](public-lists.md) that have this card.
 
+## Adding to a list {#lists}
+
+Logged in, with a list [active](lists.md#active), **−** and **+** sit under the card's name, one
+pair for each active list, and the number between them is how many that list holds. The printing
+showing is the one counted; pick one under **Versions** first to add that printing. With no printing
+picked, they count the card without one. If the list also holds other printings or foils of the
+card, *n in all* gives the total. Taking the last copy out asks first.
+
+With no list active, **+ Add to a list** asks which one to use, and makes it active.
+
+The rows at the bottom of the page do the same for each printing.
+
 ## Versions {#versions}
 
 A card can have several printings: the same card in different sets, sometimes with different
