@@ -7596,7 +7596,7 @@ function legalitybug(value, small) {
 }
 // the clan's mon drawn before a clan's name, like the legality bugs: game config clanmons {path, onlight, ondark,
 // mons: {<clan, plain text>: <image name>}} (docs/admin/game-config.md; L5R: the flat clan-colour mons from ootv-assets
-// mons/oracle_plain/color, with a glow). With onlight + ondark both images are drawn and oracle.css shows the one that
+// mons/oracle_plain/contrast, recoloured for light and dark backgrounds). With onlight + ondark both images are drawn and oracle.css shows the one that
 // suits what's behind it, so a theme change needs no redraw. '' for a clan with none, or a game without them.
 function clanmon(value) {
     var cm = ((gameconfig[database] || {}).game || {}).clanmons;
@@ -7606,7 +7606,7 @@ function clanmon(value) {
 	return '<img class="clanmon'+cls+'" src="'+path+cm.mons[name]+'.png" alt="" title="'+htmlEncode(name)+'" />';
     };
     if(!cm.onlight || !cm.ondark) { return img(cm.path, ''); }
-    return img(cm.onlight, ' clanmonglow clanmononlight')+img(cm.ondark, ' clanmonglow clanmonondark');
+    return img(cm.onlight, ' clanmononlight')+img(cm.ondark, ' clanmonondark');
 }
 function clanmonned(value) {
     var mon = clanmon(value);
