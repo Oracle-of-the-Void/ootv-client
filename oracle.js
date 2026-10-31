@@ -3586,6 +3586,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	} else {
 	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
 	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html));
+	    listnotesfit();
 	    liststatslegal();
 	    liststatscutoff();
 	    liststatspinbutton();
@@ -3693,7 +3694,34 @@ function listheader(listid) {
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "admincan": listadmincan(listid), "adminnotify": !!(adminediting[listid] && adminediting[listid].notify), "deckbuild": !!deckbuildconfig(),
-	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || ''});
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid]});
+}
+// list view header: long notes start cut to a few lines. Show more / Show less, or clicking in to edit, opens them;
+// they stay as left while the list redraws (each save draws it again), until the page reloads.
+var listnotesopen = {};
+function listnotesset(notes,open) {
+    listnotesopen[notes.attr('data-list')] = open;
+    notes.toggleClass('listnotesclosed',!open);
+    notes.next('.listnotestoggle').attr('aria-expanded',open).text(open ? 'Show less' : 'Show more');
+}
+function listnotestoggle(el) {
+    var notes = $(el).prev('.listviewnotes');
+    listnotesset(notes,notes.hasClass('listnotesclosed'));
+}
+// the button only shows when there's more than the closed height holds: measured closed, whatever the state
+function listnotesfit() {
+    $('#resultlist .listviewnotes').each(function() {
+	var open = !$(this).hasClass('listnotesclosed');
+	$(this).addClass('listnotesclosed');
+	$(this).next('.listnotestoggle').toggleClass('listnotesfits',this.scrollHeight > this.clientHeight+1);
+	$(this).toggleClass('listnotesclosed',!open);
+    });
+}
+$(document).on('focus', '#resultlist .listviewnotes[contenteditable]', function() { listnotesset($(this),true); });
+$(document).on('input', '#resultlist .listviewnotes[contenteditable]', listnotesfit);
+// the list drawing, the window narrowing or the list view coming into sight can all change what fits
+if(window.ResizeObserver) {
+    $(function() { new ResizeObserver(listnotesfit).observe(document.getElementById('resultlist')); });
 }
 // the clan mon of a deck's Stronghold, before its name in the header ('' with no Stronghold, or one without a mon)
 function liststrongholdmon(listid) {
@@ -3727,6 +3755,7 @@ function listmarksave(listid, kind, value) {
 		cache_thing("list",listid,list);
 	    }
 	    $(".listviewheader[data-list='"+listid+"']").replaceWith(listheader(listid));
+	    listnotesfit();
 	    liststatslegal(); // the new header's deck check (cached answer)
 	},
 	error: function(xhr) { alert('Not saved'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : '')); }

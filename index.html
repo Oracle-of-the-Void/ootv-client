@@ -1031,7 +1031,7 @@ proxies and public decklists, for:</p>
     {{include tmpl="#template-listaward"/}}
   </div>
   {{include tmpl="#template-listsource"/}}
-  <div class="listviewnotes" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div>
+  <div class="listviewnotes{{if !~notesopen}} listnotesclosed{{/if}}" contenteditable="true" data-placeholder="Notes" data-list="{{:listid}}" data-listfield="notes" data-prev="{{>notes}}">{{>notes}}</div><button type="button" class="button gray buttonsmaller listnotestoggle" aria-expanded="{{:~notesopen}}" onclick="listnotestoggle(this); return false;">{{if ~notesopen}}Show less{{else}}Show more{{/if}}</button>
   {{else}}
   <div class="listviewshared" role="note">
     <svg class="feather" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#eye"></svg>
@@ -1052,7 +1052,7 @@ proxies and public decklists, for:</p>
   </span>
   {{include tmpl="#template-listsource"/}}
   {{include tmpl="#template-listaward"/}}
-  {{if notes}}<div class="listviewnotes">{{>notes}}</div>{{/if}}
+  {{if notes}}<div class="listviewnotes{{if !~notesopen}} listnotesclosed{{/if}}" data-list="{{:listid}}">{{>notes}}</div><button type="button" class="button gray buttonsmaller listnotestoggle" aria-expanded="{{:~notesopen}}" onclick="listnotestoggle(this); return false;">{{if ~notesopen}}Show less{{else}}Show more{{/if}}</button>{{/if}}
   {{/if}}
   {{:~check}}
 </div>
