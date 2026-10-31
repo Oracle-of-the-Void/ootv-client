@@ -11,6 +11,7 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 - **New list** makes one. Click a list's name to open it.
 - To rename a list, press and hold its name (or click the pencil beside it). Enter saves.
 - Type straight into a list's **Notes** to change them.
+- Long notes at the top of an open list start cut to three lines: **Show more** opens them, and so does clicking in to edit.
 - **Type** says what the list is: Deck, Collection, Have, Want or Other.
 - **Count** is the deck's dynasty/fate cards and its total ("40/40 (82 total)"; pre-game cards count only in
   the total), with a red **Illegal** when the deck breaks its [construction rules](#stats). It's kept from the

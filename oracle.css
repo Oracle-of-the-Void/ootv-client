@@ -1099,6 +1099,22 @@ div.listviewheader div.listviewnotes[contenteditable]:empty::before {
     content: attr(data-placeholder);
     color: var(--text-8);
 }
+/* long notes start at three lines (listnotesset in oracle.js); the button only shows when there's more */
+div.listviewheader div.listviewnotes {
+    line-height: 1.35;
+}
+div.listviewheader div.listviewnotes.listnotesclosed {
+    box-sizing: content-box;
+    max-height: 4.05em;
+    overflow: hidden;
+}
+div.listviewheader button.listnotestoggle {
+    display: none;
+    margin-top: 2px;
+}
+div.listviewheader button.listnotestoggle.listnotesfits {
+    display: inline-block;
+}
 /* someone else's shared deck: who owns it, above everything else, and that it's read only */
 div.listviewheader div.listviewshared {
     display: flex;
