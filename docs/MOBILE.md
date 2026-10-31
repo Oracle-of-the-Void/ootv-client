@@ -65,7 +65,7 @@ left −1, up-right +3; deck/list view: right +1, left −1, up-right +2; in bot
 Down-right and down-left do nothing and scroll by default; given an action, that drag on a card stops scrolling.
 Settings → Gestures changes what each direction does (add, remove, set the count to, remove all, nothing),
 separately for search and for the deck/list view, and turns each gesture off (deck swipe touch and mouse,
-directory drag touch and mouse, long-press labels, card peek touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
+directory drag touch and mouse, long-press labels, card peek touch and mouse, version menu touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active), on the card page's picture with a mouse only (with a list active, by search's settings, on the printing chosen if any; on touch, the whole card page keeps the prev/next swipe)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
 drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16; the down-right and
@@ -81,6 +81,15 @@ card or swipe; Android's long-press menu is blocked. The Detailed file comes fro
 (`cardpeekfind`), since Dune's files aren't named `_select`/`_details`. WebKit runs it (2026-10-30, synthetic press). **Not checked on real iOS Safari**: the
 image/link callout is turned off with `-webkit-touch-callout` set on the press, which may be too late; if the
 iOS menu or link preview still opens, set it in CSS on `a.deckswipe` and its image instead.
+
+Version menu (2026-10-31, emulated touch on Chromium, synthetic press on WebKit): in the list view, on a list you can
+edit, a 500 ms press on a card's picture, name or version opens the menu of versions (`versionmenuopen`, switch
+`versionmenutouch`). It shares card peek's press (`cardpeek.press`), so the release is handled the same way, and takes
+that press from peek on these rows; the menu shows the picture, and a tap on it is the full-size peek. With the switch
+off, and on other people's lists and in search, the press is the peek. `#resultlist.versionmenuon` turns off text
+selection and the callout on these rows on touch, in CSS. **Check on a real iPhone** that the press doesn't select the
+text or open iOS's link preview, and that a tap on the dark backdrop closes the menu (its click handler is on the menu
+itself, since iOS sends no click up to the document from a plain div).
 
 Card view (2026-10-21, [#372](https://github.com/Oracle-of-the-Void/ootv-client/issues/372), emulated touch only):
 a sideways swipe on a card opened from a search goes to the next (left) or previous (right) result,

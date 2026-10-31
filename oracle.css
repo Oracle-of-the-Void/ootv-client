@@ -55,6 +55,8 @@
   --line-2: #ddd;
   --fill-7: #f2f2f2;
   --shared-bg: #fff4d6;
+  --version-legal: #e4f3e6;
+  --version-legal-hover: #cfe9d3;
   --shared-text: #3d2e00;
   --shared-icon: #9a7400;
   --bad-bg-1: #fde4e1;
@@ -196,6 +198,8 @@
   --line-2: #45433c;
   --fill-7: #3a3833;
   --shared-bg: #3d3312;
+  --version-legal: #22392a;
+  --version-legal-hover: #2d4a37;
   --shared-text: #f3dfa0;
   --shared-icon: #e0c35a;
   --bad-bg-1: #4a1f1a;
@@ -3280,6 +3284,36 @@ span.dirillegal {
   background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
 #cardpeek.cardpeektouch.cardpeekon { display: flex; }
 #cardpeek.cardpeektouch img { max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+
+/* version menu (oracle.js versionmenuopen): at the mouse, or in the middle of the screen over a backdrop (touch).
+   z-index above card peek. On touch, a long-press on your own list's rows opens it rather than selecting their text */
+#versionmenu { position: fixed; inset: 0; z-index: 1600; }
+.versionmenubox { position: fixed; display: flex; gap: 8px; box-sizing: border-box; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px);
+  padding: 6px; background: var(--panel); color: var(--text); border: 1px solid var(--field-border); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+.versionmenuimg { flex: none; align-self: center; width: 190px; height: 266px; object-fit: contain; border-radius: 7px; }
+.versionmenulist { display: flex; flex-direction: column; min-width: 0; min-height: 0; width: 280px; }
+.versionmenutitle { flex: none; padding: 4px 8px 6px; font-family: var(--font-display); font-size: 1.15em; border-bottom: 1px solid var(--panel-border); }
+.versionmenuitems { flex: 1 1 auto; min-height: 0; max-height: 266px; overflow-y: auto; padding-top: 4px; }
+.versionmenuitem { position: relative; display: block; box-sizing: border-box; width: 100%; padding: 5px 8px 5px 24px; border: 0; border-radius: 5px; background: none;
+  color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.versionmenuitem:hover, .versionmenuitem:focus-visible { background: var(--chip-hover); outline: none; }
+.versionmenuitem[aria-checked="true"] { font-weight: bold; }
+.versionmenuitem[aria-checked="true"]::before { content: '\2713'; position: absolute; left: 8px; }
+.versionmenunote { color: var(--text-5); font-weight: normal; }
+/* what fits the deck's legality (versionmenufits): a group of its own, tinted */
+.versionmenugroup { padding: 7px 8px 3px; color: var(--text-5); font-size: .85em; font-weight: bold; }
+.versionmenuitem.versionmenulegal { background: var(--version-legal); }
+.versionmenuitem.versionmenulegal:hover, .versionmenuitem.versionmenulegal:focus-visible { background: var(--version-legal-hover); }
+#versionmenu.versionmenutouch { display: flex; align-items: center; justify-content: center; padding: 8px; box-sizing: border-box; background: rgba(0,0,0,.6); touch-action: none; }
+#versionmenu.versionmenutouch .versionmenubox { position: static; flex-direction: column; width: min(360px, 100%); }
+#versionmenu.versionmenutouch .versionmenuimg { width: 100%; height: 38vh; min-height: 0; cursor: zoom-in; }
+#versionmenu.versionmenutouch .versionmenulist { width: auto; flex: 1 1 auto; }
+#versionmenu.versionmenutouch .versionmenuitems { max-height: none; touch-action: pan-y; }
+#versionmenu.versionmenutouch .versionmenuitem { padding-top: 10px; padding-bottom: 10px; }
+@media (pointer: coarse) {
+  #resultlist.versionmenuon :is(a.deckswipe, .listitem .listhead a, .listitem .headsetrar, .listitem a.printinglink, .listbodyplain) {
+    -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+}
 
 /* dark mode: what the variables can't reach. Tom Select's own stylesheet, and the highlighted text its filter and the
    book search mark */

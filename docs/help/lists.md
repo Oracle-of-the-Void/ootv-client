@@ -44,7 +44,8 @@ Quicker ways:
 - **Click or tap a count** in the simple list or table of your own list to change it: type a number or use
   − and +, then press Enter or click away (Esc puts it back). 0 asks, then takes the card out.
 - **Hover** over a small card picture, or a name in the simple list, to see the card at full
-  size. On a phone, press and hold it; tap to close.
+  size. On a phone, press and hold it; tap to close. On your own lists that press
+  [changes a version](#versions) instead: tap the picture in that menu for full size.
 - **Add all to list**, above the search results, adds every card found
   ([more](searching.md#add-all)).
 - **Import**, in the list's menu, adds cards from a pasted deck list or a file (see
@@ -75,6 +76,23 @@ Three Dynasties), and Dynasty cards from Ivory on. Versions that were both sit i
 deck's **Legality** calls for: Pre-Game in Celestial, Emperor, Emperor Extended, BigDeck and Obsidian Hand decks, Dynasty in
 Ivory, Twenty Festivals, Onyx and Modern ones. In Legacy, or with no legality, the version you chose
 decides. **Printed text** on the card shows the deck each version was printed for.
+
+## Changing a version {#versions}
+
+On your own list, **right-click** a card's picture, name or version to see its versions and pick
+another. On a phone, press and hold it instead. This works in every list view. **Default** at the top
+means no version chosen, so the card shows its usual printing.
+
+If the list has a **Legality**, the versions that fit it come next, tinted, under **Legal in** that
+format, then the others. Each list keeps its own choice, and the card itself doesn't change.
+
+- The menu shows the card's picture: move the mouse over a version to see that one. On a phone, tap
+  the picture to see it at full size.
+- If the list already has the version you pick, the two entries join and their counts add up.
+- A foil entry moved to a version never printed in foil becomes a regular one.
+- To get your browser's own menu (to save a picture, say), hold **Shift** while you right-click, or
+  select the text first to copy it. Settings → Gestures turns the menu off, for the mouse and for
+  touch separately.
 
 ## Foil copies {#foil}
 
