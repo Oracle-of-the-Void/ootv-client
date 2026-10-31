@@ -1102,6 +1102,16 @@ function dircount(list) {
   }
   return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad);
 }
+// a list's count in the Active Lists bar, as the directory's but live: the decks from its last draw (liststats; every edit
+// redraws), else its saved summary. Decks that don't add up to the total (a stale summary, cards still loading): the total alone
+var listdeckdrawn = {}; // listid: the summary's decks from the last liststats
+function activelistcount(list) {
+  var item = list.listdata.list.Items[0];
+  var total = parseInt(item.totalcount) || 0;
+  var decks = listdeckdrawn[list.listid] || (item.summary || list.summary || {}).decks || [];
+  var sum = decks.reduce(function(t,d) { return t + d.copies; }, 0);
+  return deckcounthtml(sum == total ? decks : [], total, false);
+}
 // the mon before a list's name in the directory: its summary's clan (the first Stronghold's, listsummarysave)
 function dirmon(list) {
   return list.summary && list.summary.clan ? clanmon(list.summary.clan) : '';
@@ -1843,7 +1853,7 @@ function renderlisteditarea() {
 		(Object.keys(updatepending).length >0 ? '<span style="background-color:red;" onclick="savecallback();">Updates Pending</span>' :'')+
 		listactivetemplate.render(activelists.map(function(listid) {
 		    return activelistmeta(listid);
-		}))+
+		}), {"activelistcount": activelistcount})+
 		'</div><br /><br />'
 	);
     }
@@ -3630,6 +3640,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
 	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html))
 		.toggleClass('versionmenuon', !!listeditable(listid) && gestureon('versionmenutouch'));
+	    renderlisteditarea(); // the bar's counts, from this draw
 	    listnotesfit();
 	    liststatslegal();
 	    liststatscutoff();
@@ -4123,6 +4134,7 @@ function liststats(listdata,listid=null) {
     var total = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     if(!cards.length) {
 	listsummarysave(listid, null);
+	delete listdeckdrawn[listid];
 	delete listcheckhtml[listid];
 	delete listsummaryheld[listid];
 	return '';
@@ -4173,6 +4185,7 @@ function liststats(listdata,listid=null) {
     var summary = {"decks": summarydecks.slice(0,10).map(function(d) {
 	return {"name": d.name.slice(0,60), "copies": d.cards.reduce(function(t,c) { return t + c.qty; }, 0)};
     }), "buildbad": !!(build && build.problems.length)};
+    listdeckdrawn[listid] = summary.decks;
     var clan = liststrongholdclan(cards.map(function(c) { return c.card; }));
     if(clan) { summary.clan = clan.slice(0,60); }
     var legalids = (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '';
@@ -4189,7 +4202,7 @@ function liststats(listdata,listid=null) {
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
-	"listid": listid, "legalids": legalids,
+	"listid": listid, "legalids": legalids, "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
 	"buildbad": !!(build && build.problems.length), "buildhtml": deckbuildhtml(build)});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
