@@ -1558,16 +1558,17 @@ table.smiconic { float: left; display: inline;}
 tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 /* br + table.smiconic > tbody > tr > td.smgc {   width: 66px; } */
 
-.hr {  background-image: url('res/icon-cards/ee_honor_requirement.png'); }
-.gc {  background-image: url('res/icon-cards/ee_cost_gold.png'); }
-.ph {  background-image: url('res/icon-cards/ee_personal_honor.png'); }
+/* numbers on a pale icon stay black in dark mode too (the icon doesn't change) */
+.hr {  background-image: url('res/icon-cards/ee_honor_requirement.png');  color: black; }
+.gc {  background-image: url('res/icon-cards/ee_cost_gold.png');  color: black; }
+.ph {  background-image: url('res/icon-cards/ee_personal_honor.png');  color: black; }
 .fo {  background-image: url('res/icon-cards/ee_focus.png');  color: white; }
 .force {  background-image: url('res/icon-cards/ee_f_unaligned.png');  color: white;  width: 46px;}
 .chi {  background-image: url('res/icon-cards/ee_c_unaligned.png');  color: white;  width: 45px;}
 
-.smhr {   background-image: url('res/icon-cards-small/ee_honor_requirement.png'); }
-.smgc {   background-image: url('res/icon-cards-small/ee_cost_gold.png'); }
-.smph {   background-image: url('res/icon-cards-small/ee_personal_honor.png'); }
+.smhr {   background-image: url('res/icon-cards-small/ee_honor_requirement.png');  color: black; }
+.smgc {   background-image: url('res/icon-cards-small/ee_cost_gold.png');  color: black; }
+.smph {   background-image: url('res/icon-cards-small/ee_personal_honor.png');  color: black; }
 .smfo {   background-image: url('res/icon-cards-small/ee_focus.png');  color: white;/*  width: 66px; */ }
 .smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
