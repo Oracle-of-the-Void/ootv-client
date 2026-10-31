@@ -17,7 +17,7 @@ show them on the card page instead (below, "Showing derived values on the card p
   in the wrong group. Names hold `&nbsp;`, so match a space with `.*`, not `.`. The "Arc" regex excludes `Strict|Extended`. Filters that aren't formats
   (Paper) go in "Misc" (`Proxy|Unreleased|Paper`).
 - **Per-card overrides:** the card field `legalityderivedexception`
-  (`{ "add": [names], "remove": [names] }`), edited on the card itself.
+  (`{ "add": [names], "remove": [names] }`), edited on the card itself. `remove` is also where every ban lives ("Bans", below).
 - **Code:** ootv-search `lib/attributeopts.js` (`derivedQuery`). `/attributes` lists the names
   and `/search` expands them. In ootv-client, `derivedprinting()` picks which printing to
   show (see "Which printing is shown").
