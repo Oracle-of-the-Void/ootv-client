@@ -3240,11 +3240,7 @@ div.legalitybugline img.legalitybugsmall { height: 20px; width: 20px; vertical-a
 /* L5R clan mons before a clan's name (clanmon in oracle.js), the same size as the legality bugs */
 img.clanmon { height: 1.3em; width: auto; vertical-align: -0.3em; margin-right: 0.2em; }
 div.listviewheader .listviewtitle img.clanmon { height: 1.6em; vertical-align: middle; margin-right: 0; }
-/* the mons with a glow: the art fills 820/1024 of the image, so each is drawn that much bigger, with the glow's margin
-   taken back, to keep the mon the size and place it was. Black glow on light, light glow on dark: dark mode, and the
-   charcoal title bars (--head-bg) in either theme */
-img.clanmonglow { height: 1.62em; margin: -0.16em 0.04em -0.16em -0.16em; vertical-align: -0.46em; }
-div.listviewheader .listviewtitle img.clanmonglow { height: 2em; margin: -0.2em; vertical-align: middle; }
+/* each mon has a colour for light backgrounds and one for dark: dark mode, and the charcoal title bars (--head-bg) in either theme */
 img.clanmonondark { display: none; }
 html[data-theme=dark] img.clanmononlight,
 :is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle, div.dircardhead) img.clanmononlight { display: none; }
