@@ -37,6 +37,8 @@ entry all work. Headless Chromium can't stand in for these on iOS:
   near the bottom of the screen), the New list tile, and the menubar Sort dropdown.
 - [ ] Swipe list picker (added 2026-10-16): with no active list, an adding swipe in search
   results opens a list picker with collapsible folders and New list (which asks for a name).
+- [ ] Down-right and down-left swipes (added 2026-10-31): turn one on in Settings → Gestures; that
+  drag on a card changes its count and doesn't scroll, and a nearly vertical drag still scrolls.
 - [ ] Directory drag and drop (added 2026-10-15): long-press a list's move handle or a folder
   and drag it onto a folder, a folder in an expanded tree, or the path bar. It's HTML5 drag and
   drop, which iOS Safari 15+ supports and Android Chrome may not. Where it doesn't work, the
@@ -66,7 +68,9 @@ separately for search and for the deck/list view, and turns each gesture off (de
 directory drag touch and mouse, long-press labels, card peek touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active), on the card page's picture with a mouse only (with a list active, by search's settings, on the printing chosen if any; on touch, the whole card page keeps the prev/next swipe)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
-drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16.
+drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16; the down-right and
+down-left swipes (2026-10-31, [PR #541](https://github.com/Oracle-of-the-Void/ootv-client/pull/541)) only in emulation,
+with scrolling tried on Chrome only, so **check on a real iPhone** that a turned-on diagonal blocks the scroll.
 
 Card peek (2026-10-29, [PR #502](https://github.com/Oracle-of-the-Void/ootv-client/pull/502), emulated touch
 on Chrome only): a card image drawn smaller than Detailed (search and list rows, Deck view stacks, public
