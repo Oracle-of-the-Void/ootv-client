@@ -42,7 +42,8 @@ so on). The print dialog starts from them each time. See [Downloads](lists.md#do
 
 Swipes, long-presses and hovers, each one on or off: swiping cards to change their count, dragging in
 the list directory, long-pressing a button to see its name, swiping between cards, hovering or
-long-pressing a small card picture or a simple list name to see the card at full size. Turn one off
+long-pressing a small card picture or a simple list name to see the card at full size, right-clicking
+or long-pressing a card on your own list to [change its version](lists.md#versions). Turn one off
 to get the browser's usual behavior back. For card swipes, choose what each direction does (add,
 remove, set the count, remove all), separately for search results and for lists. Down-right and
 down-left do nothing until you choose an action; a drag that way starting on a card then changes its

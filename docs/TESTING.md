@@ -165,6 +165,7 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
   `confirm` (handle `page.on('dialog')`, dismiss then accept). Add a regular and a foil entry of one printing: both are
   editable in the Simple List and both stay plain in the Table (its template has no foil). In WebKit a tap on −/+ sends no
   `click` (its pointerdown is cancelled), so run the touch case in `devices['iPhone 13']` too.
+- Version menu: `click({button: 'right'})` (mouse) or the long-press under "Handy in scripts" (touch), then the rows are `#versionmenu .versionmenuitem` (`data('prid')`, `.versionmenulegal`). `#resultlist` must hold the list `#lastlistid` names, or `liststale` skips the redraw. Set `legality` on the list item to test the ordering; Ring of Earth (l5r 6334, 35 versions) makes a good card. WebKit has no CDP long-press and `new Touch()` is illegal there: dispatch `pointerdown`, wait, then `pointerup` and an `Event('touchend')` with `changedTouches` set by hand. `touchscreen.tap` on the backdrop needs a click handler on the menu itself.
 - Header rows are `cardid: 0` entries: `decktitle` rows (`div.listhead`) and `typetitle`
   rows (`div.deckviewtype` in the deck view, `.listheadplain` in Simple List). Check the
   counts text, and that each deck header appears once.
