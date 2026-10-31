@@ -5213,11 +5213,11 @@ var gestureswitches = [
 ];
 // card swipes, per view: search results change the first active list, the deck/list view the list shown
 var swipeviews = [['search', 'Swipes in search results'], ['list', 'Swipes in a deck or list']];
-var swipedirs = [['right', 'Right'], ['upright', 'Up-right'], ['left', 'Left'], ['upleft', 'Up-left']];
+var swipedirs = [['right', 'Right'], ['upright', 'Up-right'], ['downright', 'Down-right'], ['left', 'Left'], ['upleft', 'Up-left'], ['downleft', 'Down-left']];
 var swipeactions = [['off', 'Nothing'], ['add', 'Add'], ['sub', 'Remove'], ['set', 'Set the count to'], ['zero', 'Remove all copies']];
 var swipedefaults = {
-  'search': {'right': ['add',1], 'upright': ['add',3], 'left': ['sub',1], 'upleft': ['zero',0]},
-  'list': {'right': ['add',1], 'upright': ['add',2], 'left': ['sub',1], 'upleft': ['zero',0]}
+  'search': {'right': ['add',1], 'upright': ['add',3], 'downright': ['off',0], 'left': ['sub',1], 'upleft': ['zero',0], 'downleft': ['off',0]},
+  'list': {'right': ['add',1], 'upright': ['add',2], 'downright': ['off',0], 'left': ['sub',1], 'upleft': ['zero',0], 'downleft': ['off',0]}
 };
 function gesturesettings() {
   var g = null;
@@ -7077,7 +7077,7 @@ document.addEventListener('contextmenu', function(e) {
 // Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
 // swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
 // (swipedefaults: search right +1, left -1, up-right +3; deck/list right +1, left -1, up-right +2; both
-// up-left all copies). Going to 0 asks before removing the card. In the list view it changes the list shown; in
+// up-left all copies; down-right and down-left off, so they scroll until turned on). Going to 0 asks before removing the card. In the list view it changes the list shown; in
 // search, the first active list. With none active (logged in), a swipe that adds asks which list to activate
 // (deckswipepicklist); other swipes do nothing. On touch, a mostly vertical drag still scrolls.
 var deckswipe = null;
@@ -7106,8 +7106,9 @@ function deckswipemove(x, y) {
     }
     var dx = x - deckswipe.x, dy = y - deckswipe.y;
     if(deckswipe.lock === null && Math.hypot(dx,dy) > 12) {
-	// sideways or diagonally up is a swipe; up, down or diagonally down scrolls
-	deckswipe.lock = Math.abs(dx) >= 0.5*Math.abs(dy) && !(dy > 0 && Math.abs(dx) < 2*dy);
+	// sideways or diagonally up is a swipe; up, down or diagonally down scrolls, unless that diagonal has an action
+	var downon = deckswipe.acts[dx > 0 ? 'downright' : 'downleft'][0] != 'off';
+	deckswipe.lock = Math.abs(dx) >= 0.5*Math.abs(dy) && (downon || !(dy > 0 && Math.abs(dx) < 2*dy));
     }
     if(deckswipe.lock === false) {
 	deckswipe = null;
@@ -7125,9 +7126,9 @@ function deckswipeend(x, y) {
 	return;
     }
     deckswipedone = Date.now();  // a swipe, even one that changes nothing, mustn't open the card
-    var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left
-    var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' :
-	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : null;
+    var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left, -90 = down
+    var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' : (angle < -30 && angle >= -65) ? 'downright' :
+	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : (angle <= -115 && angle > -150) ? 'downleft' : null;
     if(dir && s.acts[dir][0] != 'off' && !s.listid) {
 	if(s.acts[dir][0] == 'add' || s.acts[dir][0] == 'set') {
 	    deckswipepicklist(s.a.data('card'), s.a.data('printing') || 0, s.acts[dir]);
