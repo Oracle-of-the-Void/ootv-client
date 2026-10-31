@@ -7080,10 +7080,18 @@ document.addEventListener('contextmenu', function(e) {
 // up-left all copies; down-right and down-left off, so they scroll until turned on). Going to 0 asks before removing the card. In the list view it changes the list shown; in
 // search, the first active list. With none active (logged in), a swipe that adds asks which list to activate
 // (deckswipepicklist); other swipes do nothing. On touch, a mostly vertical drag still scrolls.
+// The card page's own picture click-drags too (mouse only), like search, once a list is active; on touch its swipe is prev/next.
 var deckswipe = null;
 var deckswipedone = 0;
-function deckswipestart(target, x, y, mouse=false) {
+function deckswipelink(target, mouse) {
     var a = $(target).closest('a.deckswipe');
+    if(!a.length && mouse && activelists.length && $(target).closest('#resultcard .printingimages img:not(.cardbackimg)').length) {
+	return $('<a>').data({card: Number($('#lastcardid').val()), printing: Number(lastcardprid()) || 0});
+    }
+    return a;
+}
+function deckswipestart(target, x, y, mouse=false) {
+    var a = deckswipelink(target, mouse);
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
     deckswipe = null;
     if(a.data('list') && !listeditable(String(a.data('list')))) {

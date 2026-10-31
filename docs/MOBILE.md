@@ -64,7 +64,7 @@ Down-right and down-left do nothing and scroll by default; given an action, that
 Settings → Gestures changes what each direction does (add, remove, set the count to, remove all, nothing),
 separately for search and for the deck/list view, and turns each gesture off (deck swipe touch and mouse,
 directory drag touch and mouse, long-press labels, card peek touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
-Spoiler and Simple List, on the first active list; the toast names the list when several are active)
+Spoiler and Simple List, on the first active list; the toast names the list when several are active), on the card page's picture with a mouse only (with a list active, by search's settings, on the printing chosen if any; on touch, the whole card page keeps the prev/next swipe)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
 drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16.
 
