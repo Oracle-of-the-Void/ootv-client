@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-31 (a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-10-31 (Emperor Extended; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -160,6 +160,34 @@ Jade's experienced rule (a Personality whose experienced version was printed in 
 Jade) puts Jade on the card only, never on a printing, so the printing condition leaves out exactly
 those 56 Imperial Personalities (Akodo Toturi, Bayushi Kachiko, the Dragons, ...). Everything else
 matches Jade Extended.
+
+### Emperor Extended (3,742)
+
+Emperor plus all of Celestial, the format the Sun and Moon community tags EEex (the user, 2026-10-31).
+No rules document is known; the card pool and bans below come from the arcs themselves.
+
+Any of:
+- legal in Celestial or Emperor
+
+Prefer: Emperor.
+
+Deck construction is Emperor's. Neither has an entry in `deckconstruction.legality`, so both use the
+game's rules (40/40, three copies), and `^Emperor` in `sort.pick` puts Border Keep and Bamboo Harvesters in
+Pre-Game. Nothing in `l5r/game` had to change.
+
+**Ban list** (`remove: Emperor Extended`): Emperor's bans hold in the format, so the Emperor-banned cards still
+legal in Celestial are out. The rest of Emperor's bans carry neither arc. Discord confirms Asako Karachu ("banned
+in EE and is also in EEex", 2025-09-09); none of the 18 EEex decks in kempy's archive plays any of the five.
+
+| Card | ID | Type | Banned from Emperor |
+|---|---|---|---|
+| Asako Karachu | 551 | Personality | 2013-09-21 |
+| Caught Unawares | 1239 | Strategy | 2013-09-21 |
+| Oblivious | 5648 | Strategy | 2013-09-21 |
+| All That Will Be Lost | 323 | Event | 2012-12-24 |
+| Twisted Fate | 8919 | Event | 2012-12-24 |
+
+Cards banned from later arcs (Advance Warning, Exotic Farmlands, Well-Defended Farm) stay in.
 
 ### Legacy (11,981)
 
@@ -444,3 +472,5 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-28: Jade Extended 2000 corrected to Jade Extended without the experienced rule (Jade on a
   printing for Strongholds, Personalities, Events, Spells, Rings); the Jade-arc set clause, which also
   dropped 428 Imperial non-Personality cards, is gone. 1,918 → 2,346.
+- 2026-10-31: Emperor Extended (Celestial or Emperor, 5 `remove` exceptions for Emperor's bans); the 18 EEex decks in
+  kempy's archive already stored the name and all stay legal.
