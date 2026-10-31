@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-30 (Android: Netrunner and Doomtown: Reloaded shelves)
+Last updated: 2026-10-30 (Warhammer 40,000 CCG types and tags OK'd; Android: Netrunner and Doomtown: Reloaded shelves)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -560,4 +560,4 @@ rules). From the community scan archive linked from ztcgvault.com (ootv-games `g
 four scans, OCR'd with `ocr_threshold`; Battle for Delos is Sabertooth's own PDF with its text, laid out as
 reader spreads, split into single pages by crop box (pypdf, `game-wh40k/rules/clean/`; ghostscript's
 re-write turned every space into a junk character). Uploaded for review 2026-10-29 ("upload them to look
-at", the user); types and tags proposed, not yet confirmed.
+at", the user); types and tags OK'd as proposed 2026-10-30.
