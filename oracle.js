@@ -1282,7 +1282,7 @@ $(document).on('click', function(e) {
 });
 // a press anywhere on a list's card or table row that isn't one of its controls opens the list
 $(document).on('click', '#directorycards [id^="listitem_"], #directorytable [id^="listitem_"]', function(e) {
-  if($(e.target).closest('select, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirnotes, .dirlistname, .dirdraghandle').length) { return; }
+  if($(e.target).closest('select, .ts-wrapper, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirnotes, .dirlistname, .dirdraghandle').length) { return; }
   listinfo(this.id.replace('listitem_',''),true);
 });
 $(document).on('contextmenu', '#resultdir .dirlistname:not([contenteditable=true])', function(e) {
@@ -9340,6 +9340,117 @@ function tomselectify() {
 function tomselectdrop(sel) {
   var el = $(sel)[0];
   if(el && el.tomselect) { el.tomselect.destroy(); }
+}
+
+// every other pulldown on the site, as a single-pick Tom Select you can type in: nothing has to ask for it. Any select that
+// shows up (templates, admin pages) converts when it first scrolls into view, so a long list directory only pays for its
+// visible rows. Stays a plain select: one with two options or fewer (nothing to search; it converts if it grows), `multiple`
+// (tomselectify), `.notomselect`. The select stays, hidden, with its name, value and change event; code goes on using it:
+// .val() is passed on below, new options and hide/show/disabled are picked up by the observers
+var tomselectseen = typeof IntersectionObserver != 'undefined' && new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) { if(e.isIntersecting) { tomselectauto(e.target); } });
+});
+function tomselectsig(el) {
+  return Array.prototype.map.call(el.options, function(o) { return o.value+'\u0001'+o.text+'\u0001'+o.disabled; }).join('\u0002');
+}
+function tomselectauto(el) {
+  if(el.tomselect || !el.isConnected || el.options.length <= 2) { return; }   // too short now: tomselectwatch looks again if options come
+  tomselectseen.unobserve(el);
+  var width = el.offsetWidth, parent = el.parentElement, room = parent.clientWidth - parseFloat(getComputedStyle(parent).paddingLeft) - parseFloat(getComputedStyle(parent).paddingRight);
+  var ts = new TomSelect(el, {
+    plugins: ['no_backspace_delete'],
+    allowEmptyOption: true,   // "Any type" and friends are real choices
+    maxOptions: null,
+    refreshThrottle: 0,
+    lockOptgroupOrder: true,
+    dropdownParent: 'body',   // list rows and dialogs clip anything inside them
+    dropdownClass: 'ts-dropdown tomselectdrop',
+    onType: function(str) { this.wrapper.classList.toggle('tomselecttyping', !!str); },   // the current pick stays in view until typing starts
+    onDropdownClose: function() { this.wrapper.classList.remove('tomselecttyping'); },
+    onDropdownOpen: function(dropdown) {   // as wide as its longest option, never past the window's right edge
+      dropdown.style.minWidth = this.wrapper.offsetWidth+'px';
+      dropdown.style.maxWidth = (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px';
+    }
+  });
+  el.classList.add('tomselectauto');
+  ts.wrapper.classList.add('tomselectsingle');
+  ts.wrapper.style.width = width >= room - 1 ? '100%' : width+'px';   // the size it had: the page's layout was made for it
+  ['title','aria-label'].forEach(function(a) {
+    if(el.hasAttribute(a)) { ts.wrapper.setAttribute(a, el.getAttribute(a)); }
+  });
+  ts.wrapper.addEventListener('click', function(e) { e.preventDefault(); });   // inside a <label>: it would focus the hidden select and close the dropdown
+  el.tomselectsig = tomselectsig(el);
+  var mirror = function() {
+    ts.wrapper.style.display = el.style.display == 'none' ? 'none' : '';
+    if(el.disabled != ts.isDisabled) { el.disabled ? ts.disable() : ts.enable(); }
+  };
+  mirror();
+  el.tomselectattrs = new MutationObserver(mirror);
+  el.tomselectattrs.observe(el, {attributes: true, attributeFilter: ['style','disabled']});
+}
+// options changed in code: redraw them, keeping the value
+function tomselectrefresh(el) {
+  var sig = tomselectsig(el);
+  if(sig == el.tomselectsig) { return; }
+  el.tomselectsig = sig;
+  var value = el.value, ts = el.tomselect;
+  ts.clearOptions();
+  ts.sync();
+  ts.setValue(value, true);
+}
+function tomselectwatch(el) {
+  if(!el.multiple && !el.tomselect && !el.classList.contains('notomselect')) { tomselectseen.unobserve(el); tomselectseen.observe(el); }   // again: a repeat observe alone never reports
+}
+function tomselectforget(el) {
+  if(el.isConnected) { return; }   // only moved
+  tomselectseen.unobserve(el);
+  if(el.tomselect && !el.multiple) {   // its listeners on document would stay behind
+    el.tomselectattrs.disconnect();
+    el.tomselect.destroy();
+  }
+}
+if(typeof IntersectionObserver != 'undefined') {
+  var tomselecthookset = $.valHooks.select.set;
+  $.valHooks.select.set = function(el, value) {
+    var r = tomselecthookset(el, value);
+    if(el.tomselect && !el.multiple) {
+      tomselectrefresh(el);
+      el.tomselect.setValue(el.value, true);
+    }
+    return r;
+  };
+  $(function() {
+    var each = function(node, fn) {
+      if(node.nodeType != 1) { return; }
+      if(node.tagName == 'SELECT') { fn(node); } else { node.querySelectorAll('select').forEach(fn); }
+    };
+    document.querySelectorAll('select').forEach(tomselectwatch);
+    new MutationObserver(function(muts) {
+      muts.forEach(function(m) {
+        var inselect = m.target.closest && m.target.closest('select');
+        if(inselect) {   // its options changed
+          if(inselect.multiple) { return; }
+          if(inselect.tomselect) { tomselectrefresh(inselect); } else { tomselectwatch(inselect); }
+          return;
+        }
+        m.addedNodes.forEach(function(n) { each(n, tomselectwatch); });
+        m.removedNodes.forEach(function(n) { each(n, tomselectforget); });
+      });
+    }).observe(document.documentElement, {childList: true, subtree: true});
+    // a form reset moves the select's value, not Tom Select's; after it, so anything set straight after the reset counts
+    document.addEventListener('reset', function(e) {
+      setTimeout(function() {
+        $(e.target).find('select.tomselectauto').each(function() { this.tomselect.setValue(this.value, true); });
+      });
+    });
+    // dropdowns live on body: follow the control when something inside the page scrolls
+    window.addEventListener('scroll', function() {
+      document.querySelectorAll('.ts-wrapper.tomselectsingle.dropdown-active').forEach(function(w) {
+        var el = w.previousElementSibling;
+        if(el && el.tomselect) { el.tomselect.positionDropdown(); }
+      });
+    }, {capture: true, passive: true});
+  });
 }
 
 function addgametolist(db) {

@@ -274,7 +274,7 @@ function cardeditfields(scope,obj,known) {
     var d = narrowscreen() ? '' : fielddesc(cardedit.db,scope,k).replace(/<[^>]*>/g,'').replace(/\s+/g,' ');
     return d ? k+' — '+(d.length > 110 ? d.slice(0,109).replace(/\s+\S*$/,'')+'…' : d) : k;
   };
-  html += '<div class="cardeditaddrow"><select class="cardeditaddfield" onchange="$(this).next().toggle(this.value == \'\'); $(this).siblings(\'.cardeditadddesc\').text(fielddesc(cardedit.db,\''+scope+'\',this.value));">'+
+  html += '<div class="cardeditaddrow"><select class="cardeditaddfield" onchange="$(this).nextAll(\'.cardeditaddname\').first().toggle(this.value == \'\'); $(this).siblings(\'.cardeditadddesc\').text(fielddesc(cardedit.db,\''+scope+'\',this.value));">'+
     missing.map(k => '<option value="'+htmlEncode(k)+'" data-kind="'+known[scope][k]+'" title="'+htmlEncode(fielddesc(cardedit.db,scope,k)).replace(/"/g,'&quot;')+'">'+htmlEncode(inlist(k))+'</option>').join('')+
     '<option value="">Other...</option></select>'+
     '<input type="text" class="cardeditaddname" placeholder="field name" size="14"'+(missing.length ? ' style="display:none"' : '')+' /> '+
