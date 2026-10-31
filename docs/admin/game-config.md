@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-30 (clanmons onlight, ondark)
+Last updated: 2026-10-31 (clanmons recoloured for light and dark)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -77,10 +77,10 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   whose clan has a mon, saved when the owner opens the list). After adding a mon, rerun ootv-tools
   `lists/list-summary.py` so the directory shows it on lists nobody opens. The clan is its plain text;
   the image is `<path><image>.png`. With both `onlight` and `ondark` set, those paths replace `path`: the site
-  shows the `ondark` image in dark mode and on the charcoal title bars, the `onlight` one elsewhere. Their images have
-  a glow margin (the art fills 820/1024). L5R: 21 clans, `onlight` `res/clan-mons/oracle-plain-glow-black/`, `ondark`
-  `res/clan-mons/oracle-plain-glow-light/` (the flat clan-colour mons with a glow, from ootv-assets
-  `mons/oracle_plain/glow/`); `path` `res/clan-mons/oracle-plain-color/` (the same mons with no glow). A clan not listed gets none.
+  shows the `ondark` image in dark mode and on the charcoal title bars, the `onlight` one elsewhere. L5R: 21 clans,
+  `onlight` `res/clan-mons/oracle-plain-contrast-onlight/`, `ondark` `res/clan-mons/oracle-plain-contrast-ondark/` (the flat
+  mons recoloured to show on each, from ootv-assets `mons/oracle_plain/contrast/`); `path`
+  `res/clan-mons/oracle-plain-color/` (the original colours). A clan not listed gets none.
   Toturi's Army is the Wolf; Spirit is a vermilion torii gate.
 - `cardbacks` (optional): which back each printing has, for the small **Back** picture on the card page
   and the PDF's duplex option. `{rules: [{when, set, before, from, cardid}, ...]}`: the first rule
