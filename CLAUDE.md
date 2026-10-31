@@ -9,9 +9,9 @@ or tests. The files in this directory are exactly what gets served.
   `tom-select.complete.min.js`/`tom-select.min.css` (vendored Tom Select 2.6.2, the search form's multiple selects: `tomselectify` in `oracle.js`; after setting a select's value in code, call its `tomselect.setValue`, not `sync()`, which loses the optgroups once options are picked), `jsviews.min.js` and `amazon-cognito-auth.min.js`. No game has files of its own (below).
 - Search engines: `index.html`'s `<title>`, description, canonical and Open Graph tags and the About page's game list are
   what crawlers and link previews see first; `pagetitle()` in `oracle.js` retitles the page per game, card and deck
-  (called from `showview`, `drawcard`, `refreshlist`, `gameconfigapply`). `robots.txt` allows everything and names the sitemap. `/browse/` (card, set and deck pages plus `browse/sitemap.xml`, for
+  (called from `showview`, `drawcard`, `refreshlist`, `gameconfigapply`). `robots.txt` allows everything and names the sitemap. `/browse/` (card, set and deck pages, a page per part of the tool, the help topics, plus `browse/sitemap.xml`, for
   search engines) isn't in this repo: ootv-tools `seo/build.py` builds and uploads it daily, and the deploy's `--delete` sync
-  excludes it. The About page's game list links each game in the app (`#game=<game>`); the Card lists line at the bottom of that page links each `/browse/<game>`, so crawlers get a visible link from the home page as well as the sitemap. The deploy
+  excludes it. The About page's game list links each game in the app (`#game=<game>`); the Card lists line at the bottom of that page links each `/browse/<game>` and the About the tools line under it each tool page, so crawlers get a visible link from the home page as well as the sitemap. The deploy
   adds `<meta name="robots" content="noindex">` to preview's `index.html` (dev branch only). Plan and findings:
   ootv-claude `issues/ootv-client/TODO.md`, "Search engine tuning".
 - `oracle.js` (~2500 lines, global functions and `var`s) holds all app logic: Cognito
