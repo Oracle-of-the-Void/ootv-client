@@ -72,7 +72,7 @@ averages under the deck's name use those numbers too. Other lists show the print
 
 L5R: Border Keep and Bamboo Harvesters were Pre-Game cards under the Celestial and Emperor rules (and
 Three Dynasties), and Dynasty cards from Ivory on. Versions that were both sit in the section the
-deck's **Legality** calls for: Pre-Game in Celestial, Emperor, BigDeck and Obsidian Hand decks, Dynasty in
+deck's **Legality** calls for: Pre-Game in Celestial, Emperor, Emperor Extended, BigDeck and Obsidian Hand decks, Dynasty in
 Ivory, Twenty Festivals, Onyx and Modern ones. In Legacy, or with no legality, the version you chose
 decides. **Printed text** on the card shows the deck each version was printed for.
 

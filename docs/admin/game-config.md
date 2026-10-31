@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-31 (clanmons recoloured for light and dark)
+Last updated: 2026-10-31 (Emperor Extended in `sort.pick`; clanmons recoloured for light and dark)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -40,7 +40,7 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   card's own, or the card keeps all of them. Names are matched with `&nbsp;` as spaces. The deck sort,
   the headers and the list stats all use the choice. L5R uses it for Border Keep and Bamboo Harvesters from
   Forgotten Legacy and the Ivory promos (680 and 1107, `deck`: Dynasty and Pre-Game). They are Pre-Game cards under the Celestial and Emperor
-  rules, in Three Dynasties (its Bamboo Harvesters "begins the game in play"), BigDeck and Obsidian Hand, and
+  rules (Emperor Extended too, through `^Emperor`), in Three Dynasties (its Bamboo Harvesters "begins the game in play"), BigDeck and Obsidian Hand, and
   Dynasty cards in Ivory, Twenty Festivals, Onyx and Shattered Empire, and in Modern:
   `{"deck": {"rules": [["Modern|Ivory|Twenty Festivals|Onyx|Shattered Empire", "Dynasty"],
   ["Celestial|\\(Emperor\\)|^Emperor|Three Dynasties|Obsidian Hand|BigDeck", "Pre-Game"]], "default": "Pre-Game"}}`
