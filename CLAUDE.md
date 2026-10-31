@@ -71,6 +71,7 @@ or tests. The files in this directory are exactly what gets served.
 - Which list the List view shows (`listinfo` in `oracle.js`): a list someone asked for (`#listid` link, directory click) is
   `listopening` until it arrives, and background loads (the directory's first list, restored active lists, card fetches
   finishing late) only fill the cache, never the view: `liststale`, checked in `refreshlist` and `dolist`. Test: `docs/TESTING.md`.
+- List ids: the API's items hold numbers (`list.listid`), while `activelists` and anything from a template's `onclick` hold strings, so compare with `String(listid)` (#542). `showlisttoggle` draws a list's toggle, and `renderlisteditarea` keeps the list view's in step with the Active Lists bar.
 - Deck statistics (`liststats` in `oracle.js`, template `#template-liststats`): type counts, shares and averages
   (`liststatsavgs`; the hover shows the working). In a deck, card numbers are the deck's own (`deckcontext`,
   `deckstatvalue`: card `conditionalvalues` on the Stronghold clan, Sensei, Stronghold; `docs/data.md`), in the averages

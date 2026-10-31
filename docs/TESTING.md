@@ -132,6 +132,8 @@ await page.evaluate(() => {
 Lists need a login, so build one in the cache and render it. Use real card ids from a
 search (`querydata` holds ids), and pick cards spread across decks and types so headers
 and sorts get exercised. Fake cards without `deck`/`type` make the deck sorts throw.
+Real list ids come from the API as numbers, while the toggles and `activelists` use strings: a mock with a text id like `'t1'`
+hides bugs between the two (#542), so use a number when testing anything about active lists.
 
 ```js
 const L = {listid: 't1', name: 'T', type: 'deck', sort: 'deck',
