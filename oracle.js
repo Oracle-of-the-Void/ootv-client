@@ -9421,6 +9421,16 @@ function tomselectdrop(sel) {
 // visible rows. Stays a plain select: one with two options or fewer (nothing to search; it converts if it grows), `multiple`
 // (tomselectify), `.notomselect`. The select stays, hidden, with its name, value and change event; code goes on using it:
 // .val() is passed on below, new options and hide/show/disabled are picked up by the observers
+// Tom Select moves a picked option to the end of its select, out of its optgroup: here it only picks it, so redraws keep the groups
+if(typeof TomSelect != 'undefined') {
+  TomSelect.define('tomselectkeeporder', function() {
+    var ts = this;
+    ts.hook('instead', 'updateOriginalInput', function(opts) {
+      ts.input.value = ts.items.length ? ts.items[0] : '';
+      if(ts.isSetup && !(opts && opts.silent)) { ts.trigger('change', ts.getValue()); }
+    });
+  });
+}
 var tomselectseen = typeof IntersectionObserver != 'undefined' && new IntersectionObserver(function(entries) {
   entries.forEach(function(e) { if(e.isIntersecting) { tomselectauto(e.target); } });
 });
@@ -9432,7 +9442,7 @@ function tomselectauto(el) {
   tomselectseen.unobserve(el);
   var width = el.offsetWidth, parent = el.parentElement, room = parent.clientWidth - parseFloat(getComputedStyle(parent).paddingLeft) - parseFloat(getComputedStyle(parent).paddingRight);
   var ts = new TomSelect(el, {
-    plugins: ['no_backspace_delete'],
+    plugins: ['no_backspace_delete','tomselectkeeporder'],
     allowEmptyOption: true,   // "Any type" and friends are real choices
     maxOptions: null,
     refreshThrottle: 0,
@@ -9448,6 +9458,7 @@ function tomselectauto(el) {
   });
   el.classList.add('tomselectauto');
   ts.wrapper.classList.add('tomselectsingle');
+  if(el.closest('#publicform')) { ts.dropdown.classList.add('publicfacetdrop'); }   // publicfacetoptions: what's in the results stands out
   ts.wrapper.style.width = width >= room - 1 ? '100%' : width+'px';   // the size it had: the page's layout was made for it
   ['title','aria-label'].forEach(function(a) {
     if(el.hasAttribute(a)) { ts.wrapper.setAttribute(a, el.getAttribute(a)); }
@@ -11799,21 +11810,49 @@ function publicmorecheck() {
     publicmoreobserver.observe(document.getElementById('publicmore'));
   }
 }
+// the values of each filter with no filter on: the pulldowns keep them under the ones in these results, so another format
+// is one pick away, not a trip through Any format. Fetched once per game and whose lists; the answer redraws the pulldowns
+var publicfacetbase = {}, publicfacetlast = {};
+function publicfacetbasekey() {
+  var mine = publicmine(), owner = !mine && publicextra.owner ? publicextra.owner.value : '';
+  return {key: database+'|'+(mine ? 'mine' : owner), tail: (owner ? '&owner='+encodeURIComponent(owner) : (mine ? '' : '&type=deck'))+'&from=0&size=1'};
+}
+function publicfacetbasefetch() {
+  var b = publicfacetbasekey();
+  if(publicfacetbase[b.key]) { return publicfacetbase[b.key]; }
+  publicfacetbase[b.key] = {};   // on its way: one request, and nothing to add until it answers
+  $.ajax(Object.assign(publicmine() ? publicminerequest(b.tail) : {url: apiuri+'/publiclists?game='+encodeURIComponent(database)+b.tail}, {
+    dataType: 'json',
+    success: function(data) {
+      publicfacetbase[b.key] = data.facets || {};
+      if(publicfacetbasekey().key == b.key) {
+        Object.keys(publicfacetlast).forEach(function(name) { publicfacetoptions(name, publicfacetlast[name].facet, publicfacetlast[name].label); });
+      }
+    },
+    error: function() { delete publicfacetbase[b.key]; }
+  }));
+  return publicfacetbase[b.key];
+}
 function publicfacetoptions(name, facet, label) {
+  publicfacetlast[name] = {facet: facet, label: label};
   var el = $('#publicform [name="'+name+'"]');
   var current = el.val();
-  var opts = '<option value="">'+label+'</option>';
-  var seen = false;
-  (facet || []).forEach(function(f) {
-    seen = seen || f.value == current;
-    var label = (name == 'format' && f.value == 'none') ? 'No format' : htmlEncode(f.value);
-    opts += '<option value="'+htmlEncode(f.value).replace(/"/g,'&quot;')+'">'+label+' ('+f.count+')</option>';
-  });
-  if(current && !seen) {
-    opts += '<option value="'+htmlEncode(current).replace(/"/g,'&quot;')+'">'+(current == 'none' && name == 'format' ? 'No format' : htmlEncode(current)+' (0)')+'</option>';
+  var option = function(value, count) {
+    var text = (name == 'format' && value == 'none') ? 'No format' : htmlEncode(value);
+    return '<option value="'+htmlEncode(value).replace(/"/g,'&quot;')+'">'+text+(count === undefined ? '' : ' ('+count+')')+'</option>';
+  };
+  var found = (facet || []).map(function(f) { return f.value; });
+  var here = (facet || []).map(function(f) { return option(f.value, f.count); }).join('');
+  if(current && !found.includes(current)) {
+    here += option(current, 0);
+    found.push(current);
   }
+  var rest = (publicfacetbasefetch()[name] || []).map(function(f) { return f.value; }).filter(function(v) { return !found.includes(v); }).sort();
+  var opts = '<option value="">'+label+'</option>';
+  opts += !rest.length ? here :
+    (here ? '<optgroup label="In these results">'+here+'</optgroup>' : '')+'<optgroup label="Others">'+rest.map(function(v) { return option(v); }).join('')+'</optgroup>';
   el.html(opts).val(current || '');
-  el.toggle(!!current || (facet || []).length > 0);
+  el.toggle(!!current || found.length > 0 || rest.length > 0);
 }
 function renderpublic(data, append) {
   publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');

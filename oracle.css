@@ -527,6 +527,8 @@ div.searchinput .ts-dropdown .optgroup-header { font-weight: bold; }
 @media (hover: none) { .ts-wrapper.tomselectsingle .ts-control > input { font-size: 16px; } }
 .ts-dropdown.tomselectdrop { z-index: 100010; width: max-content !important; font-size: 10.5pt; text-align: left; }
 .ts-dropdown.tomselectdrop .optgroup-header { font-weight: bold; }
+.ts-dropdown.publicfacetdrop .optgroup:has(+ .optgroup) .option { font-weight: bold; }
+.ts-dropdown.publicfacetdrop .optgroup + .optgroup .option { color: var(--text-5); }
 div.searchinput .button.gray { padding: 4px 10px; border: 1px solid var(--field-border); border-radius: 6px;
   background: var(--panel); color: var(--text-2); font-size: 10.5pt; text-shadow: none; box-shadow: none; }
 div.searchinput .button.gray:hover { background: var(--surface-warm); border-color: var(--field-hover); }

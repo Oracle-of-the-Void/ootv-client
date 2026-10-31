@@ -9,6 +9,7 @@ shared, including tournament-winning decks and the pre-constructed starter decks
   with a card in them, by its title. When two cards share a title, type the card's number
   instead (`#1234`, the number at the end of the card page's link) to find exactly that one.
 - The pull-downs narrow by type, and in L5R by clan, stronghold and format.
+  Once you've narrowed the search, each one shows the choices in your results first, with their counts, and the rest under **Others**, so you can switch straight to another format or clan.
 - **Pre-constructed** shows only starter and learn-to-play decks. **Tournament results** shows
   only decks with a tournament result.
 - The last pull-down sorts them. **Reset** clears everything.
