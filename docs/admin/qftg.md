@@ -16,6 +16,7 @@ Isle, was never released. Added 2026-10-28 as a preview game (ootv-claude `proje
   the database checked by eye. About 60 database errors were fixed to what the card prints (text,
   flavor, 16 card types, 2 cost boxes); typos the cards print are kept as printed. Every artist
   credit was read by eye from the card too.
+- **Rulebook**: Zarthbenn's copy of the rules v5.0 PDF, on the Bookshelf as `qftg-rules-5`.
 
 ## Cards and printings
 
