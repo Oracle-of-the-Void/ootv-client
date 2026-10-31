@@ -104,6 +104,10 @@ with Set or Rarity it looks at the same printing, so Set: Gold Edition with Foil
 foil finds Gold Edition's rares that also came in foil. Each result shows the printing that fits
 the Foil choice (its image, set and rarity).
 
+**Banned** (under Advanced, in Legend of the Five Rings) finds cards banned from what the Legality box holds: pick Modern and tick it to see the cards
+banned from Modern, not the ones legal there. With nothing in Legality, it lists every card banned from anything. It also lists cards a format
+leaves out by name for another reason, such as a stronghold that was never legal there. Why a card is banned is in its notes.
+
 ## Results {#results}
 
 - More results load as you scroll down. The count is in the menu bar.

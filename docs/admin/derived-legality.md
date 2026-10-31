@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-31 (Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-10-31 (the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -75,6 +75,24 @@ Exceptions on a card (`legalityderivedexception`) override the rule:
 - **Names:** the format names, written with plain spaces (e.g. `Ivory Strict`). The
   `&nbsp;` spelling also works.
 
+## Bans
+
+A ban is a name in the card's `remove` list; the card field `banned` is gone (2026-10-31). The ban's wording
+is in the card's `notes`.
+
+- **An arc ban:** `remove` holds the arc's legality value (`Age of Conquest (Emperor)`), and the arc also comes off
+  the card's stored `legality` as before. A stored value doesn't read `remove`: it's there for the Banned search.
+- **In a derived format holding that arc:** the card stays banned, unless a newer arc in the format has it back
+  (the user, 2026-10-31). So a card banned from Emperor is out of Emperor Extended and Ivory Extended unless it's
+  legal in a newer arc of that format. The format's name goes in `remove`, even where the rule already leaves the card out.
+- **Legacy, Modern, BigDeck and Obsidian Hand** keep their own ban lists (below), whatever the arcs' bans are.
+- **War of Honor** has no legality value. Its three cards hold the name in `remove`, so the Banned search finds them.
+
+**The Banned search** (the Banned checkbox, `field_banned`): the Legality selects say what the card is banned from, instead of
+where it's legal. With values selected, it lists cards whose `remove` holds any of them; with none, every card with
+a `remove` entry. Cards out of a format for another reason (Gates of the Second City, "not legal") are `remove` entries too, so they're listed.
+Code: ootv-search `lib/attributeopts.js` `bannedQuery`. To add a ban, add the name to `remove` and put the wording in `notes`.
+
 ## Common exclusions
 
 Legacy, Modern, BigDeck and Obsidian Hand share these `none` clauses:
@@ -104,7 +122,7 @@ Any of:
 
 Left as it is: no clarification for Ivory is known. Don't change it without a source.
 
-### Ivory Extended (2,933)
+### Ivory Extended (2,949)
 
 Ivory plus the arcs on either side of it, Emperor and 20F. An arc ended when the next one began.
 So a card that gets in only through 20F legality also needs a 20F-icon printing from one of the
@@ -115,6 +133,10 @@ Any of:
 - a 20F-icon printing from an Ivory Strict set (listed above)
 
 Prefer: Ivory.
+
+Ivory's bans hold in the format, since no newer arc has these back: Advance Warning, Exotic Farmlands and Well-Defended Farm,
+all legal in Emperor, are out. Well-Defended Farm's ban allows the exact A Matter of Honor Learn to Play decklist, which the rule can't
+model (the user, 2026-10-31).
 
 ### Twenty Festivals Strict (893)
 
@@ -476,4 +498,5 @@ change up through the DynamoDB stream; no cold start is needed.
   dropped 428 Imperial non-Personality cards, is gone. 1,918 → 2,346.
 - 2026-10-31: Emperor Extended (Celestial or Emperor, 5 `remove` exceptions for Emperor's bans); the 18 EEex decks in
   kempy's archive already stored the name and all stay legal.
+- 2026-10-31: the card field `banned` (32 cards) moved to `notes` and `remove` (`ootv-tools/legality/banned-to-exceptions.py`, bulkupdate); the Banned search reads `remove`; Advance Warning, Exotic Farmlands and Well-Defended Farm out of Ivory Extended (2,952 → 2,949).
 - 2026-10-31: Foothold of the Mad banned in Emperor Extended (a 6th `remove` exception; still legal in Emperor). 3,742 → 3,741.
