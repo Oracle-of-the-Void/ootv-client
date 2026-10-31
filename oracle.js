@@ -9217,7 +9217,10 @@ function tomselectify() {
       maxOptions: null,        // the default stops at 50: L5R has more sets than that
       refreshThrottle: 0,      // the default filters 300 ms late: a quick Enter would pick the old top option
       placeholder: 'Select',
-      hidePlaceholder: true
+      hidePlaceholder: true,
+      onDropdownOpen: function(dropdown) {   // room to the window's right edge: the dropdown's width rule in oracle.css
+        dropdown.style.setProperty('--tsdropdownmax', (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px');
+      }
     });
   });
 }
