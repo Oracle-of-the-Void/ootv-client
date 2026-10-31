@@ -568,3 +568,14 @@ four scans, OCR'd with `ocr_threshold`; Battle for Delos is Sabertooth's own PDF
 reader spreads, split into single pages by crop box (pypdf, `game-wh40k/rules/clean/`; ghostscript's
 re-write turned every space into a junk character). Uploaded for review 2026-10-29 ("upload them to look
 at", the user); types and tags OK'd as proposed 2026-10-30.
+
+## The Star Wars CCG books (2026-10-31)
+
+The Star Wars CCG (`swccg`, being onboarded, not on the site's game list yet), list `rulebooks/swccg.json`,
+ids `swccg-*`, a shelf of its own: 20 books from the Players Committee's copies (res.starwarsccg.org/rules/;
+ootv-games `game-swccg/rules/`). Decipher's Rulebook and Glossary v2.0, November 1998 (Complete), the Premiere
+FAQ, the set rules sheets from A New Hope to Theed Palace (Addendum), the Empire Strikes Back two-player rules
+(Learn to Play), the Glossary Supplement of January 2002 (Addendum; who issued it is still to check), and the
+Players Committee's own Beginner's Rulebook 2021 and Advanced Rulebook 2023 (tag `Fan Made`). Five set
+sheets use `splitwords` for their letter-spaced headings. Uploaded unasked as part of onboarding with proposed
+types and tags (the user, 2026-10-31); change them or `remove` after review.
