@@ -42,7 +42,7 @@ or with Special, has no cards to fail this way. The red line and the "Not legal 
 The check's answer, rules and cards together, is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
 opens it or an admin edits it (`listsummarysave()`, once `/cardslegal` answers: `liststatslegal()`): the directory's Count and the public deck listing show a red Illegal from it.
 Every list was backfilled on 2026-10-29 (ootv-tools `lists/list-summary.py`, 18,681 lists; it runs the site's
-own check in a headless browser). **After changing a rule or a card's legality, rerun that script** (scan, compute, write): a deck
+own check in a headless browser), and again on 2026-10-31 for the cards' legality (216 lists). **After changing a rule or a card's legality, rerun that script** (scan, compute, write): a deck
 keeps the answer from its last draw until its owner opens it or an admin edits it, and some owners never come
 back (the Kempy archive decks), so don't count on a visit to clear a mark. Its public listing mark follows through the
 lists index (at once, or the nightly rebuild).
