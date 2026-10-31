@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-31 (a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -22,6 +22,9 @@ In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) 
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
 `add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
 minimum the layers before set, plus two), so one overlay works in every legality.
+
+A legality with no entry in `deckconstruction.legality` uses the game's rules as they stand. That's most of them,
+Emperor and Emperor Extended among them, so those two build the same way.
 
 **Special** (every game, last in the deck's Legality menu; `decklegalityspecial` in `oracle.js`) is a value only a
 list can have: no card, search filter, import arc or `legality.sortregex` knows it, and `/cardslegal` doesn't check
