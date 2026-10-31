@@ -17,6 +17,9 @@
   <meta name="twitter:card" content="summary">
   <!-- stamped with the commit by .github/stamp-version.sh on deploy -->
   <script>var ootvversion = 'dev';</script>
+  <!-- the theme before anything draws, so dark mode doesn't flash white: themeapply() in oracle.js keeps it current -->
+  <script>(function() { var t = null; try { t = JSON.parse(localStorage.getItem('session_theme')); } catch(e) {}
+    document.documentElement.setAttribute('data-theme', (t == 'dark' || t == 'light') ? t : (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')); })();</script>
   <link rel="shortcut icon" href="res/favicon.ico" type="image/x-icon" />
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <!--   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script> -->
@@ -52,6 +55,7 @@
 	<ul>
 	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="clearcache();" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
+	  <li onclick="themecycle();">Theme: <span class="themelabel">Auto</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#moon"></svg></li>
 	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
     <!-- TODO: make this reload a little more friendly with push/pop history state -->
     <!--	  <li>Settings/whatnot here</li> -->

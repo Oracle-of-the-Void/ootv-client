@@ -43,6 +43,7 @@ or tests. The files in this directory are exactly what gets served.
   Public lists) start with it collapsed; opening or closing it by hand holds for those views together, and separately for the others
   (`sidebaropen`). The ad and links under the form hide with it. The phone layout's `!important` rules ignore this. A new view with no use for the form goes in `sidebarnosearch`.
 - Link color: `--link` on `:root`, applied by `:where(a[href])` in `oracle.css`, which any other link rule beats.
+- Dark mode (the menu's Theme: Auto, Light, Dark; "Theme" block in `oracle.js`, the script at the top of `index.html`, `settings.all.theme` when logged in): `html[data-theme=dark]` swaps the `:root` variables at the top of `oracle.css`. **A new color goes in as a variable with a value in both blocks**; only colors on something that never changes (charcoal bars, gold buttons, card art, book pages) stay literal.
 - The home page's Recent updates (`loadupdates`): `homeupdatecount` rows at a time with an Older updates button, and each
   row fetches up to 10 whole cards, so keep the count low (30 rows was 1.7 MB). It draws `#template-homeupdate`, with plain
   labels from `homeupdatelabels`; a new operation needs one there. The admin update log keeps `#template-updatelog` and the raw names.
