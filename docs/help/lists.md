@@ -135,7 +135,8 @@ more keywords to add them (a card that matches one in blue and another in red gl
 drop it. The highlights stay when you change views.
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
-and **All cards legal for** lists the formats every card is legal in. A deck with a card that
+and **All cards legal for** lists the formats every card is legal in. A deck's header starts that
+line with its size (`40/40 (81 total)`), so it's in view when the statistics are off to the side. A deck with a card that
 isn't legal counts as breaking its construction, just like breaking a rule. Proxy cards
 aren't checked at all: they're in the deck to be printed and played, not part of its construction.
 
