@@ -2127,8 +2127,12 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
     listitemchange(list,cardid,prid,n,abs,foil);
     listcounts(list);
     cache_thing("list",listid,list);
-    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
+    listqtyshow(listid,cardid,prid,foil);
     listitemsdone(listid);
+}
+// the count beside this card's +/- buttons, wherever they're drawn (search rows, the card page)
+function listqtyshow(listid,cardid,prid=0,foil='') {
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
 function addlistitems(listid,items,n=1) {
@@ -2182,6 +2186,37 @@ function listfoiltoggle(listid,cardid,prid,foil) {
     }
     listcounts(list);
     cache_thing("list",listid,list);
+    listitemsdone(listid);
+}
+// a list entry's version (the version menu; 0 = Default, no version chosen). foil null: the row can't say which
+// entry it is (Deck view), so every foil of that printing moves. A version never printed in foil can't be a foil
+// copy, so the foil choice goes. An entry that lands on one already there (same card, printing and foil) joins it.
+function listversionchange(listid,cardid,prid,foil,newprid) {
+    if(!listeditable(listid)) { return; }
+    newprid = Number(newprid) || 0;
+    var list = cache_thing("list",listid), entries = list.list.Items[0].list, card = cache_card_fetch(cardid);
+    var to = newprid ? ((card && card.printing) || []).find(function(p) { return parseInt(p.printingid) == newprid; }) : null;
+    var moved = [];
+    entries.filter(function(ele) {
+	return ele.cardid == cardid && (ele.printing||0) == (prid||0) && (foil === null || (ele.foil||'') == foil);
+    }).forEach(function(ele) {
+	var f = (to && !to.foil) ? '' : (ele.foil||'');
+	moved.push(ele.foil||'', f);
+	var other = entries.find(function(e) { return e !== ele && listentryis(e,cardid,newprid,f); });
+	if(other) {
+	    other.quantity = parseInt(other.quantity) + parseInt(ele.quantity);
+	    entries.splice(entries.indexOf(ele),1);
+	} else {
+	    ele.printing = newprid;
+	    if(f) { ele.foil = f; } else { delete ele.foil; }
+	}
+    });
+    listcounts(list);
+    cache_thing("list",listid,list);
+    moved.forEach(function(f) {
+	listqtyshow(listid,cardid,prid,f);
+	listqtyshow(listid,cardid,newprid,f);
+    });
     listitemsdone(listid);
 }
 function listcounts(list) {
@@ -3547,7 +3582,8 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    a.click();
 	} else {
 	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
-	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html));
+	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html))
+		.toggleClass('versionmenuon', !!listeditable(listid) && gestureon('versionmenutouch'));
 	    renderlisteditarea(); // the bar's counts, from this draw
 	    listnotesfit();
 	    liststatslegal();
@@ -5220,7 +5256,9 @@ var gestureswitches = [
   ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"],
   ['cardpeekmouse', 'Hover over a small card image or a Simple List title to see the card at Detailed size (mouse)'],
-  ['cardpeektouch', 'Long-press a small card image or a Simple List title to see the card at Detailed size (touch)'],
+  ['cardpeektouch', 'Long-press a small card image or a Simple List title to see the card at Detailed size (touch; your own lists: the version menu, unless turned off below)'],
+  ['versionmenumouse', "Right-click a card's picture, name or version in your own list to change its version (mouse; off: the browser's menu)"],
+  ['versionmenutouch', "Long-press a card's picture, name or version in your own list to change its version (touch; off: long-press shows the card)"],
   ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)'],
   ['editswipetouch', "Swipe the card editor's Printing details sideways for the previous/next instance (touch)"]
 ];
@@ -6944,7 +6982,7 @@ function cardpeekurl(img) {
     }
     var base = dbinfo[database] && dbinfo[database].imageuri;
     var src = img.src || '';   // resolved: some templates' src attributes start with blank lines
-    if(!base || src.indexOf(base) !== 0 || $(img).closest('#cardpeek, #modal').length) {
+    if(!base || src.indexOf(base) !== 0 || $(img).closest('#cardpeek, #modal, #versionmenu').length) {
 	return null;
     }
     var rest = src.slice(base.length).split('?')[0], cut = rest.lastIndexOf('/');
@@ -7044,18 +7082,25 @@ $(document).on('mouseleave', 'img, a.deckswipe', function() {
 document.addEventListener('mousedown', function() { if(!cardpeek.touch) { cardpeekhide(); } }, true);
 window.addEventListener('scroll', function() { if(!cardpeek.touch) { cardpeekhide(); } }, true);
 document.addEventListener('pointerdown', function(e) {
+    if(e.pointerType == 'mouse') {
+	return;
+    }
     var img = e.target.tagName == 'IMG' ? e.target : $(e.target).closest('a.deckswipe')[0];
-    if(e.pointerType == 'mouse' || !img || !gestureon('cardpeektouch')) {
+    var version = versionmenutarget(e.target, false);   // your own list: the menu, which shows the card too
+    var url = (!version && img && gestureon('cardpeektouch')) ? cardpeekurl(img) : null;
+    if(!version && !url) {
 	return;
     }
-    var url = cardpeekurl(img);
-    if(!url) {
-	return;
+    if(img) {
+	img.style.webkitTouchCallout = 'none';   // iOS's image menu
     }
-    img.style.webkitTouchCallout = 'none';   // iOS's image menu
     cardpeek.press = {"x": e.clientX, "y": e.clientY, "timer": setTimeout(function() {
 	cardpeek.press.shown = true;
-	cardpeekshow(img, url, true);
+	if(version) {
+	    versionmenuopen(version);
+	} else {
+	    cardpeekshow(img, url, true);
+	}
     }, 500)};
 });
 document.addEventListener('pointermove', function(e) {
@@ -7087,6 +7132,172 @@ document.addEventListener('contextmenu', function(e) {
 	e.preventDefault();   // Android's long-press image menu would cover it
     }
 }, true);
+// Version menu (the list view, on a list you can edit): a right-click (mouse) or long-press (touch, sharing card
+// peek's press above) on a card's image, title or version lists Default and the card's versions; picking one changes
+// the list entry (listversionchange). The menu shows the card's image, and on touch a tap on it is the full-size peek,
+// so a long-press loses nothing to card peek here. The browser's own menu stays for other people's lists, with Shift held, over selected text, and with the
+// Gestures switch off. The list templates live in the game config, so the row is read from what they already draw.
+var versionmenutargets = 'a.deckswipe, .listitem .listhead a, .listitem .headsetrar, .listitem a.printinglink';
+// {listid, cardid, prid, foil} for the row el is in, or null. foil is null where the row doesn't say (Deck view).
+function versionmenutarget(el, mouse) {
+    if(!$(el).closest('#resultlist').length || !gestureon(mouse ? 'versionmenumouse' : 'versionmenutouch')) {
+	return null;
+    }
+    // the Simple List's [set • rarity] is plain text in the row itself
+    if(!$(el).closest(versionmenutargets).length && !$(el).is('.listbodyplain')) {
+	return null;
+    }
+    var row = $(el).closest('.listitem, .listitemplain, .visualcard, tr.listtablecard');
+    var a = $(el).closest('a.deckswipe');
+    a = a.length ? a : row.find('a.deckswipe').first();
+    var listid = String(a.attr('data-list') || '');
+    if(!listid || !listeditable(listid)) {
+	return null;
+    }
+    var qty = row.find('.listqty[data-foil][data-list="'+listid+'"]'), count = row.find('span.editquantity[id^="clist_quantity"]');
+    return {"listid": listid, "cardid": a.attr('data-card'), "prid": Number(a.attr('data-printing')) || 0,
+	    "foil": qty.length ? (qty.attr('data-foil') || '') : count.length ? (count.attr('id').split(':')[5] || '') : null};
+}
+function versionmenulabel(p) {
+    var rarity = gamefieldhidden('rarity') ? [] : [].concat(p.rarity || []);
+    return selectplaintext([].concat(p.setclean || p.set || [''])[0]) + (rarity.length ? ' / ' + selectplaintext(rarity[0]) : '');
+}
+// whether this printing of the card fits the list's legality: stored or derived, never notmrp (printingfits). A derived
+// format the card as a whole isn't in (cardderived: its exceptions, `none` clauses) fits none of its printings.
+function versionmenufits(card, p, legality) {
+    if(!legality) {
+	return false;
+    }
+    var name = selectplaintext(legality), derived = cache_select('legality.derived');
+    var isderived = Array.isArray(derived) && derived.some(function(d) { return selectplaintext(d.name) == name; });
+    if(isderived && cardderived(card, 'legality').map(selectplaintext).indexOf(name) < 0) {
+	return false;
+    }
+    return printingfits(card, card.printing.indexOf(p), 'legality', legality);
+}
+// x, y: where the mouse is. Without them (touch) it sits in the middle of the screen, as a touch peek does.
+function versionmenuopen(target, x, y) {
+    var card = cache_card_fetch(target.cardid);
+    if(!card || !Array.isArray(card.printing) || !card.printing.length) {
+	return;
+    }
+    versionmenuclose();
+    cardpeekhide();
+    var touch = x === undefined;
+    var primary = card.printing.find(function(p) { return p.printingid == card.printingprimary; });
+    var meta = (cache_thing("list",target.listid) || {list: {Items: [{}]}}).list.Items[0];
+    var legality = [].concat(meta.legality || [])[0] || '';
+    var fits = function(p) { return !!p && versionmenufits(card, p, legality); };
+    var box = $('<div class="versionmenubox" role="menu" aria-label="Choose a version">');
+    var items = $('<div class="versionmenuitems">');
+    var item = function(prid, shown, html, legal) {
+	$('<button type="button" class="versionmenuitem" role="menuitemradio">').attr('aria-checked', String(prid == target.prid))
+	    .toggleClass('versionmenulegal', legal).data({"prid": prid, "shown": shown}).html(html).appendTo(items);
+    };
+    var version = function(p, legal) {
+	item(Number(p.printingid), p, '(' + p.printingid + ') ' + versionmenulabel(p) + ' ' + templatefoilmark(p.foil), legal);
+    };
+    item(0, primary, 'Default' + (primary ? ' <span class="versionmenunote">' + versionmenulabel(primary) + '</span>' : ''), fits(primary));
+    // Default stays on top; then what fits the deck's legality, then the rest, each in set order
+    var prints = templatesortprintings(card.printing), legal = prints.filter(fits);
+    if(legal.length) {
+	$('<div class="versionmenugroup">').text('Legal in ' + selectplaintext(legality)).appendTo(items);
+	legal.forEach(function(p) { version(p, true); });
+	if(legal.length < prints.length) {
+	    $('<div class="versionmenugroup">').text('Other versions').appendTo(items);
+	}
+    }
+    prints.filter(function(p) { return legal.indexOf(p) < 0; }).forEach(function(p) { version(p, false); });
+    box.append($('<img class="versionmenuimg" alt="">'), $('<div class="versionmenulist">').append(
+	$('<div class="versionmenutitle">').html([].concat(card.title).join() + ' <span class="helpq" data-help="lists#versions" aria-label="Help: changing a version">?</span>'), items));
+    var menu = $('<div id="versionmenu">').toggleClass('versionmenutouch', touch).data('target', target).append(box).appendTo('body');
+    versionmenubind(menu);
+    var current = items.children('[aria-checked=true]');
+    current = current.length ? current : items.children().first();   // a version since removed from the card
+    versionmenupreview(current);
+    if(!touch) {
+	box.css({"left": Math.max(8, Math.min(x, window.innerWidth - box.outerWidth() - 8)),
+		 "top": Math.max(8, Math.min(y, window.innerHeight - box.outerHeight() - 8))});
+    }
+    current[0].focus({preventScroll: true});   // the rows open at the top: Default and the legal versions first
+}
+function versionmenuclose() {
+    $('#versionmenu').remove();
+}
+// the picture of the version under the mouse or focus
+function versionmenupreview(item) {
+    var p = item.data('shown'), front = printingimages(p)[0], base = dbinfo[database].imageuri;
+    var file = front && (front.details || front.select || front.master);
+    $('#versionmenu .versionmenuimg').attr('src', file ? base + p.imagehash + '/' + file : missingimage['details'] || missingimage[0]);
+}
+function versionmenupick(item) {
+    var t = $('#versionmenu').data('target'), prid = item.data('prid'), p = item.data('shown');
+    versionmenuclose();
+    if(prid == t.prid) {
+	return;
+    }
+    var card = cache_card_fetch(t.cardid);
+    listversionchange(t.listid, t.cardid, t.prid, t.foil, prid);
+    deckswipetoast([].concat(card.title).join() + ' \u2192 ' + (prid ? versionmenulabel(p) : 'Default'));
+}
+document.addEventListener('contextmenu', function(e) {
+    var sel = window.getSelection();
+    if(lastpointertype != 'mouse' || e.shiftKey || (sel && !sel.isCollapsed && sel.containsNode(e.target, true))) {
+	return;
+    }
+    var target = versionmenutarget(e.target, true);
+    if(target) {
+	e.preventDefault();
+	versionmenuopen(target, e.clientX, e.clientY);
+    }
+});
+// bound on the menu, not the document: iOS sends no click up to the document from a plain div (the backdrop)
+function versionmenubind(menu) {
+    menu.on('click', function(e) {
+	var item = $(e.target).closest('.versionmenuitem');
+	if(item.length) {
+	    versionmenupick(item);
+	} else if($(e.target).is('.versionmenuimg') && menu.is('.versionmenutouch')) {
+	    // long-press took card peek's place on your own lists: a tap on the picture is the full-size peek
+	    var src = e.target.src;
+	    versionmenuclose();
+	    cardpeekshow(e.target, src, true);
+	} else if(!$(e.target).closest('.versionmenubox').length || $(e.target).closest('.helpq').length) {
+	    versionmenuclose();
+	}
+    }).on('contextmenu', function(e) {
+	e.preventDefault();
+	if(!$(e.target).closest('.versionmenubox').length) {
+	    versionmenuclose();
+	}
+    }).on('wheel', function(e) {
+	if(!$(e.target).closest('.versionmenuitems').length) {
+	    versionmenuclose();
+	}
+    }).on('mouseenter focus', '.versionmenuitem', function() {
+	versionmenupreview($(this));
+    });
+}
+// capture: the page's own arrow keys mustn't see these. Esc works wherever the focus is (a click on the title drops it).
+document.addEventListener('keydown', function(e) {
+    if(!$('#versionmenu').length) {
+	return;
+    }
+    var items = $('#versionmenu .versionmenuitem'), at = items.index(document.activeElement);
+    var to = {"ArrowDown": at + 1, "ArrowUp": at < 0 ? -1 : at - 1, "Home": 0, "End": items.length - 1}[e.key];
+    if(e.key == 'Escape') {
+	versionmenuclose();
+    } else if(to !== undefined) {
+	items.eq((to + items.length) % items.length).focus();
+    } else if(e.key != 'Tab' && e.key != 'Enter' && e.key != ' ') {
+	return;
+    }
+    if(e.key != 'Enter' && e.key != ' ') {
+	e.preventDefault();
+    }
+    e.stopPropagation();
+}, true);
+
 // Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
 // swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
 // (swipedefaults: search right +1, left -1, up-right +3; deck/list right +1, left -1, up-right +2; both
