@@ -293,6 +293,7 @@ function logoutcallback() {
     rendersettings(); // logged out it shows only the search settings kept in this browser
     rendersavedsearches();
     updateviewbuttons();
+    cardlistbar();
 }
 function logincallback(session) {
     if (session) {
@@ -1802,6 +1803,7 @@ function listinfocallback() {
   renderdirectory();
   syncactivelists();
   searchaddall($('#lastsearchquery').val()); // logged in after the search showed
+  cardlistbar();
   // nothing in the list view yet: load the first list in the directory behind the scenes
   var lists = cache_thing("list","data").lists.Items;
   if(urlpendinglist) {
@@ -2049,6 +2051,7 @@ function removelist(listid) {
 
 // a list was edited: save 15s after the last edit, and at least every minute while edits keep coming
 function listedited(listid) {
+    cardlistcounts();
     updatepending[listid]=1;
     clearTimeout(savetimeout);
     savetimeout = setTimeout(savecallback,15*1000);
@@ -6470,6 +6473,7 @@ function drawcard(carddata,prid=null,qs=null) {
   traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
     set: legality.set[showpr] || [], sets: legality.sets});
   rulingsfold('#resultcard');
+  cardlistbar();
   pagetitlecard = {cardid: String(carddata.cardid), title: selectplaintext([].concat(carddata.title || [])[0] || '')};
   pagetitle();
 }
@@ -7197,6 +7201,59 @@ document.addEventListener('click', function(e) {
 	e.stopPropagation();
     }
 }, true);
+// The card page's count under its name: a - n + row per active list you can edit, for the printing showing (or the card
+// as a whole, printing 0, when none was picked: what dragging the picture changes). Logged in with no list active, one
+// Add to a list button, which picks a list as a swipe does. Drawn here, not in the card-top partial: the same steps and
+// checks as a swipe (deckswipeapply: going to 0 asks), so a list's count is one thing. The card-bottom partial's rows
+// below the card's text do every printing.
+function cardlistbar() {
+    var cardid = Number($('#lastcardid').val()), head = $('#resultcard .listheadxl').first();
+    $('#cardlistbar').remove();
+    if(!cardid || !head.length) {
+	return;
+    }
+    var prid = Number(lastcardprid()) || 0;
+    var esc = function(t) { return $('<div>').text(t).html(); };
+    var lists = activelists.filter(function(listid) { return listeditable(listid) && listquantity(listid, cardid, prid) !== ''; });
+    var rows = lists.map(function(listid) {
+	var name = esc(activelistmeta(listid).name);
+	return '<span class="cardlistrow" data-list="'+esc(listid)+'"><span class="cardlistname" title="'+name.replace(/"/g,'&quot;')+'">'+name+'</span>'+
+	    '<button type="button" class="cardliststep" data-step="-1" aria-label="One fewer in '+name.replace(/"/g,'&quot;')+'">\u2212</button>'+
+	    '<span class="listqty" data-list="'+esc(listid)+'" data-card="'+cardid+'" data-printing="'+prid+'"></span>'+
+	    '<button type="button" class="cardliststep" data-step="1" aria-label="One more in '+name.replace(/"/g,'&quot;')+'">+</button>'+
+	    '<span class="cardlistall"></span></span>';
+    }).join('');
+    if(!rows && activelists.length == 0 && searchloggedin() && cache_thing("list","data")) {
+	rows = '<button type="button" class="cardliststep cardlistpick">+ Add to a list</button>';
+    }
+    if(rows) {
+	head.after($('<div id="cardlistbar">').html(rows+' <span class="helpq" data-help="cards#lists" aria-label="Help: adding this card to a list">?</span>'));
+	cardlistcounts();
+    }
+}
+// the numbers in the bar, kept in place so a button keeps its focus. "in all" counts the card's other printings and foils
+function cardlistcounts() {
+    var cardid = Number($('#lastcardid').val()), prid = Number(lastcardprid()) || 0;
+    $('#cardlistbar .cardlistrow').each(function() {
+	var listid = String($(this).data('list')), have = Number(listquantity(listid, cardid, prid)) || 0;
+	var list = cache_thing("list",listid);
+	var all = list ? list.list.Items[0].list.reduce(function(n,c) { return n + (c.cardid == cardid ? parseInt(c.quantity) : 0); }, 0) : have;
+	$(this).find('span.listqty').text(have);
+	$(this).find('.cardliststep[data-step=-1]').prop('disabled', have == 0);
+	$(this).find('.cardlistall').text(all != have ? all+' in all' : '');
+    });
+}
+$(document).on('click', '#cardlistbar .cardliststep', function(e) {
+    var cardid = Number($('#lastcardid').val()), prid = Number(lastcardprid()) || 0;
+    if($(this).hasClass('cardlistpick')) {
+	deckswipepicklist(cardid, prid, ['add', 1]);
+    } else {
+	deckswipeapply(String($(this).closest('.cardlistrow').data('list')), cardid, prid, [$(this).data('step') > 0 ? 'add' : 'sub', 1]);
+    }
+    if(e.detail) {
+	this.blur();   // after a click the arrow keys go on to the next card; from the keyboard, focus stays to press again
+    }
+});
 // act: [action, count] from swipeactions. named: say which list changed (search with more than one active list)
 function deckswipeapply(listid, cardid, prid, act, named=false) {
     var have = Number(listquantity(listid, cardid, prid)) || 0;
@@ -10512,6 +10569,7 @@ function changeprinting(id,prid,qs,title) {
     $("#lastprintid").val(prid).data("chosen", true);
     $('.printing[data-printingid='+prid+']').show();
     $("#lastcardid").data('prid', prid);
+    cardlistbar();
   }
   seturl(viewstate('card'), true);
   // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
