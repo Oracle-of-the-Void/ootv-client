@@ -1,6 +1,6 @@
 # Editing other people's lists, and the audit log
 
-Last updated 2026-10-30.
+Last updated 2026-10-31.
 
 Admins can open and fix anyone's deck or list, private ones too: a mistyped card the owner asked
 about, a list made public by accident, or something that breaks the site's rules. Every step is
@@ -32,6 +32,9 @@ last 15 seconds are lost, so use Stop editing first.
 
 What you can change: the cards, name, notes, type, legality, public/private and the deck
 construction rules. What you can't: delete it, or change its folder (that's the owner's filing).
+While you edit, the deck's saved summary (its Count and the red Illegal in the directory and the
+public listing) follows your changes, and the audit log shows that as a save of `summary`. It never
+emails the owner.
 Changes save straight to the owner's list. There is no undo, but the audit log keeps the old
 values.
 

@@ -1111,9 +1111,11 @@ function deckcounthtml(decks, total, buildbad) {
 }
 // the list view keeps the directory's Count current: after drawing one of my lists' stats, saves its copies
 // per deck and the construction check as the list's summary (ootv-search /list updatefield=summary; doesn't
-// touch modified), when they changed. Not for lists edited as an admin: their owner's view saves it.
+// touch modified), when they changed. An admin editing the list saves it too (audited, the owner isn't emailed):
+// its owner may never open it again, and the public listing's Illegal reads the summary.
 function listsummarysave(listid, summary) {
-  if(!listid || !listmine(listid) || listadminedit(listid)) {
+  var asadmin = listadminedit(listid);
+  if(!listid || !(listmine(listid) || asadmin)) {
     return;
   }
   var cached = cache_thing("list",listid);
@@ -1130,7 +1132,7 @@ function listsummarysave(listid, summary) {
   };
   $.ajax({
     type: "GET",
-    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield=summary&updatevalue="+encodeURIComponent(summary ? JSON.stringify(summary) : ''),
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield=summary&updatevalue="+encodeURIComponent(summary ? JSON.stringify(summary) : '')+(asadmin ? "&adminedit=1" : ""),
     dataType: 'json',
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
     success: store,

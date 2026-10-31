@@ -436,7 +436,7 @@ inputs:
   * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false, "clan": "..."}`
     (copies per deck, in deck order, at most 10; whether the deck construction rules fail; optional `clan`, plain
     text, at most 60 characters: the first Stronghold whose clan has a mon, drawn before the list's name). The client saves it
-    after drawing one of the user's own lists (`listsummarysave()`); '' removes it. The lists index copies
+    after drawing one of the user's own lists, or one being edited as an admin (`listsummarysave()`); '' removes it. The lists index copies
     `buildbad` into its summaries for the public listing's Illegal mark
   * if this is set we update that field of the list (updatevalue), and modified, except for folder and summary
   * saving `list` also adds 1 to the list's `rev` and returns the new one as `rev`
@@ -601,7 +601,7 @@ A plain `*` in a game's own groups is **not** enough (ootv-search `lib/admin.js`
   (`listedit-open`) and answers `{adminopen: true}`; 403 without the permission (audited as `denied`).
 * Saves (`updatefield`, `baserev` as for the owner) on someone else's list need `adminedit=1`, plus `notify=1` to email
   the owner (mailer template `listedited`, at most once an hour per admin and list). Without `adminedit=1`, or for
-  `folder` / `summary` (the owner's filing), 403. Each save writes an audit row (`listedit-save`: field, old/new value,
+  `folder` (the owner's filing), 403. The client's `summary` saves send no `notify`, so they never email the owner. Each save writes an audit row (`listedit-save`: field, old/new value,
   or the card changes for `list`) **before** the write; if the row can't be written, nothing is saved.
 * Deleting (`action=remove`) stays the owner's.
 
