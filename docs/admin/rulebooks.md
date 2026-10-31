@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-30 (Warhammer 40,000 CCG types and tags OK'd; Android: Netrunner and Doomtown: Reloaded shelves)
+Last updated: 2026-10-31 (7th Sea: Five Sails shelf)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
