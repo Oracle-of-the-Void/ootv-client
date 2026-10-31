@@ -60,6 +60,7 @@ long-press labels (noted in Help), 1em text symbols kept small, sideways phones 
 
 Swipes on card images and Simple List titles (click-drag with a mouse). By default, search results: right +1,
 left −1, up-right +3; deck/list view: right +1, left −1, up-right +2; in both, up-left removes every copy.
+Down-right and down-left do nothing and scroll by default; given an action, that drag on a card stops scrolling.
 Settings → Gestures changes what each direction does (add, remove, set the count to, remove all, nothing),
 separately for search and for the deck/list view, and turns each gesture off (deck swipe touch and mouse,
 directory drag touch and mouse, long-press labels, card peek touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual

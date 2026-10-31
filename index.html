@@ -831,7 +831,8 @@ proxies and public decklists, for:</p>
   {{/for}}
   <p>A card swipe changes the card's count: in search results on the first active list, in a deck or list on the list shown.
     With no active list, a swipe that adds asks which list to activate.
-    Right and left are within 30&deg; of level; up-right and up-left are 30&ndash;65&deg; above it. Going to 0 asks first.</p>
+    Right and left are within 30&deg; of level; up-right and up-left are 30&ndash;65&deg; above it, down-right and down-left the same below it. Going to 0 asks first.
+    Down-right and down-left start as Nothing, so those drags scroll; give one an action and that drag on a card no longer scrolls.</p>
   {{for gestures.views}}
   <h4>{{>label}}</h4>
   <table class="settingstable swipetable" data-view="{{:view}}">
