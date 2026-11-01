@@ -32,11 +32,19 @@ function tradeseen(day) {
   var days = Math.floor((Date.now() - Date.parse(day)) / 86400000);
   return days <= 0 ? 'active today' : (days == 1 ? 'active yesterday' : 'active '+days+' days ago');
 }
+// open a card from a trade or message link: these cards usually aren't cached yet, which docardid needs
+function tradeopencard(id) {
+  if(cache_card_is(id)) {
+    docardid(id);
+  } else {
+    listprefetch([id], [function() { docardid(id); }]);
+  }
+}
 // a card entry: its title as a card link, with quantity, printing and foil
 function tradecard(e, yourslabel) {
   var bits = [];
   if(e.quantity) bits.push(e.quantity+'&times;');
-  var link = '<a href="#game='+database+',#cardid='+parseInt(e.cardid)+'" onclick="docardid('+parseInt(e.cardid)+'); return false;">'+tradeesc(e.title || 'card #'+e.cardid)+'</a>';
+  var link = '<a href="#game='+database+',#cardid='+parseInt(e.cardid)+'" onclick="tradeopencard('+parseInt(e.cardid)+'); return false;">'+tradeesc(e.title || 'card #'+e.cardid)+'</a>';
   bits.push(link);
   if(e.printing) bits.push('<small>(printing '+tradeesc(e.printing)+')</small>');
   if(e.foil) bits.push(templatefoilmark(e.foil));
@@ -107,7 +115,7 @@ function tradesmatches(area, data) {
 function tradesforcard(area, cardid) {
   var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
   var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
-  area.html('<h2>Traders: <a href="#game='+database+',#cardid='+parseInt(cardid)+'" onclick="docardid('+parseInt(cardid)+'); return false;">'+tradeesc(title)+'</a></h2>'+
+  area.html('<h2>Traders: <a href="#game='+database+',#cardid='+parseInt(cardid)+'" onclick="tradeopencard('+parseInt(cardid)+'); return false;">'+tradeesc(title)+'</a></h2>'+
     '<p><a href="" onclick="tradestate.card = null; tradeviewshow(\'resulttrades\'); return false;">Your matches</a> <span class="helpq" data-help="trading#card" aria-label="Help: traders for a card">?</span></p>'+
     '<div class="tradeside" data-side="have"><h3>Have it</h3><div>Loading&hellip;</div></div>'+
     '<div class="tradeside" data-side="want"><h3>Want it</h3><div>Loading&hellip;</div></div>');
@@ -210,7 +218,7 @@ function messagesthread(area) {
     '<form class="msgcompose" onsubmit="messagesend(this); return false;">'+
       (msgstate.context && (msgstate.context.cardids || []).length ? '<div class="msgcontext">About a trade of '+msgstate.context.cardids.length+' card'+(msgstate.context.cardids.length == 1 ? '' : 's')+'</div>' : '')+
       '<textarea name="text" maxlength="2000" rows="3" placeholder="Write a message" aria-label="Message"></textarea>'+
-      '<button type="submit" class="button"><svg class="feather"><use xlink:href="res/feather-sprite.svg#send"></svg> Send</button> <span class="msgsendstatus"></span>'+
+      '<button type="submit" class="button gray"><svg class="feather"><use xlink:href="res/feather-sprite.svg#send"></svg> Send</button> <span class="msgsendstatus"></span>'+
     '</form>');
   $.ajax({
     url: apiuri+'/messages?uid='+getuid()+'&threadid='+encodeURIComponent(tid),
@@ -248,7 +256,7 @@ function messagesdraw(area, messages, names) {
     var ctx = m.context && (m.context.cardids || []).length ? '<div class="msgctx">Trade: '+m.context.cardids.map(function(id) {
       var c = cache_card_is(id) ? cache_card_fetch(id) : null;
       var t = c && c.title ? $('<div>').html([].concat(c.title).join(', ')).text() : 'card #'+id;
-      return '<a href="#game='+tradeesc(m.context.game || database)+',#cardid='+parseInt(id)+'" onclick="docardid('+parseInt(id)+'); return false;">'+tradeesc(t)+'</a>';
+      return '<a href="#game='+tradeesc(m.context.game || database)+',#cardid='+parseInt(id)+'" onclick="tradeopencard('+parseInt(id)+'); return false;">'+tradeesc(t)+'</a>';
     }).join(', ')+'</div>' : '';
     return '<div class="msg'+(m.from == me ? ' msgmine' : '')+'"><div class="msgmeta">'+tradeesc(m.from == me ? 'You' : (names[m.from] || ''))+' &middot; '+
       tradeesc(formatdate(new Date(m.time)))+'</div>'+ctx+'<div class="msgtext">'+tradeesc(m.text).replace(/\n/g, '<br>')+'</div></div>';
