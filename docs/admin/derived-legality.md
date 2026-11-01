@@ -438,7 +438,8 @@ The publishers come from the set (`ootv-tools/printings/printing-publisher.py`, 
 | Onyx Lives | The Blackest Storm and later (already set). The Blackest Storm also has AEG (2026-10-23) |
 
 In the Oracle of the Void set, the proxies are AEG and the Old, New and SotE card backs are
-FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. A new set needs its
+FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. The four Gold Edition
+koku (1, 5, 10 and 50 Koku) are AEG, as printed on them (© 2001 AEG). A new set needs its
 publisher set at import time.
 
 ## Showing derived values on the card page
