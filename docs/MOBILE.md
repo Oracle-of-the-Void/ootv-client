@@ -41,6 +41,7 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] Down-right and down-left swipes (added 2026-10-31): turn one on in Settings → Gestures; that
   drag on a card changes its count and doesn't scroll, and a nearly vertical drag still scrolls.
 - [ ] Card page − n + (added 2026-10-31, [PR #546](https://github.com/Oracle-of-the-Void/ootv-client/pull/546)): with a list active, quick taps on + under the card's name each count and don't zoom the page, and a slightly sideways tap doesn't turn into a swipe to the next card. With none active, **+ Add to a list** opens the list picker.
+- [ ] Trades and Messages (trade lists release): the menu bar with both icons, the unread badge, opening a card from Trades and going back, a conversation with the keyboard open. Only emulated so far (Pixel 7, iPhone 13 WebKit).
 - [ ] A card opened from a list (added 2026-10-31, [PR #545](https://github.com/Oracle-of-the-Void/ootv-client/pull/545)): a sideways swipe goes to the next or previous card in the list, in the order shown. Only emulated so far.
 - [ ] Directory drag and drop (added 2026-10-15): long-press a list's move handle or a folder
   and drag it onto a folder, a folder in an expanded tree, or the path bar. It's HTML5 drag and
