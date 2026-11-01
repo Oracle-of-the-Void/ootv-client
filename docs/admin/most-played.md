@@ -1,9 +1,10 @@
 # Most played cards (public decks)
 
-Last updated 2026-10-25.
+Last updated 2026-10-29.
 
 **Public lists → Most played** (the bar chart button) ranks the cards in the public decks, and a
-card's page shows how many public decks play it, as a number next to the globe beside its title. Both
+card's page shows how many public decks play it, as a number next to the globe beside its title. The
+Detail search results show the same globe and number beside each card in a deck. All three
 read the public lists index, so there is nothing to edit: a list counts as soon as its owner makes it
 public, and stops counting when they make it private.
 
@@ -30,4 +31,5 @@ public, and stops counting when they make it private.
 
 ootv-search `GET /publiclists?group=cards` (ootv-client `docs/API.md`, ootv-search `CLAUDE.md` "Public
 lists search"): a nested aggregation over each deck's cards. The card page's count is a plain
-`/publiclists` search for decks with the card. Images come from the card data, as in search results.
+`/publiclists` search for decks with the card. The Detail search results get every card's count at
+once from `group=cardcounts`, one call per game per visit (2026-10-29, search #155, client #480). Images come from the card data, as in search results.

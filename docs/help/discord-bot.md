@@ -66,13 +66,17 @@ place, marked. **Also on** lists other pages with the term.
 
 - `term`: a keyword or trait (Cavalry, Yu), a rule's heading (Ranged Attacks, Battle
   Resolution) or any words. It autocompletes with the traits and the headings of the book it will
-  look in.
+  look in. In the Comprehensive Rules it can also be a section number: `VII.3.9`, a step in it
+  (`VII.3.9.E`, or `VII 3.9 E`), or a glossary entry (`T2`). The reply shows that section, and its
+  link opens it on the site even after an update moves it to another page.
 - `arc:` looks in that arc's latest complete rules, e.g. `arc:Clan Wars (Imperial)` reads Scorpion
-  Clan Coup and `arc:Hidden Emperor (Jade)` The Spirit Wars. Ivory Edition reads the Twenty
-  Festivals Comprehensive Rules.
+  Clan Coup and `arc:Hidden Emperor (Jade)` The Spirit Wars.
 - `book:` looks in one rulebook instead, e.g. `book:Jade Edition`.
 - Without either, the bot reads the channel's arc, if the channel is for one arc, and otherwise the
   newest AEG rules, the Twenty Festivals Comprehensive Rules.
+
+When the term isn't there, the reply names the arcs (or books) whose rules define it, e.g.
+`/rule term:Yu` lists the arcs that have Yu; add one as `arc:` (or `book:`) to see it.
 
 The Onyx Lives datasheets only hold the rules they change. When the term isn't in one, the bot
 looks in the rules it builds on (the Onyx/Shattered Empire datasheet, then the Twenty Festivals
@@ -102,6 +106,7 @@ Not every game has every option, just as on the site's search form:
 | Dune | `set`, `rarity`, `type` |
 | Pathfinder Pawns | `set`, `type` |
 | Legend of the Five Rings: The Card Game | `set`, `type`, `clan`, `text`, `legality` |
+| Deadlands: Doomtown (1998) | `set`, `type`, `outfit`, `text`, `legality` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.

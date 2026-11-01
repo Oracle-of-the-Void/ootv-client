@@ -1,6 +1,6 @@
 # Fields: descriptions and settings
 
-Last updated: 2026-10-23
+Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck, shown in a deck's Table view and averages; L5R Gold Production filled: Holdings from text and card images, general-purpose Gold on other cards)
 
 Every card field has a short description of what it holds, so the card editor can say what a
 field is for before you fill it in, and **settings** that say how the site uses it: its labels,
@@ -46,6 +46,23 @@ replaces the field's settings; clear it to drop them.
   search form only when the game config's `search` list names it ([Game config](game-config.md)).
   `foil` (shared `printing.foil`, every game) is a fixed select: Any foil / Foil only / Regular and
   foil / Not foil, on the printing's `foil` value (`"foil"`, `"both"`, or left out).
+  `numeric` card fields also match cards whose value isn't a plain number (since 2026-10-28): a
+  min/max search finds a card when any value it can have falls in the range. `3`, `+3` and `-1` are
+  themselves; `2*` is 2 (the asterisk is a footnote); `*`, `X`, `+*`, `+X` and 7th Sea `MC+2` can be
+  anything from 0 up, `-*`/`-X` anything from 0 down; `+5/+0` is either 5 or 0. `-` is no value. When the
+  card text pins a value down, the card's `variablevalues` field says what it can be, per field:
+  `{"cost": ["0-6"]}` (a range), `["2", "0"]` (either), `["1+"]` (1 or more); it replaces the rule above
+  for that field. A value that depends on the deck (Complications: 4, but "2 less Gold for Scorpion Clan
+  players") is in `conditionalvalues` instead (`{"cost": [{"value": "2", "when": {"clan": ["Scorpion"]}}]}`,
+  `when` on the deck's Stronghold `clan`, `sensei` or `stronghold`; [card data](../data.md)): search keeps
+  the printed value, and a deck's Table view and averages show the other (bold, underlined, the printed value on hover). L5R Holdings with no Gold Production field
+  had it filled from their ":bow:: Produce N Gold" on 2026-10-30, `N*` when the text changes it (as AEG
+  printed later Holdings: Marshalling Grounds `2*`). The rest were read from the GP coin in the card image's
+  upper-right corner the same day (Suana Dojo `4*`, `*` where printed; 225 Holdings print none), and non-Holdings
+  got Gold Production when their text produces a flat amount for any Gold cost (One Koku 1, Seppun Washi 2), not
+  Gold that only pays for one kind of card. Behind it: each numeric field is also indexed as `numrange.<field>` (ootv-dynamo
+  `README.md`), and a new numeric field needs `ootv-elastic/numrange-mapping.sh` run for its game,
+  then a repopulate, before the extra matches show (until then it searches the plain number).
 - `show`: `"card"` (the default: shown on the card page), `"internal"` (the editor only), or
   `"hidden"`: nowhere. A hidden field has no card page row, no search box, no Table view
   column, and a template can leave it out with `{{if ~fieldshown('<field>')}}` (see

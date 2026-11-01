@@ -6,7 +6,8 @@
 // (built by ootv-import SCRIPTS/rulebook-convert.py; docs/admin/rulebooks.md). A book's links (book.json links, the
 // links printed in its PDF) are boxes over its pages that open the place they point to (rulesdrawlinks).
 // Urls: #view=rules is the Bookshelf (#shelf=<key>: that shelf), #rulebook=<id>,#page=<n> a page, and #find=<phrase> (without #page: its
-// first page), #line=<n> or #at=<percent> a place on it, zoomed to the page's width. Turning pages replaces
+// first page), #line=<n> or #at=<percent> a place on it, zoomed to the page's width; #sec=VII.3.9.E (no #page) a section of
+// a book with a section map (book.json sections), wherever a rebuild has moved it. Turning pages replaces
 // the history entry, so Back leaves the book rather than stepping through every page.
 window.rulesloaded = true;
 
@@ -72,7 +73,7 @@ function rulessortbooks(books) {
   // by date: the book's year, then its place in the list (order) within a year; books of the Multi-Arc
   // formats (Legacy, Modern, Obsidian Hand, ...: cards from many arcs) come last, by date among themselves
   return Object.values(books || {}).sort(function(a,b) {
-    return ((a.arc == RULESMULTIARC) - (b.arc == RULESMULTIARC)) ||
+    return (rulesbookarcs(a).includes(RULESMULTIARC) - rulesbookarcs(b).includes(RULESMULTIARC)) ||
       ((+a.year || 9999) - (+b.year || 9999)) || ((a.order ?? 999) - (b.order ?? 999)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   });
 }
@@ -163,12 +164,14 @@ $(document).on('click', '.rulesshelftabs button.rulesshelftab', function() {
 // ********** shelf filters **********
 // Each book has a type (on the Rulebooks shelf: Complete, Addendum, Special: rules for one format, Play Variant:
 // another way to play, like draft, siege or War of Honor, Multi-Arc: a format with cards from many arcs, like Legacy),
-// or a list of them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc. Each shelf has
+// or a list of them when it's more than one, tags (Base set, Last complete rules in arc, ...) and an arc, or a list of
+// arcs for a book that belongs to more than one (the Onyx/ShE Comprehensive Rules). Each shelf has
 // its own bar, offering only the values its books have; the choice is kept per game and shelf in this browser.
 var RULESMULTIARC = 'Multi-Arc';   // formats spanning arcs: both their arc and their type. Their books, and the arc's
                                    // choice in the Arc filter, come last
 var rulesfilter = null;   // {game, shelf, type, arc, tags: [...]}
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
+function rulesbookarcs(b) { return Array.isArray(b.arc) ? b.arc : (b.arc ? [b.arc] : []); }
 // where the shelf's choice is saved: the game for the Rulebooks shelf (as before there were shelves), else game/shelf
 function rulesfilterkey() {
   return rulesshelf.key == 'rulebooks' ? database : database+'/'+rulesshelf.key;
@@ -193,7 +196,7 @@ function rulesfiltervalues() {
   rulesshelf.books.forEach(function(b) {
     rulesbooktypes(b).forEach(function(t) { if(!types.includes(t)) { types.push(t); } });
     (b.tags || []).forEach(function(t) { if(!tags.includes(t)) { tags.push(t); } });
-    if(b.arc && !arcs.includes(b.arc)) { arcs.push(b.arc); }
+    rulesbookarcs(b).forEach(function(a) { if(!arcs.includes(a)) { arcs.push(a); } });
   });
   var rank = function(t) { var i = order.indexOf(t); return i < 0 ? order.length : i; };
   types.sort(function(a,b) { return rank(a) - rank(b); });
@@ -231,7 +234,7 @@ function rulesfilterbar() {
 }
 function rulesfilterpass(b) {
   var f = rulesfilter;
-  return (!f.type || rulesbooktypes(b).includes(f.type)) && (!f.arc || b.arc == f.arc) &&
+  return (!f.type || rulesbooktypes(b).includes(f.type)) && (!f.arc || rulesbookarcs(b).includes(f.arc)) &&
     f.tags.every(function(t) { return (b.tags || []).includes(t); });
 }
 $(document).on('click', '.rulesfilters button.rulespill', function() {
@@ -283,7 +286,7 @@ function rulesdrawbooks() {
       (b.cover ? ' width="'+b.cover[0]+'" height="'+b.cover[1]+'"' : '')+'></span>'+
       '<span class="rulesbooktitle">'+rulesesc(b.title)+'</span>'+
       (b.subtitle ? '<span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '')+
-      '<span class="rulesbookmeta">'+[b.year, b.arc, b.pages+' pages'].filter(x => x).map(rulesesc).join(' &middot; ')+
+      '<span class="rulesbookmeta">'+[b.year].concat(rulesbookarcs(b), [b.pages+' pages']).filter(x => x).map(rulesesc).join(' &middot; ')+
       (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span>'+
       (marks.length ? '<span class="rulesbookmarks">'+marks.map(function(m) { return '<span class="rulesbookmark">'+rulesesc(m)+'</span>'; }).join('')+'</span>' : '')+
       (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
@@ -547,6 +550,7 @@ function rulesturnwheel(e) {
 // show page (and its spread partner); url: the address bar follows (replacing the entry)
 function rulesgo(page,url=true) {
   if(!rulesbook) { return; }
+  if(page === 0 && rulesstate.sec) { rulessecpage(url); return; }     // #sec: the section's page and place
   if(page === 0 && rulesstate.find) { rulesfindpage(url); return; }   // #find without #page: its first page
   var n = rulesbook.pages.length;
   page = Math.max(1, Math.min(n, parseInt(page, 10) || 1));
@@ -617,7 +621,7 @@ function rulesselecting() {
 }
 function rulestoggleselect() {
   rulesselect = !rulesselect;
-  if(!rulesselect) { window.getSelection().removeAllRanges(); }
+  if(!rulesselect) { window.getSelection().removeAllRanges(); rulescaretmark = null; $('#rulesarea .rulescaret').remove(); }
   $('#rulesarea .rulesstage').toggleClass('rulesselecting', rulesselecting());
   $('#rulesarea .rulesselectbtn').toggleClass('searchviewactive', rulesselect);
   if(rulesselect) { rulesflash('Select text to copy it, or copy a link to it'); }
@@ -683,7 +687,7 @@ function rulesdrawlinks(shown) {
       if(typeof l[4] == 'string') {
         return '<a class="ruleslink" style="'+pos+'" href="'+rulesesc(l[4])+'" target="_blank" rel="noopener" title="'+rulesesc(l[4])+'"></a>';
       }
-      var to = Object.assign({}, viewstate('rules'), {page: l[4], find: '', line: 0, at: l[5] || 0});
+      var to = Object.assign({}, viewstate('rules'), {page: l[4], find: '', line: 0, at: l[5] || 0, sec: ''});
       return '<a class="ruleslink" style="'+pos+'" href="'+rulesesc(statehash(to))+'" data-to="'+l[4]+'" data-at="'+(l[5] || 0)+'" title="Page '+l[4]+'"></a>';
     }).join('')+'</div>');
   });
@@ -705,14 +709,54 @@ function rulesclearmark() {
   rulesstate.find = '';
   rulesstate.line = 0;
   rulesstate.at = 0;
+  rulesstate.sec = '';
   rulesmarkzoomed = '';
+  rulescaretmark = null;
 }
 function rulesmarkkey() {
-  return rulesstate.book+'/'+rulesstate.page+'/'+(rulesstate.find || '')+'/'+rulesstate.line+'/'+rulesstate.at;
+  return rulesstate.book+'/'+rulesstate.page+'/'+(rulesstate.find || '')+'/'+rulesstate.line+'/'+rulesstate.at+'/'+rulesstate.sec;
+}
+// #sec: the page and place of the section from the book's section map; a step or section the book lacks goes to the
+// one holding it (VII.3.9.Z: VII.3.9), a book without the section to its first page
+function rulessecpage(url) {
+  var want = rulesstate.sec, place = rulessecplace(rulesbook.sections, want);
+  if(!place) {
+    rulesclearmark();
+    rulesflash(rulesbook.sections ? 'No section '+want+' in this book' : 'This book has no section links');
+    rulesgo(1, url);
+    return;
+  }
+  var find = rulesstate.find;
+  Object.assign(rulesstate, {page: place.page, at: place.at, sec: place.key, find: '', line: 0});
+  if(place.key != want) { rulesflash('No '+want+' in this book: showing '+place.key); }
+  if(!find) { rulesgo(place.page, url); return; }
+  // #sec with #find: the phrase, on the section's page or a few after it; else the section's heading
+  rulessecfind(rulesbook.id, place, find, function(p) {
+    if(!rulesbook || rulesstate.sec != place.key) { return; }
+    if(p) { Object.assign(rulesstate, {page: p, find: find, at: p == place.page ? place.at : 0}); } else { rulesflash('"'+find+'" isn\'t in '+place.key); }
+    rulesgo(rulesstate.page, url);
+  });
+}
+// the section a place on a page is in, for links to it: the last one starting at or before it (a step before its
+// section, a printed number before an id); '' when the book has no section map
+function rulessecat(page, at) {
+  var best = null;
+  Object.entries(rulesbook.sections || {}).forEach(function(e) {
+    var p = e[1][0], a = e[1][1];
+    if(p > page || (p == page && a > at)) { return; }
+    var better = !best || p > best[1] || (p == best[1] && (a > best[2] || (a == best[2] && rulessecbetter(e[0], best[0]))));
+    if(better) { best = [e[0], p, a]; }
+  });
+  return best ? best[0] : '';
+}
+// of two keys at the same place: a printed number (VII.3.9) over an id (VII-3-9), and the deeper one (VII.3.9 over VII)
+function rulessecbetter(k, than) {
+  var num = s => !/-/.test(s);
+  return num(k) != num(than) ? num(k) : k.length > than.length;
 }
 // #find without #page: the first page with the phrase (from text.json), then the page as usual
 function rulesfindpage(url) {
-  var q = rulesnorm(rulesstate.find), id = rulesbook.id;
+  var q = rulesnormfind(rulesstate.find).split('*')[0], id = rulesbook.id;
   var go = function() {
     var page = (rulestext || []).findIndex(function(t) { return rulesnorm(t).indexOf(q) >= 0; }) + 1;
     if(!page) {
@@ -760,9 +804,9 @@ function rulesplacewords(lines) {
 // zoom to the marked page's width and scroll the place into view, a third of the way down; once per mark,
 // so a redraw (a resize, the panel) doesn't undo the reader's own zooming
 function rulesmarkplace() {
-  if(!(rulesstate.find || rulesstate.line || rulesstate.at) || rulesmarkzoomed == rulesmarkkey()) { return; }
+  if(!(rulesstate.find || rulesstate.line || rulesstate.at || rulesstate.sec) || rulesmarkzoomed == rulesmarkkey()) { return; }
   var y = null, lines = ruleslines[rulesstate.page];
-  if(rulesstate.at) {
+  if(!rulesstate.find && (rulesstate.at || rulesstate.sec)) {
     y = rulesstate.at / 100;
   } else if(Array.isArray(lines)) {
     var lw = rulesplacewords(lines);
@@ -783,15 +827,47 @@ function rulesmarkplace() {
   el.scrollLeft += p.left - r.left;
   el.scrollTop += p.top + y * p.height - r.top - el.clientHeight / 3;
 }
-// the text selected on the pages: {page, text} (the page it starts on), or null
+// the text selected on the pages: {page, text, at} (the page it starts on, how far down its first line is), or null
 function rulesselection() {
   var sel = window.getSelection();
   if(!sel || sel.isCollapsed || !sel.rangeCount) { return null; }
   var start = $(sel.getRangeAt(0).startContainer).closest('.rulespage');
   if(!start.length || !start.closest('#rulesarea').length) { return null; }
-  var text = rulesseltext(sel);
-  return text ? {page: +start.data('page'), text: text} : null;
+  var text = rulesseltext(sel), page = +start.data('page'), lines = ruleslines[page];
+  // at: percent down the page to the top of its first line (for rulessecat), or null
+  var line = $(sel.getRangeAt(0).startContainer).closest('.rulesline'), at = null;
+  if(line.length && Array.isArray(lines) && lines[+line.data('line')] && lines[+line.data('line')][1].length) {
+    at = lines[+line.data('line')][1][0][1] / 100;
+  }
+  return text ? {page: page, text: text, at: at} : null;
 }
+// a click on the text in select mode leaves a cursor there: {page, at} of its line (for a link to its section), or null
+// browsers draw no caret in text that can't be edited, so the viewer draws its own (.rulescaret) and keeps its place
+function rulescaret() {
+  return rulescaretmark;
+}
+var rulescaretmark = null;   // the cursor a click left: {page, at} (at: percent down to its line's top)
+$(document).on('click', '#rulesarea .rulesselecting .rulespage', function(e) {
+  var sel = window.getSelection();
+  $('#rulesarea .rulescaret').remove();
+  rulescaretmark = null;
+  if(sel && !sel.isCollapsed && sel.toString().trim()) { return; }   // a drag that selected text
+  var page = $(this), lines = ruleslines[+page.data('page')], r = this.getBoundingClientRect();
+  if(!Array.isArray(lines) || !lines.length) { return; }
+  var x = (e.clientX - r.left) / r.width * 10000, y = (e.clientY - r.top) / r.height * 10000;
+  // the line clicked on, or the nearest one
+  var best = null;
+  lines.forEach(function(line) {
+    if(!line[1].length) { return; }
+    var top = Math.min.apply(null, line[1].map(w => w[1])), bottom = Math.max.apply(null, line[1].map(w => w[3]));
+    var d = y < top ? top - y : y > bottom ? y - bottom : 0;
+    if(!best || d < best.d) { best = {d: d, top: top, bottom: bottom}; }
+  });
+  rulescaretmark = {page: +page.data('page'), at: best.top / 100};
+  page.append('<div class="rulescaret" style="left:'+(x / 100)+'%;top:'+(best.top / 100)+'%;height:'+((best.bottom - best.top) / 100)+'%"></div>');
+  var sec = rulessecat(rulescaretmark.page, rulescaretmark.at);
+  if(sec) { rulesflash(sec+': copy a link to it'); }
+});
 // words as text to paste ([{page, block, line, word}] in reading order): a line's words joined by spaces, lines
 // of a block into one paragraph (words broken across lines by a hyphen joined again), blocks and pages apart by a
 // blank line, unless the text runs on (no full stop, the next starting in lower case: a block break that isn't a
@@ -981,16 +1057,24 @@ function rulessearch() {
 }
 $(document).on('input', '#rulesarea .rulessearch', _.debounce(rulessearch, 250));
 
-// a link to the page shown (with its marked place), or with text selected on a page, to that text (#find=)
+// a link to the page shown (with its marked place), or with text selected on a page, to that text: #find=<its first
+// six words>.*<its last six>; in a book with a section map, inside the section it starts in (#sec=VII.3.9.E,#find=...),
+// which a rebuild that moves pages cannot break
 function rulescopylink() {
-  var state = viewstate('rules'), sel = rulesselection();
+  var state = viewstate('rules'), sel = rulesselection(), caret = sel ? null : rulescaret();
+  var sec = sel && sel.at !== null ? rulessecat(sel.page, sel.at) : caret ? rulessecat(caret.page, caret.at) : '';
   if(sel) {
-    // the first dozen words find it; more would only break on a rebuilt book's small differences
-    Object.assign(state, {page: sel.page, find: sel.text.split(/\s+/).slice(0, 12).join(' '), line: 0, at: 0});
+    // its first and last six words find the whole of it (first.*last) and keep the url short; more would only
+    // break on a rebuilt book's small differences. Inside a section, a few letters ("E.") would only mislead: the section
+    var words = sel.text.split(/\s+/).filter(Boolean);
+    var find = words.length > 12 ? words.slice(0, 6).join(' ')+'.*'+words.slice(-6).join(' ') : words.join(' ');
+    Object.assign(state, {page: sec ? 0 : sel.page, find: sec && !rulessecfindok(find) ? '' : find, line: 0, at: 0, sec: sec});
+  } else if(sec) {   // a cursor dropped by a click: its section
+    Object.assign(state, {page: 0, find: '', line: 0, at: 0, sec: sec});
   }
   var url = location.href.split('#')[0]+statehash(state);
-  var label = sel ? 'Link to this text' : 'Link to this page';
-  var done = function() { rulesflash(sel ? 'Link to the text copied' : 'Link copied'); };
+  var label = sec ? 'Link to '+sec : sel ? 'Link to this text' : 'Link to this page';
+  var done = function() { rulesflash(sec ? 'Link to '+sec+' copied' : sel ? 'Link to the text copied' : 'Link copied'); };
   if(navigator.clipboard) {
     navigator.clipboard.writeText(url).then(done, function() { prompt(label, url); });
   } else {

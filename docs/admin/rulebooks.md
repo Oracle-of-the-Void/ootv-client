@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-26 (text checks)
+Last updated: 2026-10-30 (Warhammer 40,000 CCG types and tags OK'd; Android: Netrunner and Doomtown: Reloaded shelves)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -47,11 +47,28 @@ Clicking a book opens it in the page viewer:
   width, scrolled to it and marked:
   - `#page=<n>,#find=<words>`: the first place on the page with these words (letters and
     digits only count, so spaces, line breaks, hyphens and punctuation don't matter). Without
-    `#page`, the first page of the book that has them. Links copied from a selection use its
-    first dozen words.
+    `#page`, the first page of the book that has them. `.*` joins a start and an end:
+    `#find=first words.*last words` marks everything from the first to the end of the last found after them
+    on the page (only the start when the end isn't there, e.g. a selection running onto the next page). Links copied from a
+    selection use its first six and last six words that way (the whole of a selection of 12 words or fewer), so a long
+    selection doesn't make a long link.
   - `#page=<n>,#line=<n>`: the page's nth line of text, in its reading order (on two-column
     pages, usually down one column then the next).
   - `#page=<n>,#at=<percent>`: that far down the page (`#at=40`), for pages with no text.
+  - `#sec=<section>` (no `#page`): in a book with a section map (`book.json` `sections`, below; the
+    Comprehensive Rules rebuilds), where that section starts, its heading marked: a printed number (`VII`,
+    `VII.3.9`, a glossary entry `T2`), a lettered step (`VII.3.9.E`, a paragraph starting "E." in it), or a
+    section's id for entries with no number (`RULINGS-KATSU`, `FAQ-WHAT-PERFORMS-AN-ACTION`). Case, spaces and
+    dots don't matter (`vii 3.9 e`). A step or section the book lacks opens the one holding it (VII.3.9.Z:
+    VII.3.9, with a note), anything else the first page. In those books the link button copies a selection
+    as the `#sec` link of the section or step it starts in, plus its `#find`.
+  - `#sec=<section>,#find=<words>`: the phrase, from the section's start (never above it on its page) or on up to
+    four pages after it (a long section), marked; the section's heading when none has it. For links to a sentence
+    inside a section, such as card rulings. A phrase under 10 letters and digits (`#find=E.`) would match almost
+    anywhere, so it's dropped and the link goes to the section; copied links leave it out.
+  - In select mode, a single click or tap drops a cursor in the text (a blinking bar the viewer draws, since browsers
+    show none in text that can't be edited; the toolbar names its section); the link button then copies the `#sec`
+    link of the section or step the cursor is in (in a book without a section map, the page link as usual).
 
   A book can also carry the links printed in its PDF (`book.json` `links`, below): a click or tap
   on one opens its place as an `#at` link (or a web address in a new tab), as a new history entry,
@@ -59,7 +76,7 @@ Clicking a book opens it in the page viewer:
   The pages sit above the page-turn areas but let the pointer through (`pointer-events: none`),
   so only the link boxes take clicks there.
 
-  `#find` survives a rebuilt book best; line numbers can shift when the text changes. Turning
+  `#sec` survives a rebuilt book best (the map is rebuilt with it), then `#find`; line numbers can shift when the text changes. Turning
   the page drops the place. `#game=l5r,#view=rules` is the shelf. Turning pages doesn't add
   browser history, so Back leaves the book. The shelf remembers the last page read in each book
   (this browser only).
@@ -100,8 +117,8 @@ Legality itself isn't changed.
 
 An edition's book is the first of its books (below) that defines the trait; its "Last complete rules in
 arc" book comes first where there is one (Scorpion Clan Coup before Imperial, The Spirit Wars before
-Jade). Onyx Edition and Shattered Empire go to Onyx Lives' Onyx/ShE Rules Datasheet, then AEG's 20F
-Comprehensive Rules it builds on; Three Dynasties to the Three Dynasties Rules Datasheet, then those two.
+Jade). Onyx Edition and Shattered Empire go to the Onyx/ShE Comprehensive Rules (their "Last complete rules in arc"
+book since 2026-10-28), then Onyx Lives' Onyx/ShE Rules Datasheet, then AEG's 20F Comprehensive Rules; Three Dynasties to the Three Dynasties Rules Datasheet, then those two.
 Words that older books use for something else (Honor, Duty, Elite) only link to the Onyx Lives sheets.
 
 The links come from the `oracle-all-structure` item `<game>` / `traits` (public
@@ -141,9 +158,11 @@ Invest, Unstoppable, under Ivory Edition, first) and The Blackest Storm (Sinceri
 Festivals, first). The Onyx Lives datasheets are searched (2026-10-21). Two per-book options in the JSON
 help with rulesheets: `narrow` (a heading over a narrow column, whose first line looks like a heading
 too) and `hover` (keep more than 420 characters, where the rule comes after an introduction); `stop` ends
-a definition at a heading the layout hints miss (the Onyx datasheet's "Boldface Keywords"). The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
-sections; the 20F Comprehensive Rules lost its fi/ff/fl ligatures from its text, which the script puts
-back in the hover text from the other books' words.
+a definition at a heading the layout hints miss (the Onyx datasheet's "Boldface Keywords"); `headnum` strips a
+number before an entry heading ("C1 Cavalry" in the rebuilt 20F Comprehensive Rules), and a line starting with one
+ends the definition. The datasheets list their keywords as "● Cavalry - ..." and "Courage Rulebook ability"
+sections. Hover texts from books that print card-text icons (the 20F Comprehensive Rules) name them in
+brackets: "Invest [2 Gold]:".
 
 ## Shelves
 
@@ -200,7 +219,7 @@ Everything else is on the images bucket, under the game: `https://images.oracleo
 
 | File | What |
 |---|---|
-| `<id>/book.json` | One book: each page's size, the table of contents, the links printed in it (`links`, when the config gives them), downloads, whether it has text |
+| `<id>/book.json` | One book: each page's size, the table of contents, the links printed in it (`links`, when the config gives them), where its sections start (`sections`, likewise), downloads, whether it has text |
 | `<id>/text.json` | The text of each page, for the book's search (the PDF's own text, or OCR) |
 | `<id>/lines/<NNN>.json` | Each page's words and where they are on it, for selecting and copying, `#find` and `#line` links: `[[block, [[x0, y0, x1, y1, word], ...]], ...]`, a line per entry in reading order, boxes in 1/10000ths of the page from its top left (`pdftotext -bbox-layout`, or tesseract's word boxes). `book.json` has `lines: true` when the book has them |
 | `<id>/<NNN>_select.webp`, `_details.webp`, `_master.webp`, `_zoom.webp` | Each page: thumbnail (300 px), normal (1400 px), large (2400 px) and deep zoom (4800 px) on the long side. `_zoom` is only made when the source is that large: every PDF, but not the Jade photos (2048 px). A rescan or remaster at higher resolution gets it on its next build. |
@@ -230,9 +249,13 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   browser prints whose text layer is gibberish); `{"pdf": "<file>"}` takes the text from another PDF
   with the same pages. `ocr_psm` sets tesseract's page segmentation mode (default 3); 4 (one column)
   fixed the 2000 Text Change & Errata List, where 3 dropped the first letter of some lines.
+- `ocr_threshold` (0–255): gray levels at or above it turn white before tesseract, for text printed over
+  shaded art. The WH40K CCG handbooks lost the start of most lines over their shaded margins without it;
+  80 fixed them (110 for Battle for Pandora Prime, whose print is lighter). Try a few values on one page
+  first (`tesseract` on the page's `_master` after the same threshold): too low drops thin letters.
 - `ligatures: "lost"`: the PDF's fonts give no text for the fi/ff/fl ligatures, so its text reads "battle eld",
   "e ect", "rst". The words are joined back in `text.json` and `lines/` where that makes a dictionary word
-  (the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
+  (the 2017 print of the 20F Comprehensive Rules, 2026-10-26: 803 words). `lines <id>` then `upload <id>` applies it to a
   book already on the shelf without rendering its pages again. Not for a book that also has split words
   (L5Revival): there it takes the pieces of split words for lost ligatures ("w ords" → "w fiords").
 - `splitwords: true`: the PDF's text has spaces inside words ("v ery well receiv ed", "Li m ite d", small caps
@@ -242,7 +265,7 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   rules variables), an acronym before a word ("AEG is"), and a whole word at the end of a run unless the
   book prints the joined word whole somewhere ("t ak e out" → "take out", "Str ong hold" → "Stronghold").
   On since 2026-10-26 for L5Revival, Lotus, Diamond, War of Honor, the 1999 DCI Universal Rules and the
-  Samurai, Celestial and Emperor Comprehensive Rules.
+  Samurai, Celestial, Emperor, Ivory and Twenty Festivals Comprehensive Rules.
 - Ligature characters (ﬁ, ﬂ, ﬀ, ...) in a PDF's text always become plain letters (since 2026-10-26; the
   Samurai Edition preview had 279), so the book search finds "find" in "ﬁnd". No option needed.
 - `toc`: a list of `{"title", "page", "level"}`, `{"pdf": "<file>"}` to take a PDF's bookmarks, or
@@ -254,6 +277,13 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   ootv-games `game-l5r/rulebook-enhance/comprehensive-rules/scripts/links.py` (PyMuPDF reads the PDF's link
   annotations).
   `page` is the viewer's page number (the PDF page), not the number printed on the page.
+- `sections`: a JSON file of where each section starts, `{"VII.3.9": [page, at], "VII.3.9.E": [37, 19.5],
+  "RULINGS-KATSU": [...], ...}` (`at` = percent down the page, just above the heading), for `#sec` links. Copied
+  into `book.json` as is (not with `crop`); `meta` takes it again too, so a book built before it gets one without
+  rendering (pull the live `book.json` into the `--out` folder, `meta`, `upload`). The Comprehensive Rules rebuilds
+  make it with ootv-games `comprehensive-rules/scripts/sections.py` (`build.sh` runs it): numbers from
+  `book.html`, places from `book.pdf`, each heading found on a line set larger than the text or starting with a
+  number in the headings' colour, from the page Chromium's named destination puts it on.
 - `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
   The viewer hides the download buttons for now (`rulesdownloads = false` in `rules.js`, since
@@ -274,6 +304,11 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
     (Legacy, Modern, Obsidian Hand, Samurai Extended, EternaL5R, ...; their type is `Multi-Arc` too, or a
     list with it, e.g. `["Rulings", "Multi-Arc"]` for a format's FAQ). Multi-Arc books come last on
     the shelf (by year among themselves), and so does Multi-Arc in the Arc filter (2026-10-22).
+    A book that belongs to more than one arc takes a list, oldest arc first: the three Onyx/ShE books
+    (Rules Datasheet, Comprehensive Rules, Icon Reference) are `["War of the Seals (Onyx Edition)", "Shattered Empire"]`
+    (2026-10-27). Such a book shows under each arc in the Arc filter, its line names them all
+    ("2026 · War of the Seals (Onyx Edition) · Shattered Empire · …"), and the Discord bot's `/rule arc:` takes it as
+    either arc's book.
   - `type`: `Complete` (the whole rules of its day, basic and advanced rulebooks included),
     `Learn to Play` (a short intro to the rules, like The Currency of War), `Addendum` (changes on
     top of a complete book, like the Broken Blades rulesheet and other expansion rulesheets) or
@@ -367,13 +402,13 @@ Then, before turning an option on:
 From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`):
 
 - **Imperial Edition**: the retypeset remaster (ootv-games `game-l5r/rulebook-enhance/imperial/rebuild/pages-01-64.pdf`,
-  2026-10-20), with its own text. The contents come from the bookmarks of the old searchable scan
-  (same 64 pages); the original color scan is the second download.
+  2026-10-20), with its own text. The contents come from its own contents page; the original color scan is the
+  second download.
 - **Scorpion Clan Coup**: the retypeset remaster (ootv-games
   `game-l5r/rulebook-enhance/scc/rebuild/scc-pages-01-71-back.pdf`, 2026-10-20), with its own text: all
   72 pages, so the two-page view shows the printed spreads. Kempy's scan lacks pp. 2-3, 22, 24, 28,
   36-37, 47, 49 and 51; those were set from phone photos of the same booklet (the older `L5RRules` copy
-  of `Rulebook-L5R-Imperial_(SCC).pdf`). No contents yet. Kempy's scan is the second download.
+  of `Rulebook-L5R-Imperial_(SCC).pdf`). Kempy's scan is the second download.
 - **Jade Edition**: the retypeset remaster (ootv-games
   `game-l5r/rulebook-enhance/jade/rebuild/jade-pages-01-71-back.pdf`, 2026-10-20), from phone photos of every
   spread (`Rulebook-L5R-Jade.zip`), with its own text and contents. Downloads: the PDF, the original photos and
@@ -383,6 +418,13 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   pages, cover to the Turn Sequence back cover, the art the photos' own. The contents follow the printed table
   of contents. The pages render from the full-quality join (`pearl-pages-01-88.pdf`, 169 MB); the PDF download is
   the same pages with JPEG images (`pearl-rulebook.pdf`, 12 MB). The original photos zip is the second download.
+- **Remasters linked (2026-10-26)**: Imperial, SCC, Jade and Pearl link the way the Comprehensive Rules do
+  (`toc` and `links` files from ootv-games `game-l5r/rulebook-enhance/scripts/link_book.py`, written into the PDFs
+  too, with bookmarks): contents to each section (where its heading really is), index numbers to the entry on that
+  page, every printed page reference, "see X" and back-cover Turn Sequence cross-references, printed web addresses
+  (1990s fan sites through the Wayback Machine; never-archived ones stay plain), and card names (errata, Pearl's card
+  list) and card pictures to the card on the site, at the book's own printing. Their covers carry the edition's arc
+  bug as a wax seal; the Comprehensive Rules rebuilds carry a large one as their title page's centrepiece. Steps: ootv-import `rulebooks/REPRODUCE.md`, "Link the book last".
 - **Gold Edition**: the publisher PDF shows two-page spreads on a grey mat, so the book is built from
   `game-l5r/rulebook-enhance/gold/rebuild/Rulebook-L5R-Gold_pages.pdf` (2026-10-20): the same PDF cut
   into 88 single pages (cover, inside cover, pp. 1-85, back cover) by ootv-games
@@ -399,10 +441,47 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   built from `game-l5r/rulebook-enhance/samurai/rebuild/Rulebook-L5R-Samurai_preview_pages.pdf`
   (2026-10-20): the spreads cut down the middle by `rulebook-enhance/samurai/split_samurai.py`, 49
   single pages. Crop only, text kept; the original is the second download.
+- **Comprehensive Rules** for Samurai, Celestial, Emperor and Ivory Edition and Twenty Festivals (2026-10-25/26): rebuilt
+  from AEG's rules sites (the rules.l5r.com wiki; for Ivory and 20F, the rules.alderac.com pages) into internally linked books (contents with page numbers, every cross-reference a link, `toc`
+  and `links` files), with the remaster credit. Celestial and Emperor come from kempy's HTTrack copy of the wiki;
+  Samurai from the Wayback Machine's copies of its final (2009) pages, replacing kempy's print of the October 2007
+  page under the same id, so its card rulings were synced to the new pages; Twenty Festivals from the Wayback
+  Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt); Ivory likewise from its page's
+  captures (final text as archived 15 March 2015, the page has no date; kempy's 2017 print is the second download, and it
+  has trait links). Card-text icons in Ivory and 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order.
+  Since 2026-10-27 the Ivory and 20F books also carry the four Ivory expansion rulesheets (The New Order, Thunderous
+  Acclaim, Evil Portents, The Blackest Storm): their new rules in their own words where they belong, each marked by a bar
+  and a ◆ linking to a front chapter "Updates from the Expansion Rulesheets" (which rulesheet changed what), and their card
+  notes as chapter XV, Notes on Specific Cards. Four wordings of the books' own were changed to fit, with the user's yes
+  (destroyed Provinces' Fortifications, Invest, II.4 and Appendix B entries); the books grew to 90 (20F) and 89 (Ivory)
+  pages and the trait links were rerun. Build and notes: ootv-import
+  `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
+- **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-10-27, Version 0.1 draft): a new book, not a rebuild:
+  the 20F book above (with its rulesheets) plus Onyx Lives' Onyx/ShE Rules Datasheet, applied in the datasheet's own words
+  where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty
+  Festivals". The datasheet only applies where it changes something; every other wording change was the user's decision,
+  one by one (record: ootv-games `rulebook-enhance/comprehensive-rules/onyx/JUDGEMENT.md`). It is to become the official
+  Onyx/ShE rules reference after the Onyx Lives rules team reviews it. On the shelf since 2026-10-27 as
+  `onyx-she-comprehensive-rules` (type Complete, tag Fan Made), after the Onyx/ShE datasheet. Its arc is both War of the Seals
+  (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
+  arc could be only one). Since 2026-10-28 it is the arcs' "Last complete rules in arc" book (moved from the datasheet,
+  the user) and a trait-link source (its glossary, pp. 62–92; the Discord /rule bot answers Onyx/ShE questions from it). Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
+- **Comprehensive Rules for Three Dynasties** (2026-10-27, Version 0.1 draft): the Onyx/ShE book above plus Onyx Lives' Three
+  Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
+  and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
+  Empire". Every wording was the user's decision, one by one (record: ootv-games
+  `rulebook-enhance/comprehensive-rules/three-dynasties/JUDGEMENT.md`). The Onyx Lives rules team answered its three
+  questions (2026-10-27): Events resolve the pre-Twenty Festivals way (a trait from a resolution area, mandatory), an Event
+  revealed by the first-turn Cycle waits a turn, and Provinces flip simultaneously before the active player orders the Events.
+  It also has the datasheet's update of 27 October (Action Sequence Revision, "Check" Terminology).
+  On the shelf since 2026-10-27 as `three-dynasties-comprehensive-rules` (type Complete, tags Fan Made and **Last complete rules
+  in arc**, moved there from the Three Dynasties datasheet), after the datasheet. The tag makes it the Discord /rule bot's Three
+  Dynasties book; trait links still go to the datasheet (they list books by id). Build and notes: ootv-import
+  `rulebooks/COMPREHENSIVE-RULES.md`, "Three Dynasties".
 - The rest are the publisher PDFs with their own text: Spirit Wars, Lotus, Celestial 15, Emperor.
 - Files we make (remasters, split or cropped PDFs) go in ootv-games `game-l5r/rulebook-enhance/<book>/rebuild/`,
   never into `kempy-l5rrules/`, which stays a copy of kempy's archive.
-- Imperial, Jade, Pearl and Ivory basic have a table of contents so far.
+- Imperial, SCC, Jade, Pearl and Ivory basic have a table of contents so far (and the Comprehensive Rules).
 
 From AEG's file drop (ootv-games `game-l5r/aeg-rulebooks-filedrop/`, the queue of the rest is ootv-import
 `rulebooks/QUEUE.md`):
@@ -443,3 +522,42 @@ errata link to it), Skirmish Learn to Play, Skirmish Rules Reference, Skirmish R
 Multiplayer Rules (Enlightenment), Draft Rules v3, Under Fu Leng's Shadow Rules (Play Variant),
 Tournament Regulations v2.3 (the text version as a second download) and FFG Floor Rules (Floor Rules).
 No arcs; the PDFs have no bookmarks, so no contents yet. Types and tags: the user, 2026-10-24.
+
+## The Deadlands: Doomtown books (2026-10-29)
+
+The 1998 Doomtown CCG (`dtccg`), list `rulebooks/dtccg.json`, ids `dtccg-*`, a shelf of its own. No PDFs of
+these survive, so each is the archived web page printed to PDF (ootv-games `game-dtccg/rules/pdf/`): the
+Doomtown Rulebook, Ashes to Ashes (Complete, Last complete rules) and April 2000 (Complete, Base set);
+the Accumulated Rulings v4.0.6 (2002-06-23, Rulings) and v4.0.4 (2000-10-16, Rulings); the Official FAQ
+v5.0.1 (2002-06-23, Addendum) and v4.0.4 (2000-10-16, Addendum); and AEG's "Gomorra After Boot Hill"
+v2.0 (2000-06-07, Floor Rules: the three formats). The 2002 versions come from the Doomtown OCTGN plugin
+(PDFs converted to HTML there, printed back page for page, so the cards' ruling links land on the right
+page); the rest from the Crow's Nest, alderac.com and rulespal.com (Wayback copies). Types and tags: proposed
+and approved by the user, 2026-10-27.
+
+## The Android: Netrunner book (2026-10-30)
+
+Android: Netrunner (`netrunner`, a preview game), list `rulebooks/netrunner.json`: Null Signal Games'
+Comprehensive Rules v26.03 (`nr-comprehensive-rules`; ootv-games `game-netrunner/rules/`). Type and tags are
+proposals until the user's check-off on preview: Complete, Last complete rules.
+
+## The Doomtown: Reloaded books (2026-10-30)
+
+Doomtown: Reloaded (`dtlcg`, a preview game; not the 1998 `dtccg`), list `rulebooks/dtlcg.json`, ids `dtr-*`, a
+shelf of its own. Pine Box's Weird West Edition rulebook, 2nd printing (Complete; Last complete rules, Base set),
+Floor Rules v1.5 (Floor Rules), Weird West Format Legal Cards (Addendum), Multiplayer Rules and Solo Mode v1.1
+(Play Variant), from ootv-games `game-dtlcg/rules/`; AEG's 2014 Base Set rulebook (Complete; Base set) from its
+press file in `game-dtlcg/aeg-print/`, pages cut to the PDF's TrimBox with `crop` (its PDF download keeps the crop
+marks). Types and tags are proposals until the user's check-off on preview.
+
+## The Warhammer 40,000 CCG books (2026-10-29)
+
+The Warhammer 40,000 CCG (`wh40k`, a preview game), list `rulebooks/wh40k.json`, ids `wh40k-handbook-*`, a
+shelf of its own: the Collectible Card Game Player's Handbook of each set, which each hold the whole rules
+plus that set's card list. Battle for Pandora Prime 2001 (Complete, Base set), Coronis Campaign 2002, Battle
+for Delos 2002, Invasion: Verdicon 2002 (Complete) and Siege of Malogrim Hive 2003 (Complete, Last complete
+rules). From the community scan archive linked from ztcgvault.com (ootv-games `game-wh40k/gdrive-rules/`):
+four scans, OCR'd with `ocr_threshold`; Battle for Delos is Sabertooth's own PDF with its text, laid out as
+reader spreads, split into single pages by crop box (pypdf, `game-wh40k/rules/clean/`; ghostscript's
+re-write turned every space into a junk character). Uploaded for review 2026-10-29 ("upload them to look
+at", the user); types and tags OK'd as proposed 2026-10-30.

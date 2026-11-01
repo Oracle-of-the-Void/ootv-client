@@ -43,7 +43,9 @@ the text runs over it. Look closely before deciding a card has none.
 
 The bug shows what a card was printed for. Whether it's legal to play is a separate question: cards
 were banned from arcs after they were printed, and some formats allow cards from other arcs. The card
-page's legality shows the current answer.
+page's legality shows the current answer, each arc with its bug beside it (redrawn as a wax seal, the
+same style for every arc, so not exactly as printed). A Detailed Search result shows the bugs of the arcs
+the card is legal in under its versions.
 
 ## Which set: from Gold Edition on {#set-code}
 

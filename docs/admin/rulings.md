@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-25 (Rules Q&A from the Discord rules channels)
+Last updated: 2026-10-27 (Ivory expansion rulesheets: card notes and card-named rules; weekly Discord Rules Q&A sync)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -25,7 +25,7 @@ On the card's details page, **Rulings** sits above **Versions**. Clicking a link
 
 | Link | Opens |
 |---|---|
-| A rulebook page on the Rules shelf: `#rulebook=<id>,#page=<n>` (copy it from the Rules viewer's address bar, without the `#game=` part), optionally with a place on the page: `,#find=<words>`, `,#line=<n>` or `,#at=<percent>` (`rulebooks.md`; with text selected, the viewer's link button copies a `#find` link) | that page's image in a popup on the site, scrolled to the place and marked when the link has one, with **Open in Rules** to go to the book at that page, zoomed to the place. Hovering the link (mouse), or a long-press on it (touch), shows that place in a small popup, as the trait links do |
+| A rulebook page on the Rules shelf: `#rulebook=<id>,#page=<n>` (copy it from the Rules viewer's address bar, without the `#game=` part), optionally with a place on the page: `,#find=<words>`, `,#line=<n>` or `,#at=<percent>` (`rulebooks.md`; with text selected, the viewer's link button copies a `#find` link). In a book with a section map (the Comprehensive Rules), `#rulebook=<id>,#sec=VII.3.9.E` with no `#page` is better: it finds the section's page from the book, so a rebuild that moves pages doesn't break it; add `,#find=<words>` for a sentence inside a long section | that page's image in a popup on the site, scrolled to the place and marked when the link has one, with **Open in Rules** to go to the book at that page, zoomed to the place. Hovering the link (mouse), or a long-press on it (touch), shows that place in a small popup, as the trait links do |
 | An image (`.png`, `.jpg`, `.gif`, `.webp`), e.g. a screenshot of a ruling uploaded to the images bucket | the image in a popup on the site |
 | A PDF (`.pdf`) | the PDF in a popup on the site, with **Open in a new tab** |
 | Any other page (AEG's old rulings pages, forum posts, Wayback copies) | a small separate browser window, because most sites refuse to load inside another page |
@@ -57,6 +57,16 @@ ootv-claude `RULINGS-IMPORT.md`):
 - The FAQs' questions and answers (1997 to 2004) are rulings too: the question and its answer
   (`Q: ... A: ...`) go to each card the question names. A question about a title several cards
   share gets the same `needsreview` note.
+- Comprehensive Rules (Samurai and Celestial, chapter "Specific Card Rulings and Most Recent Printings",
+  `rulebooks.md`): each card's MRP (`Erratum: Reads, "..."`) and rulings, linked to the book page. A title several
+  cards share went only to the card whose stats or text the entry quotes, so these have no `needsreview` note.
+  Celestial's went on 2026-10-26; Samurai's replaced the October 2007 print's the same day, when its remaster of
+  the final (2009) wiki took over that shelf id (the old ones' copies on other printings and their notes went too).
+- Ivory expansion rulesheets (Thunderous Acclaim, Evil Portents, The Blackest Storm; 2026-10-27): their seven "Notes on
+  Specific Cards" are on those cards, linked to the rulesheet's page (`Evil Portents rulesheet, p. 1`). Four more cards that a
+  rule on them names (Yogo Mizoguchi of Evil Portents, Sannin, Utaku Zo Sia, Grievous Wound) have that rule as a ruling plus a
+  `needsreview` note asking whether the card's text needs updating, for the rules team. The same notes are chapter XV of the
+  Ivory and 20F Comprehensive Rules.
 - Rulings on general rules topics (Costs, Timing, Tokens...) and questions that name no card stay
   in the books, not on cards.
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
@@ -169,7 +179,7 @@ copy), `forum-qa.py`, `email-plan.py --base` and `forum-pages.py` from ootv-game
 Since the forum, rules questions are asked on Discord: Oracle of the Void `#rules` (and the L5R CCG format
 channels: Imperial … Obsidian Hand, `#l5r`), Sun and Moon `#rules-questions` and Onyx Lives `#rules-questions`.
 Our bot (ootv-discord `scripts/export-channels.js`, read-only, needs the Message Content intent) copies them to
-ootv-games `game-l5r/discord-rulings/`, and they're copied to pages under
+ootv-tools `rulings/discord/exports/` (in git, so each week's new messages are a diff), and they're copied to pages under
 `https://images.oracleofthevoid.com/l5r/rulings-discord/`, one per channel and month with at least one answered
 question (`<server>-<channel>-<yyyy-mm>.html`, index `index.html`), every message included, with previous/next
 links. Each question has its own anchor (`#r<message id>-0`) and lists the cards its answers went onto. Players
@@ -178,16 +188,23 @@ are shown as "A player"; the officials are named.
 Official answers are Oracle of the Void staff's: Brook Cunningham (MacBeth2001), Alex Jones (AkodoGilador),
 Jeremy Sumerlin (TetsuroJ) and Jeff Williamson (docangst). The site owner (Kiyoteru) isn't counted. kempy_nezumi and
 saaam answer often but aren't officials: their answers go on a card only when it has no rulings and no Rules Q&A
-at all, starting "Unofficial answer:". An answer is a staff member's messages replying to a question (Discord's
+from another source, starting "Unofficial answer:". An answer is a staff member's messages replying to a question (Discord's
 reply link, or following it in the channel within a few hours); every official answer to a question is kept, in
 order. The rest is chosen and placed as for the digests and the forum (an answer the card already has from
 another source isn't added again). Hand decisions for titles with several versions, and for unofficial answers
 that weren't rulings: ootv-import `rulings-discord-decisions.tsv`. Re-syncing replaces only the entries linking to
 the Discord pages (`--sync .../rulings-discord/ --sync-note "Discord rulings:"`), so a rerun after new
 questions is safe. Made by ootv-import `SCRIPTS/discord-qa.py`, `email-plan.py --base` and `discord-pages.py`
-(see ootv-games `game-l5r/discord-rulings-work/README.md`).
+(see ootv-tools `rulings/discord/README.md`).
 
 Written 2026-10-25: 875 answers, 1,148 entries on 816 cards, no needsreview notes.
+
+Kept current since 2026-10-27 by a weekly job (ootv-tools `rulings/discord-sync.sh`, cron on the ai box, Mondays
+6:47 CDT): it exports the new messages, replans, uploads the pages and, only when something changed, re-syncs the
+cards the usual way (the day's table export, an updatelog row per card, one bulkupdate row, search checked afterwards). An
+unofficial answer comes off a card once the card gets a ruling. A new question that lands on several versions of a
+card goes to each with a "Discord rulings:" needsreview note until a row in `rulings-discord-decisions.tsv` settles it.
+First run 2026-10-27: 9 cards.
 
 Edit `rulingref` in the card editor like `ruling`. Advanced search has a **Rules Q&A** text box for it.
 

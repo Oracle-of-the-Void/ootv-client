@@ -6,6 +6,7 @@
 * [/oracle-fetch (GET)](#oracle-fetch)  -> Get cards by cardid
 * [/search (POST)](#search)                    -> Search cards, return results
 * [/oracle-structure (GET)](#oracle-structure) -> Returns information about games (templating, etc)
+* [/gameconfig (GET)](#gameconfig)             -> A game's config in one request (or every game's Discord block)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
 * [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
@@ -16,11 +17,12 @@
 
 * [/user (GET)](#user)                          -> Verify user account and return user data 
 * [/user (POST)](#user-post)                    -> Change your own name, add or remove your emails
-* [/import (POST)](#import)                     -> import decks/lists from external files
+* [/import (POST)](#import)                     -> read a pasted or uploaded deck/list's cards
 * [/list (GET)](#list)                          -> deck/list handling routines
 * [/update (POST)](#update)                     -> database modification routines
 * [/upload (POST)](#upload)                     -> presigned S3 URLs for uploading card images
 * [/loginlog (GET)](#loginlog)                 -> sign-in log for the admin page (site admins only)
+* [/admin (POST)](#admin)                      -> user lookup/edit and the audit log for the admin page (site admins only)
 * [/discord (GET, POST)](#discord)            -> Discord bot settings for the admin page (site admins only)
 * [/setimport (POST)](#setimport)              -> Admin set import and import profiles (ootv-admin Lambda)
 * [/setimportverify (POST)](#setimportverify)  -> after a set import: the written cards vs search
@@ -147,6 +149,7 @@ inputs - sent in body querystring:
   * tops out around 1000, please don't abuse this and run more than once a day
 * from (default 0)
   * Pagination page number (0 indexed)
+* rulings (optional): `1` keeps `ruling` and `rulingref` in the hits (the Discord bot's `/rulings`)
 * querystring (optional)
   * string to do an elastic query_string (operator AND)
 * pairs of field_xxx (contains the data) and type_xxx (defines the operation)
@@ -163,8 +166,18 @@ inputs - sent in body querystring:
     * elastic match_phrase
   * type_xxx = 'select'
     * checks terms against the .keyword part of a text field  (can be multi-value)
+  * field_banned: cards with a `legalityderivedexception.remove` entry; field_legality / field_printing_legality, if any, say which
+    names it must hold, and don't otherwise filter (admin `derived-legality.md`, "Bans")
   * type_xxx = 'exists'
     * if parameter has a value, returns cards that contain the field with data
+  * type_xxx = 'numeric', with field_lower_xxx (min) and/or field_upper_xxx (max)
+    * card fields: matches the plain number or `numrange.xxx`, the integer range dynamo-to-os indexes
+      for every numeric field, by overlap, min and max in one clause: `*`/`X` cards (0 up) match any
+      range they touch, `2*` is 2, `+5/+0` is 5 or 0, a card's `variablevalues.xxx` wins
+      (`docs/admin/field-descriptions.md`, since 2026-10-28); `conditionalvalues` (a value in a deck of
+      some clan) is never searched
+    * printing fields (`field_lower_printing_xxx`): plain range on the number
+    * a min that isn't a number (e.g. `*`) is an exact match on `xxx.keyword` instead
   * a select field's value can be a derived name (e.g. l5r `Legacy`, `Paper`) from the game's
     `attributes.<field>.derived` config; the API expands it into its rule
 * require_xxx (optional, one or many values)
@@ -180,6 +193,11 @@ outputs:
   * .timed_out: true/false
   * .hits.total: number of results
   * .hits.hits: array of cards
+    * without `updatelog`, `ruling` and `rulingref` (they made big answers pass Lambda's 6 MB limit;
+      ootv-search PROBLEMS.md #21). In their place `_source.updatelast` (the newest updatelog row's
+      timestamp, ms), `rulingcount` and `rulingrefcount` (left out when 0). The whole card comes
+      with `/oracle-fetch`: the card page fetches it for a card with rulings or Rules Q&A, and the
+      update log when "Latest Updates" opens
 
 codes:
 
@@ -208,6 +226,26 @@ codes:
 * 404: not found
 * 5xx: error
 
+## /gameconfig
+
+Handled by lambda: ootv-search/routes/gameconfig.js. Public, read only, `Cache-Control: no-cache`.
+
+`GET /gameconfig?database=<game>`: everything the client needs to draw a game (`gameconfigapply()`
+in `oracle.js`), from `oracle-all-structure`, without the items' `history`:
+* `database`, `version` (the items' versions joined, to tell a stored copy is current)
+* `games`: `all/games` (the game menu)
+* `game`: `<game>/game`, or null for a game with no config
+* `fields`: `{all, game}`, `all/fields` and `<game>/fields`
+* `templates`: `all/templates`
+
+400 without a valid `database`.
+
+`GET /gameconfig?discord=1`: what the Discord bot (ootv-discord `src/games.js`) reads at cold start,
+in one request so it doesn't wake several API containers at once:
+* `games`: `all/games` (preview flags included; the bot leaves those games out)
+* `discord`: `{<game>: <game>/game's discord block}` for each game in the menu that has one
+  (`docs/admin/game-config.md`)
+
 ## /user
 
 Pulls user data from DynamoDB based on email in cognito payload (after verifying validity of cognito tokens submitted).  Then return user's entry.
@@ -220,6 +258,7 @@ inputs:
   * tokens from Cognito
 * database (with settings)
 * settings (optional): JSON object of client settings for that database, saved to the user's `settings[database]`
+  (`database=all`: settings for every game, such as `theme`, `game`, `textversion`, `gestures`)
   * any object up to 4096 bytes and 4 levels deep; the client checks values before using them
   * today: `{"search": "<template key>", "card": "<template key>", "list": "<template key>", "sort": "<searchsorts key>", "sortdir": "asc"|"desc", "sortmode": "lex"|"punct"|"library"}`
     plus `"mobile": {same keys}`: phones (narrow screens) save and read their own set there
@@ -314,41 +353,59 @@ names the sender and links to `#view=messages`; it never carries the message tex
 
 ## /import
 
-Handles deck / list importing from text files
+Reads a deck / list as text and finds its cards; nothing is saved. Used by the list menu's
+Import (`importlist`, `importlisttrigger` and `importlistfinalize` in `oracle.js`), which sends a pasted
+list as the `file` part (`pasted.txt`), so a paste and a file read the same. When its **Printings from**
+is set (it starts on the list's legality; a derived format is sent as its base: Jade Extended → Jade),
+the client puts a `Legality: <arc>` line in front of the text. The client then saves the result:
+Replace as the whole list, Add by counting matching entries (same card, printing, foil) up.
 
-Handled by lambda: ootv-search/routes/import.js
+Handled by lambda: ootv-search/routes/import.js (its header comment has the full matching rules)
 
-Note: I'm restricting the card search to 1000 results for bounding, this is a number pulled out of a hat and may need adjustment
+Note: the card search is capped at 1000 results, a number pulled out of a hat that may need adjustment.
+Lines are searched 25 at a time (the 4096 clause limit).
 
-Note: I'm returning this as list/failed to allow the front-end application to determine if it wants to continue or not instead of just stuffing it into a list directly.
-There is theoretically a little more flexibility here in that lists can be created / manipulated without saving them.
+Note: the result comes back as list/failed so the front end can ask before loading it, instead of
+just stuffing it into a list.
 
 inputs: form/multipart
 
 * table (required)
 * name=file cardlist (required)
-  * text file, one card per line.
-  * leading numbers are treated as quantity
-  * anything after a parenthesis or comment is stripped for purposes of searching
-  * leading/trailing whitespace stripped after the above two things are removed
-  * blank links after stripping are ignored
+  * text, one card per line
+  * a leading count is the quantity: `3 `, `3x `, `3 x ` (not the `1` of "1,000 Cuts Technique")
+  * `#` starts a comment; blank lines are skipped
+  * `Title (Set)`: the printing from a Sun and Moon edition code, else a set name or set initials
+  * a trailing `[foil]` / `[foil or not]` sets the entry's `foil` (`foil` / `either`)
+  * `Legality: <arc>` (`_` read as a space): the following lines get the newest printing whose
+    legality is that arc ("Emperor" is Age of Conquest (Emperor), "Ivory" finds "(Ivory Edition)"),
+    by the set order the site uses (arc group, then `printing.set` `sortregex`; the later stored
+    printing on a tie), skipping `notmrp` printings, as the site's legality search picks (since
+    2026-10-29, ootv-search #152); a later Legality line takes over.
+  * a line no title matches falls back to the title without punctuation or a leading "The"/"A", then
+    the name before a comma (the experienced level kept), each only when one card fits, then a
+    fuzzy search on the name (typos)
 * fieldlist (required)
   * fields to match on in priority order: comma-separated
-  * e.g: textsnm,puretexttitle,title
-    * Sun and Moon adjusted title
-    * Common text representation of title ( Big Dog &amp;149; Experienced  ->  Big Dog - exp )
+  * the client's choices: `textsnm,puretexttitle,title,alttitle` (Sun and Moon; also matches a
+    printing's `titletextsnm`) and `puretexttitle,title` (Native Oracle, or a plain card list)
+    * textsnm: Sun and Moon adjusted title
+    * puretexttitle: common text representation of title ( Big Dog &amp;149; Experienced  ->  Big Dog - exp )
     * title
-  * puretexttitle and textsnm would only exist if they differ from the others
-  * more fields may be added as they are found
+  * puretexttitle and textsnm only exist if they differ from the others
+  * a title several cards share (Border Keep) gets the plain card, not a variant
 
 outputs:
 
-* list: { {cardid: x, quantity: x, printing: x }, ... }
-* failed: array of failed lines in input (blank lines after stripping ignored)   TODO: maybe we should return blanks somehow?
+* list: [ {cardid: x, quantity: x, printing: x[, foil: "foil"|"either"]}, ... ] (printing 0: none picked,
+  the card's default printing)
+* failed: array of failed lines in input (blank lines after stripping ignored)
 
 codes:
 
 * 200 success
+* 500 bad input (no table, file or fieldlist) or a search error: `{error}` (e.g. "fieldlist needed"),
+  which the client shows
 
 ## /list
 
@@ -373,11 +430,17 @@ inputs:
 * updatefield (optional)
   * ignored if 'new' operation happening
   * user must be the list's owner
-  * one of ['name','notes','public','type','list','legality','folder']
-    * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality,
+  * one of ['name','notes','public','type','list','legality','folder','deckconstruction','summary']
+    * list name, list notes, public flag, list type, list data: { {cardid: x, quantity: x, printing: x }, ... }, legality
+      (any text; the client's menu offers the game's formats, plus Special on a list's own Legality menu),
       directory folder: a path like "Tournament/2026" ('' = top level; trimmed, at most 255 characters).
       Empty folders live in the user's settings[database].folders (see /user settings)
-  * if this is set we update that field of the list (updatevalue), and modified, except for folder
+  * summary: what the directory shows without the cards, `{"decks": [{"name", "copies"}], "buildbad": true|false, "clan": "..."}`
+    (copies per deck, in deck order, at most 10; whether the deck construction check fails, its rules or a card not legal in the deck's format; optional `clan`, plain
+    text, at most 60 characters: the first Stronghold whose clan has a mon, drawn before the list's name). The client saves it
+    after drawing one of the user's own lists, or one being edited as an admin (`listsummarysave()`); '' removes it. The lists index copies
+    `buildbad` into its summaries for the public listing's Illegal mark
+  * if this is set we update that field of the list (updatevalue), and modified, except for folder and summary
   * saving `list` also adds 1 to the list's `rev` and returns the new one as `rev`
 * baserev (optional, with updatefield=list)
   * the `rev` the client's edits started from (0 if the list has none yet). The save only goes through if
@@ -385,6 +448,10 @@ inputs:
     and the client merges its changes into it and saves again (#337). Without baserev, the last save wins.
   * TODO: when updating 'list' field, we should have a field that has the quantity of cards in it that gets updated as well, so general listing can have that info
 * action (optional)
+  * search (no listid; database required): the [/publiclists](#publiclists) search over this user's own lists,
+    private ones too, with the same parameters and answer (`game` is `database`; `owner` is ignored: always you).
+    Each hit also has `public`. The client's My lists (`publicmine()` in `oracle.js`) and the card view's folder
+    link (`cardid=N&minqty=1&size=0`, its `total`) use it. A save reaches it within seconds (the index's stream)
   * remove
     * delete that list (owner only, 403 otherwise)
   * duplicate
@@ -397,7 +464,7 @@ inputs:
 outputs:
 
 *  listid ''
-  * lists.Items: array of { createdate, listid, notes, public, owner, game, name, modified, type, legality, folder, totalcount, distinctcount }
+  * lists.Items: array of { createdate, listid, notes, public, owner, game, name, modified, type, legality, folder, totalcount, distinctcount, summary }
   * doesn't return actual lists as that can be quite lengthy.
 * listid set or new listid
   * elastic returning the list
@@ -456,8 +523,8 @@ codes:
 
 ## /publiclists
 
-GET, no authentication (ootv-search `routes/publiclists.js`). Searches the public lists index (an OpenSearch
-index of every public list with its cards' titles and, for l5r, the stronghold, clan and the formats all of a
+GET, no authentication (ootv-search `routes/publiclists.js`). Searches the public lists (an OpenSearch
+index of every list, which this route sees only the public ones of, with its cards' titles and, for l5r, the stronghold, clan and the formats all of a
 deck's cards are legal in; ootv-search `CLAUDE.md`, "Public lists search"). The client's Public lists view
 (`#view=public`, `#publiclists=<query>`, `publicsearch()` in `oracle.js`) calls it. Send it as a CORS simple
 request, like `/publiclist`.
@@ -466,7 +533,8 @@ inputs (a value list can be repeated or comma separated):
 
 * game (required)
 * q: text over list name, notes, owner name and card titles
-* card: lists with a card whose title matches (phrase)
+* card: lists with a card whose title matches (phrase); a number (`1234` or `#1234`) is that card id, as `cardid`
+  (for two cards with the same title)
 * cardid: lists with all of these cards; minqty: at least this many copies of each (the client sends `minqty=1`:
   the card page's "in N public decks" count is `cardid=N&minqty=1&type=deck&size=0`, its `total`)
 * type, clan, stronghold (title), owner (uid)
@@ -485,14 +553,18 @@ inputs (a value list can be repeated or comma separated):
   copies` (summed over them); `order=decks` (default) or `copies`, `cardtype` (one or more) narrows to those card
   types. It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
   `cardtype` filter).
+  `cardcounts` (the Detail search results' globes): every card's deck count at once, unpaged:
+  `{total, group, counts: {cardid: decks}, complete}`. `decks` is the card page's count (decks with at least one
+  copy); only cards in a deck are in `counts`; `complete` is false if it was cut short (more cards than it takes).
 
 outputs:
 
 * total, from, size, sort
-* hits[]: `listid, game, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
-  (the owner's own legality label), `created, modified, totalcount, distinctcount, sourcelistid`, `award {event, result, year}`, `derived`
+* hits[]: `listid, game, public, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
+  (the owner's own legality label), `created, modified, totalcount, distinctcount, buildbad, sourcelistid`, `award {event, result, year}`, `derived`
   (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
-  `cardslegal[], unknowncards`), and with
+  `cardslegal[], unknowncards`; `fatecount`/`dynastycount` follow the game config's `sort.pick` `moves` for the list's
+  own legality: L5R Sensei count as Fate in Jade and Imperial decks), and with
   cardid, `card {cardid, quantity}` for the first cardid
 * facets: `type, clan, stronghold, format`, each `[{value, count}]` over the whole result; `winner`: a count
 
@@ -504,10 +576,13 @@ codes:
 
 ## /cardslegal
 
-POST (form: `table`, `cardids=1,2,3`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
-these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). Not a
-deck check. Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
-<cards not found>}`; 400 without a table or with over 5000 cards.
+POST (form: `table`, `cardids=1,2,3`, optional `format`), no authentication (ootv-search `routes/cardslegal.js`): the formats every one of
+these cards is legal in, for the list view's "All cards legal for" line (`liststatslegal()` in `oracle.js`). It looks
+only at the cards, not at the deck's size or copy limits; the client adds its `illegal` to the deck construction check
+(the summary's `buildbad`). Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
+<cards not found>}`; 400 without a table or with over 5000 cards. With `format` (the list's legality) it also answers
+`format` and `illegal: [{cardid, title}]`, the cards not legal in it; `illegal` is null for a value the game doesn't
+check, such as Proxy or a deck's Special.
 
 ## /list action=award, action=precon
 
@@ -516,6 +591,26 @@ deck check. Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out.
 otherwise). Answers `{award}`. Owners can't set it, and a copy doesn't keep it.
 `action=precon&precon={"product": ..., "year": ...}` marks a pre-constructed deck (starter, learn-to-play) the same
 way (`product` required). `/publiclists` takes `precon=1` and returns `precon` and a `precon` facet count.
+
+## /list: admin edits of anyone's list
+
+Who: `groups[<game>]` or `groups['*']` holding the explicit op `listedit`, or a site admin (`groups['*']` holding `*`).
+A plain `*` in a game's own groups is **not** enough (ootv-search `lib/admin.js` `listeditallowed`; the client's
+`listeditpermission()`). Admin guide: [admin-editing.md](admin/admin-editing.md).
+
+* Reading any list, private ones too, answers `adminedit: true` (with `ownername`): "this admin may edit it". The client
+  still shows it read only, with an **Edit as admin** button.
+* `action=adminopen&warning=<popup version>&notify=0|1`: the admin accepted the popup. Writes an audit row
+  (`listedit-open`) and answers `{adminopen: true}`; 403 without the permission (audited as `denied`).
+* Saves (`updatefield`, `baserev` as for the owner) on someone else's list need `adminedit=1`, plus `notify=1` to email
+  the owner (mailer template `listedited`, at most once an hour per admin and list). Without `adminedit=1`, or for
+  `folder` (the owner's filing), 403. The client's `summary` saves send no `notify`, so they never email the owner. Each save writes an audit row (`listedit-save`: field, old/new value,
+  or the card changes for `list`) **before** the write; if the row can't be written, nothing is saved.
+* Deleting (`action=remove`) stays the owner's.
+
+The client keeps the lists being edited in memory only (`adminediting` in `oracle.js`): a reload ends editing, and any
+save still waiting (card edits go 15 s after the last one) never goes out. Accepting the popup also makes the list active, and saves in the gap while a save's refetch is out still send `adminedit=1`. **Stop editing** waits for those saves. A 409's
+`list` is the bare item, without `adminedit` or `ownername`: the client keeps its own, or its merged save would be refused.
 
 ## /update
 
@@ -713,6 +808,31 @@ Output: `{entries, next}`
 Data: DynamoDB `oracle-all-logins`, read through its `feed-time` index. Written by the
 `cognito-post-auth` Lambdas in ootv-search.
 
+## /admin
+
+Site admins only (`groups['*']` includes `'*'`; 403 otherwise; 404 if the token's email isn't one of the uid's).
+The Admin → Audit → Users and Audit log pages (`useradmin.js`). Answers hold emails and names: don't cache them.
+
+Handled by lambda: ootv-search/routes/admin.js
+
+Input: POST JSON `{uid, action, ...}`
+* `usersearch` `{q}`: an email (exact), a uid, or part of a name / display name / email (a scan) → `{users: [{uid,
+  firstname, lastname, displayname, email, emails, insert_date}], more}` (at most 50). Audited (`user-search`).
+* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, logins: [{time, result, provider, ip, newDeviceUsed}]}`.
+  `user` is the users row without `settings`, `emailsends` or the pending code's hash, plus `patreon`. Audited (`user-view`).
+* `useredit` `{target, field, ...}`, one change, conditional on the value just read (409 if it changed), audited
+  (`user-edit`, old and new) before the write; answers as `userget` (+ `warning`):
+  * `field: 'name'`: `firstname` (required), `lastname`, `displayname` (`''` clears it; resyncs their public lists)
+  * `field: 'groups'`: `groups` `{<game> | '*': [ops]}`; `{}` removes them. Your own `groups['*']` must keep `*`.
+  * `field: 'addemail'`: `email`, added at once (no code); 409 if it belongs to another account
+  * `field: 'removeemail'`: `email`, not the last one; the address gets the `removed` notice
+* `auditlog` `{from, to, admin?, target?, limit?}`: days `YYYY-MM-DD` (UTC, at most 31), by admin uid or target
+  (`list#<id>`, `user#<uid>`) → `{rows, more}`, newest first (default 500, max 2000).
+
+Data: DynamoDB `oracle-all-auditlog` (ootv-search `lib/auditlog.js`, `infrastructure/create-auditlog-table.sh`).
+Row: `{day, id, time, admin, adminname, action, target, result, game, owner, field, old, new, cards, cardsmore,
+warning, listpublic, notify, notified, query}`. Append-only (the API's role is denied update and delete on it), kept for good.
+
 ## /discord
 
 Settings for the ootv-discord bot, for the Admin tab's "Discord bot" view.
@@ -828,6 +948,19 @@ permission on the game (whoever may search by photo; the Photo button's Find the
 | `sigqueue` | optional `pending` (true: waiting ones only), `after` (admins) | `{submissions: [...] (newest first, 50), next}` |
 | `sigdecide` | `id`, `decision` (`approve` / `reject`), optional `artist` (approve: the name to file it under), `note` (admins) | `{submission}` |
 
+The signature catalogue (Admin → Artists; ootv-search `admin/signatures.mjs`, table
+`oracle-all-signatures`, key `artist` + `file`) uses the same route with `database: "all"` and the
+Artists editor's permission (`artists` or `*` in groups `all` or `*`). `n` is the length of the
+signature's `updatelog` as loaded: if it changed since, the call is refused with 409.
+
+| action | input | output |
+|---|---|---|
+| `siglist` | optional `artist` (an entry's name) | `{artist, path, signatures: [item + n]}`, or without `artist` `{counts: {artist: n}}` |
+| `sigedit` | `artist`, `file`, `n`, any of `read`, `how`, `note` (empty removes it) | `{signature}` (or `message: "no changes"`) |
+| `sigmove` | `artist`, `file`, `n`, `to` (an artist entry; an alias moves it to its main entry) | `{signature, from}` |
+| `sigdetach` | `artist`, `file`, `n` | `{submission}`: a pending row in the game's Signature submissions, no artist |
+| `sigdelete` | `artist`, `file`, `n` | `{deleted, trash}`: the crop moved to `removed/<time>-<file>`, an `oracle-all-imagetrash` row (reason `signature-deleted`) with the item |
+
 A job: `{game, id, status: queued / running / done / error, created, started, finished, cardid,
 printingid, title, set, artist (the credit when queued), uid, uname, result, error}`; an upload has
 `image` (its key in the reports bucket, `artcheck/<game>/<id>.jpg`) and `kind` instead of the card,
@@ -844,9 +977,11 @@ rows of the same painting (non-empty: nothing to submit). After a submission the
 A submission: a row `game = "sigsub/<game>"` in `oracle-all-artcheck` (no expiry) `{id, status: pending /
 approved / rejected, created, job, file (its PNG, kept at artcheck-signatures/<game>/<id>.png), crop,
 read, cardid, printingid, title, set, credit, artist, uid, uname, decided, decidedby, note, filed:
-{artist, path, file}}`. Filing copies the PNG to `artists/<slug>/signatures/` on the images bucket,
-appends an `index.json` row (`how: submitted`, `by`, `approved`, `job`, `added`) and updates the
-artist entry's `signatures` with an updatelog row (`source: sigsubmit`), then stamps row
+{artist, path, file}}`; a signature detached in Admin → Artists also has `detached: {from, file, how,
+note, by, approved, added, at, byname, updatelog}` and no `artist` until approved. Filing copies the
+PNG to `artists/<slug>/signatures/` on the images bucket and puts an `oracle-all-signatures` item
+(`how: submitted`, `by`, `approved`, `job`, `added`, an updatelog row `source: sigsubmit`; a detached
+one keeps its own), then stamps row
 `game = "worker", id = "catalogue"` (`updated`, `artist`) so the worker reloads its catalogue. `worker`: `{seen, host, state,
 references, online}` (`online` false when the heartbeat is older than 10 minutes, or `{online:
 false}` when it never ran).

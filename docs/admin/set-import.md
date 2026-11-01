@@ -93,8 +93,8 @@ Both need the `setimport` permission (or `*`) for the game.
    the artcheck permission). The results stay with the import (30 days).
 6. **Go live.**
    - *Start the export* takes a full table backup (5–10 minutes). It's optional: Apply doesn't
-     wait for it, so skip it when the table already has a recent export (one from another bulk
-     write today, say). Without either, there's nothing to roll back to.
+     wait for it, so skip it when the table already has an export from today (one from another bulk
+     write, say): take at most one export per table a day. Without either, there's nothing to roll back to.
    - *Apply* (after ticking the confirmation) writes the cards. Search picks them up as they
      go in (the search index takes a live stream, so nothing is paused). Each new card gets an `op: new` update log entry; each reprint gets `newinstance`.
      A reprint whose printing brings an arc the card's own legality lacks (Three Dynasties, say) also gets

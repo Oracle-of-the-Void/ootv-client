@@ -17,6 +17,7 @@ $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
 $.views.helpers("sortlegality",templatesortlegality);
+$.views.helpers("legalitybugs",function(data) { return legalitybugline(data); });
 $.views.helpers("sortprintings",templatesortprintings);
 $.views.helpers("printingidfromset",templateprintingidfromset);
 $.views.helpers("listqty",listquantity);
@@ -26,6 +27,7 @@ $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); }
 $.views.helpers("foilmark",templatefoilmark);
 $.views.helpers("foilof",templatefoilof);
 $.views.helpers("listfoil",templatelistfoil);
+$.views.helpers("cardsides",templatecardsides);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
 	day:   'numeric',
@@ -73,7 +75,10 @@ $.views.converters("listTypeSelect",function(type) {
     }
     return sel;
 });
-$.views.converters("listLegalitySelect",function(legality) {
+// a deck's own Legality choice, in every game: not a format cards have, so it's no search filter, import arc or
+// /cardslegal format, and it starts with no deck construction rules (deckbuildrules)
+var decklegalityspecial = 'Special';
+function listlegalityoptions(legality) {
   var sel='<option value=""></option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
@@ -97,9 +102,18 @@ $.views.converters("listLegalitySelect",function(legality) {
     sel += '<option value="'+thislegality+'"'+(thislegality==current?' selected':'')+'>'+thislegality+'</option>';
   });
   return sel;
+}
+$.views.converters("listLegalitySelect",listlegalityoptions);
+$.views.converters("deckLegalitySelect",function(legality) {
+  var current = (legality||'').replace(/&nbsp;/g, " ");
+  return listlegalityoptions(legality)+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
 });
 $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
+});
+$.views.converters("legalitybug",function(val) { return legalitybug(val); });
+$.views.converters("legalitybugged",function(val) {
+  return legalitybug(val)+(val||'').replace(/&nbsp;/g, " ");
 });
 $.views.converters("databaseitemlookup",function(item) {
   if(item=="blurb" && typeof blurb !== 'undefined' && blurb[database]) {
@@ -207,6 +221,19 @@ if(found = window.location.href.match(/([\w_-]+)\.html/)) {
     window.location = location.protocol + '//' + location.host + location.pathname;
   }
 }
+// a shared link's second '#' (#game=l5r,#listid=...) can arrive as %23: iOS apps (Discord's in-app browser)
+// escape it, and then the link read as #game=l5r alone (the search form, no deck). Values are
+// encodeURIComponent'd, so ',%23word=' is never part of one.
+function hashunescape(hash) {
+  return hash.replace(/(?:,|%2C)%23(?=\w+(?:=|,|$))/gi, ',#');
+}
+function hashrepair() {
+  var fixed = hashunescape(location.hash);
+  if(fixed != location.hash) {
+    history.replaceState(history.state, '', location.pathname + location.search + fixed);
+  }
+}
+hashrepair();
 if(cache_session("database")) {
   database = cache_session("database");
 } else if(cache_session("favoritegame") && !/#game=/.test(location.hash)) {
@@ -241,14 +268,16 @@ function dologin() {
 }
 function dologout() {
     auth.signOut();
+    var theme = cache_session("theme");
     localStorage.clear();
     sessionStorage.clear();
+    if(theme) cache_session("theme",theme);
 }
 // Clear Cache menu: drop cached data but keep the Cognito login tokens
 function clearcache() {
     for (var i = localStorage.length - 1; i >= 0; i--) {
 	var key = localStorage.key(i);
-	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0) {
+	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0 && key != "session_theme") {
 	    localStorage.removeItem(key);
 	}
     }
@@ -264,6 +293,7 @@ function logoutcallback() {
     rendersettings(); // logged out it shows only the search settings kept in this browser
     rendersavedsearches();
     updateviewbuttons();
+    cardlistbar();
 }
 function logincallback(session) {
     if (session) {
@@ -512,6 +542,7 @@ function userinfocallback() {
     applysearchdefault();
     applyfavoritegame();
     msgunread();
+    applysavedtheme();
 }
 // the name to show: the one saved on the user (firstname/lastname, editable on Settings, #21), else the login's
 function username(user) {
@@ -563,14 +594,34 @@ function signedin() {
 
 //**********************88     LIST STUFFF ****************
 // TODO: cache this better...
+// the list someone asked to see (a shared link, a directory click) until it arrives. Loads behind the scenes
+// (the first list in the directory, restored active lists) must not draw over it, whichever answers last.
+// Stays set when the list can't be opened, so they don't replace "private or doesn't exist" either.
+var listopening = null;
+var listopencount = 0;   // counts those requests: a load that began before the latest one lost to it
+function listsuperseded(listid) {
+  return listopening !== null && listopening != listid;
+}
+// this list's cards just arrived: is it still the one to draw?
+function liststale(listid) {
+  return listsuperseded(listid) || $("#lastlistid").val() != listid;
+}
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
+  if(listid && switchview && !listoutput) {
+    listopening = listid;
+    listopencount++;
+  }
+  var openseen = listopencount, outranked = listsuperseded(listid);
   // exports (listoutput: text, Sun and Moon, PDF) skip the cache, so they never use a copy another computer has changed
   if(listid && !listoutput && cache_thing("list",listid) != null) {
 	  console.log("cached");
-	  $("#lastlistid").val(listid);
-	  renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+	  if(!listsuperseded(listid)) {
+	    listopening = null;
+	    $("#lastlistid").val(listid);
+	    renderlist(cache_thing("list",listid).list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+	  }
 	  if(done) {
 	    done();
 	  }
@@ -592,8 +643,13 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 		      }
 		      listsortdefault(data);
 		      cache_thing("list",listid,data);
-		      $("#lastlistid").val(listid);
-		      renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+		      if(listoutput || (!outranked && openseen == listopencount)) {
+			if(!listoutput) {
+			  listopening = null;
+			}
+			$("#lastlistid").val(listid);
+			renderlist(data.list.Items[0],switchview,listoutput+(outputheaders?'':',noheaders'));
+		      }
 		      renderlisteditarea();
 		      if(done) {
 			done();
@@ -649,6 +705,130 @@ function listmine(listid) {
   var list = cache_thing("list",listid);
   return !!(list && list.list && list.list.Items[0] && list.list.Items[0].owner == getuid());
 }
+// Admin editing of someone else's list (docs/admin/admin-editing.md; ootv-search /list, lib/admin.js): an
+// admin with list editing opens it read only, clicks Edit as admin, accepts the popup (listadminopen), and
+// edits it under a banner until Stop editing or a reload. Every open and save is in the audit log.
+// listid: {notify} for the lists being edited now; in memory only, never saved
+var adminediting = {};
+// the popup text's version, kept in the open's audit row: change it whenever the text changes
+var ADMINEDITWARNING = '2026-10-30';
+// may edit anyone's list in this game: the 'listedit' operation for this game or every game, or a site
+// admin. A '*' in a game's own groups isn't enough (as ootv-search lib/admin.js listeditallowed)
+function listeditpermission() {
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(Array.isArray(groups['*']) && groups['*'].includes('*')) {
+    return true;
+  }
+  return [database,'*'].some(function(g) { return Array.isArray(groups[g]) && groups[g].includes('listedit'); });
+}
+// someone else's list an admin may open for editing (ootv-search /list marks it adminedit)
+function listadmincan(listid) {
+  if(!listid || listmine(listid) || !listeditpermission()) {
+    return false;
+  }
+  var list = cache_thing("list",listid);
+  return !!(list && list.list && list.list.Items[0] && list.list.Items[0].adminedit);
+}
+// someone else's list an admin is editing now (accepted the popup)
+function listadminedit(listid) {
+  if(!adminediting[listid]) {
+    return false;
+  }
+  // each save empties the list's cache until the refetch answers: still being edited in that gap
+  return cache_thing("list",listid) ? listadmincan(listid) : listeditpermission();
+}
+// Edit as admin: the popup, then the open's audit row, then the edit controls
+function listadminopen(listid) {
+  var list = cache_thing("list",listid);
+  var item = list && list.list && list.list.Items[0];
+  if(!item || !listadmincan(listid)) {
+    return;
+  }
+  var owner = htmlEncode(item.ownername || 'another player');
+  var ispub = item.public === true || item.public === 'true';
+  modal('Edit '+owner+'\'s list as an admin',
+    '<div class="admineditwarning">'+
+    '<p><b>This list belongs to '+owner+'.</b> It is '+(ispub ? 'shared publicly' : '<b>private</b>: only its owner normally sees it')+
+    ', and it is their personal data.</p>'+
+    '<ul><li>Only change it for a good reason: fixing a mistake the owner asked about, or moderating something that breaks the site\'s rules.</li>'+
+    '<li>Everything you do, starting now, is recorded in the audit log under your name: opening it, and each change with the old and new values.</li>'+
+    '<li>Changes save straight to their list. There is no undo, and you can\'t delete it or change its folder.</li>'+
+    '<li>Don\'t copy or pass on what\'s in a private list.</li></ul>'+
+    '<p><label><input type="checkbox" id="adminnotify" checked> Email the owner that an admin changed their list</label>'+
+    ' <span class="admineditnote">(at most once an hour; you can change this while editing)</span></p>'+
+    '<p><button type="button" class="button" onclick="listadminaccept(\''+listid+'\'); return false;">I understand, edit it</button> '+
+    '<button type="button" class="button gray" onclick="nomodal(); return false;">Cancel</button> <span class="admineditstatus"></span></p>'+
+    '</div>');
+}
+function listadminaccept(listid) {
+  var notify = $('#adminnotify').prop('checked');
+  $('.admineditstatus').text('Opening...');
+  $.ajax({
+    type: "GET",
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=adminopen&warning="+ADMINEDITWARNING+"&notify="+(notify ? 1 : 0),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  }).done(function() {
+    adminediting[listid] = {notify: notify};
+    nomodal();
+    activatelist(listid); // straight into editing: cards add from search, and it redraws the list with the edit controls
+  }).fail(function(xhr) {
+    $('.admineditstatus').text('Could not open it: '+((xhr.responseJSON && xhr.responseJSON.error) || xhr.status));
+  });
+}
+// Stop editing: back to read only (and off the active lists). Card edits save after a wait (listedited) and
+// the save needs the admin edit still on, so any waiting go now and this finishes once they're in
+// (listinfoupdate); a save that fails leaves the banner up, and retries
+function listadminstop(listid) {
+  if(adminediting[listid] && listunsaved(listid)) {
+    adminediting[listid].stopping = true;
+    $('#resultlist .listadminstop').prop('disabled',true).text('Saving...');
+    if(updatepending[listid]) {
+      savecallback();
+    }
+    return;
+  }
+  delete adminediting[listid];
+  if(activelists.indexOf(listid) > -1) {
+    deactivatelist(listid);
+  }
+  listadminredraw(listid);
+}
+function listadminnotify(listid, on) {
+  if(adminediting[listid]) {
+    adminediting[listid].notify = !!on;
+  }
+}
+function listadminredraw(listid) {
+  var list = cache_thing("list",listid);
+  if(list && list.list && list.list.Items[0] && $("#lastlistid").val() == listid) {
+    renderlist(list.list.Items[0],false);
+    renderlisteditarea();
+  }
+}
+// the list's cards and details can be changed: your own, or as an admin
+function listeditable(listid) {
+  return listmine(listid) || listadminedit(listid);
+}
+// an active list's details for the active lists bar and the card controls: the directory's item, or for
+// someone else's list being edited as an admin (not in your directory) its loaded item. listdata: the loaded list.
+function activelistmeta(listid) {
+  var dir = cache_thing("list","data"), rev = cache_thing("list","datareverse");
+  var cached = cache_thing("list",listid);
+  var list = (dir && rev && rev[listid] !== undefined) ? dir.lists.Items[rev[listid]] :
+      (cached && cached.list && cached.list.Items[0] ? $.extend({}, cached.list.Items[0]) : {'listid': listid, 'name': 'List '+listid});
+  if(cached) {
+    list.listdata = cached;
+  }
+  return list;
+}
+// a #listid link while the list and its cards load: the list view at once, not the start page under it
+// (shared deck links looked broken: the About page showed for seconds first)
+function listloading() {
+  $('#resultlist').html('<div class="randarea">Loading the list…</div>');
+  showviewkeepurl('resultlist');
+}
 // a #listid link to a list that's private, deleted or never existed (the API answers all three alike)
 function listunavailable() {
   $('#resultlist').html('<div class="randarea">This list is private or doesn\'t exist.'+
@@ -698,6 +878,12 @@ function listmerge(listid,server) {
     }
   });
   console.log("list changed elsewhere, merged: "+listid);
+  // the 409's copy is the bare item: keep what /list adds for this reader, or an admin's merged save is refused
+  ['ownername','adminedit'].forEach(function(f) {
+    if(local.list.Items[0][f] !== undefined) {
+      server.Items[0][f] = local.list.Items[0][f];
+    }
+  });
   var data = {"list": server};
   listsortdefault(data);
   listsetbase(listid,server.Items[0].list,server.Items[0].rev);
@@ -781,6 +967,10 @@ function listinfoupdate(listid,field,value,failed=null) {
   // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
   var message_status = $('#list_modified\\:'+listid);
   var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
+  if(listadminedit(listid)) {
+    // someone else's list, opened as an admin (listadminopen); the server audits each save
+    url += "&adminedit=1&notify="+(adminediting[listid].notify ? 1 : 0);
+  }
   console.log(url);
   var cachedlist = cache_thing("list",listid);
   if(field == 'list') {
@@ -836,10 +1026,16 @@ function listinfoupdate(listid,field,value,failed=null) {
 	    if(failed) {
 		failed();
 	    }
+	    if(adminediting[listid] && adminediting[listid].stopping) {
+		$('#resultlist .listadminstop').text('Not saved, retrying...');
+	    }
 	  }
   }).always(function() {
     if(field == 'list' && !--listsaving[listid]) {
       delete listsaving[listid];
+    }
+    if(adminediting[listid] && adminediting[listid].stopping && !listunsaved(listid)) {
+      listadminstop(listid);
     }
   });
 }
@@ -847,8 +1043,8 @@ function listinfoupdate(listid,field,value,failed=null) {
 // ***********************  directory view and sort **************
 // view: 'table' (detailed list) or 'cards'; phones default to cards. sort: {field, desc}, default newest modified first.
 // Both are kept per browser (not per game) in localStorage.
-var dirsortdefaults = {'modified': true, 'created': true, 'name': false, 'listid': false, 'type': false, 'legality': false};
-var dirsortlabels = {'modified': 'Last Modified', 'created': 'Created', 'name': 'Name', 'listid': 'Id', 'type': 'Type', 'legality': 'Legality'};
+var dirsortdefaults = {'modified': true, 'created': true, 'name': false, 'listid': false, 'type': false};
+var dirsortlabels = {'modified': 'Last Modified', 'created': 'Created', 'name': 'Name', 'listid': 'Id', 'type': 'Type'};
 function dirviewstate() {
   var view = cache_session("dirview");
   return (view == 'table' || view == 'cards') ? view : (narrowscreen() ? 'cards' : 'table');
@@ -897,12 +1093,73 @@ function sortlists(lists,sort) {
     return cmp(dirsortkey(b,'modified'),dirsortkey(a,'modified')) || cmp(dirsortkey(a,'name'),dirsortkey(b,'name'));
   });
 }
+// a list's Count in the directory: the copies per deck from its summary (listsummarysave), "40/40 (80 total)"
+// (L5R: dynasty/fate; Pre-Game counts only in the total, as in the public listing), with a red Illegal when the
+// deck breaks its construction rules, its cards being legal in its format among them; the total alone for a list drawn before summaries were saved, or one deck
+function dircount(list) {
+  var total = parseInt(list.totalcount) || 0;
+  if(!total) {
+    return '';
+  }
+  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad);
+}
+// a list's count in the Active Lists bar, as the directory's but live: the decks from its last draw (liststats; every edit
+// redraws), else its saved summary. Decks that don't add up to the total (a stale summary, cards still loading): the total alone
+var listdeckdrawn = {}; // listid: the summary's decks from the last liststats
+function activelistcount(list) {
+  var item = list.listdata.list.Items[0];
+  var total = parseInt(item.totalcount) || 0;
+  var decks = listdeckdrawn[list.listid] || (item.summary || list.summary || {}).decks || [];
+  var sum = decks.reduce(function(t,d) { return t + d.copies; }, 0);
+  return deckcounthtml(sum == total ? decks : [], total, false);
+}
+// the mon before a list's name in the directory: its summary's clan (the first Stronghold's, listsummarysave)
+function dirmon(list) {
+  return list.summary && list.summary.clan ? clanmon(list.summary.clan) : '';
+}
+function deckcounthtml(decks, total, buildbad) {
+  decks = decks.filter(function(d) { return !/^pre-?game$/i.test(d.name); });
+  var text = decks.length > 1 ? decks.map(function(d) { return d.copies; }).join('/')+' ('+total+' total)' : total+' card'+(total == 1 ? '' : 's');
+  var title = decks.length > 1 ? decks.map(function(d) { return (d.name || 'Other')+' '+d.copies; }).join(', ') : '';
+  return '<span'+(title ? ' title="'+htmlEncode(title)+'"' : '')+'>'+text+'</span>'+
+    (buildbad ? ' <span class="dirillegal" title="Breaks the deck construction rules">Illegal</span>' : '');
+}
+// the list view keeps the directory's Count current: after drawing one of my lists' stats (a deck's after
+// its cards' legality too, liststatslegal), saves its copies per deck and the construction check as the list's summary (ootv-search /list updatefield=summary; doesn't
+// touch modified), when they changed. An admin editing the list saves it too (audited, the owner isn't emailed):
+// its owner may never open it again, and the public listing's Illegal reads the summary.
+function listsummarysave(listid, summary) {
+  var asadmin = listadminedit(listid);
+  if(!listid || !(listmine(listid) || asadmin)) {
+    return;
+  }
+  var cached = cache_thing("list",listid);
+  var item = cached && cached.list && cached.list.Items && cached.list.Items[0];
+  if(!item || JSON.stringify(item.summary || null) == JSON.stringify(summary)) {
+    return;
+  }
+  var store = function() {
+    item.summary = summary || undefined;
+    var dir = cache_thing("list","data"), rev = cache_thing("list","datareverse");
+    if(dir && rev && rev[listid] !== undefined) {
+      dir.lists.Items[rev[listid]].summary = summary || undefined;
+    }
+  };
+  $.ajax({
+    type: "GET",
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield=summary&updatevalue="+encodeURIComponent(summary ? JSON.stringify(summary) : '')+(asadmin ? "&adminedit=1" : ""),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: store,
+    error: function(status) { console.log(["listsummarysave", listid, status]); }
+  });
+}
 function renderdirectory() {
   var dir = cache_thing("list","data");
   if(!dir || !dir.lists) { return; }
   var view = dirviewstate(), sort = dirsortstate();
   var path = dirpath();
-  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions};
+  var ctx = {"pdfallowed": pdfallowed(), "snm": snmallowed(), "folderoptions": folderoptions, "dircount": dircount, "dirmon": dirmon};
   applyfolderselect();
   var listtemplate = $.templates(view == 'cards' ? "#template-listcards" : "#template-lists");
   var foldertemplate = $.templates(view == 'cards' ? "#template-dirfoldercard" : "#template-dirfolderrow");
@@ -1037,7 +1294,7 @@ $(document).on('click', function(e) {
 });
 // a press anywhere on a list's card or table row that isn't one of its controls opens the list
 $(document).on('click', '#directorycards [id^="listitem_"], #directorytable [id^="listitem_"]', function(e) {
-  if($(e.target).closest('select, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirnotes, .dirlistname, .dirdraghandle').length) { return; }
+  if($(e.target).closest('select, .ts-wrapper, button, a, input, nav, [contenteditable=true], .dircardnotes, .dirnotes, .dirlistname, .dirdraghandle').length) { return; }
   listinfo(this.id.replace('listitem_',''),true);
 });
 $(document).on('contextmenu', '#resultdir .dirlistname:not([contenteditable=true])', function(e) {
@@ -1557,6 +1814,7 @@ function listinfocallback() {
   renderdirectory();
   syncactivelists();
   searchaddall($('#lastsearchquery').val()); // logged in after the search showed
+  cardlistbar();
   // nothing in the list view yet: load the first list in the directory behind the scenes
   var lists = cache_thing("list","data").lists.Items;
   if(urlpendinglist) {
@@ -1584,6 +1842,10 @@ function toggleheaders() {
 
 // ***********************  list edits **************
 function renderlisteditarea() {
+    // the list view's toggle always says what this bar says
+    $('#resultlist .listviewheader').each(function() {
+	showlisttoggle($(this).attr('data-list'),activelists.indexOf($(this).attr('data-list')) > -1);
+    });
     if(activelists.length < 1) {
 	$("#deckarea").html(Object.keys(updatepending).length >0 ? '<div class="randarea"><span style="background-color:red;" onclick="savecallback();">Updates Pending</span></div>' :'');
     } else {
@@ -1592,12 +1854,8 @@ function renderlisteditarea() {
 	    '<div class="randarea">Active Lists:<br />'+
 		(Object.keys(updatepending).length >0 ? '<span style="background-color:red;" onclick="savecallback();">Updates Pending</span>' :'')+
 		listactivetemplate.render(activelists.map(function(listid) {
-		    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-		    if(cache_thing("list",listid)) {
-			list.listdata = cache_thing("list",listid);
-		    }
-		    return list;
-		}))+
+		    return activelistmeta(listid);
+		}), {"activelistcount": activelistcount})+
 		'</div><br /><br />'
 	);
     }
@@ -1620,6 +1878,7 @@ function activatelist(listid, done=null) {
     showlisttoggle(listid,true);
     saveactivelists();
     renderlisteditarea();
+    listopening = null; // picked by hand: it fills the list view, even after a link that couldn't open
     // after activelists has it: a cached list calls back at once, and the refresh renders its controls
     listinfo(listid,false,null,function() {
 	refreshactivelistviews();
@@ -1660,7 +1919,7 @@ function syncactivelists() {
 	}
     }
     var before = activelists.length;
-    activelists = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); });
+    activelists = activelists.filter(function(listid) { return rev.hasOwnProperty(listid) || listadminedit(listid); });
     activelists.forEach(function(listid) {
 	showlisttoggle(listid,true);
     });
@@ -1689,7 +1948,7 @@ function refreshactivelistviews() {
 	scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
     }
     if($("#lastcardid").val()) {
-	docardid($("#lastcardid").val(), lastcardprid(), qs || null, false, false);
+	docardid($("#lastcardid").val(), lastcardprid(), cardqs(), false, false);
     }
 }
 
@@ -1803,6 +2062,7 @@ function removelist(listid) {
 
 // a list was edited: save 15s after the last edit, and at least every minute while edits keep coming
 function listedited(listid) {
+    cardlistcounts();
     updatepending[listid]=1;
     clearTimeout(savetimeout);
     savetimeout = setTimeout(savecallback,15*1000);
@@ -1861,7 +2121,7 @@ function listentryis(ele,cardid,prid,foil) {
     return ele.cardid == cardid && ele.printing == (prid||0) && (ele.foil||'') == (foil||'');
 }
 function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
-    if(!listmine(listid)) {
+    if(!listeditable(listid)) {
 	console.warn("addlistitem: list "+listid+" isn't yours");
 	return;
     }
@@ -1871,12 +2131,16 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
     listitemchange(list,cardid,prid,n,abs,foil);
     listcounts(list);
     cache_thing("list",listid,list);
-    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
+    listqtyshow(listid,cardid,prid,foil);
     listitemsdone(listid);
+}
+// the count beside this card's +/- buttons, wherever they're drawn (search rows, the card page)
+function listqtyshow(listid,cardid,prid=0,foil='') {
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
 function addlistitems(listid,items,n=1) {
-    if(!listmine(listid)) {
+    if(!listeditable(listid)) {
 	console.warn("addlistitems: list "+listid+" isn't yours");
 	return;
     }
@@ -1909,7 +2173,7 @@ function listitemchange(list,cardid,prid=0,n=1,abs=false,foil='') {
 // the list entry's foil toggle (~listfoil): regular -> foil (-> foil or not, on a want list) -> regular. An entry
 // that lands on one already there (same card, printing and foil) joins it.
 function listfoiltoggle(listid,cardid,prid,foil) {
-    if(!listmine(listid)) { return; }
+    if(!listeditable(listid)) { return; }
     var list = cache_thing("list",listid), entries = list.list.Items[0].list;
     var cycle = list.list.Items[0].type == 'want' ? ['', 'foil', 'either'] : ['', 'foil'];
     var next = cycle[(cycle.indexOf(foil||'') + 1) % cycle.length];
@@ -1928,6 +2192,37 @@ function listfoiltoggle(listid,cardid,prid,foil) {
     cache_thing("list",listid,list);
     listitemsdone(listid);
 }
+// a list entry's version (the version menu; 0 = Default, no version chosen). foil null: the row can't say which
+// entry it is (Deck view), so every foil of that printing moves. A version never printed in foil can't be a foil
+// copy, so the foil choice goes. An entry that lands on one already there (same card, printing and foil) joins it.
+function listversionchange(listid,cardid,prid,foil,newprid) {
+    if(!listeditable(listid)) { return; }
+    newprid = Number(newprid) || 0;
+    var list = cache_thing("list",listid), entries = list.list.Items[0].list, card = cache_card_fetch(cardid);
+    var to = newprid ? ((card && card.printing) || []).find(function(p) { return parseInt(p.printingid) == newprid; }) : null;
+    var moved = [];
+    entries.filter(function(ele) {
+	return ele.cardid == cardid && (ele.printing||0) == (prid||0) && (foil === null || (ele.foil||'') == foil);
+    }).forEach(function(ele) {
+	var f = (to && !to.foil) ? '' : (ele.foil||'');
+	moved.push(ele.foil||'', f);
+	var other = entries.find(function(e) { return e !== ele && listentryis(e,cardid,newprid,f); });
+	if(other) {
+	    other.quantity = parseInt(other.quantity) + parseInt(ele.quantity);
+	    entries.splice(entries.indexOf(ele),1);
+	} else {
+	    ele.printing = newprid;
+	    if(f) { ele.foil = f; } else { delete ele.foil; }
+	}
+    });
+    listcounts(list);
+    cache_thing("list",listid,list);
+    moved.forEach(function(f) {
+	listqtyshow(listid,cardid,prid,f);
+	listqtyshow(listid,cardid,newprid,f);
+    });
+    listitemsdone(listid);
+}
 function listcounts(list) {
     list.list.Items[0].distinctcount = list.list.Items[0].list.length;
     list.list.Items[0].totalcount = list.list.Items[0].list.reduce(function (total,card) {
@@ -1943,10 +2238,16 @@ function listitemsdone(listid) {
 }
 
 function importlist(listid=null,name=null) {
-    // this will initiate a file dialog to upload a file to a list
-    var title = "Import a file from disk into: "+name;
+    // a pasted deck list or a file from disk, read by the API's /import
+    var title = "Import cards into: "+name;
     var importtemplate = $.templates("#template-import");
-    modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed()}));
+    // the printings default to the list's legality: an Imperial deck gets its Imperial arc printings
+    var cached = cache_thing("list",listid), dir = cache_thing("list","data");
+    var info = cached && cached.list && cached.list.Items && cached.list.Items[0] ? cached.list.Items[0] :
+        (dir && dir.lists && dir.lists.Items || []).find(function(l) { return l.listid == listid; });
+    modal(title,importtemplate.render({"listid": listid, "database": database, "snm": snmallowed(), "legality": info ? info.legality : ''}));
+    $('#importlegality option[value=""]').text("Each card's default printing");
+    if($('#importlegality option').length < 2) { $('.importlegalityrow').hide(); }
 }
 
 function deletecardtrigger(database=null,cardid=null,printid=null) {
@@ -1991,33 +2292,83 @@ function deletecardtrigger(database=null,cardid=null,printid=null) {
 
 // The Bookshelf (rules.js, loaded on first use; the Rules section until 2026-10-23): its shelves and the page viewer.
 // rulesstate is what the url says: the shelf shown ('': the one last shown), the book open (null: the shelf), its page (0: the first page with find),
-// the book search, and a place on the page to zoom to: find (a phrase), line (its number) or at (percent down).
-var rulesstate = {shelf: '', book: null, page: 1, q: '', find: '', line: 0, at: 0};
-// the place on the page from a url's #find=, #line=, #at= (rulesmarkhash: back into one)
+// the book search, and a place on the page to zoom to: find (a phrase), line (its number) or at (percent down), or a
+// section of a book with a section map (sec: "VII.3.9.E", its page and at from book.json sections, so the link
+// survives a rebuild that moves pages; page 0 until the book is loaded).
+var rulesstate = {shelf: '', book: null, page: 1, q: '', find: '', line: 0, at: 0, sec: ''};
+// the place on the page from a url's #find=, #line=, #at=, #sec= (rulesmarkhash: back into one)
 function rulesmarkparse(m) {
-  return {find: m.find ? decodeURIComponent(m.find) : '', line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0)};
+  var sec = m.sec ? rulessecnorm(decodeURIComponent(m.sec)) : '', find = m.find ? decodeURIComponent(m.find) : '';
+  return {find: sec && !rulessecfindok(find) ? '' : find, line: parseInt(m.line, 10) || 0, at: Math.min(100, parseFloat(m.at) || 0), sec: sec};
 }
 function rulesmarkhash(state) {
-  return state.find ? ',#find='+encodeURIComponent(state.find) : state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '';
+  return (state.sec ? ',#sec='+encodeURIComponent(state.sec) : '')+(state.find ? ',#find='+encodeURIComponent(state.find) :
+    state.sec ? '' : state.line ? ',#line='+state.line : state.at ? ',#at='+state.at : '');
+}
+// #sec=: a section's printed number, a lettered step in it, or a section's id, as book.json sections keys them
+// ("VII.3.9", "VII.3.9.E", "B3", "RULINGS-KATSU"; ootv-games comprehensive-rules/scripts/sections.py): upper case,
+// dots between the parts, so "vii 3.9 e" and "VII.3.9 E" work too
+function rulessecnorm(s) {
+  return String(s || '').trim().toUpperCase().replace(/[\s_]+/g, '.').replace(/\.{2,}/g, '.').replace(/^\.|\.$/g, '');
+}
+// where a section starts, {key, page, at}: the section asked for, else the nearest one holding it (VII.3.9.Z:
+// VII.3.9, key says which); null when the book has no map or nothing matches
+function rulessecplace(sections, sec) {
+  var k = rulessecnorm(sec).replace(/^GLOSSARY\.(?=[A-Z]\d)/, '');
+  while(sections && k) {
+    if(sections[k]) { return {key: k, page: sections[k][0], at: sections[k][1]}; }
+    k = k.lastIndexOf('.') > 0 ? k.slice(0, k.lastIndexOf('.')) : '';
+  }
+  return null;
+}
+// #sec with #find (a phrase inside a long section): done(page) for the first page from the section's on that has
+// the phrase, looking a few pages on; done(null) when none has it
+var rulingbooklines = {};   // lines/<NNN>.json url -> its request
+function rulessecfind(book, place, find, done, tries=0) {
+  var p = place.page + tries, url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(book)+'/lines/'+String(p).padStart(3,'0')+'.json';
+  if(tries > 4) { done(null); return; }
+  rulingbooklines[url] = rulingbooklines[url] || $.ajax({url: url, dataType: 'json', cache: true});
+  rulingbooklines[url].done(function(lines) {
+    if(rulesfindwords(lines, rulesnormfind(find), tries ? 0 : place.at * 100).length) { done(p); } else { rulessecfind(book, place, find, done, tries + 1); }
+  }).fail(function() { done(null); });
 }
 // letters and digits only, so a phrase matches across spaces, line ends, hyphens, quotes and punctuation
 function rulesnorm(s) {
   return s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g, '');
 }
-// the words of a page's lines that spell q (rulesnorm'd): [[line, word], ...], or [] when it isn't there
-function rulesfindwords(lines, q) {
-  var chars = '', at = [];
+// a #find phrase for rulesfindwords: rulesnorm'd, its ".*" gaps kept as "*" ("first words.*last words": a long
+// selection without a long url)
+function rulesnormfind(find) {
+  return String(find || '').split('.*').map(rulesnorm).filter(Boolean).join('*');
+}
+// a #find with a #sec only counts when it's long enough to tell places apart ("E." would find any e on the page): a
+// shorter one is dropped and the link goes to the section
+function rulessecfindok(find) {
+  return rulesnormfind(find).split('*')[0].length >= 10;
+}
+// the words of a page's lines that spell q (rulesnormfind'd): [[line, word], ...], or [] when it isn't there. With
+// gaps (first*last), from the first part to the end of the last one found after it, else just the first part.
+// fromy (1/10000ths of the page): only from the first line at or below it (a #sec's section start)
+function rulesfindwords(lines, q, fromy=0) {
+  var chars = '', at = [], start = -1;
   lines.forEach(function(line, i) {
+    if(start < 0 && line[1].length && line[1][0][1] >= fromy) { start = chars.length; }
     line[1].forEach(function(w, j) {
       var n = rulesnorm(w[4]);
       chars += n;
       for(var k = 0; k < n.length; k++) { at.push([i, j]); }
     });
   });
-  var from = q ? chars.indexOf(q) : -1;
+  var parts = (q || '').split('*'), from = parts[0] && start >= 0 ? chars.indexOf(parts[0], start) : -1;
   if(from < 0) { return []; }
+  var end = from + parts[0].length;
+  parts.slice(1).forEach(function(part) {
+    var at2 = end >= 0 ? chars.indexOf(part, end) : -1;
+    end = at2 >= 0 ? at2 + part.length : -1;
+  });
+  if(end < 0) { end = from + parts[0].length; }   // the end isn't on this page (a selection over two pages): the start
   var out = [];
-  for(var k = from; k < from + q.length; k++) {
+  for(var k = from; k < end; k++) {
     var last = out[out.length-1];
     if(!last || last[0] != at[k][0] || last[1] != at[k][1]) { out.push(at[k]); }
   }
@@ -2025,10 +2376,13 @@ function rulesfindwords(lines, q) {
 }
 // the words of a place (mark: {find, line}, as rulesmarkparse gives) on a page's lines: [[line, word], ...]
 function rulesmarkwords(lines, mark) {
-  if(mark.find) {
-    return rulesfindwords(lines, rulesnorm(mark.find));
+  if(mark.find) {   // with a #sec on the section's page (at set), only from the section's start
+    return rulesfindwords(lines, rulesnormfind(mark.find), mark.sec ? (mark.at || 0) * 100 : 0);
   } else if(mark.line && lines[mark.line-1]) {
     return lines[mark.line-1][1].map(function(w, j) { return [mark.line-1, j]; });
+  } else if(mark.sec) {   // a section: its heading (or a step's first line), the first line from at down
+    var i = lines.findIndex(function(line) { return line[1].length && line[1][0][1] >= (mark.at || 0) * 100; });
+    if(i >= 0) { return lines[i][1].map(function(w, j) { return [i, j]; }); }
   }
   return [];
 }
@@ -2179,7 +2533,9 @@ function imageuploaddefaults(cardid,printid,printing) {
            : cardid+'_'+printid;
   if(hasimages) {
     // another image of the same printing: number it past the ones already there
-    stem += '_'+(printing.image.length+1);
+    var n = printing.image.length+1;
+    while(printing.image.some(e => e.master && e.master.startsWith(stem+'_'+n+'_master.'))) { n++; }
+    stem += '_'+n;
   }
   return {"imagehash": hash, "stem": stem.replace(/[^A-Za-z0-9_.-]/g,''), "locked": hasimages};
 }
@@ -2337,12 +2693,12 @@ function uploadimagetrigger() {
       if(at >= 0) { image[at] = names; } else { image.push(names); }
       printing.imagehash = hash;
       printing.image = image;
-      // redraw the editor (its image list, image fields and the next file name), upload form left open
+      // redraw the editor (its image list and image fields), and back to it: the box's work is done
       if(cardedit && cardedit.printid == printid && cardedit.view != 'json') {
         cardeditrender();
-        $('#cardedit .cardeditupload').prop('open',true);
       }
-      status('Uploaded '+htmlEncode(names.master)+'. The instance now has '+image.length+' image(s): press Commit to save it to the card.');
+      $('#cardeditupload').hide();
+      cardeditstatus('Uploaded '+htmlEncode(names.master)+'. The instance now has '+image.length+' image(s): press Commit to save it to the card.');
     })
     .catch(function(e) {
       status('Error: '+htmlEncode(e.responseText || e.message || String(e)),1);
@@ -2360,7 +2716,7 @@ var massimagerun = null;    // the upload in progress: {stop}
 var massimageplan = null;   // the checked files waiting for Upload: {db, stub, imageuri, items, todo}
 function loadmassimage() {
   showadmintab('data');
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -2443,7 +2799,7 @@ function massimagerow(item,imageuri) {
 // setimportopen() or importprofilesopen() (in setimport.js) draws the panel
 function loadsetimport(open) {
   showadmintab(open == 'importprofilesopen' ? 'config' : 'data');
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -2467,7 +2823,7 @@ function artcheckload() {
 function loadartcheck(cardid, printingid) {
   showadmintab('data');
   $('#artistsadmin').empty();
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
@@ -2726,6 +3082,28 @@ function massimageupload() {
 }
 
 function importlisttrigger() {
+    // pasted text goes up as the file, so /import reads both the same way
+    var form = new FormData($('#importform')[0]);
+    var pasted = $("#importpaste").val().trim(), file = $('#importform input[name=file]')[0].files[0];
+    if(!pasted && !file) {
+      $("#importstatus").html('<div class="error">Paste a list or pick a file first.</div>');
+      return;
+    }
+    Promise.resolve(pasted || file.text()).then(function(text) {
+      var arc = importlegalityarc($('#importlegality').val());
+      form.set('file', new Blob([(arc ? 'Legality: '+arc+'\n' : '')+text], {type: 'text/plain'}), pasted ? 'pasted.txt' : file.name);
+      importlistsend(form);
+    });
+}
+// "Printings from": the arc whose printings /import picks; a derived format (Ivory Strict) is its base format's
+function importlegalityarc(value) {
+    value = (value || '').replace(/&nbsp;/g," ").trim();
+    var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g," "); })
+        .filter(function(b) { return value == b || value.indexOf(b+" ") == 0; })
+        .sort(function(a,b) { return b.length - a.length; })[0];
+    return base || value;
+}
+function importlistsend(form) {
     $("#importprogress").show();
     $("#importform").hide();
     $("#importstatus").html("");
@@ -2735,7 +3113,7 @@ function importlisttrigger() {
 	    type: 'POST',
       
 	    // Form data
-	    data: new FormData($('#importform')[0]),
+	    data: form,
       
 	    // Tell jQuery not to process data or worry about content-type
 	    // You *must* include these options!
@@ -2767,20 +3145,39 @@ function importlisttrigger() {
 	      var importsuccess = $.templates("#template-importsuccess");
 	      $("#importfailedval").val(data.failed.join("\n"));
 	      $("#importdataval").val(JSON.stringify(data.list));
-	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n")}));
+	      // Replace overwrites the list (importlistfinalize): say so when it has cards
+	      var adds = $('#importform input[name=importmode]:checked').val() != 'replace';
+	      var current = cache_thing("list",$("#importlistid").val());
+	      var replaces = !adds && current && current.list && current.list.Items && current.list.Items[0] ? current.list.Items[0].totalcount : 0;
+	      $("#importstatus").html(importsuccess.render({"numresults":data.list.length,"numfailed":data.failed.length,"failed":data.failed.join("\n"),"replaces":replaces,"adds":adds}));
 	    },
 
 	    error: function(data) {
 	      console.log("error");
 	      console.log(data);
 	      $("#importprogress").hide();
-	      $("#importstatus").html('<div class="error">Error</div><br /><br />'+(data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1))));
+	      $("#importform").show(); // the paste is still there to fix and retry
+	      var why = data.responseJSON && data.responseJSON.error ? data.responseJSON.error : (data.message ? data.message : (data.statusText ? data.statusText : print_r(data,1)));
+	      $("#importstatus").html('<div class="error">Error</div><br /><br />'+_.escape(why));
 	    }
     });
 }
 
+// the import's Yes: Replace saves the imported entries as the list; Add loads the list and adds them to it
+// (one entry per card, printing and foil, as addlistitem does), then saves it
 function importlistfinalize() {
-    listinfoupdate($("#importlistid").val(),'list',$("#importdataval").val());
+    var listid = $("#importlistid").val(), entries = JSON.parse($("#importdataval").val());
+    if($('#importform input[name=importmode]:checked').val() == 'replace') {
+      listinfoupdate(listid,'list',JSON.stringify(entries));
+    } else if(listeditable(listid)) {
+      listinfo(listid,false,null,function() {
+        var list = cache_thing("list",listid);
+        entries.forEach(function(e) { listitemchange(list,e.cardid,e.printing,parseInt(e.quantity),false,e.foil||''); });
+        listcounts(list);
+        cache_thing("list",listid,list);
+        listitemsdone(listid);
+      });
+    }
     nomodal();
 }
 
@@ -2865,7 +3262,7 @@ function redrawcardforselect() {
     // on a cold cache the card can render before a select it sorts by arrives (sortlegality,
     // sortprintings); redraw it once the select is cached, if the card view is showing
     if($("#resultcard").is(":visible") && $("#lastcardid").val() && cache_card_is($("#lastcardid").val())) {
-	docardid( $("#lastcardid").val(), lastcardprid(),$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	docardid( $("#lastcardid").val(), lastcardprid(), cardqs());
     }
 }
 
@@ -3143,6 +3540,10 @@ function docardid(id,prid=null,qs=null,pop=false,switchview=true) {
 }
 function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["rendering list: "+sort,listid,listoutput]);
+    if(listid && !listoutput && liststale(listid)) {
+	console.log("list no longer wanted: "+listid);
+	return;
+    }
     if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
 	return;
@@ -3166,11 +3567,15 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    }
 	});
     }
+    gamepicklist(listdata, listid);
     //console.log(listdata);
     console.log("sorting with: "+sort);
     // games without list sorts/headers (pathfinder-pawns) fall back to title order, no headers
     var gamesort = databasesort[database] || {};
     var gameheaderize = headerize[database] || {};
+    // a deck's headers leave out the distinct counts ("Holding - (14)"); other lists keep them
+    var listmeta = cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
+    var headerdistinct = !(listmeta.type == 'deck' || !listmeta.type);
     listdata.sort(gamesort[sort] != undefined?gamesort[sort]:
 		  function(a,b){
 		      var x = a.title[0].toLowerCase();
@@ -3190,7 +3595,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
-		"listmine": listmine(listid)   // the card rows' count controls, only on your own lists
+		"listmine": listeditable(listid)   // the card rows' count controls, only on your own lists (or as an admin)
 	};
 	// the template's vars (visual-premium: imageclass details), and the Deck format's large size
 	var override = getactivetemplateoverride('list');
@@ -3204,21 +3609,23 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	var shown = bubbleup(listdata,{'listid':listid});
 	pagetextversion('.listtextversion', shown, 'list');
 	var table = templates[database]['active']['list'] == 'table';
-	if(table) {
-	    $.extend(listtmpl, listtablecolumns(shown));
-	}
 	if(templates[database]['available'][templates[database]['active']['list']].headerizable && (sort=='deck')) {
-	    var html = getactivetemplate('list').render(markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown) : shown),listtmpl);
+	    var rows = markprinteddiffs(gameheaderize[sort] != undefined ? gameheaderize[sort](shown, headerdistinct) : shown);
 	} else {
-	    var html = getactivetemplate('list').render(markprinteddiffs(shown),listtmpl);
+	    var rows = markprinteddiffs(shown);
 	}
+	if(table) {
+	    $.extend(listtmpl, listtablecolumns(shown, listid));
+	    listtablesections(rows, listtmpl);
+	}
+	var html = getactivetemplate('list').render(rows,listtmpl);
 	if(table) {
 	    html = listtablewrap(html, listtmpl);
 	}
 	if(listoutput && listoutput.startsWith('text')) { 
 	    var textparts = listoutput.split(",");
 	    var textdata = textparts[0] == 'textsnm' ? snmlistnames(listdata) : listdata;
-	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](textdata) : textdata,{
+	    var text = templates[database]['compiled'][textparts[0]].render((gameheaderize['deck'] != undefined && sort == 'deck' && textparts.indexOf('noheaders')<0) ? gameheaderize['deck'](textdata, headerdistinct) : textdata,{
 		"labels": labels[database],
 		datarequest:{'listid':listid,'sort':sort},
 		"database":database,
@@ -3233,32 +3640,109 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    document.body.appendChild(a);
 	    a.click();
 	} else {
-	    $("#resultlist").html(listheader(listid)+liststats(listdata,listid)+listmissing(listid,missing)+html);
+	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
+	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html))
+		.toggleClass('versionmenuon', !!listeditable(listid) && gestureon('versionmenutouch'));
+	    renderlisteditarea(); // the bar's counts, from this draw
+	    listnotesfit();
 	    liststatslegal();
 	    liststatscutoff();
+	    liststatspinbutton();
+	    listtableheads(listtmpl);
 	    listtablestripe();
 	    // symbols (:g2:, :gstar:, ...) as the search and card views have them; before the handlers below,
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
-	    $('span[contenteditable=true][id^="clist_quantity"]').blur(function(){
-		var field_listid = $(this).attr("id").split(/:/) ;
-		var value = $(this).text() ;
-		if(field_listid[4] != value) {
-		    console.log(field_listid);
-		    addlistitem(field_listid[1],field_listid[2],field_listid[3],value,true,sort,field_listid[5]||'');
-		}
-	    });
+	    deckviewflow();
+	    liststatskwmark(); // after the symbols and deck flow, which rebuild the cards' html
+	    listcountready('#resultlist');
+	    pagetitle();
+	    if(listid) {
+		listcardorder[listid] = listcardsdrawn();
+	    }
 	}
     }
 }
 
+// The Simple List's count on your own list (the list template's span.editquantity, id
+// clist_quantity:<listid>:<cardid>:<printing>:<count>:<foil>): bold, dotted underline (solid on hover). A click, tap,
+// Enter or Space opens a - [n] + stepper in its place; Enter or leaving it saves, Esc puts it back, 0 asks before
+// removing the card. The template still marks it contenteditable (typed into before 2026-10-29): dropped here.
+function listcountready(where) {
+    // the Table view's count cell (template table, which has no foil): the same span, made here, where the list
+    // holds that card and printing once; with a regular and a foil entry the row can't tell which it is
+    $(where).find('tr.listtablecard').each(function() {
+	var a = $(this).find('a.deckswipe'), td = $(this).children('td.listtableqty');
+	var listid = a.attr('data-list'), cardid = a.attr('data-card'), prid = a.attr('data-printing') || 0;
+	if(!listid || !listeditable(listid) || td.children('span').length) { return; }
+	var list = cache_thing("list",listid);
+	var hits = list ? list.list.Items[0].list.filter(function(e) { return e.cardid == cardid && (e.printing||0) == prid; }) : [];
+	if(hits.length != 1) { return; }
+	$('<span class="editquantity">').attr('id', ['clist_quantity',listid,cardid,prid,hits[0].quantity,hits[0].foil||''].join(':'))
+	    .text(td.text().trim()).appendTo(td.empty());
+    });
+    $(where).find('span.editquantity[id^="clist_quantity"]').removeAttr('contenteditable')
+	.attr({'tabindex': 0, 'role': 'button', 'aria-label': 'Change count'});
+}
+function listcountopen(span) {
+    if(span.find('input').length) { return; }
+    var have = span.text().trim();
+    span.addClass('listcountopen').html('<button type="button" tabindex="-1" class="listcountstep" data-step="-1" aria-label="One fewer">−</button>'+
+	'<input type="number" inputmode="numeric" min="0" step="1" class="listcountinput" aria-label="Count">'+
+	'<button type="button" tabindex="-1" class="listcountstep" data-step="1" aria-label="One more">+</button>');
+    span.find('input').val(have).data('have', have).focus().select();
+}
+// save: keep the typed count (Enter, leaving it); refocus: back on the count (keyboard)
+function listcountclose(span, save, refocus) {
+    var input = span.find('input');
+    if(!input.length || span.data('listcountclosing')) { return; }
+    span.data('listcountclosing', true);  // emptying the span blurs the input in some browsers
+    var have = input.data('have'), value = String(input.val()).trim();
+    span.removeClass('listcountopen').text(have).removeData('listcountclosing');
+    if(refocus) { span.focus(); }
+    var n = parseInt(value, 10);
+    if(!save || !/^\d+$/.test(value) || n == have) { return; }
+    var f = span.attr('id').split(/:/);
+    if(n == 0) {
+	var card = cache_card_fetch(f[2]);
+	var title = card ? $('<div>').html([].concat(card.title).join()).text() : 'card #'+f[2];
+	if(!confirm('Remove '+title+' ('+have+') from the list?')) { return; }
+	addlistitem(f[1],f[2],f[3]||0,null,false,null,f[5]||'');
+    } else {
+	addlistitem(f[1],f[2],f[3]||0,n,true,null,f[5]||'');
+    }
+}
+$(document).on('click', '#resultlist span.editquantity:not(.listcountopen)', function() { listcountopen($(this)); });
+$(document).on('keydown', '#resultlist span.editquantity:not(.listcountopen)', function(e) {
+    if(e.key == 'Enter' || e.key == ' ') { e.preventDefault(); listcountopen($(this)); }
+});
+$(document).on('keydown', '#resultlist input.listcountinput', function(e) {
+    if(e.key == 'Enter' || e.key == 'Escape') {
+	e.preventDefault();
+	listcountclose($(this).closest('span.editquantity'), e.key == 'Enter', true);
+    }
+});
+$(document).on('blur', '#resultlist input.listcountinput', function() {
+    listcountclose($(this).closest('span.editquantity'), true, false);
+});
+// the - and + buttons only change the box, on press: they mustn't take its focus (that would save and close it),
+// and once a press is cancelled WebKit sends no click. Not in the tab order: the box's arrow keys step it.
+$(document).on('pointerdown', '#resultlist button.listcountstep', function(e) {
+    e.preventDefault();
+    if(e.button > 0) { return; }
+    var input = $(this).siblings('input.listcountinput');
+    input.val(Math.max(0, (parseInt(input.val(), 10) || 0) + Number($(this).data('step'))));
+});
+$(document).on('mousedown', '#resultlist button.listcountstep', function(e) { e.preventDefault(); });
+
 // header for the list view: the list's details as the directory shows them, and its controls when it's the
 // user's own. The list's own item wins over the directory's: an edit refetches the list before the directory.
+var listcheckhtml = {}; // listid: the deck check at the foot of its header (template-listcheck), kept from the last liststats
 function listheader(listid) {
     var meta = null;
     var dir = cache_thing("list","data");
     var rev = cache_thing("list","datareverse");
-    var mine = listmine(listid);
+    var mine = listeditable(listid);
     if(dir && rev && rev[listid] !== undefined) {
 	meta = $.extend({}, dir.lists.Items[rev[listid]]);
     }
@@ -3269,9 +3753,53 @@ function listheader(listid) {
 	return '';
     }
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
-	"active": activelists.indexOf(listid) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
-	"awardmod": gamepermission('listaward'),
-	"loggedin": listloggedin(), "database": database});
+	"active": activelists.indexOf(String(listid)) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
+	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "admincan": listadmincan(listid), "adminnotify": !!(adminediting[listid] && adminediting[listid].notify), "deckbuild": !!deckbuildconfig(),
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid]});
+}
+// list view header: long notes start cut to a few lines. Show more / Show less, or clicking in to edit, opens them;
+// they stay as left while the list redraws (each save draws it again), until the page reloads.
+var listnotesopen = {};
+function listnotesset(notes,open) {
+    listnotesopen[notes.attr('data-list')] = open;
+    notes.toggleClass('listnotesclosed',!open);
+    notes.next('.listnotestoggle').attr('aria-expanded',open).text(open ? 'Show less' : 'Show more');
+}
+function listnotestoggle(el) {
+    var notes = $(el).prev('.listviewnotes');
+    listnotesset(notes,notes.hasClass('listnotesclosed'));
+}
+// the button only shows when there's more than the closed height holds: measured closed, whatever the state
+function listnotesfit() {
+    $('#resultlist .listviewnotes').each(function() {
+	var open = !$(this).hasClass('listnotesclosed');
+	$(this).addClass('listnotesclosed');
+	$(this).next('.listnotestoggle').toggleClass('listnotesfits',this.scrollHeight > this.clientHeight+1);
+	$(this).toggleClass('listnotesclosed',!open);
+    });
+}
+$(document).on('focus', '#resultlist .listviewnotes[contenteditable]', function() { listnotesset($(this),true); });
+$(document).on('input', '#resultlist .listviewnotes[contenteditable]', listnotesfit);
+// the list drawing, the window narrowing or the list view coming into sight can all change what fits
+if(window.ResizeObserver) {
+    $(function() { new ResizeObserver(listnotesfit).observe(document.getElementById('resultlist')); });
+}
+// the clan mon of a deck's Stronghold, before its name in the header ('' with no Stronghold, or one without a mon)
+function liststrongholdmon(listid) {
+    var list = cache_thing("list",listid);
+    var items = (list && list.list.Items[0].list) || [];
+    var clan = liststrongholdclan(items.map(function(i) { return cache_card_fetch(i.cardid); }));
+    return clan ? clanmon(clan) : '';
+}
+// the clan (plain text) of the first Stronghold among cards whose clan has a mon, or ''
+function liststrongholdclan(cards) {
+    for(var i = 0; i < cards.length; i++) {
+	var card = cards[i] || {};
+	if(![].concat(card.type || []).some(function(t) { return selectplaintext(t) == 'Stronghold'; })) { continue; }
+	var clan = [].concat(card.clan || []).filter(function(c) { return clanmon(c); })[0];
+	if(clan) { return selectplaintext(clan); }
+    }
+    return '';
 }
 // moderator marks on a list, set by users whose groups hold 'listaward' (or '*'); ootv-search /list
 // action=<kind>. award: a tournament result {event, result, year}; precon: a pre-constructed deck
@@ -3288,6 +3816,8 @@ function listmarksave(listid, kind, value) {
 		cache_thing("list",listid,list);
 	    }
 	    $(".listviewheader[data-list='"+listid+"']").replaceWith(listheader(listid));
+	    listnotesfit();
+	    liststatslegal(); // the new header's deck check (cached answer)
 	},
 	error: function(xhr) { alert('Not saved'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : '')); }
     });
@@ -3418,31 +3948,114 @@ function liststatsnumber(v) {
 function liststatsround(n) {
     return Math.round(n*10)/10;
 }
+// what a deck's cards say about it, for conditionalvalues (docs/data.md): its Stronghold's clan (liststrongholdclan)
+// and the titles of its Sensei and Strongholds. null for a list that isn't a deck (a trade or collection list).
+function deckcontext(cards, meta) {
+    if(meta && meta.type && meta.type != 'deck') {
+	return null;
+    }
+    var titles = function(type) {
+	return cards.filter(function(c) {
+	    return [].concat(c.type || []).some(function(t) { return selectplaintext(t) == type; });
+	}).map(function(c) { return selectplaintext([].concat(c.title || []).join('')); });
+    };
+    return {"clan": liststrongholdclan(cards), "sensei": titles('Sensei'), "stronghold": titles('Stronghold')};
+}
+// the card's conditionalvalues entry for a field that the deck meets (every when key has a value the deck has;
+// the first such entry wins), or null
+function deckcondition(card, f, ctx) {
+    var entries = ctx && card.conditionalvalues && card.conditionalvalues[f];
+    if(!entries) {
+	return null;
+    }
+    return entries.find(function(e) {
+	return Object.keys(e.when || {}).every(function(k) {
+	    var have = [].concat(ctx[k] || []);
+	    return [].concat(e.when[k]).some(function(v) { return have.indexOf(v) >= 0; });
+	});
+    }) || null;
+}
+// a stat field's value in this deck: the conditional value if the deck meets it, else the printed one
+function deckstatvalue(card, f, ctx) {
+    var cond = deckcondition(card, f, ctx);
+    return cond ? cond.value : card[f];
+}
 // averages of the fields at least one of the cards has; on a deck's own row (most) only the fields
-// liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types
-function liststatsavgs(cards, fields, most) {
+// liststatsdeckshare of its copies have (Focus on the Fate deck), since there it's a mix of types.
+// With a deck context (deckcontext), a card's value is the one it has in that deck (deckstatvalue). sum is the
+// working for the hover, one copies*value term per card in list order: "3*3 + 2*2 + 1*4".
+function liststatsavgs(cards, fields, most, ctx) {
     var copies = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     var out = [];
     fields.forEach(function(f) {
-	var sum = 0, n = 0, has = 0;
+	var sum = 0, n = 0, has = 0, deckvalued = 0, terms = [];
 	cards.forEach(function(c) {
-	    if(c.card[f] === undefined || !String(c.card[f].join ? c.card[f].join('') : c.card[f]).trim()) {
+	    var raw = deckstatvalue(c.card, f, ctx);
+	    if(raw === undefined || !String(raw.join ? raw.join('') : raw).trim()) {
 		return;
 	    }
 	    has += c.qty;
-	    var v = liststatsnumber(c.card[f]);
+	    var v = liststatsnumber(raw);
 	    if(v !== null) {
 		sum += v*c.qty;
+		terms.push(c.qty+'*'+v);
 		n += c.qty;
+		if(raw !== c.card[f]) {
+		    deckvalued += c.qty;
+		}
 	    }
 	});
 	if(n > 0 && (!most || n >= copies*liststatsdeckshare)) {
 	    var l = labels[database] || {};
 	    out.push({"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f, "avg": liststatsround(sum/n),
-		      "copies": n, "skipped": has-n});
+		      "copies": n, "skipped": has-n, "deckvalued": deckvalued,
+		      "sum": terms.length > 1 ? '('+terms.join(' + ')+')' : terms[0]});
 	}
     });
     return out;
+}
+// L5R Gold:Cost (the user, 2026-10-30). Deck GP, on the Pre-Game row: the Gold Production of every card in the deck
+// (Stronghold, Sensei and negatives too; N* counts as N) over the Dynasty card count, since the Dynasty deck is what
+// produces. GC, on the Dynasty and Fate rows: Deck GP over that deck's average Cost; higher is better. Needs Dynasty
+// and Fate decks and the production and cost stat fields. Values are the deck's own (deckstatvalue).
+function liststatsgoldcost(decks, cards, fields, ctx) {
+    var find = function(re) { return decks.filter(function(d) { return re.test(d.name); })[0]; };
+    var dynasty = find(/^dynasty$/i), fate = find(/^fate$/i), pregame = find(/^pre-?game$/i) || dynasty;
+    if(!dynasty || !fate || fields.indexOf('production') < 0 || fields.indexOf('cost') < 0) {
+	return;
+    }
+    var round2 = function(n) { return Math.round(n*100)/100; };
+    var total = 0, terms = [];
+    cards.forEach(function(c) {
+	var raw = deckstatvalue(c.card, 'production', ctx);
+	var v = liststatsnumber(String([].concat(raw === undefined ? [] : raw).join('')).replace(/(\d)\*$/, '$1'));
+	if(v) {
+	    total += v*c.qty;
+	    terms.push(c.qty+'*'+v);
+	}
+    });
+    var gp = total/dynasty.copies;
+    pregame.avgs.push({"short": "Deck GP", "avg": round2(gp), "title": "Deck Gold Production: the Gold all the deck's cards produce, "+
+	"per Dynasty card. "+(terms.length > 1 ? '('+terms.join(' + ')+')' : (terms[0] || '0'))+" = "+total+" Gold, divided by "+
+	dynasty.copies+" Dynasty cards = "+round2(gp)+". It counts the Stronghold, Holdings, Personalities and Sensei, negatives too: "+
+	"Gold from Pre-Game or Fate cards raises it a little, but the Dynasty deck is what counts."});
+    [dynasty, fate].forEach(function(d) {
+	var avg = liststatsavgs(d.cards, ['cost'], false, ctx)[0];
+	if(!avg) {
+	    return;
+	}
+	// cards that cost nothing on average (an L5R Fate deck of 0-cost Strategies): any Gold pays for them
+	if(!avg.avg) {
+	    d.avgs.push({"short": "GC", "avg": "\u221e", "title": "Gold:Cost ratio of the "+d.name+" deck: how well the deck's "+
+		"Gold pays for these cards. Higher is better. The "+d.name+" cards' average Gold Cost is 0 (of "+avg.copies+" cards"+
+		(avg.skipped ? ", "+avg.skipped+" with no number left out" : "")+"), so the deck's Gold always covers them: no limit."});
+	    return;
+	}
+	d.avgs.push({"short": "GC", "avg": round2(gp/avg.avg), "title": "Gold:Cost ratio of the "+d.name+" deck: how well the deck's "+
+	    "Gold pays for these cards. Higher is better. Deck GP "+round2(gp)+" (Gold produced per Dynasty card, on the Pre-Game "+
+	    "line) divided by the "+d.name+" cards' average Gold Cost "+avg.avg+" (of "+avg.copies+" cards"+
+	    (avg.skipped ? ", "+avg.skipped+" with no number left out" : "")+") = "+round2(gp/avg.avg)+"."});
+    });
 }
 // keyword analysis: the game's first keyword-type searchable (L5R keywords, 7th Sea trait, Initial D traits) and
 // its 'text' field; dbinfo[game].statkeywords / stattext override (false = no keyword section)
@@ -3487,6 +4100,7 @@ function liststatskeywords(cards, decks) {
 	    var re = new RegExp('(^|[^A-Za-z0-9])'+escape(k)+'s?(?![A-Za-z0-9])');
 	    var by = texts.filter(function(t) { return t.kws.indexOf(k) < 0 && re.test(t.text); });
 	    refs[k] = {"refcopies": by.reduce(function(n,t) { return n + t.c.qty; }, 0), "refcards": by.length,
+		       "refids": by.map(function(t) { return t.c.card.cardid; }).join(','),
 		       "reftitles": by.map(function(t) { return liststatsplain((t.c.card.title || []).join ? t.c.card.title.join(' ') : t.c.card.title); }).join(', ')};
 	}
 	return refs[k];
@@ -3496,12 +4110,13 @@ function liststatskeywords(cards, decks) {
 	cards.filter(function(c) { return d.match(c); }).forEach(function(c) {
 	    kws(c).forEach(function(k) {
 		if(!counts[k]) {
-		    counts[k] = {"name": k, "copies": 0};
+		    counts[k] = {"name": k, "copies": 0, "ids": []};
 		}
 		counts[k].copies += c.qty;
+		counts[k].ids.push(c.card.cardid);
 	    });
 	});
-	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], references(k)); });
+	var list = Object.keys(counts).map(function(k) { return $.extend(counts[k], {"cardids": counts[k].ids.join(',')}, references(k)); });
 	list.sort(function(a,b) { return b.copies - a.copies || a.name.localeCompare(b.name); });
 	return {"name": d.name, "keywords": list};
     }).filter(function(d) { return d.keywords.length; });
@@ -3509,16 +4124,31 @@ function liststatskeywords(cards, decks) {
 function liststatspct(part, whole) {
     return whole > 0 ? liststatsround(part*100/whole)+'%' : '';
 }
+// the % column is each type's share of its deck (a deck's share of the whole list says nothing). Pre-Game
+// (L5R Stronghold, Sensei, ...) and cards with no deck aren't decks being played, so no shares there; Proxy
+// cards are only there to be printed, so no share of their own and not counted in the others'.
+function liststatsdeckapart(name) {
+    return /^(pre-?game|other)$/i.test(name);
+}
+function liststatsproxy(c) {
+    return [].concat(c.card.type || []).some(function(t) { return liststatsplain(t) == 'Proxy'; });
+}
 function liststats(listdata,listid=null) {
     var cards = listdata.filter(function(c) { return c.cardid > 0; }).map(function(c) {
 	return {"card": c, "qty": parseInt(c.listquantity) || 0};
     }).filter(function(c) { return c.qty > 0; });
     var total = cards.reduce(function(t,c) { return t + c.qty; }, 0);
     if(!cards.length) {
+	listsummarysave(listid, null);
+	delete listdeckdrawn[listid];
+	delete listcheckhtml[listid];
+	delete listsummaryheld[listid];
 	return '';
     }
     var deckfield = liststatsdeckfield();
     var fields = liststatsfields();
+    var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
+    var ctx = deckcontext(cards.map(function(c) { return c.card; }), meta);
     var join = function(v) { return (Array.isArray(v) ? v.join(', ') : String(v || '')).replace(/&nbsp;/g,' ').trim(); };
     // groups in list order (the list is already in the game's deck sort)
     var group = function(items, key) {
@@ -3533,45 +4163,88 @@ function liststats(listdata,listid=null) {
 	});
 	return out;
     };
-    var decks = group(cards, function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; }).map(function(d) {
+    var statcopies = function(items) { return items.reduce(function(t,c) { return t + (liststatsproxy(c) ? 0 : c.qty); }, 0); };
+    var decks = group(cards, function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; }).map(function(d) {
 	var copies = d.cards.reduce(function(t,c) { return t + c.qty; }, 0);
+	var apart = liststatsdeckapart(d.name);
+	var deckstat = statcopies(d.cards);
 	var types = group(d.cards, function(c) { return join(c.card.type) || 'Other'; }).map(function(t) {
 	    var tc = t.cards.reduce(function(s,c) { return s + c.qty; }, 0);
-	    return {"name": t.name, "copies": tc, "pct": liststatspct(tc, copies),
-		    "avgs": liststatsavgs(t.cards, fields, false)};
+	    return {"name": t.name, "copies": tc, "pct": apart || liststatsproxy(t.cards[0]) ? '' : liststatspct(tc, deckstat),
+		    "avgs": liststatsavgs(t.cards, fields, false, ctx)};
 	});
-	return {"name": d.name, "copies": copies, "pct": liststatspct(copies, total),
-		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true), "types": types};
+	// the bar behind each type's averages: its copies against the deck's biggest type, for the types with a share
+	var most = Math.max.apply(null, types.filter(function(t) { return t.pct; }).map(function(t) { return t.copies; }).concat(0));
+	types.forEach(function(t) { if(t.pct && most) { t.bar = liststatsround(t.copies*100/most); } });
+	return {"name": d.name, "copies": copies,
+		"avgs": copies < liststatsdeckmin ? [] : liststatsavgs(d.cards, fields, true, ctx), "types": types, "cards": d.cards};
     });
-    var deckkey = function(c) { return deckfield ? (join(c.card[deckfield]) || 'Other') : ''; };
+    liststatsgoldcost(decks, cards, fields, ctx);
+    var deckkey = function(c) { return deckfield ? (join(gamepicked(c.card, deckfield)) || 'Other') : ''; };
     var keywords = liststatskeywords(cards, decks.map(function(d) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
-    var meta = listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {};
-    return $.templates("#template-liststats").render({"totalcount": total, "distinctcount": cards.length,
-	"legalids": (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '',
+    var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
+    // the summary's decks in the game's deck order, whatever sort the list is shown in (dynasty before fate)
+    var decksort = (databasesort[database] || {}).deck;
+    var summarydecks = decksort ? group(cards.slice().sort(function(a,b) { return decksort(a.card,b.card); }), deckkey) : decks;
+    var summary = {"decks": summarydecks.slice(0,10).map(function(d) {
+	return {"name": d.name.slice(0,60), "copies": d.cards.reduce(function(t,c) { return t + c.qty; }, 0)};
+    }), "buildbad": !!(build && build.problems.length)};
+    listdeckdrawn[listid] = summary.decks;
+    var clan = liststrongholdclan(cards.map(function(c) { return c.card; }));
+    if(clan) { summary.clan = clan.slice(0,60); }
+    var legalids = (meta.type == 'deck' || !meta.type) ? cards.map(function(c) { return c.card.cardid; }).join(',') : '';
+    if(legalids) {
+	listsummaryheld[listid] = summary;
+    } else {
+	listsummarysave(listid, summary);
+    }
+    // a deck with Dynasty and Fate decks (L5R) leads the summary with their sizes: "40/40 - 82 total"
+    var decksize = function(name) {
+	var d = decks.filter(function(d) { return d.name.toLowerCase() == name; })[0];
+	return d ? d.copies : 0;
+    };
+    var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
+	decksize('dynasty')+'/'+decksize('fate') : '';
+    listcheckhtml[listid] = $.templates("#template-listcheck").render({
+	"listid": listid, "legalids": legalids, "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"decks": decks, "keywords": keywords, "open": cache_session("liststatsopen") !== false,
-	"kwopen": cache_session("liststatskwopen") === true, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+	"buildbad": !!(build && build.problems.length), "buildhtml": deckbuildhtml(build)});
+    return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
+	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
+	"decks": decks, "keywords": keywords, "open": liststatsopen(),
+	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
 }
-// the stats block's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
+// the list header's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
 // not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
 // kept per card set and format for the page's life.
+// A card not legal in the deck's format breaks its construction, as a broken rule does: the header says so instead of
+// "meets the rules", and it goes in the summary's buildbad, so a deck's summary is saved here rather than in liststats.
+// A failed check saves nothing: the list keeps its last summary, and the next draw tries again.
 var liststatslegalcache = {};
+var listsummaryheld = {}; // listid: the summary from the last liststats, buildbad from the rules alone
 function liststatslegal() {
     $(".liststatslegal[data-cardids]").each(function() {
 	var el = $(this), ids = el.attr('data-cardids'), format = el.attr('data-format') || '';
-	var key = format+'|'+ids;
+	var key = format+'|'+ids, listid = el.attr('data-listid'), held = listsummaryheld[listid];
 	var show = function(r) {
 	    var bad = el.siblings('.liststatsillegal');
-	    if(r.illegal && r.illegal.length) {
+	    var illegal = !!(r.illegal && r.illegal.length);
+	    el.siblings('.liststatsflag').toggle(!!(held && held.buildbad) || illegal);
+	    el.siblings('.liststatsbuildok').toggle(!illegal);
+	    // an answer that lands after a newer draw leaves that draw's summary alone
+	    if(held && listsummaryheld[listid] === held) {
+		listsummarysave(listid, $.extend({}, held, {"buildbad": held.buildbad || illegal}));
+	    }
+	    if(illegal) {
 		bad.html('Not legal in '+htmlEncode(r.format)+': '+r.illegal.map(function(c) {
 		    return '<a href="#game='+database+',#cardid='+parseInt(c.cardid)+'">'+htmlEncode(c.title)+'</a>';
 		}).join(', ')).show();
 	    } else {
 		bad.hide();
 	    }
-	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+htmlEncode(f)+'</span>'; }).join('') :
+	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
 	if(liststatslegalcache[key]) {
@@ -3585,11 +4258,338 @@ function liststatslegal() {
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
 }
-// keyword counts under the cutoff (default 4, kept per browser) are hidden; a keyword with every count hidden
-// hides, and so does a deck with none left
+// ***********************  deck construction rules **************
+// A soft check shown at the foot of the list header (template-listcheck; docs/admin/deck-construction.md). The game's rules are game config
+// deckconstruction.rules; deckconstruction.legality[<legality>] overlays them rule by rule for decks of that
+// legality, then the deck's own deckconstruction field (a JSON string: {rules, pick}) overlays again. The Special
+// legality starts from no rules instead of the game's: the deck's layers turn on the ones it wants, and cards
+// change only those. In an overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
+// limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]},
+// and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}.
+// Rule checks:
+//   size     copies in deck (min/max)
+//   type     copies of type in deck (min/max)
+//   pertype  copies of each type in deck, less except[] (max)
+//   copies   copies of one card (identity below) across decks (default: config decks); a rule with when
+//            ({field: regex}, any card of the identity matching) beats one without; between several, the lower max
+// A card's identity is its title, less a trailing "(Emperor)"-style suffix, at its experience level
+// (Experienced, Experienced 2, Inexperienced in keywords; an experienced "Name, epithet" counts as Name), or the
+// card a "Soul of Name [Experienced n]" keyword names, at that level.
+function deckbuildconfig() {
+    return ((gameconfig[database] || {}).game || {}).deckconstruction || null;
+}
+function deckbuildplain(v) {
+    return String(v === undefined || v === null ? '' : v).replace(/<[^>]*>/g,'').replace(/&nbsp;| /g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+}
+function deckbuildlistoverlay(meta) {
+    var v = (meta || {}).deckconstruction;
+    if(typeof v === 'string') {
+	try { v = v ? JSON.parse(v) : {}; } catch(e) { v = {}; }
+    }
+    return v && typeof v === 'object' ? v : {};
+}
+function deckbuildoverlay(rules, over) {
+    Object.keys(over || {}).forEach(function(id) {
+	if(over[id] === null) {
+	    delete rules[id];
+	} else if(typeof over[id] === 'object') {
+	    var add = over[id].add, parts = $.extend({}, over[id]);
+	    delete parts.add;
+	    rules[id] = $.extend({}, rules[id] || {}, parts);
+	    // add: a change to the number already there, in any legality (Coastal Lane: minimum Dynasty deck size +2)
+	    Object.keys(add && typeof add === 'object' ? add : {}).forEach(function(k) {
+		if(typeof rules[id][k] === 'number' && typeof add[k] === 'number') {
+		    rules[id][k] += add[k];
+		}
+	    });
+	}
+    });
+    return rules;
+}
+// the rules for a deck: {rules, decks, source: [where they came from]}; layer 'legality' stops before the deck's own
+function deckbuildrules(meta, layer) {
+    var conf = deckbuildconfig();
+    if(!conf || !conf.rules) {
+	return null;
+    }
+    var legality = deckbuildplain((meta || {}).legality), special = legality == decklegalityspecial;
+    var rules = special ? {} : deckbuildoverlay({}, conf.rules), source = [special ? legality : 'game'];
+    // a layer changing a rule that's gone (in Special, any of them) brings the whole rule back, not just the change
+    var layered = function(over) {
+	Object.keys(over).forEach(function(id) {
+	    if(over[id] && !rules[id] && conf.rules[id]) { rules[id] = $.extend({}, conf.rules[id]); }
+	});
+	deckbuildoverlay(rules, over);
+    };
+    if(legality && conf.legality) {
+	Object.keys(conf.legality).forEach(function(k) {
+	    if(deckbuildplain(k) == legality) {
+		layered(conf.legality[k]);
+		if(!special) { source.push(legality); }
+	    }
+	});
+    }
+    if(layer != 'legality') {
+	var own = deckbuildlistoverlay(meta).rules;
+	if(own && Object.keys(own).length) {
+	    layered(own);
+	    source.push('deck');
+	}
+    }
+    return {"rules": rules, "decks": conf.decks || null, "source": source, "special": special};
+}
+function deckbuildcardconf(card) {
+    var v = card.deckconstruction;
+    if(typeof v === 'string') {
+	try { v = JSON.parse(v); } catch(e) { v = null; }
+    }
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+}
+function deckbuildidentity(card) {
+    var kws = [].concat(card.keywords || []).map(deckbuildplain);
+    var level = '', name = null;
+    kws.forEach(function(k) {
+	var soul = k.match(/^Soul of (.+?)(?:\s+((?:In)?[Ee]xperienced(?:\s+\d+(?:\.\d+)?[A-Z]*)?))?$/);
+	if(soul) {
+	    name = soul[1];
+	    level = soul[2] ? soul[2].replace(/^e/,'E') : '';
+	    return;
+	}
+	var exp = name === null ? k.match(/^((?:In)?[Ee]xperienced(?:\s+\d+(?:\.\d+)?[A-Z]*)?)(?:\s+(.+))?$/) : null;
+	if(exp) {
+	    level = exp[1];
+	    if(exp[2]) { name = exp[2]; }
+	}
+    });
+    var title = deckbuildplain([].concat(card.title || [])[0]).replace(/\s*\([^()]*\)$/,'');
+    var countsas = deckbuildcardconf(card).countsas;
+    if(countsas) {
+	name = deckbuildplain(countsas);
+    }
+    if(name === null) {
+	name = level ? title.replace(/\s*(,|•).*$/,'') || title : title;
+    }
+    return {"key": name.toLowerCase()+'\u0000'+level.toLowerCase(), "name": name+(level ? ' ('+level+')' : '')};
+}
+// what breaks: [{rule, label, text}], or null when the game has no rules
+function deckbuildcheck(cards, meta, deckkey) {
+    var set = deckbuildrules(meta);
+    if(!set) {
+	return null;
+    }
+    // a card in the deck that changes the rules for others (Depths of the Shinomen: four of any non-unique Ratling)
+    cards.forEach(function(c) {
+	var over = deckbuildcardconf(c.card).rules;
+	if(over && typeof over === 'object') {
+	    var change = {};
+	    Object.keys(over).forEach(function(id) { if(!set.special || set.rules[id]) { change[id] = over[id]; } });
+	    if(!Object.keys(change).length) { return; }
+	    // once per copy: an add counts each copy (three Coastal Lanes: +6), the rest is the same each time
+	    for(var i = 0; i < Math.max(1, c.qty || 1); i++) {
+		deckbuildoverlay(set.rules, change);
+	    }
+	    set.source.push(deckbuildplain([].concat(c.card.title || [])[0]));
+	}
+    });
+    var types = function(c) { return [].concat(c.card.type || []).map(deckbuildplain).filter(function(t) { return t && t != 'Proxy'; }); };
+    var skips = function(c, id) { return [].concat(deckbuildcardconf(c.card).skip || []).indexOf(id) >= 0; };
+    var test = function(when, c) {
+	return Object.keys(when || {}).every(function(f) {
+	    var re;
+	    try { re = new RegExp(when[f]); } catch(e) { console.log("deckconstruction: bad regex "+when[f]); return false; }
+	    return [].concat(c.card[f] === undefined || c.card[f] === null ? [] : c.card[f]).some(function(v) { return re.test(deckbuildplain(v)); });
+	});
+    };
+    var count = function(list) { return list.reduce(function(n,c) { return n + c.qty; }, 0); };
+    var range = function(n, r) { return (r.min !== undefined && r.min !== null && n < r.min) ? 'min '+r.min : ((r.max !== undefined && r.max !== null && n > r.max) ? 'max '+r.max : ''); };
+    var out = [];
+    var ids = Object.keys(set.rules).sort(function(a,b) { return (set.rules[a].order || 0) - (set.rules[b].order || 0) || a.localeCompare(b); });
+    var copyrules = [];
+    ids.forEach(function(id) {
+	var r = set.rules[id], label = r.label || id;
+	var indeck = cards.filter(function(c) { return !skips(c, id) && (!r.deck || deckkey(c) == r.deck); });
+	if(r.check == 'size') {
+	    var bad = range(count(indeck), r);
+	    if(bad) { out.push({"rule": id, "label": label, "text": count(indeck)+' card'+(count(indeck)==1?'':'s')+' ('+bad+')'}); }
+	} else if(r.check == 'type') {
+	    var n = count(indeck.filter(function(c) { return types(c).indexOf(r.type) >= 0; }));
+	    var bad = range(n, r);
+	    if(bad) { out.push({"rule": id, "label": label, "text": n+' '+r.type+(n==1?'':'s')+' ('+bad+')'}); }
+	} else if(r.check == 'pertype') {
+	    var per = {};
+	    indeck.forEach(function(c) { types(c).forEach(function(t) { if((r.except || []).indexOf(t) < 0) { per[t] = (per[t] || 0) + c.qty; } }); });
+	    Object.keys(per).sort().forEach(function(t) {
+		var bad = range(per[t], r);
+		if(bad) { out.push({"rule": id, "label": label, "text": per[t]+' '+t+(per[t]==1?'':'s')+' ('+bad+')'}); }
+	    });
+	} else if(r.check == 'copies') {
+	    copyrules.push(id);
+	}
+    });
+    if(copyrules.length) {
+	var groups = {}, order = [];
+	cards.forEach(function(c) {
+	    var id = deckbuildidentity(c.card);
+	    if(!groups[id.key]) {
+		groups[id.key] = {"name": id.name, "cards": []};
+		order.push(id.key);
+	    }
+	    groups[id.key].cards.push(c);
+	});
+	// one card's limit, {best, max}; without a rule id, as if that rule weren't in the deck
+	var limit = function(g, without) {
+	    var best = null;
+	    copyrules.forEach(function(id) {
+		if(id == without) { return; }
+		var r = set.rules[id], decks = r.decks || set.decks;
+		var counted = g.cards.filter(function(c) { return !skips(c, id) && (!decks || decks.indexOf(deckkey(c)) >= 0); });
+		if(!counted.length || (r.when && !counted.some(function(c) { return test(r.when, c); }))) { return; }
+		var cand = {"id": id, "r": r, "cards": counted, "specific": !!r.when};
+		if(!best || (cand.specific && !best.specific) || (cand.specific == best.specific && (r.max === null || r.max === undefined ? Infinity : r.max) < (best.r.max === null || best.r.max === undefined ? Infinity : best.r.max))) {
+		    best = cand;
+		}
+	    });
+	    if(!best) { return {"best": null, "max": null}; }
+	    var max = best.r.max;
+	    best.cards.forEach(function(c) {
+		var cc = deckbuildcardconf(c.card);
+		if(cc.hasOwnProperty('max')) { max = cc.max; }
+	    });
+	    // a rule with cap (BigDeck's one copy) holds even cards with their own limit or a rule of their own
+	    copyrules.forEach(function(id) {
+		var r = set.rules[id], decks = r.decks || set.decks;
+		if(!r.cap || r.max === null || r.max === undefined) { return; }
+		var counted = g.cards.filter(function(c) { return !skips(c, id) && (!decks || decks.indexOf(deckkey(c)) >= 0); });
+		if(counted.length && (!r.when || counted.some(function(c) { return test(r.when, c); })) && (max === null || max === undefined || r.max < max)) {
+		    max = r.max;
+		    best = {"id": id, "r": r, "cards": best.cards};
+		}
+	    });
+	    return {"best": best, "max": max};
+	};
+	var raised = {};
+	order.forEach(function(k) {
+	    var g = groups[k], l = limit(g), best = l.best, max = l.max;
+	    if(!best) { return; }
+	    var n = count(best.cards);
+	    if(max !== null && max !== undefined && n > max) {
+		out.push({"rule": best.id, "label": best.r.label || best.id, "text": g.name+': '+n+' copies (max '+max+')',
+			  "cardid": best.cards[0].card.cardid});
+	    }
+	    // titles: only so many different cards may go past the limit they'd have without this rule
+	    // (Eternal Victory Dojo: four copies each of one or two Battle Strategies)
+	    if(best.r.titles) {
+		var was = limit(g, best.id).max;
+		if(typeof was === 'number' && n > was) {
+		    (raised[best.id] = raised[best.id] || []).push(g.name);
+		}
+	    }
+	});
+	Object.keys(raised).forEach(function(id) {
+	    var r = set.rules[id];
+	    if(raised[id].length > r.titles) {
+		out.push({"rule": id, "label": r.label || id, "text": raised[id].length+' cards use it (max '+r.titles+'): '+raised[id].join(', ')});
+	    }
+	});
+    }
+    return {"problems": out, "source": set.source, "norules": !ids.length};
+}
+function deckbuildhtml(r) {
+    if(!r) {
+	return '';
+    }
+    var from = 'Rules: '+r.source.map(function(s) { return s == 'game' ? 'the game\'s' : (s == 'deck' ? 'this deck\'s own' : s); }).join(' + ');
+    if(r.norules) {
+	return '<div class="liststatsbuild liststatsbuildok" title="'+htmlEncode(from)+'">Deck construction: no limits</div>';
+    }
+    if(!r.problems.length) {
+	return '<div class="liststatsbuild liststatsbuildok" title="'+htmlEncode(from)+'">Deck construction: meets the rules</div>';
+    }
+    return '<div class="liststatsbuild" title="'+htmlEncode(from)+'">Deck construction: '+r.problems.map(function(p) {
+	var text = htmlEncode(p.text);
+	if(p.cardid) {
+	    text = '<a href="#game='+database+',#cardid='+parseInt(p.cardid)+'">'+text+'</a>';
+	}
+	return '<span class="liststatsbuildrule">'+htmlEncode(p.label)+': '+text+'</span>';
+    }).join('; ')+'</div>';
+}
+// the deck's own rules, in its header (owner only): each rule as its legality sets it, with the deck's change
+// filled in; a box switches a rule off for this deck. Then the game's choices (Sensei in Pre-Game or Fate, ...).
+// Saved as the list's deckconstruction field, only what differs from the legality's rules.
+function listbuildtoggle(el, listid) {
+    var panel = $(el).closest('.listviewheader').find('.listbuild');
+    if(panel.length) {
+	panel.remove();
+	return;
+    }
+    var html = listbuildform(listid);
+    $(el).closest('.listviewdetails').after(html || '<div class="listbuild">This game has no deck construction rules yet.</div>');
+}
+function listbuildform(listid) {
+    var list = cache_thing("list",listid), meta = list && list.list ? list.list.Items[0] || {} : {};
+    var base = deckbuildrules(meta, 'legality'), conf = deckbuildconfig() || {};
+    if(!base) {
+	return '';
+    }
+    var own = deckbuildlistoverlay(meta), ownrules = own.rules || {}, ownpick = own.pick || {};
+    var all = $.extend({}, conf.rules, base.rules);
+    var ids = Object.keys(all).sort(function(a,b) { return (all[a].order || 0) - (all[b].order || 0) || a.localeCompare(b); });
+    var num = function(id, part, r) {
+	var o = ownrules[id] || {}, v = o.hasOwnProperty(part) ? o[part] : r[part];
+	return '<label>'+part+' <input type="number" min="0" step="1" data-rule="'+htmlEncode(id)+'" data-part="'+part+'" data-base="'+(r[part] === null || r[part] === undefined ? '' : r[part])+'" value="'+(v === null || v === undefined ? '' : v)+'"></label>';
+    };
+    var rows = ids.map(function(id) {
+	var r = all[id], on = base.rules[id] ? ownrules[id] !== null : !!ownrules[id];
+	var parts = r.check == 'size' || r.check == 'type' ? ['min','max'] : ['max'];
+	return '<tr><td><label><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="on" data-base="'+(base.rules[id] ? 1 : 0)+'"'+(on ? ' checked' : '')+'> '+htmlEncode(r.label || id)+'</label></td><td>'+
+	    parts.map(function(p) { return num(id, p, base.rules[id] || r); }).join(' ')+'</td></tr>';
+    });
+    var picks = Object.keys(conf.choices || {}).map(function(id) {
+	var ch = conf.choices[id];
+	return '<tr><td>'+htmlEncode(ch.label || id)+'</td><td><select data-pick="'+htmlEncode(id)+'"><option value="">As the legality decides</option>'+
+	    (ch.values || []).map(function(v) { return '<option value="'+htmlEncode(v)+'"'+(ownpick[id] == v ? ' selected' : '')+'>'+htmlEncode(v)+'</option>'; }).join('')+'</select></td></tr>';
+    });
+    var legality = deckbuildplain(meta.legality);
+    return '<div class="listbuild" data-list="'+htmlEncode(listid)+'"><div class="listbuildhead">Deck construction rules for this deck'+
+	(base.special ? ' (Special starts with no rules: tick the ones this deck uses)' : (legality ? ' (starting from '+htmlEncode(legality)+')' : ' (the game\'s rules; choose a legality to start from its rules)'))+
+	' <span class="helpq" data-help="lists#construction" aria-label="Help: deck construction rules">?</span></div>'+
+	'<table>'+rows.join('')+(picks.length ? '<tr><th colspan="2">Which deck these cards go in</th></tr>'+picks.join('') : '')+'</table>'+
+	'<button type="button" class="button gray buttonsmaller" onclick="listbuildsave(this); return false;">Save</button> '+
+	'<button type="button" class="button gray buttonsmaller" onclick="listbuildsave(this, true); return false;">Back to the legality\'s rules</button></div>';
+}
+function listbuildsave(el, reset) {
+    var panel = $(el).closest('.listbuild'), listid = panel.attr('data-list');
+    var rules = {}, pick = {};
+    if(!reset) {
+	panel.find('input[data-part=on]').each(function() {
+	    var id = $(this).attr('data-rule'), on = this.checked, was = $(this).attr('data-base') == '1';
+	    if(!on && was) {
+		rules[id] = null;
+		return;
+	    }
+	    if(!on) { return; }
+	    var change = {};
+	    panel.find('input[type=number]').filter(function() { return $(this).attr('data-rule') == id; }).each(function() {
+		var v = $(this).val() === '' ? null : parseInt($(this).val());
+		var b = $(this).attr('data-base') === '' ? null : parseInt($(this).attr('data-base'));
+		if(v !== b || !was) { change[$(this).attr('data-part')] = v; }
+	    });
+	    if(Object.keys(change).length) { rules[id] = change; }
+	});
+	panel.find('select[data-pick]').each(function() {
+	    if($(this).val()) { pick[$(this).attr('data-pick')] = $(this).val(); }
+	});
+    }
+    var out = {};
+    if(Object.keys(rules).length) { out.rules = rules; }
+    if(Object.keys(pick).length) { out.pick = pick; }
+    listinfoupdate(listid, 'deckconstruction', Object.keys(out).length ? JSON.stringify(out) : '');
+}
+// a keyword shows (with all its counts) when any of its counts reaches the cutoff (a 1-15 slider, default 4,
+// kept per browser); a deck with no keyword left hides
 function liststatskwcutoff() {
     var n = parseInt(cache_session("liststatskwcutoff"));
-    return isNaN(n) ? 4 : n;
+    return isNaN(n) ? 4 : Math.min(15, Math.max(1, n)); // older saves could be 0 or above 15
 }
 function liststatscutoff(value) {
     if(value !== undefined) {
@@ -3597,21 +4597,50 @@ function liststatscutoff(value) {
 	cache_session("liststatskwcutoff", isNaN(n) ? '' : n); // blank: back to the default
     }
     var cutoff = liststatskwcutoff();
+    $('#resultlist label.liststatscutoff .liststatscutoffn').text(cutoff);
     $('#resultlist details.liststatskw tbody').each(function() {
 	var shown = 0;
 	$(this).find('tr.liststatskwrow').each(function() {
 	    var any = false;
 	    $(this).find('td[data-n]').each(function() {
-		var keep = parseInt($(this).attr('data-n')) >= cutoff;
-		$(this).children('span').toggle(keep);
-		any = any || keep;
+		any = any || parseInt($(this).attr('data-n')) >= cutoff;
 	    });
-	    $(this).toggle(any);
+	    $(this).toggle(any); // a shown keyword shows both its counts, whatever they are
 	    shown += any ? 1 : 0;
 	});
 	$(this).toggle(shown > 0);
     });
     liststatsstripe();
+}
+// a click on a keyword row picks it (another click drops it; several can be picked): its Cards count shades blue and
+// its "Named in text of" count red, and the cards in the list glow to match, blue for having it (in that deck), red for
+// naming it, magenta for both (two keywords picked). Kept by deck and keyword across redraws of the list.
+var liststatskwpicked = {};
+function liststatskwpick(row) {
+    var key = $(row).attr('data-kwkey');
+    if(liststatskwpicked[key]) {
+	delete liststatskwpicked[key];
+    } else {
+	liststatskwpicked[key] = true;
+    }
+    liststatskwmark();
+}
+function liststatskwmark() {
+    var own = {}, ref = {};
+    var add = function(set, ids) { (ids || '').split(',').forEach(function(id) { if(id) { set[id] = true; } }); };
+    $('#resultlist tr.liststatskwrow').each(function() {
+	var picked = !!liststatskwpicked[$(this).attr('data-kwkey')];
+	$(this).toggleClass('liststatskwpicked', picked);
+	if(picked) {
+	    add(own, $(this).attr('data-kwcards'));
+	    add(ref, $(this).attr('data-kwrefs'));
+	}
+    });
+    $('#resultlist div.listlayoutcards a.deckswipe').each(function() {
+	var id = String($(this).attr('data-card'));
+	var hit = $(this).add($(this).closest('tr.listtablecard'));
+	hit.toggleClass('kwown', !!own[id]).toggleClass('kwref', !!ref[id]).toggleClass('kwglow', !!(own[id] || ref[id]));
+    });
 }
 // every other shown row in each deck is shaded (counted here, since the cutoff hides rows)
 function liststatsstripe() {
@@ -3624,28 +4653,228 @@ function liststatsstripe() {
     });
 }
 // open or closed (the section, and its keyword part), kept per browser
+// the statistics box starts open, folded on phones so the cards come first; once toggled it stays as left
+// the list page under its header: the cards and the statistics box, placed by oracle.css (div.listlayout). On a wide
+// screen the box goes to the side (the default) or above the cards, by its pin button (liststatspinned, remembered
+// across visits). To the side it's a column beside the narrow views (Simple List, Text, Table: listlayoutside) and
+// floats at the upper right of the others (Detail, Visual, Deck: listlayoutpinned), the cards flowing around it. On a
+// phone it comes after the cards, with no button. It's first in the page (a float has to be); the CSS orders it.
+var listlayoutside = ['list', 'html', 'table'];
+function listlayout(stats, cards) {
+    var view = (templates[database]['active']['list'] || '').replace(/-premium$/,'');
+    var sideclass = listlayoutside.includes(view) ? 'listlayoutside' : 'listlayoutpinned';
+    var pin = stats ? '<button type="button" class="button gray buttonsmaller listlayoutpin" onclick="liststatspin();"></button>' : '';
+    return '<div class="listlayout'+(liststatspinned() ? ' '+sideclass : '')+'" data-sideclass="'+sideclass+'">'+
+	'<div class="listlayoutstats">'+pin+stats+'</div><div class="listlayoutcards">'+cards+'</div></div>';
+}
+// Deck view (visual-deck): a deck of a few cards (L5R's Pre-Game) needn't take a whole row. Its header and cards are
+// wrapped and floated left (deckviewsmall), so the next deck's header and cards sit beside it; every other deck header
+// starts a new line (deckviewbreak: Dynasty to Fate). Not the last deck, which has nothing to sit beside it.
+// Each type label is then tied to its first card (deckviewlead).
+var deckviewsmallmax = 8; // card images (a stack counts once)
+function deckviewflow() {
+    if(templates[database]['active']['list'] != 'visual-deck') {
+	return;
+    }
+    var heads = $('#resultlist div.listlayoutcards > div.listhead');
+    heads.each(function(i) {
+	var run = $(this).nextUntil('div.listhead');
+	if(i < heads.length-1 && run.filter('a.deckswipe').length <= deckviewsmallmax) {
+	    $(this).add(run).wrapAll('<div class="deckviewsmall"></div>');
+	}
+    });
+    $('#resultlist div.listlayoutcards > div.listhead').each(function() {
+	$(this).toggleClass('deckviewbreak', !$(this).prev().hasClass('deckviewsmall'));
+    });
+    // a type's label and its first card wrap to a new line together, not the label alone at the end of the row
+    $('#resultlist div.listlayoutcards div.deckviewtype').each(function() {
+	$(this).add($(this).nextAll('a.deckswipe').first()).wrapAll('<span class="deckviewlead"></span>');
+    });
+    deckviewfit();
+    $('#resultlist div.deckviewsmall img').on('load', deckviewfit);
+}
+// A small deck only floats if the room left in its row, past the statistics when they're to the side, holds the next
+// deck's header and a card. Otherwise a float would drop below the statistics or squeeze the next deck's header.
+var deckviewfitmin = 200;
+function deckviewfit() {
+    $('#resultlist div.listlayoutcards').each(function() {
+	var stats = $(this).siblings('div.listlayoutstats');
+	var room = $(this).width() - (stats.css('float') == 'right' ? stats.outerWidth(true) : 0);
+	$(this).find('> div.deckviewsmall').each(function() {
+	    $(this).removeClass('deckviewstack');
+	    $(this).toggleClass('deckviewstack', $(this).outerWidth(true) + deckviewfitmin > room);
+	});
+    });
+}
+$(window).on('resize', deckviewfit);
+function liststatspinned() {
+    return cache_session("liststatspinned") !== false;
+}
+// the pin button: the statistics to the side of the cards, or between the header and the cards
+function liststatspin() {
+    var pinned = !liststatspinned();
+    cache_session("liststatspinned", pinned);
+    $('#resultlist div.listlayout').each(function() { $(this).toggleClass($(this).attr('data-sideclass'), pinned); });
+    liststatspinbutton();
+    deckviewfit();
+}
+function liststatspinbutton() {
+    var pinned = liststatspinned();
+    $('#resultlist button.listlayoutpin').attr('title', pinned ? 'Move the statistics above the cards' : 'Move the statistics to the side of the cards')
+	.html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#'+(pinned ? 'chevrons-up' : 'sidebar')+'"></svg> '+(pinned ? 'Above' : 'To the side'));
+}
+// both parts of the statistics box start open, and stay the way they were last left this session
+function liststatsopen() {
+    return cache_session("liststatsopen") !== false;
+}
 function liststatstoggle(el) {
     cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
+    deckviewfit(); // folding changes how wide the statistics are
 }
 // ***********************  list Table view (template-table) **************
 // One row per card, in the list's sort (deck/type header rows as the Simple List and Deck views have them).
 // Its stat columns follow the statistics box: the game's averaged fields (liststatsfields), each shown when a
 // card in the list has a number for it; then the keyword field the box analyses (liststatskeywordfield).
-function listtablecolumns(listdata) {
+// A deck's stat cells show each card's value in that deck (deckstatvalue): one that differs from the printed value
+// is marked (span.deckvalue) and its title says what's printed and why it changed.
+function listtablecolumns(listdata, listid=null) {
     var cards = listdata.filter(function(c) { return c.cardid > 0; });
     var l = labels[database] || {};
+    var ctx = deckcontext(cards, listid && cache_thing("list",listid) ? cache_thing("list",listid).list.Items[0] : {});
     var fields = liststatsfields().filter(function(f) {
-	return cards.some(function(c) { return liststatsnumber(c[f]) !== null; });
+	return cards.some(function(c) { return liststatsnumber(deckstatvalue(c, f, ctx)) !== null; });
     }).map(function(f) {
 	return {"field": f, "label": l['tag'+f] || f, "short": l['short'+f] || f};
     });
     var kwfield = liststatskeywordfield();
+    var cell = function(v) { return Array.isArray(v) ? v.join(', ') : (v === undefined || v === null ? '' : v); };
     return {"tablefields": fields, "kwfield": kwfield, "kwlabel": kwfield ? (l['tag'+kwfield] || kwfield) : '',
-	    "tablecols": 2 + fields.length + (kwfield ? 1 : 0),
+	    "tablecols": 2 + fields.length + (kwfield ? 1 : 0), "tablectx": ctx,
 	    "tablecell": function(card, f) {
-		var v = card[f];
-		return Array.isArray(v) ? v.join(', ') : (v === undefined || v === null ? '' : v);
+		// a column slot (listtablesections): the field of the card's own type section in that place
+		if(typeof f == 'number') {
+		    f = ((card.listtablefields || [])[f] || {}).field;
+		    if(f === undefined) {
+			return '';
+		    }
+		}
+		var cond = deckcondition(card, f, ctx);
+		if(!cond) {
+		    return cell(card[f]);
+		}
+		var why = Object.keys(cond.when || {}).map(function(k) {
+		    var vals = [].concat(cond.when[k]).join(' or ');
+		    return k == 'clan' ? 'a ' + vals + ' deck' : vals;
+		}).join(', ');
+		var title = 'Printed: ' + selectplaintext(cell(card[f])) + '. ' + cond.value + ' with ' + why + '.';
+		return '<span class="deckvalue" title="' + $('<div>').text(title).html().replace(/"/g,'&quot;') + '">' +
+		    $('<div>').text(cond.value).html() + '</span>';
 	    }};
+}
+// With header rows (the Deck sort), each type section gets its own columns: only the stat fields its cards have a
+// number for. The stat columns become slots (as many as the widest section needs), each card carries its section's
+// field per slot (listtablefields, a gap is an empty cell), and each header row's labels go in tableheads, which
+// listtableheads() writes into the drawn header rows. Two fields keep a place of their own so the same thing lines
+// up down the table: the field most sections share (L5R: Cost) is always the first column, empty where a section
+// lacks it, and a field every type section of a deck has (L5R Fate: Focus) is that deck's last column. The rest
+// fill in from the left, in the game's order. A list with no header rows keeps one set of columns, labelled in
+// the table head.
+function listtablesections(rows, cols) {
+    if(!rows.some(function(c) { return c.cardid == 0; })) {
+	return;
+    }
+    var heads = [], sections = [], deck = 0, section = null;
+    rows.forEach(function(c) {
+	if(c.cardid == 0) {
+	    if(c.title) {
+		deck++;
+	    }
+	    section = {"deck": deck, "cards": [], "head": {"fields": [], "cards": false}};
+	    heads.push(section.head);
+	    sections.push(section);
+	} else {
+	    if(!section) {
+		section = {"deck": deck, "cards": [], "head": null};
+		sections.push(section);
+	    }
+	    section.cards.push(c);
+	}
+    });
+    sections = sections.filter(function(sec) { return sec.cards.length; });
+    sections.forEach(function(sec) {
+	sec.fields = cols.tablefields.filter(function(f) {
+	    return sec.cards.some(function(c) { return liststatsnumber(deckstatvalue(c, f.field, cols.tablectx)) !== null; });
+	});
+    });
+    var has = function(sec, f) { return sec.fields.indexOf(f) >= 0; };
+    // the first column: the field in the most sections, if it's in more than one (the game's order breaks a tie)
+    var first = null, firstn = 1;
+    cols.tablefields.forEach(function(f) {
+	var n = sections.filter(function(sec) { return has(sec, f); }).length;
+	if(n > firstn) {
+	    first = f;
+	    firstn = n;
+	}
+    });
+    // each deck's last column: a field all its type sections have, if it has more than one
+    var last = {};
+    sections.forEach(function(sec) {
+	if(last[sec.deck] !== undefined) {
+	    return;
+	}
+	var mine = sections.filter(function(s) { return s.deck == sec.deck; });
+	last[sec.deck] = mine.length < 2 ? null : (cols.tablefields.find(function(f) {
+	    return f !== first && mine.every(function(s) { return has(s, f); });
+	}) || null);
+    });
+    var n = 0;
+    sections.forEach(function(sec) {
+	var l = last[sec.deck];
+	sec.middle = sec.fields.filter(function(f) { return f !== first && f !== l; });
+	n = Math.max(n, (first ? 1 : 0) + sec.middle.length + (l ? 1 : 0));
+    });
+    sections.forEach(function(sec) {
+	var l = last[sec.deck], slots = new Array(n);
+	if(first && has(sec, first)) {
+	    slots[0] = first;
+	}
+	sec.middle.forEach(function(f, i) { slots[(first ? 1 : 0) + i] = f; });
+	if(l) {
+	    slots[n-1] = l;
+	}
+	sec.cards.forEach(function(c) { c.listtablefields = slots; });
+	if(sec.head) {
+	    sec.head.fields = slots;
+	    sec.head.cards = true;
+	}
+    });
+    cols.tableheads = heads;
+    cols.tablefields = [];
+    for(var i = 0; i < n; i++) {
+	cols.tablefields.push({"field": i, "label": '', "short": ''});
+    }
+}
+// the header row above a section's cards: its name over # and Card, then its own column labels
+function listtableheads(cols) {
+    if(!cols.tableheads) {
+	return;
+    }
+    var heads = cols.tableheads;
+    $('#resultlist table.listtable tbody tr.listtabledeck, #resultlist table.listtable tbody tr.listtabletype').each(function(i) {
+	var h = heads[i];
+	// a deck header straight above a type header has no cards of its own: it keeps its full width
+	if(!h || !h.cards) {
+	    return;
+	}
+	var cells = $(this).children('th').first().attr('colspan', 2);
+	cols.tablefields.forEach(function(slot, j) {
+	    var f = h.fields[j];
+	    cells = $('<th class="listtablestat listtablecolhead"></th>').text(f ? f.short : '').attr('title', f ? f.label : null).insertAfter(cells);
+	});
+	if(cols.kwfield) {
+	    $('<th class="listtablekw listtablecolhead"></th>').text(cols.kwlabel).insertAfter(cells);
+	}
+    });
 }
 function listtablewrap(rows, cols) {
     return $.templates("#template-listtable").render(cols, {"rows": rows});
@@ -3667,8 +4896,7 @@ function listmissing(listid,missing) {
     if(missing.length < 1) {
 	return '';
     }
-    var rev = cache_thing("list","datareverse");
-    var mine = rev && rev[listid] !== undefined;
+    var mine = listeditable(listid);
     return '<div class="listmissing">'+(missing.length == 1 ? 'A card' : missing.length+' cards')+
 	' in this list no longer '+(missing.length == 1 ? 'exists' : 'exist')+' on the site (card id '+
 	missing.map(function(c) { return c.cardid; }).join(', ')+').'+
@@ -3691,6 +4919,9 @@ function removemissing(listid) {
 
 function dolist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["dolist: "+sort,listid,listoutput,listdata,listlist]);
+    if(listid && !listoutput && liststale(listid)) {
+	return;
+    }
     refreshlist(listdata,listlist,sort,listid,listoutput);
     showlist(); // the url (showview)
 }
@@ -4013,6 +5244,48 @@ function patreonreturn() {
   patreonrefresh();
 }
 
+//**********************************************************  Theme ****************
+// Light, Dark or Auto (the device's setting), from the menu. This browser keeps it in localStorage (session_theme), which
+// the script at the top of index.html reads before anything draws; logged in, users.settings.all.theme carries it to
+// other devices (none stored = Auto). Clear Cache and logging out keep it.
+var themes = {'auto': 'Auto', 'light': 'Light', 'dark': 'Dark'};
+var themesavetimer = null;
+function themenow() {
+  var t = cache_session("theme");
+  return themes[t] ? t : 'auto';
+}
+function themeapply() {
+  var t = themenow();
+  var dark = t == 'dark' || (t == 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  $('.themelabel').text(themes[t]);
+}
+function themecycle() {
+  var order = Object.keys(themes);
+  var t = order[(order.indexOf(themenow()) + 1) % order.length];
+  cache_session("theme", t);
+  themeapply();
+  if(searchloggedin()) { // clicking through the three saves once
+    clearTimeout(themesavetimer);
+    themesavetimer = setTimeout(function() {
+      saveallsetting('theme', t == 'auto' ? null : t, $(), function() {});
+    }, 1000);
+  }
+}
+function applysavedtheme() {
+  var user = cache_thing("user","data");
+  var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
+  if(all && themes[all['theme']]) {
+    cache_session("theme", all['theme']);
+    themeapply();
+  }
+}
+$(themeapply);
+if(window.matchMedia) {
+  var themequery = matchMedia('(prefers-color-scheme: dark)');
+  if(themequery.addEventListener) themequery.addEventListener('change', themeapply);
+}
+
 //**********************************************************  Favorite game ****************
 // users.settings.all.game: the game to open when this browser hasn't picked one (no game menu click or
 // #game= url yet: a new browser, or after logging out or Clear Cache). Without one it's L5R, as before.
@@ -4056,16 +5329,20 @@ var gestureswitches = [
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
   ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"],
+  ['cardpeekmouse', 'Hover over a small card image or a Simple List title to see the card at Detailed size (mouse)'],
+  ['cardpeektouch', 'Long-press a small card image or a Simple List title to see the card at Detailed size (touch; your own lists: the version menu, unless turned off below)'],
+  ['versionmenumouse', "Right-click a card's picture, name or version in your own list to change its version (mouse; off: the browser's menu)"],
+  ['versionmenutouch', "Long-press a card's picture, name or version in your own list to change its version (touch; off: long-press shows the card)"],
   ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)'],
   ['editswipetouch', "Swipe the card editor's Printing details sideways for the previous/next instance (touch)"]
 ];
 // card swipes, per view: search results change the first active list, the deck/list view the list shown
 var swipeviews = [['search', 'Swipes in search results'], ['list', 'Swipes in a deck or list']];
-var swipedirs = [['right', 'Right'], ['upright', 'Up-right'], ['left', 'Left'], ['upleft', 'Up-left']];
+var swipedirs = [['right', 'Right'], ['upright', 'Up-right'], ['downright', 'Down-right'], ['left', 'Left'], ['upleft', 'Up-left'], ['downleft', 'Down-left']];
 var swipeactions = [['off', 'Nothing'], ['add', 'Add'], ['sub', 'Remove'], ['set', 'Set the count to'], ['zero', 'Remove all copies']];
 var swipedefaults = {
-  'search': {'right': ['add',1], 'upright': ['add',3], 'left': ['sub',1], 'upleft': ['zero',0]},
-  'list': {'right': ['add',1], 'upright': ['add',2], 'left': ['sub',1], 'upleft': ['zero',0]}
+  'search': {'right': ['add',1], 'upright': ['add',3], 'downright': ['off',0], 'left': ['sub',1], 'upleft': ['zero',0], 'downleft': ['off',0]},
+  'list': {'right': ['add',1], 'upright': ['add',2], 'downright': ['off',0], 'left': ['sub',1], 'upleft': ['zero',0], 'downleft': ['off',0]}
 };
 function gesturesettings() {
   var g = null;
@@ -4328,7 +5605,8 @@ function fillsearchform(values) {
   // chained selects (set -> rarity) redraw from their parent, then take their values
   form.find('select[onchange]').trigger('change');
   setvalues();
-  form.find('.chosen-select').trigger('chosen:updated');
+  // Tom Select keeps its own picks: match them to the selects (it also moves picked options, so no sync())
+  form.find('select.tomselected').each(function() { this.tomselect.setValue($(this).val(), true); });
   if(advanced) {
     showadvancedsearch(true);
   }
@@ -4611,9 +5889,11 @@ var pdfdefaults = {
   'margin': 18, 'spacing': 0, 'offsetx': 0, 'offsety': 0,
   'columns': 0, 'rows': 0, // 0 = as many as fit
   'quantity': 'proxy', // proxy = the list's quantities, spoiler = one of each
-  'sort': 'list' // list = the list's own order, or a key of databasesort[database], or title
+  'sort': 'list', // list = the list's own order, or a key of databasesort[database], or title
+  'backs': 'none' // sheet: none = fronts only, duplex = each sheet's backs on the next page, mirrored for a long-edge flip
 };
 var pdfoptions = null; // options for the next createpdf, set by the PDF dialog
+var pdfbacksready = false; // createpdf with duplex: the back cards are fetched, make the PDF
 
 // Sun and Moon is an L5R client: its list export/import only applies to games with a textsnm template
 function snmallowed() {
@@ -4772,7 +6052,7 @@ function pdfreadform(units=null) {
   var o = Object.assign(pdfbaseoptions(), {
     'layout': form.layout, 'bleedfill': form.bleedfill, 'fixcorners': form.fixcorners == 'on',
     'paper': form.paper, 'orientation': form.orientation, 'units': form.units,
-    'quantity': form.quantity, 'sort': form.sort,
+    'quantity': form.quantity, 'sort': form.sort, 'backs': form.backs || 'none',
     'columns': Math.max(0, parseInt(form.columns) || 0), 'rows': Math.max(0, parseInt(form.rows) || 0)
   });
   ['paperwidth','paperheight','cardwidth','cardheight','spacing','margin','offsetx','offsety','bleed'].forEach(function(k) {
@@ -5017,7 +6297,20 @@ function getDataUri(url, callback, landscape=false, finish=null) {
 function checkfilename(data) {
     return data.startsWith("filename:");
 }
+// pdfkit (~1.9 MB) and blob-stream are only for PDFs, so they load on the first one, not with the page
+function loadpdfkit(callback) {
+  if(typeof PDFDocument !== 'undefined' && typeof blobStream !== 'undefined') { callback(); return; }
+  var get = f => $.ajax({url: f+'?v='+ootvversion, dataType: 'script', cache: true});
+  $.when(get('pdfkit.min.js'), get('blob-stream.min.js'))
+    .done(callback)
+    .fail(function() { alert("Could not load the PDF maker. Check your connection and try again."); });
+}
+
 function createpdf(data,listoutput='') {
+    if(typeof PDFDocument === 'undefined' || typeof blobStream === 'undefined') {
+      loadpdfkit(function() { createpdf(data, listoutput); });
+      return;
+    }
     var metadata = listoutput.split(",");
     var fn = metadata.find(checkfilename)?metadata.find(checkfilename).replace("filename:",''):"decklist";
     var o = pdfoptions || pdfbaseoptions();
@@ -5032,6 +6325,22 @@ function createpdf(data,listoutput='') {
       return;
     }
     console.log(['createpdf',o,layout,data]);
+    var duplex = (o.backs == 'duplex' && o.layout != 'mpc');
+    if(duplex && !pdfbacksready) {
+      // the back cards are fetched first, then the same PDF is made again
+      var pairs = [];
+      data.forEach(function(card) {
+        var pid = (card.listprinting>0) ? card.listprinting : card.printingprimary;
+        (card.printing || []).forEach(function(p) { if(p.printingid == pid) { pairs.push([card,p]); } });
+      });
+      cardbacksload(pairs, function() {
+        pdfbacksready = true;
+        pdfoptions = o;
+        createpdf(data, listoutput);
+      });
+      return;
+    }
+    pdfbacksready = false;
     if(o.sort != 'list') {
       var gamesort = databasesort[database] || {};
       data = data.slice().sort(gamesort[o.sort] != undefined ? gamesort[o.sort] : pdftitlesort);
@@ -5039,30 +6348,37 @@ function createpdf(data,listoutput='') {
     // MPC prints at 300 dpi: the _master scans (~750 x 1050) instead of _details (600px long side)
     var size = (o.layout == 'mpc') ? 'master' : 'details';
     var newurl = function(p,i) { return dbinfo[database].imageuri+p.imagehash+'/'+(i[size] || i.details)+'?x-corsworkaround=true'; };
-    var images = [];
+    // one entry per card printed: {front, back}, from the printing's first front (printingsides). Without duplex
+    // a front's own back is a card of its own and back is null; with it, back is that front's back (its own,
+    // else the standard one: cardbackurl), or null to leave that spot blank. Other prints of the printing aren't printed.
+    var cards = [];
     for(card of data) {
       var copies = (o.quantity == 'spoiler') ? 1 : card.listquantity;
       for(p of (card.printing || [])) {
         if(p.printingid == ((card.listprinting>0)?card.listprinting:card.printingprimary)) {
-          var pimages = printingimages(p).filter(i => i[size] || i.details);  // no usable scan: no page for it
-          if(pimages.length) {
+          var side = printingsides(p).filter(s => s.front[size] || s.front.details)[0];  // no usable scan: no page for it
+          if(side) {
+              var back = duplex ? cardbackurl(card, p, side, size) : null;
               for(cn = 0; cn < copies; cn++) {
-                if(p.doublesided) {
-  	              for(i of pimages) {
-                    images.push(newurl(p,i));
-                  }
+                if(duplex) {
+                  cards.push({'front': newurl(p,side.front), 'back': back ? back+'?x-corsworkaround=true' : null});
                 } else {
-                  images.push(newurl(p,pimages[0]));
+                  cards.push({'front': newurl(p,side.front), 'back': null});
+                  if(side.back) {
+                    cards.push({'front': newurl(p,side.back), 'back': null});
+                  }
                 }
               }
           }
         }
       }
     }
-    console.log(images);
+    console.log(cards);
 
     // images load asynchronously and finish in any order, so keep each one's data by URL
-    // and lay out the pages from `images`, which is in list order. Each URL loads once.
+    // and lay out the pages from `cards`, which is in list order. Each URL loads once.
+    var images = [];
+    cards.forEach(function(c) { images.push(c.front); if(c.back) { images.push(c.back); } });
     var urls = images.filter(function(url,i) { return images.indexOf(url) == i; });
     var imagedata = {};
     var imagefailed = [];
@@ -5081,13 +6397,13 @@ function createpdf(data,listoutput='') {
         }
         loaded++;
 	      if(loaded == urls.length) {
-          var pages = images.filter(function(url) { return imagedata[url]; });
+          var pages = cards.filter(function(c) { return imagedata[c.front]; });
           if(imagefailed.length>0) {
             console.log("Failed"+JSON.stringify(imagefailed));
             alert("Failed to load some images:"+JSON.stringify(imagefailed));
           }
           if(o.layout == 'mpc') {
-            pdfmpczip(pages.map(function(url) { return imagedata[url]; }), layout, fn);
+            pdfmpczip(pages.map(function(c) { return imagedata[c.front]; }), layout, fn);
             return;
           }
 		      const doc = new PDFDocument({
@@ -5096,16 +6412,25 @@ function createpdf(data,listoutput='') {
 		      });
 		      doc.info['Title'] = fn;
 		      const stream = doc.pipe(blobStream());
-		      for(var i=0 ; i < pages.length; i++) {
-              var slot = i % perpage;
-              doc.image(imagedata[pages[i]],
-                        layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing),
-                        layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
-                        {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
-              if(slot == perpage-1 && (i<pages.length -1)) {
-                doc.addPage();
-              }
-		      }
+          var place = function(url, slot, mirror) {
+            var x = layout.x + (slot % layout.cols)*(o.cardwidth + o.spacing);
+            if(mirror) {
+              x = layout.pagewidth - x - o.cardwidth;  // flipped on the long edge: columns and offsets mirror
+            }
+            doc.image(imagedata[url], x, layout.y + Math.floor(slot / layout.cols)*(o.cardheight + o.spacing),
+                      {fit: [ o.cardwidth, o.cardheight ], align: 'center', valign: 'center'});
+          };
+          for(var start = 0; start < pages.length; start += perpage) {
+            var sheet = pages.slice(start, start + perpage);
+            if(start > 0) {
+              doc.addPage();
+            }
+            sheet.forEach(function(c, slot) { place(c.front, slot, false); });
+            if(duplex) {
+              doc.addPage();
+              sheet.forEach(function(c, slot) { if(c.back && imagedata[c.back]) { place(c.back, slot, true); } });
+            }
+          }
 		      doc.end();
 		      stream.on('finish', function() {
 		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
@@ -5205,7 +6530,54 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 	  console.log("templates not loaded yet");
 	  return;
   }
+  qs = listcardqs(carddata.cardid,prid,qs,switchview);
   $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
+  drawcard(carddata,prid,qs);
+  if(cardpartial(carddata)) {
+    // a search hit: draw it now, then again with its rulings and Rules Q&A once the whole card comes
+    cardfull(carddata.cardid, function(full) {
+      if($("#lastcardid").val() != String(full.cardid)) { return; }   // moved on to another card
+      var mine = $('#resultcard a.cardmylists').detach();   // its count may still be on the way (mycardcount)
+      drawcard(full, lastcardprid() || prid, qs);
+      cardtraders(full.cardid);
+      $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
+      if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
+    });
+  }
+  publiccardcount(carddata.cardid);
+  cardtraders(carddata.cardid);
+  mycardcount(carddata.cardid);
+
+  if(!switchview) {
+	  return;
+  }
+  // the url: a new entry from another view, the same one when the card view redraws (prev/next)
+  showcard();
+}
+
+// Search answers leave out a card's rulings and Rules Q&A (ootv-search PROBLEMS.md #21), sending only
+// rulingcount/rulingrefcount: such a card is partial until fetched whole (cardfull)
+function cardpartial(carddata) {
+  return !!((carddata.rulingcount && !carddata.ruling) || (carddata.rulingrefcount && !carddata.rulingref));
+}
+// the whole card from DynamoDB (/oracle-fetch: rulings, Rules Q&A and update log), cached in place of the search hit
+function cardfull(cardid,handler) {
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+cardid,
+    dataType: 'json',
+    success: function(data) {
+      if(!data || !data.cardid) { return; }
+      data = preparecard(data);
+      cache_card(data);
+      handler(JSON.parse(JSON.stringify(data)));   // drawing changes the card it's given; the cache keeps its own
+    },
+    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+  });
+}
+
+// the card view's #resultcard: the card drawn, its printing shown, trait links and rulings folded
+function drawcard(carddata,prid=null,qs=null) {
   // legalities and sets for the trait links, before cardhtml linkifies them
   var legality = {card: [].concat(carddata.legality || []), printing: {}, set: {}, sets: []};
   (carddata.printing || []).forEach(function(p) {
@@ -5225,29 +6597,62 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   $("#lastprintid").val(showpr).data("chosen", !!shown.textprinting);
   traitsmark('#resultcard', carddata.cardid, {card: legality.card, printing: legality.printing[showpr] || [],
     set: legality.set[showpr] || [], sets: legality.sets});
-  publiccardcount(carddata.cardid);
-  cardtraders(carddata.cardid);
-
-  if(!switchview) {
-	  return;
-  }
-  // the url: a new entry from another view, the same one when the card view redraws (prev/next)
-  showcard();
+  rulingsfold('#resultcard');
+  cardlistbar();
+  pagetitlecard = {cardid: String(carddata.cardid), title: selectplaintext([].concat(carddata.title || [])[0] || '')};
+  pagetitle();
 }
 
 // the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
 // (it linkifies carddata in place, as docard always did before picking the printing to show)
+// a card's updatelog rows for the card page's "Latest Updates", newest first
+function updatelogformat(updatelog) {
+  return updatelog.slice().reverse().map(function(ul){
+    var ret = {};
+    if(ul.newdata) {
+      ret['newdata'] = JSON.stringify(ul.newdata);
+    }
+    if(ul.olddata) {
+      ret['olddata'] = JSON.stringify(ul.olddata);
+    }
+    ret['op'] = ul.op;
+    ret['uname'] = ul.uname;
+    ret['timestamp'] = new Date(ul.timestamp).toLocaleString();
+    return ret;
+  });
+}
+// Search answers leave out updatelog (ootv-search PROBLEMS.md #21), so a card drawn from a search hit
+// has a "Loading..." placeholder in #cardupdatesection; the first time "Latest Updates" opens, fetch
+// the card (DynamoDB has the rows) and fill the section. The template's own onclick does the toggle.
+$(document).on('click', 'a[onclick*="cardupdatesection"]', function() {
+  var section = $(this).nextAll('#cardupdatesection').first();
+  var pending = section.find('.updatelogpending');
+  if(!pending.length || section.data('loading')) { return; }
+  section.data('loading', true).html('<div class="updateblock">Loading...</div>');
+  var text = function(x) { return $('<div>').text(x == null ? '' : x).html(); };
+  $.ajax({
+    type: 'GET',
+    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+pending.data('cardid'),
+    dataType: 'json',
+    success: function(data) {
+      section.html(updatelogformat(data.updatelog || []).map(function(ul) {
+        return '<div class="updateblock">'+text(ul.timestamp)+' '+text(ul.op)+' '+
+          (ul.newdata ? '<div class="updatedetails">New: '+text(ul.newdata)+'</div> ' : '')+
+          (ul.olddata ? '<div class="updatedetails">Old: '+text(ul.olddata)+'</div> ' : '')+
+          '['+text(ul.uname)+']</div>';
+      }).join('') || '<div class="updateblock">No updates.</div>');
+    },
+    error: function(error) {
+      section.data('loading', false).html('<div class="updateblock">Could not load the updates. '+pending.prop('outerHTML')+'</div>');
+      console.log("Epic Fail: "+JSON.stringify(error));
+    }
+  });
+});
 function cardhtml(carddata,prid=null,qs=null) {
   var tmpl = {
 	  "labels": labels[database],
 	  "qs": qs,
-	  "activelists": activelists.map(function(listid) {
-	    var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-	    if(cache_thing("list",listid)) {
-		    list.listdata = cache_thing("list",listid);
-	    }
-	    return list;
-	  }),
+	  "activelists": activelists.map(activelistmeta),
 	  "database": database,
     "dbinfo": dbinfo[database],
     "groups": (cache_thing("user","data") && ("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) ?
@@ -5256,19 +6661,12 @@ function cardhtml(carddata,prid=null,qs=null) {
     "canedit": cardeditallowed()                    // the card editor's Edit button
   };
   if(carddata.updatelog) {
-    carddata['updatelogformatted'] = carddata.updatelog.reverse().map(function(ul){
-      var ret = {};
-      if(ul.newdata) {
-        ret['newdata'] = JSON.stringify(ul.newdata);
-      }
-      if(ul.olddata) {
-        ret['olddata'] = JSON.stringify(ul.olddata);
-      }
-      ret['op'] = ul.op;
-      ret['uname'] = ul.uname;
-      ret['timestamp'] = new Date(ul.timestamp).toLocaleString();
-      return ret;
-    });
+    carddata['updatelogformatted'] = updatelogformat(carddata.updatelog);
+  } else if(carddata.updatelast) {
+    // a search hit has no updatelog, only its newest time (updatelast): that heads "Latest Updates",
+    // and opening it fetches the rows (updatelogload)
+    carddata['updatelogformatted'] = [{'timestamp': new Date(carddata.updatelast).toLocaleString(),
+      'op': '<span class="updatelogpending" data-cardid="'+carddata.cardid+'">Loading...</span>'}];
   }
   for (key in searchables[database]) {
     if(searchables[database][key].clickable || key == "printing.set" || key == "printing.rarity") {
@@ -5574,13 +6972,7 @@ function rendercards(data,request,querystring) {
 	    "labels": labels[database],
 	    "datarequest": request,
 	    "qs": querystring,
-	    "activelists":activelists.map(function(listid) {
-	      var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
-	      if(cache_thing("list",listid)) {
-		      list.listdata = cache_thing("list",listid);
-	      }
-	      return list;
-	    }),
+	    "activelists":activelists.map(activelistmeta),
 	    "database": database
   };
   var override = getactivetemplateoverride('search');
@@ -5601,6 +6993,7 @@ function searchpageable(qs) {
 function dosearchpostcallback(qs) {
     searchtextversion(qs);
     searchaddall(qs);
+    searchdeckcounts();
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
@@ -5655,19 +7048,355 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
 	e.preventDefault(); // Android's long-press menu would cover the label
     }
 });
+// Card peek: a card image drawn smaller than Detailed (search and list rows, the deck view's stacks, public decks,
+// a Detailed image shrunk to fit a phone) or a card title in the Simple List (search or list) shows its Detailed
+// image on hover (mouse), or on a long-press (touch) until the next tap. The Detailed file comes from the card's
+// printing (file names don't always say _select/_details).
+var cardpeek = {"urls": {}, "timer": null, "press": null, "touch": false};
+// the Detailed image URL for img (or a Simple List title), or null if it isn't a card image or already shows about that much
+function cardpeekurl(img) {
+    if(img.tagName == 'A') {
+	return cardpeektitleurl(img);
+    }
+    var base = dbinfo[database] && dbinfo[database].imageuri;
+    var src = img.src || '';   // resolved: some templates' src attributes start with blank lines
+    if(!base || src.indexOf(base) !== 0 || $(img).closest('#cardpeek, #modal, #versionmenu').length) {
+	return null;
+    }
+    var rest = src.slice(base.length).split('?')[0], cut = rest.lastIndexOf('/');
+    var hash = decodeURIComponent(rest.slice(0,cut)), file = decodeURIComponent(rest.slice(cut+1));
+    if(!(src in cardpeek.urls)) {
+	cardpeek.urls[src] = cardpeekfind($(img).closest('[data-card],[data-cardid]'), hash, file);
+    }
+    var found = cardpeek.urls[src];
+    if(!found) {
+	return null;
+    }
+    // a Detailed or full-size file only when it's drawn well under Detailed's 600px long side
+    if(found.file != 'select' && Math.max(img.clientWidth, img.clientHeight) >= 480) {
+	return null;
+    }
+    return base + hash + '/' + found.details;
+}
+// a Simple List title (a.deckswipe with no image): the printing it names (data-printing), else the card's own choice
+function cardpeektitleurl(a) {
+    var data = searchcache[database] ? searchcache[database]['data'] : {};
+    var card = data[String($(a).data('card'))];
+    if(!card || !card.printingreverse || $(a).find('img').length) {
+	return null;
+    }
+    var pr = templatefetch(card, Number($(a).data('printing')) || false);
+    var front = printingimages(pr)[0];
+    return (front && front.details) ? dbinfo[database].imageuri + pr.imagehash + '/' + front.details : null;
+}
+// {file: which size img shows, details: the Detailed file}: from the card the image sits in, else any cached card
+function cardpeekfind(holder, hash, file) {
+    var data = searchcache[database] ? searchcache[database]['data'] : {};
+    var id = holder.length ? String(holder.data('card') || holder.data('cardid')) : '';
+    var cards = (id && data[id]) ? [data[id]] : Object.values(data);
+    for(var c = 0; c < cards.length; c++) {
+	var prints = (cards[c] && cards[c].printing) || [];
+	for(var p = 0; p < prints.length; p++) {
+	    if(prints[p].imagehash !== hash) {
+		continue;
+	    }
+	    var e = printingimages(prints[p]).find(function(e) { return ['select','details','master'].some(function(k) { return e[k] === file; }); });
+	    if(e && e.details) {
+		return {"file": ['select','details','master'].find(function(k) { return e[k] === file; }), "details": e.details};
+	    }
+	}
+    }
+    // not in the cache: the usual naming
+    return /_select\.[a-z]+$/i.test(file) ? {"file": 'select', "details": file.replace(/_select(\.[a-z]+)$/i, '_details$1')} : null;
+}
+// beside the image (mouse) or in the middle of the screen over a backdrop (touch)
+function cardpeekshow(img, url, touch) {
+    var peek = $('#cardpeek');
+    if(!peek.length) {
+	peek = $('<div id="cardpeek"><img alt=""></div>').appendTo('body');
+	peek.on('click', cardpeekhide);
+    }
+    var big = peek.find('img'), place = function() {
+	if(touch) {
+	    peek.css({left: '', top: ''});
+	    return;
+	}
+	var r = img.getBoundingClientRect(), w = peek.outerWidth(), h = peek.outerHeight(), gap = 8;
+	var left = (r.right + gap + w <= window.innerWidth) ? r.right + gap : Math.max(gap, r.left - gap - w);
+	var top = Math.min(Math.max(gap, r.top + r.height/2 - h/2), Math.max(gap, window.innerHeight - h - gap));
+	peek.css({left: left, top: top});
+    };
+    cardpeek.touch = touch;
+    peek.toggleClass('cardpeektouch', touch).removeClass('cardpeekon');
+    big.off('load error').on('load', function() { place(); peek.addClass('cardpeekon'); }).on('error', cardpeekhide);
+    big.attr('src', url);
+    if(big[0].complete && big[0].naturalWidth) {
+	place();
+	peek.addClass('cardpeekon');
+    }
+}
+function cardpeekhide() {
+    clearTimeout(cardpeek.timer);
+    cardpeek.touch = false;
+    $('#cardpeek').removeClass('cardpeekon cardpeektouch').find('img').off('load error');
+}
+$(document).on('mouseenter', 'img, a.deckswipe', function() {
+    if(lastpointertype != 'mouse' || !gestureon('cardpeekmouse')) {
+	return;
+    }
+    // an image's link gets this after the image, so a link with nothing to show mustn't cancel the image's peek
+    var img = this, url = cardpeekurl(img);
+    if(url) {
+	clearTimeout(cardpeek.timer);
+	cardpeek.timer = setTimeout(function() { cardpeekshow(img, url, false); }, 250);
+    }
+});
+$(document).on('mouseleave', 'img, a.deckswipe', function() {
+    if(!cardpeek.touch) {
+	cardpeekhide();
+    }
+});
+// a click-drag swipe or scrolling moves the card away from under the peek
+document.addEventListener('mousedown', function() { if(!cardpeek.touch) { cardpeekhide(); } }, true);
+window.addEventListener('scroll', function() { if(!cardpeek.touch) { cardpeekhide(); } }, true);
+document.addEventListener('pointerdown', function(e) {
+    if(e.pointerType == 'mouse') {
+	return;
+    }
+    var img = e.target.tagName == 'IMG' ? e.target : $(e.target).closest('a.deckswipe')[0];
+    var version = versionmenutarget(e.target, false);   // your own list: the menu, which shows the card too
+    var url = (!version && img && gestureon('cardpeektouch')) ? cardpeekurl(img) : null;
+    if(!version && !url) {
+	return;
+    }
+    if(img) {
+	img.style.webkitTouchCallout = 'none';   // iOS's image menu
+    }
+    cardpeek.press = {"x": e.clientX, "y": e.clientY, "timer": setTimeout(function() {
+	cardpeek.press.shown = true;
+	if(version) {
+	    versionmenuopen(version);
+	} else {
+	    cardpeekshow(img, url, true);
+	}
+    }, 500)};
+});
+document.addEventListener('pointermove', function(e) {
+    // moving the finger is a scroll or a swipe, not a press
+    if(cardpeek.press && !cardpeek.press.shown && Math.hypot(e.clientX-cardpeek.press.x, e.clientY-cardpeek.press.y) > 10) {
+	clearTimeout(cardpeek.press.timer);
+	cardpeek.press = null;
+    }
+});
+document.addEventListener('pointercancel', function() {
+    if(cardpeek.press) {
+	clearTimeout(cardpeek.press.timer);
+	cardpeek.press = null;
+    }
+});
+// the release after a peek isn't a tap on the card (no swipe, no click through to the card view)
+document.addEventListener('touchend', function(e) {
+    if(cardpeek.press) {
+	clearTimeout(cardpeek.press.timer);
+	if(cardpeek.press.shown && e.cancelable) {
+	    e.preventDefault();
+	    deckswipe = null;
+	}
+	cardpeek.press = null;
+    }
+}, {passive: false, capture: true});
+document.addEventListener('contextmenu', function(e) {
+    if(cardpeek.press || cardpeek.touch) {
+	e.preventDefault();   // Android's long-press image menu would cover it
+    }
+}, true);
+// Version menu (the list view, on a list you can edit): a right-click (mouse) or long-press (touch, sharing card
+// peek's press above) on a card's image, title or version lists Default and the card's versions; picking one changes
+// the list entry (listversionchange). The menu shows the card's image, and on touch a tap on it is the full-size peek,
+// so a long-press loses nothing to card peek here. The browser's own menu stays for other people's lists, with Shift held, over selected text, and with the
+// Gestures switch off. The list templates live in the game config, so the row is read from what they already draw.
+var versionmenutargets = 'a.deckswipe, .listitem .listhead a, .listitem .headsetrar, .listitem a.printinglink';
+// {listid, cardid, prid, foil} for the row el is in, or null. foil is null where the row doesn't say (Deck view).
+function versionmenutarget(el, mouse) {
+    if(!$(el).closest('#resultlist').length || !gestureon(mouse ? 'versionmenumouse' : 'versionmenutouch')) {
+	return null;
+    }
+    // the Simple List's [set • rarity] is plain text in the row itself
+    if(!$(el).closest(versionmenutargets).length && !$(el).is('.listbodyplain')) {
+	return null;
+    }
+    var row = $(el).closest('.listitem, .listitemplain, .visualcard, tr.listtablecard');
+    var a = $(el).closest('a.deckswipe');
+    a = a.length ? a : row.find('a.deckswipe').first();
+    var listid = String(a.attr('data-list') || '');
+    if(!listid || !listeditable(listid)) {
+	return null;
+    }
+    var qty = row.find('.listqty[data-foil][data-list="'+listid+'"]'), count = row.find('span.editquantity[id^="clist_quantity"]');
+    return {"listid": listid, "cardid": a.attr('data-card'), "prid": Number(a.attr('data-printing')) || 0,
+	    "foil": qty.length ? (qty.attr('data-foil') || '') : count.length ? (count.attr('id').split(':')[5] || '') : null};
+}
+function versionmenulabel(p) {
+    var rarity = gamefieldhidden('rarity') ? [] : [].concat(p.rarity || []);
+    return selectplaintext([].concat(p.setclean || p.set || [''])[0]) + (rarity.length ? ' / ' + selectplaintext(rarity[0]) : '');
+}
+// whether this printing of the card fits the list's legality: stored or derived, never notmrp (printingfits). A derived
+// format the card as a whole isn't in (cardderived: its exceptions, `none` clauses) fits none of its printings.
+function versionmenufits(card, p, legality) {
+    if(!legality) {
+	return false;
+    }
+    var name = selectplaintext(legality), derived = cache_select('legality.derived');
+    var isderived = Array.isArray(derived) && derived.some(function(d) { return selectplaintext(d.name) == name; });
+    if(isderived && cardderived(card, 'legality').map(selectplaintext).indexOf(name) < 0) {
+	return false;
+    }
+    return printingfits(card, card.printing.indexOf(p), 'legality', legality);
+}
+// x, y: where the mouse is. Without them (touch) it sits in the middle of the screen, as a touch peek does.
+function versionmenuopen(target, x, y) {
+    var card = cache_card_fetch(target.cardid);
+    if(!card || !Array.isArray(card.printing) || !card.printing.length) {
+	return;
+    }
+    versionmenuclose();
+    cardpeekhide();
+    var touch = x === undefined;
+    var primary = card.printing.find(function(p) { return p.printingid == card.printingprimary; });
+    var meta = (cache_thing("list",target.listid) || {list: {Items: [{}]}}).list.Items[0];
+    var legality = [].concat(meta.legality || [])[0] || '';
+    var fits = function(p) { return !!p && versionmenufits(card, p, legality); };
+    var box = $('<div class="versionmenubox" role="menu" aria-label="Choose a version">');
+    var items = $('<div class="versionmenuitems">');
+    var item = function(prid, shown, html, legal) {
+	$('<button type="button" class="versionmenuitem" role="menuitemradio">').attr('aria-checked', String(prid == target.prid))
+	    .toggleClass('versionmenulegal', legal).data({"prid": prid, "shown": shown}).html(html).appendTo(items);
+    };
+    var version = function(p, legal) {
+	item(Number(p.printingid), p, '(' + p.printingid + ') ' + versionmenulabel(p) + ' ' + templatefoilmark(p.foil), legal);
+    };
+    item(0, primary, 'Default' + (primary ? ' <span class="versionmenunote">' + versionmenulabel(primary) + '</span>' : ''), fits(primary));
+    // Default stays on top; then what fits the deck's legality, then the rest, each in set order
+    var prints = templatesortprintings(card.printing), legal = prints.filter(fits);
+    if(legal.length) {
+	$('<div class="versionmenugroup">').text('Legal in ' + selectplaintext(legality)).appendTo(items);
+	legal.forEach(function(p) { version(p, true); });
+	if(legal.length < prints.length) {
+	    $('<div class="versionmenugroup">').text('Other versions').appendTo(items);
+	}
+    }
+    prints.filter(function(p) { return legal.indexOf(p) < 0; }).forEach(function(p) { version(p, false); });
+    box.append($('<img class="versionmenuimg" alt="">'), $('<div class="versionmenulist">').append(
+	$('<div class="versionmenutitle">').html([].concat(card.title).join() + ' <span class="helpq" data-help="lists#versions" aria-label="Help: changing a version">?</span>'), items));
+    var menu = $('<div id="versionmenu">').toggleClass('versionmenutouch', touch).data('target', target).append(box).appendTo('body');
+    versionmenubind(menu);
+    var current = items.children('[aria-checked=true]');
+    current = current.length ? current : items.children().first();   // a version since removed from the card
+    versionmenupreview(current);
+    if(!touch) {
+	box.css({"left": Math.max(8, Math.min(x, window.innerWidth - box.outerWidth() - 8)),
+		 "top": Math.max(8, Math.min(y, window.innerHeight - box.outerHeight() - 8))});
+    }
+    current[0].focus({preventScroll: true});   // the rows open at the top: Default and the legal versions first
+}
+function versionmenuclose() {
+    $('#versionmenu').remove();
+}
+// the picture of the version under the mouse or focus
+function versionmenupreview(item) {
+    var p = item.data('shown'), front = printingimages(p)[0], base = dbinfo[database].imageuri;
+    var file = front && (front.details || front.select || front.master);
+    $('#versionmenu .versionmenuimg').attr('src', file ? base + p.imagehash + '/' + file : missingimage['details'] || missingimage[0]);
+}
+function versionmenupick(item) {
+    var t = $('#versionmenu').data('target'), prid = item.data('prid'), p = item.data('shown');
+    versionmenuclose();
+    if(prid == t.prid) {
+	return;
+    }
+    var card = cache_card_fetch(t.cardid);
+    listversionchange(t.listid, t.cardid, t.prid, t.foil, prid);
+    deckswipetoast([].concat(card.title).join() + ' \u2192 ' + (prid ? versionmenulabel(p) : 'Default'));
+}
+document.addEventListener('contextmenu', function(e) {
+    var sel = window.getSelection();
+    if(lastpointertype != 'mouse' || e.shiftKey || (sel && !sel.isCollapsed && sel.containsNode(e.target, true))) {
+	return;
+    }
+    var target = versionmenutarget(e.target, true);
+    if(target) {
+	e.preventDefault();
+	versionmenuopen(target, e.clientX, e.clientY);
+    }
+});
+// bound on the menu, not the document: iOS sends no click up to the document from a plain div (the backdrop)
+function versionmenubind(menu) {
+    menu.on('click', function(e) {
+	var item = $(e.target).closest('.versionmenuitem');
+	if(item.length) {
+	    versionmenupick(item);
+	} else if($(e.target).is('.versionmenuimg') && menu.is('.versionmenutouch')) {
+	    // long-press took card peek's place on your own lists: a tap on the picture is the full-size peek
+	    var src = e.target.src;
+	    versionmenuclose();
+	    cardpeekshow(e.target, src, true);
+	} else if(!$(e.target).closest('.versionmenubox').length || $(e.target).closest('.helpq').length) {
+	    versionmenuclose();
+	}
+    }).on('contextmenu', function(e) {
+	e.preventDefault();
+	if(!$(e.target).closest('.versionmenubox').length) {
+	    versionmenuclose();
+	}
+    }).on('wheel', function(e) {
+	if(!$(e.target).closest('.versionmenuitems').length) {
+	    versionmenuclose();
+	}
+    }).on('mouseenter focus', '.versionmenuitem', function() {
+	versionmenupreview($(this));
+    });
+}
+// capture: the page's own arrow keys mustn't see these. Esc works wherever the focus is (a click on the title drops it).
+document.addEventListener('keydown', function(e) {
+    if(!$('#versionmenu').length) {
+	return;
+    }
+    var items = $('#versionmenu .versionmenuitem'), at = items.index(document.activeElement);
+    var to = {"ArrowDown": at + 1, "ArrowUp": at < 0 ? -1 : at - 1, "Home": 0, "End": items.length - 1}[e.key];
+    if(e.key == 'Escape') {
+	versionmenuclose();
+    } else if(to !== undefined) {
+	items.eq((to + items.length) % items.length).focus();
+    } else if(e.key != 'Tab' && e.key != 'Enter' && e.key != ' ') {
+	return;
+    }
+    if(e.key != 'Enter' && e.key != ' ') {
+	e.preventDefault();
+    }
+    e.stopPropagation();
+}, true);
+
 // Card images and Simple List titles (a.deckswipe) in search results and the deck/list view (all formats):
 // swipe (touch) or click-drag (mouse) to change the card's count. What each direction does is a setting per view
 // (swipedefaults: search right +1, left -1, up-right +3; deck/list right +1, left -1, up-right +2; both
-// up-left all copies). Going to 0 asks before removing the card. In the list view it changes the list shown; in
+// up-left all copies; down-right and down-left off, so they scroll until turned on). Going to 0 asks before removing the card. In the list view it changes the list shown; in
 // search, the first active list. With none active (logged in), a swipe that adds asks which list to activate
 // (deckswipepicklist); other swipes do nothing. On touch, a mostly vertical drag still scrolls.
+// The card page's own picture click-drags too (mouse only), like search, once a list is active; on touch its swipe is prev/next.
 var deckswipe = null;
 var deckswipedone = 0;
-function deckswipestart(target, x, y, mouse=false) {
+function deckswipelink(target, mouse) {
     var a = $(target).closest('a.deckswipe');
+    if(!a.length && mouse && activelists.length && $(target).closest('#resultcard .printingimages img:not(.cardbackimg)').length) {
+	return $('<a>').data({card: Number($('#lastcardid').val()), printing: Number(lastcardprid()) || 0});
+    }
+    return a;
+}
+function deckswipestart(target, x, y, mouse=false) {
+    var a = deckswipelink(target, mouse);
     var listid = a.length ? (a.data('list') || activelists[0]) : null;
     deckswipe = null;
-    if(a.data('list') && !listmine(String(a.data('list')))) {
+    if(a.data('list') && !listeditable(String(a.data('list')))) {
 	return false;   // someone else's shared deck: read only
     }
     if(listid || (a.length && searchloggedin() && cache_thing("list","data"))) {
@@ -5687,8 +7416,9 @@ function deckswipemove(x, y) {
     }
     var dx = x - deckswipe.x, dy = y - deckswipe.y;
     if(deckswipe.lock === null && Math.hypot(dx,dy) > 12) {
-	// sideways or diagonally up is a swipe; up, down or diagonally down scrolls
-	deckswipe.lock = Math.abs(dx) >= 0.5*Math.abs(dy) && !(dy > 0 && Math.abs(dx) < 2*dy);
+	// sideways or diagonally up is a swipe; up, down or diagonally down scrolls, unless that diagonal has an action
+	var downon = deckswipe.acts[dx > 0 ? 'downright' : 'downleft'][0] != 'off';
+	deckswipe.lock = Math.abs(dx) >= 0.5*Math.abs(dy) && (downon || !(dy > 0 && Math.abs(dx) < 2*dy));
     }
     if(deckswipe.lock === false) {
 	deckswipe = null;
@@ -5706,9 +7436,9 @@ function deckswipeend(x, y) {
 	return;
     }
     deckswipedone = Date.now();  // a swipe, even one that changes nothing, mustn't open the card
-    var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left
-    var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' :
-	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : null;
+    var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left, -90 = down
+    var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' : (angle < -30 && angle >= -65) ? 'downright' :
+	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : (angle <= -115 && angle > -150) ? 'downleft' : null;
     if(dir && s.acts[dir][0] != 'off' && !s.listid) {
 	if(s.acts[dir][0] == 'add' || s.acts[dir][0] == 'set') {
 	    deckswipepicklist(s.a.data('card'), s.a.data('printing') || 0, s.acts[dir]);
@@ -5769,14 +7499,66 @@ document.addEventListener('click', function(e) {
 	e.stopPropagation();
     }
 }, true);
+// The card page's count under its name: a - n + row per active list you can edit, for the printing showing (or the card
+// as a whole, printing 0, when none was picked: what dragging the picture changes). Logged in with no list active, one
+// Add to a list button, which picks a list as a swipe does. Drawn here, not in the card-top partial: the same steps and
+// checks as a swipe (deckswipeapply: going to 0 asks), so a list's count is one thing. The card-bottom partial's rows
+// below the card's text do every printing.
+function cardlistbar() {
+    var cardid = Number($('#lastcardid').val()), head = $('#resultcard .listheadxl').first();
+    $('#cardlistbar').remove();
+    if(!cardid || !head.length) {
+	return;
+    }
+    var prid = Number(lastcardprid()) || 0;
+    var esc = function(t) { return $('<div>').text(t).html(); };
+    var lists = activelists.filter(function(listid) { return listeditable(listid) && listquantity(listid, cardid, prid) !== ''; });
+    var rows = lists.map(function(listid) {
+	var name = esc(activelistmeta(listid).name);
+	return '<span class="cardlistrow" data-list="'+esc(listid)+'"><span class="cardlistname" title="'+name.replace(/"/g,'&quot;')+'">'+name+'</span>'+
+	    '<button type="button" class="cardliststep" data-step="-1" aria-label="One fewer in '+name.replace(/"/g,'&quot;')+'">\u2212</button>'+
+	    '<span class="listqty" data-list="'+esc(listid)+'" data-card="'+cardid+'" data-printing="'+prid+'"></span>'+
+	    '<button type="button" class="cardliststep" data-step="1" aria-label="One more in '+name.replace(/"/g,'&quot;')+'">+</button>'+
+	    '<span class="cardlistall"></span></span>';
+    }).join('');
+    if(!rows && activelists.length == 0 && searchloggedin() && cache_thing("list","data")) {
+	rows = '<button type="button" class="cardliststep cardlistpick">+ Add to a list</button>';
+    }
+    if(rows) {
+	head.after($('<div id="cardlistbar">').html(rows+' <span class="helpq" data-help="cards#lists" aria-label="Help: adding this card to a list">?</span>'));
+	cardlistcounts();
+    }
+}
+// the numbers in the bar, kept in place so a button keeps its focus. "in all" counts the card's other printings and foils
+function cardlistcounts() {
+    var cardid = Number($('#lastcardid').val()), prid = Number(lastcardprid()) || 0;
+    $('#cardlistbar .cardlistrow').each(function() {
+	var listid = String($(this).data('list')), have = Number(listquantity(listid, cardid, prid)) || 0;
+	var list = cache_thing("list",listid);
+	var all = list ? list.list.Items[0].list.reduce(function(n,c) { return n + (c.cardid == cardid ? parseInt(c.quantity) : 0); }, 0) : have;
+	$(this).find('span.listqty').text(have);
+	$(this).find('.cardliststep[data-step=-1]').prop('disabled', have == 0);
+	$(this).find('.cardlistall').text(all != have ? all+' in all' : '');
+    });
+}
+$(document).on('click', '#cardlistbar .cardliststep', function(e) {
+    var cardid = Number($('#lastcardid').val()), prid = Number(lastcardprid()) || 0;
+    if($(this).hasClass('cardlistpick')) {
+	deckswipepicklist(cardid, prid, ['add', 1]);
+    } else {
+	deckswipeapply(String($(this).closest('.cardlistrow').data('list')), cardid, prid, [$(this).data('step') > 0 ? 'add' : 'sub', 1]);
+    }
+    if(e.detail) {
+	this.blur();   // after a click the arrow keys go on to the next card; from the keyboard, focus stays to press again
+    }
+});
 // act: [action, count] from swipeactions. named: say which list changed (search with more than one active list)
 function deckswipeapply(listid, cardid, prid, act, named=false) {
     var have = Number(listquantity(listid, cardid, prid)) || 0;
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
     if(named) {
-	var lists = cache_thing("list","data").lists.Items;
-	title += ' \u2192 ' + lists[cache_thing("list","datareverse")[listid]].name;
+	title += ' \u2192 ' + activelistmeta(listid).name;
     }
     var n = {'add': act[1], 'sub': -act[1], 'set': act[1] - have, 'zero': -have}[act[0]] || 0;
     if(n == 0 || (have == 0 && n < 0)) {
@@ -5880,7 +7662,7 @@ function searchaddallpick() {
     var total = searchcache[database]['querytotal'][qs];
     var rev = cache_thing("list","datareverse") || {};
     var items = cache_thing("list","data").lists.Items;
-    var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid); }).map(function(listid) { return items[rev[listid]]; });
+    var active = activelists.filter(function(listid) { return rev.hasOwnProperty(listid) || listadminedit(listid); }).map(activelistmeta);
     var request = searchcache[database]['queryrequest'][qs] || $.deparam(qs);
     modal('Add all ' + total.toLocaleString() + ' cards to which list?',
 	'<p>' + (searchaddallversion(request) ? 'Each card goes in with the version the search shows.' : 'The cards go in without a version (search on set, rarity, legality, publisher, artist or foil to add a version).') + '</p>' +
@@ -5921,8 +7703,7 @@ function searchaddallpicked(listid) {
 	    });
 	    addlistitems(listid, items, copies);
 	    nomodal();
-	    var lists = cache_thing("list","data").lists.Items;
-	    deckswipetoast('Added ' + items.length.toLocaleString() + ' cards' + (copies > 1 ? ' \u00d7' + copies : '') + ' \u2192 ' + $('<div>').text(lists[cache_thing("list","datareverse")[listid]].name).html());
+	    deckswipetoast('Added ' + items.length.toLocaleString() + ' cards' + (copies > 1 ? ' \u00d7' + copies : '') + ' \u2192 ' + $('<div>').text(activelistmeta(listid).name).html());
 	});
     });
 }
@@ -5995,10 +7776,12 @@ function showview(view) {
     if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
+    sidebarfit(view);
     $('body').toggleClass('viewsearch', view == 'resultsearch'); // phones: shows the Edit search bar
     $('body').toggleClass('viewlist', view == 'resultlist'); // the list's text version button (menubar, phones above the list)
     if($('#' + view).is(":visible")) {
 	seturl(viewstate(view.replace(/^result/,'')), true);
+	pagetitle();
 	return;
     }
     $(".ui-layout-center div[id^=result]").hide(); // Hide all content
@@ -6006,6 +7789,7 @@ function showview(view) {
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
     $('#' + view).fadeIn();
     seturl(viewstate(view.replace(/^result/,'')));
+    pagetitle();
     updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
     if(view == 'resultadmin') showadmintab(admintab);
@@ -6032,6 +7816,24 @@ function showsearch() {
 //    $("#resultsearch").show();
 //    $("#resultlist").hide();
 //    $("#resultcard").hide();
+}
+// the browser tab and search engine title for what's shown: the card or deck name and the game (Google reads it
+// after running the page; index.html has the start page's). drawcard keeps the card's name here.
+var pagetitlecard = {cardid: null, title: ''};
+function pagetitle() {
+  var game = (dbinfo[database] || {}).name;
+  var title = 'Oracle of the Void';
+  var view = $(".ui-layout-center div[id^=result]:visible").attr('id');
+  if(view == 'resultcard' && pagetitlecard.title && pagetitlecard.cardid == $('#lastcardid').val()) {
+    title = pagetitlecard.title + (game ? ' – ' + game + ' card' : '') + ' | ' + title;
+  } else if(view == 'resultlist' && $('#lastlistid').val()) {
+    var list = cache_thing("list", $('#lastlistid').val());
+    var name = list && list.list && list.list.Items[0] ? selectplaintext(list.list.Items[0].name || '') : '';
+    title = (name || 'Deck') + (game ? ' – ' + game + ' deck' : '') + ' | ' + title;
+  } else if(game) {
+    title = game + ' card database and deck builder | ' + title;
+  }
+  document.title = title;
 }
 
 
@@ -6131,6 +7933,44 @@ function templatehasval(v) {
 function templatesortlegality(legality) {
     // card detail legalities in chronological (arc) order (#190)
     return sortbyselect(legality,"legality",function(l) { return l; });
+}
+// the arc bug (legality kanji) drawn before a legality's name: game config legalitybugs {path, bugs: {<legality,
+// plain text>: <image name>}} (docs/admin/game-config.md; L5R: the Renka Gyosho wax seals from ootv-assets
+// legality-bugs). '' for a legality with none, or a game without them. small: the bug alone (alt is the name).
+function legalitybug(value, small) {
+    var lb = ((gameconfig[database] || {}).game || {}).legalitybugs;
+    var name = selectplaintext(value || '');
+    if(!lb || !lb.bugs || !lb.bugs[name]) { return ''; }
+    return '<img class="legalitybug'+(small ? ' legalitybugsmall' : '')+'" src="'+lb.path+lb.bugs[name]+'.png" alt="'+
+        (small ? htmlEncode(name) : '')+'" title="'+htmlEncode(name)+'" />';
+}
+// the clan's mon drawn before a clan's name, like the legality bugs: game config clanmons {path, onlight, ondark,
+// mons: {<clan, plain text>: <image name>}} (docs/admin/game-config.md; L5R: the flat clan-colour mons from ootv-assets
+// mons/oracle_plain/contrast, recoloured for light and dark backgrounds). With onlight + ondark both images are drawn and oracle.css shows the one that
+// suits what's behind it, so a theme change needs no redraw. '' for a clan with none, or a game without them.
+function clanmon(value) {
+    var cm = ((gameconfig[database] || {}).game || {}).clanmons;
+    var name = selectplaintext(value || '');
+    if(!cm || !cm.mons || !cm.mons[name]) { return ''; }
+    var img = function(path, cls) {
+	return '<img class="clanmon'+cls+'" src="'+path+cm.mons[name]+'.png" alt="" title="'+htmlEncode(name)+'" />';
+    };
+    if(!cm.onlight || !cm.ondark) { return img(cm.path, ''); }
+    return img(cm.onlight, ' clanmononlight')+img(cm.ondark, ' clanmonondark');
+}
+function clanmonned(value) {
+    var mon = clanmon(value);
+    return mon ? '<span class="clanwithmon">'+mon+value+'</span>' : value;
+}
+function legalitybugged(value) {
+    var bug = legalitybug(value);
+    return bug ? '<span class="legalitywithbug">'+bug+value+'</span>' : value;
+}
+// the Detailed Search result's line of bugs under the set names (~legalitybugs(#data)): the card's legalities
+// that have one, in arc order; nothing when none does
+function legalitybugline(data) {
+    var bugs = templatesortlegality([].concat((data && data.legality) || [])).map(function(l) { return legalitybug(l, true); }).filter(Boolean);
+    return bugs.length ? '<div class="legalitybugline">'+bugs.join('')+'</div>' : '';
 }
 function templatesortprintings(printing) {
     // card detail Versions in chronological set order; set is linkified by docard, setclean is not
@@ -6422,6 +8262,178 @@ function printingimages(p) {
     if(!p || typeof p.imagehash !== 'string' || !Array.isArray(p.image)) { return []; }
     return p.image.filter(e => e && typeof e === 'object' && ['select','details','master'].some(k => typeof e[k] === 'string' && e[k]));
 }
+
+// ******************** CARD BACKS ********************
+// A printing's images are its fronts and its own backs (docs/data.md printing.image, printing.back):
+//   an image entry with side: "back" is the back of the front just before it (a stronghold's story or mon back).
+//   doublesided (the older marker, exactly two images): image[1] is image[0]'s back.
+//   Every other image is a front: more than one front means different prints of the printing.
+// A front without its own back gets the printing's back, the first that applies:
+//   printing.back: ["<cardid>"] of the back card, or ["none"] for no back
+//   the first rule in the game config's cardbacks.rules that fits the printing:
+//     {"when": {"<field>": "<regex>"}, "set": "<regex>", "before": "<set>", "from": "<set>", "cardid": <back card>}
+//     when fields are read from the printing if it has them, else from the card. before/from place the
+//     printing's set in the chronological set order (selectorder("printing.set")), so they never fit
+//     in a game without one.
+// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs), fetched when first needed.
+var cardbackcards = {};   // {game: {cardid: card, false when it isn't there}}
+var cardbackwaiting = {}; // {game: {cardid: [callbacks]}} while fetching
+function cardbackrules() {
+    var g = (gameconfig[database] || {}).game || {};
+    return (g.cardbacks && Array.isArray(g.cardbacks.rules)) ? g.cardbacks.rules : [];
+}
+function cardbackruleok(rule, card, p) {
+    var set = selectplaintext([].concat(p.setclean || p.set || [""])[0]);
+    var ok = Object.keys(rule.when || {}).every(function(f) {
+        var re = new RegExp(rule.when[f]);
+        return [].concat((f in p) ? p[f] : (card[f] || [])).some(function(v) { return re.test(selectplaintext(v)); });
+    });
+    if(ok && rule.set) {
+        ok = new RegExp(rule.set).test(set);
+    }
+    if(ok && (rule.before || rule.from)) {
+        var order = selectorder("printing.set") || [];
+        var pos = order.indexOf(set);
+        var before = rule.before ? order.indexOf(selectplaintext(rule.before)) : order.length;
+        var from = rule.from ? order.indexOf(selectplaintext(rule.from)) : 0;
+        ok = pos >= 0 && before >= 0 && from >= 0 && pos < before && pos >= from;
+    }
+    return ok;
+}
+// the printing's sides: [{front: image entry, back: image entry or null}], one per front, in order
+function printingsides(p) {
+    var images = printingimages(p), sides = [];
+    images.forEach(function(e, i) {
+        var isback = (e.side == 'back') || (p.doublesided && images.length == 2 && i == 1);
+        if(isback && sides.length && !sides[sides.length-1].back) {
+            sides[sides.length-1].back = e;
+        } else {
+            sides.push({'front': e, 'back': null});  // a back with no front of its own before it is still shown
+        }
+    });
+    return sides;
+}
+// the printing's standard back card ({cardid}), for fronts without a back of their own, or null
+function cardbackstandard(card, p) {
+    if(!card || !p) { return null; }
+    var own = [].concat(p.back || [])[0];
+    if(own) {
+        return (own == 'none') ? null : {'cardid': String(own)};
+    }
+    var rule = cardbackrules().find(function(r) { return r.cardid && cardbackruleok(r, card, p); });
+    return rule ? {'cardid': String(rule.cardid)} : null;
+}
+// a back card's image (its primary printing's front) in a size, or ''
+function cardbackcardurl(back, size) {
+    if(!back || !back.printing) { return ''; }
+    var p = back.printing.find(function(bp) { return bp.printingid == back.printingprimary; }) || back.printing[0];
+    var front = printingimages(p)[0];
+    return front ? dbinfo[database].imageuri + p.imagehash + '/' + (front[size] || front.details) : '';
+}
+// fetch the back cards not loaded yet, then done()
+function cardbacksfetch(ids, done=null) {
+    var game = database;
+    var have = cardbackcards[game] = cardbackcards[game] || {};
+    var waiting = cardbackwaiting[game] = cardbackwaiting[game] || {};
+    ids = ids.filter(function(id, i) { return ids.indexOf(id) == i && !(id in have); });
+    if(!ids.length) {
+        if(done) { done(); }
+        return;
+    }
+    var pending = ids.length;
+    var arrived = function() { if(--pending == 0 && done) { done(); } };
+    var tofetch = ids.filter(function(id) { return !(id in waiting); });
+    ids.forEach(function(id) { waiting[id] = (waiting[id] || []).concat([arrived]); });
+    if(!tofetch.length) { return; }
+    var finish = function(cards) {
+        tofetch.forEach(function(id) {
+            have[id] = cards.find(function(c) { return c && String(c.cardid) == id; }) || false;
+            var calls = waiting[id] || [];
+            delete waiting[id];
+            calls.forEach(function(f) { f(); });
+        });
+    };
+    $.ajax({
+        type: 'GET',
+        url: apiuri+"/oracle-fetch?table="+game+"&cardid="+tofetch.join(),
+        contentType: 'application/json',
+        dataType: 'json',
+        responseType: 'application/json',
+        success: function(data) { finish([].concat(data)); },
+        error: function(error) {
+            console.log("Card back fetch failed: "+JSON.stringify(error));
+            finish([]);
+        }
+    });
+}
+// fetch the standard back cards of these printings ([[card, printing], ...]), then done()
+function cardbacksload(pairs, done) {
+    var ids = [];
+    pairs.forEach(function(cp) {
+        var b = cardbackstandard(cp[0], cp[1]);
+        if(b) { ids.push(b.cardid); }
+    });
+    cardbacksfetch(ids, done);
+}
+// the URL of a side's back in a size (select, details, master): its own back, else the standard back
+// ('' while that card is loading), or null for none
+function cardbackurl(card, p, side, size) {
+    if(side.back) {
+        return dbinfo[database].imageuri + p.imagehash + '/' + (side.back[size] || side.back.details);
+    }
+    var b = cardbackstandard(card, p);
+    return b ? cardbackcardurl((cardbackcards[database] || {})[b.cardid], size) : null;
+}
+// ~cardsides(card, printing) for the card page: one entry per front,
+//   {front: url, print: "Print 2 of 3" or '', back: null or {own, url, details, cardid, title}}
+// own: true for a back printed with this card, false for the standard back (a card of its own, cardid).
+// A standard back still loading gets url '': its img.cardbackimg[data-backid] is filled in when it arrives.
+function templatecardsides(card, p) {
+    var base = dbinfo[database].imageuri + p.imagehash + '/';
+    var sides = printingsides(p), game = database;
+    var standard = sides.some(function(s) { return !s.back; }) ? cardbackstandard(card, p) : null;
+    var stdback = null;
+    if(standard) {
+        var back = (cardbackcards[game] || {})[standard.cardid];
+        if(back) {
+            stdback = {'own': false, 'cardid': standard.cardid, 'title': selectplaintext([].concat(back.title || [''])[0]),
+                       'url': cardbackcardurl(back, 'select'), 'details': cardbackcardurl(back, 'details')};
+        } else if(back === undefined) {
+            stdback = {'own': false, 'cardid': standard.cardid, 'title': '', 'url': '', 'details': ''};
+            cardbacksfetch([standard.cardid], function() {
+                var got = (cardbackcards[game] || {})[standard.cardid];
+                var img = $('img.cardbackimg[data-backid="'+standard.cardid+'"]');
+                if(got && game == database) {
+                    img.attr('src', cardbackcardurl(got, 'select')).attr('data-details', cardbackcardurl(got, 'details'));
+                    img.closest('.cardbackthumb').find('.cardbackname').text(selectplaintext([].concat(got.title || [''])[0]));
+                } else {
+                    img.closest('.cardbackthumb').remove();
+                }
+            });
+        }
+    }
+    return sides.map(function(s, i) {
+        return {
+            'front': base + (s.front.details || s.front.select || s.front.master),
+            'print': sides.length > 1 ? 'Print '+(i+1)+' of '+sides.length : '',
+            'back': s.back ? {'own': true, 'url': base + (s.back.select || s.back.details), 'details': base + (s.back.details || s.back.select)} : stdback
+        };
+    });
+}
+// the card page's Back thumbnail: show that side in the big image, or the front again
+function cardsideflip(thumb) {
+    var wrap = $(thumb).closest('.cardside'), big = wrap.find('img.cardsidefront');
+    var showingback = wrap.toggleClass('cardsideback').hasClass('cardsideback');
+    if(!big.data('front')) { big.data('front', big.attr('src')); }
+    var back = $(thumb).find('img.cardbackimg').attr('data-details');
+    if(showingback && !back) {
+        wrap.removeClass('cardsideback');
+        return;
+    }
+    big.attr('src', showingback ? back : big.data('front'));
+    $(thumb).find('.cardbackflip').text(showingback ? 'Show front' : 'Show back');
+}
+
 function templatefetchimage(card,size,id=false,datarequest={}) {
     console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);
@@ -6457,6 +8469,7 @@ function templatefetchdata(card,data,id=false,datarequest={}) {
 // the API unreachable, the start page says the game couldn't be loaded.
 var gameconfig = {};
 var gamemenu = null;   // all/games: the game menu, in order
+var gamepreviewonly = []; // all/games entries marked preview: true (highlighted in the menu)
 var gamehidden = {};   // per game, the fields its field list marks show: "hidden"
 function gameconfigload(db, ready) {
   var stored = cache_thing('gameconfig', db);
@@ -6505,6 +8518,7 @@ function gamemenuapply(conf) {
   if(!conf.games || !Array.isArray(conf.games.games)) { return; }
   var games = conf.games.games.filter(function(g) { return previewsite || !g.preview; });
   gamemenu = games.map(function(g) { return g.table; });
+  gamepreviewonly = games.filter(function(g) { return g.preview; }).map(function(g) { return g.table; });
   games.forEach(function(g) {
     if(!dbinfo[g.table]) { dbinfo[g.table] = {name: g.name, nameshort: g.nameshort, logo: g.logo}; }
   });
@@ -6559,6 +8573,100 @@ function gameconfigapply(db, conf) {
   if(g.info.background && db == database) {
     $('body').css('background-image', "url('"+g.info.background+"')");
   }
+  if(db == database) {
+    pagetitle();
+  }
+}
+// sort.pick: {field: {rules: [[regex, value], ...], default}}. A card in a list with more than one value in that
+// field (L5R Border Keep and Bamboo Harvesters from Forgotten Legacy: Dynasty and Pre-Game) is grouped under one:
+// the first rule whose regex matches the list's legality, else the arc of the listed printing's set (an unmatched
+// legality, like Legacy, leaves it to the printing), else default. Names are matched with &nbsp; as spaces. The
+// value must be one of the card's own; otherwise the card keeps all its values. Saved on the card as listpick.
+// moves: [{legality, when: {field: regex}, value}] put a card under a value it doesn't have when the list's legality
+// matches and every when field does (L5R Sensei count in the Fate deck in Jade and Imperial formats); checked first.
+function gamepicklist(listdata, listid) {
+  var pick = ((gameconfig[database] || {}).game || {}).sort;
+  pick = pick && pick.pick;
+  var meta = listid && cache_thing("list",listid) && cache_thing("list",listid).list ? cache_thing("list",listid).list.Items[0] || {} : {};
+  var plain = function(v) { return String(v || '').replace(/&nbsp;| /g,' ').trim(); };
+  var arcs = null;   // set name -> arc, from the printing.set select (grouped by arc)
+  var setarc = function(set) {
+    if(arcs === null) {
+      arcs = {};
+      var sel = cache_select("printing.set");
+      (Array.isArray(sel) ? sel : []).forEach(function(g) {
+        if(typeof g !== 'object') { return; }
+        var arc = Object.keys(g)[0];
+        Object.keys(Array.isArray(g[arc]) ? {} : g[arc]).forEach(function(s) { arcs[plain(s)] = arc; });
+      });
+    }
+    return arcs[plain(set)];
+  };
+  // the deck's own choices (deckconstruction pick: {<choice id>: value}) beat the rules below; the choices are
+  // game config deckconstruction.choices: {label, field, when: {field: regex}, values}
+  var choices = (deckbuildconfig() || {}).choices || {}, chosen = deckbuildlistoverlay(meta).pick || {};
+  var chosenfor = function(c) {
+    var out = {};
+    Object.keys(chosen).forEach(function(id) {
+      var ch = choices[id];
+      if(!ch || !ch.field || (ch.values || []).indexOf(chosen[id]) < 0 || out[ch.field]) { return; }
+      var hit = Object.keys(ch.when || {}).every(function(w) {
+        var re;
+        try { re = new RegExp(ch.when[w]); } catch(e) { console.log("deckconstruction: bad regex "+ch.when[w]); return false; }
+        return [].concat(c[w] === undefined || c[w] === null ? [] : c[w]).some(function(v) { return re.test(deckbuildplain(v)); });
+      });
+      if(hit) { out[ch.field] = chosen[id]; }
+    });
+    return out;
+  };
+  listdata.forEach(function(c) {
+    delete c.listpick;
+    if(!(c.cardid > 0)) { return; }
+    var own = chosenfor(c);
+    Object.keys(own).forEach(function(f) {
+      c.listpick = c.listpick || {};
+      c.listpick[f] = [own[f]];
+    });
+    if(!pick) { return; }
+    Object.keys(pick).forEach(function(f) {
+      if(own[f]) { return; }
+      var vals = [].concat(c[f] === undefined || c[f] === null ? [] : c[f]), p = pick[f] || {};
+      var test = function(re, v) {
+        try { return new RegExp(re).test(plain(v)); } catch(e) { console.log("sort.pick: bad regex "+re); return false; }
+      };
+      var move = (p.moves || []).find(function(m) {
+        return m.value && plain(meta.legality) && test(m.legality, meta.legality) && Object.keys(m.when || {}).every(function(w) {
+          return [].concat(c[w] === undefined || c[w] === null ? [] : c[w]).some(function(v) { return test(m.when[w], v); });
+        });
+      });
+      if(move) {
+        c.listpick = c.listpick || {};
+        c.listpick[f] = [move.value];
+        return;
+      }
+      if(vals.length < 2) { return; }
+      var match = function(name) {
+        name = plain(name);
+        if(!name) { return null; }
+        for(var r of p.rules || []) {
+          try {
+            if(new RegExp(r[0]).test(name) && vals.indexOf(r[1]) != -1) { return r[1]; }
+          } catch(e) { console.log("sort.pick: bad regex "+r[0]); }   // a typo in Game config skips the rule
+        }
+        return null;
+      };
+      var pr = (c.printing || []).find(function(x) { return x.printingid == c.listprinting; }) || (c.printing || [])[0] || {};
+      var v = match(meta.legality) || match(setarc([].concat(pr.set || [])[0])) || (vals.indexOf(p.default) != -1 ? p.default : null);
+      if(v) {
+        c.listpick = c.listpick || {};
+        c.listpick[f] = [v];
+      }
+    });
+  });
+}
+// a list card's value for a field, as gamepicklist chose it
+function gamepicked(c, f) {
+  return c.listpick && c.listpick[f] ? c.listpick[f] : c[f];
 }
 // the "deck" list sort: the group field (deck) with its priority values first, then the other groups by name,
 // then type, then title
@@ -6568,7 +8676,7 @@ function gamesort(s) {
   var cmp = function(x, y) { return x > y ? 1 : (y > x ? -1 : 0); };
   return function(a, b) {
     if(group) {
-      var ga = j(a[group]), gb = j(b[group]);
+      var ga = j(gamepicked(a, group)), gb = j(gamepicked(b, group));
       for(var f of first) {
         if(ga == f && gb != f) { return -1; }
         if(gb == f && ga != f) { return 1; }
@@ -6579,10 +8687,11 @@ function gamesort(s) {
   };
 }
 // list headers for the "deck" sort: one level (type) or two (deck, then type within it), with copies and
-// distinct cards counted; a card without the field heads "Other"
+// (distinct, not on decks) distinct cards counted; a card without the field heads "Other"
 function gameheaders(headers) {
-  var j = function(c, f) { return [].concat(c[f] === undefined || c[f] === null ? [] : c[f]).join() || 'Other'; };
-  return function(listdata) {
+  var j = function(c, f) { var v = gamepicked(c, f); return [].concat(v === undefined || v === null ? [] : v).join() || 'Other'; };
+  return function(listdata, distinct = true) {
+    var label = function(name, k) { return name+" - "+sums[k]+(distinct ? " ["+counts[k]+" distinct]" : ""); };
     var top = headers.length > 1 ? headers[0] : null, sub = headers[headers.length-1];
     var sums = {}, counts = {};
     var add = function(k, q) { sums[k] = (sums[k] || 0) + q; counts[k] = (counts[k] || 0) + 1; };
@@ -6595,12 +8704,12 @@ function gameheaders(headers) {
       if(top && j(c, top) !== lasttop) {
         lasttop = j(c, top);
         lastsub = null;
-        out.push({cardid: 0, title: lasttop+" - ("+sums['t\u0000'+lasttop]+") ["+counts['t\u0000'+lasttop]+" distinct]", decktitle: true});
+        out.push({cardid: 0, title: label(lasttop, 't\u0000'+lasttop), decktitle: true});
       }
       if(j(c, sub) !== lastsub) {
         lastsub = j(c, sub);
         var k = 's\u0000'+(top ? lasttop : '')+'\u0000'+lastsub;
-        out.push({cardid: 0, subtitle: lastsub+" - ("+sums[k]+") ["+counts[k]+" distinct]", typetitle: true});
+        out.push({cardid: 0, subtitle: label(lastsub, k), typetitle: true});
       }
       out.push(c);
     });
@@ -6634,7 +8743,7 @@ function gamerows(data, place) {
   return (conf.game.rows[place] || []).map(function(r) { return gamerow(data, r); }).join('\n');
 }
 var gamerowhelpers = {
-  sortlegality: function(v) { return templatesortlegality(v || []).join(' &#149; '); },
+  sortlegality: function(v) { return templatesortlegality(v || []).map(legalitybugged).join(' &#149; '); },
   // the stored values plus every derived value the card fits (a game whose legality is all derived
   // rules, Netrunner): a row {fields: ["legality"], helper: "derivedlegality", when: "always"}
   derivedlegality: function(v, data) {
@@ -6642,7 +8751,7 @@ var gamerowhelpers = {
     cardderived(data, 'legality').forEach(function(n) {
       if(!all.some(function(x) { return selectplaintext(x) == selectplaintext(n); })) { all.push(n); }
     });
-    return all.length ? templatesortlegality(all).join(' &#149; ') : '&ndash;';
+    return all.length ? templatesortlegality(all).map(legalitybugged).join(' &#149; ') : '&ndash;';
   },
   soultitle: function(v) { return soultitle(v); },
   makelinks: function(v) { return templatemakelinks(v); }
@@ -6700,6 +8809,8 @@ function gamerow(data, r) {
     if(helper) {
       v = templatehasval(v) || !r.helpers ? gamerowhelpers[helper](v, data) : '';
     } else {
+      // every clan shown gets its mon (game config clanmons)
+      if(f == 'clan' && templatehasval(v)) { v = [].concat(v).map(clanmonned); }
       v = (v === undefined || v === null) ? '' : v === true ? 'Yes' :
           (Array.isArray(v) ? v.join(join !== undefined ? join : ',') : String(v));
     }
@@ -6737,7 +8848,7 @@ function activatetemplate(type,template) {
   }
   if(type == 'card') {
 	  if( $("#lastcardid").val() ) {
-	    docardid( $("#lastcardid").val(), lastcardprid(),$("#lastsearchquery").val()?$("#lastsearchquery").val():null);
+	    docardid( $("#lastcardid").val(), lastcardprid(), cardqs());
 	  }
   }
   updatemenubar(type);
@@ -7192,6 +9303,10 @@ function startpage() {
   if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
 	  templates[database]['default']['search'] = 'visual';
   }
+  // and lists (shared deck links too) to the Simple List rather than the card images of the Deck view
+  if(narrowscreen() && templates[database]['available']['list'] && !(viewdefaults() || {})['list']) {
+	  templates[database]['default']['list'] = 'list';
+  }
   
   // TODO: check for premium
   $.each(templates[database]['available'],function(key,val) {
@@ -7241,8 +9356,6 @@ function startpage() {
   (gamemenu || []).concat(Object.keys(dbinfo).filter(function(k) { return !(gamemenu || []).includes(k); }))
     .forEach(function(k) { if(dbinfo[k]) { addgametolist(k); } });
   
-  //    $('.document').bind("DOMSUbtreeModified",chosenify);
-  //    chosenify();
 
 }
 
@@ -7354,18 +9467,154 @@ function templateerrtext(e) {
   return String(e && e.message || e).split(/,? in template:/)[0].replace(/\s+/g, ' ').trim();
 }
 
-function chosenify() {
-    console.log("chosenify");
-    $(".chosen-select").chosen({
-//	no_results_text: "Oops, nothing found!",
-	allow_single_deselect: true,
-	placeholder_text_multiple: "Select"
-//	width: "200px"
+// the search form's multiple selects, as Tom Select controls (the selects stay, hidden, and serialize as usual)
+function tomselectify() {
+  $('select.tomselect:not(.tomselected)').each(function() {
+    new TomSelect(this, {
+      plugins: ['remove_button', 'checkbox_options'],
+      maxOptions: null,        // the default stops at 50: L5R has more sets than that
+      refreshThrottle: 0,      // the default filters 300 ms late: a quick Enter would pick the old top option
+      placeholder: 'Select',
+      hidePlaceholder: true,
+      onDropdownOpen: function(dropdown) {   // room to the window's right edge: the dropdown's width rule in oracle.css
+        dropdown.style.setProperty('--tsdropdownmax', (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px');
+      }
     });
+  });
+}
+// before redrawing a select: takes its control away
+function tomselectdrop(sel) {
+  var el = $(sel)[0];
+  if(el && el.tomselect) { el.tomselect.destroy(); }
+}
+
+// every other pulldown on the site, as a single-pick Tom Select you can type in: nothing has to ask for it. Any select that
+// shows up (templates, admin pages) converts when it first scrolls into view, so a long list directory only pays for its
+// visible rows. Stays a plain select: one with two options or fewer (nothing to search; it converts if it grows), `multiple`
+// (tomselectify), `.notomselect`. The select stays, hidden, with its name, value and change event; code goes on using it:
+// .val() is passed on below, new options and hide/show/disabled are picked up by the observers
+// Tom Select moves a picked option to the end of its select, out of its optgroup: here it only picks it, so redraws keep the groups
+if(typeof TomSelect != 'undefined') {
+  TomSelect.define('tomselectkeeporder', function() {
+    var ts = this;
+    ts.hook('instead', 'updateOriginalInput', function(opts) {
+      ts.input.value = ts.items.length ? ts.items[0] : '';
+      if(ts.isSetup && !(opts && opts.silent)) { ts.trigger('change', ts.getValue()); }
+    });
+  });
+}
+var tomselectseen = typeof IntersectionObserver != 'undefined' && new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) { if(e.isIntersecting) { tomselectauto(e.target); } });
+});
+function tomselectsig(el) {
+  return Array.prototype.map.call(el.options, function(o) { return o.value+'\u0001'+o.text+'\u0001'+o.disabled; }).join('\u0002');
+}
+function tomselectauto(el) {
+  if(el.tomselect || !el.isConnected || el.options.length <= 2) { return; }   // too short now: tomselectwatch looks again if options come
+  tomselectseen.unobserve(el);
+  var width = el.offsetWidth, parent = el.parentElement, room = parent.clientWidth - parseFloat(getComputedStyle(parent).paddingLeft) - parseFloat(getComputedStyle(parent).paddingRight);
+  var ts = new TomSelect(el, {
+    plugins: ['no_backspace_delete','tomselectkeeporder'],
+    allowEmptyOption: true,   // "Any type" and friends are real choices
+    maxOptions: null,
+    refreshThrottle: 0,
+    lockOptgroupOrder: true,
+    dropdownParent: 'body',   // list rows and dialogs clip anything inside them
+    dropdownClass: 'ts-dropdown tomselectdrop',
+    onType: function(str) { this.wrapper.classList.toggle('tomselecttyping', !!str); },   // the current pick stays in view until typing starts
+    onDropdownClose: function() { this.wrapper.classList.remove('tomselecttyping'); },
+    onDropdownOpen: function(dropdown) {   // as wide as its longest option, never past the window's right edge
+      dropdown.style.minWidth = this.wrapper.offsetWidth+'px';
+      dropdown.style.maxWidth = (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px';
+    }
+  });
+  el.classList.add('tomselectauto');
+  ts.wrapper.classList.add('tomselectsingle');
+  if(el.closest('#publicform')) { ts.dropdown.classList.add('publicfacetdrop'); }   // publicfacetoptions: what's in the results stands out
+  ts.wrapper.style.width = width >= room - 1 ? '100%' : width+'px';   // the size it had: the page's layout was made for it
+  ['title','aria-label'].forEach(function(a) {
+    if(el.hasAttribute(a)) { ts.wrapper.setAttribute(a, el.getAttribute(a)); }
+  });
+  ts.wrapper.addEventListener('click', function(e) { e.preventDefault(); });   // inside a <label>: it would focus the hidden select and close the dropdown
+  el.tomselectsig = tomselectsig(el);
+  var mirror = function() {
+    ts.wrapper.style.display = el.style.display == 'none' ? 'none' : '';
+    if(el.disabled != ts.isDisabled) { el.disabled ? ts.disable() : ts.enable(); }
+  };
+  mirror();
+  el.tomselectattrs = new MutationObserver(mirror);
+  el.tomselectattrs.observe(el, {attributes: true, attributeFilter: ['style','disabled']});
+}
+// options changed in code: redraw them, keeping the value
+function tomselectrefresh(el) {
+  var sig = tomselectsig(el);
+  if(sig == el.tomselectsig) { return; }
+  el.tomselectsig = sig;
+  var value = el.value, ts = el.tomselect;
+  ts.clearOptions();
+  ts.sync();
+  ts.setValue(value, true);
+}
+function tomselectwatch(el) {
+  if(!el.multiple && !el.tomselect && !el.classList.contains('notomselect')) { tomselectseen.unobserve(el); tomselectseen.observe(el); }   // again: a repeat observe alone never reports
+}
+function tomselectforget(el) {
+  if(el.isConnected) { return; }   // only moved
+  tomselectseen.unobserve(el);
+  if(el.tomselect && !el.multiple) {   // its listeners on document would stay behind
+    el.tomselectattrs.disconnect();
+    el.tomselect.destroy();
+  }
+}
+if(typeof IntersectionObserver != 'undefined') {
+  var tomselecthookset = $.valHooks.select.set;
+  $.valHooks.select.set = function(el, value) {
+    var r = tomselecthookset(el, value);
+    if(el.tomselect && !el.multiple) {
+      tomselectrefresh(el);
+      el.tomselect.setValue(el.value, true);
+    }
+    return r;
+  };
+  $(function() {
+    var each = function(node, fn) {
+      if(node.nodeType != 1) { return; }
+      if(node.tagName == 'SELECT') { fn(node); } else { node.querySelectorAll('select').forEach(fn); }
+    };
+    document.querySelectorAll('select').forEach(tomselectwatch);
+    new MutationObserver(function(muts) {
+      muts.forEach(function(m) {
+        var inselect = m.target.closest && m.target.closest('select');
+        if(inselect) {   // its options changed
+          if(inselect.multiple) { return; }
+          if(inselect.tomselect) { tomselectrefresh(inselect); } else { tomselectwatch(inselect); }
+          return;
+        }
+        m.addedNodes.forEach(function(n) { each(n, tomselectwatch); });
+        m.removedNodes.forEach(function(n) { each(n, tomselectforget); });
+      });
+    }).observe(document.documentElement, {childList: true, subtree: true});
+    // a form reset moves the select's value, not Tom Select's; after it, so anything set straight after the reset counts
+    document.addEventListener('reset', function(e) {
+      setTimeout(function() {
+        $(e.target).find('select.tomselectauto').each(function() { this.tomselect.setValue(this.value, true); });
+      });
+    });
+    // dropdowns live on body: follow the control when something inside the page scrolls
+    window.addEventListener('scroll', function() {
+      document.querySelectorAll('.ts-wrapper.tomselectsingle.dropdown-active').forEach(function(w) {
+        var el = w.previousElementSibling;
+        if(el && el.tomselect) { el.tomselect.positionDropdown(); }
+      });
+    }, {capture: true, passive: true});
+  });
 }
 
 function addgametolist(db) {
-  $('.gamelist').append('<li'+(database == db?' class="menuactive"':'')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+'</a></li>');
+  var cls = (database == db ? ['menuactive'] : []).concat(gamepreviewonly.includes(db) ? ['gamepreviewonly'] : []);
+  $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"'+
+    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+
+    (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</a></li>');
 }
 
 
@@ -7382,6 +9631,7 @@ var urlpendinglist = null; // a #listid link opened before the directory loaded 
 
 // '#a=1,#b=2' -> {a: '1', b: '2'} (a repeated key gives an array)
 function parsehash(hash) {
+  hash = hashunescape(hash);
   var matches = hash.match(/#[^#]+/g);
   var matchstruct = {};
   var structpatt = /#(\w+)=?((?:[^,=#])+)?/;
@@ -7443,7 +9693,7 @@ function statehash(state) {
   } else if(state.view == 'public' && state.pq) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
-    return h+',#rulebook='+state.book+(state.page > 1 || (state.page == 1 && state.find) ? ',#page='+state.page : '')+rulesmarkhash(state);
+    return h+',#rulebook='+state.book+(!state.sec && (state.page > 1 || (state.page == 1 && state.find)) ? ',#page='+state.page : '')+rulesmarkhash(state);
   } else if(state.view == 'rules' && state.shelf) {
     return h+',#shelf='+state.shelf;
   } else if(state.view == 'help' && state.topic) {
@@ -7475,7 +9725,7 @@ function viewstate(view) {
   } else if(view == 'trades') {
     return {view: view, card: tradestate.card};
   } else if(view == 'rules') {
-    return {view: view, shelf: rulesstate.shelf, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at};
+    return {view: view, shelf: rulesstate.shelf, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at, sec: rulesstate.sec};
   }
   return {view: view};
 }
@@ -7509,17 +9759,24 @@ function showviewkeepurl(view) {
 // Back/Forward, and a hash typed in the address bar or set by a link (keyword links): draw what the url says
 $(window).on('popstate', function (e) {
   console.log(['popstate',e.originalEvent.state,location.hash]);
+  hashrepair();
   // phones: back/forward shows results or a card, so close the search panel; back to the blank start page opens it, as on load
   mobilesearchtoggle(narrowscreen() && !location.hash.replace(/#game=[^#]*/,''));
   // no state: a link or a typed url, which keeps the form's filters (urlparser)
   urlparser(!e.originalEvent.state);
 });
 
-// Keyboard navigation inside a list of cards
+// Keyboard navigation inside a list of cards: the arrows, with or without Alt. Alt also works with focus on a link or
+// button, and stops the browser's own Alt+Left/Right from going Back or Forward on top of the step. A card with no
+// results to step through (opened from a link) leaves them to the browser. Alt in a form field is the browser's too.
 $(document).on('keydown', function ( e ) {
-    if(e.target.nodeName=='BODY') {
+    var altstep = e.altKey && (e.key == "ArrowRight" || e.key == "ArrowLeft") && !$(e.target).closest('input, select, textarea, [contenteditable=true]').length;
+    if(e.target.nodeName=='BODY' || altstep) {
 	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it
 	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible"))) {
+	    if(altstep && $("#cardnext").length) {
+		e.preventDefault();
+	    }
 	    if(e.key == "ArrowRight") {
 		$("#cardnext").click();
 	    }
@@ -7637,10 +9894,13 @@ function urlparser(keepfilters=false) {
 	  if($('#lastlistid').val() == matchstruct['listid'] && cache_thing("list",matchstruct['listid'])) {
 	    showlist();   // already drawn
 	  } else if(cache_thing("user","data")) {
+	    listloading();
 	    listinfo(matchstruct['listid'],true);
 	  } else if(signedin()) {
+	    listloading();
 	    urlpendinglist = matchstruct['listid'];   // opened by listinfocallback once the directory loads
 	  } else {
+	    listloading();
 	    listinfo(matchstruct['listid'],true);   // logged out: a public list, read only (listrequest)
 	  }
   } else if(typeof(matchstruct['publiclists']) != 'undefined') {
@@ -7653,7 +9913,7 @@ function urlparser(keepfilters=false) {
   } else if(typeof(matchstruct['rulebook']) != 'undefined') {
 	  var rulesmark = rulesmarkparse(matchstruct);
 	  rulesstate.book = matchstruct['rulebook'];
-	  rulesstate.page = parseInt(matchstruct['page'], 10) || (rulesmark.find ? 0 : 1);
+	  rulesstate.page = rulesmark.sec ? 0 : parseInt(matchstruct['page'], 10) || (rulesmark.find ? 0 : 1);
 	  Object.assign(rulesstate, rulesmark);
 	  urlrestoring = 'rules';
 	  rulesshowview();
@@ -7766,7 +10026,7 @@ function initializeform(db) {
   while (populatecallback.length){
 	  populatecallback.shift().call();
   }
-  chosenify();
+  tomselectify();
   $('dd.advanced').hide();
   $('dt.advanced').hide();
   advancedshown = false;
@@ -7778,7 +10038,7 @@ function initializeform(db) {
 // the Foil search (type "foil", every game; ootv-search routes/search.js): fixed choices, ORed
 var foilsearch = [['any', 'Any foil'], ['foil', 'Foil only'], ['both', 'Regular and foil'], ['none', 'Not foil']];
 function foilselect(nound) {
-  return '<select class="chosen-select" multiple id="field_'+nound+'" name="field_'+nound+'">'+
+  return '<select class="tomselect" multiple id="field_'+nound+'" name="field_'+nound+'">'+
     foilsearch.map(function(o) { return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join('')+'</select>';
 }
 // a search form select, from the cached values
@@ -7800,7 +10060,7 @@ function selectfield(db,key) {
 function onchangesub(key,nound,noundsub,db) {
   console.log(key,nound,noundsub,db);
   var fval = $('#field_'+noundsub).val();
-  $('#field_'+noundsub+'_chosen').remove();
+  tomselectdrop('#field_'+noundsub);
   var newvals = [];
   var sel = cache_select(key);
   if(//!Array.isArray(sel[0])) {
@@ -7829,7 +10089,7 @@ function onchangesub(key,nound,noundsub,db) {
 		               )
   );
   $('#field_'+noundsub).val(fval);
-  chosenify();
+  tomselectify();
 }
 
 // admin login log: newest 50 per page from /loginlog (site admins only).
@@ -7845,7 +10105,7 @@ function loadloginlog(page) {
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
   $('#gameconfigadmin, #templatesadmin, #limitsadmin').empty();
-  $('#updatelogpage, #usageadmin').empty();
+  $('#updatelogpage, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   $('#loginlog').html('Loading login log...');
   var data = { uid: getuid(), limit: 50 };
@@ -7883,7 +10143,7 @@ var discordcommandlabels = {card: 'One card', cardtext: 'Card text', rulings: 'R
 function loaddiscord(note) {
   showadmintab('config');
   $('#limitsadmin').empty();
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
   $('#updatelogpage').empty();
@@ -8093,7 +10353,7 @@ function discordtest(btn) {
 var markedurl = 'https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js';
 function loadadmindoc(name) {
   showadmintab('docs');
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -8123,6 +10383,12 @@ function loadadmindoc(name) {
 
 // cards linked per updatelog row; matches FETCH_PER_ROW in ootv-search routes/updatelog.js
 const updatelogshown = 10;
+// the home page's Recent updates: this many rows at a time (each fetches up to updatelogshown cards),
+// and what its operations are called there. The admin update log keeps the raw names.
+const homeupdatecount = 10;
+const homeupdatelabels = {'new': 'New card', 'newinstance': 'New printing', 'remove': 'Card removed',
+  'removeinstance': 'Printing removed', 'update': 'Card updated', 'updateinstance': 'Printing updated',
+  'upload': 'Image added', 'bulkupdate': 'Cards updated'};
 // /updatelog?fetchcards=true -> one template-updatelog row per log entry, newest first.
 // Caches the fetched cards. A bulkupdate can list thousands of cards: link only the
 // first updatelogshown (the ones the API fetched) and count the rest, so the page
@@ -8136,6 +10402,8 @@ function updatelogrows(raw, db) {
   return raw.logs.map(function(uplog) {
     var printlog = JSON.parse(JSON.stringify(uplog));
     printlog.timestamp = new Date(printlog.timestamp).toLocaleString();
+    printlog.date = new Date(uplog.timestamp).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+    printlog.label = homeupdatelabels[printlog.operation] || printlog.operation;
     var cardids = printlog.cardids || [];
     printlog.total = cardids.length;
     printlog.cards = cardids.slice(0, updatelogshown).map(function(uplogcard) {
@@ -8149,14 +10417,15 @@ function updatelogrows(raw, db) {
   });
 }
 
-function loadupdates(db,start=null) {
+// older: the next page's maxtime, for the Older updates button
+function loadupdates(db,start=null,older=null) {
   // TODO: set timer for start on max last card
   var req = { 
     type: 'GET',
     url: apiuri+"/updatelog",
     data: {
       table: database,
-      limit: 110, 
+      limit: homeupdatecount,
       fetchcards: true
     },
     contentType: 'application/json',
@@ -8164,10 +10433,18 @@ function loadupdates(db,start=null) {
     responseType: 'application/json',
     success: function(raw) {
       console.log(['loadupdates success',raw]);
-      var updatelogtemplate = $.templates("#template-updatelog");
-      updatelogrows(raw, database).reverse().forEach(function(printlog) {
-        $('#updatelog').prepend(updatelogtemplate.render(printlog));
-      });
+      var updatelogtemplate = $.templates("#template-homeupdate");
+      var rows = updatelogrows(raw, database);
+      if(older) {
+        $('#updatelog').append(rows.map(function(printlog) { return updatelogtemplate.render(printlog); }).join(''));
+      } else {
+        rows.reverse().forEach(function(printlog) {
+          $('#updatelog').prepend(updatelogtemplate.render(printlog));
+        });
+      }
+      if(!start) {
+        $('#updatelogolder').data('next', raw.next).toggle(!!raw.next);
+      }
     },
     error: function(raw) {
       console.log(['loadupdates fail',raw]);
@@ -8175,6 +10452,10 @@ function loadupdates(db,start=null) {
   };
   if(start) {
     req.data['mintime'] = start;
+  }
+  if(older) {
+    req.data['maxtime'] = older;
+    $('#updatelogolder').hide();
   }
   $.ajax(req);
 }
@@ -8255,7 +10536,7 @@ function loadgameconfigadmin(which) {
 // features (all/artphoto); site admins only
 function loadlimitsadmin() {
   showadmintab('config');
-  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
@@ -8271,7 +10552,7 @@ function loadlimitsadmin() {
 // from oracle-all-usage; site admins only
 function loadusageadmin() {
   showadmintab('audit');
-  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin').empty();
+  $('#loginlog, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var user = cache_thing("user","data");
   var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
@@ -8283,11 +10564,49 @@ function loadusageadmin() {
     .fail(function() { $('#usageadmin').html('<span class="error">Could not load the usage log.</span>'); });
 }
 
+// Admin → Audit → Users and Audit log (useradmin.js, loaded on first use; POST /admin): look up and edit
+// accounts, and what admins did with other people's data; site admins only. uid / target open one at once.
+function useradminload(panel, open) {
+  showadmintab('audit');
+  $('#loginlog, #usageadmin, #patreonadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #useradmin, #auditlogadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $(panel).text('This needs full permission on every game.'); return; }
+  if(window.useradminloaded) { open(); return; }
+  $(panel).text('Loading...');
+  $.ajax({url: 'useradmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { open(); })
+    .fail(function() { $(panel).html('<span class="error">Could not load the admin page.</span>'); });
+}
+function loaduseradmin(uid) {
+  useradminload('#useradmin', function() { useropen(); if(uid) { userget(uid); } });
+}
+function loadauditlogadmin(target) {
+  useradminload('#auditlogadmin', function() { auditopen(typeof target == 'string' ? target : ''); });
+}
+
+// Admin → Audit → Patreon supporters (patreonadmin.js, loaded on first use): every Patreon member with
+// their Oracle account and Discord user, from oracle-all-patreon; site admins only
+function loadpatreonadmin() {
+  showadmintab('audit');
+  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #artistsadmin, #limitsadmin, #useradmin, #auditlogadmin').empty();
+  $('#massimage, #setimport, #importprofiles, #artcheck').hide();
+  var user = cache_thing("user","data");
+  var groups = user && user.oracle && user.oracle[0] && user.oracle[0].groups || {};
+  if(!(Array.isArray(groups['*']) && groups['*'].includes('*'))) { $('#patreonadmin').text('The supporter list needs full permission on every game.'); return; }
+  if(window.patreonadminloaded) { patreonopen(); return; }
+  $('#patreonadmin').text('Loading...');
+  $.ajax({url: 'patreonadmin.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(function() { patreonopen(); })
+    .fail(function() { $('#patreonadmin').html('<span class="error">Could not load the supporter list.</span>'); });
+}
+
 // Admin → Artists (artistsadmin.js, loaded on first use): the oracle-all-artists entries the artist
 // modal shows. name: an entry to open (the modal's Edit link).
 function loadartistsadmin(name) {
   showadmintab('data');
-  $('#loginlog, #usageadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin, #discordadmin, #admindoc, #updatelogpage, #fielddescs, #gameconfigadmin, #templatesadmin, #limitsadmin').empty();
   $('#massimage, #setimport, #importprofiles, #artcheck').hide();
   var open = function() { artistsopen(name === undefined ? null : name); };
   if(window.artistsadminloaded) { open(); return; }
@@ -8309,7 +10628,7 @@ function artistsallowed() {
 var fielddescsview = {target: null, only: false};
 function loadfielddescs(target) {
   showadmintab('config');
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#admindoc').empty();
@@ -8430,7 +10749,7 @@ const updatelogpagesize = 30;
 var cursors_updatelog = [null], page_updatelog = 0, updatelogfilter = {}, updatelogfacets = {};
 function loadupdatelogpage() {
   showadmintab('audit');
-  $('#loginlog, #usageadmin').empty();
+  $('#loginlog, #usageadmin, #patreonadmin, #useradmin, #auditlogadmin').empty();
   $('#discordadmin').empty();
   $('#artistsadmin').empty();
   $('#fielddescs').empty();
@@ -8578,10 +10897,10 @@ function refreshselectfield(db,key) {
 	  return;
   }
   var val = $('#field_'+nound).val();
-  $('#field_'+nound+'_chosen').remove();
+  tomselectdrop('#field_'+nound);
   $('#field_'+nound).replaceWith(selectfield(db,key));
   $('#field_'+nound).val(val);
-  chosenify();
+  tomselectify();
   // the select chained to this one (set -> rarity) takes its values from this one
   if(searchables[db][key]['sub'] !== undefined) {
 	  onchangesub(key,nound,searchables[db][key]['sub'].replace("printing.","printing_"),db);
@@ -8645,7 +10964,7 @@ function uri2json(uri) {
 // make a select with attrs from att.   values and display are identical
 function makeselectarray(arr,atts={}) {
   //  console.log(arr);
-  var sel = '<select class="chosen-select" multiple '+
+  var sel = '<select class="tomselect" multiple '+
     $.map(atts,function(v,i){ // atts pair value id=, name=, etc.
       return i+'="'+v+'"';
     }).join(" ")+'>';
@@ -8703,12 +11022,71 @@ function changeprinting(id,prid,qs,title) {
     $("#lastprintid").val(prid).data("chosen", true);
     $('.printing[data-printingid='+prid+']').show();
     $("#lastcardid").data('prid', prid);
+    cardlistbar();
   }
   seturl(viewstate('card'), true);
   // $('.printing').hide();$('.printing[data-printingid={{:printingid}}]').show();
 }
 
+// The search a card was opened from, or the list ('listid=N'), for redrawing it where it is
+function cardqs() {
+    return $('#lastcardid').data('qs') || $('#lastsearchquery').val() || null;
+}
+// A card opened from the list on screen steps through that list as it's drawn: its qs is 'listid=N' (the views' own
+// card links don't say, and Table and Deck pass no qs at all), so the card page's arrows, keys and swipe come with it.
+// refreshlist keeps the order here. Two printings of a card are two stops; a regular and a foil copy of one printing are one.
+var listcardorder = {};
+var listcardspot = 0;   // where the card on screen is, or was before its last copy left the list
+function cardqslist(qs) {
+    var match = /^listid=(\d+)$/.exec(qs || '');
+    return match ? match[1] : null;
+}
+function listcardsdrawn() {
+    var seen = {};
+    return $('#resultlist a.deckswipe[data-card]').map(function() {
+	var card = {cardid: Number($(this).data('card')), printing: Number($(this).data('printing')) || 0};
+	var key = card.cardid+'/'+card.printing, first = !seen[key];
+	seen[key] = true;
+	return first ? card : null;
+    }).get();
+}
+// the printing it was opened on, else any row of the card (a picked Version needn't be a row of the list)
+function listcardindex(listid,id,prid) {
+    var order = listcardorder[listid] || [];
+    var index = order.findIndex(function(c) { return c.cardid == id && c.printing == (prid || 0); });
+    return index < 0 ? order.findIndex(function(c) { return c.cardid == id; }) : index;
+}
+// docard: the qs to draw this card with
+function listcardqs(id,prid,qs,opening) {
+    var listid = cardqslist(qs);
+    if(!qs && opening && currentresulttab() == 'list' && $('#lastlistid').val()) {
+	listid = $('#lastlistid').val();
+    }
+    var index = listid ? listcardindex(listid, id, prid) : -1;
+    if(index >= 0) {
+	listcardspot = index;
+	return 'listid='+listid;
+    }
+    // a list's qs with the card not in it: its last copy left (stepping carries on), or a reload, and the list isn't drawn
+    return cardqslist(qs) && !(listcardorder[listid] || []).length ? null : qs;
+}
+function listcardstep(id,qs,step) {
+    var listid = cardqslist(qs), order = listcardorder[listid] || [];
+    var index = listcardindex(listid, id, $('#lastcardid').data('prid'));
+    // left the list: the row after it now sits at its old spot
+    var to = order[index < 0 ? listcardspot + Math.min(step, 0) : index + step];
+    if(to && cache_card_is(to.cardid)) {
+	docardid(to.cardid, to.printing || null, qs);
+    } else if(to) {
+	cardfetch(to.cardid, to.printing || null, qs);
+    }
+}
+
 function cardprev(id,qs) {
+    if(cardqslist(qs)) {
+	listcardstep(id,qs,-1);
+	return;
+    }
     var index = searchcache[database]['querydata'][qs].indexOf(id);
     if(index>0) {
 	docardid(searchcache[database]['querydata'][qs][index-1],null,qs);
@@ -8717,6 +11095,10 @@ function cardprev(id,qs) {
 
 // TODO: er.. .lastsearchquery is getting messy with being able to load searches?  or will it work...
 function cardnext(id,qs) {
+    if(cardqslist(qs)) {
+	listcardstep(id,qs,1);
+	return;
+    }
     var index = searchcache[database]['querydata'][qs].indexOf(id);
     if((index >= searchcache[database]['querydata'][qs].length - 5) && (searchcache[database]['querydata'][qs].length < searchpageable(qs))) {
 	searchnextpage(qs);
@@ -8756,17 +11138,30 @@ function searchviewbutton() {
 	sidebaropener();
     }
 }
+// wide screens: Help, the Bookshelf and Public lists don't use the search form, so it starts collapsed there. Opening or
+// closing it by hand holds for those views together, and separately for the others. The phone layout ignores this (oracle.css).
+var sidebarnosearch = {resulthelp: true, resultrules: true, resultpublic: true, resulttrades: true, resultmessages: true};
+var sidebaropen = {search: true, nosearch: false};
+var sidebarview = '';
+function sidebarkind() {
+    return sidebarnosearch[sidebarview] ? 'nosearch' : 'search';
+}
+function sidebarfit(view) {
+    sidebarview = view;
+    $('#sidebar').toggle(sidebaropen[sidebarkind()]);
+    $('#sidebaropener').toggle(!sidebaropen[sidebarkind()]);
+}
 function sidebarcloser() {
     if(narrowscreen()) {
 	mobilesearchtoggle(false);
 	return;
     }
-    $('#sidebar').hide();
-    $('#sidebaropener').show();
+    sidebaropen[sidebarkind()] = false;
+    sidebarfit(sidebarview);
 }
 function sidebaropener() {
-    $('#sidebar').show();
-    $('#sidebaropener').hide();
+    sidebaropen[sidebarkind()] = true;
+    sidebarfit(sidebarview);
 }
 
 //TDOO;  maybe ex should go back to search period - maybe scrolling through cards in search should do replacestate
@@ -8862,7 +11257,6 @@ function modal(title,content) {
     $('#modal-title').html(title);
     $('#modal-content').html(content);
     $('#modal').css('display','block');
-    chosenify();
 }
 
 function modalconfirm(title,content,handler,contentafter='') {
@@ -8870,7 +11264,6 @@ function modalconfirm(title,content,handler,contentafter='') {
   $('#modal-title').html(title);
   $('#modal-content').html(content+$('#modalconfirm').html().replace("CONFIRMYES",handler)+contentafter);
   $('#modal').css('display','block');
-  chosenify();
 }
 
 function erasemodal() {
@@ -8906,12 +11299,17 @@ $(document).on('mouseenter', '#resultcard dd.rulings a[href*="#rulebook="]', fun
   if(lastpointertype != 'mouse' || $('#traitpop').hasClass('traitpoptouch') && $('#traitpop').is(':visible')) { return; }
   rulingpeek(this, false);
 }).on('mouseleave', '#resultcard dd.rulings a[href*="#rulebook="]', function() {
-  if(!$('#traitpop').hasClass('traitpoptouch')) { $('#traitpop').removeData('ruling').hide(); }
+  if(!$('#traitpop').hasClass('traitpoptouch')) { rulingpeeking = null; $('#traitpop').removeData('ruling').hide(); }
 });
 // the place a ruling's rulebook link points at, in the trait popup: by el on hover (mouse), or after a long-press
 // (touch), centred, with Open page and Close (as traitpopshow)
+var rulingpeeking = null;   // the link being peeked at, while a #sec link's book loads (the mouse may leave first)
 function rulingpeek(el,touch) {
-  var l = rulinglink($(el).attr('href')), label = $(el).text(), w = Math.min(touch ? 420 : 560, window.innerWidth - 16);
+  rulingpeeking = el;
+  rulingresolve(rulinglink($(el).attr('href')), function(l) { if(rulingpeeking == el) { rulingpeekshow(el, touch, l); } });
+}
+function rulingpeekshow(el,touch,l) {
+  var label = $(el).text(), w = Math.min(touch ? 420 : 560, window.innerWidth - 16);
   var pop = $('#traitpop');
   if(!pop.length) { pop = $('<div id="traitpop"></div>').appendTo('body'); }
   pop.toggleClass('traitpoptouch', touch).data('ruling', el).html('<div class="traitpophead">'+$('<div>').text(label).html()+'</div>'+
@@ -8928,14 +11326,69 @@ function rulingpeek(el,touch) {
   place();
   rulingshowplace(pop.find('.rulingview'), l, true, place);
 }
-var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at), for Open in the Bookshelf
-// a ruling's rulebook link: {book, page, mark: {find, line, at} as written in the link}, or null
+// A card's rulings start partly shown: the first rulingsfew, then "Show N more" (and "Show fewer" back). The
+// arrow by the label folds the whole list away to "Show N rulings", which opens it again partly shown.
+var rulingsfew = 3;
+function rulingsfold(where) {
+  $(where).find('dd.rulings').each(function() {
+    var dd = $(this), n = dd.children('div').length, more = n - rulingsfew;
+    var plural = function(k,extra) { return k+' '+(extra ? 'more ' : '')+(k == 1 ? 'ruling' : 'rulings'); };
+    dd.prev('dt').prepend('<span class="rulingsfoldbtn" role="button" tabindex="0" aria-expanded="true" title="Hide the rulings">&#9662;</span>');
+    dd.append('<span class="rulingsopen" role="button" tabindex="0">Show '+plural(n)+'</span>');
+    if(more > 0) {
+      dd.addClass('rulingssome').append('<span class="rulingsmore" role="button" tabindex="0" data-more="Show '+plural(more,true)+'">Show '+plural(more,true)+'</span>');
+    }
+  });
+}
+$(document).on('click keydown', 'dt .rulingsfoldbtn, dd.rulings .rulingsopen', function(e) {
+  if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
+  e.preventDefault();
+  var dd = $(this).closest('dt').next('dd.rulings').add($(this).closest('dd.rulings')), open = dd.hasClass('rulingsnone');
+  dd.toggleClass('rulingsnone', !open);
+  if(open && dd.hasClass('rulingsall')) { dd.find('.rulingsmore').trigger('click'); }   // opens partly shown again
+  dd.prev('dt').find('.rulingsfoldbtn').html(open ? '&#9662;' : '&#9656;')
+    .attr({'aria-expanded': open ? 'true' : 'false', title: open ? 'Hide the rulings' : 'Show the rulings'});
+});
+$(document).on('click keydown', 'dd.rulings .rulingsmore', function(e) {
+  if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
+  e.preventDefault();
+  var dd = $(this).closest('dd'), all = dd.hasClass('rulingssome');
+  dd.toggleClass('rulingssome', !all).toggleClass('rulingsall', all);
+  $(this).text(all ? 'Show fewer' : $(this).data('more'));
+});
+var rulingmark = {};   // the place on the page a rulebook link in a ruling points at (#find, #line, #at, #sec), for Open in the Bookshelf
+// a ruling's rulebook link: {book, page, mark: {find, line, at, sec} as written in the link}, or null
 function rulinglink(href) {
   var m = /#rulebook=([^,#]+)(?:,#page=(\d+))?/.exec(href || '');
   if(!m) { return null; }
   var mark = {};
-  href.replace(/#(find|line|at)=([^,#]*)/g, function(all, k, v) { mark[k] = v; });
+  href.replace(/#(find|line|at|sec)=([^,#]*)/g, function(all, k, v) { mark[k] = v; });
   return {book: decodeURIComponent(m[1]), page: parseInt(m[2],10) || 1, mark: mark};
+}
+// a #sec link's page and place, from the book's section map: done(l) with page, mark.at and mark.sec (the key
+// found) filled in; a section the book lacks drops sec and keeps the link's page
+var rulingbooks = {};   // book.json url -> its request
+function rulingresolve(l,done) {
+  if(!l.mark.sec) { done(l); return; }
+  var url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/book.json';
+  rulingbooks[url] = rulingbooks[url] || $.ajax({url: url, dataType: 'json', cache: true});
+  rulingbooks[url].always(function(book) {
+    var place = rulessecplace(book && book.sections, decodeURIComponent(l.mark.sec));
+    if(!place) {
+      delete l.mark.sec;
+      done(l);
+      return;
+    }
+    Object.assign(l, {page: place.page});
+    Object.assign(l.mark, {sec: place.key, at: place.at});
+    if(l.mark.find && !rulessecfindok(decodeURIComponent(l.mark.find))) { delete l.mark.find; }
+    if(!l.mark.find) { done(l); return; }
+    rulessecfind(l.book, place, decodeURIComponent(l.mark.find), function(p) {   // the phrase's page; else the section's heading
+      if(p) { l.page = p; } else { delete l.mark.find; }
+      if(p && p != place.page) { l.mark.at = 0; }   // past the section's page: from the top
+      done(l);
+    });
+  });
 }
 function rulingpageurl(l,size) {
   return dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/'+String(l.page).padStart(3,'0')+'_'+size+'.webp';
@@ -8945,8 +11398,8 @@ function rulingpageurl(l,size) {
 var rulinglines = {};   // lines/<NNN>.json url -> its request
 function rulingplace(l,done) {
   var mark = rulesmarkparse(l.mark);
-  if(mark.at) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
-  if(!mark.find && !mark.line) { done(null); return; }
+  if(mark.at && !mark.sec && !mark.find) { done({y: mark.at * 100, bands: [], x: [0, 10000]}); return; }
+  if(!mark.find && !mark.line && !mark.sec) { done(null); return; }
   var url = dbinfo[database].imageuri+'rulebooks/'+encodeURIComponent(l.book)+'/lines/'+String(l.page).padStart(3,'0')+'.json';
   rulinglines[url] = rulinglines[url] || $.ajax({url: url, dataType: 'json', cache: true});
   rulinglines[url].done(function(lines) {
@@ -8986,9 +11439,12 @@ function rulingshowplace(view,l,peek,done) {
   });
 }
 function rulingpopup(href,label) {
+  var l = rulinglink(href);
+  if(l) { rulingresolve(l, function(l) { rulingpopupshow(href, label, l); }); } else { rulingpopupshow(href, label, null); }
+}
+function rulingpopupshow(href,label,l) {
   var esc = s => $('<div>').text(s).html();
   var title = esc(label || 'Ruling');
-  var l = rulinglink(href);
   if(l) {
     rulingmark = l.mark;
     modal(title,'<div class="rulingview"><div class="rulingpage"><img src="'+esc(rulingpageurl(l, 'master'))+'" alt="'+title+'"></div></div>'+
@@ -9264,6 +11720,9 @@ function generalnomodal(div,event) {
 // from People or "by ..."), where the type select appears. Formats counts decks only (server side).
 // Most played (group=cards) ranks the cards of the decks found, by how many decks play each or by copies.
 // Decks, People and Most played load publicpagesize at a time; scrolling to the end loads more (publicloadmore).
+// My lists (the form's mine select, logged in): the same search over your own lists, private ones too, through
+// /list action=search (the same index, always filtered on you); every list type, and no People view.
+// The Card box takes a title, or a card's number (#1234) for exactly that card (two cards can share a title).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
 var publicshown = 0;          // results on screen for it
@@ -9276,6 +11735,10 @@ var publicsearching = false;  // a search is on its way (showview doesn't start 
 var publicformatnote = {'name': ['from the name', 'The owner didn\'t set a format; this one starts the deck\'s name'],
                         'cards': ['guessed', 'The owner didn\'t set a format; guessed from where all the cards are legal']};
 
+// the search is over your own lists (My lists), not the public ones
+function publicmine() {
+  return $('#publicform [name="mine"]').val() == '1' && listloggedin();
+}
 // the form (and extra filters) -> query string, empty fields left out
 function publicquery() {
   var parts = [];
@@ -9285,7 +11748,7 @@ function publicquery() {
     }
   });
   ['cardid','owner'].forEach(function(k) {
-    if(publicextra[k]) {
+    if(publicextra[k] && !(k == 'owner' && publicmine())) {   // My lists: always yours
       parts.push(k+'='+encodeURIComponent(publicextra[k].value));
     }
   });
@@ -9297,8 +11760,17 @@ function publicquery() {
 }
 // what's sent: the query, plus decks only in the Decks view unless it's one person's lists
 function publicrequest(query) {
+  var mine = publicmine();
+  if(mine) {
+    delete publicextra.owner;
+    if($('#publicform [name="group"]').val() == 'people') {   // no People view of your own lists
+      $('#publicform [name="group"]').val('');
+      query = query.replace(/(^|&)group=people/g,'');
+    }
+  }
+  query = query.replace(/(^|&)mine=[^&]*/g,'');
   var group = $('#publicform [name="group"]').val() || '';
-  var deckonly = !group && !publicextra.owner;
+  var deckonly = !group && !publicextra.owner && !mine;
   $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
   // Most played: its own order and card type; the list sort means nothing there
   $('#publicform [name="order"]').toggle(group == 'cards');
@@ -9321,6 +11793,7 @@ function publicfillform(qs) {
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   $('#publicform [name="group"]').val(q.group || '');
+  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : '');
   ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
@@ -9371,8 +11844,10 @@ function publicfetch(query, from, done) {
     publicxhr.abort();
   }
   publicsearching = true;
-  publicxhr = $.ajax({
-    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+(request ? '&'+request : '')+'&from='+from+'&size='+publicpagesize,
+  var tail = (request ? '&'+request : '')+'&from='+from+'&size='+publicpagesize;
+  publicxhr = $.ajax(Object.assign(publicmine() ? publicminerequest(tail) : {
+    url: apiuri+'/publiclists?game='+encodeURIComponent(database)+tail
+  }, {
     dataType: 'json',
     success: function(data) {
       if(seq == publicseq) done(data);
@@ -9388,7 +11863,20 @@ function publicfetch(query, from, done) {
       publicsearching = false;
       publicmorecheck();
     }
-  });
+  }));
+}
+// My lists: the same search over your own lists (ootv-search /list action=search; tail: the query string)
+function publicminerequest(tail) {
+  return {
+    url: apiuri+"/list?uid="+getuid()+"&database="+encodeURIComponent(database)+"&action=search"+tail,
+    contentType: 'application/json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+  };
+}
+// "public decks", "of your lists": what the results are, for the status line
+function publicnoun(n, deckonly) {
+  var noun = deckonly ? (n == 1 ? 'deck' : 'decks') : (n == 1 ? 'list' : 'lists');
+  return publicmine() ? 'of your '+noun : 'public '+noun;
 }
 function publicrender(data, append) {
   if(data.groups) {
@@ -9419,21 +11907,49 @@ function publicmorecheck() {
     publicmoreobserver.observe(document.getElementById('publicmore'));
   }
 }
+// the values of each filter with no filter on: the pulldowns keep them under the ones in these results, so another format
+// is one pick away, not a trip through Any format. Fetched once per game and whose lists; the answer redraws the pulldowns
+var publicfacetbase = {}, publicfacetlast = {};
+function publicfacetbasekey() {
+  var mine = publicmine(), owner = !mine && publicextra.owner ? publicextra.owner.value : '';
+  return {key: database+'|'+(mine ? 'mine' : owner), tail: (owner ? '&owner='+encodeURIComponent(owner) : (mine ? '' : '&type=deck'))+'&from=0&size=1'};
+}
+function publicfacetbasefetch() {
+  var b = publicfacetbasekey();
+  if(publicfacetbase[b.key]) { return publicfacetbase[b.key]; }
+  publicfacetbase[b.key] = {};   // on its way: one request, and nothing to add until it answers
+  $.ajax(Object.assign(publicmine() ? publicminerequest(b.tail) : {url: apiuri+'/publiclists?game='+encodeURIComponent(database)+b.tail}, {
+    dataType: 'json',
+    success: function(data) {
+      publicfacetbase[b.key] = data.facets || {};
+      if(publicfacetbasekey().key == b.key) {
+        Object.keys(publicfacetlast).forEach(function(name) { publicfacetoptions(name, publicfacetlast[name].facet, publicfacetlast[name].label); });
+      }
+    },
+    error: function() { delete publicfacetbase[b.key]; }
+  }));
+  return publicfacetbase[b.key];
+}
 function publicfacetoptions(name, facet, label) {
+  publicfacetlast[name] = {facet: facet, label: label};
   var el = $('#publicform [name="'+name+'"]');
   var current = el.val();
-  var opts = '<option value="">'+label+'</option>';
-  var seen = false;
-  (facet || []).forEach(function(f) {
-    seen = seen || f.value == current;
-    var label = (name == 'format' && f.value == 'none') ? 'No format' : htmlEncode(f.value);
-    opts += '<option value="'+htmlEncode(f.value).replace(/"/g,'&quot;')+'">'+label+' ('+f.count+')</option>';
-  });
-  if(current && !seen) {
-    opts += '<option value="'+htmlEncode(current).replace(/"/g,'&quot;')+'">'+(current == 'none' && name == 'format' ? 'No format' : htmlEncode(current)+' (0)')+'</option>';
+  var option = function(value, count) {
+    var text = (name == 'format' && value == 'none') ? 'No format' : htmlEncode(value);
+    return '<option value="'+htmlEncode(value).replace(/"/g,'&quot;')+'">'+text+(count === undefined ? '' : ' ('+count+')')+'</option>';
+  };
+  var found = (facet || []).map(function(f) { return f.value; });
+  var here = (facet || []).map(function(f) { return option(f.value, f.count); }).join('');
+  if(current && !found.includes(current)) {
+    here += option(current, 0);
+    found.push(current);
   }
+  var rest = (publicfacetbasefetch()[name] || []).map(function(f) { return f.value; }).filter(function(v) { return !found.includes(v); }).sort();
+  var opts = '<option value="">'+label+'</option>';
+  opts += !rest.length ? here :
+    (here ? '<optgroup label="In these results">'+here+'</optgroup>' : '')+'<optgroup label="Others">'+rest.map(function(v) { return option(v); }).join('')+'</optgroup>';
   el.html(opts).val(current || '');
-  el.toggle(!!current || (facet || []).length > 0);
+  el.toggle(!!current || found.length > 0 || rest.length > 0);
 }
 function renderpublic(data, append) {
   publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
@@ -9442,7 +11958,7 @@ function renderpublic(data, append) {
       $(this).text($(this).text().replace(this.value, listtypes[this.value]));
     }
   });
-  $('#publicform [name="type"]').toggle(!!publicextra.owner);   // decks only, unless it's one person's lists
+  $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
   publicfacetoptions('clan', data.facets.clan, 'Any clan');
   publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
   publicfacetoptions('format', data.facets.format, 'Any format');
@@ -9451,29 +11967,34 @@ function renderpublic(data, append) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
-  var deckonly = !publicextra.owner;
-  $("#publicstatus").html(chips+' '+data.total+' public '+(deckonly ? (data.total == 1 ? 'deck' : 'decks') : (data.total == 1 ? 'list' : 'lists')));
+  var deckonly = !publicextra.owner && !publicmine();
+  var mine = publicmine();
+  $("#publicstatus").html(chips+' '+data.total+' '+publicnoun(data.total, deckonly));
   var html = data.hits.map(function(h) {
     var d = h.derived || {};
     var meta = [listtypes[h.type] || h.type];
     if(d.clan) meta.push(d.clan);
     if(d.stronghold) meta.push(d.stronghold.title);
-    var counts = (h.totalcount || 0)+' cards'+(d.fatecount || d.dynastycount ? ' ('+d.fatecount+' fate, '+d.dynastycount+' dynasty)' : '');
+    meta = meta.map(htmlEncode);
+    if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
+    var counts = deckcounthtml(d.fatecount || d.dynastycount ? [{"name": "Dynasty", "copies": d.dynastycount}, {"name": "Fate", "copies": d.fatecount}] : [],
+			       h.totalcount || 0, h.buildbad);
     var when = String(h.modified || h.created || '').slice(0,10);
-    var format = d.format ? '<div class="dircardmeta">Format: <b>'+htmlEncode(d.format)+'</b>'+
+    var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
     var formats = (d.cardslegal || []).length ? '<div class="publicformats" title="Every card in this deck is legal in these formats (the deck itself isn\'t checked: size, MRPs, ban limits)">All cards legal for: '+
-      d.cardslegal.map(function(f) { return '<span>'+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
+      d.cardslegal.map(function(f) { return '<span>'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('')+'</div>' : '';
     var precon = h.precon ? '<div class="publicprecon"><svg class="feather"><use xlink:href="res/feather-sprite.svg#package"></svg> Pre-constructed: '+htmlEncode(h.precon.product || '')+(h.precon.year ? ' ('+htmlEncode(h.precon.year)+')' : '')+'</div>' : '';
     var award = h.award ? '<div class="publicaward"><svg class="feather"><use xlink:href="res/feather-sprite.svg#award"></svg> '+htmlEncode(h.award.result || 'Tournament')+': '+htmlEncode(h.award.event || '')+(h.award.year ? ' ('+htmlEncode(h.award.year)+')' : '')+'</div>' : '';
     return '<div class="directorycard publiccard" data-open="list" data-listid="'+h.listid+'">'+
-      '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
+      '<div class="dircardhead"><a class="dircardname" href="#game='+database+',#listid='+h.listid+'" onclick="openpubliclist('+h.listid+'); return false;">'+(d.clan ? clanmon(d.clan) : '')+htmlEncode(h.name || 'Unnamed list')+'</a></div>'+
       '<div class="dircardbody">'+
         award+precon+
-        '<div class="dircardmeta">'+meta.map(htmlEncode).join(' &middot; ')+'</div>'+
+        '<div class="dircardmeta">'+meta.join(' &middot; ')+'</div>'+
         format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
-        '<div class="dircardmeta">by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>'+(when ? ' &middot; '+when : '')+'</div>'+
+        '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : 'Private') :
+          'by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>')+(when ? ' &middot; '+when : '')+'</div>'+
         formats+
         (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
       '</div></div>';
@@ -9481,7 +12002,7 @@ function renderpublic(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(mine ? 'None of your lists match.' : 'No public lists match.')+'</div>');
   }
 }
 // the menubar's view buttons on the Public lists tab: Decks (layers), People (user), Formats (list), Most played
@@ -9490,8 +12011,10 @@ function renderpublic(data, append) {
 function updatepublicbuttons() {
   var onpublic = currentresulttab() == 'public';
   var group = $('#publicform [name="group"]').val() || '';
+  var mine = publicmine();
   $("#templatebuttons button[data-publicview]").each(function() {
-    $(this).toggle(onpublic).toggleClass("searchviewactive", String($(this).data("publicview")) == group);
+    var view = String($(this).data("publicview"));
+    $(this).toggle(onpublic && !(mine && view == 'people')).toggleClass("searchviewactive", view == group);
   });
 }
 // the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
@@ -9532,7 +12055,7 @@ function renderpublicgroups(data, append) {
   var people = data.group == 'people';
   $("#publicwinnercount, #publicpreconcount").text('');   // facet counts come with the Decks view only
   $("#publicstatus").html(chips+' '+(people ? data.groupstotal+' people with '+data.total+' public lists' :
-    data.groups.length+' formats over '+data.total+' public decks'));
+    data.groups.length+' formats over '+data.total+' '+publicnoun(data.total, true)));
   var html = data.groups.map(function(g) {
     var when = g.latest ? String(g.latest).slice(0,10) : '';
     if(people) {
@@ -9542,7 +12065,7 @@ function renderpublicgroups(data, append) {
 	'<div class="dircardbody">'+
 	  '<div class="dircardmeta">'+publicgroupcounts(g, true)+'</div>'+
 	  (g.formats.length ? '<div class="publicformats">Formats: '+g.formats.map(function(f) {
-	    return '<a href="" class="publicformatlink" data-format="'+publicattr(f.value)+'" onclick="publicopen({owner: '+parseInt(g.owner)+', format: $(this).data(\'format\')}, this); return false;">'+htmlEncode(f.value)+' '+f.count+'</a>';
+	    return '<a href="" class="publicformatlink" data-format="'+publicattr(f.value)+'" onclick="publicopen({owner: '+parseInt(g.owner)+', format: $(this).data(\'format\')}, this); return false;">'+legalitybug(f.value)+htmlEncode(f.value)+' '+f.count+'</a>';
 	  }).join('')+'</div>' : '')+
 	  (when ? '<div class="dircardmeta">Last updated '+when+'</div>' : '')+
 	'</div></div>';
@@ -9551,7 +12074,7 @@ function renderpublicgroups(data, append) {
     var guessed = (src.name || 0) + (src.cards || 0);
     var fmt = g.format || 'none';
     return '<div class="directorycard publiccard" data-open="format" data-format="'+publicattr(fmt)+'">'+
-      '<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({format: \''+publicjs(fmt)+'\'}); return false;">'+(g.format ? htmlEncode(g.format) : 'No format')+'</a></div>'+
+      '<div class="dircardhead"><a class="dircardname" href="" onclick="publicopen({format: \''+publicjs(fmt)+'\'}); return false;">'+(g.format ? legalitybug(g.format)+htmlEncode(g.format) : 'No format')+'</a></div>'+
       '<div class="dircardbody">'+
 	'<div class="dircardmeta">'+publicgroupcounts(g)+'</div>'+
 	'<div class="dircardmeta"><a href="" onclick="publicopen({group: \'people\', format: \''+publicjs(fmt)+'\'}); return false;" title="The people with decks in this format">'+g.people+' '+(g.people==1 ? 'person' : 'people')+'</a>'+(guessed ? ' &middot; '+(src.owner || 0)+' set by owner, '+guessed+' guessed' : '')+'</div>'+
@@ -9561,7 +12084,7 @@ function renderpublicgroups(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">No public lists match.</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : 'No public lists match.')+'</div>');
   }
 }
 // Most played: one card per row, its rank, how many of the decks found play it and how many copies.
@@ -9576,7 +12099,7 @@ function renderpubliccards(data, append) {
   publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
   $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
   $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
-  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' public '+(data.total == 1 ? 'deck' : 'decks')+
+  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true)+
     ', '+(data.order == 'copies' ? 'most copies' : 'played in the most decks')+' first <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
   var html = data.groups.map(function(g, n) {
     var pct = data.total ? Math.round(100*g.decks/data.total) : 0;
@@ -9594,7 +12117,7 @@ function renderpubliccards(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">No public decks match.</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your decks match.' : 'No public decks match.')+'</div>');
   }
   publiccardimages(data.groups.map(function(g) { return g.cardid; }));
 }
@@ -9618,6 +12141,73 @@ function publicdeckswith(cardid, title) {
   publicextra = {cardid: {value: cardid, label: 'with '+(title || 'card #'+cardid)}};
   $('#publicform [name="group"]').val('');
   publicsearch(0);
+}
+// the card view's folder link, next to the globe (logged in): your own lists with the card (My lists), with
+// how many hold at least one copy. Not cached: your lists change while you look (the count follows a save
+// within seconds, through the index's stream).
+function mycardcount(cardid) {
+  var globe = $('#resultcard a.cardpubliclists');
+  $('#resultcard a.cardmylists').remove();
+  if(!globe.length || !listloggedin()) {
+    return;
+  }
+  var link = $('<a class="cardmylists" href="" title="Your lists with this card"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></a>');
+  link.on('click', function() { publicwithcard(cardid, true); return false; });
+  $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(link);   // after the other card-page links
+  $.ajax(Object.assign(publicminerequest('&cardid='+parseInt(cardid)+'&minqty=1&size=0'), {
+    dataType: 'json',
+    success: function(data) {
+      var n = data.total || 0;
+      if(String($("#lastcardid").val()) != String(cardid) || !n) {
+        return;
+      }
+      link.attr('title', 'In '+n+' of your lists (your lists with this card)');
+      link.append('<span class="cardpubliccount">'+n+'</span>');
+    }
+  }));
+}
+// the Detail search results get the card view's globe, with how many public decks play each card (only cards
+// in a deck). Every card's count comes in one /publiclists group=cardcounts call per game, kept for the visit:
+// a call per row would cost a Lambda and a search each, on every results page.
+var publicgamecounts = {};
+function searchdeckcounts() {
+  var game = database;
+  if(templates[game]['active']['search'] != 'search') {
+    return;
+  }
+  var fill = function() {
+    var counts = publicgamecounts[game];
+    if(database != game || !counts || templates[game]['active']['search'] != 'search') {
+      return;
+    }
+    $('#resultsearch .listitem').each(function() {
+      var head = $(this).find('.listhead').first();
+      var cardid = parseInt($(this).find('.deckswipe').first().data('card'));
+      var n = counts[cardid] || 0;
+      if(!n || !head.length || head.find('a.cardpubliclists').length) {
+        return;
+      }
+      var link = $('<a class="cardpubliclists" href="" title="In '+n+' public '+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg><span class="cardpubliccount">'+n+'</span></a>');
+      link.on('click', function() { publicwithcard(cardid); return false; });
+      head.children('a').first().after(' ', link);
+    });
+  };
+  if(game in publicgamecounts) {
+    fill();   // still loading (null): the answer fills every row on screen then
+    return;
+  }
+  publicgamecounts[game] = null;
+  $.ajax({
+    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts',
+    dataType: 'json',
+    success: function(data) {
+      publicgamecounts[game] = data.counts || {};
+      fill();
+    },
+    error: function() {
+      delete publicgamecounts[game];
+    }
+  });
 }
 // the card view's globe link gets how many public decks play the card (at least one copy)
 var publiccardcounts = {};
@@ -9749,12 +12339,13 @@ function publicbyowner(uid, el) {
   $('#publicform [name="group"]').val('');
   publicsearch(0);
 }
-// the card view's link: public lists with this card
-function publicwithcard(cardid) {
+// the card view's links: public lists with this card (the globe), or with mine, your own lists (the folder)
+function publicwithcard(cardid, mine=false) {
   var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
   var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
   publicextra = {cardid: {value: cardid, label: 'with '+title}};
   $("#publicform")[0].reset();
+  $('#publicform [name="mine"]').val(mine ? '1' : '');
   showviewkeepurl('resultpublic');
   publicsearch(0);
 }

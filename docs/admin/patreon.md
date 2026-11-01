@@ -1,6 +1,6 @@
 # Patreon supporters
 
-Last updated 2026-10-24.
+Last updated 2026-10-26.
 
 Supporters of [our Patreon](https://www.patreon.com/oracleofthevoid) get site privileges by tier.
 The site keeps a list of who supports at which tier, and each feature decides what a tier gets.
@@ -33,6 +33,24 @@ be linked; the user is told to join first.
 
 **Unlink** unties every membership tied to the account and marks them `nomatch`, so email matching
 leaves them alone; only Link with Patreon ties them again.
+
+## Who's who: Admin → Audit → Patreon supporters
+
+Site admins (full permission on every game) see every member of the campaign: status, tier, pledge,
+last charge, the Oracle account they're tied to (and whether by Patreon login), and who they are on
+Discord. Show current supporters (active and declined, the default), everyone on Discord, or
+everyone, and filter by name, Discord name, server nickname or tier.
+
+The Discord column only fills for members who connected Discord in **their own Patreon settings**
+(Patreon → Settings → Connected apps); we read the Discord user id Patreon keeps for them. The bot
+then looks up their Discord name, and which of the bot's servers (Admin → Config → Discord bot) they
+are in, with their nickname there. That's done at the nightly sync and whenever Patreon sends an
+update for the member, not when the page opens (Discord allows about one lookup a second), so a
+renamed Discord account shows its new name the next morning. "Last check failed" keeps the last
+names we had.
+
+"Not tied" means no Oracle account matched (the Patreon email isn't one of an account's emails, and
+they haven't used Link with Patreon); "unlinked by the user" means they pressed Unlink.
 
 ## What tiers get
 

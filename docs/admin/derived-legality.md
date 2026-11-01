@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-24 (showing derived values on the card page)
+Last updated: 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -17,15 +17,16 @@ show them on the card page instead (below, "Showing derived values on the card p
   in the wrong group. Names hold `&nbsp;`, so match a space with `.*`, not `.`. The "Arc" regex excludes `Strict|Extended`. Filters that aren't formats
   (Paper) go in "Misc" (`Proxy|Unreleased|Paper`).
 - **Per-card overrides:** the card field `legalityderivedexception`
-  (`{ "add": [names], "remove": [names] }`), edited on the card itself.
+  (`{ "add": [names], "remove": [names] }`), edited on the card itself. `remove` is also where every ban lives ("Bans", below).
 - **Code:** ootv-search `lib/attributeopts.js` (`derivedQuery`). `/attributes` lists the names
   and `/search` expands them. In ootv-client, `derivedprinting()` picks which printing to
   show (see "Which printing is shown").
 - **Deck/list legality menu:** ootv-client `listLegalitySelect` lists `legality.sortregex`,
   then adds each derived name right after the format it starts with (Ivory → Ivory Strict),
   with the rest (BigDeck) at the end. A new derived format shows up there on its own; you don't
-  need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's
-  legality is only a label and isn't checked.
+  need to add it to `sortregex`. Entries with `listable: false` (Paper) are left out. A list's own
+  menu ends with **Special**, which isn't a format or a derived rule ([Deck construction rules](deck-construction.md)).
+  A list's legality checks its cards (`/cardslegal`) and picks its construction rules; a card not legal in it breaks the deck's construction, but nothing is blocked.
 - **Search form checkbox:** the field `paper` in the L5R field list's settings
   (`l5r/fields`, Admin → Config → Fields: `"search": {"type": "require", "field": "legality", "value": "Paper"}`,
   label `only`, short `Paper`), listed in `l5r/game` `search`, renders a checkbox that sends `require_legality=Paper`. The API ANDs
@@ -74,6 +75,25 @@ Exceptions on a card (`legalityderivedexception`) override the rule:
 - **Names:** the format names, written with plain spaces (e.g. `Ivory Strict`). The
   `&nbsp;` spelling also works.
 
+## Bans
+
+A ban is a name in the card's `remove` list; the card field `banned` is gone (2026-10-31). The wording of an arc or
+War of Honor ban is in the card's `notes`. Cards on the format ban lists below mostly have no wording: 62 cards have
+`remove` entries and no ban in their `notes`, among them Foothold of the Mad.
+
+- **An arc ban:** `remove` holds the arc's legality value (`Age of Conquest (Emperor)`), and the arc also comes off
+  the card's stored `legality` as before. A stored value doesn't read `remove`: it's there for the Banned search.
+- **In a derived format holding that arc:** the card stays banned, unless a newer arc in the format has it back
+  (the user, 2026-10-31). So a card banned from Emperor is out of Emperor Extended and Ivory Extended unless it's
+  legal in a newer arc of that format. The format's name goes in `remove`, even where the rule already leaves the card out.
+- **Legacy, Modern, BigDeck and Obsidian Hand** keep their own ban lists (below), whatever the arcs' bans are.
+- **War of Honor** has no legality value. Its three cards hold the name in `remove`, so the Banned search finds them.
+
+**The Banned search** (the Banned checkbox, `field_banned`): the Legality selects say what the card is banned from, instead of
+where it's legal. With values selected, it lists cards whose `remove` holds any of them; with none, every card with
+a `remove` entry. Cards out of a format for another reason (Gates of the Second City, "not legal") are `remove` entries too, so they're listed.
+Code: ootv-search `lib/attributeopts.js` `bannedQuery`. To add a ban, add the name to `remove` and put the wording in `notes`.
+
 ## Common exclusions
 
 Legacy, Modern, BigDeck and Obsidian Hand share these `none` clauses:
@@ -103,7 +123,7 @@ Any of:
 
 Left as it is: no clarification for Ivory is known. Don't change it without a source.
 
-### Ivory Extended (2,933)
+### Ivory Extended (2,949)
 
 Ivory plus the arcs on either side of it, Emperor and 20F. An arc ended when the next one began.
 So a card that gets in only through 20F legality also needs a 20F-icon printing from one of the
@@ -114,6 +134,10 @@ Any of:
 - a 20F-icon printing from an Ivory Strict set (listed above)
 
 Prefer: Ivory.
+
+Ivory's bans hold in the format, since no newer arc has these back: Advance Warning, Exotic Farmlands and Well-Defended Farm,
+all legal in Emperor, are out. Well-Defended Farm's ban allows the exact A Matter of Honor Learn to Play decklist, which the rule can't
+model (the user, 2026-10-31).
 
 ### Twenty Festivals Strict (893)
 
@@ -148,23 +172,47 @@ Any of:
 
 This is its own type-based rule. Don't generalize it to other Extended formats.
 
-### Jade Extended 2000 (1,915)
+### Jade Extended 2000 (2,346)
 
-The Jade Extended rule unchanged, plus:
+Jade Extended without Jade's experienced rule. Any of:
+- a Stronghold, Personality, Event, Spell or Ring legal in Jade **on one of its printings**
+- a Strategy (Actions, Kihos), Follower, Sensei, Item, Holding, Region or Ancestor legal in
+  Imperial or Jade
 
-All of:
-- a printing from a Hidden Emperor (Jade) arc set: Jade Edition, Hidden Emperor 1–6, The Dark
-  Journey Home, Pearl Edition, Siege of Sleeping Mountain, Honor Bound, Ambition's Debt, Fire &
-  Shadow, Top Deck Booster Pack, Heroes of Rokugan, Soul of the Empire, Storms Over Matsu Palace,
-  The War of Spirits, Promotional–Jade and Promotional–CWF (the set menu's "The Hidden
-  Emperor (Jade)" group)
+Jade's experienced rule (a Personality whose experienced version was printed in Jade counts as
+Jade) puts Jade on the card only, never on a printing, so the printing condition leaves out exactly
+those 56 Imperial Personalities (Akodo Toturi, Bayushi Kachiko, the Dragons, ...). Everything else
+matches Jade Extended.
 
-The set clause is an `all` clause, so the printing shown is a Jade-arc one. It drops 487 Jade
-Extended cards that were never reprinted in the arc: Imperial-only Strategies, Items, Holdings,
-Followers, Regions and Ancestors, and 58 Imperial Personalities (Akodo Kage, Bayushi Kachiko, the
-Scorpion Clan Coup cards). Those Personalities are Jade-legal only through Jade's experienced rule (a
-Personality whose experienced version was printed in Jade counts as Jade). Jade Extended 2000 has no
-such rule, which is what sets it apart from Jade Extended.
+### Emperor Extended (3,741)
+
+Emperor plus all of Celestial, the format the Sun and Moon community tags EEex (the user, 2026-10-31).
+No rules document is known; the card pool and bans below come from the arcs themselves.
+
+Any of:
+- legal in Celestial or Emperor
+
+Prefer: Emperor.
+
+Deck construction is Emperor's. Neither has an entry in `deckconstruction.legality`, so both use the
+game's rules (40/40, three copies), and `^Emperor` in `sort.pick` puts Border Keep and Bamboo Harvesters in
+Pre-Game. Nothing in `l5r/game` had to change.
+
+**Ban list** (`remove: Emperor Extended`): Emperor's bans hold in the format, so the Emperor-banned cards still
+legal in Celestial are out. The rest of Emperor's bans carry neither arc. Discord confirms Asako Karachu ("banned
+in EE and is also in EEex", 2025-09-09). Foothold of the Mad is banned in the format itself and stays legal in Emperor
+(the user, 2026-10-31). None of the 18 EEex decks in kempy's archive plays any of the six.
+
+| Card | ID | Type | Banned from Emperor |
+|---|---|---|---|
+| Foothold of the Mad | 10562 | Stronghold | no: banned in Emperor Extended only |
+| Asako Karachu | 551 | Personality | 2013-09-21 |
+| Caught Unawares | 1239 | Strategy | 2013-09-21 |
+| Oblivious | 5648 | Strategy | 2013-09-21 |
+| All That Will Be Lost | 323 | Event | 2012-12-24 |
+| Twisted Fate | 8919 | Event | 2012-12-24 |
+
+Cards banned from later arcs (Advance Warning, Exotic Farmlands, Well-Defended Farm) stay in.
 
 ### Legacy (11,981)
 
@@ -409,6 +457,10 @@ and printing fields one printing; the card's `legalityderivedexception` wins. En
 `listable: false` (Paper) are filters, not formats, and aren't listed. L5R keeps its plain
 `sortlegality` row, so its cards still show only their stored legality.
 
+Deadlands: Doomtown (`dtccg`) works the same way: Open, Boot Hill Strict and Boot Hill Extended are all
+derived rules in `dtccg/attributes`, Boot Hill Extended with a `none` clause on the titles AEG ruled
+out and an `any` clause on the ones it kept ([Deadlands: Doomtown](dtccg.md), "Legality").
+
 ## Changing a rule
 
 1. Read `attributes.legality.derived` from `oracle-all-structure` (`l5r` / `attributes`) and
@@ -442,3 +494,11 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-17: Jade Extended 2000 (Jade Extended limited to cards printed in a Jade-arc set).
 - 2026-10-23: The Blackest Storm's 168 printings got AEG as publisher beside Onyx Lives
   (bulkupdate); Paper's AEG clause now lists the AEG sets so TBS stays out (still 12,403).
+- 2026-10-28: Jade Extended 2000 corrected to Jade Extended without the experienced rule (Jade on a
+  printing for Strongholds, Personalities, Events, Spells, Rings); the Jade-arc set clause, which also
+  dropped 428 Imperial non-Personality cards, is gone. 1,918 → 2,346.
+- 2026-10-31: Emperor Extended (Celestial or Emperor, 5 `remove` exceptions for Emperor's bans); the 18 EEex decks in
+  kempy's archive already stored the name and all stay legal.
+- 2026-10-31: the card field `banned` (32 cards) moved to `notes` and `remove` (`ootv-tools/legality/banned-to-exceptions.py`, bulkupdate); the Banned search reads `remove`; Advance Warning, Exotic Farmlands and Well-Defended Farm out of Ivory Extended (2,952 → 2,949).
+- 2026-10-31: Foothold of the Mad banned in Emperor Extended (a 6th `remove` exception; still legal in Emperor). 3,742 → 3,741.
+- 2026-10-31: checked every card and printing note mentioning a ban, all games, against `remove`: 32 L5R cards, all card `notes`, all correct, and no banned arc still in a card's or printing's `legality`. Nothing changed. Well-Defended Farm's exception (the *A Matter of Honor* decklist) is in its note only; `remove` can't express it.
