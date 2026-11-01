@@ -9,7 +9,7 @@
 * [/gameconfig (GET)](#gameconfig)             -> A game's config in one request (or every game's Discord block)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
-* [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
+* [/publiclist (GET)](#publiclist)             -> Read a public or unlisted deck/list without logging in
 * [/publiclists (GET)](#publiclists)           -> Search every public deck/list (the Public lists view)
 * [/trade (GET)](#trade)                       -> Trade matching over lists open to trade (the Trades view)
 
@@ -453,7 +453,7 @@ inputs:
 * action (optional)
   * search (no listid; database required): the [/publiclists](#publiclists) search over this user's own lists,
     private ones too, with the same parameters and answer (`game` is `database`; `owner` is ignored: always you).
-    Each hit also has `public`. The client's My lists (`publicmine()` in `oracle.js`) and the card view's folder
+    Each hit also has `public`, and `unlisted: true` on an unlisted list. The client's My lists (`publicmine()` in `oracle.js`) and the card view's folder
     link (`cardid=N&minqty=1&size=0`, its `total`) use it. A save reaches it within seconds (the index's stream)
   * remove
     * delete that list (owner only, 403 otherwise)
@@ -485,6 +485,8 @@ outputs:
     * modified
     * list (array of { {cardid: x, quantity: x, printing: x }, ... } )
     * source (a copy of someone else's list; see duplicate)
+    * sharecode (your own unlisted list only)
+    * unlisted: true (someone else's unlisted list, which never comes with its `sharecode`)
     * someone else's public list: also `ownername` (their display name, else initials such as "A.L.", else
       "another player"), and no `folder`. Escape it when showing it
 * listid 'new'
@@ -504,8 +506,8 @@ codes:
 
 ## /publiclist
 
-GET, no authentication (ootv-search `routes/publiclist.js`): a list whose `public` is true, for shared
-deck links (`#game=<g>,#listid=N`) opened without logging in. Logged in, `/list` with the listid
+GET, no authentication (ootv-search `routes/publiclist.js`): a list whose `public` is true, or an unlisted one
+with its code, for shared deck links (`#game=<g>,#listid=N`) opened without logging in. Logged in, `/list` with the listid
 returns another user's public list too.
 
 Call it as a CORS simple request: no `Authorization` or `Content-Type` header (the route has no
