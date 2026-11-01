@@ -489,6 +489,9 @@ div.searchinput {
 div#sidebar div.searchinput { width: 100%; box-sizing: border-box; }
 div.searchinput dt:not(:empty)::after { content: none; }
 div.searchinput dd { margin-left: 92px; padding-bottom: 6px; font-size: 11pt; }
+/* a checkbox row as tall as its 30px label, or the labels (floated) drift away from their boxes down the form */
+div.searchinput dd:has(> input[type=checkbox]), div.searchinput dd:has(> label > input[type=checkbox]) { display: flex; align-items: center; min-height: 30px; }
+div.searchinput dd > input[type=checkbox] { margin: 0; }
 div.searchinput dd > input[type=text] { width: 100%; height: 30px; box-sizing: border-box; padding: 3px 7px;
   border: 1px solid var(--field-border); border-radius: 6px; background: var(--panel); font: inherit; font-size: 10.5pt; }
 div.searchinput dd > input.searchnumeric[type=text] { width: 44px; }
