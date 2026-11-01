@@ -22,7 +22,7 @@ with a red **Illegal** when it breaks the deck construction rules (as its owner 
 Logged in, the first pull-down switches between **Public lists** and **My lists**. **My lists**
 searches your own lists, private ones too, with the same boxes and pull-downs, and the
 **Decks**, **Formats** and **Most played** views. It shows every kind of list (pick one in the
-type pull-down); each says whether it's public or private. Nobody else sees your private lists
+type pull-down); each says whether it's public, unlisted or private. Nobody else sees your private lists
 here. A list you just saved shows up within a few seconds.
 
 On a card's page, the folder next to the globe opens your lists with that card, with how many
