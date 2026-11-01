@@ -6558,6 +6558,7 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
       if($("#lastcardid").val() != String(full.cardid)) { return; }   // moved on to another card
       var mine = $('#resultcard a.cardmylists').detach();   // its count may still be on the way (mycardcount)
       drawcard(full, lastcardprid() || prid, qs);
+      cardtraders(full.cardid);
       $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
       if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
       if((database+'/'+full.cardid) in cardtradercounts) { cardtraders(full.cardid); }
@@ -11186,7 +11187,7 @@ function searchviewbutton() {
 }
 // wide screens: Help, the Bookshelf and Public lists don't use the search form, so it starts collapsed there. Opening or
 // closing it by hand holds for those views together, and separately for the others. The phone layout ignores this (oracle.css).
-var sidebarnosearch = {resulthelp: true, resultrules: true, resultpublic: true};
+var sidebarnosearch = {resulthelp: true, resultrules: true, resultpublic: true, resulttrades: true, resultmessages: true};
 var sidebaropen = {search: true, nosearch: false};
 var sidebarview = '';
 function sidebarkind() {
