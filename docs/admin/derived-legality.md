@@ -45,8 +45,8 @@ Ring of the Void in Jade shows Siege of Sleeping Mountain unless that printing i
 it shows Pearl. The Discord bot picks the same way, and so does a decklist import's `Legality:` line.
 
 `notmrp` is set on: Siege of Sleeping Mountain, the Promotional–Emperor Rings and full-bleed
-Personalities/Strongholds (2026-10-15), and the Imperial-arc starter-deck reprints (2026-10-16, 315
-printings). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
+Personalities/Strongholds (2026-10-15), the Imperial-arc starter-deck reprints (2026-10-16, 315
+printings), and the Ivory and Twenty Festivals deck cards (2026-11-01, 298 of 299 printings; Advance Warning 121 keeps MRP, its only Twenty Festivals printing). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
 honor/gold variants, Isawa Tomo (Time of the Void) and Summon Faeries (Shadowlands, Anvil of Despair,
 Crimson and Jade).
 
