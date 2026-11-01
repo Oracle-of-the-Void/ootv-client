@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-31 (the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -77,8 +77,9 @@ Exceptions on a card (`legalityderivedexception`) override the rule:
 
 ## Bans
 
-A ban is a name in the card's `remove` list; the card field `banned` is gone (2026-10-31). The ban's wording
-is in the card's `notes`.
+A ban is a name in the card's `remove` list; the card field `banned` is gone (2026-10-31). The wording of an arc or
+War of Honor ban is in the card's `notes`. Cards on the format ban lists below mostly have no wording: 62 cards have
+`remove` entries and no ban in their `notes`, among them Foothold of the Mad.
 
 - **An arc ban:** `remove` holds the arc's legality value (`Age of Conquest (Emperor)`), and the arc also comes off
   the card's stored `legality` as before. A stored value doesn't read `remove`: it's there for the Banned search.
@@ -500,3 +501,4 @@ change up through the DynamoDB stream; no cold start is needed.
   kempy's archive already stored the name and all stay legal.
 - 2026-10-31: the card field `banned` (32 cards) moved to `notes` and `remove` (`ootv-tools/legality/banned-to-exceptions.py`, bulkupdate); the Banned search reads `remove`; Advance Warning, Exotic Farmlands and Well-Defended Farm out of Ivory Extended (2,952 → 2,949).
 - 2026-10-31: Foothold of the Mad banned in Emperor Extended (a 6th `remove` exception; still legal in Emperor). 3,742 → 3,741.
+- 2026-10-31: checked every card and printing note mentioning a ban, all games, against `remove`: 32 L5R cards, all card `notes`, all correct, and no banned arc still in a card's or printing's `legality`. Nothing changed. Well-Defended Farm's exception (the *A Matter of Honor* decklist) is in its note only; `remove` can't express it.
