@@ -40,7 +40,8 @@ replaces the field's settings; clear it to drop them.
 - `label`: the long label (card page, search form); `short`: the short one (rows like HR/GC/PH).
 - `search`: how the search form searches it, `{"type": "text"}` (or `keyword`, `select`,
   `numeric`, `exists`, `foil`...) with options such as `advanced`, `clickable`, `reverse`; `false` (or no
-  `search`) for a field that isn't searched. `combined` names another card field searched with
+  `search`) for a field that isn't searched. `clickable` makes the value on the card page a search
+  link: `true`, or `"printing"` for a field held on the printing. `combined` names another card field searched with
   it: L5R and Pathfinder Pawns `title` has `"combined": "alttitle"`, so a title search also finds
   a card by its other name (ootv-claude GAME-TEMPLATES.md §1.7, decision 26). A field is in the
   search form only when the game config's `search` list names it ([Game config](game-config.md)).
