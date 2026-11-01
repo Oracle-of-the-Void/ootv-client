@@ -6623,7 +6623,7 @@ function cardhtml(carddata,prid=null,qs=null) {
       if(key.includes('.')) {
         keys = key.split('.');
       }
-      if(searchables[database][key].clickable !== true) {
+      if(typeof searchables[database][key].clickable == 'string') {   // the name of the array holding it ("printing"); any other truthy value is a plain flag
         keys = [searchables[database][key].clickable,key];
       }
       if(key == "printing.set" || key == "printing.rarity") {
