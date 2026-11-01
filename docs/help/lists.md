@@ -19,7 +19,7 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 - Open a list to see or change its **Legality** (the format a deck is for; its cards are checked against it,
   see [Statistics](#stats)) and its **Id**. **Special** is for a deck that isn't built for a format: see
   [the rules](#stats).
-- **Public** shares the list (see [Sharing](#sharing)).
+- **Private**, **Unlisted** or **Public**: who can see the list (see [Sharing](#sharing)).
 
 ## Folders {#folders}
 
@@ -184,6 +184,12 @@ site's rules. Every admin change is recorded, and you may get an email saying on
 **Copy link** (at the top of the open list) copies a link to send. Public lists also show in
 [Public lists](public-lists.md), under your display name (Settings → Account), or your initials
 if you haven't set one.
+
+Set a list to **Unlisted** and only people with its link can see it. **Copy share link** gives you the
+link. The list isn't in Public lists, the public deck counts or search engines. Anyone you give the link
+to can pass it on or copy the list to their own lists. To cut off the link, use **New link**, which
+replaces it, or set the list to Private. A list that was Public can stay in search engines for a while
+after you make it Unlisted.
 
 ## The list menu {#menu}
 

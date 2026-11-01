@@ -442,6 +442,9 @@ inputs:
     `buildbad` into its summaries for the public listing's Illegal mark
   * if this is set we update that field of the list (updatevalue), and modified, except for folder and summary
   * saving `list` also adds 1 to the list's `rev` and returns the new one as `rev`
+  * `public` takes `true`, `false` or `unlisted`. Unlisted stores `public: false` and a random `sharecode`, kept if the list has one;
+    `true` or `false` remove the code, so its link stops working. Only the owner can set `unlisted`. `sharecode` itself can't be set
+* code (optional): an unlisted list's code. With it, someone else can read and duplicate the list
 * baserev (optional, with updatefield=list)
   * the `rev` the client's edits started from (0 if the list has none yet). The save only goes through if
     that's still the list's `rev`; otherwise it answers **409** with `list` (the current item, `list.Items[0]`),
@@ -454,7 +457,10 @@ inputs:
     link (`cardid=N&minqty=1&size=0`, its `total`) use it. A save reaches it within seconds (the index's stream)
   * remove
     * delete that list (owner only, 403 otherwise)
+  * sharecode
+    * a new code for your own unlisted list, answered as `sharecode`; the old link stops working (owner only, 403; 400 if the list isn't unlisted)
   * duplicate
+    * never copies `sharecode`, so a copy of an unlisted list is private
     * your own list: a copy named "Copy of <name>"
     * someone else's public list (the list view's "Copy to my lists"): a private copy, with no `folder`, that
       keeps where it came from in `source: {listid, owner, ownername, name, modified, copied}` (plus the
@@ -508,17 +514,18 @@ OPTIONS preflight), so don't pass `contentType` to `$.ajax`.
 inputs:
 
 * listid (required)
+* code (optional): an unlisted list's code, from its link (`#game=<g>,#listid=N,#share=<code>`)
 
 outputs:
 
-* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing),
+* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing) or `sharecode`,
   with `ownername` (as `/list` gives for someone else's list)
 
 codes:
 
 * 200 success
 * 400 no listid
-* 404 no such list, or it isn't public (the same answer, so a link doesn't show whether a private list exists)
+* 404 no such list, it isn't public, or a wrong code (the same answer, so a link doesn't show whether a private list exists)
 
 
 ## /publiclists

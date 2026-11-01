@@ -678,15 +678,21 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 }
 // a list's GET: your own lists (and others' public ones) through /list; logged out, a public list through
 // /publiclist, as a CORS simple request (no Content-Type or Authorization: it has no OPTIONS route)
+// An unlisted list opened from its link: listid -> the code in that link (#share=), sent with each read and copy.
+// In memory and in the address bar only.
+var listsharecodes = {};
+function listcodeparam(listid) {
+  return listsharecodes[listid] ? "&code="+encodeURIComponent(listsharecodes[listid]) : "";
+}
 function listrequest(listid) {
   if(!listid || listloggedin()) {
     return {
-      url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
+      url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid+listcodeparam(listid):""),
       contentType: 'application/json',
       beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
     };
   }
-  return {url: apiuri+"/publiclist?listid="+encodeURIComponent(listid)};
+  return {url: apiuri+"/publiclist?listid="+encodeURIComponent(listid)+listcodeparam(listid)};
 }
 function listloggedin() {
   var user = cache_thing("user","data");
@@ -711,7 +717,7 @@ function listmine(listid) {
 // listid: {notify} for the lists being edited now; in memory only, never saved
 var adminediting = {};
 // the popup text's version, kept in the open's audit row: change it whenever the text changes
-var ADMINEDITWARNING = '2026-10-30';
+var ADMINEDITWARNING = '2026-11-01';
 // may edit anyone's list in this game: the 'listedit' operation for this game or every game, or a site
 // admin. A '*' in a game's own groups isn't enough (as ootv-search lib/admin.js listeditallowed)
 function listeditpermission() {
@@ -749,7 +755,7 @@ function listadminopen(listid) {
   var ispub = item.public === true || item.public === 'true';
   modal('Edit '+owner+'\'s list as an admin',
     '<div class="admineditwarning">'+
-    '<p><b>This list belongs to '+owner+'.</b> It is '+(ispub ? 'shared publicly' : '<b>private</b>: only its owner normally sees it')+
+    '<p><b>This list belongs to '+owner+'.</b> It is '+(ispub ? 'shared publicly' : (item.unlisted ? '<b>unlisted</b>: only people its owner gave the link to normally see it' : '<b>private</b>: only its owner normally sees it'))+
     ', and it is their personal data.</p>'+
     '<ul><li>Only change it for a good reason: fixing a mistake the owner asked about, or moderating something that breaks the site\'s rules.</li>'+
     '<li>Everything you do, starting now, is recorded in the audit log under your name: opening it, and each change with the old and new values.</li>'+
@@ -2026,7 +2032,7 @@ function newlist(json=null, done=null) {
 function duplicatelist(listid, done=null, failed=null) {
   $.ajax({
     type: 'GET',
-    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate",
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate"+listcodeparam(listid),
     contentType: 'application/json',
     dataType: 'json',
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -3871,7 +3877,31 @@ function listpreconedit(listid) {
 }
 // the link that opens a list for anyone (logged out: /publiclist), as the address bar has it
 function sharelink(listid) {
-    return location.origin+location.pathname+statehash({view: 'list', listid: listid});
+    var list = cache_thing("list",listid), item = list && list.list && list.list.Items[0];
+    return location.origin+location.pathname+statehash({view: 'list', listid: listid}).replace(/,#share=[^,]*/,'')+(item && item.sharecode ? ',#share='+item.sharecode : '');
+}
+// New link on an unlisted list: the old link stops working
+function listnewsharecode(el,listid) {
+    if(!confirm("Make a new link? The old link will stop working for everyone who has it.")) {
+	return;
+    }
+    $(el).prop('disabled', true);
+    $.ajax({
+	type: 'GET',
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=sharecode",
+	contentType: 'application/json',
+	dataType: 'json',
+	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	success: function() {
+	    cache_thing("list",listid,null,true);
+	    listinfo();
+	    listinfo(listid,false);
+	},
+	error: function(error) {
+	    console.log(error);
+	    $(el).prop('disabled', false);
+	}
+    });
 }
 function copysharelink(el,listid) {
     var link = sharelink(listid);
@@ -9668,7 +9698,7 @@ function addgametolist(db) {
 // ****************************** URL / HISTORY ******************************
 // The address bar always says what's on screen, so reload, bookmarks and Back/Forward all land in the
 // same place: #game=<g>, then one of
-//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #publiclists=<qs> | #help=<topic>[,#helpsec=<id>] |
+//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N[,#share=<code>] | #publiclists=<qs> | #help=<topic>[,#helpsec=<id>] |
 //   #view=<dir|public|help|settings|admin|search|card|list>
 // (the About page is #game alone). Old links (no #game, #quicksearch=, #quicksearchtitle=) still work.
 // seturl() is the only place that calls history.*: showview() calls it for every view switch.
@@ -9696,6 +9726,9 @@ function parsehash(hash) {
         matchstruct[RegExp.$1].push(RegExp.$2);
       }
     }
+  }
+  if(matchstruct.listid && /^[\w-]+$/.test(matchstruct.share || '')) {
+    listsharecodes[matchstruct.listid] = matchstruct.share;
   }
   return matchstruct;
 }
@@ -9736,7 +9769,7 @@ function statehash(state) {
   } else if(state.view == 'card' && state.cardid) {
     return h+',#cardid='+state.cardid+(state.prid ? ',#cnprintingid='+state.prid : '');
   } else if(state.view == 'list' && state.listid) {
-    return h+',#listid='+state.listid;
+    return h+',#listid='+state.listid+(listsharecodes[state.listid] ? ',#share='+listsharecodes[state.listid] : '');
   } else if(state.view == 'public' && state.pq) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
@@ -12040,7 +12073,7 @@ function renderpublic(data, append) {
         '<div class="dircardmeta">'+meta.join(' &middot; ')+'</div>'+
         format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
-        '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : 'Private') :
+        '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : (h.unlisted ? 'Unlisted' : 'Private')) :
           'by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>')+(when ? ' &middot; '+when : '')+'</div>'+
         formats+
         (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
