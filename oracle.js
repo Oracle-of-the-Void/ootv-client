@@ -635,7 +635,7 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	    success: function(data) {
 		    console.log(data);
 		    if(listid) {
-		      if(listunsaved(listid) && cache_thing("list",listid)) {
+		      if((listunsaved(listid) || listdirty(listid)) && cache_thing("list",listid)) {
 			// unsaved local edits are newer than the server's copy
 			data = cache_thing("list",listid);
 		      } else {
@@ -845,6 +845,18 @@ var listsaving = {};
 function listunsaved(listid) {
   return !!(updatepending[listid] || listsaving[listid]);
 }
+// The cached copy is in localStorage, shared by every tab, but updatepending is this tab's: without this mark
+// another tab's refetch replaced a copy with edits waiting to save, and the save then wrote the old cards over
+// the server's. Every edit stamps it (any tab), a save that went through clears its own stamp. A tab closed
+// before saving leaves one behind, so it runs out.
+var LISTDIRTYMS = 3*60*1000;
+function listdirtymark(listid) {
+  cache_thing("listdirty",listid,Date.now());
+}
+function listdirty(listid) {
+  var at = cache_thing("listdirty",listid);
+  return !!at && Date.now() - at < LISTDIRTYMS;
+}
 // The server's copy local edits started from: when another computer saved first (409), the cards are
 // merged three ways, so both computers' changes are kept.
 function listsetbase(listid,list,rev) {
@@ -897,6 +909,7 @@ function listmerge(listid,server) {
   renderlisteditarea();
   refreshactivelistviews();
   // save the merged cards soon
+  listdirtymark(listid);
   updatepending[listid] = 1;
   clearTimeout(savetimeout);
   savetimeout = setTimeout(savecallback,1000);
@@ -909,7 +922,7 @@ function listrevalidate(listid) {
     dataType: 'json',
     success: function(data) {
       var cached = cache_thing("list",listid);
-      if(listunsaved(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
+      if(listunsaved(listid) || listdirty(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
         return;
       }
       listsortdefault(data);
@@ -973,6 +986,7 @@ function listinfoupdate(listid,field,value,failed=null) {
   }
   console.log(url);
   var cachedlist = cache_thing("list",listid);
+  var dirtysent = cache_thing("listdirty",listid);
   if(field == 'list') {
     listsaving[listid] = (listsaving[listid] || 0) + 1;
     if(cachedlist && cachedlist.list && cachedlist.list.Items && cachedlist.list.Items[0]) {
@@ -1006,10 +1020,13 @@ function listinfoupdate(listid,field,value,failed=null) {
 		    listid = $("#importlistid").val();
 		    erasemodal();
       }
-      if(field == 'list' && updatepending[listid]) {
-        // edited again while this save was in flight: keep the newer local copy, the next save sends it
+      if(field == 'list' && (updatepending[listid] || cache_thing("listdirty",listid) != dirtysent)) {
+        // edited again while this save was in flight (here or in another tab): keep the newer local copy, the next save sends it
         console.log("keep listid cache, edits pending:"+listid);
         return;
+      }
+      if(field == 'list') {
+        cache_thing("listdirty",listid,null,true);
       }
       console.log("clear listid cache:"+listid);
 		    cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
@@ -2063,6 +2080,7 @@ function removelist(listid) {
 // a list was edited: save 15s after the last edit, and at least every minute while edits keep coming
 function listedited(listid) {
     cardlistcounts();
+    listdirtymark(listid);
     updatepending[listid]=1;
     clearTimeout(savetimeout);
     savetimeout = setTimeout(savecallback,15*1000);
@@ -2084,6 +2102,7 @@ function savecallback() {
 	}
 	var retry = function() {
 	    // keep it pending and try again at the next checkpoint
+	    listdirtymark(listid);
 	    updatepending[listid]=1;
 	    if(!savecheckpoint) {
 		savecheckpoint = setTimeout(savecallback,60*1000);
