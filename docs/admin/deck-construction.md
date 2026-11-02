@@ -109,7 +109,9 @@ Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Uniq
 Kisada), at its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`). Each
 level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, the Little Bear`
 is Hida Kisada Experienced); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
-keyword makes the card count as Name at that level.
+keyword makes the card count as Name at that level. Where a `(...)` marks a different card, the card field `countsas`
+keeps it apart: `Hida Yakamo (Oni)` (3240, 3241) has `{"countsas": "Hida Yakamo (Oni)"}`, so it isn't counted with
+`Hida Yakamo (Hero)`, at the same experience level (the user, 2026-11-02).
 
 **Choices** (`choices`): which deck a card goes in, for a deck's owner to set (`pick` in the deck's
 field: `{"sensei": "Fate"}`). A pick beats the game config `sort.pick` rules and moves (docs:
