@@ -57,7 +57,8 @@ one type of card. Click a card to open it. Only decks count, not collections or 
 lists. Old tournament archives make up a large share of the L5R decks, so their eras weigh more.
 
 On a card's page, and beside each card in the detailed search results, the number next to the globe
-is how many public decks play it. Click it to see them.
+is how many public decks play it. Click it to see them. In a search with one **Legality** picked, the
+results' number counts only decks of that format, and the click opens those; the card's page always counts every deck.
 
 ## Opening a deck {#open}
 
