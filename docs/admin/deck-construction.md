@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-11-02 (`countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -22,6 +22,11 @@ In an overlay a rule id maps to the parts that change (`{"fate": {"min": 45}}`) 
 switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds a whole rule.
 `add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
 minimum the layers before set, plus two), so one overlay works in every legality.
+
+A deck with no Legality uses the format the public listing shows for it when that's a regular arc (the deck's name, else its
+cards; `/cardslegal` answers `inferred`), so an old 30/30 deck whose cards all fit Imperial is checked as Imperial, and the hover
+says "inferred from the deck". An inferred BigDeck, Extended or eternal format changes nothing: those are guesses, and their
+limits would mark decks nobody built for them (the user, 2026-11-02).
 
 A legality with no entry in `deckconstruction.legality` uses the game's rules as they stand. That's most of them,
 Emperor and Emperor Extended among them, so those two build the same way.
@@ -122,6 +127,9 @@ game-config.md). Public list counts (Fate/Dynasty counts) follow it too.
 | `countsas` | The title this card counts as for copy limits. |
 | `skip` | Rule ids this card isn't counted in (e.g. a card that doesn't count toward deck size). |
 | `rules` | While this card is in the deck, an overlay on the deck's rules (as a legality's), for cards that change the limits of others. |
+| `legality` | `{"<legality>": {max, skip, rules}}`: those keys in place of the card's own, in decks of that Legality (or inferred arc). `countsas` isn't read from here. |
+
+Isawa Osugi 3887 wasn't Unique when printed for Imperial (Anvil of Despair; Jade Edition adds it): `{"legality": {"Imperial": {"skip": ["unique"]}}}`, so three copies there, one elsewhere. Oni no Kamu 5737 the same (its Shadowlands printing has no Unique). A sweep of every Imperial-legal printing of the Unique cards, 2026-11-02, found no others; Events, Rings and experienced Personalities were Unique by rule until Emperor Edition, printed or not (the user).
 
 E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"max": null}`; Depths of the
 Shinomen ("Your deck may include four copies of any non-unique Ratling card")
