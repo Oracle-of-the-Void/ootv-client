@@ -4235,6 +4235,10 @@ function liststats(listdata,listid=null) {
     }));
     var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
     listbuildcardrules[listid] = build ? build.cardrules : {};
+    // a deck with no legality, once /cardslegal names the arc it's inferred as (liststatslegal): the check again in that arc
+    listbuildinferred[listid] = function(format) {
+	return deckbuildcheck(cards, $.extend({}, meta, {"legality": format}), deckkey, format);
+    };
     // the summary's decks in the game's deck order, whatever sort the list is shown in (dynasty before fate)
     var decksort = (databasesort[database] || {}).deck;
     var summarydecks = decksort ? group(cards.slice().sort(function(a,b) { return decksort(a.card,b.card); }), deckkey) : decks;
@@ -4258,7 +4262,7 @@ function liststats(listdata,listid=null) {
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
-	"listid": listid, "legalids": legalids, "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
+	"listid": listid, "legalids": legalids, "listname": meta.name || '', "fatecount": decksize('fate'), "dynastycount": decksize('dynasty'), "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
 	"buildbad": !!(build && build.problems.length), "buildhtml": build ? deckbuildhtml(build)+deckbuildownhtml(meta) : ''});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
@@ -4274,18 +4278,29 @@ function liststats(listdata,listid=null) {
 // A failed check saves nothing: the list keeps its last summary, and the next draw tries again.
 var liststatslegalcache = {};
 var listsummaryheld = {}; // listid: the summary from the last liststats, buildbad from the rules alone
+var listbuildinferred = {}; // listid: from the last liststats, the deck's check in a format it's inferred as
 function liststatslegal() {
     $(".liststatslegal[data-cardids]").each(function() {
 	var el = $(this), ids = el.attr('data-cardids'), format = el.attr('data-format') || '';
-	var key = format+'|'+ids, listid = el.attr('data-listid'), held = listsummaryheld[listid];
+	var name = el.attr('data-name') || '', fate = el.attr('data-fate'), dynasty = el.attr('data-dynasty');
+	var key = format+'|'+(format ? '' : name+'|'+fate+'|'+dynasty+'|')+ids, listid = el.attr('data-listid'), held = listsummaryheld[listid];
 	var show = function(r) {
 	    var bad = el.siblings('.liststatsillegal');
 	    var illegal = !!(r.illegal && r.illegal.length);
-	    el.siblings('.liststatsflag').toggle(!!(held && held.buildbad) || illegal);
+	    var buildbad = !!(held && held.buildbad);
+	    // no legality, but the listing infers an arc: that arc's rules (only arcs: the user, 2026-11-02)
+	    if(r.inferred && listbuildinferred[listid]) {
+		var build = listbuildinferred[listid](r.inferred);
+		if(build) {
+		    buildbad = !!build.problems.length;
+		    el.siblings('.liststatsbuild').replaceWith(deckbuildhtml(build));
+		}
+	    }
+	    el.siblings('.liststatsflag').toggle(buildbad || illegal);
 	    el.siblings('.liststatsbuildok').toggle(!illegal);
 	    // an answer that lands after a newer draw leaves that draw's summary alone
 	    if(held && listsummaryheld[listid] === held) {
-		listsummarysave(listid, $.extend({}, held, {"buildbad": held.buildbad || illegal}));
+		listsummarysave(listid, $.extend({}, held, {"buildbad": buildbad || illegal}));
 	    }
 	    if(illegal) {
 		bad.html('Not legal in '+htmlEncode(r.format)+': '+r.illegal.map(function(c) {
@@ -4302,7 +4317,7 @@ function liststatslegal() {
 	    return;
 	}
 	var data = {table: database, cardids: ids};
-	if(format) data.format = format;
+	if(format) { data.format = format; } else { data.name = name; data.fatecount = fate; data.dynastycount = dynasty; }
 	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
 	    success: function(r) { liststatslegalcache[key] = r; show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
@@ -4315,7 +4330,8 @@ function liststatslegal() {
 // legality starts from no rules instead of the game's: the deck's layers turn on the ones it wants, and cards
 // change only those. In an overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
 // limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]},
-// and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}.
+// and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}. Its
+// legality: {<legality>: {max, skip, rules}} replaces those keys in decks of that legality (Isawa Osugi: not Unique in Imperial).
 // A rule with cap: true (a legality's or the deck's own) can't be changed by cards: their rules and skip leave it alone,
 // and a copies rule's max holds even cards with their own. A deck's {cap: true, label} on a rule only a card adds keeps it out.
 // Rule checks:
@@ -4390,12 +4406,18 @@ function deckbuildrules(meta, layer) {
     }
     return {"rules": rules, "decks": conf.decks || null, "source": source, "special": special};
 }
-function deckbuildcardconf(card) {
+function deckbuildcardconf(card, legality) {
     var v = card.deckconstruction;
     if(typeof v === 'string') {
 	try { v = JSON.parse(v); } catch(e) { v = null; }
     }
-    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+    v = v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+    if(legality && v.legality) {
+	Object.keys(v.legality).forEach(function(k) {
+	    if(deckbuildplain(k) == legality) { v = $.extend({}, v, v.legality[k]); }
+	});
+    }
+    return v;
 }
 function deckbuildidentity(card) {
     var kws = [].concat(card.keywords || []).map(deckbuildplain);
@@ -4424,15 +4446,19 @@ function deckbuildidentity(card) {
     return {"key": name.toLowerCase()+'\u0000'+level.toLowerCase(), "name": name+(level ? ' ('+level+')' : '')};
 }
 // what breaks: [{rule, label, text}], or null when the game has no rules
-function deckbuildcheck(cards, meta, deckkey) {
+function deckbuildcheck(cards, meta, deckkey, inferred) {
     var set = deckbuildrules(meta);
     if(!set) {
 	return null;
     }
     var conf = deckbuildconfig(), cardrules = {};
+    if(inferred) {
+	set.source = set.source.map(function(s) { return s == inferred ? s+' (inferred from the deck)' : s; });
+    }
+    var legality = deckbuildplain((meta || {}).legality);
     // a card in the deck that changes the rules for others (Depths of the Shinomen: four of any non-unique Ratling)
     cards.forEach(function(c) {
-	var over = deckbuildcardconf(c.card).rules;
+	var over = deckbuildcardconf(c.card, legality).rules;
 	if(over && typeof over === 'object') {
 	    var change = {};
 	    Object.keys(over).forEach(function(id) {
@@ -4449,7 +4475,7 @@ function deckbuildcheck(cards, meta, deckkey) {
 	}
     });
     var types = function(c) { return [].concat(c.card.type || []).map(deckbuildplain).filter(function(t) { return t && t != 'Proxy'; }); };
-    var skips = function(c, id) { return !set.rules[id].cap && [].concat(deckbuildcardconf(c.card).skip || []).indexOf(id) >= 0; };
+    var skips = function(c, id) { return !set.rules[id].cap && [].concat(deckbuildcardconf(c.card, legality).skip || []).indexOf(id) >= 0; };
     var test = function(when, c) {
 	return Object.keys(when || {}).every(function(f) {
 	    var re;
@@ -4509,7 +4535,7 @@ function deckbuildcheck(cards, meta, deckkey) {
 	    if(!best) { return {"best": null, "max": null}; }
 	    var max = best.r.max;
 	    best.cards.forEach(function(c) {
-		var cc = deckbuildcardconf(c.card);
+		var cc = deckbuildcardconf(c.card, legality);
 		if(cc.hasOwnProperty('max')) { max = cc.max; }
 	    });
 	    // a rule with cap (BigDeck's one copy) holds even cards with their own limit or a rule of their own

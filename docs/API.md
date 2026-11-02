@@ -591,7 +591,9 @@ only at the cards, not at the deck's size or copy limits; the client adds its `i
 (the summary's `buildbad`). Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
 <cards not found>}`; 400 without a table or with over 5000 cards. With `format` (the list's legality) it also answers
 `format` and `illegal: [{cardid, title}]`, the cards not legal in it; `illegal` is null for a value the game doesn't
-check, such as Proxy or a deck's Special.
+check, such as Proxy or a deck's Special. Without `format`, send the deck's `name`, `fatecount` and `dynastycount`, and when the
+public listing would infer a regular arc for it (not BigDeck, an Extended or an eternal format), it also answers
+`inferred`: that arc, whose deck construction rules the client then checks the deck by.
 
 ## /list action=award, action=precon
 
