@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi; `countsas`: Hida Yakamo (Oni)); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -39,6 +39,10 @@ unticked for the owner to tick, and `deckconstruction.legality["Special"]` would
 default (no game has one). A card's `rules` change only the rules a Special deck has; they don't add any
 (Forgotten Legacy's Holdings rule stays out). The public listing shows Special as the deck's format, like any owner's
 legality; the search-engine deck pages (ootv-tools `seo/build.py`) leave it out of "legal in".
+
+**A deck's own rules show:** the header lists them ("This deck's own rules: ...", `deckbuildownhtml`), and the directory
+and public listing show **Own rules** by the Count, with the list on hover (`deckbuildownmark`; the lists index keeps the
+field in `_source`). Any change to `rules` or `pick` counts.
 
 A broken rule shows in red on the Deck construction line, part of the list header
 (`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
@@ -92,11 +96,12 @@ a JSON object, empty removes it).
 | `decks` | The decks copy limits count in (cards in any other deck, L5R `Other`, aren't counted). A `copies` rule can set its own `decks`. |
 | `label` | What the stats line and the panel call the rule. |
 | `order` | Order shown; then by id. |
+| `cap` | On any rule, from a legality or a deck's **cards can't change it** box (`false` undoes a legality's): a card's `rules` and `skip` leave this rule alone. A deck's `{"cap": true, "label": "..."}` on a rule only a card adds keeps that rule out (**cards can't add it**; the box shows while such a card is in the deck, and the part with no `check` tests nothing). A card's `countsas` still applies. |
 | `deck` | The deck the rule looks at, as the deck view groups the card (after `sort.pick` and the deck's picks). |
 | `check: size` | Copies in `deck`: `min`, `max`. |
 | `check: type` | Copies of `type` in `deck`: `min`, `max`. |
 | `check: pertype` | Copies of each type in `deck`, less `except`: `max`. Type Proxy is never counted as a type. |
-| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too). With `titles: n` only n different cards may go past the limit they'd have without this rule; more than that is a problem naming them all, since the check can't tell which ones the player meant (Eternal Victory Dojo). |
+| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too; see `cap` below). With `titles: n` only n different cards may go past the limit they'd have without this rule; more than that is a problem naming them all, since the check can't tell which ones the player meant (Eternal Victory Dojo). |
 
 Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Unique`).
 
@@ -104,7 +109,9 @@ Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Uniq
 Kisada), at its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`). Each
 level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, the Little Bear`
 is Hida Kisada Experienced); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
-keyword makes the card count as Name at that level.
+keyword makes the card count as Name at that level. Where a `(...)` marks a different card, the card field `countsas`
+keeps it apart: `Hida Yakamo (Oni)` (3240, 3241) has `{"countsas": "Hida Yakamo (Oni)"}`, so it isn't counted with
+`Hida Yakamo (Hero)`, at the same experience level (the user, 2026-11-02).
 
 **Choices** (`choices`): which deck a card goes in, for a deck's owner to set (`pick` in the deck's
 field: `{"sensei": "Fate"}`). A pick beats the game config `sort.pick` rules and moves (docs:
@@ -122,8 +129,7 @@ game-config.md). Public list counts (Fate/Dynasty counts) follow it too.
 | `rules` | While this card is in the deck, an overlay on the deck's rules (as a legality's), for cards that change the limits of others. |
 | `legality` | `{"<legality>": {max, skip, rules}}`: those keys in place of the card's own, in decks of that Legality (or inferred arc). `countsas` isn't read from here. |
 
-Isawa Osugi 3887 wasn't Unique when printed for Imperial (Anvil of Despair; Jade Edition adds it): `{"legality": {"Imperial": {"skip": ["unique"]}}}`, so three copies there, one elsewhere.
-Hida Yakamo (Oni) 3240 is a different card from Hida Yakamo (Hero) 3237 (the 1996 GenCon winner ran 3 + 1): `{"countsas": "Hida Yakamo (Oni)"}`.
+Isawa Osugi 3887 wasn't Unique when printed for Imperial (Anvil of Despair; Jade Edition adds it): `{"legality": {"Imperial": {"skip": ["unique"]}}}`, so three copies there, one elsewhere. Oni no Kamu 5737 the same (its Shadowlands printing has no Unique). A sweep of every Imperial-legal printing of the Unique cards, 2026-11-02, found no others; Events, Rings and experienced Personalities were Unique by rule until Emperor Edition, printed or not (the user).
 
 E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"max": null}`; Depths of the
 Shinomen ("Your deck may include four copies of any non-unique Ratling card")

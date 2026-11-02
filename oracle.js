@@ -1123,7 +1123,7 @@ function dircount(list) {
   if(!total) {
     return '';
   }
-  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad);
+  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad)+deckbuildownmark(list);
 }
 // a list's count in the Active Lists bar, as the directory's but live: the decks from its last draw (liststats; every edit
 // redraws), else its saved summary. Decks that don't add up to the total (a stale summary, cards still loading): the total alone
@@ -4178,6 +4178,7 @@ function liststats(listdata,listid=null) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
     var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
+    listbuildcardrules[listid] = build ? build.cardrules : {};
     // a deck with no legality, once /cardslegal names the arc it's inferred as (liststatslegal): the check again in that arc
     listbuildinferred[listid] = function(format) {
 	return deckbuildcheck(cards, $.extend({}, meta, {"legality": format}), deckkey, format);
@@ -4207,7 +4208,7 @@ function liststats(listdata,listid=null) {
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
 	"listid": listid, "legalids": legalids, "listname": meta.name || '', "fatecount": decksize('fate'), "dynastycount": decksize('dynasty'), "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"buildbad": !!(build && build.problems.length), "buildhtml": deckbuildhtml(build)});
+	"buildbad": !!(build && build.problems.length), "buildhtml": build ? deckbuildhtml(build)+deckbuildownhtml(meta) : ''});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
 	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
@@ -4275,6 +4276,8 @@ function liststatslegal() {
 // limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]},
 // and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}. Its
 // legality: {<legality>: {max, skip, rules}} replaces those keys in decks of that legality (Isawa Osugi: not Unique in Imperial).
+// A rule with cap: true (a legality's or the deck's own) can't be changed by cards: their rules and skip leave it alone,
+// and a copies rule's max holds even cards with their own. A deck's {cap: true, label} on a rule only a card adds keeps it out.
 // Rule checks:
 //   size     copies in deck (min/max)
 //   type     copies of type in deck (min/max)
@@ -4392,6 +4395,7 @@ function deckbuildcheck(cards, meta, deckkey, inferred) {
     if(!set) {
 	return null;
     }
+    var conf = deckbuildconfig(), cardrules = {};
     if(inferred) {
 	set.source = set.source.map(function(s) { return s == inferred ? s+' (inferred from the deck)' : s; });
     }
@@ -4401,7 +4405,11 @@ function deckbuildcheck(cards, meta, deckkey, inferred) {
 	var over = deckbuildcardconf(c.card, legality).rules;
 	if(over && typeof over === 'object') {
 	    var change = {};
-	    Object.keys(over).forEach(function(id) { if(!set.special || set.rules[id]) { change[id] = over[id]; } });
+	    Object.keys(over).forEach(function(id) {
+		if(over[id] && !conf.rules[id] && !set.special) { cardrules[id] = over[id].label || id; }
+		if((set.special && !set.rules[id]) || (set.rules[id] && set.rules[id].cap)) { return; }
+		change[id] = over[id];
+	    });
 	    if(!Object.keys(change).length) { return; }
 	    // once per copy: an add counts each copy (three Coastal Lanes: +6), the rest is the same each time
 	    for(var i = 0; i < Math.max(1, c.qty || 1); i++) {
@@ -4411,7 +4419,7 @@ function deckbuildcheck(cards, meta, deckkey, inferred) {
 	}
     });
     var types = function(c) { return [].concat(c.card.type || []).map(deckbuildplain).filter(function(t) { return t && t != 'Proxy'; }); };
-    var skips = function(c, id) { return [].concat(deckbuildcardconf(c.card, legality).skip || []).indexOf(id) >= 0; };
+    var skips = function(c, id) { return !set.rules[id].cap && [].concat(deckbuildcardconf(c.card, legality).skip || []).indexOf(id) >= 0; };
     var test = function(when, c) {
 	return Object.keys(when || {}).every(function(f) {
 	    var re;
@@ -4511,7 +4519,7 @@ function deckbuildcheck(cards, meta, deckkey, inferred) {
 	    }
 	});
     }
-    return {"problems": out, "source": set.source, "norules": !ids.length};
+    return {"problems": out, "source": set.source, "cardrules": cardrules, "norules": !ids.some(function(id) { return set.rules[id].check; })};
 }
 function deckbuildhtml(r) {
     if(!r) {
@@ -4532,6 +4540,31 @@ function deckbuildhtml(r) {
 	return '<span class="liststatsbuildrule">'+htmlEncode(p.label)+': '+text+'</span>';
     }).join('; ')+'</div>';
 }
+// what a deck changes from its legality, in words: for its header, and the mark in the directory and public listing
+function deckbuildownlist(item) {
+    var conf = deckbuildconfig() || {}, own = deckbuildlistoverlay(item), ownrules = own.rules || {}, ownpick = own.pick || {};
+    var out = Object.keys(ownrules).map(function(id) {
+	var o = ownrules[id], known = (conf.rules || {})[id], label = (known && known.label) || (o && o.label) || id;
+	if(o === null) { return label+': off'; }
+	if(!known) { return label+': cards can\'t add it'; }
+	var parts = ['min','max'].filter(function(p) { return o[p] !== undefined && o[p] !== null; }).map(function(p) { return p+' '+o[p]; });
+	if(o.cap === true) { parts.push('cards can\'t change it'); }
+	if(o.cap === false) { parts.push('cards can change it'); }
+	return label+': '+(parts.join(', ') || 'on');
+    });
+    return out.concat(Object.keys(ownpick).map(function(id) {
+	return ((conf.choices || {})[id] || {}).label ? conf.choices[id].label+': '+ownpick[id] : id+': '+ownpick[id];
+    }));
+}
+function deckbuildownhtml(item) {
+    var own = deckbuildownlist(item);
+    return own.length ? '<div class="liststatsbuildown">This deck\'s own rules: '+own.map(htmlEncode).join('; ')+'</div>' : '';
+}
+function deckbuildownmark(item) {
+    var own = deckbuildownlist(item);
+    return own.length ? ' <span class="dirownrules" title="'+htmlEncode('This deck\'s own rules: '+own.join('; '))+'">Own rules</span>' : '';
+}
+var listbuildcardrules = {}; // listid: the rules cards in the deck add, {id: label}, from the last liststats
 // the deck's own rules, in its header (owner only): each rule as its legality sets it, with the deck's change
 // filled in; a box switches a rule off for this deck. Then the game's choices (Sensei in Pre-Game or Fate, ...).
 // Saved as the list's deckconstruction field, only what differs from the legality's rules.
@@ -4560,8 +4593,17 @@ function listbuildform(listid) {
     var rows = ids.map(function(id) {
 	var r = all[id], on = base.rules[id] ? ownrules[id] !== null : !!ownrules[id];
 	var parts = r.check == 'size' || r.check == 'type' ? ['min','max'] : ['max'];
+	var basecap = !!(base.rules[id] || r).cap, cap = ownrules[id] && ownrules[id].hasOwnProperty('cap') ? ownrules[id].cap === true : basecap;
 	return '<tr><td><label><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="on" data-base="'+(base.rules[id] ? 1 : 0)+'"'+(on ? ' checked' : '')+'> '+htmlEncode(r.label || id)+'</label></td><td>'+
-	    parts.map(function(p) { return num(id, p, base.rules[id] || r); }).join(' ')+'</td></tr>';
+	    parts.map(function(p) { return num(id, p, base.rules[id] || r); }).join(' ')+
+	    ' <label title="Cards in the deck can\'t change this rule"><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="cap" data-base="'+(basecap ? 1 : 0)+'"'+(cap ? ' checked' : '')+'> cards can\'t change it</label></td></tr>';
+    });
+    // rules only a card adds (Forgotten Legacy's Holdings): those of the deck's cards, and any the deck has already kept out
+    var added = $.extend({}, listbuildcardrules[listid]);
+    Object.keys(ownrules).forEach(function(id) { if(ownrules[id] && !all[id]) { added[id] = ownrules[id].label || added[id] || id; } });
+    Object.keys(added).sort().forEach(function(id) {
+	if(all[id]) { return; }
+	rows.push('<tr><td>'+htmlEncode(added[id])+'</td><td><label><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="block" data-label="'+htmlEncode(added[id])+'"'+(ownrules[id] ? ' checked' : '')+'> cards can\'t add it</label></td></tr>');
     });
     var picks = Object.keys(conf.choices || {}).map(function(id) {
 	var ch = conf.choices[id];
@@ -4593,7 +4635,13 @@ function listbuildsave(el, reset) {
 		var b = $(this).attr('data-base') === '' ? null : parseInt($(this).attr('data-base'));
 		if(v !== b || !was) { change[$(this).attr('data-part')] = v; }
 	    });
+	    panel.find('input[data-part=cap]').filter(function() { return $(this).attr('data-rule') == id; }).each(function() {
+		if(this.checked != ($(this).attr('data-base') == '1')) { change.cap = this.checked; }
+	    });
 	    if(Object.keys(change).length) { rules[id] = change; }
+	});
+	panel.find('input[data-part=block]:checked').each(function() {
+	    rules[$(this).attr('data-rule')] = {"cap": true, "label": $(this).attr('data-label')};
 	});
 	panel.find('select[data-pick]').each(function() {
 	    if($(this).val()) { pick[$(this).attr('data-pick')] = $(this).val(); }
@@ -11959,7 +12007,7 @@ function renderpublic(data, append) {
     meta = meta.map(htmlEncode);
     if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
     var counts = deckcounthtml(d.fatecount || d.dynastycount ? [{"name": "Dynasty", "copies": d.dynastycount}, {"name": "Fate", "copies": d.fatecount}] : [],
-			       h.totalcount || 0, h.buildbad);
+			       h.totalcount || 0, h.buildbad)+deckbuildownmark(h);
     var when = String(h.modified || h.created || '').slice(0,10);
     var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';

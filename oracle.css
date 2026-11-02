@@ -3345,6 +3345,9 @@ span.dirillegal {
   color: var(--bad-3);
   font-weight: bold;
 }
+/* a deck with construction rules of its own (deckbuildownmark, deckbuildownhtml in oracle.js) */
+span.dirownrules, div.liststatsbuildown { font-style: italic; }
+span.dirownrules { font-weight: bold; }
 
 /* card peek (oracle.js cardpeekshow): a small card image at Detailed size, beside it on hover, or centered over a
    backdrop after a long-press (a tap closes it) */
