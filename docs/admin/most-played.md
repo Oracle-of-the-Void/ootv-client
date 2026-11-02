@@ -5,7 +5,9 @@ Last updated 2026-11-02.
 **Public lists → Most played** (the bar chart button) ranks the cards in the public decks, and a
 card's page shows how many public decks play it, as a number next to the globe beside its title. The
 Detail search results show the same globe and number beside each card in a deck, and the search **Sort**
-menu's **Public decks** orders any search by that number (most first, up to 10 minutes behind). All of them
+menu's **Public decks** orders any search by that number (most first, up to 10 minutes behind). With exactly one Legality
+searched, both count only decks of that format (the deck's own, else inferred), and the globe opens those decks;
+with none or several, all decks. The card page always counts all decks. All of them
 read the public lists index, so there is nothing to edit: a list counts as soon as its owner makes it
 public, and stops counting when they make it private.
 
