@@ -1074,7 +1074,7 @@ proxies and public decklists, for:</p>
 <script id="template-listcheck" type="text/x-jsrender">
 {{if legalids || buildhtml}}<div class="listviewcheck">
   {{if counts}}<div class="listviewcount">{{:counts}}</div>
-  {{/if}}{{if legalids}}<div class="liststatslegal" data-listid="{{:listid}}" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>
+  {{/if}}{{if legalids}}<div class="liststatslegal" data-listid="{{:listid}}" data-cardids="{{:legalids}}" data-format="{{>legalformat}}" data-name="{{>listname}}" data-fate="{{:fatecount}}" data-dynasty="{{:dynastycount}}" title="Every card in the list is legal in these formats. The deck's size and copy limits are checked on the Deck construction line; MRPs aren't.">All cards legal for: <span class="liststatslegalvalue">checking...</span></div>
   {{/if}}<div class="liststatsflag"{{if !buildbad}} style="display:none"{{/if}}>Breaks the deck construction rules</div>
   {{if legalids}}<div class="liststatsillegal" style="display:none" title="Cards in this deck that aren't legal in its chosen format"></div>{{/if}}
   {{:buildhtml}}
