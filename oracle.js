@@ -12329,24 +12329,26 @@ function mycardcount(cardid) {
 // only decks of that format count, as in the API's Public decks sort (not with Banned, where it names a ban).
 var publicgamecounts = {};
 var publiccountsshown = '';
-function searchdeckformat(qs) {
+function searchdecklegality(qs) {
   var request = (searchcache[database]['queryrequest'] || {})[qs] || {};
   var picked = [].concat(request['field_legality'] || []).filter(function(v) { return v; });
-  return (picked.length == 1 && !request['field_banned']) ? String(picked[0]).replace(/&nbsp;| /g, ' ').trim() : '';
+  return (picked.length == 1 && !request['field_banned']) ? String(picked[0]) : '';
 }
 function searchdeckcounts(qs) {
   var game = database;
   if(templates[game]['active']['search'] != 'search') {
     return;
   }
-  var format = searchdeckformat(qs);
-  var key = game+'|'+format;
+  var legality = searchdecklegality(qs);
+  var key = game+'|'+legality;
   publiccountsshown = key;
   var fill = function() {
-    var counts = publicgamecounts[key];
-    if(database != game || publiccountsshown != key || !counts || templates[game]['active']['search'] != 'search') {
+    var answer = publicgamecounts[key];
+    if(database != game || publiccountsshown != key || !answer || templates[game]['active']['search'] != 'search') {
       return;
     }
+    var counts = answer.counts || {};
+    var format = answer.format || '';   // the API's name for the legality's decks: Hidden Emperor (Jade) is Jade
     $('#resultsearch .listitem').each(function() {
       var head = $(this).find('.listhead').first();
       var cardid = parseInt($(this).find('.deckswipe').first().data('card'));
@@ -12365,10 +12367,10 @@ function searchdeckcounts(qs) {
   }
   publicgamecounts[key] = null;
   $.ajax({
-    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts'+(format ? '&format='+encodeURIComponent(format) : ''),
+    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts'+(legality ? '&legality='+encodeURIComponent(legality) : ''),
     dataType: 'json',
     success: function(data) {
-      publicgamecounts[key] = data.counts || {};
+      publicgamecounts[key] = data;
       fill();
     },
     error: function() {
