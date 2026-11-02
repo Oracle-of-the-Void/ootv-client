@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-30 (Warhammer 40,000 CCG types and tags OK'd; Android: Netrunner and Doomtown: Reloaded shelves)
+Last updated: 2026-11-01 (Ivory Comprehensive Rules: The New Order only)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -456,6 +456,9 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (destroyed Provinces' Fortifications, Invest, II.4 and Appendix B entries); the books grew to 90 (20F) and 89 (Ivory)
   pages and the trait links were rerun. Build and notes: ootv-import
   `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
+  Since 2026-11-01 the Ivory book carries The New Order only (87 pages): Twenty Festivals' legal date, 27 March 2015, ended
+  Ivory play before the other three rulesheets came out, so they stay in the 20F book alone. Their rules and card notes are
+  no longer in Ivory; the card rulings link to the rulesheets and are unchanged.
 - **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-10-27, Version 0.1 draft): a new book, not a rebuild:
   the 20F book above (with its rulesheets) plus Onyx Lives' Onyx/ShE Rules Datasheet, applied in the datasheet's own words
   where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty
