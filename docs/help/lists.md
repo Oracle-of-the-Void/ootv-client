@@ -168,8 +168,14 @@ Stronghold, no more than one of each kind of Pre-Game card, and at most three co
 A format can change the rules, and the deck's **Legality** picks which: Imperial needs only 30 Fate
 and 30 Dynasty cards; BigDeck needs 80 of each, Modern 50 of each, and both allow one copy of any card, even one that says you may include more. To change them for one
 deck, open **Construction rules** at the top of the deck: change a number, untick a rule to drop
-it, or say which deck Sensei and Border Keep / Bamboo Harvesters go in for this deck. **Back to
-the legality's rules** clears your changes.
+it, tick **cards can't change it** so cards in the deck leave that rule alone (Coastal Lane doesn't raise the
+minimum, Achirin stops at the deck's limit), or say which deck Sensei and Border Keep / Bamboo Harvesters go in for
+this deck. A rule a card adds, like Forgotten Legacy's Holdings, has a **cards can't add it** box while the card is in
+the deck. BigDeck and Modern start with that box ticked on Copies; untick it and cards can go past one copy again.
+**Back to the legality's rules** clears your changes.
+
+A deck with changes like these says so: its header lists them under **This deck's own rules**, and the directory and
+[Public lists](public-lists.md) mark it **Own rules** (hover to read them, or open the deck).
 
 **Special** at the end of the Legality menu is for a deck outside the formats: a theme deck, a house
 rules game. It has no limits at all, so the check says **no limits**, its cards aren't checked against a format, and
