@@ -115,7 +115,8 @@ leaves out by name for another reason, such as a stronghold that was never legal
   simple list), their size, and their order (**Sort**).
 - In the detailed list, a globe with a number beside a card's name is how many public decks play
   it. Click it to see them ([public lists](public-lists.md)). **Sort** → **Public decks** puts
-  the cards in the most public decks first; choose it again for the fewest first.
+  the cards in the most public decks first; choose it again for the fewest first. With one
+  **Legality** picked, the number and the sort count only decks of that format.
 - Hover over a small card picture, or a name in the simple list, to see the card at full size.
   On a phone, press and hold it; tap to close.
 - Click a card to open it. On the card, the arrows (or the arrow keys, with or without Alt, or a
