@@ -253,6 +253,7 @@ searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random'
 searchsorts[database] = searchsorts[''];
 // how /search compares text sorts (all case-insensitive); the first is the default
+var publicdeckssort = JSON.stringify([{'publicdecks':{'order': 'asc'}}]);   // how many public decks play the card
 var sortmodes = {'lex': 'A\u2013Z', 'punct': 'Skip leading punctuation', 'library': 'Library (skip A/An/The)'};
 var activelists = [];
 var savetimeout = '';    // fires 15s after the last list edit
@@ -9288,7 +9289,8 @@ function changesort(type,key,rerender=true) {
 	}
     } else {
 	templates[database]['sort'][type] = decodeURI(key);
-	templates[database]['sortdir']['search'] = 'asc';
+	// the most played cards first
+	templates[database]['sortdir']['search'] = decodeURI(key) == publicdeckssort ? 'desc' : 'asc';
     }
     // need to update menus
     updatemenubar(type);
@@ -9428,6 +9430,7 @@ function startpage() {
 	    }
 	  }
   }
+  searchsorts[database][publicdeckssort] = 'Public decks';
 
   auth = initCognitoSDK();
   var curUrl = window.location.href;

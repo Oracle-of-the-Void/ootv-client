@@ -140,6 +140,7 @@ inputs - sent in body querystring:
   * "random": random order
   * any other valid elastic sort clause
   * `<field>.keyword` sorts are case-insensitive (the API swaps them for a script sort)
+  * `[{"publicdecks": {"order": "desc"}}]`: by how many public decks have at least one copy (`/publiclists?group=cardcounts`; up to 10 minutes behind), title breaking ties
 * sortmode (optional) - how `.keyword` sorts compare text, all case-insensitive
   * "lex" (default): plain A–Z
   * "punct": skip leading punctuation and spaces (`"Guest" of the Chuda` under G)
