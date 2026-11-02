@@ -45,8 +45,8 @@ Ring of the Void in Jade shows Siege of Sleeping Mountain unless that printing i
 it shows Pearl. The Discord bot picks the same way, and so does a decklist import's `Legality:` line.
 
 `notmrp` is set on: Siege of Sleeping Mountain, the Promotional–Emperor Rings and full-bleed
-Personalities/Strongholds (2026-10-15), and the Imperial-arc starter-deck reprints (2026-10-16, 315
-printings). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
+Personalities/Strongholds (2026-10-15), the Imperial-arc starter-deck reprints (2026-10-16, 315
+printings), and the Ivory and Twenty Festivals deck cards (2026-11-01, 298 of 299 printings; Advance Warning 121 keeps MRP, its only Twenty Festivals printing). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
 honor/gold variants, Isawa Tomo (Time of the Void) and Summon Faeries (Shadowlands, Anvil of Despair,
 Crimson and Jade).
 
@@ -438,7 +438,8 @@ The publishers come from the set (`ootv-tools/printings/printing-publisher.py`, 
 | Onyx Lives | The Blackest Storm and later (already set). The Blackest Storm also has AEG (2026-10-23) |
 
 In the Oracle of the Void set, the proxies are AEG and the Old, New and SotE card backs are
-FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. A new set needs its
+FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. The four Gold Edition
+koku (1, 5, 10 and 50 Koku) are AEG, as printed on them (© 2001 AEG). A new set needs its
 publisher set at import time.
 
 ## Showing derived values on the card page

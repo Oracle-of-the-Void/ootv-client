@@ -29,6 +29,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   * `Stronghold`: a stronghold from before strongholds were printed on cards (it came in the box).
   * Several values are allowed when one printing covers versions that differ only in typesetting or
     flavor. A gameplay difference is a separate printing.
+  * Two values can also make a printing show in both rarity searches: the Gold Edition koku (1, 5, 10 and 50
+    Koku) are `["Promo","Premium"]`, extras in the regular Gold product (the user, 2026-11-01, ootv-client #98).
 * printing.imagehash (the image directory; required with `image`, left out with it when there is no scan)
 * printing.printingid (required)
 * printing.publisher (optional, array of one string). L5R: Five Rings Publishing Group, Wizards

@@ -10,7 +10,8 @@ var LIMITSFEATURES = [
   {key: 'artphoto', name: 'Photo: Find the card and Find the artist (one count; uploads in Admin → Artist check too)',
    levels: {admin: 'full permission on the game (Find the artist: or artcheck)', maintainer: 'any other permission on the game',
             'patreon-free': 'Patreon Free tier', 'patreon-ashigaru': 'Patreon Ashigaru tier',
-            'patreon-samurai': 'Patreon Samurai tier', 'patreon-maker': 'Patreon Maker tier'},
+            'patreon-samurai': 'Patreon Samurai tier', 'patreon-hatamoto': 'Patreon Hatamoto tier',
+            'patreon-daimyo': 'Patreon Daimyo tier', 'patreon-kami': 'Patreon Kami tier'},
    defaults: {admin: {}, maintainer: {}}}
 ];
 var limitsadminloaded = true;
