@@ -1023,6 +1023,12 @@ a.communitylink small { color: var(--text-6); }
 .homepage { padding: 8px 16px 16px; }
 .homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
 .homepage .homelede { font-size: 1.15em; }
+.homegamepicker { list-style: none; margin: 12px 0 16px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.homegamepicker a { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; box-sizing: border-box; padding: 10px 8px; text-align: center; text-decoration: none; color: var(--text);
+  background: var(--panel); border-radius: 6px; box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow); }
+.homegamepicker a:hover, .homegamepicker .homegameactive a { box-shadow: 0 0 0 2px var(--accent), var(--panel-shadow); }
+.homegamepicker img { height: 64px; max-width: 100%; object-fit: contain; }
+body.gamenotpicked .homeupdateshead, body.gamenotpicked #updatelog { display: none; }
 .homepage .homecardlists { margin-top: 24px; font-size: 0.9em; }
 .homepage p { line-height: 1.5; }
 .homepage h2 { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-5);
