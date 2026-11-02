@@ -153,4 +153,4 @@ account, or by **Link with Patreon** in [Settings](settings.md#account). It asks
   **Submit for approval**: once a maintainer has checked it, it's shown beside future results.
 
 The two share one daily and per-minute allowance (for supporters it grows with the tier: Free 1 a
-day, Ashigaru 5, Samurai 25, Maker 500); if you use it up, the message says when it resets.
+day, Ashigaru 5, Samurai 25, Hatamoto 100, Daimyo 250, Kami 500); if you use it up, the message says when it resets.
