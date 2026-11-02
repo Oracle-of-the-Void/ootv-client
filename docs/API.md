@@ -519,7 +519,7 @@ inputs (a value list can be repeated or comma separated):
   types. It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
   `cardtype` filter).
   `cardcounts` (the Detail search results' globes): every card's deck count at once, unpaged:
-  `{total, group, format, counts: {cardid: decks}, complete}`. `legality`: one value of the card search's Legality select, counting only decks of its format, answered as `format` (`Hidden&nbsp;Emperor&nbsp;(Jade)` is `Jade`; a filter like Paper counts all decks). `decks` is the card page's count (decks with at least one
+  `{total, group, format, counts: {cardid: decks}, complete}`. `legality`: one value of the card search's Legality select, counting only decks of its format, answered as `format` (`Hidden&nbsp;Emperor&nbsp;(Jade)` is `Jade`; what isn't a format, like Paper or Unreleased, counts all decks). `decks` is the card page's count (decks with at least one
   copy); only cards in a deck are in `counts`; `complete` is false if it was cut short (more cards than it takes).
 
 outputs:
