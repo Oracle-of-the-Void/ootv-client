@@ -253,6 +253,7 @@ searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random'
 searchsorts[database] = searchsorts[''];
 // how /search compares text sorts (all case-insensitive); the first is the default
+var publicdeckssort = JSON.stringify([{'publicdecks':{'order': 'asc'}}]);   // how many public decks play the card
 var sortmodes = {'lex': 'A\u2013Z', 'punct': 'Skip leading punctuation', 'library': 'Library (skip A/An/The)'};
 var activelists = [];
 var savetimeout = '';    // fires 15s after the last list edit
@@ -7046,7 +7047,7 @@ function searchpageable(qs) {
 function dosearchpostcallback(qs) {
     searchtextversion(qs);
     searchaddall(qs);
-    searchdeckcounts();
+    searchdeckcounts(qs);
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
@@ -9188,7 +9189,8 @@ function changesort(type,key,rerender=true) {
 	}
     } else {
 	templates[database]['sort'][type] = decodeURI(key);
-	templates[database]['sortdir']['search'] = 'asc';
+	// the most played cards first
+	templates[database]['sortdir']['search'] = decodeURI(key) == publicdeckssort ? 'desc' : 'asc';
     }
     // need to update menus
     updatemenubar(type);
@@ -9328,6 +9330,7 @@ function startpage() {
 	    }
 	  }
   }
+  searchsorts[database][publicdeckssort] = 'Public decks';
 
   auth = initCognitoSDK();
   var curUrl = window.location.href;
@@ -12197,18 +12200,30 @@ function mycardcount(cardid) {
 }
 // the Detail search results get the card view's globe, with how many public decks play each card (only cards
 // in a deck). Every card's count comes in one /publiclists group=cardcounts call per game, kept for the visit:
-// a call per row would cost a Lambda and a search each, on every results page.
+// a call per row would cost a Lambda and a search each, on every results page. With exactly one Legality searched,
+// only decks of that format count, as in the API's Public decks sort (not with Banned, where it names a ban).
 var publicgamecounts = {};
-function searchdeckcounts() {
+var publiccountsshown = '';
+function searchdecklegality(qs) {
+  var request = (searchcache[database]['queryrequest'] || {})[qs] || {};
+  var picked = [].concat(request['field_legality'] || []).filter(function(v) { return v; });
+  return (picked.length == 1 && !request['field_banned']) ? String(picked[0]) : '';
+}
+function searchdeckcounts(qs) {
   var game = database;
   if(templates[game]['active']['search'] != 'search') {
     return;
   }
+  var legality = searchdecklegality(qs);
+  var key = game+'|'+legality;
+  publiccountsshown = key;
   var fill = function() {
-    var counts = publicgamecounts[game];
-    if(database != game || !counts || templates[game]['active']['search'] != 'search') {
+    var answer = publicgamecounts[key];
+    if(database != game || publiccountsshown != key || !answer || templates[game]['active']['search'] != 'search') {
       return;
     }
+    var counts = answer.counts || {};
+    var format = answer.format || '';   // the API's name for the legality's decks: Hidden Emperor (Jade) is Jade
     $('#resultsearch .listitem').each(function() {
       var head = $(this).find('.listhead').first();
       var cardid = parseInt($(this).find('.deckswipe').first().data('card'));
@@ -12216,25 +12231,25 @@ function searchdeckcounts() {
       if(!n || !head.length || head.find('a.cardpubliclists').length) {
         return;
       }
-      var link = $('<a class="cardpubliclists" href="" title="In '+n+' public '+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg><span class="cardpubliccount">'+n+'</span></a>');
-      link.on('click', function() { publicwithcard(cardid); return false; });
+      var link = $('<a class="cardpubliclists" href="" title="In '+n+' public '+(format ? htmlEncode(format)+' ' : '')+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg><span class="cardpubliccount">'+n+'</span></a>');
+      link.on('click', function() { publicwithcard(cardid, false, format); return false; });
       head.children('a').first().after(' ', link);
     });
   };
-  if(game in publicgamecounts) {
+  if(key in publicgamecounts) {
     fill();   // still loading (null): the answer fills every row on screen then
     return;
   }
-  publicgamecounts[game] = null;
+  publicgamecounts[key] = null;
   $.ajax({
-    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts',
+    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts'+(legality ? '&legality='+encodeURIComponent(legality) : ''),
     dataType: 'json',
     success: function(data) {
-      publicgamecounts[game] = data.counts || {};
+      publicgamecounts[key] = data;
       fill();
     },
     error: function() {
-      delete publicgamecounts[game];
+      delete publicgamecounts[key];
     }
   });
 }
@@ -12327,12 +12342,19 @@ function publicbyowner(uid, el) {
   publicsearch(0);
 }
 // the card view's links: public lists with this card (the globe), or with mine, your own lists (the folder)
-function publicwithcard(cardid, mine=false) {
+function publicwithcard(cardid, mine=false, format='') {
   var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
   var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
   publicextra = {cardid: {value: cardid, label: 'with '+title}};
   $("#publicform")[0].reset();
   $('#publicform [name="mine"]').val(mine ? '1' : '');
+  if(format) {
+    var formatsel = $('#publicform [name="format"]');
+    if(!formatsel.find('option').filter(function() { return this.value == format; }).length) {
+      formatsel.append($('<option>').val(format).text(format));   // facet options arrive with the results
+    }
+    formatsel.val(format);
+  }
   showviewkeepurl('resultpublic');
   publicsearch(0);
 }
