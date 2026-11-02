@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-11-02 (`cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-11-02 (`countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -104,7 +104,9 @@ Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Uniq
 Kisada), at its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`). Each
 level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, the Little Bear`
 is Hida Kisada Experienced); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
-keyword makes the card count as Name at that level.
+keyword makes the card count as Name at that level. Where a `(...)` marks a different card, the card field `countsas`
+keeps it apart: `Hida Yakamo (Oni)` (3240, 3241) has `{"countsas": "Hida Yakamo (Oni)"}`, so it isn't counted with
+`Hida Yakamo (Hero)`, at the same experience level (the user, 2026-11-02).
 
 **Choices** (`choices`): which deck a card goes in, for a deck's owner to set (`pick` in the deck's
 field: `{"sensei": "Fate"}`). A pick beats the game config `sort.pick` rules and moves (docs:
