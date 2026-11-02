@@ -35,4 +35,4 @@ public, and stops counting when they make it private.
 ootv-search `GET /publiclists?group=cards` (ootv-client `docs/API.md`, ootv-search `CLAUDE.md` "Public
 lists search"): a nested aggregation over each deck's cards. The card page's count is a plain
 `/publiclists` search for decks with the card. The Detail search results get every card's count at
-once from `group=cardcounts`, one call per game per visit (2026-10-29, search #155, client #480). Images come from the card data, as in search results.
+once from `group=cardcounts`, one call per game and single Legality per visit (2026-10-29, search #155, client #480; Legality 2026-11-02). The Public decks sort is a `/search` script sort on the same counts (2026-11-02, search #169, client #561). Images come from the card data, as in search results.
