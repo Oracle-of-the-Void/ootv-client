@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
+Last updated: 2026-11-02 (20F Comprehensive Rules without The New Order as an update; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -459,7 +459,10 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Since 2026-11-01 the Ivory book carries The New Order only (87 pages): Twenty Festivals' legal date, 27 March 2015, ended
   Ivory play before the other three rulesheets came out, so they stay in the 20F book alone. Their rules and card notes are
   no longer in Ivory; the card rulings link to the rulesheets and are unchanged.
-- **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-10-27, Version 0.1 draft): a new book, not a rebuild:
+  Since 2026-11-02 the 20F book carries the three later rulesheets only. The 20F rulebook printed after The New Order, so what the
+  CR lacked of it is listed as "Corrections to the Twenty Festivals text", in the rulebook's words: Fortifications, Invest, and
+  Courtesy (with The New Order's definition of "has Courtesy").
+- **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-11-02, Version 0.2 draft): a new book, not a rebuild:
   the 20F book above (with its rulesheets) plus Onyx Lives' Onyx/ShE Rules Datasheet, applied in the datasheet's own words
   where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty
   Festivals". The datasheet only applies where it changes something; every other wording change was the user's decision,
@@ -469,7 +472,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
   arc could be only one). Since 2026-10-28 it is the arcs' "Last complete rules in arc" book (moved from the datasheet,
   the user) and a trait-link source (its glossary, pp. 62–92; the Discord /rule bot answers Onyx/ShE questions from it). Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
-- **Comprehensive Rules for Three Dynasties** (2026-10-27, Version 0.1 draft): the Onyx/ShE book above plus Onyx Lives' Three
+- **Comprehensive Rules for Three Dynasties** (2026-11-02, Version 0.2 draft): the Onyx/ShE book above plus Onyx Lives' Three
   Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
   and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
   Empire". Every wording was the user's decision, one by one (record: ootv-games
