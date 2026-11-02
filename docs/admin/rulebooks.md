@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-02 (20F Comprehensive Rules without The New Order as an update; Onyx/ShE and Three Dynasties 0.2)
+Last updated: 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -449,7 +449,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt); Ivory likewise from its page's
   captures (final text as archived 15 March 2015, the page has no date; kempy's 2017 print is the second download, and it
   has trait links). Card-text icons in Ivory and 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order.
-  Since 2026-10-27 the Ivory and 20F books also carry the four Ivory expansion rulesheets (The New Order, Thunderous
+  From 2026-10-27 the Ivory and 20F books carried the four Ivory expansion rulesheets (The New Order, Thunderous
   Acclaim, Evil Portents, The Blackest Storm): their new rules in their own words where they belong, each marked by a bar
   and a ◆ linking to a front chapter "Updates from the Expansion Rulesheets" (which rulesheet changed what), and their card
   notes as chapter XV, Notes on Specific Cards. Four wordings of the books' own were changed to fit, with the user's yes
@@ -461,7 +461,8 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   no longer in Ivory; the card rulings link to the rulesheets and are unchanged.
   Since 2026-11-02 the 20F book carries the three later rulesheets only. The 20F rulebook printed after The New Order, so what the
   CR lacked of it is listed as "Corrections to the Twenty Festivals text", in the rulebook's words: Fortifications, Invest, and
-  Courtesy (with The New Order's definition of "has Courtesy").
+  Courtesy (with The New Order's definition of "has Courtesy"). AEG's broken link in glossary Control is repaired in Ivory and 20F,
+  listed under each book's corrections. Pages now: Ivory 87, 20F 90, Onyx/ShE 98, Three Dynasties 98.
 - **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-11-02, Version 0.2 draft): a new book, not a rebuild:
   the 20F book above (with its rulesheets) plus Onyx Lives' Onyx/ShE Rules Datasheet, applied in the datasheet's own words
   where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty

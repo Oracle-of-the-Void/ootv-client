@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-27 (Ivory expansion rulesheets: card notes and card-named rules; weekly Discord Rules Q&A sync)
+Last updated: 2026-11-02 (those rulesheets' card notes are now in the 20F Comprehensive Rules only)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -66,7 +66,7 @@ ootv-claude `RULINGS-IMPORT.md`):
   Specific Cards" are on those cards, linked to the rulesheet's page (`Evil Portents rulesheet, p. 1`). Four more cards that a
   rule on them names (Yogo Mizoguchi of Evil Portents, Sannin, Utaku Zo Sia, Grievous Wound) have that rule as a ruling plus a
   `needsreview` note asking whether the card's text needs updating, for the rules team. The same notes are chapter XV of the
-  Ivory and 20F Comprehensive Rules.
+  20F Comprehensive Rules (in the Ivory book too until 2026-11-01).
 - Rulings on general rules topics (Costs, Timing, Tokens...) and questions that name no card stay
   in the books, not on cards.
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
