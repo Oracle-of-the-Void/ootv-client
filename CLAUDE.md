@@ -90,6 +90,7 @@ or tests. The files in this directory are exactly what gets served.
   card has it, and it starts with no rules. A card not legal in the deck's legality fails the check too (`liststatslegal`,
   from `/cardslegal`), so a deck's `summary` is saved there, after that answer, not in `liststats` (`listsummaryheld`).
   A rule with `cap` (a legality's, or the panel's "cards can't change it" box) is out of cards' reach. Anything a deck changes shows: the header (`deckbuildownhtml`), the directory and public listing's Own rules (`deckbuildownmark`).
+  A deck with no legality is checked again by the regular arc `/cardslegal` infers (`listbuildinferred`, `inferred`), and a card's `deckconstruction.legality` changes its own `max`, `skip`, `rules` per legality (Isawa Osugi, Oni no Kamu: not Unique in Imperial).
   Guide `docs/admin/deck-construction.md`, help `lists#stats`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`

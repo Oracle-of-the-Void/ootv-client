@@ -145,6 +145,9 @@ line with its size (`40/40 (81 total)`), so it's in view when the statistics are
 isn't legal counts as breaking its construction, just like breaking a rule. Proxy cards
 aren't checked at all: they're in the deck to be printed and played, not part of its construction.
 
+A deck with no Legality is checked by the arc it's listed as, when its name or cards point to a regular arc: an old
+30/30 deck whose cards all fit Imperial goes by Imperial's rules. Hover over the line to see which rules it used.
+
 **Deck construction** checks the deck as a whole against the game's deck construction rules
 (see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
 you can save any deck. When a deck breaks its rules or has a card that isn't legal, the header's check line says so in red.
