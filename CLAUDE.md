@@ -89,6 +89,7 @@ or tests. The files in this directory are exactly what gets served.
   every game, added by the `deckLegalitySelect` converter (`listLegalitySelect` is the plain list, also used by import): no
   card has it, and it starts with no rules. A card not legal in the deck's legality fails the check too (`liststatslegal`,
   from `/cardslegal`), so a deck's `summary` is saved there, after that answer, not in `liststats` (`listsummaryheld`).
+  A rule with `cap` (a legality's, or the panel's "cards can't change it" box) is out of cards' reach. Anything a deck changes shows: the header (`deckbuildownhtml`), the directory and public listing's Own rules (`deckbuildownmark`).
   Guide `docs/admin/deck-construction.md`, help `lists#stats`.
 - The card editor is `cardeditor.js`, loaded on first use by `cardeditor()` in `oracle.js`: the
   whole card in memory (regular / HTML / JSON views), saved by Commit as a sequence of `/update`
