@@ -53,7 +53,9 @@ Quicker ways:
 - **Import**, in the list's menu, adds cards from a pasted deck list or a file (see
   [Downloads](#downloads)).
 
-Lists save themselves shortly after you change them.
+Lists save themselves shortly after you change them. If a save fails, a red **Not saved** shows where the list's
+Modified date is; hover over it to see why. Card changes stay in the browser and are tried again a minute
+later; an import that didn't save needs running again.
 
 ## Looking at a list {#view}
 
