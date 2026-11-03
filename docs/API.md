@@ -377,7 +377,13 @@ inputs: form/multipart
   * text, one card per line
   * a leading count is the quantity: `3 `, `3x `, `3 x ` (not the `1` of "1,000 Cuts Technique")
   * `#` starts a comment; blank lines are skipped
-  * `Title (Set)`: the printing from a Sun and Moon edition code, else a set name or set initials
+  * a set on the line: `Title (Set)`, `Title,Set` (after the last comma) or a spreadsheet's `"3x Title, Epithet",Set`
+    (CSV quotes read): first the one card of that title with a printing in that set (set names compared without case,
+    entities, dashes or spaces: `Promotional–Lotus`), with that printing; this tells apart cards sharing a name
+    (The Iron Citadel) and beats a `Legality:` line (since 2026-11-03, ootv-search #174). Else `(Set)` is a Sun and
+    Moon edition code, then a set name or set initials, and a comma tail is taken as part of the title
+  * an experienced level may be written any way after the title: `- exp 2`, `xp2`, `• Experienced 2`,
+    `-- Inexperienced` (bullets, dashes, colons or a comma between)
   * a trailing `[foil]` / `[foil or not]` sets the entry's `foil` (`foil` / `either`)
   * `Legality: <arc>` (`_` read as a space): the following lines get the newest printing whose
     legality is that arc ("Emperor" is Age of Conquest (Emperor), "Ivory" finds "(Ivory Edition)"),
