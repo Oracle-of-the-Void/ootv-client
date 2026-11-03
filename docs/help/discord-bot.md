@@ -125,3 +125,5 @@ Every card command also takes:
 steps to reproduce a website problem, and your device and browser. Sending it files an issue
 on our GitHub, and only you see the reply, with a link to it. The form can't take
 screenshots, so add those on GitHub. Each person can send 3 reports every 15 minutes.
+When the issue is closed, the bot tells you in the channel you reported from (or by direct
+message), with a link and a note on what was done.
