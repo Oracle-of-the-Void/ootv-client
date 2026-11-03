@@ -1005,24 +1005,28 @@ function listinfoupdate(listid,field,value,failed=null) {
   //    either way, we need to trap pulling new list info if we have pending updates.
   // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
   var message_status = $('#list_modified\\:'+listid);
-  var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
+  // POSTed as a JSON body, not a GET query: a big list (an imported collection) is longer than API Gateway
+  // takes in a URL, and the save never reached the server (ootv-claude issues/ootv-search/PROBLEMS.md #26)
+  var params = {"uid": String(getuid()), "database": database, "listid": String(listid), "updatefield": field, "updatevalue": String(value)};
   if(listadminedit(listid)) {
     // someone else's list, opened as an admin (listadminopen); the server audits each save
-    url += "&adminedit=1&notify="+(adminediting[listid].notify ? 1 : 0);
+    params.adminedit = "1";
+    params.notify = adminediting[listid].notify ? "1" : "0";
   }
-  console.log(url);
+  console.log(["listinfoupdate",listid,field,String(value).length+" chars"]);
   var cachedlist = cache_thing("list",listid);
   var dirtysent = cache_thing("listdirty",listid);
   if(field == 'list') {
     listsaving[listid] = (listsaving[listid] || 0) + 1;
     if(cachedlist && cachedlist.list && cachedlist.list.Items && cachedlist.list.Items[0]) {
       // save over the version these edits started from; another computer's save since gets a 409 (#337)
-      url += "&baserev="+(cachedlist.list.Items[0].rev || 0);
+      params.baserev = String(cachedlist.list.Items[0].rev || 0);
     }
   }
   $.ajax({
-	  type: "GET",
-	  url: url,
+	  type: "POST",
+	  url: apiuri+"/list",
+	  data: JSON.stringify(params),
 	  contentType: 'application/json',
 	  dataType: 'json',
 	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -1066,6 +1070,10 @@ function listinfoupdate(listid,field,value,failed=null) {
 		listmerge(listid,status.responseJSON.list);
 		return;
 	    }
+	    // say so: a failed save used to leave no trace on screen (PROBLEMS.md #26)
+	    var why = (status.responseJSON && status.responseJSON.error) || status.statusText || 'no answer';
+	    message_status.html('<span class="error">Not saved'+(failed ? ', will retry' : '')+'</span>')
+		.attr('title','Saving '+field+' failed ('+(status.status || 'network')+'): '+why);
 	    if(failed) {
 		failed();
 	    }
