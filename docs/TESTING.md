@@ -165,6 +165,7 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
 
 - Deck-type lists use `sort: 'deck'` (that's what triggers `databasesort[game].deck` and
   `headerize[game].deck`); other list types use `''`.
+- First visit and game per tab: a fresh context with no `#game=` is `gamenotpicked` (the logos, L5R loaded behind them, phones too), so go to `#game=<game>` to test a game. A tab's game is `sessionStorage` `tabgame`; a new page in the same context has none and starts on the default, then `session_database`. Set `session_gamenoask` to `true` (the JSON, in `localStorage`) to skip the default-game question.
 - Two tabs (#551): two pages of one browser context share `localStorage`, so they share the cached list. Mock `/list` on the context (`ctx.route`). Check: an edit in A, `listrevalidate` in B, and the copy keeps the edit and A's save sends it; a change on the server still applies with nothing waiting; an edit in B while A's save is held open survives and saves with no 409; a `listdirty` stamp older than `LISTDIRTYMS` runs out.
 - To test adding a card without saving it: `addlistitem('t1', id, prid, 1)`, then check
   `updatepending['t1']` (the save got queued) and `clearTimeout(savetimeout)` so the

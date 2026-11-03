@@ -57,7 +57,7 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 
 ## Done since the first pass
 
-Double-size menubar icons, no debug button, start on the search form, full-width search
+Double-size menubar icons, no debug button, start on the search form (once a game is picked; a first visit gets the logos), full-width search
 panel, other views close the panel, separate saved view defaults with "(Mobile)" on the
 save items (`settings[game].mobile`), Visual Spoiler as the phone search default,
 directory scrolls sideways, list quantity beside the +/- buttons (desktop too),
