@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-03 (l5r/play created)
+Last updated: 2026-11-03 (play areas in card widths, Arrange, province attachments, Imperial Favor; not yet in l5r/play)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
@@ -14,17 +14,21 @@ is `l5r/play`, created 2026-11-03 at version 1. There's no Admin editor for it y
   preview play by the item instead.
 - Before a release, the item is brought up to date from the file, one key at a time on the live version (ootv-tools
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
+- `games/l5r.json` has moved on since version 1: `placement` (card widths, not shares of the area), `table.arrange`,
+  `zones[].attach` and `tokens`. They go into `l5r/play` before the table's release.
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
 
 | Key | What |
 |---|---|
-| `zones` | the piles and areas: who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go |
+| `zones` | the piles and areas: who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go, which cards attach to the zone itself (`attach`, L5R's provinces: Regions and Fortifications) |
 | `table.rows` | the order of the piles and provinces along a player's row |
-| `placement`, `setup` | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner) and the opening shuffles and deals |
+| `table.arrange` | Arrange's rows of card types, nearest first (L5R: stronghold, sensei, wind, holdings, regions, celestials; then personalities; then the rest), and the types it stacks (Holding) |
+| `placement`, `setup` | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals |
 | `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
-| `cardstates`, `counters`, `cardcounters` | bow and dishonor; Honor, Gold and Hand size; tokens |
+| `cardstates`, `counters`, `cardcounters` | bow and dishonor; Honor, Gold and Hand size; tokens on cards |
+| `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor) |
 | `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack's segments and battle steps |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
