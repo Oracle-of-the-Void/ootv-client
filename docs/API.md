@@ -370,6 +370,11 @@ Handles deck/card lists
 
 Handled by lambda: ootv-search/routes/list.js
 
+GET with the inputs below in the query string, or POST with the same inputs as a JSON object body
+(`Content-Type: application/json`; values as strings, e.g. `updatevalue` = the list's JSON text). Saves go as POST
+(`listinfoupdate`): a big list as `updatevalue` is longer than API Gateway takes in a URL (ootv-claude
+`issues/ootv-search/PROBLEMS.md` #26).
+
 inputs:
 
 * Header: Authorization (required)
