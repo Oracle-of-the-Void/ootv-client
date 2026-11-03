@@ -3014,6 +3014,9 @@ div.publicformats span {
     border-radius: 8px;
     color: var(--good-2);
 }
+div.listviewnotes a.notelink, div.publicnotes a.notelink {
+    overflow-wrap: anywhere;
+}
 div.publicnotes {
     margin-top: 4px;
     font-size: small;

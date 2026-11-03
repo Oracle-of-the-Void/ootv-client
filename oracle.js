@@ -16,6 +16,7 @@ $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
+$.views.helpers("notelinks",notelinks);
 $.views.helpers("sortlegality",templatesortlegality);
 $.views.helpers("legalitybugs",function(data) { return legalitybugline(data); });
 $.views.helpers("sortprintings",templatesortprintings);
@@ -11070,6 +11071,44 @@ function htmlEncode(value){
   return $('<textarea/>').text(value).html();
 }
 
+// list notes as html (they're whatever their owner typed): the text escaped, and each web address in it a link,
+// only when it parses as an http(s) URL; the href is the parsed URL, escaped for an attribute, so nothing typed can
+// add markup, attributes or another kind of link. This site's links open in place, others in a new tab.
+function noteattr(v) {
+  return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function notelinks(text) {
+  var out = '', at = 0, rx = /https?:\/\/[^\s<>"'`]+/gi, m;
+  text = String(text || '');
+  while((m = rx.exec(text))) {
+    var raw = m[0].replace(/[.,;:!?)\]]+$/,''), url = null;
+    try { url = new URL(raw); } catch(e) {}
+    out += htmlEncode(text.slice(at, m.index));
+    if(url && /^https?:$/.test(url.protocol)) {
+      var here = url.host == location.host || /(^|\.)oracleofthevoid\.com$/.test(url.hostname);
+      out += '<a class="notelink" href="'+noteattr(url.href)+'"'+(here ? '' : ' target="_blank" rel="noopener noreferrer nofollow"')+'>'+htmlEncode(raw)+'</a>';
+    } else {
+      out += htmlEncode(raw);
+    }
+    at = m.index + raw.length;
+    rx.lastIndex = at;
+  }
+  return out + htmlEncode(text.slice(at));
+}
+// a link in notes opens, even inside a box being edited or a card that opens on click
+$(document).on('click', '.listviewnotes a.notelink, .publicnotes a.notelink', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  var url = new URL(this.href);
+  if(this.target == '_blank') {
+    window.open(url.href, '_blank', 'noopener,noreferrer');
+  } else if(url.hash) {
+    location.hash = url.hash;   // this site's page, opened where the site is running (preview, local) too
+  } else {
+    location.href = url.href;
+  }
+});
+
 // invert the above
 function htmlDecode(value){
   return $('<textarea/>').html(value).text();
@@ -12127,7 +12166,7 @@ function renderpublic(data, append) {
         '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : (h.unlisted ? 'Unlisted' : 'Private')) :
           'by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>')+(when ? ' &middot; '+when : '')+'</div>'+
         formats+
-        (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
+        (h.notes ? '<div class="publicnotes">'+notelinks(h.notes)+'</div>' : '')+
       '</div></div>';
   }).join('');
   if(append) {
