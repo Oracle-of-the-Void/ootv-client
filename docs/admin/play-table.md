@@ -1,11 +1,11 @@
 # Play table
 
-Last updated: 2026-11-03 (play areas in card widths, Arrange, province attachments, Imperial Favor; not yet in l5r/play)
+Last updated: 2026-11-03 (l5r/play version 2: play areas in card widths, Arrange, province attachments, Imperial Favor)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 2. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -14,8 +14,9 @@ is `l5r/play`, created 2026-11-03 at version 1. There's no Admin editor for it y
   preview play by the item instead.
 - Before a release, the item is brought up to date from the file, one key at a time on the live version (ootv-tools
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
-- `games/l5r.json` has moved on since version 1: `placement` (card widths, not shares of the area), `table.arrange`,
-  `zones[].attach` and `tokens`. They go into `l5r/play` before the table's release.
+- `l5r/play` is kept in step with `games/l5r.json` as the table's work is merged (the user, 2026-11-03), one changed
+  path at a time. Version 2 (2026-11-03) added `tokens`, `table.arrange` and the provinces' `attach`, and moved
+  `placement` to card widths.
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
