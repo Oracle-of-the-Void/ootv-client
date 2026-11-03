@@ -1,6 +1,6 @@
 # Fields: descriptions and settings
 
-Last updated: 2026-10-30 (`conditionalvalues`: a numeric value that depends on the deck, shown in a deck's Table view and averages; L5R Gold Production filled: Holdings from text and card images, general-purpose Gold on other cards)
+Last updated: 2026-11-02 (text search ignores the kind of apostrophe and finds a word with or without it)
 
 Every card field has a short description of what it holds, so the card editor can say what a
 field is for before you fill it in, and **settings** that say how the site uses it: its labels,
@@ -43,7 +43,9 @@ replaces the field's settings; clear it to drop them.
   `search`) for a field that isn't searched. `clickable` makes the value on the card page a search
   link: `true`, or `"printing"` for a field held on the printing. `combined` names another card field searched with
   it: L5R and Pathfinder Pawns `title` has `"combined": "alttitle"`, so a title search also finds
-  a card by its other name (ootv-claude GAME-TEMPLATES.md §1.7, decision 26). A field is in the
+  a card by its other name (ootv-claude GAME-TEMPLATES.md §1.7, decision 26). Every text field, in every game,
+  treats a curly and a straight apostrophe alike and also holds the word's other forms: Kaagi's is found by
+  `kaagi's`, `kaagis` or `kaagi`, d'Artagnan by `artagnan` (ootv-client #553; ootv-elastic `apostrophe-analysis.sh`). A field is in the
   search form only when the game config's `search` list names it ([Game config](game-config.md)).
   `foil` (shared `printing.foil`, every game) is a fixed select: Any foil / Foil only / Regular and
   foil / Not foil, on the printing's `foil` value (`"foil"`, `"both"`, or left out).
