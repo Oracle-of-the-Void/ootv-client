@@ -79,6 +79,16 @@ or tests. The files in this directory are exactly what gets served.
   `listopening` until it arrives, and background loads (the directory's first list, restored active lists, card fetches
   finishing late) only fill the cache, never the view: `liststale`, checked in `refreshlist` and `dolist`. Test: `docs/TESTING.md`.
 - List edits and tabs: the cached list (`cache_thing`) is `localStorage`, shared by every tab, while `updatepending` and `listsaving` (`listunsaved`) are one tab's memory. So every edit also stamps `listdirty` (shared; `listdirtymark`), and refetches (`listinfo`, `listrevalidate`) leave the cached copy alone while it's set: without it, another tab's refetch replaced a copy with edits waiting, and the save then wrote the old cards over the server's, with no 409 (#551). The save that covered the stamp clears it; if the stamp changed during the save, another tab edited, and the cache stays. It runs out after `LISTDIRTYMS` (3 minutes), for a tab closed before saving. A new path that replaces the cached list needs the same check.
+- List saves (`listinfoupdate`): a `POST /list` with the parameters as a JSON body, never a GET with them in the URL: a big
+  list as `updatevalue` was over API Gateway's URL limit and never reached the server (ootv-claude `issues/ootv-search/PROBLEMS.md` #26,
+  2026-11-03). A failed save (not a 409) shows a red **Not saved** in the list's Modified spot, the reason in its title. Other `/list`
+  calls are still GETs; anything that can grow with the list goes as POST too.
+- A list's cards (`listprefetch`): `/oracle-fetch` 50 at a time (`LISTPREFETCHCHUNK`), the chunks together, the list drawn once all
+  answered. One request for a ~460-card collection was over Lambda's 6 MB answer limit (413) and the list never drew.
+- Directory changes (`listdir*` in `oracle.js`): the server reads the directory through a DynamoDB index that lags writes, and a
+  directory read already out when a list is created answers without it. So a directory read asked for during a create, copy or
+  remove waits until it's done (`listdirbusy`, `listdirdone`), and for `LISTDIRLAGMS` (a minute) every directory answer keeps this
+  tab's new lists and drops its removed ones (`listdirapply`). A new path that creates or removes a list does the same.
 - Public lists filters (`publicfacetoptions` in `oracle.js`): the choices in the results first with counts, then **Others**, from one unfiltered `/publiclists` request per game and whose lists (`publicfacetbase`). The API's facets are narrowed by every filter, the pulldown's own included.
 - List ids: the API's items hold numbers (`list.listid`), while `activelists` and anything from a template's `onclick` hold strings, so compare with `String(listid)` (#542). `showlisttoggle` draws a list's toggle, and `renderlisteditarea` keeps the list view's in step with the Active Lists bar.
 - List counts (`40/40 (80 total)`, Pre-Game only in the total): `deckcounthtml` in `oracle.js`, for the directory (`dircount`, from the saved `summary`), the Active Lists bar (`activelistcount`: live from the last draw, `listdeckdrawn`, redrawn by `refreshlist`; the total alone when the decks don't add up) and a deck's header (`#template-listcheck`, before All cards legal for). Only the directory and public listing show the red Illegal next to it.
