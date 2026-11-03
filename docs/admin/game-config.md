@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-31 (Emperor Extended in `sort.pick`; clanmons recoloured for light and dark)
+Last updated: 2026-11-03 (the front page's logos come from the game menu)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -120,6 +120,9 @@ previewing is live for anyone who has the link. To release the game, delete `pre
 (ootv-tools `structure/set.py all/games --remove 'games[N].preview' --expect 'games[N].table="<table>"'`,
 which removes only that flag; not `push.py`, which writes the whole item back); no deploy, the menus pick it up on
 their next load, the bot within 5 minutes.
+
+The front page draws a logo for every game in the menu, in the same order and with the same preview rule, from
+`gamelogos/64/<logo>`, so a game needs that file or its tile is blank.
 
 ## Templates
 
