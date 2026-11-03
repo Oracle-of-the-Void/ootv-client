@@ -1,11 +1,11 @@
 # Play table
 
-Last updated: 2026-11-03 (l5r/play version 2: play areas in card widths, Arrange, province attachments, Imperial Favor)
+Last updated: 2026-11-03 (l5r/play version 3: Gold pool only from Ivory on)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 2. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 3. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -16,7 +16,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 2. There's no Admin 
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
 - `l5r/play` is kept in step with `games/l5r.json` as the table's work is merged (the user, 2026-11-03), one changed
   path at a time. Version 2 (2026-11-03) added `tokens`, `table.arrange` and the provinces' `attach`, and moved
-  `placement` to card widths.
+  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`).
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
@@ -50,3 +50,7 @@ BigDeck, Modern, Obsidian Hand) default to the latest arc's, Three Dynasties. An
 
 Everywhere: starting Honor from the stronghold, four provinces, a hand size of 8 (a counter players can change),
 the defender acting first in battle unless noted.
+
+Gold: before Ivory there's no pool (excess Gold is "taxed by the Emperor" and lost, Samurai and Emperor rules), so
+there's no Gold counter. From Ivory on (Ivory, Twenty Festivals, Onyx, Shattered Empire, Three Dynasties and the
+legacy formats) a Gold counter is the pool, emptied for both players as each phase ends.
