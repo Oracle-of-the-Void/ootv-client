@@ -224,7 +224,10 @@ The list's menu (the grid button) has:
 
 **Import** takes a deck list pasted into its box, or a file: Sun and Moon, Native Oracle, or any
 plain list with one card per line. A line can start with a count (`3x Card`, `3 Card`), end in a
-set in brackets (`Card (Set)`) to pick that printing, and end in `[foil]`; `#` starts a comment,
+set in brackets (`Card (Set)`) or after a comma (`Card,Set`, as a spreadsheet saves it, with
+`"3x Card, With Comma",Set` for a title with a comma) to pick that printing, and end in `[foil]`. The set also tells
+apart cards that share a name. An experienced level can be written any way: `Card - exp 2`, `Card xp2`,
+`Card • Experienced 2`, `Card -- Inexperienced`. `#` starts a comment,
 and a `Legality: <arc>` line picks printings from that arc. **Printings from** does the same for the
 whole import and starts on the list's legality, so an Imperial deck gets its Imperial arc printings
 (the newest printing in that arc); a `Legality:` line in the list wins from where it stands. It says which cards it found and which
