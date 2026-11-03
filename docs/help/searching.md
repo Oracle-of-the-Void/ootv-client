@@ -63,8 +63,9 @@ Terms are joined with AND unless you say otherwise.
   negative number, use quotes or a backslash: `chi:"-1"` or `chi:\-1`. `chi:-1` is an error.
   In card text the minus isn't searched at all, so `text:"-1C"` also finds `1C`.
 - **Double quotes must come in pairs.** `"Suzume'` is an error; `"Suzume"` is fine.
-- **Type plain letters.** Use `kyuden`, not `Kyūden`, and a straight apostrophe in
-  `Shinsei's Shrine`, not a curly one, or the search finds nothing.
+- **Type plain letters.** Use `kyuden`, not `Kyūden`, or the search finds nothing. Apostrophes
+  can be curly or straight, or left out: `Shinsei’s Shrine`, `Shinsei's Shrine` and `Shinseis Shrine`
+  all find it, and `Shinsei` alone finds it too.
 - **`cost:>15` only sees plain numbers.** Cards with a cost of `*` or `X` are left out. See the
   next section.
 
