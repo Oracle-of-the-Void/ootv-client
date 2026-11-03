@@ -368,8 +368,7 @@
 <div class="helloplace"></div>
 <div class="infoplace homepage">
 <h1 class="hometitle">Oracle of the Void</h1>
-<p class="homelede">A card database and deck builder for collectible card games. Pick a game from the menu at the top
-and search on the left.</p>
+<p class="homelede">A card database and deck builder for collectible card games. Pick a game to start.</p>
 <p>Every card and printing, with rulings, legality and card images, plus a deck builder, deck statistics, printable
 proxies and public decklists, for:</p>
 <ul class="homegames">
@@ -396,7 +395,7 @@ proxies and public decklists, for:</p>
 <a class="communitylink" href="https://imperialblock.com/store?user=quixote" target="_new"><svg class="feather"><use xlink:href="res/feather-sprite.svg#shopping-bag"></svg> Buy cards from Don <small>L5R, LBS, SW:CCG, V:TES</small></a>
 </div>
 
-<h2>Recent updates <small>this game</small></h2>
+<h2 class="homeupdateshead">Recent updates <small>this game</small></h2>
 <div id="updatelog">
 </div>
 <span id="updatelogolder" class="button gray" style="display:none" onclick="loadupdates(database,null,$(this).data('next'))">Older updates</span>
@@ -762,15 +761,6 @@ proxies and public decklists, for:</p>
     <dt>Lists</dt><dd>{{:oracle.deckcount}} lists defined<br/>{{:folders}} folder{{if folders!=1}}s{{/if}} ({{>gamename}})</dd>
   </dl>
 </section>
-<section data-settingstab="account" class="settingsection">
-  <h3>Favorite game</h3>
-  <p>The game the site opens with when you're logged in and this browser hasn't picked one yet
-    (a new browser, or after logging out or Clear Cache). Picking a game from the menu still sticks in that browser.</p>
-  <select class="favoritegame" onchange="savefavoritegame(this.value,this);">
-    <option value=""{{if !favorite}} selected{{/if}}>No favorite (opens Legend of the Five Rings)</option>
-    {{for games}}<option value="{{:key}}"{{if key==~root.favorite}} selected{{/if}}>{{>name}}</option>{{/for}}
-  </select> <span class="favoritegamestatus"></span>
-</section>
 <section data-settingstab="display" class="settingsection">
   <h3>Card text (all games)</h3>
   <p>When a search, a list or a version button shows one printing of a card, its text can be the wording printed
@@ -806,6 +796,16 @@ proxies and public decklists, for:</p>
   {{/if}}
 </section>
 {{/if}}
+<section data-settingstab="game" class="settingsection">
+  <h3>Default game</h3>
+  <p>The game the site opens on in a new tab. Picking another game from the menu changes that tab, not this.
+    {{if loggedin}}Saved to your account.{{else}}You're not logged in, so it's kept in this browser only.{{/if}}</p>
+  <select class="favoritegame" onchange="savefavoritegame(this.value,this);">
+    <option value=""{{if !favorite}} selected{{/if}}>No default (opens the last game used here)</option>
+    {{for games}}<option value="{{:key}}"{{if key==~root.favorite}} selected{{/if}}>{{>name}}</option>{{/for}}
+  </select> <span class="favoritegamestatus"></span>
+  <p><label><input type="checkbox"{{if gameask}} checked{{/if}} onchange="savegameask(this.checked,this);"> Ask whether to make a game the default when I pick it</label> <span class="gameaskstatus"></span></p>
+</section>
 <section data-settingstab="gestures" class="settingsection gesturesettings">
   <h3>Gestures (all games) <span class="helpq" data-help="settings#gestures" aria-label="Help: gestures">?</span></h3>
   <p>Turn off a gesture to get the browser's usual behavior back (scrolling, dragging a link, the long-press menu).

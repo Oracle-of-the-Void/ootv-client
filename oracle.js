@@ -218,6 +218,7 @@ if(found = window.location.href.match(/([\w_-]+)\.html/)) {
 	  database = found[1];
 	  console.log("database: "+database);
     cache_session("database",found[1]);
+    sessionStorage.setItem("tabgame",found[1]);
     window.location = location.protocol + '//' + location.host + location.pathname;
   }
 }
@@ -234,12 +235,26 @@ function hashrepair() {
   }
 }
 hashrepair();
-if(cache_session("database")) {
+// Which game this page load draws, so each tab can be on its own game. A #game= url says itself. A tab already in use
+// (a game menu click, a reload, back from logging in) stays on its game, sessionStorage tabgame. A tab just opened starts
+// on the default game, or the last one this browser used (session_database). With none of them, the front page asks: the
+// game picker (gamepick), over L5R's search form.
+var gamenotpicked = false;
+var hashgame = location.hash.match(/#game=([^,#]+)/);
+if(hashgame) {
+  database = decodeURIComponent(hashgame[1]);
+  cache_session("database",database);
+} else if(sessionStorage.getItem("tabgame")) {
+  database = sessionStorage.getItem("tabgame");
+} else if(gamedefaultstored()) {
+  database = gamedefaultstored();
+  cache_session("database",database);
+} else if(cache_session("database")) {
   database = cache_session("database");
-} else if(cache_session("favoritegame") && !/#game=/.test(location.hash)) {
-  // no game picked in this browser yet: open the logged-in user's favorite (settings.all.game, copied by applyfavoritegame)
-  database = cache_session("favoritegame");
+} else {
+  gamenotpicked = true;
 }
+if(!gamenotpicked) { sessionStorage.setItem("tabgame",database); }
 var labels = {};
 var populatecallback = [];
 var auth;
@@ -270,15 +285,19 @@ function dologin() {
 function dologout() {
     auth.signOut();
     var theme = cache_session("theme");
+    var keepgame = cache_session("gamedefault"), keepnoask = cache_session("gamenoask"), keeptab = sessionStorage.getItem("tabgame");
     localStorage.clear();
     sessionStorage.clear();
+    if(keeptab) sessionStorage.setItem("tabgame",keeptab);
     if(theme) cache_session("theme",theme);
+    if(keepgame) cache_session("gamedefault",keepgame);
+    if(keepnoask) cache_session("gamenoask",keepnoask);
 }
 // Clear Cache menu: drop cached data but keep the Cognito login tokens
 function clearcache() {
     for (var i = localStorage.length - 1; i >= 0; i--) {
 	var key = localStorage.key(i);
-	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0 && key != "session_theme") {
+	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0 && key != "session_theme" && key != "session_gamedefault" && key != "session_gamenoask") {
 	    localStorage.removeItem(key);
 	}
     }
@@ -5000,7 +5019,7 @@ function showsettings() {
   showview('resultsettings');
 }
 // The page's tabs; a section joins one with data-settingstab. Logged out, only the ones kept in this browser.
-var settingstabs = [['account','Account',true],['display','Display',true],['printing','Printing',true],['gestures','Gestures',false],['searches','Searches',false]];
+var settingstabs = [['account','Account',true],['display','Display',true],['printing','Printing',true],['game','Default game',false],['gestures','Gestures',false],['searches','Searches',false]];
 var settingstab = null; // the tab picked this session, kept through rendersettings() after a save
 function settingstablist(loggedin) {
   return settingstabs.filter(function(t) { return loggedin || !t[2]; }).map(function(t) { return {'key': t[0], 'label': t[1]}; });
@@ -5060,6 +5079,7 @@ function rendersettings() {
   var searches = searchsettings();
   var searchctx = {
     'gamename': dbinfo[database].name, 'loggedin': searchloggedin(), 'gestures': gesturesettingsctx(),
+    'favorite': gamedefaultnow() || '', 'gameask': !gamenoask(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'searchdefault': searches['default'] ? searchsummary(searches['default']) : null,
     'searches': Object.keys(searches['saved']).sort(searchnamecmp).map(function(name) {
       return {'name': name, 'summary': searchsummary(searches['saved'][name])};
@@ -5083,7 +5103,7 @@ function rendersettings() {
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
     'name': username(user), 'sharedname': sharedname(user.oracle[0]), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
     'patreonoauth': !!(user.oracle[0].patreon && (user.oracle[0].patreon.linkedby || []).indexOf('oauth') >= 0), 'patreonmsg': patreonmsg,
-    'favorite': favoritegame() || '', 'textversion': savedtextversion(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
+    'textversion': savedtextversion(),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions()),
     'tabs': settingstablist(true)
@@ -5342,10 +5362,72 @@ if(window.matchMedia) {
   if(themequery.addEventListener) themequery.addEventListener('change', themeapply);
 }
 
-//**********************************************************  Favorite game ****************
-// users.settings.all.game: the game to open when this browser hasn't picked one (no game menu click or
-// #game= url yet: a new browser, or after logging out or Clear Cache). Without one it's L5R, as before.
-// A copy is kept in localStorage (session_favoritegame) so the next page load starts on it.
+//**********************************************************  Default game ****************
+// users.settings.all.game: the game a newly opened tab starts on (the top of this file). A copy is kept in
+// localStorage (session_favoritegame) so the next page load can start on it. Logged out, or for an account with
+// none, it's session_gamedefault, which logging out and Clear Cache keep. Settings → Default game changes it, and the
+// question gamepick asks. Without one a tab opens on the last game this browser used, or the front page's picker.
+function gamedefaultstored() {
+  return cache_session("favoritegame") || cache_session("gamedefault") || null;
+}
+function gamedefaultnow() {
+  var local = cache_session("gamedefault");
+  return favoritegame() || (local && dbinfo[local] ? local : null);
+}
+// "Never ask" for the question below: users.settings.all.gamenoask, and session_gamenoask in this browser
+function gamenoask() {
+  var user = cache_thing("user","data");
+  var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
+  return !!((all && all['gamenoask']) || cache_session("gamenoask"));
+}
+// A click on a game, on the front page or in the game menu. Ctrl-click and friends are left to the link (#game=).
+function gamepick(db,e) {
+  if(e && (e.ctrlKey || e.metaKey || e.shiftKey || e.button)) { return true; }
+  if(gamenoask() || db == gamedefaultnow()) {
+    gameopen(db);
+    return false;
+  }
+  modal('Open '+dbinfo[db].name,
+    '<p>Make <b>'+dbinfo[db].name+'</b> your default game? The site will open on it from now on.</p>'+
+    '<p><label><input type="checkbox" id="gameasknever"> Never ask again</label></p>'+
+    '<p><button type="button" class="button gray" onclick="gameanswer(\''+db+'\',true);">Yes, make it my default</button> '+
+    '<button type="button" class="button gray" onclick="gameanswer(\''+db+'\',false);">No, just open it</button> <span class="gamepickstatus"></span></p>');
+  return false;
+}
+function gameanswer(db,yes) {
+  var never = $('#gameasknever').prop('checked');
+  var saves = [];
+  $('#modal-content button').prop('disabled',true);
+  if(yes) {
+    cache_session("gamedefault",db);
+    if(searchloggedin()) { cache_session("favoritegame",db); saves.push(['game',db]); }
+  }
+  if(never) {
+    cache_session("gamenoask",true);
+    if(searchloggedin()) { saves.push(['gamenoask',true]); }
+  }
+  // the copy in this browser holds if the account's can't be saved, so go on either way
+  (function next() {
+    var save = saves.shift();
+    if(!save) { gameopen(db); return; }
+    saveallsetting(save[0],save[1],$('.gamepickstatus'),next,next);
+  })();
+}
+function gameopen(db) {
+  cache_session("database",db);
+  sessionStorage.setItem("tabgame",db);
+  nomodal();
+  window.location = '.';
+}
+// the front page's logos, the whole game menu; index.html has the main games as plain links for search engines
+function homegamesdraw() {
+  if(!gamemenu) { return; }
+  $('.homegames').addClass('homegamepicker').html(gamemenu.filter(function(db) { return dbinfo[db]; }).map(function(db) {
+    return '<li'+(db == database && !gamenotpicked ? ' class="homegameactive"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);">'+
+      '<img src="gamelogos/64/'+dbinfo[db].logo+'" alt=""><span>'+dbinfo[db].name+
+      (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</span></a></li>';
+  }).join(''));
+}
 function favoritegame() {
   var user = cache_thing("user","data");
   var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
@@ -5355,16 +5437,29 @@ function favoritegame() {
 function applyfavoritegame() {
   var game = favoritegame();
   cache_session("favoritegame", game || "");
-  if(game && game != database && !cache_session("database") && !/#game=/.test(location.hash)) {
+  if(gamenoask()) { cache_session("gamenoask",true); }
+  if(game && gamenotpicked) {
     location.reload(); // first login in this browser: the top of this file now starts on the favorite
   }
 }
 function savefavoritegame(game,el) {
-  saveallsetting('game', game || null, $(el).siblings('.favoritegamestatus'), function() {
+  cache_session("gamedefault", game || "");
+  var saved = function() {
     cache_session("favoritegame", favoritegame() || "");
     rendersettings();
     $('.favoritegamestatus').text("Saved.");
-  });
+  };
+  if(!searchloggedin()) { saved(); return; }
+  saveallsetting('game', game || null, $(el).siblings('.favoritegamestatus'), saved);
+}
+function savegameask(ask,el) {
+  cache_session("gamenoask", !ask);
+  var saved = function() {
+    rendersettings();
+    $('.gameaskstatus').text("Saved.");
+  };
+  if(!searchloggedin()) { saved(); return; }
+  saveallsetting('gamenoask', ask ? null : true, $(el).closest('label').siblings('.gameaskstatus'), saved);
 }
 // the Card text setting: which wording (textversionnow) a new session starts with
 function savetextversion(value,el) {
@@ -5494,11 +5589,12 @@ function resetgestures(el) {
 // Set (or with value null, remove) one key of users.settings.all. settings.all is shared by every game
 // (PDF defaults live there too) and the cached user is per game, so start from a fresh copy rather than
 // overwrite something saved in another game.
-function saveallsetting(key,value,status,done) {
+function saveallsetting(key,value,status,done,failed) {
   status.text("Saving...");
   var fail = function(error) {
     console.log("Setting "+key+" save failed: "+JSON.stringify(error));
     status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
+    if(failed) { failed(); }
   };
   $.ajax({
     type: 'GET',
@@ -7882,7 +7978,7 @@ function pagetitle() {
     var list = cache_thing("list", $('#lastlistid').val());
     var name = list && list.list && list.list.Items[0] ? selectplaintext(list.list.Items[0].name || '') : '';
     title = (name || 'Deck') + (game ? ' – ' + game + ' deck' : '') + ' | ' + title;
-  } else if(game) {
+  } else if(game && !(gamenotpicked && view == 'resultabout')) {
     title = game + ' card database and deck builder | ' + title;
   }
   document.title = title;
@@ -9352,6 +9448,7 @@ function startpage() {
   
   $(".ui-layout-center div[id^=result]").hide(); // Hide all content
   showview('resultabout');
+  $('body').toggleClass('gamenotpicked', gamenotpicked);
   
   // phones default search results to the Visual Spoiler, unless a saved phone default says otherwise
   if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
@@ -9378,7 +9475,7 @@ function startpage() {
 	  $('#searchtop').html('');
   }
 
-  loadupdates(database);
+  if(!gamenotpicked) { loadupdates(database); }
   
   // Enter performs a search
   $('.searchinput').keypress(function(e){
@@ -9402,13 +9499,14 @@ function startpage() {
   urlready = true;
   urlparser();
   // phones start on the search form, unless the url asked for something (beyond the game)
-  if(narrowscreen() && !location.hash.replace(/#game=[^#]*/,'')) {
+  if(narrowscreen() && !gamenotpicked && !location.hash.replace(/#game=[^#]*/,'')) {
 	  showviewkeepurl('resultsearch');
 	  mobilesearchtoggle(true);
   }
   // all/games' order; a game missing from it (none should be) goes last
   (gamemenu || []).concat(Object.keys(dbinfo).filter(function(k) { return !(gamemenu || []).includes(k); }))
     .forEach(function(k) { if(dbinfo[k]) { addgametolist(k); } });
+  homegamesdraw();
   
 
 }
@@ -9666,7 +9764,7 @@ if(typeof IntersectionObserver != 'undefined') {
 
 function addgametolist(db) {
   var cls = (database == db ? ['menuactive'] : []).concat(gamepreviewonly.includes(db) ? ['gamepreviewonly'] : []);
-  $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"'+
+  $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);"'+
     (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+
     (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</a></li>');
 }
@@ -9806,7 +9904,7 @@ $(window).on('popstate', function (e) {
   console.log(['popstate',e.originalEvent.state,location.hash]);
   hashrepair();
   // phones: back/forward shows results or a card, so close the search panel; back to the blank start page opens it, as on load
-  mobilesearchtoggle(narrowscreen() && !location.hash.replace(/#game=[^#]*/,''));
+  mobilesearchtoggle(narrowscreen() && !gamenotpicked && !location.hash.replace(/#game=[^#]*/,''));
   // no state: a link or a typed url, which keeps the form's filters (urlparser)
   urlparser(!e.originalEvent.state);
 });
@@ -9903,6 +10001,7 @@ function urlparser(keepfilters=false) {
   if(typeof(matchstruct["game"]) != "undefined") {
     if((matchstruct["game"] != database) && (matchstruct["game"] != "")) {
       cache_session("database",matchstruct["game"]);
+      sessionStorage.setItem("tabgame",matchstruct["game"]);
       location.reload();
       return;
     }
@@ -10007,7 +10106,7 @@ function urlparser(keepfilters=false) {
 	  dosearch(0,fdata);
   } else {
     // nothing asked for: the start page (phones: the search form), left as the blank url it is
-    showviewkeepurl(narrowscreen() ? 'resultsearch' : 'resultabout');
+    showviewkeepurl(narrowscreen() && !gamenotpicked ? 'resultsearch' : 'resultabout');
   }
 }
 
