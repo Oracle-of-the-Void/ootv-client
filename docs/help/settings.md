@@ -40,7 +40,8 @@ so on). The print dialog starts from them each time. See [Downloads](lists.md#do
 ## Default game {#game}
 
 The game the site opens on in a new tab. Without one, it opens on the last game you used in that browser, or on a
-first visit shows every game's logo to pick from. Picking a game asks whether to make it your default; **Never ask
+first visit shows every game's logo to pick from. Each tab stays on its own game, so you can have different games open
+side by side. Picking a game asks whether to make it your default; **Never ask
 again** stops that, and the checkbox here brings it back. Logged out, both are kept in that browser, and **Clear
 Cache** and logging out keep them.
 

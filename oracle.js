@@ -218,7 +218,7 @@ if(found = window.location.href.match(/([\w_-]+)\.html/)) {
 	  database = found[1];
 	  console.log("database: "+database);
     cache_session("database",found[1]);
-    sessionStorage.setItem("gametab","1");
+    sessionStorage.setItem("tabgame",found[1]);
     window.location = location.protocol + '//' + location.host + location.pathname;
   }
 }
@@ -235,20 +235,26 @@ function hashrepair() {
   }
 }
 hashrepair();
-// Which game this page load draws. A #game= url says itself (urlparser). Otherwise a tab just opened starts on the default
-// game; a tab already in use (a game menu click, a reload, back from logging in) stays on its game, the last one this
-// browser used. With neither, the front page asks: the game picker (gamepick), over L5R's search form.
+// Which game this page load draws, so each tab can be on its own game. A #game= url says itself. A tab already in use
+// (a game menu click, a reload, back from logging in) stays on its game, sessionStorage tabgame. A tab just opened starts
+// on the default game, or the last one this browser used (session_database). With none of them, the front page asks: the
+// game picker (gamepick), over L5R's search form.
 var gamenotpicked = false;
-var gametabinuse = sessionStorage.getItem("gametab");
-sessionStorage.setItem("gametab","1");
-if(gamedefaultstored() && !/#game=/.test(location.hash) && (!gametabinuse || !cache_session("database"))) {
+var hashgame = location.hash.match(/#game=([^,#]+)/);
+if(hashgame) {
+  database = decodeURIComponent(hashgame[1]);
+  cache_session("database",database);
+} else if(sessionStorage.getItem("tabgame")) {
+  database = sessionStorage.getItem("tabgame");
+} else if(gamedefaultstored()) {
   database = gamedefaultstored();
   cache_session("database",database);
 } else if(cache_session("database")) {
   database = cache_session("database");
-} else if(!/#game=/.test(location.hash)) {
+} else {
   gamenotpicked = true;
 }
+if(!gamenotpicked) { sessionStorage.setItem("tabgame",database); }
 var labels = {};
 var populatecallback = [];
 var auth;
@@ -279,9 +285,10 @@ function dologin() {
 function dologout() {
     auth.signOut();
     var theme = cache_session("theme");
-    var keepgame = cache_session("gamedefault"), keepnoask = cache_session("gamenoask");
+    var keepgame = cache_session("gamedefault"), keepnoask = cache_session("gamenoask"), keeptab = sessionStorage.getItem("tabgame");
     localStorage.clear();
     sessionStorage.clear();
+    if(keeptab) sessionStorage.setItem("tabgame",keeptab);
     if(theme) cache_session("theme",theme);
     if(keepgame) cache_session("gamedefault",keepgame);
     if(keepnoask) cache_session("gamenoask",keepnoask);
@@ -5476,6 +5483,7 @@ function gameanswer(db,yes) {
 }
 function gameopen(db) {
   cache_session("database",db);
+  sessionStorage.setItem("tabgame",db);
   nomodal();
   window.location = '.';
 }
@@ -5498,7 +5506,7 @@ function applyfavoritegame() {
   var game = favoritegame();
   cache_session("favoritegame", game || "");
   if(gamenoask()) { cache_session("gamenoask",true); }
-  if(game && game != database && !cache_session("database") && !/#game=/.test(location.hash)) {
+  if(game && gamenotpicked) {
     location.reload(); // first login in this browser: the top of this file now starts on the favorite
   }
 }
@@ -10105,6 +10113,7 @@ function urlparser(keepfilters=false) {
   if(typeof(matchstruct["game"]) != "undefined") {
     if((matchstruct["game"] != database) && (matchstruct["game"] != "")) {
       cache_session("database",matchstruct["game"]);
+      sessionStorage.setItem("tabgame",matchstruct["game"]);
       location.reload();
       return;
     }
