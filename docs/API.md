@@ -122,8 +122,9 @@ outputs:
 
 codes:
 
-* 200: success
-* 404: cards not found
+* 200: success. With several cardids, cards that don't exist are left out of the array (the client shows them as
+  deleted, #188); the server asks DynamoDB again for any it didn't answer (`UnprocessedKeys`, ootv-search #172)
+* 404: cards not found (none of them)
 * other: errors returned by DynamoDB.DocumentClient passed through
 
 ## /search
