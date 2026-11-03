@@ -627,9 +627,56 @@ function listsuperseded(listid) {
 function liststale(listid) {
   return listsuperseded(listid) || $("#lastlistid").val() != listid;
 }
+// Directory changes this tab just made (new list, copy, remove). The server reads the directory through a DynamoDB
+// index (owner-index3) that takes a moment to catch up after a write, and a directory read already out when a list is
+// created answers without it: a new list showed, then vanished until the next reload (2026-11-03). So a directory read
+// asked for while a change is in flight waits until it's done (listdirbusy, listdirwanted), and for LISTDIRLAGMS after
+// a change every directory answer gets this tab's new lists added and its removed ones dropped (listdirapply).
+var LISTDIRLAGMS = 60*1000;
+var listdirbusy = 0, listdirwanted = false;
+var listdirchanges = {};   // listid -> {at, item} for a list added, {at, removed: true} for one removed
+function listdirstart() {
+  listdirbusy++;
+}
+// the change is done: re-read the directory now if anything asked for it meanwhile (or reread is set)
+function listdirdone(reread=false) {
+  if(listdirbusy > 0) { listdirbusy--; }
+  if(reread) { listdirwanted = true; }
+  if(!listdirbusy && listdirwanted) {
+    listdirwanted = false;
+    listinfo();
+  }
+}
+function listdirnote(listid, item=null) {
+  listdirchanges[String(listid)] = item ? {"at": Date.now(), "item": item} : {"at": Date.now(), "removed": true};
+}
+function listdirapply(data) {
+  if(!(data && data.lists && data.lists.Items)) { return data; }
+  var now = Date.now();
+  Object.keys(listdirchanges).forEach(function(id) {
+    var change = listdirchanges[id];
+    if(now - change.at > LISTDIRLAGMS) {
+      delete listdirchanges[id];
+      return;
+    }
+    var at = data.lists.Items.findIndex(function(l) { return String(l.listid) == id; });
+    if(change.removed && at >= 0) {
+      data.lists.Items.splice(at,1);
+    } else if(!change.removed && at < 0) {
+      data.lists.Items.unshift(change.item);
+    }
+  });
+  return data;
+}
+
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
+  if(!listid && listdirbusy) {
+    // a list is being created or removed: read the directory once that's done (listdirdone)
+    listdirwanted = true;
+    return;
+  }
   if(listid && switchview && !listoutput) {
     listopening = listid;
     listopencount++;
@@ -683,7 +730,7 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 			              renderlist(data.list.Items[0],false,listoutput);
 		                } */
 		    } else {
-		      cache_thing("list","data",data);
+		      cache_thing("list","data",listdirapply(data));
 		      listinfocallback();
           renderlisteditarea();
 		    }
@@ -2034,6 +2081,8 @@ function newlist(json=null, done=null) {
     owner is set from authentication information and matching queryString
     createdate, modified are automatically set and non-modifiable currently
     */
+    var created = false;
+    listdirstart();
     $.ajax({
 	type: 'GET',
 	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?"&json="+encodeURIComponent(JSON.stringify(json)):''),
@@ -2043,6 +2092,9 @@ function newlist(json=null, done=null) {
 	responseType: 'application/json',
 	success: function(data) {
 	    console.log(data);
+	    created = true;
+	    // in the directory at once; the re-read waits until this is done, and keeps it while the index catches up
+	    listdirnote(data.list.Item.listid, data.list.Item);
 	    var oldlists = cache_thing("list","data");
 	    oldlists.lists.Items.unshift(data.list.Item);
 	    cache_thing("list","data",oldlists);
@@ -2054,11 +2106,15 @@ function newlist(json=null, done=null) {
 	    }
 	},
 	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+    }).always(function() {
+	listdirdone(created);
     });
 }
 
 // done(item): the new list, once it's in the directory; failed: the copy didn't go through
 function duplicatelist(listid, done=null, failed=null) {
+  var copied = false;
+  listdirstart();
   $.ajax({
     type: 'GET',
     url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate"+listcodeparam(listid),
@@ -2068,6 +2124,8 @@ function duplicatelist(listid, done=null, failed=null) {
     responseType: 'application/json',
     success: function(data) {
   console.log(data);
+  copied = true;
+  listdirnote(data.list.Item.listid, data.list.Item);   // as newlist: kept while the directory index catches up
   var oldlists = cache_thing("list","data");
   oldlists.lists.Items.unshift(data.list.Item);
   cache_thing("list","data",oldlists);
@@ -2082,11 +2140,16 @@ function duplicatelist(listid, done=null, failed=null) {
         failed(error);
       }
     }
-  })
+  }).always(function() {
+    listdirdone(copied);
+  });
 }
 
 function removelist(listid) {
     if(confirm("Really remove list: "+listid+"?")) {
+	// out of the directory at once; directory reads wait until the server is done, and leave it out while the index catches up
+	listdirnote(listid);
+	listdirstart();
 	$.ajax({
 	    type: 'GET',
 	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=remove",
@@ -2096,9 +2159,13 @@ function removelist(listid) {
 	    responseType: 'application/json',
 	    success: function(data) {
 		console.log(data);
-
+		listdirdone(true);
 	    },
-	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+	    error: function(error) {
+		console.log("Epic Fail: "+JSON.stringify(error));
+		delete listdirchanges[String(listid)];   // not removed: the re-read brings it back
+		listdirdone(true);
+	    }
 	});
 	var oldlists = cache_thing("list","data");
 	oldlists.lists.Items = oldlists.lists.Items.filter(function(list) { return list.listid != listid; });
