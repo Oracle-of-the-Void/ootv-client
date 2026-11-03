@@ -11186,6 +11186,9 @@ $(document).on('click', '.listviewnotes a.notelink, .publicnotes a.notelink', fu
   var url = new URL(this.href);
   if(this.target == '_blank') {
     window.open(url.href, '_blank', 'noopener,noreferrer');
+  } else if(e.ctrlKey || e.metaKey || e.shiftKey) {
+    // ctrl/cmd/shift-click: a new tab, like any other link; this site's page on the site that's running
+    window.open(url.hash ? location.href.split('#')[0] + url.hash : url.href, '_blank');
   } else if(url.hash) {
     location.hash = url.hash;   // this site's page, opened where the site is running (preview, local) too
   } else {
