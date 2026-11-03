@@ -3322,32 +3322,41 @@ function cardfetch(cardid,prid=null,qs=null,handler=null) {
   });
 }
 
+// Whole cards, LISTPREFETCHCHUNK per /oracle-fetch: one request for an ~800-card collection answered over Lambda's
+// 6 MB limit (413) and the list never drew (2026-11-03), and its card ids came close to API Gateway's URL limit.
+// The chunks go out together; the callback runs once every one has answered.
+var LISTPREFETCHCHUNK = 50;   // ~25 KB a card, up to 2.5 MB per 100 (2026-11-03)
 function listprefetch(listids,callback=null) {
-    console.log(['listprefetch',listids,callback]);
-  $.ajax({
-    type: 'GET',
-      url: apiuri+"/oracle-fetch?table="+database+"&cardid="+listids.join(),
-    contentType: 'application/json',
-    dataType: 'json',
-    responseType: 'application/json',
-      success: function(data) {
-	  console.log(data);
-	  // cards deleted from the site are left out of the reply (#188); refreshlist flags them
-	  [].concat(data).forEach(function(c) {
-	      if(c && c.cardid) { cache_card(preparecard(c)); }
-	  });
-	  if(callback) {
-	      callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
-	  }
-    },
-    error: function(error) {
-	console.log("Epic Fail: "+JSON.stringify(error));
-	// 404 "Card not found": every card fetched was deleted, still show the rest of the list
-	if(error.status == 404 && callback) {
+    console.log(['listprefetch',listids.length+' cards',callback]);
+    var chunks = [];
+    for(var i = 0; i < listids.length; i += LISTPREFETCHCHUNK) {
+	chunks.push(listids.slice(i, i+LISTPREFETCHCHUNK));
+    }
+    var failed = false;
+    $.when.apply($, chunks.map(function(ids) {
+	return $.ajax({
+	    type: 'GET',
+	    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+ids.join(),
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    responseType: 'application/json',
+	    success: function(data) {
+		// cards deleted from the site are left out of the reply (#188); refreshlist flags them
+		[].concat(data).forEach(function(c) {
+		    if(c && c.cardid) { cache_card(preparecard(c)); }
+		});
+	    },
+	    error: function(error) {
+		console.log("Epic Fail: "+JSON.stringify(error));
+		// 404 "Card not found": every card of this chunk was deleted, still show the rest of the list
+		if(error.status != 404) { failed = true; }
+	    }
+	}).then(null,function() { return $.Deferred().resolve(); });  // wait for every chunk, failed or not
+    })).then(function() {
+	if(callback && !failed) {
 	    callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
 	}
-    }
-  });
+    });
 }
 
 // A fetched card, ready for the templates: card.printingreverse maps each reverse searchable's
