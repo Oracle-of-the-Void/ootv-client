@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-11-03 (Jade Open: everything legal in Imperial or Jade); 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -96,7 +96,7 @@ Code: ootv-search `lib/attributeopts.js` `bannedQuery`. To add a ban, add the na
 
 ## Common exclusions
 
-Legacy, Modern, BigDeck and Obsidian Hand share these `none` clauses:
+Legacy, Modern, BigDeck, Obsidian Hand and Jade Open share these `none` clauses:
 
 - legality `Unreleased` or `Not Legal (Proxy)`
 - type Proxy, Other, Clock or Territory (Clock and Territory are Siege board pieces)
@@ -183,6 +183,14 @@ Jade's experienced rule (a Personality whose experienced version was printed in 
 Jade) puts Jade on the card only, never on a printing, so the printing condition leaves out exactly
 those 56 Imperial Personalities (Akodo Toturi, Bayushi Kachiko, the Dragons, ...). Everything else
 matches Jade Extended.
+
+### Jade Open (2,771)
+
+Everything legal in Imperial or Jade, any type (the user, 2026-11-03): the Imperial and Jade card
+pools together, without Jade Extended's type rule. Made for Jade-era decks that play Imperial
+Strongholds, Personalities, Events or Spells beside Jade cards, such as the 2000 Gen Con Phoenix winner
+and Imperial Herald decks from 1999–2000. Rule: `any` legality Imperial or Jade, the common exclusions,
+`prefer` Jade. No bans of its own. Jade Extended and Jade Extended 2000 are subsets of it.
 
 ### Emperor Extended (3,741)
 
@@ -498,6 +506,8 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-28: Jade Extended 2000 corrected to Jade Extended without the experienced rule (Jade on a
   printing for Strongholds, Personalities, Events, Spells, Rings); the Jade-arc set clause, which also
   dropped 428 Imperial non-Personality cards, is gone. 1,918 → 2,346.
+- 2026-11-03: Jade Open (2,771): any card legal in Imperial or Jade; `Open` added to the Format optgroup
+  (and kept out of Arc).
 - 2026-10-31: Emperor Extended (Celestial or Emperor, 5 `remove` exceptions for Emperor's bans); the 18 EEex decks in
   kempy's archive already stored the name and all stay legal.
 - 2026-10-31: the card field `banned` (32 cards) moved to `notes` and `remove` (`ootv-tools/legality/banned-to-exceptions.py`, bulkupdate); the Banned search reads `remove`; Advance Warning, Exotic Farmlands and Well-Defended Farm out of Ivory Extended (2,952 → 2,949).
