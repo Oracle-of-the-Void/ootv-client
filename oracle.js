@@ -9467,6 +9467,24 @@ function changesort(type,key,rerender=true) {
 	dosearch(0);
     }
 }
+// a restored search (url, back/forward, game switch) sets the sort it was run with: never toggles like a menu click.
+// dosearch sends a descending sort as the menu key with its first "asc" made "desc", so undo that here
+function setsortfromrequest(sort,mode) {
+  var dir = 'asc';
+  if(!(sort in searchsorts[database]) && /"desc"/.test(sort)) {
+	  var key = sort.replace(/"desc"/,'"asc"');
+	  if(key in searchsorts[database]) {
+	    sort = key;
+	    dir = 'desc';
+	  }
+  }
+  templates[database]['sort']['search'] = sort;
+  templates[database]['sortdir']['search'] = dir;
+  if(mode in sortmodes) {
+	  templates[database]['sortmode']['search'] = mode;
+  }
+  updatemenubar('search');
+}
 function changesortmode(type,mode) {
   if(!(mode in sortmodes) || templates[database]['sortmode'][type] == mode) {
 	  return;
@@ -10273,7 +10291,7 @@ function urlparser(keepfilters=false) {
 	    populatecallback.push(function() {fillsearchform(fdata);});
 	  }
 	  if('sort' in fdata) {
-	    changesort('search',fdata['sort'],false);
+	    setsortfromrequest(fdata['sort'], fdata['sortmode']);
 	  }
 	  dosearch(0,fdata);
   } else {
