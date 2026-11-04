@@ -18,6 +18,9 @@ or tests. The files in this directory are exactly what gets served.
   login, search (`dosearch`), card view (`docard`), lists/decks (`listinfo`,
   `addlistitem`, `renderlist`), PDF proxies (`createpdf`),
   URL routing (`urlparser`), and template switching (`activatetemplate`, `changesort`).
+  `changesort` is the Sort menu's click: picking the current sort again flips A–Z/Z–A. Anything that
+  restores a search (url, back/forward, game switch) sets the sort with `setsortfromrequest` instead,
+  which turns the request's `"desc"` sort back into its menu key plus `sortdir` and never toggles (#585).
   The API base is `apiuri`: `https://api.oracleofthevoid.com` (prod Lambda) on the live
   site, `https://api-dev.oracleofthevoid.com` (dev Lambda) on preview and localhost. Both
   share the same DynamoDB tables and Elasticsearch, so writes are always live.
