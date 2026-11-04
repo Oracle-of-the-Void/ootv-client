@@ -9894,7 +9894,7 @@ function templateerrtext(e) {
 // the search form's multiple selects, as Tom Select controls (the selects stay, hidden, and serialize as usual)
 function tomselectify() {
   $('select.tomselect:not(.tomselected)').each(function() {
-    new TomSelect(this, {
+    var ts = new TomSelect(this, {
       plugins: ['remove_button', 'checkbox_options'],
       maxOptions: null,        // the default stops at 50: L5R has more sets than that
       refreshThrottle: 0,      // the default filters 300 ms late: a quick Enter would pick the old top option
@@ -9903,6 +9903,15 @@ function tomselectify() {
       onDropdownOpen: function(dropdown) {   // room to the window's right edge: the dropdown's width rule in oracle.css
         dropdown.style.setProperty('--tsdropdownmax', (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px');
       }
+    });
+    // checkbox_options ticks a box only when it hears of a pick or unpick, and the rows are kept between drawings, so a box
+    // could stay ticked with nothing picked: every drawing of the dropdown sets each row's box and "selected" from the picks
+    ts.hook('after', 'refreshOptions', function() {
+      ts.dropdown_content.querySelectorAll('.option[data-value]').forEach(function(o) {
+        var on = ts.items.indexOf(o.dataset.value) > -1, box = o.querySelector('input.tomselect-checkbox');
+        o.classList.toggle('selected', on);
+        if(box) { box.checked = on; }
+      });
     });
   });
 }
