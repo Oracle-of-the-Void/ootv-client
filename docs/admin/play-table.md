@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-04 (l5r/play version 10: stats changed by hand)
+Last updated: 2026-11-04 (l5r/play version 10; games reload card data)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
@@ -67,4 +67,4 @@ CR XII.7–8, Emperor CR XIII). A destroyed province leaves the row.
 
 ## Card field `play`
 
-Rules a card brings to the table live on the card, not in `l5r/play` (the user, 2026-11-03, the same way `deckconstruction` does for deck checks). `{"attached": {...}}` changes the zone the card is attached to while it's there face up; only `autorefill` can be changed so far. Shinsei's Shrine (card 6992): `{"attached": {"autorefill": false}}`, "This province does not hold Dynasty cards (do not refill it)". `{"force": [{"when": "attacking", "add": 2}]}` adds to a card's Force in a battle while it's in the attacking army (`defending` for the defending one), for a card like Matsu Gohei ("+2F while attacking"). The province doesn't refill by itself; a player can still refill it by hand. Edit it in the card editor like any field.
+Rules a card brings to the table live on the card, not in `l5r/play` (the user, 2026-11-03, the same way `deckconstruction` does for deck checks). `{"attached": {...}}` changes the zone the card is attached to while it's there face up; only `autorefill` can be changed so far. Shinsei's Shrine (card 6992): `{"attached": {"autorefill": false}}`, "This province does not hold Dynasty cards (do not refill it)". `{"force": [{"when": "attacking", "add": 2}]}` adds to a card's Force in a battle while it's in the attacking army (`defending` for the defending one), for a card like Matsu Gohei ("+2F while attacking"). The province doesn't refill by itself; a player can still refill it by hand. Edit it in the card editor like any field. A game picks a card's change up when it's opened again or reset (both reload the card data, 2026-11-04); before that, a game kept the data from when its decks were loaded.
