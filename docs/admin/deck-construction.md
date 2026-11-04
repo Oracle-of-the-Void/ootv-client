@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-11-04 (the Active Lists bar shows the check live: the count green or red, a legality shield); 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -53,6 +53,13 @@ or with Special, has no cards to fail this way. The red line and the "Not legal 
 
 The check's answer, rules and cards together, is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
 opens it or an admin edits it (`listsummarysave()`, once `/cardslegal` answers: `liststatslegal()`): the directory's Count and the public deck listing show a red Illegal from it.
+
+**The Active Lists bar shows the check live** while cards go in from search or the card page (`activelistcheck()` in
+`oracle.js`, redone on every edit from the deck's loaded cards): the deck's count is green when it meets the rules and red
+when not (the hover lists the broken rules), and a shield after it is green when every card is legal in the deck's
+Legality, red (crossed out) when some aren't (the hover names them), grey with no Legality or one `/cardslegal` doesn't
+check. A game with no rules, or a list that isn't a deck, keeps the plain count. It saves nothing: the summary is still
+saved from the list view.
 Every list was backfilled on 2026-10-29 (ootv-tools `lists/list-summary.py`, 18,681 lists; it runs the site's
 own check in a headless browser), and again on 2026-10-31 for the cards' legality (216 lists). **After changing a rule or a card's legality, rerun that script** (scan, compute, write): a deck
 keeps the answer from its last draw until its owner opens it or an admin edits it, and some owners never come
