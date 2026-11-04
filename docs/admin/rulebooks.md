@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
+Last updated: 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -586,3 +586,13 @@ FAQ, the set rules sheets from A New Hope to Theed Palace (Addendum), the Empire
 Players Committee's own Beginner's Rulebook 2021 and Advanced Rulebook 2023 (tag `Fan Made`). Five set
 sheets use `splitwords` for their letter-spaced headings. Uploaded unasked as part of onboarding with proposed
 types and tags (the user, 2026-10-31); change them or `remove` after review.
+## The Mythos books (2026-11-04)
+
+Mythos (`mythos`, a preview game), list `rulebooks/mythos.json`, ids `mythos-*`, a shelf of its own: Chaosium's own rules
+pages from chaosium.com/mythos (Wayback Machine), printed to PDF without the site's menus and footers (ootv-games
+`scripts/game-mythos/rules-pdf.py`): Mythos Rules V4.1, February 1997, the rules of The Dreamlands set (Complete; Last
+complete rules), What's New in the Dreamlands? (Addendum), the FAQ and the Errata of April 1997 (Rulings), the Card Files
+(Rulings: 25 single-card rulings from the site plus two from BoardGameGeek's copy, a first draft and a mailing-list
+compilation, marked on their pages), the Standard Tournament Rules (Floor Rules) and the Combat Examples (Learn to Play).
+The printed Limited Edition rulebook (V1–V3) isn't on the shelf: no scan found. Types and tags are proposals until the
+user's check-off on preview.
