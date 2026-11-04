@@ -113,6 +113,7 @@ Not every game has every option, just as on the site's search form:
 | Warhammer 40,000 CCG | `set`, `rarity`, `type`, `text` |
 | 7th Sea: Five Sails | `set`, `type`, `text` |
 | Star Wars CCG | `set`, `rarity`, `side`, `type`, `text` |
+| Mythos | `set`, `rarity`, `type`, `text` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.
