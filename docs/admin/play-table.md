@@ -1,11 +1,11 @@
 # Play table
 
-Last updated: 2026-11-03 (l5r/play version 7: Shinsei's Shrine from its card)
+Last updated: 2026-11-03 (l5r/play version 8: Gold, who goes first)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 7. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 8. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -16,7 +16,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 7. There's no Admin 
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
 - `l5r/play` is kept in step with `games/l5r.json` as the table's work is merged (the user, 2026-11-03), one changed
   path at a time. Version 2 (2026-11-03) added `tokens`, `table.arrange` and the provinces' `attach`, and moved
-  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`). Version 5 (2026-11-03): Shinsei's Shrine keeps its province empty (the provinces' `norefill`; `title` among the `cardfields`). Version 6 (2026-11-03): the Events Phase turns provinces up one at a time and waits at each Event (the Events phase `reveal`, which also attaches Regions); tokens by name (`cardcounters` +1F, +1C, +1F/+1C, -1F; `customtokens`; `tokenforce` counts a token's F in battle); dishonored cards turn upside down (`cardstates` look `turn`); Arrange: Standard (`table.arrange.standard`). Version 7 (2026-11-03): the provinces' `norefill` title rule is gone; Shinsei's Shrine's own card field `play` says it (`cardfields` gains `play`; see below).
+  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`). Version 5 (2026-11-03): Shinsei's Shrine keeps its province empty (the provinces' `norefill`; `title` among the `cardfields`). Version 6 (2026-11-03): the Events Phase turns provinces up one at a time and waits at each Event (the Events phase `reveal`, which also attaches Regions); tokens by name (`cardcounters` +1F, +1C, +1F/+1C, -1F; `customtokens`; `tokenforce` counts a token's F in battle); dishonored cards turn upside down (`cardstates` look `turn`); Arrange: Standard (`table.arrange.standard`). Version 7 (2026-11-03): the provinces' `norefill` title rule is gone; Shinsei's Shrine's own card field `play` says it (`cardfields` gains `play`; see below). Version 8 (2026-11-03): Gold (`gold`: bowing a card with Gold Production adds it; a card bought from a province in the Dynasty Phase pays its cost and the rest is lost; a Personality of the player's clan paid in full adds its Personal Honor, else costs 2 less; a Gold counter before Ivory too; Ivory and Three Dynasties keep a pool with no clan rule), `cardfields` cost, production, conditionalvalues, clan, ph; who goes first (`firstplayer`: the highest starting Honor, a tie at random, SCC p. 58); seats are Player A and Player B.
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
@@ -30,6 +30,8 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 7. There's no Admin 
 | `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords, title) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
 | `cardstates`, `counters`, `cardcounters`, `customtokens`, `tokenforce` | bow and dishonor (upside down); Honor, Gold and Hand size; tokens on cards, by name (+1F, ...; any name typed), a token's F counted in battle |
 | `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor) |
+| `gold` | what produces Gold (`produce`), what a purchase is and what it costs (`buy`), the clan Personality rule (`clan`: Personal Honor when paid in full, else 2 less; not Shadowlands), and whether what's left after a payment is lost (`spendall`, before Ivory) |
+| `firstplayer` | who goes first: the highest of a counter (L5R: Honor), a tie at random |
 | `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: its segments (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`), the battle steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
