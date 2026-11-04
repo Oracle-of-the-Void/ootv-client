@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2)
+Last updated: 2026-11-04
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -568,3 +568,14 @@ four scans, OCR'd with `ocr_threshold`; Battle for Delos is Sabertooth's own PDF
 reader spreads, split into single pages by crop box (pypdf, `game-wh40k/rules/clean/`; ghostscript's
 re-write turned every space into a junk character). Uploaded for review 2026-10-29 ("upload them to look
 at", the user); types and tags OK'd as proposed 2026-10-30.
+
+## The Mythos books (2026-11-04)
+
+Mythos (`mythos`, a preview game), list `rulebooks/mythos.json`, ids `mythos-*`, a shelf of its own: Chaosium's own rules
+pages from chaosium.com/mythos (Wayback Machine), printed to PDF without the site's menus and footers (ootv-games
+`scripts/game-mythos/rules-pdf.py`): Mythos Rules V4.1, February 1997, the rules of The Dreamlands set (Complete; Last
+complete rules), What's New in the Dreamlands? (Addendum), the FAQ and the Errata of April 1997 (Rulings), the Card Files
+(Rulings: 25 single-card rulings from the site plus two from BoardGameGeek's copy, a first draft and a mailing-list
+compilation, marked on their pages), the Standard Tournament Rules (Floor Rules) and the Combat Examples (Learn to Play).
+The printed Limited Edition rulebook (V1–V3) isn't on the shelf: no scan found. Types and tags are proposals until the
+user's check-off on preview.
