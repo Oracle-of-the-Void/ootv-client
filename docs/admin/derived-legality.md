@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-11-04 (Obsidian Hand 2026: Obsidian Hand with a tournament organizer's 8 extra bans); 2026-11-03 (Jade Open: everything legal in Imperial or Jade); 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-11-04 (Obsidian Hand 2026: for use in Sun and Moon Discord tournaments: Obsidian Hand with 8 extra bans); 2026-11-03 (Jade Open: everything legal in Imperial or Jade); 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -413,8 +413,8 @@ turn structure, player abilities, Performing).
 
 ### Obsidian Hand 2026 (11,937)
 
-A 2026 tournament's "Modified The Obsidian Hand BAN LIST" (sent by the user, 2026-11-04): Obsidian
-Hand's ban list, unchanged, plus 8 cards the tournament organizer banned for this tournament. Same
+For use in Sun and Moon Discord tournaments. The "Modified The Obsidian Hand BAN LIST" (2026-11-04):
+Obsidian Hand's ban list, unchanged, plus 8 cards the tournament organizer banned. Same
 clauses as Obsidian Hand, no prefer. Its own `remove: Obsidian Hand 2026` exceptions, 52 cards
 (`ootv-tools/legality/derived-exception.py`, bulkupdate 2026-11-04): Obsidian Hand's 44 (the named
 bans and the 21 Rank (Kabuto) cards) and these:
@@ -535,4 +535,4 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-31: the card field `banned` (32 cards) moved to `notes` and `remove` (`ootv-tools/legality/banned-to-exceptions.py`, bulkupdate); the Banned search reads `remove`; Advance Warning, Exotic Farmlands and Well-Defended Farm out of Ivory Extended (2,952 → 2,949).
 - 2026-10-31: Foothold of the Mad banned in Emperor Extended (a 6th `remove` exception; still legal in Emperor). 3,742 → 3,741.
 - 2026-10-31: checked every card and printing note mentioning a ban, all games, against `remove`: 32 L5R cards, all card `notes`, all correct, and no banned arc still in a card's or printing's `legality`. Nothing changed. Well-Defended Farm's exception (the *A Matter of Honor* decklist) is in its note only; `remove` can't express it.
-- 2026-11-04: Obsidian Hand 2026 (11,937): Obsidian Hand's clauses, its 44 bans plus 8 from a tournament organizer, 52 `remove` exceptions.
+- 2026-11-04: Obsidian Hand 2026 (11,937): Obsidian Hand's clauses, its 44 bans plus 8 more, for Sun and Moon Discord tournaments, 52 `remove` exceptions.
