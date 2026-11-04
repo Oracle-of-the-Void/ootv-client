@@ -1,11 +1,11 @@
 # Play table
 
-Last updated: 2026-11-03 (l5r/play version 3: Gold pool only from Ivory on)
+Last updated: 2026-11-03 (l5r/play version 4: battles)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 3. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 4. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -16,7 +16,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 3. There's no Admin 
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
 - `l5r/play` is kept in step with `games/l5r.json` as the table's work is merged (the user, 2026-11-03), one changed
   path at a time. Version 2 (2026-11-03) added `tokens`, `table.arrange` and the provinces' `attach`, and moved
-  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`).
+  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`).
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
@@ -30,7 +30,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 3. There's no Admin 
 | `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
 | `cardstates`, `counters`, `cardcounters` | bow and dishonor; Honor, Gold and Hand size; tokens on cards |
 | `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor) |
-| `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack's segments and battle steps |
+| `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: its segments (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`), the battle steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
 ## L5R rules by arc
@@ -54,3 +54,11 @@ the defender acting first in battle unless noted.
 Gold: before Ivory there's no pool (excess Gold is "taxed by the Emperor" and lost, Samurai and Emperor rules), so
 there's no Gold counter. From Ivory on (Ivory, Twenty Festivals, Onyx, Shattered Empire, Three Dynasties and the
 legacy formats) a Gold counter is the pool, emptied for both players as each phase ends.
+
+Battles (all arcs): units assigned to the defender's provinces stand in a Battlefields pane, one column per province.
+Resolution totals each army's printed Force (bowed cards add nothing, a bowed Personality makes its unit nothing, a
+side with no units has none) and the province's Strength (the Stronghold's `strength`, plus attachments printing one),
+which players adjust for card effects. The loser's army is destroyed, both on a tie with units on both sides; the
+province falls when the attacking Force is more than the defence plus its Strength. Attackers bow and go home after
+each battle; defenders at the end of the attack, or when their province falls (Scorpion Clan Coup pp. 37–42, Ivory
+CR XII.7–8, Emperor CR XIII). A destroyed province leaves the row.
