@@ -1208,19 +1208,103 @@ var listdeckdrawn = {}; // listid: the summary's decks from the last liststats
 function activelistcount(list) {
   var item = list.listdata.list.Items[0];
   var total = parseInt(item.totalcount) || 0;
-  var decks = listdeckdrawn[list.listid] || (item.summary || list.summary || {}).decks || [];
+  var live = activelistcheck(list.listid, item);
+  var decks = (live && live.decks) || listdeckdrawn[list.listid] || (item.summary || list.summary || {}).decks || [];
   var sum = decks.reduce(function(t,d) { return t + d.copies; }, 0);
-  return deckcounthtml(sum == total ? decks : [], total, false);
+  return deckcounthtml(sum == total ? decks : [], total, false, live);
+}
+// A deck's live check for the Active Lists bar, from its cached cards, redone on every edit (renderlisteditarea), so it
+// shows while cards go in from search: the count green or red by the deck construction rules (deckbuildcheck, as the
+// deck's header; no legality: the arc /cardslegal infers, listbuildinferred's way), and a shield for its cards'
+// legality (/cardslegal, kept in liststatslegalcache): green all legal in its legality, red some not, grey no legality
+// chosen. null (the bar as before) for a list that isn't a deck, has no cards, or has cards not loaded yet.
+var activelegalwait = {}; // listid: the timer before its /cardslegal, so a run of clicks asks once
+function activelistcheck(listid, item) {
+  if(!(item.type == 'deck' || !item.type) || !Array.isArray(item.list)) {
+    return null;
+  }
+  var entries = item.list.filter(function(e) { return e.cardid > 0 && (parseInt(e.quantity) || 0) > 0; });
+  if(!entries.length || entries.some(function(e) { return !cache_card_is(e.cardid); })) {
+    return null;
+  }
+  var listdata = entries.map(function(e) {
+    var card = cache_card_fetch(e.cardid);
+    card.listprinting = e.printing;
+    card.listquantity = e.quantity;
+    card.listfoil = e.foil || '';
+    return card;
+  });
+  gamepicklist(listdata, listid);
+  var decksort = (databasesort[database] || {}).deck;
+  if(decksort) { listdata.sort(decksort); }
+  var cards = listdata.map(function(c) { return {"card": c, "qty": parseInt(c.listquantity) || 0}; });
+  var deckfield = liststatsdeckfield();
+  var plain = function(v) { return (Array.isArray(v) ? v.join(', ') : String(v || '')).replace(/&nbsp;/g,' ').trim(); };
+  var deckkey = function(c) { return deckfield ? (plain(gamepicked(c.card, deckfield)) || 'Other') : ''; };
+  var decks = [];
+  cards.forEach(function(c) {
+    var k = deckkey(c), d = decks.filter(function(d) { return d.name == k; })[0];
+    if(!d) { decks.push(d = {"name": k, "copies": 0}); }
+    d.copies += c.qty;
+  });
+  var size = function(name) { return (decks.filter(function(d) { return d.name.toLowerCase() == name; })[0] || {}).copies || 0; };
+  var format = item.legality ? String(item.legality).replace(/&nbsp;/g,' ').trim() : '';
+  var ids = cards.map(function(c) { return c.card.cardid; }).sort(function(a,b) { return a - b; }).join(',');
+  var key = format+'|'+(format ? '' : (item.name || '')+'|'+size('fate')+'|'+size('dynasty')+'|')+ids;
+  var legal = liststatslegalcache[key];
+  if(!legal) {
+    clearTimeout(activelegalwait[listid]);
+    activelegalwait[listid] = setTimeout(function() {
+      var data = {table: database, cardids: ids};
+      if(format) { data.format = format; } else { data.name = item.name || ''; data.fatecount = size('fate'); data.dynastycount = size('dynasty'); }
+      $.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
+	success: function(r) { liststatslegalcache[key] = r; renderlisteditarea(); }});
+    }, 700);
+  }
+  var meta = $.extend({}, item);
+  var inferred = legal && !format && legal.inferred ? legal.inferred : '';
+  if(inferred) { meta.legality = inferred; }
+  var build = deckbuildcheck(cards, meta, deckkey, inferred || undefined);
+  return {"decks": decks, "build": build, "format": format, "legal": legal};
+}
+// the live check's marks after the count: the shield (activelistcheck)
+function activelistmarks(live) {
+  var legal = live.legal, icon = 'shield', cls = 'activelegalnone', title;
+  if(!legal) {
+    title = 'Checking the cards\' legality…';
+  } else if(live.format && legal.illegal) {
+    if(legal.illegal.length) {
+      icon = 'shield-off';
+      cls = 'activelegalbad';
+      title = 'Not legal in '+live.format+': '+legal.illegal.map(function(c) { return c.title; }).join(', ');
+    } else {
+      cls = 'activelegalok';
+      title = 'Every card is legal in '+live.format;
+    }
+  } else {
+    title = (live.format ? live.format+' isn\'t checked. ' : 'No legality chosen. ')+
+      'Every card is legal for: '+(legal.cardslegal && legal.cardslegal.length ? legal.cardslegal.join(', ') : 'none');
+  }
+  return ' <span class="activelegal '+cls+'" title="'+noteattr(title)+'" aria-label="'+noteattr(title)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+icon+'"></svg></span>';
 }
 // the mon before a list's name in the directory: its summary's clan (the first Stronghold's, listsummarysave)
 function dirmon(list) {
   return list.summary && list.summary.clan ? clanmon(list.summary.clan) : '';
 }
-function deckcounthtml(decks, total, buildbad) {
+// live: the Active Lists bar's check (activelistcheck): the count green when the deck meets its construction rules, red
+// with the broken ones in its hover when not, then the legality shield
+function deckcounthtml(decks, total, buildbad, live) {
   decks = decks.filter(function(d) { return !/^pre-?game$/i.test(d.name); });
   var text = decks.length > 1 ? decks.map(function(d) { return d.copies; }).join('/')+' ('+total+' total)' : total+' card'+(total == 1 ? '' : 's');
   var title = decks.length > 1 ? decks.map(function(d) { return (d.name || 'Other')+' '+d.copies; }).join(', ') : '';
-  return '<span'+(title ? ' title="'+htmlEncode(title)+'"' : '')+'>'+text+'</span>'+
+  var cls = '';
+  if(live && live.build && !live.build.norules) {
+    var problems = live.build.problems;
+    cls = problems.length ? 'activecountbad' : 'activecountok';
+    title = (title ? title+'\n' : '')+(problems.length ? 'Breaks the deck construction rules:\n'+problems.map(function(p) { return p.label+': '+p.text; }).join('\n') : 'Meets the deck construction rules');
+  }
+  return '<span'+(cls ? ' class="'+cls+'"' : '')+(title ? ' title="'+noteattr(title)+'"' : '')+'>'+text+'</span>'+
+    (live ? activelistmarks(live) : '')+
     (buildbad ? ' <span class="dirillegal" title="Breaks the deck construction rules">Illegal</span>' : '');
 }
 // the list view keeps the directory's Count current: after drawing one of my lists' stats (a deck's after
