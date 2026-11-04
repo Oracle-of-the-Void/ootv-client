@@ -1,11 +1,11 @@
 # Play table
 
-Last updated: 2026-11-03 (l5r/play version 6: Events one at a time, named tokens)
+Last updated: 2026-11-03 (l5r/play version 7: Shinsei's Shrine from its card)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 6. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 7. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -16,14 +16,14 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 6. There's no Admin 
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
 - `l5r/play` is kept in step with `games/l5r.json` as the table's work is merged (the user, 2026-11-03), one changed
   path at a time. Version 2 (2026-11-03) added `tokens`, `table.arrange` and the provinces' `attach`, and moved
-  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`). Version 5 (2026-11-03): Shinsei's Shrine keeps its province empty (the provinces' `norefill`; `title` among the `cardfields`). Version 6 (2026-11-03): the Events Phase turns provinces up one at a time and waits at each Event (the Events phase `reveal`, which also attaches Regions); tokens by name (`cardcounters` +1F, +1C, +1F/+1C, -1F; `customtokens`; `tokenforce` counts a token's F in battle); dishonored cards turn upside down (`cardstates` look `turn`); Arrange: Standard (`table.arrange.standard`).
+  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`). Version 5 (2026-11-03): Shinsei's Shrine keeps its province empty (the provinces' `norefill`; `title` among the `cardfields`). Version 6 (2026-11-03): the Events Phase turns provinces up one at a time and waits at each Event (the Events phase `reveal`, which also attaches Regions); tokens by name (`cardcounters` +1F, +1C, +1F/+1C, -1F; `customtokens`; `tokenforce` counts a token's F in battle); dishonored cards turn upside down (`cardstates` look `turn`); Arrange: Standard (`table.arrange.standard`). Version 7 (2026-11-03): the provinces' `norefill` title rule is gone; Shinsei's Shrine's own card field `play` says it (`cardfields` gains `play`; see below).
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
 
 | Key | What |
 |---|---|
-| `zones` | the piles and areas: who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go, which cards attach to the zone itself (`attach`, L5R's provinces: Regions and Fortifications), and which of those keep it from holding cards (`norefill`: Shinsei's Shrine, "This province does not hold Dynasty cards (do not refill it)") |
+| `zones` | the piles and areas: who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go, which cards attach to the zone itself (`attach`, L5R's provinces: Regions and Fortifications) |
 | `table.rows` | the order of the piles and provinces along a player's row |
 | `table.arrange` | Arrange's rows of card types, nearest first (L5R: stronghold, sensei, wind, holdings, regions, celestials; then personalities; then the rest), and the types it stacks (Holding) |
 | `placement`, `setup` | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals |
@@ -62,3 +62,7 @@ which players adjust for card effects. The loser's army is destroyed, both on a 
 province falls when the attacking Force is more than the defence plus its Strength. Attackers bow and go home after
 each battle; defenders at the end of the attack, or when their province falls (Scorpion Clan Coup pp. 37–42, Ivory
 CR XII.7–8, Emperor CR XIII). A destroyed province leaves the row.
+
+## Card field `play`
+
+Rules a card brings to the table live on the card, not in `l5r/play` (the user, 2026-11-03, the same way `deckconstruction` does for deck checks). `{"attached": {...}}` changes the zone the card is attached to while it's there face up; only `autorefill` can be changed so far. Shinsei's Shrine (card 6992): `{"attached": {"autorefill": false}}`, "This province does not hold Dynasty cards (do not refill it)". The province doesn't refill by itself; a player can still refill it by hand. Edit it in the card editor like any field.
