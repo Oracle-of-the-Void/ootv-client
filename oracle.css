@@ -3354,6 +3354,11 @@ span.dirillegal {
   color: var(--bad-3);
   font-weight: bold;
 }
+/* Active Lists bar (activelistmarks in oracle.js): the # by the construction rules, the shield by the cards' legality */
+span.activemarkok { color: var(--good-10); }
+span.activemarkbad { color: var(--bad-8); }
+span.activemarknone { color: var(--text-7); }
+span.activemark svg.feather { width: 1em; height: 1em; vertical-align: -0.125em; }
 /* a deck with construction rules of its own (deckbuildownmark, deckbuildownhtml in oracle.js) */
 span.dirownrules, div.liststatsbuildown { font-style: italic; }
 span.dirownrules { font-weight: bold; }
