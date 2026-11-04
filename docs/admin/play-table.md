@@ -1,11 +1,11 @@
 # Play table
 
-Last updated: 2026-11-03 (l5r/play version 4: battles)
+Last updated: 2026-11-03 (l5r/play version 5: Shinsei's Shrine)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 4. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 5. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -16,18 +16,18 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 4. There's no Admin 
   `structure/set.py`). `ootv-play` `test/structure-diff.mjs` lists the keys that differ.
 - `l5r/play` is kept in step with `games/l5r.json` as the table's work is merged (the user, 2026-11-03), one changed
   path at a time. Version 2 (2026-11-03) added `tokens`, `table.arrange` and the provinces' `attach`, and moved
-  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`).
+  `placement` to card widths. Version 3 (2026-11-03): Gold only from Ivory on (`counters` per arc, `clear: phase`). Version 4 (2026-11-03): battles (each arc's `phases[].attack`: Maneuvers segments `assign`, the Resolution step `resolve`, `commit`, `honor`). Version 5 (2026-11-03): Shinsei's Shrine keeps its province empty (the provinces' `norefill`; `title` among the `cardfields`).
 - New items are made with ootv-tools `structure/create.py <game>/play <file>`, which refuses if the item exists.
 
 ## What's in it
 
 | Key | What |
 |---|---|
-| `zones` | the piles and areas: who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go, which cards attach to the zone itself (`attach`, L5R's provinces: Regions and Fortifications) |
+| `zones` | the piles and areas: who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go, which cards attach to the zone itself (`attach`, L5R's provinces: Regions and Fortifications), and which of those keep it from holding cards (`norefill`: Shinsei's Shrine, "This province does not hold Dynasty cards (do not refill it)") |
 | `table.rows` | the order of the piles and provinces along a player's row |
 | `table.arrange` | Arrange's rows of card types, nearest first (L5R: stronghold, sensei, wind, holdings, regions, celestials; then personalities; then the rest), and the types it stacks (Holding) |
 | `placement`, `setup` | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals |
-| `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
+| `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords, title) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
 | `cardstates`, `counters`, `cardcounters` | bow and dishonor; Honor, Gold and Hand size; tokens on cards |
 | `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor) |
 | `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: its segments (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`), the battle steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
