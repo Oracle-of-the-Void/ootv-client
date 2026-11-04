@@ -34,10 +34,10 @@ Click the switch beside a list's name to make it **active**. Then every card in 
 results and on the [card page](cards.md#lists) gets + and − buttons for that list. You can have several lists
 active at once. They stay active in that browser tab until you switch them off.
 
-The **Active Lists** box shows each active deck's count as you go. It turns **green** when the
-deck meets its [construction rules](#stats) and **red** when it doesn't (hover over it to see which rule). The
-small shield after it is green when every card is legal in the deck's legality, red and crossed out when some
-aren't (hover for their names), and grey when the deck has no legality chosen.
+The **Active Lists** box checks each active deck as you go, with two small marks after its count.
+The **#** is green when the deck meets its [construction rules](#stats) and red when it doesn't (hover over it
+to see which rule). The **shield** is green when every card is legal in the deck's legality, red and crossed out
+when some aren't (hover for their names), and grey when the deck has no legality chosen.
 
 Quicker ways:
 
