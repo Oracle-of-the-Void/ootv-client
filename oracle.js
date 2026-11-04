@@ -1266,43 +1266,46 @@ function activelistcheck(listid, item) {
   var build = deckbuildcheck(cards, meta, deckkey, inferred || undefined);
   return {"decks": decks, "build": build, "format": format, "legal": legal};
 }
-// the live check's marks after the count: the shield (activelistcheck)
+// the live check's marks after the count (activelistcheck): a # green when the deck meets its construction rules, red
+// with the broken ones in its hover when not (none for a game with no rules); then the legality shield
+function activelistmark(icon, cls, title) {
+  return ' <span class="activemark '+cls+'" title="'+noteattr(title)+'" aria-label="'+noteattr(title)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+icon+'"></svg></span>';
+}
 function activelistmarks(live) {
-  var legal = live.legal, icon = 'shield', cls = 'activelegalnone', title;
+  var out = '';
+  if(live.build && !live.build.norules) {
+    var problems = live.build.problems;
+    out = activelistmark('hash', problems.length ? 'activemarkbad' : 'activemarkok', problems.length ?
+      'Breaks the deck construction rules:\n'+problems.map(function(p) { return p.label+': '+p.text; }).join('\n') : 'Meets the deck construction rules');
+  }
+  var legal = live.legal, icon = 'shield', cls = 'activemarknone', title;
   if(!legal) {
     title = 'Checking the cards\' legality…';
   } else if(live.format && legal.illegal) {
     if(legal.illegal.length) {
       icon = 'shield-off';
-      cls = 'activelegalbad';
+      cls = 'activemarkbad';
       title = 'Not legal in '+live.format+': '+legal.illegal.map(function(c) { return c.title; }).join(', ');
     } else {
-      cls = 'activelegalok';
+      cls = 'activemarkok';
       title = 'Every card is legal in '+live.format;
     }
   } else {
     title = (live.format ? live.format+' isn\'t checked. ' : 'No legality chosen. ')+
       'Every card is legal for: '+(legal.cardslegal && legal.cardslegal.length ? legal.cardslegal.join(', ') : 'none');
   }
-  return ' <span class="activelegal '+cls+'" title="'+noteattr(title)+'" aria-label="'+noteattr(title)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+icon+'"></svg></span>';
+  return out+activelistmark(icon, cls, title);
 }
 // the mon before a list's name in the directory: its summary's clan (the first Stronghold's, listsummarysave)
 function dirmon(list) {
   return list.summary && list.summary.clan ? clanmon(list.summary.clan) : '';
 }
-// live: the Active Lists bar's check (activelistcheck): the count green when the deck meets its construction rules, red
-// with the broken ones in its hover when not, then the legality shield
+// live: the Active Lists bar's check (activelistcheck): its marks after the count (activelistmarks)
 function deckcounthtml(decks, total, buildbad, live) {
   decks = decks.filter(function(d) { return !/^pre-?game$/i.test(d.name); });
   var text = decks.length > 1 ? decks.map(function(d) { return d.copies; }).join('/')+' ('+total+' total)' : total+' card'+(total == 1 ? '' : 's');
   var title = decks.length > 1 ? decks.map(function(d) { return (d.name || 'Other')+' '+d.copies; }).join(', ') : '';
-  var cls = '';
-  if(live && live.build && !live.build.norules) {
-    var problems = live.build.problems;
-    cls = problems.length ? 'activecountbad' : 'activecountok';
-    title = (title ? title+'\n' : '')+(problems.length ? 'Breaks the deck construction rules:\n'+problems.map(function(p) { return p.label+': '+p.text; }).join('\n') : 'Meets the deck construction rules');
-  }
-  return '<span'+(cls ? ' class="'+cls+'"' : '')+(title ? ' title="'+noteattr(title)+'"' : '')+'>'+text+'</span>'+
+  return '<span'+(title ? ' title="'+noteattr(title)+'"' : '')+'>'+text+'</span>'+
     (live ? activelistmarks(live) : '')+
     (buildbad ? ' <span class="dirillegal" title="Breaks the deck construction rules">Illegal</span>' : '');
 }
