@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-04
+Last updated: 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
