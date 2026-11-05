@@ -127,10 +127,13 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   the browser, the card editor hides all four, and an edit that changes the image drops them until
   the vectors are recomputed. In OpenSearch `artvec` becomes `printing.artvector` (k-NN, not in `_source`).
 * printing.imagecleaned (optional, array of strings, internal: Fields `show: "internal"`, not on card
-  pages): where the printing's image came from when its watermark was removed, one note per image,
-  e.g. `ccgtrader scan, watermark removed by duneccg.webflow.io (their Drive folder, fetched
-  2026-10-25)`. Marks images to replace with a clean scan of our own; drop it when the image is
-  replaced. First used on Dune, 2026-10-25 (ootv-tools `printings/dune-scans.py`).
+  pages): where the printing's image came from when its watermark was removed or it was pieced
+  together from two scans, one note per image, e.g. `ccgtrader scan, watermark removed by
+  duneccg.webflow.io (their Drive folder, fetched 2026-10-25)`, or LBS's franckjeb scans that were
+  trimmed inside the card, straightened with the outer border ring filled from ccgtrader's scan
+  (2026-11-05, ootv-tools `printings/lbs-fjfill.py`). Marks images to replace with a whole clean
+  scan; drop it when the image is replaced. First used on Dune, 2026-10-25 (ootv-tools
+  `printings/dune-scans.py`).
 
 ### optional
 
