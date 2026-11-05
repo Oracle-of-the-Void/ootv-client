@@ -61,7 +61,7 @@ or tests. The files in this directory are exactly what gets served.
   database (it reads `../SnM/.../database.xml` and the l5r export in `../ootv-backups`); then
   `python3 docs/snm/snm-push.py --go` writes the changed set codes (only those, each conditioned on its old value) and ootv-tools `printings/snm-printings.py`
   the printing codes and names. The Admin set import adds a new set's code to the item.
-- `res/` and `gamelogos/` hold images. `*.min.js` and `pdfkit*.js` are vendored
+- `res/` and `gamelogos/` hold images, built in ootv-assets `logos/` (copy its outputs here): the site logo `res/logo.png` (300×231, shown at 75×58, also the og:image), `logo-square.png` and `favicon.ico` (16/32/48) come from `logos/ootv/make-logo.py --circle`, out of AEG's layered PSD (2026-11-04, #590). `*.min.js` and `pdfkit*.js` are vendored
   third-party code, so don't edit them. `pica.min.js` (pica 10.0.3, image resizing)
   isn't in `index.html`: the card editor's image upload (`uploadimagetrigger`) and the Admin
   mass image upload (`massimagetrigger`) load it on demand. Nor are `pdfkit.min.js` (~1.9 MB)
