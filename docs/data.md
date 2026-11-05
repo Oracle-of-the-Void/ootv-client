@@ -163,8 +163,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   as play codes (timing, keywords, costs, targets, effect; for Imperial from the Clan Wars printing's text). L5R:
   186 Imperial Edition cards have `actions.Imperial`, from ootv-tools `field-fixes/play-actions.py` (which also put
   that printing's text on 268 printings); on 28 of them the same day also structured `effects` (what the table does:
-  `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi); then Ranged Attacks and Fear (`ranged`, `fear`, `destroy`) on 25 more, and duels and challenges (`duel`, `induel`,
-  `duelset`, ...) on 16. Not in search documents (since 2026-11-05; read with `/oracle-fetch`, as the table and the card
+  `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi); then Ranged Attacks and Fear (`ranged`, `fear`, `destroy`) on 25 more, duels and challenges (`duel`, `induel`,
+  `duelset`, ...) on 16, and cancelling Reactions (`cancel`, `to: "actor"`) on 6. Not in search documents (since 2026-11-05; read with `/oracle-fetch`, as the table and the card
   editor do), and its changes aren't written to `updatelog` while the play table is in development. Shape and keys:
   `docs/admin/play-table.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
