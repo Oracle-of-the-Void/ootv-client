@@ -72,6 +72,9 @@ ootv-claude `RULINGS-IMPORT.md`):
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
   a few words carry scanning slips, like "Ifyou"). LBS has two cards for a few titles (Eyla the
   Protector, Hole in the Sky, The Weight of Dreams): both got the rulings and a `needsreview` note.
+  The FAQ's last version, 1.3 (March 2000, `lbs-faq-2000`), added 27 more on 26 cards (2026-11-05): only rulings
+  and errata the cards didn't already have from 1.1, so a ruling 1.3 repeats keeps its 1.1 link. The Engagement FAQ
+  (`lbs-engagement-faq-1999`) explains combat in general and stays in the book.
 - Imperial Herald: the card game's FAQ and errata columns in the Herald (issues 1, 3–14, 16, 17 and Vol. 2 #4,
   1995–2002; the "Oracle of the Void" column and the L5R FAQ) are on the cards the same way, linked to the issue's page on
   the Newsletters shelf (`The Imperial Herald, Issue 9, p. 11`; the page number is the shelf's, not the printed folio). The
