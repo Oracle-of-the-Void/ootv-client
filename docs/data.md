@@ -159,7 +159,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   `force` (Matsu Gohei's +2F while attacking) and, since 2026-11-05, `actions.<rule set>`: the card's printed actions
   as play codes (timing, keywords, costs, targets, effect; for Imperial from the Clan Wars printing's text). L5R:
   186 Imperial Edition cards have `actions.Imperial`, from ootv-tools `field-fixes/play-actions.py` (which also put
-  that printing's text on 268 printings). Search ignores it (the index stores it unmapped, `enabled: false`, since
+  that printing's text on 268 printings); on 28 of them the same day also structured `effects` (what the table does:
+  `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi). Search ignores it (the index stores it unmapped, `enabled: false`, since
   `l5r-os4`). Shape and keys: `docs/admin/play-table.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
