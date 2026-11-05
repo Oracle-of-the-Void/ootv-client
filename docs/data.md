@@ -154,6 +154,13 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   Table cells (`span.deckvalue`, title = printed value and why) and stats averages (`deckcontext`,
   `deckstatvalue` in `oracle.js`; lists of another type keep the printed value). L5R: 83 cards (clan discounts, clan Gold productions), from
   ootv-tools `field-fixes/fill-variable-values.py`, whose `--revert` puts a run back.
+* play (optional, L5R so far, map, since 2026-11-03): what the card brings to the play table (ootv-play), read only
+  there: `attached` (zone settings while it's attached: Shinsei's Shrine `{"attached": {"autorefill": false}}`),
+  `force` (Matsu Gohei's +2F while attacking) and, since 2026-11-05, `actions.<rule set>`: the card's printed actions
+  as play codes (timing, keywords, costs, targets, effect; for Imperial from the Clan Wars printing's text). L5R:
+  186 Imperial Edition cards have `actions.Imperial`, from ootv-tools `field-fixes/play-actions.py` (which also put
+  that printing's text on 268 printings). Search ignores it (the index stores it unmapped, `enabled: false`, since
+  `l5r-os4`). Shape and keys: `docs/admin/play-table.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
