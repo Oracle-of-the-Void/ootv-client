@@ -163,8 +163,10 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   as play codes (timing, keywords, costs, targets, effect; for Imperial from the Clan Wars printing's text). L5R:
   186 Imperial Edition cards have `actions.Imperial`, from ootv-tools `field-fixes/play-actions.py` (which also put
   that printing's text on 268 printings); on 28 of them the same day also structured `effects` (what the table does:
-  `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi); then Ranged Attacks and Fear (`ranged`, `fear`, `destroy`) on 25 more. Search ignores it (the index stores it unmapped, `enabled: false`, since
-  `l5r-os4`). Shape and keys: `docs/admin/play-table.md`.
+  `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi); then Ranged Attacks and Fear (`ranged`, `fear`, `destroy`) on 25 more, and duels and challenges (`duel`, `induel`,
+  `duelset`, ...) on 16. Not in search documents (since 2026-11-05; read with `/oracle-fetch`, as the table and the card
+  editor do), and its changes aren't written to `updatelog` while the play table is in development. Shape and keys:
+  `docs/admin/play-table.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
@@ -179,7 +181,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
 * updatelog (every card, array of maps): one row per change (`op`, `uid`, `uname`, `timestamp` in ms,
   `olddata`/`newdata`), shown under "Latest Updates" on the card page. Not in `/search` answers (since
   2026-10-29), which carry `updatelast` (the newest row's `timestamp`) instead; the card page fetches the
-  rows when "Latest Updates" opens.
+  rows when "Latest Updates" opens. Since 2026-11-05 not in search documents at all: the stream stores `updatelast`
+  on each. `play` changes don't get rows (see play).
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 
