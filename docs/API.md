@@ -197,7 +197,9 @@ outputs:
       ootv-search PROBLEMS.md #21). In their place `_source.updatelast` (the newest updatelog row's
       timestamp, ms), `rulingcount` and `rulingrefcount` (left out when 0). The whole card comes
       with `/oracle-fetch`: the card page fetches it for a card with rulings or Rules Q&A, and the
-      update log when "Latest Updates" opens
+      update log when "Latest Updates" opens. Since 2026-11-05 (ootv-dynamo #15) search documents hold no `updatelog`
+      or `play` at all: `updatelast` is stored on the document by the stream; the card editor and the play
+      table read whole cards with `/oracle-fetch`
 
 codes:
 
