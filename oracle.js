@@ -8213,18 +8213,36 @@ function showsearch() {
 // the browser tab and search engine title for what's shown: the card or deck name and the game (Google reads it
 // after running the page; index.html has the start page's). drawcard keeps the card's name here.
 var pagetitlecard = {cardid: null, title: ''};
+// at most 70 characters (Bing flags longer titles): the full game name with the site name, then the short one
+// (L5R), then without the site name, then the card or deck name cut at a word. ootv-tools seo/build.py fittitle does the same.
+function pagetitlefit(fmt, name) {
+  var info = dbinfo[database] || {}, max = 70, brand = ' | Oracle of the Void';
+  var games = [info.name || ''];
+  if(info.nameshort && info.nameshort != database && info.nameshort != info.name) { games.push(info.nameshort); }
+  var fill = function(n, g) { return fmt.replace('{name}', n).replace('{game}', g); };
+  for(var b = 0; b < 2; b++) {
+    for(var i = 0; i < games.length; i++) {
+      var t = fill(name || '', games[i]) + (b ? '' : brand);
+      if(t.length <= max) { return t; }
+    }
+  }
+  var game = games[games.length - 1];
+  var cut = (name || '').slice(0, Math.max(max - fill('', game).length - 1, 1)).replace(/\s+$/, '');
+  if(/\s/.test(cut)) { cut = cut.slice(0, cut.search(/\s\S*$/)); }
+  return fill(cut.replace(/[\s,.:;–-]+$/, '') + '…', game).slice(0, max);
+}
 function pagetitle() {
   var game = (dbinfo[database] || {}).name;
   var title = 'Oracle of the Void';
   var view = $(".ui-layout-center div[id^=result]:visible").attr('id');
   if(view == 'resultcard' && pagetitlecard.title && pagetitlecard.cardid == $('#lastcardid').val()) {
-    title = pagetitlecard.title + (game ? ' – ' + game + ' card' : '') + ' | ' + title;
+    title = game ? pagetitlefit('{name} – {game} card', pagetitlecard.title) : pagetitlecard.title + ' | ' + title;
   } else if(view == 'resultlist' && $('#lastlistid').val()) {
     var list = cache_thing("list", $('#lastlistid').val());
     var name = list && list.list && list.list.Items[0] ? selectplaintext(list.list.Items[0].name || '') : '';
-    title = (name || 'Deck') + (game ? ' – ' + game + ' deck' : '') + ' | ' + title;
+    title = game ? pagetitlefit('{name} – {game} deck', name || 'Deck') : (name || 'Deck') + ' | ' + title;
   } else if(game && !(gamenotpicked && view == 'resultabout')) {
-    title = game + ' card database and deck builder | ' + title;
+    title = pagetitlefit('{game} card database and deck builder');
   }
   document.title = title;
 }
