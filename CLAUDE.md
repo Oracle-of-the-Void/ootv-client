@@ -46,8 +46,10 @@ or tests. The files in this directory are exactly what gets served.
   measured 3.46 throttled, 0.05 after): anything drawn late must take its room first. Result thumbnails (`_select`) reserve 150×210 and sit
   top-aligned with a block image (`a.deckswipe:has(> img[src*="_select."])`, `oracle.css`); the search form hides its
   Advanced-only buttons and holds `#searchbottom` invisible until `#selectsloaded`; `html.bootabout` (top of `oracle.js`,
-  cleared by `showview`) hides the view buttons on a load that opens the About page; `index.html`'s game list is already
-  the logo tiles `homegamesdraw` draws, and their logos keep a 64px box. Measure with Playwright on a phone at 4× CPU and a
+  cleared by `showview`) hides the view buttons on a load that opens the About page, and `html.bootresults` (any other load)
+  makes `updateviewbuttons` leave them alone through the load's placeholder About (with `afterpaint`, it hid them for a frame); `index.html`'s game list is already
+  the logo tiles `homegamesdraw` draws, and their logos keep a 64px box. The card page's big picture holds a portrait `_details`
+  box while it loads (`imagesreserve` in `drawcard`, `img.imgloading`). Measure with Playwright on a phone at 4× CPU and a
   slow network, a `layout-shift` PerformanceObserver, after load *and* after a tapped search (shifts more than 0.5s after a tap count).
 - The search form's rows (`initializeform` in `oracle.js`): each label is a floated 30px `dt`, so a `dd` must be at least 30px tall or the labels drift from their fields down the form (#552). A new field type shorter than that needs the same `min-height` as the checkbox rows.
 - The search sidebar on wide screens (`sidebarfit` in `oracle.js`, called from `showview`): the views in `sidebarnosearch` (Help, Bookshelf,
