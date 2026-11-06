@@ -166,7 +166,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi); then Ranged Attacks and Fear (`ranged`, `fear`, `destroy`) on 25 more, duels and challenges (`duel`, `induel`,
   `duelset`, ...) on 16, cancelling Reactions (`cancel`, `to: "actor"`) on 6, and the Honor
   actions (`after`, `battle`, `once`, `take`, `award`, `even`, `refund`, `spare`, `intoplay`, `to: "highest"`/`"owner"`,
-  cost `discard`) on 16. Not in search documents (since 2026-11-05; read with `/oracle-fetch`, as the table and the card
+  cost `discard`) on 16, into play, tokens and taking control (`make`, `control`, `bring`, `gain`, `copy`, `rally`,
+  targets `from`, an action's `ask`) on 14, and Destroy (targets `army`, `attacked`, `destroy.attached`) on 14. Not in search documents (since 2026-11-05; read with `/oracle-fetch`, as the table and the card
   editor do), and its changes aren't written to `updatelog` while the play table is in development. Shape and keys:
   `docs/admin/play-table.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
