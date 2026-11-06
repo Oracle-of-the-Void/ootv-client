@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-06 (l5r/play version 20; structured card effects; Ranged Attacks and Fear; End without resolving; Reactions; Honor actions; into play, tokens, take control; Destroy; Force, Chi, Province Strength; draw, discard, look, search; move, remove from battle, send home, assign; copy, rule changes; Water Dragon's Events Phase wait; bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps; Events that resolve themselves; Events that change the rules, stay, or duel, l5r/fields version 30)
+Last updated: 2026-11-06 (l5r/play version 20; structured card effects; Ranged Attacks and Fear; End without resolving; Reactions; Honor actions; into play, tokens, take control; Destroy; Force, Chi, Province Strength; draw, discard, look, search; move, remove from battle, send home, assign; copy, rule changes; Water Dragon's Events Phase wait; bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps; Events that resolve themselves; Events that change the rules, stay, or duel; bonuses while in play, l5r/fields version 31)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
@@ -141,3 +141,13 @@ Picks made by the Event's player: `"pick"` as a list, picked in order, with `"wh
 Inheritance: `{"stay": {"produce": 5}}` leaves it in its player's play area; bowing it gives 5 Gold and destroys it, and it is destroyed at the end of the turn if unused.
 
 Readings to check: Alliance offers Crab, Crane, Dragon, Lion, Phoenix, Scorpion, Unicorn, Mantis and Naga; Imperial Quest counts its controller's Straighten Phases; the Emerald Champion's new Province goes on the right.
+
+### Bonuses while in play (2026-11-06)
+
+Card text that isn't an action, first group (the user: "do force/chi/strength bonuses"), on 21 Imperial cards. The card rule `play.bonus.Imperial` lists what a card gives while it's in play; the table works it out again after every action, so a bonus goes when its card leaves play (an attachment discarded or destroyed). Each shows as a green badge on the card it reaches, titled "from X, while it's in play", and can't be taken off by hand.
+
+`{"add": {"force", "chi", "ph"}}` or `{"strength": n}`, to `"self"` (the default: an Item's own bonus), `"host"` (the card it's attached to: Night Medallion, Apprentice), `"unit"` (the other cards in its unit that fit `"match"`: Naga Warlord), `"inplay"` (Greater Mujina's Lesser Mujina), `"attackers"`/`"defenders"` (units at the Province it's on: Moat, Fort on a Hill, Barbican) or `"province"` (its Strength: Unscalable Walls). `"per": {"match", "in": "unit" | "yours" | "inplay"}`: so much for each card that fits (Ratling Bushi's Ratling Packs; an Ancestral Sword's clan Personalities you control). `"if": {"host": match}`: only on a Personality that fits (an Ancestral Sword on its own clan). `"when": "attacking" | "defending"` (Hida Tampako, Otaku Kamoko). `"opposed": match`: while facing such a card in a battle or a duel (Crystal Katana, The Jade Hand: Shadowlands). `"while": ["spell", "innate"]`: while its Shugenja uses a Spell or his own ability (Apprentice; Agasha Tamori spells only).
+
+A Personality's Force and Chi, wherever they're checked (a target's limit, "equal to her Chi", the Force a Ranged Attack must reach, a duel), are its own plus what's attached printed as a bonus ("+1F", "+2C"); such an attachment is its own number for itself, and a unit's Force counts each card once (the user). Fixed with it: a duelist's Chi counted a +2C Item twice.
+
+Left to the players: Barbican's doubled Ranged Attacks (a later group), Night Medallion's other numbers (Gold, Honor, numbers in abilities). Readings to check: Hida Yakamo (Oni) counts himself among your Crab Personalities, and an Ancestral Sword counts the Personality carrying it.
