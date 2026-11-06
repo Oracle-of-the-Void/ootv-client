@@ -451,6 +451,12 @@ a.ex { float: right; font-size: large;}
 .foiltoggle { cursor: pointer; }
 .foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
+/* a result's thumbnail (_select: 210px tall, ~150 wide; landscape 210x150) takes its room before the picture loads,
+   so the rows don't reflow as each one arrives (layout shift, Search Console CLS 0.54 on phones, 2026-11-05).
+   Top-aligned with a block picture: an inline-block's baseline otherwise jumps from its top line (nothing loaded yet)
+   to the picture's bottom, moving the whole row */
+a.deckswipe:has(> img[src*="_select."]:not([width]):not([style*="width"])) { min-width: 150px; min-height: 210px; vertical-align: top; }
+a.deckswipe > img[src*="_select."]:not([width]):not([style*="width"]) { display: block; margin: 0 auto; }
 /* the card page's sides (~cardsides, oracle.js "CARD BACKS"): each front full size, with "Print n of m" when the
    printing was printed more than one way, and its back always as a thumbnail under it, never as another card */
 .cardside { margin-bottom: 8px; }
@@ -539,6 +545,10 @@ div.searchinput .button.gray:active { background: var(--fill-12); }
 div.searchinput .button.gray .iyellow { color: inherit; }
 div.searchinput #dosearchbutton.button { background: var(--accent); border-color: #c4a53e; color: #222; }
 div.searchinput #dosearchbutton.button:hover { background: #e8cf72; }
+/* until initializeform has drawn the game's rows (#selectsloaded): no Advanced-only buttons (it hides them, so they'd
+   move the form up) and the Search row held invisible (it'd jump down past the new rows): layout shift on phones */
+#searchform:not(:has(#selectsloaded)) .advanced { display: none; }
+#searchform:not(:has(#selectsloaded)) #searchbottom { visibility: hidden; }
 /*
 div.ui-layout-center { 
   float: left;
@@ -1023,11 +1033,14 @@ a.communitylink small { color: var(--text-6); }
 .homepage { padding: 8px 16px 16px; }
 .homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
 .homepage .homelede { font-size: 1.15em; }
+/* html.bootabout (top of oracle.js): a load opening on this page, until the first showview */
+html.bootabout div.menubar nav li.searchviewbuttons { display: none; }
 .homegamepicker { list-style: none; margin: 12px 0 16px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
 .homegamepicker a { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; box-sizing: border-box; padding: 10px 8px; text-align: center; text-decoration: none; color: var(--text);
   background: var(--panel); border-radius: 6px; box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow); }
 .homegamepicker a:hover, .homegamepicker .homegameactive a { box-shadow: 0 0 0 2px var(--accent), var(--panel-shadow); }
-.homegamepicker img { height: 64px; max-width: 100%; object-fit: contain; }
+/* !important: the phones' #maincontent img height: auto would leave each logo 0 tall until it loads (layout shift) */
+.homegamepicker img { height: 64px !important; max-width: 100%; object-fit: contain; }
 body.gamenotpicked .homeupdateshead, body.gamenotpicked #updatelog { display: none; }
 .homepage .homecardlists { margin-top: 24px; font-size: 0.9em; }
 .homepage p { line-height: 1.5; }
@@ -2655,6 +2668,8 @@ div#phonesearchbar .numresults {
     max-width: 90vw !important;
     height: auto;
   }
+  /* the front page's logos keep their 64px box (no shift as they load) but, as before, aren't scaled up in it */
+  .homegamepicker img { object-fit: scale-down; }
 }
 /* admin login log */
 .loginlog-nav { margin: 10px 0; }
