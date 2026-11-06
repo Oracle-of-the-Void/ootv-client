@@ -3484,6 +3484,7 @@ div.listsimilar:empty { display: none; }
 div.listsimilar { margin: 4px 0; font-size: 13px; }
 .similarband + .similarband { margin-top: 3px; }
 .similarby { color: var(--text-2); }
+div.listsimilar .similarby { color: inherit; opacity: .8; }
 .helpq.similarword { font-family: inherit; font-size: inherit; font-weight: bold; color: inherit; vertical-align: baseline;
   text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
 :is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle) .helpq.similarword { color: inherit; }
