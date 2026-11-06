@@ -188,3 +188,29 @@ Card text that isn't an action, fourth and fifth groups (the user: "do both of t
 A match also takes `{"not": a match}`. A buy or a card played onto another that the text forbids is refused at once, before the table asks about Gold or jumping to the Dynasty Phase. Written on the 22 cards (ootv-tools `work/field-fixes/imperial-play/plan-limits.json`; checked against search, all match); the `l5r/fields` description of `play` has these since version 34. ootv-play [#68](https://github.com/Oracle-of-the-Void/ootv-play/pull/68).
 
 Rules an Event holds for a while (Emperor's Peace, Proposal of Peace, Alliance) now show as a note in their player's Active area until they end, and the log says what is no longer in effect when they do (the user). ootv-play [#67](https://github.com/Oracle-of-the-Void/ootv-play/pull/67).
+
+### Triggers, traits and other rules, duels (2026-11-06)
+
+Card text that isn't an action, the last three groups (the user: "do all the remaining"), on 21 Imperial cards, read from their Obsidian wording.
+
+- **Triggers** (card rule `play.when.Imperial`, a list of `{"at", "do", ...}`):
+  - At its player's phase, as a pick its player makes. Shuten Doji (`{"at": "Events", "do": "eat", "token": "+1F/+1C", "lose": 3}`) eats a token on another card in play and gains one; with nothing to eat, he loses 3. The Marsh Troll (`{"at": "End", "do": "devour"}`) devours another card in its unit; if that's its Personality, the players to the right in turn may attach it to one of theirs, and if nobody does, it's destroyed. Oni no Shikibu (`{"at": "Dynasty", "from": "dead", "do": "return", "effects": [...]}`) may come back from the discard pile, losing 2 Honor. Shiba Ujimitsu (`{"at": "Dynasty", "from": "honorabledead", "do": "overlay"}`) may take the place of a Personality of its player's, keeping what was attached to it, its tokens, lasting changes and state; that Personality is discarded, not dead. A pick a card says "may" has a Decline button.
+  - At other moments. The Mountain Keep of the Dragon (`{"at": "provincefell", "strength": 2}`): each remaining Province gets +2 Strength for good. Moto Tsume (`{"at": "combat", "do": "bow", "match": ...}`): as a battle begins, the others in his army with Personal Honor above one bow. Hida Amoro (`{"at": "battleend", "do": "destroy", "unless": {"more": 2}}`): after the battle, destroyed unless his army's Force was more than twice the other's. Bloodsword (`{"at": "duelwon", "token": "+2F/+2C"}`).
+  - Checked after every action. Shadow Samurai (`{"at": "nodead", "do": "destroy"}`): destroyed when its player has no Honorable Dead. Foxwife (`hostdishonored`, `honorlost`): destroyed when her Personality is dishonored, or when his own action loses his player Honor.
+- **Traits while in play** (a bonus's `"trait"`): Fan of Command (Tactician), The Star of Laramun (Double Chi, counted in a duel), Shinjo Yokatsu's Followers (Cavalry).
+- **Battle rules** (card rule `play.battle.Imperial`): Barbican `{"double": "defenders"}` doubles a defending Ranged Attack at its battlefield, after everything else, but not while Climbing Gear is attacking there. Scout `{"scout": true}`: with one in the attacking army, the attacker may play a Terrain before the defender's first battle action, as an extra action.
+- **Forgotten Tomb:** three actions in its player's Dynasty Phase (a timing that play codes use but the text reader doesn't: the config's `timing.Dynasty` and `codetiming`, in `l5r/play` since version 21).
+  - Place a Shadowlands Personality or Follower from your hand or Provinces under it, shown to everyone (targets `"from": "reserve"`, effect `{"store": "shown"}`).
+  - Bring a Personality out at no cost after as many turns as its Force (`{"bring": {"aged": "force"}}`); every player's turns count.
+  - Bring a Follower out the same way, onto a Personality of yours.
+  - Cards under the Tomb are destroyed with it, and a Personality destroyed that way isn't Honorable Dead.
+- **Doji Yosai:** `limits` `{"nogifts": true}`: when he lobbies, nobody may give a gift for the other side.
+- **Duels** (card rule `play.focus.Imperial`):
+  - Feint `{"more": 1}`: after the reveal, its player may focus one more card from the hand (a "Focus one more" button). A Feint added that way gives no more.
+  - Kharmic Strike `{"tie": true}`: the duel is a tie (Obsidian). Today's Repeatable Limited draw isn't in Obsidian, so it's left out.
+  - The Armor of the Golden Samurai `{"floor": "ph"}`: the other duelist can't focus a card with a Focus Value below its Personality's Personal Honor.
+  - Hida Yakamo, the Oni `{"none": true}`: may not focus; the duel panel says he strikes.
+
+Also from Obsidian: Shiba Ujimitsu only joins a Phoenix Clan player, and Shinjo Yokatsu only joins a Unicorn Clan player (`limits.join`). Written on the 21 cards (ootv-tools `work/field-fixes/imperial-play/plan-remaining.json`; checked against search, all match); the `l5r/fields` description of `play` has these since version 35. ootv-play [#72](https://github.com/Oracle-of-the-Void/ootv-play/pull/72).
+
+Fixes from play the same day (the user): a card's search asks first ("Imperial Gift: Search Fate deck for an Item now?"), and Undo goes back to before a search ([#69](https://github.com/Oracle-of-the-Void/ootv-play/pull/69)). An action's Province target can be picked by its battlefield, picked targets are outlined, and a battle's totals show from its start ([#70](https://github.com/Oracle-of-the-Void/ootv-play/pull/70)). A card's actions that aren't open now stay in its menu, greyed, with the reason ([#71](https://github.com/Oracle-of-the-Void/ootv-play/pull/71)).
