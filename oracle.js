@@ -6928,6 +6928,7 @@ function drawcard(carddata,prid=null,qs=null) {
   var drawn = cardhtml(carddata,prid,qs);
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
+  imagesreserve('#resultcard img.cardsidefront');
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
@@ -7849,6 +7850,15 @@ document.addEventListener('click', function(e) {
 // Add to a list button, which picks a list as a swipe does. Drawn here, not in the card-top partial: the same steps and
 // checks as a swipe (deckswipeapply: going to 0 asks), so a list's count is one thing. The card-bottom partial's rows
 // below the card's text do every printing.
+// a picture not loaded yet holds a portrait card's box (oracle.css img.imgloading) until it arrives or fails, so the card
+// page's text doesn't drop ~500px when it does (layout shift: a shared card link on a phone was CLS 0.54)
+function imagesreserve(sel) {
+  $(sel).each(function() {
+    if(this.complete) { return; }
+    var img = $(this).addClass('imgloading');
+    img.one('load error', function() { img.removeClass('imgloading'); });
+  });
+}
 function cardlistbar() {
     var cardid = Number($('#lastcardid').val()), head = $('#resultcard .listheadxl').first();
     $('#cardlistbar').remove();

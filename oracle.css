@@ -467,6 +467,9 @@ a.deckswipe > img[src*="_select."]:not([width]):not([style*="width"]) { display:
 .cardbackthumb.cardbackown img.cardbackimg { outline: 2px solid #c9a227; }
 .cardbackflip { text-decoration: underline; }
 .cardside.cardsideback img.cardsidefront { outline: 3px dashed #c9a227; }
+/* imagesreserve (oracle.js): a card page picture still loading takes a portrait _details box (~428x600; phones' 90vw cap
+   scales it down), so the text under it doesn't move when it arrives */
+img.cardsidefront.imgloading { width: 428px; aspect-ratio: 428 / 600; height: auto; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 /* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells
