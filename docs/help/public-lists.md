@@ -67,3 +67,28 @@ makes your own private copy to change; the copy notes where it came from. The de
 its downloads, the same as your own lists have ([Downloads](lists.md#downloads)).
 
 To share one of your own lists, see [Sharing](lists.md#sharing).
+
+## Same, Close and Similar decks {#similar}
+
+Many decks are public more than once: a tournament winner kept by several players, an archive copy, a deck with a
+card or two changed. An open deck lists the public decks that match it, under **Same**, **Close** and **Similar**, with
+who made each one and how many cards are different. In the public results and in My lists, a deck that has any shows a
+small count next to its card count: hover over it (or tap it) to see which decks they are.
+
+Decks are compared card by card, counting copies: the copies the two decks have in common, out of all the copies in
+either deck. The printing doesn't matter, but an Experienced version is a different card from its plain one. Only public
+decks are ever listed, and only decks of 20 cards or more are compared. A change to a deck shows up within a minute.
+
+### Same {#similar-same}
+
+**Same**: every card and every copy count is the same in both decks. The printings may differ.
+
+### Close {#similar-close}
+
+**Close**: at least 90% of the copies are shared. In an 80-card deck that allows up to four cards swapped for four
+others.
+
+### Similar {#similar-similar}
+
+**Similar**: at least 78% of the copies are shared. In an 80-card deck that is up to about ten cards swapped for ten
+others: the same deck idea, changed here and there.
