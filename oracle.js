@@ -3753,7 +3753,12 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 
 // *****************************88 RENDERING DATA ********************
 function docardid(id,prid=null,qs=null,pop=false,switchview=true) {
-    docard(cache_card_fetch(id),prid,qs,pop,switchview);
+    // opened by a tap or click (a result's link): draw it after the paint, so the tap answers at once (INP)
+    if(switchview && window.event && window.event.type == 'click') {
+	afterpaint(function() { docard(searchcache[database]['data'][id] || {},prid,qs,pop,switchview); });
+	return;
+    }
+    docard(searchcache[database]['data'][id] || {},prid,qs,pop,switchview);   // docard copies it
 }
 function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["rendering list: "+sort,listid,listoutput]);
@@ -6915,8 +6920,10 @@ function data_url_to_download(data_url, filename) {
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
 // switchview=false renders the card view behind the scenes: no history entry, the view on screen stays
+var carddrawcount = 0;   // cards docard has drawn: defaultcard doesn't draw over a newer one
 function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var carddata = JSON.parse(JSON.stringify(carddata));
+  carddrawcount++;
   console.log(["rendering: "+carddata['cardid']+(prid?'/'+prid:''),qs]);
   if(getactivetemplate('card') === undefined) {
 	  console.log("templates not loaded yet");
@@ -7400,11 +7407,16 @@ function dosearchpostcallback(qs) {
 }
 
 // a new search puts its first result in the card view, as if it had been clicked (without leaving the search view)
+// a new search's first card, drawn behind the scenes for the Card tab: after the paint (it's not on screen), and not over a
+// card drawn in the meantime
 function defaultcard(qs) {
-    var ids = searchcache[database]['querydata'][qs];
-    if(ids && ids.length) {
-	docardid(ids[0],null,qs,false,false);
-    }
+    var drawn = carddrawcount;
+    afterpaint(function() {
+	var ids = searchcache[database]['querydata'][qs];
+	if(ids && ids.length && carddrawcount == drawn && $('#lastsearchquery').val() == qs) {
+	    docardid(ids[0],null,qs,false,false);
+	}
+    });
 }
 // Touch screens: menubar (and list download) dropdowns open on hover only with a mouse, so a tap toggles them instead.
 // Tapping a menu header opens its dropdown (closing other open menus outside it); tapping an item or anywhere else closes them.
@@ -8182,15 +8194,25 @@ function showview(view) {
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
     $('#' + view).fadeIn();
     seturl(viewstate(view.replace(/^result/,'')));
-    pagetitle();
-    updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
     if(view == 'resultadmin') showadmintab(admintab);
-    if(view == 'resultrules') rulesshow();
-    if(view == 'resulthelp') helpshow();
-    if(view == 'resulttrades') tradeload(function() { tradesrender(); });
-    if(view == 'resultmessages') tradeload(function() { messagesrender(); });
-    if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
+    // the rest waits for the view to be painted, so a tap answers at once (INP): they all read what's on screen when they run
+    afterpaint(function() {
+	pagetitle();
+	updateviewbuttons();
+	if(view == 'resultrules' && $('#resultrules').is(':visible')) rulesshow();
+	if(view == 'resulthelp' && $('#resulthelp').is(':visible')) helpshow();
+	if(view == 'resulttrades' && $('#resulttrades').is(':visible')) tradeload(function() { tradesrender(); });
+	if(view == 'resultmessages' && $('#resultmessages').is(':visible')) tradeload(function() { messagesrender(); });
+	if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
+    });
+}
+// run fn after the browser has painted what the current task changed. A tap's handler shows its answer (the view, the
+// button lit), then the heavy drawing runs here, so the tap's Interaction to Next Paint doesn't wait for it (Search Console:
+// INP 341 ms on phones, 2026-11-05). requestAnimationFrame runs just before the paint; the timeout then lands after it.
+function afterpaint(fn) {
+    if(document.hidden) { setTimeout(fn, 0); return; }   // no frames in a background tab
+    requestAnimationFrame(function() { setTimeout(fn, 0); });
 }
 function showcard() {
     showview('resultcard');
@@ -8524,23 +8546,19 @@ function templatefetch(card,id=false,datarequest={}) {
         for(att in card.printingreverse) {
           //console.log("onyx deb: "+att);
             if("field_printing_"+att in datarequest) {
-              console.log("printing field in search: "+att);
               if(!Array.isArray(datarequest["field_printing_"+att])) {
                 datarequest["field_printing_"+att] = [datarequest["field_printing_"+att]];
               }
               for (checkatt of datarequest["field_printing_"+att]) {
-                console.log(checkatt);
                 if(checkatt in card.printingreverse[att]) {
                     pr = card.printingreverse[att][checkatt];
                 }
               }
             } else if("field_"+att in datarequest) {
-              console.log("top field in search: "+att);
               if(!Array.isArray(datarequest["field_"+att])) {
                 datarequest["field_"+att] = [datarequest["field_"+att]];
               }
               for (checkatt of datarequest["field_"+att]) {
-                console.log(checkatt);
                 var spr = storedprinting(card,att,checkatt);
                 if(spr !== null) {
                     pr = spr;
@@ -8885,7 +8903,6 @@ function cardsideflip(thumb) {
 }
 
 function templatefetchimage(card,size,id=false,datarequest={}) {
-    console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);
     var front = printingimages(prdata)[0];
     if(front) {
@@ -9377,7 +9394,9 @@ function viewbutton(template) {
   if(template == 'visual' && largeview[type] && templates[database]['available']['visual-premium']) {
 	  template = 'visual-premium';
   }
-  activatetemplate(type,template);
+  var lit = template.replace(/-premium$/,'');
+  $("#templatebuttons button[data-template]").each(function() { $(this).toggleClass("searchviewactive", $(this).data("template") == lit); });
+  afterpaint(function() { activatetemplate(type,template); });   // redrawing the results is the slow part (INP)
 }
 // saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, sortmode, mobile: {same keys}}, saved via /user?settings=
 // (settings[database].folders, the directory folders, shares the object: saves here keep it)
@@ -9984,9 +10003,18 @@ if(typeof TomSelect != 'undefined') {
     });
   });
 }
+// selects that came into view are converted after the paint, a few per task, so a tap that shows a view full of them (Public
+// lists) isn't held up by building them (INP)
+var tomselectqueue = [];
 var tomselectseen = typeof IntersectionObserver != 'undefined' && new IntersectionObserver(function(entries) {
-  entries.forEach(function(e) { if(e.isIntersecting) { tomselectauto(e.target); } });
+  entries.forEach(function(e) { if(e.isIntersecting && !tomselectqueue.includes(e.target)) { tomselectqueue.push(e.target); } });
+  if(tomselectqueue.length) { afterpaint(tomselectdrain); }
 });
+function tomselectdrain() {
+  var until = performance.now() + 30;
+  while(tomselectqueue.length && performance.now() < until) { tomselectauto(tomselectqueue.shift()); }
+  if(tomselectqueue.length) { setTimeout(tomselectdrain, 0); }
+}
 function tomselectsig(el) {
   return Array.prototype.map.call(el.options, function(o) { return o.value+'\u0001'+o.text+'\u0001'+o.disabled; }).join('\u0002');
 }
