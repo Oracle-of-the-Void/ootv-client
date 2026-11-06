@@ -6921,7 +6921,7 @@ function drawcard(carddata,prid=null,qs=null) {
     set: legality.set[showpr] || [], sets: legality.sets});
   rulingsfold('#resultcard');
   cardlistbar();
-  pagetitlecard = {cardid: String(carddata.cardid), title: selectplaintext([].concat(carddata.title || [])[0] || '')};
+  pagetitlecard = {cardid: String(carddata.cardid), title: pagetitlename(carddata)};
   pagetitle();
 }
 
@@ -8157,6 +8157,18 @@ function pagetitlefit(fmt, name) {
   var cut = (name || '').slice(0, Math.max(max - fill('', game).length - 1, 1)).replace(/\s+$/, '');
   if(/\s/.test(cut)) { cut = cut.slice(0, cut.search(/\s\S*$/)); }
   return fill(cut.replace(/[\s,.:;–-]+$/, '') + '…', game).slice(0, max);
+}
+// the card's name with its version, so versions don't share a title: formattedtitle "Hida Kuon &#149; Experienced 2"
+// (title is the bare name) gives "Hida Kuon (Experienced 2)". ootv-tools seo/build.py cardversiontitle does the same.
+function pagetitlename(carddata) {
+  var plain = function(v) { return $('<textarea>').html(selectplaintext(v || '')).text().replace(/\s+/g, ' ').trim(); };
+  var name = plain([].concat(carddata.title || [])[0]);
+  var full = plain(carddata.formattedtitle);
+  if(name && full.toLowerCase().indexOf(name.toLowerCase()) == 0 && full.length > name.length) {
+    var rest = full.slice(name.length).replace(/^[\s•·–—\-:,()]+|[\s•·–—\-:,()]+$/g, '');
+    if(rest) { return name + ' (' + rest + ')'; }
+  }
+  return name || full;
 }
 function pagetitle() {
   var game = (dbinfo[database] || {}).name;
