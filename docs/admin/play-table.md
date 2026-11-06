@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-06 (l5r/play version 20; structured card effects; Ranged Attacks and Fear; End without resolving; Reactions; Honor actions; into play, tokens, take control; Destroy; Force, Chi, Province Strength; draw, discard, look, search; move, remove from battle, send home, assign; copy, rule changes; Water Dragon's Events Phase wait; bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps, l5r/fields version 28)
+Last updated: 2026-11-06 (l5r/play version 20; structured card effects; Ranged Attacks and Fear; End without resolving; Reactions; Honor actions; into play, tokens, take control; Destroy; Force, Chi, Province Strength; draw, discard, look, search; move, remove from battle, send home, assign; copy, rule changes; Water Dragon's Events Phase wait; bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps; Events that resolve themselves, l5r/fields version 29)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
@@ -119,3 +119,13 @@ The last four groups of card actions (the user: "Do all 4 groups"), 23 actions o
 `{"trait": "Cavalry", "until": "turn"}` gives the target, or with `"to": "unit"` every card in the target's unit, the Cavalry keyword for the turn (Iuchi Takaai, Wind Born Speed, Wings of Fire, The Provincial Estate of the Unicorn; Shinjo Yasamura's target must be in his unit, `"same": "unit"`, once a turn). Cavalry Maneuvers counts it, and a printed `<b>Cavalry</b>` now counts too.
 
 `{"terrain": "target"}` plays the target Terrain at the battle being fought, destroying the Terrain there (Go Master); `"keep": true` means it can't be destroyed or replaced (Oracle of Earth). `{"store": true}` puts a Terrain from the hand face down under The Armor of Sun Tao (the other player isn't told which, target `"hidden": true`); its Battle action plays one from there (target `"from": "under"`; on a phone, tap the Armor while picking to choose from a list).
+
+### Events that resolve themselves (2026-11-06)
+
+The first two groups of Events (the user: "do 1&2"), on 10 Imperial Events. An Event with `{"event": {"Imperial": {"effect", "effects"}}}` in `play` takes effect by itself when it turns up in the Events Phase, as its player's, and is discarded; the phase goes on. An Event without one still waits for Continue and is resolved by hand.
+
+One-time: `{"to": "inplay", "if": match, "destroy": true}` (Iris Festival: every Shadowlands card in play; Plague: Followers with Force 3 or less). `"to": "each"` is every player still in, `"to": "lowest"` the player or players with the lowest Family Honor. `{"add": {"honor": {"of": "dead", "times": 3}}}` is 3 Honor for each of the player's Honorable Dead (Bon Festival). `{"province": "destroy", "which": "rightmost"}` (Evil Feeds Upon Itself) and `{"province": "add", "side": "left"}` (Chrysanthemum Festival; the new Province turns up at the next Events Phase). A search may name a `"match"` and `"reveal"` it (Imperial Gift: an Item, shown to everyone; the phase waits for the search).
+
+Each player: `{"pick": {"whose": "right" or "own", "from": "dead", "match", "may", "text"}, "destroy": true or "toplay": true}`: each player in turn, from the Event's player, picks a card in a yellow bar (or on the table), then all the picked cards are destroyed (Hurricane: a Holding of the player to the right; Occult Murders: a Personality or Retainer, `match` a list of choices) or return to play (Rise of the Phoenix: one of their own Honorable Dead, or none). A player with nothing to pick is passed over. "To his right" is the player before in turn order, since play passes to the left (Imperial p. 15). `{"turnover": "dynasty", "keep": match}` turns over each player's top Dynasty card: into play free, with no Honor, if it fits, else discarded (Unexpected Allies).
+
+Honorable Dead: a Personality destroyed into its discard pile is marked Honorable Dead, or Dishonorable Dead if it was dishonored (Imperial p. 43); a discarded one is neither (SCC p. 54). The mark shows on the card in the pile.
