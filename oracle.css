@@ -3473,3 +3473,19 @@ div.msghead h2 { text-align: left; }
 /* an ad's frame draws on its own light page: left dark it would get an opaque white background */
 ins.adsbygoogle, ins.adsbygoogle iframe { color-scheme: light; }
 .cardeditmrp { color: #000; }
+
+/* Same, Close and Similar decks (similarbadge, listsimilar, similarpop in oracle.js) */
+.similarbadge { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; padding: 0 5px; border: solid var(--chip-border) 1px;
+  border-radius: 9px; background: var(--chip-bg); color: var(--chip-text); font-size: 11px; font-weight: bold; line-height: 16px; cursor: default;
+  vertical-align: 1px; white-space: nowrap; }
+.similarbadge svg.feather { width: 11px; height: 11px; }
+.similarbadge:focus-visible { outline: solid var(--focus-ring) 2px; }
+div.listsimilar:empty { display: none; }
+div.listsimilar { margin: 4px 0; font-size: 13px; }
+.similarband + .similarband { margin-top: 3px; }
+.similarby { color: var(--text-2); }
+.helpq.similarword { font-family: inherit; font-size: inherit; font-weight: bold; color: inherit; vertical-align: baseline;
+  text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle) .helpq.similarword { color: inherit; }
+#similarpop { position: absolute; z-index: 100000; max-width: min(420px, calc(100vw - 16px)); box-sizing: border-box; padding: 8px 10px;
+  background: var(--panel); color: var(--text); border: solid var(--rule) 1px; box-shadow: var(--panel-shadow); font-size: 13px; }

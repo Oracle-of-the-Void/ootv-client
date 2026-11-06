@@ -1211,7 +1211,8 @@ function dircount(list) {
   if(!total) {
     return '';
   }
-  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad)+deckbuildownmark(list);
+  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad)+deckbuildownmark(list)+
+    (list.type == 'deck' ? '<span class="similarslot" data-list="'+parseInt(list.listid)+'">'+similarbadge(dirsimilar(list.listid), list.listid, true)+'</span>' : '');
 }
 // a list's count in the Active Lists bar, as the directory's but live: the decks from its last draw (liststats; every edit
 // redraws), else its saved summary. Decks that don't add up to the total (a stale summary, cards still loading): the total alone
@@ -3988,7 +3989,8 @@ function listheader(listid) {
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(String(listid)) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "admincan": listadmincan(listid), "adminnotify": !!(adminediting[listid] && adminediting[listid].notify), "deckbuild": !!deckbuildconfig(),
-	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid]});
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid],
+	"similar": meta.type == 'deck' ? listsimilar(listid, mine) : ''});
 }
 // list view header: long notes start cut to a few lines. Show more / Show less, or clicking in to edit, opens them;
 // they stay as left while the list redraws (each save draws it again), until the page reloads.
@@ -12557,7 +12559,7 @@ function renderpublic(data, append) {
     meta = meta.map(htmlEncode);
     if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
     var counts = deckcounthtml(d.fatecount || d.dynastycount ? [{"name": "Dynasty", "copies": d.dynastycount}, {"name": "Fate", "copies": d.fatecount}] : [],
-			       h.totalcount || 0, h.buildbad)+deckbuildownmark(h);
+			       h.totalcount || 0, h.buildbad)+deckbuildownmark(h)+similarbadge(h.similar, h.listid, mine);
     var when = String(h.modified || h.created || '').slice(0,10);
     var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
@@ -12915,6 +12917,128 @@ $(document).on('click', '#publicresults .publiccard', function(e) {
 function openpubliclist(listid) {
   listinfo(String(listid), true);
 }
+
+// Same, Close and Similar decks (ootv-search lib/similar.js; ootv-claude projects/similar-decks.md). Two decks compare
+// by card, copies counted, printing ignored: the copies they share over the copies in either one. Same is every copy
+// alike, Close 90% or more, Similar 78% or more (the user, 2026-11-06), and only public decks are ever named. The lists
+// index keeps each list's matches ({listid, band, score}); the names come from GET /publiclists?similarto=<listid> (a
+// public list) or /list action=similar (one of your own, private too). Shown in a deck's header (listsimilar), as a
+// count in public results and My lists (similarbadge, the decks listed on hover), explained in Help, Public lists,
+// whose sections each word's hover shows.
+var SIMILARBANDS = [['same', 'Same'], ['close', 'Close'], ['similar', 'Similar']];
+var SIMILARAGE = 60000;     // a list's matches are asked again after this long (a save reaches the index in seconds)
+var similarcache = {};      // listid -> {at, promise of [match]}
+function similarfetch(listid, mine) {
+  var key = parseInt(listid);
+  var c = similarcache[key];
+  if(c && Date.now() - c.at < SIMILARAGE) { return c.promise; }
+  var pub = function() { return Promise.resolve($.ajax({url: apiuri+'/publiclists?similarto='+key})); };
+  var promise = (mine && listloggedin() ? Promise.resolve($.ajax({
+      url: apiuri+"/list?uid="+getuid()+"&database="+encodeURIComponent(database)+"&action=similar&similar="+key,
+      contentType: 'application/json',
+      beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+    })).catch(pub) : pub())   // an admin editing someone else's list: theirs isn't "mine" to the API
+    .then(function(d) { return (d && d.similar) || []; })
+    .catch(function() { delete similarcache[key]; return []; });
+  similarcache[key] = {at: Date.now(), promise: promise};
+  return promise;
+}
+// a band word: hovering it shows its Help section, a click opens Help there
+function similarword(band) {
+  var b = SIMILARBANDS.find(function(x) { return x[0] == band; });
+  return '<span class="helpq similarword" data-help="public-lists#similar-'+band+'" aria-label="Help: '+b[1]+' decks">'+b[1]+'</span>';
+}
+function similardiff(m) {
+  var n = (m.missing || 0)+(m.extra || 0);
+  return n ? n+(n == 1 ? ' card' : ' cards')+' different' : 'identical';
+}
+// the matches grouped by band: Same: a, b · Close: c
+function similarhtml(matches, linkclass) {
+  return SIMILARBANDS.map(function(b) {
+    var these = matches.filter(function(m) { return m.band == b[0]; });
+    if(!these.length) { return ''; }
+    return '<div class="similarband">'+similarword(b[0])+': '+these.map(function(m) {
+      return '<a class="'+(linkclass || '')+'" href="#game='+database+',#listid='+parseInt(m.listid)+'" onclick="similarclose(); openpubliclist('+parseInt(m.listid)+'); return false;">'+
+	htmlEncode(m.name || 'Unnamed list')+'</a> <span class="similarby">('+htmlEncode(m.ownername || 'another player')+', '+similardiff(m)+')</span>';
+    }).join('; ')+'</div>';
+  }).join('');
+}
+// a deck's header line: '' until its matches come, then drawn in place
+var listsimilarhtml = {};   // listid -> {at, html}
+function listsimilar(listid, mine) {
+  var c = listsimilarhtml[listid];
+  if(!c || Date.now() - c.at > SIMILARAGE) {
+    listsimilarhtml[listid] = {at: Date.now(), html: c ? c.html : ''};
+    similarfetch(listid, mine).then(function(matches) {
+      var html = matches.length ? similarhtml(matches) : '';
+      listsimilarhtml[listid] = {at: Date.now(), html: html};
+      $('.listsimilar[data-list="'+listid+'"]').html(html);
+    });
+  }
+  return listsimilarhtml[listid].html;
+}
+// the count of a list's matches ('' with none); the names on hover
+function similarbadge(entries, listid, mine) {
+  entries = entries || [];
+  if(!entries.length) { return ''; }
+  var counts = SIMILARBANDS.map(function(b) {
+    var n = entries.filter(function(e) { return e.band == b[0]; }).length;
+    return n ? n+' '+b[1] : '';
+  }).filter(function(x) { return x; }).join(', ');
+  return ' <span class="similarbadge" tabindex="0" data-similar="'+parseInt(listid)+'"'+(mine ? ' data-mine="1"' : '')+' aria-label="Same, Close or Similar public decks: '+counts+'">'+
+    '<svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg>'+entries.length+'</span>';
+}
+// My lists: every own list's matches, one call per game, again after SIMILARAGE; the slots fill in when it comes
+var dirsimilardata = {};    // game -> {at, lists: {listid: [entry]}}
+function dirsimilar(listid) {
+  var d = dirsimilardata[database];
+  if(listloggedin() && (!d || (Date.now() - d.at > SIMILARAGE && !d.asking))) {
+    var game = database;
+    dirsimilardata[game] = d = {at: Date.now(), lists: d ? d.lists : {}, asking: true};
+    $.ajax({
+      url: apiuri+"/list?uid="+getuid()+"&database="+encodeURIComponent(game)+"&action=similarcounts",
+      contentType: 'application/json',
+      beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+    }).done(function(r) {
+      dirsimilardata[game] = {at: Date.now(), lists: (r && r.lists) || {}};
+      if(game != database) { return; }
+      $('.similarslot').each(function() {
+	var id = $(this).attr('data-list');
+	$(this).html(similarbadge(dirsimilardata[game].lists[id], id, true));
+      });
+    }).fail(function() { dirsimilardata[game].asking = false; });
+  }
+  return (d && d.lists[listid]) || [];
+}
+// the hover list: the badge's decks by band, fetched on the first hover
+function similarclose() {
+  $('#similarpop').remove();
+}
+function similaropen(el) {
+  var badge = $(el);
+  var id = badge.attr('data-similar');
+  if($('#similarpop').attr('data-similar') == id) { return; }
+  similarclose();
+  var pop = $('<div id="similarpop" role="tooltip">').attr('data-similar', id).html('<div class="similarband">Loading…</div>').appendTo('body');
+  var place = function() {
+    var r = el.getBoundingClientRect();
+    var w = pop.outerWidth();
+    var left = Math.max(8, Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - w - 8));
+    pop.css({left: left, top: r.bottom + window.scrollY + 4});
+  };
+  place();
+  similarfetch(id, badge.attr('data-mine') == '1').then(function(matches) {
+    if($('#similarpop').attr('data-similar') != id) { return; }
+    pop.html(matches.length ? similarhtml(matches) : '<div class="similarband">No matching public decks now.</div>');
+    place();
+  });
+}
+var similarhide = null;
+$(document).on('mouseenter focusin', '.similarbadge', function() { clearTimeout(similarhide); similaropen(this); })
+  .on('mouseleave focusout', '.similarbadge, #similarpop', function() { similarhide = setTimeout(similarclose, 300); })
+  .on('mouseenter focusin', '#similarpop', function() { clearTimeout(similarhide); })
+  .on('click', '.similarbadge', function(e) { e.preventDefault(); e.stopPropagation(); similaropen(this); })
+  .on('keydown', function(e) { if(e.key == 'Escape') { similarclose(); } });
 // Reset: every filter cleared (form, person, card), staying in the view on screen
 function publicreset() {
   var group = $('#publicform [name="group"]').val() || '';

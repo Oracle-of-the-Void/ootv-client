@@ -1061,6 +1061,7 @@ proxies and public decklists, for:</p>
   {{include tmpl="#template-listaward"/}}
   {{if notes}}<div class="listviewnotes{{if !~notesopen}} listnotesclosed{{/if}}" data-list="{{:listid}}">{{:~notelinks(notes)}}</div><button type="button" class="button gray buttonsmaller listnotestoggle" aria-expanded="{{:~notesopen}}" onclick="listnotestoggle(this); return false;">{{if ~notesopen}}Show less{{else}}Show more{{/if}}</button>{{/if}}
   {{/if}}
+  {{if type == 'deck'}}<div class="listsimilar" data-list="{{:listid}}">{{:~similar}}</div>{{/if}}
   {{:~check}}
 </div>
 </script>
