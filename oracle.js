@@ -256,6 +256,11 @@ if(hashgame) {
   gamenotpicked = true;
 }
 if(!gamenotpicked) { sessionStorage.setItem("tabgame",database); }
+// a blank url that will open on the About page (the urlparser's start page): the menubar's view buttons stay hidden from
+// the first paint, not drawn and then hidden by the first showview, which moved the whole page up (layout shift)
+if(!location.hash.replace(/#game=[^#]*/,'') && (gamenotpicked || !narrowscreen())) {
+  document.documentElement.classList.add('bootabout');
+}
 var labels = {};
 var populatecallback = [];
 var auth;
@@ -8178,6 +8183,7 @@ function menutap(target) {
 }
 // switch the main content area to one of the result* views (menubar view icons, about, admin)
 function showview(view) {
+    document.documentElement.classList.remove('bootabout'); // updateviewbuttons decides from here on
     if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
