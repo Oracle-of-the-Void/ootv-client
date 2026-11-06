@@ -256,6 +256,17 @@ if(hashgame) {
   gamenotpicked = true;
 }
 if(!gamenotpicked) { sessionStorage.setItem("tabgame",database); }
+// a blank url that will open on the About page (the urlparser's start page): the menubar's view buttons stay hidden from
+// the first paint, not drawn and then hidden by the first showview, which moved the whole page up (layout shift)
+// Any other load (phones' search form, a #search, #cardid or list url) is bootresults: the About page the load shows first is
+// only a placeholder, and the view buttons keep the row the real view will show (updateviewbuttons), not hidden for a frame
+// or two between them (afterpaint) and back, moving the page twice
+if(!location.hash.replace(/#game=[^#]*/,'') && (gamenotpicked || !narrowscreen())) {
+  document.documentElement.classList.add('bootabout');
+} else {
+  document.documentElement.classList.add('bootresults');
+}
+var showviewcount = 0;
 var labels = {};
 var populatecallback = [];
 var auth;
@@ -8107,6 +8118,9 @@ function menutap(target) {
 }
 // switch the main content area to one of the result* views (menubar view icons, about, admin)
 function showview(view) {
+    // updateviewbuttons decides from here on; bootresults stays through the load's placeholder About (the first showview)
+    showviewcount++;
+    if(!(showviewcount == 1 && view == 'resultabout')) { document.documentElement.classList.remove('bootabout','bootresults'); }
     if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
@@ -9249,6 +9263,7 @@ function fullgamepermission() {
 // menubar template buttons: show the ones this game has for the view in play, highlight the active one.
 // debug also needs full game permission and the debug tab itself on screen, and isn't offered on phones.
 function updateviewbuttons() {
+  if(document.documentElement.classList.contains('bootresults')) { return; } // the load's placeholder About (top of this file)
   var type = viewbuttontype();
   var available = templates[database]['available'];
   var active = (templates[database]['active'][type]||'').replace(/-premium$/,'');
