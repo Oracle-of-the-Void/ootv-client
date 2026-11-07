@@ -3391,6 +3391,9 @@ span.dirownrules { font-weight: bold; }
   background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
 #cardpeek.cardpeektouch.cardpeekon { display: flex; }
 #cardpeek.cardpeektouch img { max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+/* an open menu stays above the peek and takes clicks (search form pulldowns, the menubar's tapped menus): the
+   peek, and on touch its backdrop, go under the menus while one is open */
+body:has(.ts-wrapper.dropdown-active, nav li.menuopen) #cardpeek { z-index: 3; }
 
 /* version menu (oracle.js versionmenuopen): at the mouse, or in the middle of the screen over a backdrop (touch).
    z-index above card peek. On touch, a long-press on your own list's rows opens it rather than selecting their text */

@@ -7533,7 +7533,22 @@ function cardpeekshow(img, url, touch) {
     var peek = $('#cardpeek');
     if(!peek.length) {
 	peek = $('<div id="cardpeek"><img alt=""></div>').appendTo('body');
-	peek.on('click', cardpeekhide);
+	// a tap that closes the peek closes only the peek: it doesn't reach an open menu or pulldown (Tom Select closes on a
+	// mousedown outside it, the menubar on a click), which needs its own tap to close
+	peek.on('pointerdown mousedown', function(e) {
+	    e.stopPropagation();
+	    if(e.type == 'mousedown') {
+		e.preventDefault();   // no focus change, which would close a pulldown
+	    }
+	}).on('touchend', function(e) {
+	    // the finger's release closes it, with no mousedown or click after (WebKit drops the click if pointerdown is prevented)
+	    e.preventDefault();
+	    e.stopPropagation();
+	    cardpeekhide();
+	}).on('click', function(e) {
+	    e.stopPropagation();
+	    cardpeekhide();
+	});
     }
     var big = peek.find('img'), place = function() {
 	if(touch) {

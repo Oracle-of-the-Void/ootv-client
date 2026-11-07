@@ -119,7 +119,8 @@ leaves out by name for another reason, such as a stronghold that was never legal
   the cards in the most public decks first; choose it again for the fewest first. With one
   **Legality** picked, the number and the sort count only decks of that format.
 - Hover over a small card picture, or a name in the simple list, to see the card at full size.
-  On a phone, press and hold it; tap to close.
+  On a phone, press and hold it; tap to close. An open menu or pulldown stays on top of the card
+  and keeps working, and closing the card leaves the menu open.
 - Click a card to open it. On the card, the arrows (or the arrow keys, with or without Alt, or a
   sideways swipe on a phone) go to the next or previous result.
 - Searches are kept in the address bar, so you can bookmark or share them, and Back returns to
