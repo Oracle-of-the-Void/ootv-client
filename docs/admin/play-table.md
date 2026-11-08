@@ -228,3 +228,15 @@ Card text that isn't an action, the last three groups (the user: "do all the rem
 Also from Obsidian: Shiba Ujimitsu only joins a Phoenix Clan player, and Shinjo Yokatsu only joins a Unicorn Clan player (`limits.join`). Written on the 21 cards (ootv-tools `work/field-fixes/imperial-play/plan-remaining.json`; checked against search, all match); the `l5r/fields` description of `play` has these since version 35. ootv-play [#72](https://github.com/Oracle-of-the-Void/ootv-play/pull/72).
 
 Fixes from play the same day (the user): a card's search asks first ("Imperial Gift: Search Fate deck for an Item now?"), and Undo goes back to before a search ([#69](https://github.com/Oracle-of-the-Void/ootv-play/pull/69)). An action's Province target can be picked by its battlefield, picked targets are outlined, and a battle's totals show from its start ([#70](https://github.com/Oracle-of-the-Void/ootv-play/pull/70)). A card's actions that aren't open now stay in its menu, greyed, with the reason ([#71](https://github.com/Oracle-of-the-Void/ootv-play/pull/71)).
+
+### Imperial cards finished out (2026-11-07)
+
+Five Imperial cards whose parts were still done by hand (the user: "Let's see which imperial cards we can finish out"), ootv-play [#113](https://github.com/Oracle-of-the-Void/ootv-play/pull/113) and [#114](https://github.com/Oracle-of-the-Void/ootv-play/pull/114):
+
+- **Shame** `{"once": "dishonored"}`: one Shame each time a Personality is dishonored. Once it's restored and dishonored again, another may be played. `"once"` can name any card state this way.
+- **Scribe** `{"once": "target"}`: this card once for each target (once per spell per Scribe).
+- **Kolat Infiltrator** `{"after": "holdingbowed"}`, `{"unproduce": true}`: a Reaction to a Holding being bowed. If it was bowed for Gold, the Gold is taken back. If it was bowed to use its own action, that action's effects are undone, as a cancel does (the user: "Kolat infiltrator will also negate actions on the holding"). The Holding stays bowed. If it was bowed to pay for another card's action, only its Gold goes. A card's bow and the Gold it produces are one point to react to.
+- **Goblin Mob** `{"redirect": {"ranged": true, "to": "self"}}`: a Reaction to a Ranged Attack at a card in its unit. The attack is undone and made at the Mob instead.
+- **Be Prepared to Dig Two Graves** `{"after": "death", "killed": {"clan": "yours"}}` (one of your Personalities of your clan has just died; `"clan": "yours"` is the player's clan), then `{"lasting": {"grudge": {"add": {"force": 2, "chi": 2}, "match": {"type": "Personality", "clan": "yours"}}}, "until": "ever"}`. For the rest of the game, your clan's Personalities have +2F/+2C while they oppose the target in a battle or a duel. Each card played is its own rule, against its own target. Reading: the target is any Personality of another player.
+
+Written on the 5 cards (ootv-backups operation 2026-11-08T031012-play-actions, plan ootv-tools `work/field-fixes/imperial-play/plan-byhand.json`); `l5r/fields` version 37 describes the new keys. Unexpected Allies already waives Honor Requirements, Gold and on-entering effects.
