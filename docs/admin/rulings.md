@@ -41,7 +41,13 @@ ootv-claude `RULINGS-IMPORT.md`):
 
 - Each ruling is the archive's text with its citation (`[DW, l5rinfo, 11/4/96]`), then a link
   named for the document and page, e.g. `Rules Archive, August 18, 2007, p. 141`, that opens the
-  page marked at the ruling (`#find=` with its first words).
+  page marked at the ruling (`#find=` with its first words). The link's date is the document's;
+  the ruling's own date is in its citation.
+- A most recent printing is dated by the set's release: `[MRP, Lotus Edition, 31 October 2005]`. The
+  archives left some undated (`[MRP, Obsidian Edition]`); those got the set's release month and year
+  on 2026-11-07 (`[MRP, Obsidian Edition, August 1997]`, ootv-tools `rulings/mrp-dates.py`). Scorpion Clan
+  Coup (three scrolls) and Imperial Herald promo citations have no single date: they carry a
+  `needsreview` note until someone dates them.
 - Errata, text changes and most recent printings (`Reads, "..."`) start with `Erratum:`. They
   are meant to take over from the card-level `erratum` field in time.
 - Onyx Lives errata: each dated note in a card's `erratum` field that links an Onyx Lives
