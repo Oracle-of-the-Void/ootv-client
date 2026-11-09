@@ -372,3 +372,13 @@ ootv-play [#250](https://github.com/Oracle-of-the-Void/ootv-play/pull/250) and [
 - **Chi reduced to zero** (SCC p. 53: "If the Chi of a Personality drops to zero for any reason, that Personality is destroyed"): config `statdeath {"stat": "chi", "match": {"type": "Personality"}}`. Checked after each action; the Personality goes with its attachments, Honorable Dead unless dishonored. One printed at 0 Chi isn't reduced and stays.
 
 Written (ootv-backups operation 2026-11-09T224923 play-actions, 4 cards, read back from the table, all match). Each has one printing, with text; no numbers differ for Imperial.
+
+### Shadowlands, tokens toggled and counted (2026-11-09)
+
+ootv-play [#252](https://github.com/Oracle-of-the-Void/ootv-play/pull/252); `l5r/play` version 62 (`modifiers.bringtokens`), `l5r/fields` version 65.
+
+- **Mara and Shabura:** `{"token": "-2F Change", "toggle": true, "to": "self"}` (Shabura's `-2F/+3C Change`): one off if she has one, else one on, so never more than one. Mara's bonus `{"trait": "Cavalry", "if": {"self": {"tokens": "Change"}}}` makes her Cavalry while she holds a Change token.
+- **Kitsu Motso:** his Limited, `{"token": "Master", "to": "self"}`. His Battle action (two consecutive actions) comes with the next group.
+- **Oni no Sanru:** the modifier `"bringtokens": 4`: he is bought only by destroying 4 tokens on his player's cards (counters or token cards). With more than 4 the table asks which, one at a time, before the Gold; with fewer it says why. His bonus `{"add": {"force": 1}, "per": {"tokens": true, "in": "opposing"}}`: +1F for each token in the army his unit faces in a battle.
+
+Written (ootv-backups operation 2026-11-09T231011 play-actions: play codes on 4 cards, read back from the table, all match; and the printed text of four printings that had none, read from their scans: Shabura Promotional–Ivory, Kitsu Motso Emerald, Obsidian and Promotional–Jade). No Holdings; no numbers differ for Imperial. Card play codes are kept out of search (ootv-dynamo), so they are checked in the table.
