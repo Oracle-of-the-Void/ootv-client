@@ -2617,8 +2617,14 @@ div#phonesearchbar .numresults {
   div#sidebaropener, .sidebarextras {
     display: none !important;
   }
+  /* laid out all the time, moved off the screen until opened: showing it from display: none laid out the whole form
+     inside the tap (129 ms at 10x CPU on the first open, Search Console's mobile INP), and a tap only moves it (about
+     1 ms). Off the screen, so tomselectauto's IntersectionObserver still builds its pulldowns only once it's opened.
+     sidebarstowed (mobilesearchtoggle) hides the closed panel from focus and screen readers, set after the closing
+     paint, since restyling the whole form for it costs ~20 ms */
   div#sidebar {
-    display: none !important;
+    display: block !important;
+    transform: translateX(-105%);
     position: fixed;
     top: 0;
     left: 0;
@@ -2631,7 +2637,10 @@ div#phonesearchbar .numresults {
     box-shadow: 2px 0 8px rgba(0,0,0,.5);
   }
   body.mobilesearch div#sidebar {
-    display: block !important;
+    transform: none;
+  }
+  div#sidebar.sidebarstowed {
+    visibility: hidden;
   }
   /* Edit search bar above the search results (index.html), opens the panel */
   body.viewsearch div#phonesearchbar {
