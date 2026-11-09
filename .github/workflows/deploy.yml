@@ -32,10 +32,14 @@ jobs:
             master)
               echo "bucket=oracleofthevoid.com" >> $GITHUB_OUTPUT
               echo "distribution=E6ECGAAP7LNKR" >> $GITHUB_OUTPUT
+              echo "invalidate=true" >> $GITHUB_OUTPUT
               ;;
             dev)
               echo "bucket=preview.oracleofthevoid.com" >> $GITHUB_OUTPUT
               echo "distribution=E2S43UTDKL45NF" >> $GITHUB_OUTPUT
+              # preview's CloudFront caches nothing but robots.txt (CachingDisabled, 2026-11-09): no invalidation
+              # (they cost $0.005 a path past 1,000 a month, and preview deploys were half of them)
+              echo "invalidate=false" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "No deploy target for branch ${{ github.ref_name }}"
@@ -85,6 +89,7 @@ jobs:
         env:
           BUCKET: ${{ steps.target.outputs.bucket }}
           DISTRIBUTION: ${{ steps.target.outputs.distribution }}
+          INVALIDATE: ${{ steps.target.outputs.invalidate }}
         run: |
           junk=(--exclude '.DS*' --exclude '._*' --exclude '.git' --exclude '.git/*' --exclude '.gitignore'
                 --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*'
@@ -102,8 +107,10 @@ jobs:
             --exclude '*.html' --exclude 'version.json' --exclude '*.js' --exclude '*.css' \
             --cache-control 'public, max-age=86400'
 
-          id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths '/*' --query Invalidation.Id --output text)
-          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
+          if [ "$INVALIDATE" = true ]; then
+            id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths '/*' --query Invalidation.Id --output text)
+            aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
+          fi
 
           # 2. pages and version.json, then drop files that are gone from the repo
           aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --cache-control 'no-cache'
