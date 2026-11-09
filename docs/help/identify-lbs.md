@@ -35,6 +35,19 @@ the type first:
 So on a holding: white type is Shadow of the Tyrant; black type with a hook is Secrets and Lies;
 black type with a nub is Black Hand, Black Heart; 1999 is The Awakening.
 
+### When the line sits lower {#holdings-lower}
+
+On some holdings, among them the starter-deck reprints of Shadow of the Tyrant holdings (Belly
+Dancer, Copper Mine, Spices, ...), the artist line is printed a little lower: "Illus" ends inside
+the stone and the mark falls on the stone itself, where it all but disappears. The type is still
+black, so the card isn't Shadow of the Tyrant, but telling Secrets and Lies from Black Hand, Black
+Heart takes a close look at the stone just past "Illus" (arrowed). Two views of each:
+
+| Set | Close-up | Wider (arrowed) |
+|---|---|---|
+| Secrets and Lies | ![Secrets and Lies holding, lower line](res/help/identify-lbs/reprint-sal.jpg) | ![Secrets and Lies holding, arrowed](res/help/identify-lbs/guide-holding-sl.jpg) |
+| Black Hand, Black Heart | ![Black Hand, Black Heart holding, lower line](res/help/identify-lbs/reprint-bhbh.jpg) | ![Black Hand, Black Heart holding, arrowed](res/help/identify-lbs/guide-holding-bh.jpg) |
+
 ## Look-alikes {#look-alikes}
 
 - **No mark is not always Shadow of the Tyrant.** The mark is very small: on a worn card or a poor
