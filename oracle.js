@@ -3989,8 +3989,7 @@ function listheader(listid) {
     return $.templates("#template-listheader").render(meta,{"listtypes": listtypes, "mine": mine,
 	"active": activelists.indexOf(String(listid)) > -1, "pdfallowed": pdfallowed(), "snm": snmallowed(),
 	"awardmod": gamepermission('listaward'), "adminedit": listadminedit(listid), "admincan": listadmincan(listid), "adminnotify": !!(adminediting[listid] && adminediting[listid].notify), "deckbuild": !!deckbuildconfig(),
-	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid],
-	"similar": meta.type == 'deck' ? listsimilar(listid, mine) : ''});
+	"loggedin": listloggedin(), "database": database, "mon": liststrongholdmon(listid), "check": listcheckhtml[listid] || '', "notesopen": !!listnotesopen[listid]});
 }
 // list view header: long notes start cut to a few lines. Show more / Show less, or clicking in to edit, opens them;
 // they stay as left while the list redraws (each save draws it again), until the page reloads.
@@ -4478,7 +4477,9 @@ function liststats(listdata,listid=null) {
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
 	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
-	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield(),
+	"similarid": meta.type == 'deck' && listid ? parseInt(listid) : 0,
+	"similar": meta.type == 'deck' && listid ? listsimilar(listid, listeditable(listid)) : ''});
 }
 // the list header's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
 // not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
@@ -5061,7 +5062,7 @@ function liststatsopen() {
     return cache_session("liststatsopen") !== false;
 }
 function liststatstoggle(el) {
-    cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
+    cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : $(el).hasClass('liststatssim') ? "liststatssimopen" : "liststatsopen", el.open);
     deckviewfit(); // folding changes how wide the statistics are
 }
 // ***********************  list Table view (template-table) **************
@@ -12937,7 +12938,8 @@ function openpubliclist(listid) {
 // by card, copies counted, printing ignored: the copies they share over the copies in either one. Same is every copy
 // alike, Close 90% or more, Similar 78% or more (the user, 2026-11-06), and only public decks are ever named. The lists
 // index keeps each list's matches ({listid, band, score}); the names come from GET /publiclists?similarto=<listid> (a
-// public list) or /list action=similar (one of your own, private too). Shown in a deck's header (listsimilar), as a
+// public list) or /list action=similar (one of your own, private too). Shown in a deck's statistics box as its own
+// Similar decks part (listsimilar, template-liststatssim), as a
 // count in public results and My lists (similarbadge, the decks listed on hover), explained in Help, Public lists,
 // whose sections each word's hover shows.
 var SIMILARBANDS = [['same', 'Same'], ['close', 'Close'], ['similar', 'Similar']];
@@ -12978,19 +12980,35 @@ function similarhtml(matches, linkclass) {
     }).join('; ')+'</div>';
   }).join('');
 }
-// a deck's header line: '' until its matches come, then drawn in place
-var listsimilarhtml = {};   // listid -> {at, html}
+// a deck's Similar decks part of the statistics box: '' until its matches come (and with none), then drawn in its slot.
+// Starts open, and stays the way it was last left this session.
+function listsimilarsection(matches) {
+  var bands = SIMILARBANDS.map(function(b) {
+    return {word: similarword(b[0]), name: b[1], matches: matches.filter(function(m) { return m.band == b[0]; }).map(function(m) {
+      return {listid: parseInt(m.listid), name: m.name || 'Unnamed list', owner: m.ownername || 'another player', diff: similardiff(m)};
+    })};
+  }).filter(function(b) { return b.matches.length; });
+  if(!bands.length) { return ''; }
+  return $.templates("#template-liststatssim").render({bands: bands, database: database,
+    counts: bands.map(function(b) { return b.matches.length+' '+b.name; }).join(', '), open: cache_session("liststatssimopen") !== false});
+}
+var listsimilarmatches = {};   // listid -> {at, matches}
 function listsimilar(listid, mine) {
-  var c = listsimilarhtml[listid];
+  listid = parseInt(listid);
+  var c = listsimilarmatches[listid];
   if(!c || Date.now() - c.at > SIMILARAGE) {
-    listsimilarhtml[listid] = {at: Date.now(), html: c ? c.html : ''};
+    listsimilarmatches[listid] = {at: Date.now(), matches: c ? c.matches : []};
     similarfetch(listid, mine).then(function(matches) {
-      var html = matches.length ? similarhtml(matches) : '';
-      listsimilarhtml[listid] = {at: Date.now(), html: html};
-      $('.listsimilar[data-list="'+listid+'"]').html(html);
+      var was = JSON.stringify(listsimilarmatches[listid].matches);
+      listsimilarmatches[listid] = {at: Date.now(), matches: matches};
+      var slot = $('.liststatssimslot[data-list="'+listid+'"]');
+      if(slot.length && (was != JSON.stringify(matches) || slot.is(':empty'))) {
+        slot.html(listsimilarsection(matches));
+        deckviewfit();
+      }
     });
   }
-  return listsimilarhtml[listid].html;
+  return listsimilarsection(listsimilarmatches[listid].matches);
 }
 // the count of a list's matches ('' with none); the names on hover
 function similarbadge(entries, listid, mine) {

@@ -3483,11 +3483,14 @@ ins.adsbygoogle, ins.adsbygoogle iframe { color-scheme: light; }
   vertical-align: 1px; white-space: nowrap; }
 .similarbadge svg.feather { width: 11px; height: 11px; }
 .similarbadge:focus-visible { outline: solid var(--focus-ring) 2px; }
-div.listsimilar:empty { display: none; }
-div.listsimilar { margin: 4px 0; font-size: 13px; }
+/* the statistics box's Similar decks part: its slot's details is one of the box's flex items */
+div.liststatssimslot { display: contents; }
+/* text columns, not counts: left aligned, unshaded; a deck name gets room before it wraps */
+table.liststatssimtable th, table.liststatssimtable td { text-align: left; }
+table.liststatssimtable td:nth-child(even), table.liststatssimtable thead th:nth-child(even) { background-color: transparent; }
+table.liststatssimtable tbody th { min-width: 9em; max-width: 22em; }
 .similarband + .similarband { margin-top: 3px; }
 .similarby { color: var(--text-2); }
-div.listsimilar .similarby { color: inherit; opacity: .8; }
 .helpq.similarword { font-family: inherit; font-size: inherit; font-weight: bold; color: inherit; vertical-align: baseline;
   text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
 :is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle) .helpq.similarword { color: inherit; }
