@@ -323,3 +323,27 @@ ootv-play [#240](https://github.com/Oracle-of-the-Void/ootv-play/pull/240), [#24
 - **Another Time, Nageteppo:** a focus card's `"result": "none"` and `{"duelset": {"end": true}}`: the duel ends with no effect. Nageteppo's Battle action sends its unit home unbowed (`"home"` with `"to": "host"`).
 
 Written (ootv-backups operations 2026-11-09 play-actions: 7, 5 and 6 cards; read back from the table, all match). Left to come back to: Levy Troops' Honor loss when a token goes, and the Porcelain Mask when it is destroyed some other way.
+
+### Shadowlands, redirects and moving tokens; Imperial numbers (2026-11-09)
+
+ootv-play [#246](https://github.com/Oracle-of-the-Void/ootv-play/pull/246); `l5r/play` unchanged (version 60), `l5r/fields` version 63.
+
+- **Shinjo Tsuburo:** a redirect `"at": "army"`, `"to": "self"`: he takes a Ranged Attack aimed at another card in his army. If it isn't strong enough to destroy him, it has no effect.
+- **Gust of Wind:** a redirect `"at": "army"`, `"to": "battle"`: a Ranged Attack aimed at its Shugenja's army goes to any card in the battle it can be aimed at, in either army.
+- **Soshi Bantaro:** a redirect `"to": "self"` with no `"at"`: a spell's effect goes to him, where he is a legal target.
+- **Sympathetic Energies:** `{"movetoken": true}`: a token moves from the first Personality picked to the second. A made token card only goes where it could attach. When the first Personality has more than one token, the table asks which one.
+- **Kolat Oyabun:** a target match `"counters": {"conspiracy": {"min": {"own": "ph", "plus": 1}}}`: its Open bows a Personality with more conspiracy tokens than its Personal Honor.
+
+**`play.fields`** (ootv-play [#247](https://github.com/Oracle-of-the-Void/ootv-play/pull/247)). A card stores its most recent printing's numbers. `{"fields": {"Imperial": {"cost": ["10"]}}}` gives the numbers an older era printed where they differ, stored like the card's own fields. The table uses them when it builds decks under that rule set. Written for Imperial:
+
+- The Ancestral Home of the Lion: Strength 6.
+- The War Fortress of the Crab: Strength 7.
+- From the Shadowlands printings, read by eye against all 79 Shadowlands cards reprinted after the Imperial arc:
+  - Obsidian Mirror: cost 10.
+  - Mirumoto Taki: cost 8, also on its Battle of Beiden Pass printing.
+  - Thunder Dragon: cost 14, Honor Requirement 12.
+  - Wakizashi: focus 1.
+
+Written (ootv-backups operations 2026-11-09T215807 and T220221 play-actions; read back from the table, all match). Also:
+- Printed text read from the scans for two printings that had none: Shinjo Tsuburo (Battle of Beiden Pass) and Sympathetic Energies (Promotional–CWF).
+- Temple of Bishamon's missing `production` filled: it produces 1 Gold (operation 2026-11-09T220243 fill-variable-values).
