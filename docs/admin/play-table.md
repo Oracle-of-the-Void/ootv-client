@@ -359,3 +359,16 @@ ootv-play [#246](https://github.com/Oracle-of-the-Void/ootv-play/pull/246); `l5r
 Written (ootv-backups operations 2026-11-09T215807, T220221 and T223158 play-actions; read back from the table, all match). Also:
 - Printed text read from the scans for two printings that had none: Shinjo Tsuburo (Battle of Beiden Pass) and Sympathetic Energies (Promotional–CWF).
 - Temple of Bishamon's missing `production` filled: it produces 1 Gold (operation 2026-11-09T220243 fill-variable-values).
+
+### Shadowlands, Corruption on the host; Chi reduced to zero (2026-11-09)
+
+ootv-play [#250](https://github.com/Oracle-of-the-Void/ootv-play/pull/250) and [#251](https://github.com/Oracle-of-the-Void/ootv-play/pull/251); `l5r/play` version 61 (`statdeath`), `l5r/fields` version 64.
+
+- **The Corruption token:** Dark Divination, Shapeshifting, Touch of Despair and Touch of Fu Leng each carry `{"at": "straightened", "of": "host", "effects": [{"token": "-1C Corruption", "to": "host"}]}` in `play.when`. A trigger with `"of": "host"` fires at the moment of the card it's attached to, so the Shugenja gets a −1C token each time he straightens, at Straighten or any other way.
+- **Dark Divination:** `{"look": {"top": 5}}`: its player may look at the top 5 cards of any one deck, anyone's, from that deck's menu (Look at top).
+- **Shapeshifting:** `{"swap": ["force", "chi", "ph"], "base": true, "until": "ever"}`: the table asks which two to switch. Base values are the printed ones plus changes for good, not tokens or changes for a while.
+- **Touch of Despair:** `{"trait": "Shadowlands", "until": "ever"}`.
+- **Touch of Fu Leng:** the target gains "Battle: Fear X" until the end of the turn, its Fear `{"stat": "chi", "of": "giver"}`: the Chi of the Shugenja who gave it, read when the Fear is used.
+- **Chi reduced to zero** (SCC p. 53: "If the Chi of a Personality drops to zero for any reason, that Personality is destroyed"): config `statdeath {"stat": "chi", "match": {"type": "Personality"}}`. Checked after each action; the Personality goes with its attachments, Honorable Dead unless dishonored. One printed at 0 Chi isn't reduced and stays.
+
+Written (ootv-backups operation 2026-11-09T224923 play-actions, 4 cards, read back from the table, all match). Each has one printing, with text; no numbers differ for Imperial.
