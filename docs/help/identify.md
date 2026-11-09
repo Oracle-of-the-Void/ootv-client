@@ -4,6 +4,8 @@ Which arc and which set an old Legend of the Five Rings card comes from, read of
 the **bug** tells you the arc, and the **border** (before Gold Edition) or the **set code** (from Gold
 Edition on) tells you the set.
 
+For Legend of the Burning Sands, see [Identifying LBS cards](identify-lbs.md).
+
 ## The bugs: which arc {#bugs}
 
 From Jade Edition (1998) on, each card prints a small symbol, the "bug", in a lower corner of its text

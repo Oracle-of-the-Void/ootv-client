@@ -13,6 +13,7 @@ var HELPTOPICS = [
   {id: 'searching', title: 'Searching'},
   {id: 'cards', title: 'The card page'},
   {id: 'identify', title: 'Identifying L5R cards'},
+  {id: 'identify-lbs', title: 'Identifying LBS cards'},
   {id: 'lists', title: 'Decks and lists'},
   {id: 'public-lists', title: 'Public lists'},
   {id: 'rules', title: 'Bookshelf'},
