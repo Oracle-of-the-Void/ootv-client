@@ -34,6 +34,8 @@ on a phone) to see its name.
 - **Bookshelf**: the rulebooks and newsletters, to read and search ([Bookshelf](rules.md)).
 - **Help**: these pages.
 
+The menu (the three lines at the top left) has the same views by name, then About, Clear Cache, Theme and Settings.
+
 The buttons on the right change how results look and how they're sorted. Settings is in the
 menu under your name, or the first menu when logged out ([Account and settings](settings.md)).
 
