@@ -2077,6 +2077,8 @@ nav ul li ul li.menuactive {
   background-color: rgb(192,255,192);
 }
 */
+/* the first menu: a line between the views and the rest */
+div.menubar nav ul li ul li.menusep { padding: 0; height: 0; border-top: 1px solid var(--line-3); cursor: default; }
 nav ul li ul li.menuactive::before {
     content: url('res/icon-buttons/led_green_on.png');
     margin-right: .4em;

@@ -8162,6 +8162,7 @@ function showview(view) {
     $(".ui-layout-center div[id^=result]").hide(); // Hide all content
     $(".viewicons button").removeClass("searchviewactive");
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
+    $('li.menuone > ul > li[data-view]').each(function() { $(this).toggleClass('menuactive', $(this).data('view') == view); });
     $('#' + view).fadeIn();
     seturl(viewstate(view.replace(/^result/,'')));
     if(view == 'resultadmin') loadadmininfo();
