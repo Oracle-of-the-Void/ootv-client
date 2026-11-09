@@ -343,7 +343,19 @@ ootv-play [#246](https://github.com/Oracle-of-the-Void/ootv-play/pull/246); `l5r
   - Mirumoto Taki: cost 8, also on its Battle of Beiden Pass printing.
   - Thunder Dragon: cost 14, Honor Requirement 12.
   - Wakizashi: focus 1.
+- From the Clan Wars printings of every other play-coded card that was reprinted after the Imperial arc (224 cards, read by eye, 2026-11-09):
+  - Castle of Water: cost 3.
+  - Earth Dragon: cost 11.
+  - Explosives: cost 8.
+  - Fan of Command: cost 5.
+  - Fire Dragon: Force 6, cost 14.
+  - Investigation: cost 2.
+  - Void Dragon: Force 7, cost 11.
+  - Wyrm Riders: cost 6.
+  - Spearmen: Honor Requirement 1.
+  - Kakita Yoshi: Personal Honor 1.
+  - Not changed: the number in the corner of the Honor Holdings (Famous Poet, Fantastic Gardens, Hawks and Falcons, Temple of Bishamon) is the Honor they give, which no field stores.
 
-Written (ootv-backups operations 2026-11-09T215807 and T220221 play-actions; read back from the table, all match). Also:
+Written (ootv-backups operations 2026-11-09T215807, T220221 and T223158 play-actions; read back from the table, all match). Also:
 - Printed text read from the scans for two printings that had none: Shinjo Tsuburo (Battle of Beiden Pass) and Sympathetic Energies (Promotional–CWF).
 - Temple of Bishamon's missing `production` filled: it produces 1 Gold (operation 2026-11-09T220243 fill-variable-values).
