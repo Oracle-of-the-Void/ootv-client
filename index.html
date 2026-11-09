@@ -53,6 +53,17 @@
     <ul>
       <li class="dropdown menuone"><svg class="feather"><use xlink:href="res/feather-sprite.svg#menu"></svg>
 	<ul>
+	  <!-- the view icons of the menu bar (li.viewicons), as words (the play table's ☰ menu has them too) -->
+	  <li data-view="resultsearch" onclick="searchviewbutton();">Search Results <svg class="feather"><use xlink:href="res/feather-sprite.svg#search"></svg></li>
+	  <li data-view="resultcard" onclick="showview('resultcard');">Card Details <svg class="feather"><use xlink:href="res/feather-sprite.svg#image"></svg></li>
+	  <li data-view="resultdir" onclick="showview('resultdir');">List/Deck Directory <svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg></li>
+	  <li data-view="resultlist" onclick="showview('resultlist');">Deck/List Details <svg class="feather"><use xlink:href="res/feather-sprite.svg#list"></svg></li>
+	  <li data-view="resultpublic" onclick="showview('resultpublic');">Public Lists <svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg></li>
+	  <li data-view="resultrules" onclick="showview('resultrules');">Bookshelf <svg class="feather"><use xlink:href="res/feather-sprite.svg#book-open"></svg></li>
+	  <li data-view="resulttrades" onclick="showview('resulttrades');">Trades <svg class="feather"><use xlink:href="res/feather-sprite.svg#repeat"></svg></li>
+	  <li data-view="resultmessages" onclick="showview('resultmessages');">Messages <svg class="feather"><use xlink:href="res/feather-sprite.svg#mail"></svg></li>
+	  <li data-view="resulthelp" onclick="showview('resulthelp');">Help <svg class="feather"><use xlink:href="res/feather-sprite.svg#help-circle"></svg></li>
+	  <li class="menusep" aria-hidden="true"></li>
 	  <li onclick="showview('resultabout');">About <svg class="feather"><use xlink:href="res/feather-sprite.svg#info"></svg></li>
 	  <li><span onclick="clearcache();" >Clear Cache <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-ccw"></svg></span></li>
 	  <li onclick="themecycle();">Theme: <span class="themelabel">Auto</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#moon"></svg></li>
