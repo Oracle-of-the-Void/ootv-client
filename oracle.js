@@ -290,7 +290,7 @@ function bootcardlarge() {
 // the menubar's game logo: logo is the file name (all/games), table the game's key in logoshape
 function gamelogoimg(logo, table) {
   var s = logoshape[table];
-  return '<img src="gamelogos/64/'+logo+'"'+(s ? ' width="'+s[0]+'" height="'+s[1]+'"' : '')+'>';
+  return '<img src="gamelogos/64/'+logo+'" alt=""'+(s ? ' width="'+s[0]+'" height="'+s[1]+'"' : '')+'>';
 }
 function menubarboot() {
   if(logoshape[database]) { $('.gameinfo-game').html(gamelogoimg(database+'.png', database)); } // every game's logo is <table>.png
@@ -9920,7 +9920,7 @@ function startpage() {
   
   $('.gameinfo-game').html(gamelogoimg(dbinfo[database].logo, database)+'<span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
-  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
+  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'" alt="">');
   
   urlready = true;
   urlparser();
@@ -10209,7 +10209,7 @@ if(typeof IntersectionObserver != 'undefined') {
 function addgametolist(db) {
   var cls = (database == db ? ['menuactive'] : []).concat(gamepreviewonly.includes(db) ? ['gamepreviewonly'] : []);
   $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);"'+
-    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+
+    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'" alt="">&nbsp;'+dbinfo[db].name+
     (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</a></li>');
 }
 
