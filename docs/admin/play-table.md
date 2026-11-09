@@ -303,3 +303,23 @@ ootv-play [#233](https://github.com/Oracle-of-the-Void/ootv-play/pull/233) and [
 - **The Falling Darkness, The Rising Sun:** lasting `per`: every Personality's Force down, or Chi up, by its own Personal Honor until the revealer's next turn.
 
 Written (ootv-backups operations 2026-11-09 play-actions: 8 cards, then 7 Events; read back from the table, all match). Left to come back to: Final Charge, and Shinjo House Guard's "only Follower, Cavalry Personality" condition (the players judge it).
+
+### Shadowlands, duels, Followers and cancels (2026-11-09)
+
+ootv-play [#240](https://github.com/Oracle-of-the-Void/ootv-play/pull/240), [#241](https://github.com/Oracle-of-the-Void/ootv-play/pull/241), [#243](https://github.com/Oracle-of-the-Void/ootv-play/pull/243) and [#244](https://github.com/Oracle-of-the-Void/ootv-play/pull/244); `l5r/play` version 60, `l5r/fields` version 62.
+
+- **Test of Might:** duel rules `"stat": "force"` and `"lose": {"bow": true}`: Force is compared, and the loser is bowed, not destroyed.
+- **Ratling Thief:** duel rules `"plus"` and `"take"`: +3C for this duel; if it wins, it takes the Item, and nobody dies.
+- **Mirumoto House Guard:** `"challenger": "host"`: the Personality it is attached to challenges.
+- **He's Mine!, Bayushi Aramoro:** `{"duelset": {"replace": "target" | "self"}}`: take a duelist's place. He's Mine! bows the one replaced (`bowout`), and Aramoro bows after the duel (`bowafter`).
+- **Dark Oracle of Fire:** focus `"faceup": "theirs"`: your opponent's focus cards go face up.
+- **Tetsubo:** the modifier `strikefirst` and a bonus with `"induel"`: when its Personality challenges, it focuses or strikes first, and it has −1C only while dueling.
+- **Levy Troops:** a make's `"count": {"of": "x", "div": 3}`: one 1F Ashigaru token per 3 Gold paid.
+- **Doji House Guard, Shiba House Guard:** a bonus add of `{"of": "host", "field"}`: Force from the Personality's Personal Honor (+1) or Chi.
+- **Porcelain Mask of Fu Leng:** tokens equal to its Personality's Chi, one off each Events Phase; none left: its Personality is destroyed.
+- **Gambling House:** `{"production": an amount}`: it produces the Focus Value it discarded as it came in.
+- **The Hidden Temples of the Naga**, from its Time of the Void wording (its most recent Imperial-arc printing): a Limited action makes a 1F Naga Follower token on a Naga Personality; the modifiers `nofearfor` (your Nagas are immune to Fear), `nohonorwin` (no Honor Victory) and `honorwaive` (Honor Requirements of Nagas ignored while you have no Shadowlands cards in play; the buy's log names the Temples).
+- **A Stout Heart, Matsu Chokoku, The Turtle's Shell:** a cancel's `"kinds"` (`fear`, `ranged`), with `"targeting": "army"` for Chokoku: they cancel a Fear or Ranged Attack aimed at the card or unit they name.
+- **Another Time, Nageteppo:** a focus card's `"result": "none"` and `{"duelset": {"end": true}}`: the duel ends with no effect. Nageteppo's Battle action sends its unit home unbowed (`"home"` with `"to": "host"`).
+
+Written (ootv-backups operations 2026-11-09 play-actions: 7, 5 and 6 cards; read back from the table, all match). Left to come back to: Levy Troops' Honor loss when a token goes, and the Porcelain Mask when it is destroyed some other way.
