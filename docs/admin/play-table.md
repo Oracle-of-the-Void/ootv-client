@@ -382,3 +382,18 @@ ootv-play [#252](https://github.com/Oracle-of-the-Void/ootv-play/pull/252); `l5r
 - **Oni no Sanru:** the modifier `"bringtokens": 4`: he is bought only by destroying 4 tokens on his player's cards (counters or token cards). With more than 4 the table asks which, one at a time, before the Gold; with fewer it says why. His bonus `{"add": {"force": 1}, "per": {"tokens": true, "in": "opposing"}}`: +1F for each token in the army his unit faces in a battle.
 
 Written (ootv-backups operation 2026-11-09T231011 play-actions: play codes on 4 cards, read back from the table, all match; and the printed text of four printings that had none, read from their scans: Shabura Promotional–Ivory, Kitsu Motso Emerald, Obsidian and Promotional–Jade). No Holdings; no numbers differ for Imperial. Card play codes are kept out of search (ootv-dynamo), so they are checked in the table.
+
+### Shadowlands, Honor events, arrows and extra actions (2026-11-09)
+
+ootv-play [#253](https://github.com/Oracle-of-the-Void/ootv-play/pull/253); `l5r/play` version 63 (`afters` `actorloss`, `holdinghonor`, `boughtfull`, `dynastyend`), `l5r/fields` version 66. The new reaction conditions read the whole action the picked log line belongs to (a purchase is its move, its Personal Honor and its refill).
+
+- **Court Jester:** `{"after": "actorloss", "once": "event"}`, then `{"add": {"honor": {"of": "lost", "who": "actor", "times": -1}}, "to": "actor"}`: the other player loses their own loss again; one Jester a loss.
+- **Bayushi Goshiu:** `{"after": "honorloss"}`, then your loss `{"of": "lost", "who": "you", "times": -1}` to another player.
+- **Shosuro Taberu** (Political, as his Battle of Beiden Pass printing): `{"after": "holdinghonor"}`; you gain what the other player gained, and they lose it.
+- **Togashi Gaijutsu:** `{"after": "boughtfull"}`, a target of yours with clan Dragon and the Samurai trait: no Personal Honor gain, the top Fate card discarded, its Focus Value in Force and Chi for good.
+- **Crystal Arrow, Jade Arrow:** gate `{"capable": "ranged"}` (the Personality has a Ranged Attack of its own, gained, or from another attachment); `{"ranged": {"sure": true}, "any": true}` (destroys the card whatever its Force; counted as a Ranged Attack); the host bows, the arrow is destroyed. Crystal only at an opposing Shadowlands card.
+- **Han-kyu, Ikiryo:** `"withfollowers": true` (may hit a Personality with Followers). Ikiryo: Ranged equal to its Personality's Chi, Honor lost `{"of": "host", "field": "chi", "times": -1}`, its Personality dishonored, Ikiryo destroyed.
+- **Kitsu Motso:** Battle, cost `{"bow": true, "token": {"name": "Master"}}`, `{"again": 2}`: his player takes the next two actions before the next player (a pass ends it).
+- **Twist of Fate:** `{"after": "dynastyend"}`, `{"window": {"timing": ["Limited", "Open"]}}`: one Limited or Open card action in the End Phase, offered in the menu. Lobbying is shut out; "You may not attach cards" is left to the players (to look at again).
+
+Written (ootv-backups operation 2026-11-09T233800 play-actions: play codes on 10 cards, read back from the table, all match; and the printed text of five printings that had none, read from their scans: Shosuro Taberu and Crystal Arrow, Battle of Beiden Pass; Ikiryo, Emperor and Gold; Twist of Fate, Emperor). No Holdings; the reprinted cards' numbers were checked with the redirects group.
