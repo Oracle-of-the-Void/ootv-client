@@ -1043,7 +1043,6 @@ proxies and public decklists, for:</p>
   {{include tmpl="#template-listaward"/}}
   {{if notes}}<div class="listviewnotes{{if !~notesopen}} listnotesclosed{{/if}}" data-list="{{:listid}}">{{:~notelinks(notes)}}</div><button type="button" class="button gray buttonsmaller listnotestoggle" aria-expanded="{{:~notesopen}}" onclick="listnotestoggle(this); return false;">{{if ~notesopen}}Show less{{else}}Show more{{/if}}</button>{{/if}}
   {{/if}}
-  {{if type == 'deck'}}<div class="listsimilar" data-list="{{:listid}}">{{:~similar}}</div>{{/if}}
   {{:~check}}
 </div>
 </script>
@@ -1126,7 +1125,27 @@ proxies and public decklists, for:</p>
   </table>
 </details>
 {{/if}}
+{{if similarid}}<div class="liststatssimslot" data-list="{{:similarid}}">{{:similar}}</div>{{/if}}
 </div>
+</script>
+<!-- list view: the statistics box's Similar decks part (listsimilar in oracle.js): the public decks that are Same, Close
+     or Similar to this one, by band, each with its player and how many cards differ. Only drawn when there are some;
+     it comes after the box, in its slot (liststatssimslot), once the matches are fetched. -->
+<script id="template-liststatssim" type="text/x-jsrender">
+<details class="liststatssim"{{if open}} open{{/if}} ontoggle="liststatstoggle(this);">
+  <summary>Similar decks: {{:counts}}<span class="liststatshint"> (expand for the decks)</span> <span class="helpq" data-help="public-lists#similar" aria-label="Help: Same, Close and Similar decks">?</span></summary>
+  <table class="liststatstable liststatssimtable">
+    <thead><tr><th>Deck</th><th>Player</th><th>Difference</th></tr></thead>
+    {{for bands}}
+    <tbody>
+    <tr class="liststatsdeck"><th colspan="3">{{:word}} ({{:matches.length}})</th></tr>
+    {{for matches}}
+    <tr><th><a href="#game={{:~root.database}},#listid={{:listid}}" onclick="similarclose(); openpubliclist({{:listid}}); return false;">{{>name}}</a></th><td>{{>owner}}</td><td>{{:diff}}</td></tr>
+    {{/for}}
+    </tbody>
+    {{/for}}
+  </table>
+</details>
 </script>
 <!-- deck/list Table view: the table around template-table's rows (listtablewrap); ~rows is that html. With header
      rows each section's labels are in its own header row (listtableheads), so there's no table head -->
