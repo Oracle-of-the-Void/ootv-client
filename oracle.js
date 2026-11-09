@@ -11755,9 +11755,16 @@ function narrowscreen() {
     return window.matchMedia('(max-width: 768px), (pointer: coarse) and (max-height: 500px)').matches;
 }
 function mobilesearchtoggle(open) {
-    $('body').toggleClass('mobilesearch', open);
-    // start the panel below the menubar (when it's on screen) so the button that toggles it stays reachable
-    $('#sidebar').css('top', Math.max(0, $('div.menubar')[0].getBoundingClientRect().bottom));
+    // start the panel below the menubar (when it's on screen) so the button that toggles it stays reachable. Read before
+    // the class changes, so the read doesn't make the browser restyle and lay out the page inside the tap (INP)
+    var top = Math.max(0, $('div.menubar')[0].getBoundingClientRect().bottom);
+    var shown = $('body').toggleClass('mobilesearch', open).hasClass('mobilesearch');
+    $('#sidebar').css('top', top);
+    if(shown) {
+	$('#sidebar').removeClass('sidebarstowed');
+    } else {
+	afterpaint(function() { if(!$('body').hasClass('mobilesearch')) { $('#sidebar').addClass('sidebarstowed'); } });
+    }
 }
 // tapping the results while the panel is open closes it
 $(document).on('click', '#maincontent', function() {
