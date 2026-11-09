@@ -266,6 +266,47 @@ if(!location.hash.replace(/#game=[^#]*/,'') && (gamenotpicked || !narrowscreen()
 } else {
   document.documentElement.classList.add('bootresults');
 }
+// The menubar as the load will end it, before its first paint (menubarboot, run by index.html straight after the menubar):
+// on phones a wide game logo (Initial D, Doomtown, Mythos) and the Log In button arriving with the game config, and the
+// view row only narrowing to the card view's buttons after that, wrapped the row a line down and back (mobile CLS 0.42-0.47).
+// Each game's logo's size (gamelogos/64, width and height), so its <img> has its shape before it loads: a new game's logo
+// gets a line here (any game without one draws as before, its room taken when the logo arrives)
+var logoshape = {'l5r': [61,64], 'lbs': [78,64], '7thsea': [64,60], 'initiald': [64,28], 'warlord': [64,34], 'dune': [101,64],
+  'pathfinder-pawns': [47,64], 'l5rlcg': [64,64], 'netrunner': [82,64], 'dtccg': [172,64], 'dtlcg': [241,64], 'qftg': [33,64],
+  'wh40k': [163,64], '7s5s': [64,64], 'swccg': [94,64], 'mythos': [205,64]};
+// the games whose card page has the large view (card-premium in their views), so a card url starts with the size buttons only
+// for them. A stored game config (a returning visitor) says it itself; this list is for a first visit, and a stale entry only
+// costs a layout shift on that game's card links
+var cardlargegames = ['l5r', 'lbs', '7thsea', 'initiald', 'pathfinder-pawns'];
+function bootcardlarge() {
+  var conf = null;
+  try { conf = cache_thing('gameconfig', database); } catch(e) {}
+  if(conf && conf.game && conf.game.views && conf.templates && conf.templates.standard) {
+    var v = conf.game.views;
+    return conf.templates.standard.filter(function(k) { return !(v.remove || []).includes(k); }).concat(v.add || []).includes('card-premium');
+  }
+  return cardlargegames.includes(database);
+}
+// the menubar's game logo: logo is the file name (all/games), table the game's key in logoshape
+function gamelogoimg(logo, table) {
+  var s = logoshape[table];
+  return '<img src="gamelogos/64/'+logo+'"'+(s ? ' width="'+s[0]+'" height="'+s[1]+'"' : '')+'>';
+}
+function menubarboot() {
+  if(logoshape[database]) { $('.gameinfo-game').html(gamelogoimg(database+'.png', database)); } // every game's logo is <table>.png
+  // logged out (no Cognito tokens kept): Log In now, not when the login check answers (logoutcallback shows it again)
+  var tokens = false;
+  try { for(var i = 0; i < localStorage.length; i++) { if(localStorage.key(i).indexOf('CognitoIdentityServiceProvider.') === 0) { tokens = true; break; } } } catch(e) { tokens = true; }
+  if(!tokens) { $('#loginbutton').show(); }
+  // a card or list url: the view row starts as that view draws it (updateviewbuttons): sort is for search results only,
+  // and the card view has no template buttons (card and card-premium are the size buttons)
+  var hash = location.hash;
+  if(/#cardid=|#listid=/.test(hash) && !/#search=/.test(hash)) { $('li.sortbuttons').hide(); }
+  if(/#cardid=/.test(hash) && !/#search=|#listid=/.test(hash)) {
+    $('#templatebuttons').hide();
+    if(!bootcardlarge()) { $('#sizebuttons').hide(); $('li.searchviewbuttons').hide(); }
+  }
+}
 var showviewcount = 0;
 var labels = {};
 var populatecallback = [];
@@ -9411,7 +9452,6 @@ function updateviewbuttons() {
   if(tab == 'dir' || tab == 'public') {
     $("#templatebuttons button[data-template]").hide();
   }
-  $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
   $(".artphotobutton").show();     // the photo features: for everyone; photochooser says how to get access
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
@@ -9421,6 +9461,9 @@ function updateviewbuttons() {
   updatedirbuttons();
   updatepublicbuttons();
   $("#templatebuttons").toggle($("#templatebuttons button").filter(function() { return this.style.display != 'none'; }).length > 0);
+  // the whole block, unless nothing in it is shown (a game's card page without a large view): no empty box, no line of its own
+  var anyshown = $('#templatebuttons, #sizebuttons, li.sortbuttons').filter(function() { return this.style.display != 'none'; }).length > 0;
+  $(".searchviewbuttons").toggle((formatview || tab == 'dir' || tab == 'public') && anyshown);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
 // debug toggles: a second click goes back to the template it replaced (the Card tab has no other button)
@@ -9875,7 +9918,7 @@ function startpage() {
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html('<img src="gamelogos/64/'+dbinfo[database].logo+'"><span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
+  $('.gameinfo-game').html(gamelogoimg(dbinfo[database].logo, database)+'<span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
   $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
   
