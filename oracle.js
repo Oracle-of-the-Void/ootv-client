@@ -287,10 +287,14 @@ function bootcardlarge() {
   }
   return cardlargegames.includes(database);
 }
-// the menubar's game logo: logo is the file name (all/games), table the game's key in logoshape
-function gamelogoimg(logo, table) {
+// a game logo's alt text: the game's name (an empty alt reads as missing to Bing's SEO check)
+function gamelogoalt(name) {
+  return name ? String(name).replace(/"/g, '&quot;')+' logo' : '';
+}
+// the menubar's game logo: logo is the file name (all/games), table the game's key in logoshape, name the game's name
+function gamelogoimg(logo, table, name) {
   var s = logoshape[table];
-  return '<img src="gamelogos/64/'+logo+'" alt=""'+(s ? ' width="'+s[0]+'" height="'+s[1]+'"' : '')+'>';
+  return '<img src="gamelogos/64/'+logo+'" alt="'+gamelogoalt(name)+'"'+(s ? ' width="'+s[0]+'" height="'+s[1]+'"' : '')+'>';
 }
 function menubarboot() {
   if(logoshape[database]) { $('.gameinfo-game').html(gamelogoimg(database+'.png', database)); } // every game's logo is <table>.png
@@ -5655,7 +5659,7 @@ function homegamesdraw() {
   if(!gamemenu) { return; }
   $('.homegames').addClass('homegamepicker').html(gamemenu.filter(function(db) { return dbinfo[db]; }).map(function(db) {
     return '<li'+(db == database && !gamenotpicked ? ' class="homegameactive"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);">'+
-      '<img src="gamelogos/64/'+dbinfo[db].logo+'" alt=""><span>'+dbinfo[db].name+
+      '<img src="gamelogos/64/'+dbinfo[db].logo+'" alt="'+gamelogoalt(dbinfo[db].name)+'"><span>'+dbinfo[db].name+
       (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</span></a></li>';
   }).join(''));
 }
@@ -9817,9 +9821,9 @@ function startpage() {
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html(gamelogoimg(dbinfo[database].logo, database)+'<span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
+  $('.gameinfo-game').html(gamelogoimg(dbinfo[database].logo, database, dbinfo[database].name)+'<span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
-  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'" alt="">');
+  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'" alt="'+gamelogoalt(dbinfo[database].name)+'">');
   
   urlready = true;
   urlparser();
