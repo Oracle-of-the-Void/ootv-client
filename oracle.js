@@ -1423,7 +1423,7 @@ function renderdirectory() {
   var lists = sortlists(dir.lists.Items.filter(function(list) { return listfolder(list) == path; }),sort);
   var html = foldertemplate.render(folderrows) + listtemplate.render(lists,ctx);
   if(!subfolders.length && !lists.length && path) {
-    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or drag a list onto a folder (or use its Folder menu).</div></div>';
+    html += '<div class="directorylistitem dirempty"><div class="randarea">'+emptyfolderhelp(path)+'</div></div>';
   }
   $("#dirpathbar").html($.templates("#template-dirpath").render({"path": path, "parent": folderparent(path), "crumbs": foldercrumbs(path)})).show();
   $(".directorylistitem").remove();
@@ -1622,6 +1622,19 @@ function opendirfolder(folder) {
 function eventfolder(el) {
   return $(el).closest("[data-folder]").attr("data-folder") || '';
 }
+// what an empty folder in the list directory says: how lists get into it, by drag or by a list's Folder pull-down
+function emptyfolderhelp(path) {
+  var name = '<b>'+_.escape(foldername(path))+'</b>';
+  var pulldown = gestureon('dirfolderselect') ?
+    '<li>pick '+name+' in that list&rsquo;s <b>Folder</b> pull-down: the Folder column in the table view, or the pull-down on '+
+      'the list&rsquo;s card in the card view. The same pull-down&rsquo;s <b>Top level</b> takes a list out of its folder, '+
+      'and <b>New folder here&hellip;</b> makes a new folder.</li>' :
+    '<li>turn on the <b>Folder</b> pull-down on each list (Settings &rarr; Gestures) and pick '+name+' there.</li>';
+  return '<p>This folder is empty. New lists you make while you&rsquo;re in it go here.</p>'+
+    '<p>To move a list you already have into it, go to where that list is now (<b>All lists</b> in the bar above is the top level), then either:</p>'+
+    '<ul><li>drag the list by its handle onto '+name+', or</li>'+pulldown+'</ul>'+
+    '<p>Folders can be dragged into other folders the same way.</p>';
+}
 // <option>s for a list's Folder select: every folder by its path
 function folderoptions(current) {
   current = String(current || '').trim();
@@ -1790,7 +1803,7 @@ function applydirtree() {
 // ***********************  directory drag and drop **************
 // Drag a list (by its move handle) or a folder onto a folder (a row, a card, or a folder in an expanded tree)
 // or onto the path bar (All lists = the top level) to move it there. Holding it over a collapsed folder
-// opens that folder's tree. The Folder menu does the same without dragging.
+// opens that folder's tree. A list's Folder pull-down does the same without dragging.
 // Mice use HTML5 drag and drop. Touch has its own drag (Android Chrome doesn't drag from touch): a list
 // drags from its handle straight away, a folder after a long-press, so a swipe across folders still scrolls.
 // Both show the same label by the pointer, naming what's moving and where it would go; the item moved fades.
