@@ -397,3 +397,16 @@ ootv-play [#253](https://github.com/Oracle-of-the-Void/ootv-play/pull/253); `l5r
 - **Twist of Fate:** `{"after": "dynastyend"}`, `{"window": {"timing": ["Limited", "Open"]}}`: one Limited or Open card action in the End Phase, offered in the menu. Lobbying is shut out; "You may not attach cards" is left to the players (to look at again).
 
 Written (ootv-backups operation 2026-11-09T233800 play-actions: play codes on 10 cards, read back from the table, all match; and the printed text of five printings that had none, read from their scans: Shosuro Taberu and Crystal Arrow, Battle of Beiden Pass; Ikiryo, Emperor and Gold; Twist of Fate, Emperor). No Holdings; the reprinted cards' numbers were checked with the redirects group.
+
+### Shadowlands, Province and Stronghold rules (2026-11-09)
+
+ootv-play [#254](https://github.com/Oracle-of-the-Void/ootv-play/pull/254), [#255](https://github.com/Oracle-of-the-Void/ootv-play/pull/255) (by the cards' rulings); `l5r/play` version 64 (modifier `ruin`), `l5r/fields` version 67.
+
+- **Bayushi Kyoto:** Limited, bow, a Province target: `{"turn": "down", "stay": true}`. Its card goes face down and isn't turned up at its player's next Events Phase; a face-down one is kept down too ("May be used on a face-down Province").
+- **Desperate Measures:** an Event: `{"province": "destroy", "which": "self"}` first, then a pick `{"province": true, "other": "self"}` (any other Province still standing, from buttons in the pick bar) whose effects destroy the one picked (`"which": "picked"`) and take 5 Honor. In its player's last Province they lose at once and there's no pick ("you lose immediately and no more effects are generated", Rules Archive p. 70).
+- **Oni no Kamu:** as he enters, lose 6 Honor and the Stronghold `{"set": {"bowed": true}, "nostraighten": "there", "silence": "there"}`: no straightening, no Gold, no actions of its own while he's in play; continuous effects still count (as ruled). An `Oni turn` token as each of your turns begins, destroyed in the End Phase at three ("Its three-turn lifespan only counts your full turns", FAQ 3.1).
+- **The Ruined Fortress of the Scorpion:** modifiers `{"ruin": true, "nohonorwin": true}`: at -20 Honor its player isn't out; their unadjusted Province Strengths are zero for the rest of the game (Fortifications still add); no Honor Victory.
+- **Threat of War:** Open, `{"theirturn": true}`, bowing a Samurai of yours; `{"tax": {"on": Holding, "bow": Samurai Personality}, "to": "opponent"}` for the turn: when that player bows a Holding the table asks which samurai to bow with it, or "Produce nothing". A Holding bowed as an action's cost isn't asked about.
+- **Evil Ward:** Open, bow the Shugenja, anywhere: `{"strength": 5, "until": "turn", "while": {"attacking": Shadowlands}}` on a Province: counts only while a Shadowlands card is in the attacking army there.
+
+Written (ootv-backups operation 2026-11-10T001158 play-actions: play codes on 6 cards, read back from the table, all match; and the printed text of The Ruined Fortress of the Scorpion's Time of the Void and Promotional-Imperial printings, read from their scans). Oni no Kamu's Shadowlands printing (titled Oni no Ogon) and the Fortress's show the stored numbers. The Fortress's Shadowlands and Promotional-Imperial images are the same file: one may be wrong.
