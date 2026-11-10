@@ -96,6 +96,10 @@ or tests. The files in this directory are exactly what gets served.
   list as `updatevalue` was over API Gateway's URL limit and never reached the server (ootv-claude `issues/ootv-search/PROBLEMS.md` #26,
   2026-11-03). A failed save (not a 409) shows a red **Not saved** in the list's Modified spot, the reason in its title. Other `/list`
   calls are still GETs; anything that can grow with the list goes as POST too.
+- Import files as new lists (`importfiles` in `oracle.js`, `#template-importfiles`): a folder's upload button, the path bar's
+  Import files (the open folder), or files dropped on the directory (`dirfiledrag`; on a folder, into it). Each file goes
+  through `/import`, then `newlist` with its cards, one file at a time. `newlist` POSTs `/list` (`listid=new`, `json`) since 2026-11-10,
+  as a list made with its cards can be longer than a URL. Help `lists#folders`.
 - A list's cards (`listprefetch`): `/oracle-fetch` 50 at a time (`LISTPREFETCHCHUNK`), the chunks together, the list drawn once all
   answered. One request for a ~460-card collection was over Lambda's 6 MB answer limit (413) and the list never drew.
 - Directory changes (`listdir*` in `oracle.js`): the server reads the directory through a DynamoDB index that lags writes, and a
