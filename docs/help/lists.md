@@ -28,6 +28,14 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 Folders can be dragged into each other too. Removing a folder keeps what's in it: its lists
 move up a level.
 
+**Import files** makes a new list from each deck file you pick, named after the file, in a folder:
+the button on a folder puts them in that folder, and the one at the right of the folder path bar in the
+folder you have open. You can also drop files from your computer straight onto the list directory (into
+the open folder) or onto a folder. The files are read the way [Import](#downloads) reads one; pick
+the format, **Printings from** (which also becomes each list's legality) and the lists' type, then
+**Import**. Each file then says how many cards it got, with any lines it couldn't find. A file with
+no cards found makes no list.
+
 ## Adding cards {#active}
 
 Click the switch beside a list's name to make it **active**. Then every card in the search

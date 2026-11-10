@@ -1633,7 +1633,9 @@ function emptyfolderhelp(path) {
   return '<p>This folder is empty. New lists you make while you&rsquo;re in it go here.</p>'+
     '<p>To move a list you already have into it, go to where that list is now (<b>All lists</b> in the bar above is the top level), then either:</p>'+
     '<ul><li>drag the list by its handle onto '+name+', or</li>'+pulldown+'</ul>'+
-    '<p>Folders can be dragged into other folders the same way.</p>';
+    '<p>Folders can be dragged into other folders the same way.</p>'+
+    '<p>Deck files on your computer can be dropped here (or on any folder) to make a new list from each one, '+
+    'or picked with the folder&rsquo;s <b>Import files</b> button.</p>';
 }
 // <option>s for a list's Folder select: every folder by its path
 function folderoptions(current) {
@@ -2207,8 +2209,8 @@ function refreshactivelistviews() {
     }
 }
 
-// done(listid): after the new list is in the directory (default: make it active)
-function newlist(json=null, done=null) {
+// done(listid): after the new list is in the directory (default: make it active); failed(why): it wasn't made
+function newlist(json=null, done=null, failed=null) {
     // from the directory or the swipe list picker: ask for a name (cancel: no list), and it goes in the open folder
     if(json === null) {
 	var path = dirpath();
@@ -2239,9 +2241,11 @@ function newlist(json=null, done=null) {
     */
     var created = false;
     listdirstart();
+    // POSTed as a JSON body: a list made with its cards (an imported file) can be longer than a URL takes
     $.ajax({
-	type: 'GET',
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?"&json="+encodeURIComponent(JSON.stringify(json)):''),
+	type: 'POST',
+	url: apiuri+"/list",
+	data: JSON.stringify({"uid": String(getuid()), "database": database, "listid": "new", "json": JSON.stringify(json)}),
 	contentType: 'application/json',
 	dataType: 'json',
 	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -2261,7 +2265,12 @@ function newlist(json=null, done=null) {
 		activatelist(String(data.list.Item.listid));
 	    }
 	},
-	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+	error: function(error) {
+	    console.log("Epic Fail: "+JSON.stringify(error));
+	    if(failed) {
+		failed(error.responseJSON && error.responseJSON.error ? error.responseJSON.error : (error.statusText || 'error'));
+	    }
+	}
     }).always(function() {
 	listdirdone(created);
     });
@@ -3402,6 +3411,188 @@ function importlistfinalize() {
     }
     nomodal();
 }
+
+// ***********************  import files as new lists **************
+// Many files at once, into a folder: each file is read by /import (as the Import menu item reads one) and made
+// a new list named after the file, in that folder. Opened by a folder's Import files button, the directory's
+// Import files button (the open folder), or files dropped on the directory (dirfiledrop*).
+var importfilespicked = [];   // the files waiting in the dialog
+var importfilesfolder = '';   // the folder they go in
+function importfiles(folder,files=null) {
+  if(!getuidsafe()) { return; }
+  importfilesfolder = folder || '';
+  importfilespicked = [];
+  modal("Import files as new lists",$.templates("#template-importfiles").render({
+    "folder": importfilesfolder ? importfilesfolder.split('/').join(' › ') : "All lists (top level)",
+    "snm": snmallowed()}));
+  $('#importfileslegality').html(listlegalityoptions(''));
+  $('#importfileslegality option[value=""]').text("Each file's own, else the default printing");
+  if($('#importfileslegality option').length < 2) { $('.importlegalityrow').hide(); }
+  if(files) { importfilesadd(files); }
+}
+function getuidsafe() {
+  var user = cache_thing("user","data");
+  return user && user.oracle && user.oracle[0] ? user.oracle[0].uid : null;
+}
+// files picked or dropped (a FileList or array): added to the ones waiting, without repeats
+function importfilesadd(files) {
+  Array.prototype.forEach.call(files || [],function(f) {
+    if(!importfilespicked.some(function(p) { return p.name == f.name && p.size == f.size && p.lastModified == f.lastModified; })) {
+      importfilespicked.push(f);
+    }
+  });
+  importfilesdraw();
+}
+function importfilesname(file) {
+  return (file.name.replace(/\.[^.\/]{1,5}$/,'').replace(/_/g,' ').trim() || file.name).substring(0,200);
+}
+function importfilesdraw() {
+  $('#importfileslist').html(importfilespicked.map(function(f,i) {
+    return '<li data-i="'+i+'"><span class="importfilesname">'+_.escape(importfilesname(f))+'</span> <small>'+_.escape(f.name)+'</small>'+
+      ' <span class="importfilesstate"><button class="iiconic inegative" aria-label="Leave out" onclick="importfilesremove('+i+');">'+
+      '<svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></button></span></li>';
+  }).join(''));
+  $('#importfilesgo').prop('disabled',!importfilespicked.length)
+    .val(importfilespicked.length > 1 ? 'Import '+importfilespicked.length+' files' : 'Import');
+}
+function importfilesremove(i) {
+  importfilespicked.splice(i,1);
+  importfilesdraw();
+}
+// one file at a time: /import, then the new list; each row says how it went
+function importfilesrun() {
+  var files = importfilespicked.slice(), folder = importfilesfolder;
+  if(!files.length) { return; }
+  var fieldlist = $('#importfilesform select[name=fieldlist]').val(), type = $('#importfilestype').val();
+  var legality = $('#importfileslegality').val() || '', arc = importlegalityarc(legality);
+  $('#importfilesform').find('input,select,button').prop('disabled',true);
+  $('#importfilesform').addClass('importfilesrunning');
+  var made = 0, problems = 0;
+  var row = function(i) { return $('#importfileslist li[data-i='+i+']'); };
+  var say = function(i,cls,html) { row(i).find('.importfilesstate').attr('class','importfilesstate '+cls).html(html); };
+  var next = function(i) {
+    if(i >= files.length) {
+      $('#importfilesstatus').html('<b>'+made+' list'+(made!=1?'s':'')+' made</b>'+(problems ? ', '+problems+' with problems' : '')+
+        '. <span class="button gray" onclick="nomodal();">Close</span>');
+      return;
+    }
+    var file = files[i];
+    say(i,'','<progress></progress>');
+    file.text().then(function(text) {
+      var form = new FormData();
+      form.set('table',database);
+      form.set('fieldlist',fieldlist);
+      form.set('file',new Blob([(arc ? 'Legality: '+arc+'\n' : '')+text],{type: 'text/plain'}),file.name);
+      $.ajax({url: apiuri+'/import', type: 'POST', data: form, cache: false, contentType: false, processData: false,
+        success: function(data) {
+          var failed = (data.failed || []).filter(function(l) { return String(l).trim(); });
+          if(!data.list || !data.list.length) {
+            problems++;
+            say(i,'importfilesbad','No cards found, so no list'+importfilesfailed(failed));
+            next(i+1);
+            return;
+          }
+          var json = {"name": importfilesname(file), "list": data.list, "public": false, "type": type};
+          if(folder) { json.folder = folder; }
+          if(legality) { json.legality = legality; }
+          var cards = data.list.reduce(function(n,e) { return n + (parseInt(e.quantity) || 0); },0);
+          newlist(json,function(listid) {
+            made++;
+            if(failed.length) { problems++; }
+            say(i,failed.length ? 'importfilesbad' : 'importfilesok',
+              '<a href="#" onclick="nomodal(); listinfo(\''+listid+'\',true); return false;">'+cards+' card'+(cards!=1?'s':'')+'</a>'+
+              (failed.length ? ', '+failed.length+' line'+(failed.length!=1?'s':'')+' not found'+importfilesfailed(failed) : ''));
+            next(i+1);
+          },function(why) {
+            problems++;
+            say(i,'importfilesbad','The list wasn\'t made: '+_.escape(why));
+            next(i+1);
+          });
+        },
+        error: function(xhr) {
+          problems++;
+          var why = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : (xhr.statusText || 'error');
+          say(i,'importfilesbad','Couldn\'t read it: '+_.escape(why));
+          next(i+1);
+        }
+      });
+    },function() {
+      problems++;
+      say(i,'importfilesbad','Couldn\'t open the file');
+      next(i+1);
+    });
+  };
+  $('#importfilesstatus').html('Importing&hellip;');
+  next(0);
+}
+// files dropped on the dialog itself are added to it (until the import starts)
+$(document).on("dragover","#importfilesform",function(e) {
+  var dt = e.originalEvent.dataTransfer;
+  if(!dt || Array.prototype.indexOf.call(dt.types || [],'Files') < 0 || $(this).hasClass('importfilesrunning')) { return; }
+  e.preventDefault();
+  dt.dropEffect = "copy";
+  var form = $(this).addClass('importfilesdrop');
+  clearTimeout(dirfiletimer);
+  dirfiletimer = setTimeout(function() { form.removeClass('importfilesdrop'); },250);
+}).on("drop","#importfilesform",function(e) {
+  var dt = e.originalEvent.dataTransfer;
+  if(!dt || !dt.files || !dt.files.length || $(this).hasClass('importfilesrunning')) { return; }
+  e.preventDefault();
+  $(this).removeClass('importfilesdrop');
+  importfilesadd(dt.files);
+});
+function importfilesfailed(failed) {
+  return failed.length ? '<details><summary>Lines not found</summary><pre>'+_.escape(failed.join('\n'))+'</pre></details>' : '';
+}
+// files dragged from the computer onto the directory: dropped on a folder they go in it, anywhere else in the
+// open folder. (Lists and folders dragged inside the directory are dirdrag, above.)
+var dirfiletimer = null;
+function dirfiledrag(e) {
+  var dt = e.originalEvent.dataTransfer;
+  return !dirdrag && dt && Array.prototype.indexOf.call(dt.types || [],'Files') > -1 &&
+    $(e.target).closest('#resultdir').length && $('#resultdir').is(':visible') && !!getuidsafe();
+}
+function dirfiletarget(e) {
+  var el = dirdroptarget(e.target);
+  return el.length ? el.attr("data-folder") : dirpath();
+}
+function dirfileclear() {
+  clearTimeout(dirfiletimer);
+  $("#resultdir").removeClass("dirfiledrop");
+  dirdropclear();
+  if(dirghost && !dirdrag) {
+    dirghost.remove();
+    dirghost = null;
+  }
+}
+$(document).on("dragover",function(e) {
+  if(!dirfiledrag(e)) { return; }
+  e.preventDefault();
+  e.originalEvent.dataTransfer.dropEffect = "copy";
+  var el = dirdroptarget(e.target), folder = dirfiletarget(e);
+  $("#resultdir").addClass("dirfiledrop");
+  if(!el.hasClass("dirdropover")) {
+    dirdropclear();
+    el.addClass("dirdropover");
+  }
+  if(!dirghost) {
+    dirghost = $('<div class="dirdragghost dirghostok"><div class="dirghostname"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> '+
+      '<span>Import as new lists</span></div><div class="dirghosttarget"></div></div>').appendTo("body");
+  }
+  dirghost.find(".dirghosttarget").text("→ "+(folder ? foldername(folder) : "All lists (top level)"));
+  var w = dirghost.outerWidth(), h = dirghost.outerHeight(), x = e.originalEvent.clientX, y = e.originalEvent.clientY;
+  dirghost.css({"left": Math.max(6,Math.min(x+16,window.innerWidth-w-6)), "top": Math.max(6,Math.min(y+20,window.innerHeight-h-6))});
+  // dragover repeats while the files are over the directory; when it stops they've left (or the drag ended)
+  clearTimeout(dirfiletimer);
+  dirfiletimer = setTimeout(dirfileclear,250);
+});
+$(document).on("drop",function(e) {
+  if(!dirfiledrag(e)) { return; }
+  e.preventDefault();
+  var folder = dirfiletarget(e), files = e.originalEvent.dataTransfer.files;
+  dirfileclear();
+  if(files && files.length) { importfiles(folder,files); }
+});
 
 //   *********************************   fetching / querying the api ******************8
 // TODO: sometimes this fails if I do a card not primed from c/p
