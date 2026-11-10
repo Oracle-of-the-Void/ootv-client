@@ -1022,6 +1022,16 @@ div.listitem.dirfolderrow.dirdropover > div {
 }
 div.dirempty .randarea {
     padding: 8px;
+    max-width: 46em;
+    margin: 0 auto;
+    text-align: left;
+    box-sizing: border-box;
+}
+div.dirempty .randarea p, div.dirempty .randarea ul {
+    margin: 0 0 8px 0;
+}
+div.dirempty .randarea ul {
+    padding-left: 1.4em;
 }
 /* community and support links (home page, sidebar, help page): one pill each, a Feather icon and a word */
 .communitylinks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
