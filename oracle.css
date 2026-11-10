@@ -921,6 +921,13 @@ div.dirpathbar {
 div.dirpathbar a, div.dirpathbar a:visited {
     color: var(--info-1);
 }
+div.dirpathbar button.dirpathimport {
+    float: right;
+    height: auto;
+    font-family: var(--font-ui);
+    font-size: medium;
+    white-space: nowrap;
+}
 div.dirpathbar .dirpathsep {
     color: var(--text-6);
 }
@@ -1019,6 +1026,66 @@ div.dirfolderrow a, div.dirfoldercard a, div.dirfolderrow button, div.dirfolderc
 }
 div.listitem.dirfolderrow.dirdropover > div {
     background: var(--drop-row);
+}
+/* files from the computer dragged over the directory (dirfiledrag): the open folder takes them unless a folder does */
+#resultdir.dirfiledrop {
+    outline: 2px dashed var(--good-1);
+    outline-offset: -2px;
+}
+#resultdir.dirfiledrop div.dirfoldercard, #resultdir.dirfiledrop div.dirsubfolder, #resultdir.dirfiledrop div.dirpathbar [data-dirdrop] {
+    outline: 1px dashed var(--line-7);
+    outline-offset: -1px;
+}
+/* Import files as new lists (importfiles) */
+form.importfilesform.importfilesdrop {
+    outline: 2px dashed var(--good-1);
+    outline-offset: 4px;
+}
+span.importfilesdrophint {
+    color: var(--text-6);
+    margin-left: 8px;
+}
+form.importfilesform select {
+    max-width: 100%;
+}
+@media (hover: none) {
+    span.importfilesdrophint { display: none; }
+}
+ul.importfileslist {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+ul.importfileslist li {
+    padding: 4px 0;
+    border-bottom: 1px solid var(--line-faint);
+}
+ul.importfileslist small {
+    color: var(--text-6);
+}
+ul.importfileslist .importfilesstate {
+    float: right;
+    margin-left: 8px;
+}
+ul.importfileslist .importfilesstate.importfilesok, ul.importfileslist .importfilesstate.importfilesbad {
+    float: none;
+    display: block;
+    margin: 2px 0 0 1em;
+}
+ul.importfileslist .importfilesok {
+    color: var(--good-1);
+}
+ul.importfileslist .importfilesbad {
+    color: var(--bad-1);
+}
+ul.importfileslist pre {
+    color: var(--text);
+    max-height: 12em;
+    overflow: auto;
+    white-space: pre-wrap;
+}
+form.importfilesrunning ul.importfileslist .importfilesstate button {
+    display: none;
 }
 div.dirempty .randarea {
     padding: 8px;
