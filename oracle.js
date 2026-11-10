@@ -1424,7 +1424,7 @@ function renderdirectory() {
   var lists = sortlists(dir.lists.Items.filter(function(list) { return listfolder(list) == path; }),sort);
   var html = foldertemplate.render(folderrows) + listtemplate.render(lists,ctx);
   if(!subfolders.length && !lists.length && path) {
-    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or drag a list onto a folder (or use its Folder menu).</div></div>';
+    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or drag a list onto a folder (or pick the folder in that list&rsquo;s <b>Folder</b> pull-down).</div></div>';
   }
   $("#dirpathbar").html($.templates("#template-dirpath").render({"path": path, "parent": folderparent(path), "crumbs": foldercrumbs(path)})).show();
   $(".directorylistitem").remove();
@@ -1791,7 +1791,7 @@ function applydirtree() {
 // ***********************  directory drag and drop **************
 // Drag a list (by its move handle) or a folder onto a folder (a row, a card, or a folder in an expanded tree)
 // or onto the path bar (All lists = the top level) to move it there. Holding it over a collapsed folder
-// opens that folder's tree. The Folder menu does the same without dragging.
+// opens that folder's tree. A list's Folder pull-down does the same without dragging.
 // Mice use HTML5 drag and drop. Touch has its own drag (Android Chrome doesn't drag from touch): a list
 // drags from its handle straight away, a folder after a long-press, so a swipe across folders still scrolls.
 // Both show the same label by the pointer, naming what's moving and where it would go; the item moved fades.
