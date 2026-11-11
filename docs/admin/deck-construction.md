@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-11-04 (the Active Lists bar shows the check live: a green or red #, a legality shield); 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-11-11 (a `(...)` title ending is part of the card's name; `countsas` on 11 versions and souls); 2026-11-04 (the Active Lists bar shows the check live: a green or red #, a legality shield); 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -112,13 +112,26 @@ a JSON object, empty removes it).
 
 Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Unique`).
 
-**One card, for copy limits:** the title, less a trailing `(...)` (`Hida Kisada (Emperor)` is Hida
-Kisada), at its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`). Each
-level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, the Little Bear`
-is Hida Kisada Experienced); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
-keyword makes the card count as Name at that level. Where a `(...)` marks a different card, the card field `countsas`
-keeps it apart: `Hida Yakamo (Oni)` (3240, 3241) has `{"countsas": "Hida Yakamo (Oni)"}`, so it isn't counted with
-`Hida Yakamo (Hero)`, at the same experience level (the user, 2026-11-02).
+**One card, for copy limits:** the title, a `(...)` ending included: cards that share a name and differ only by
+it are different cards (`Isawa Tanaka (IG2)` and `Isawa Tanaka (PoH)`, `Hida Kisada (Emperor)` and `Hida Kisada (Imperial)`;
+the user, 2026-11-11). At its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`); each
+level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, Clan Champion`
+is Hida Kisada Experienced 2); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
+keyword makes the card count as Name at that level. A version or soul whose title or keyword names the bare name of a
+`(...)` card says which one with the card field `countsas` (`deckconstruction.countsas`, written 2026-11-11 by ootv-tools
+`bulk/field-fixes.py l5r-paren-countsas`):
+
+| Cards | `countsas` |
+|---|---|
+| Isawa Mochiko (Soul of Isawa Tanaka) | Isawa Tanaka (IG2) |
+| Hida Yakamo Experienced 2, 3, 3KYD; Hida Yakamo, Seven Thunder (2CW) | Hida Yakamo (Hero) |
+| Utaku Keyo Experienced | Utaku Keyo (LE) |
+| Hida Kisada Inexperienced and Experienced (printed before Emperor) | Hida Kisada (Imperial) |
+| Hida Kisada, the Little Bear; Hida Kisada, Clan Champion; The Little Bear (printed after Emperor) | Hida Kisada (Emperor) |
+
+`Hida Yakamo (Oni)` (3240, 3241) still has `{"countsas": "Hida Yakamo (Oni)"}` from 2026-11-02, from when the `(...)`
+was dropped; it now says the same as its title. `(Bio)` cards are type Other, never in a deck. The decklist import
+(ootv-search `/import`) reads a `(...)` on a line on its own and isn't changed by this.
 
 **Choices** (`choices`): which deck a card goes in, for a deck's owner to set (`pick` in the deck's
 field: `{"sensei": "Fate"}`). A pick beats the game config `sort.pick` rules and moves (docs:
