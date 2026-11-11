@@ -1022,3 +1022,11 @@ card changed, no rule changed, no config changed.
   already used) shows disabled, with the reason when you point at it.
 - The duel's count button now reads "Resolve the duel". Before the duel, a card's optional focus (Matsu Hiroru) is
   skipped with Pass, as in lobbying.
+
+## Games saved before 2026-11-11 no longer open as they were (2026-11-11, l5r/play version 113)
+
+Step 1 of the generic-engine plan (ootv-play [#350](https://github.com/Oracle-of-the-Void/ootv-play/pull/350)). The play
+table is still in development, so the table no longer converts games saved by older versions of it: an attack,
+lobbying effort or duel saved in an old shape, a game from before the play areas lost their edges, or one with zones
+the config has since dropped may not open correctly. Start such a game again. No card, rule or config changed: the
+words a card's play code uses were checked, and no live card used any of the old ones that were removed.
