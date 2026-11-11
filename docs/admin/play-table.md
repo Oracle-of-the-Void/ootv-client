@@ -928,3 +928,18 @@ changed, no rule changed: the same take and count, now in the config.
 - The Resolve lobbying button sends the battle's `resolve` action (`lobbyresult` still works). The log reads
   "Count: Player A 7, Player B 5." then "The lobbying effort: Player A takes the Imperial Favor from Player B.", or
   "Nothing changes: the Imperial Favor stays with Player B."
+
+## Lobbying's card words and panel (2026-11-11, l5r/play version 109, l5r/fields version 85)
+
+Step 4 of the lobbying plan, the last (ootv-play [#344](https://github.com/Oracle-of-the-Void/ootv-play/pull/344)).
+No rule changed.
+
+- `afters.lobbying` is `{"scene": "lobby"}`: a Reaction with `after: "lobbying"` may be played while the lobbying
+  effort is open (any scene can be named this way).
+- One card changed: Winning Kachiko's Favor's `{"lobbyadd": {"of": "x"}, "to": "you"}` is now
+  `{"add": {"lobby": {"of": "x"}}, "to": "you"}` (`add` with the name of a total a scene counts by). The card editor's
+  `play` description says so. The old word still works.
+- Twist of Fate's `"prevents": ["attach", "lobby"]` and Doji Yosai's `{"action": "gift", "on": "self"}` are unchanged:
+  `lobby` is the id of the scene the lobbying action opens, `gift` the id of the move.
+- The lobbying panel's words come from the config: "Lobbying effort for the Imperial Favor: Player A lobbying, Player
+  B opposing", a button per move (Send a speaker, Give a gift), Pass, and the count button named by its step (Count).
