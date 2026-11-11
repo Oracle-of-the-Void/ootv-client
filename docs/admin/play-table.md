@@ -913,3 +913,18 @@ changed.
 - `tokens[0].lobby` loses `counter` and `gift` (now the total and the gift move).
 - Rules change: any Personality of yours may speak, whatever its Personal Honor (the rulebook doesn't limit it). The
   Personality bowed to lobby still needs Personal Honor above zero.
+
+## Lobbying's take and count as rules (2026-11-11, l5r/play version 108)
+
+Step 3 of the lobbying plan (ootv-play [#343](https://github.com/Oracle-of-the-Void/ootv-play/pull/343)). No card
+changed, no rule changed: the same take and count, now in the config.
+
+- `scenes.lobby.open` (new): rules checked as the effort opens, once its sides are seated. One holds: its effects run
+  and the effort ends at once. L5R: nobody holds the Favor (`"free": "favor"`) and the lobbier is ahead of the side
+  against (the other players with the most Family Honor): the lobbier takes it (`{"take": "favor"}`).
+- `scenes.lobby.steps[1].resolve` (the Count) is now a list of the same rules in place of `true`: the lobbier ahead
+  takes the Favor; no rule holds, it stays where it was. The rules are the battle's `{if, win, effects}`; a side's name
+  stands for its lobbying total (against several tied players, the highest of them).
+- The Resolve lobbying button sends the battle's `resolve` action (`lobbyresult` still works). The log reads
+  "Count: Player A 7, Player B 5." then "The lobbying effort: Player A takes the Imperial Favor from Player B.", or
+  "Nothing changes: the Imperial Favor stays with Player B."
