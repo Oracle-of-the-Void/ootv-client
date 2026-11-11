@@ -26,7 +26,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `zones` | the piles and areas (L5R's include the active area): who sees them, how they're laid out, which back a discard takes, what a tap does, which pile refills a province, where a destroyed province's cards go, which cards attach to the zone itself (`attach`, L5R's provinces: Regions and Fortifications) |
 | `table.rows` | the order of the piles and provinces along a player's row |
 | `table.arrange` | Arrange's rows of card types, nearest first (L5R: stronghold, sensei, wind, holdings, regions, celestials; then personalities; then the rest), and the types it stacks (Holding) |
-| `placement`, `setup` | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals |
+| `placement`, `scenes.main` Setup | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals (the main scene's Setup step, `setup`; top-level `setup` until version 95) |
 | `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords, title) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
 | `cardstates`, `counters`, `cardcounters`, `customtokens` | bow and dishonor (upside down), with their words (`is`: "bowed", "dishonored", since version 52; `unname`: Straighten); Honor, Gold and Hand size; tokens on cards, by name (+1F, ...; any name typed) |
 | `stats` | a card's numbers (Force, Chi, Personal Honor): a token's number that adds to one (`token`: +1F), which include what's attached printed as a bonus (`aggregate`: Force, Chi), and which have no Change menu (`change: false`: Personal Honor) |
@@ -43,8 +43,8 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `roles` | what the rules mean by a card's role: `leader` (L5R: Personality: leads a unit, can't be targeted bowed by its own player, the default to accept a challenge), `follower` (Follower: Fear, Ranged Attacks), `stronghold` (Stronghold: Province Strength, the player's clan), `dead` (who goes to the Honorable or Dishonorable Dead); each with its name for messages |
 | `piles`, `honor`, `made` | the deck an effect draws from, the hand, and the removed pile (L5R: fate, hand, removed); the counter that is Honor and the state that is dishonored; a made token's default type and back (a Follower, Fate) |
 | `spellwork`, `unique`, `fortification` | what counts as spell-work (a Spell; a Shugenja's own ability), the Unique rule (the keyword, by title), and what a Fortification is (the trait) |
-| `firstplayer` | who goes first: the highest of a counter (L5R: Honor), a tie at random |
-| `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: `attack.scene` names the scene it opens (`scenes` below holds its steps); the steps (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`; `skip` `{players}`: passed over with that many players or fewer, the Declaration with two), the battle's steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
+| `scenes.main` First player | who goes first (the main scene's step `first`): the highest of a counter (L5R: Honor), a tie at random (top-level `firstplayer` until version 95) |
+| `scenes.turn.steps` | the turn's phases (top-level `phases` until version 95): what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: `attack.scene` names the scene it opens (`scenes` below holds its steps); the steps (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`; `skip` `{players}`: passed over with that many players or fewer, the Declaration with two), the battle's steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
 ## Hearts (2026-11-10)
@@ -59,7 +59,7 @@ player: the new config keys are general, for any game dealt from one deck and pl
 | `seats`, `deck` | how many may play (Hearts 3–4); the game's own deck, one card per suit and rank, with cards left out by player count (`remove`: the 2 of Diamonds with three) |
 | `zones[].shared` | one zone for the whole table (the deck, the trick) instead of one per player |
 | `round` | the game is played in rounds (Hearts' hands): deal, pass, tricks, score, then the next dealer |
-| `phases[].enter` | the round's steps: `gather` and `shuffle` the cards, `dealout` evenly, `choose` (every player passes cards at once, unseen: left, right, across, none by hand; left, right, none with three), `tricks` (follow suit, highest of the led suit wins, the 2 of Clubs leads, no Hearts or Queen of Spades on the first trick, Hearts not led until broken), `score` (taking every point, "shooting the moon", gives 26 to each other player) |
+| `scenes.turn.steps[].enter` | the round's steps: `gather` and `shuffle` the cards, `dealout` evenly, `choose` (every player passes cards at once, unseen: left, right, across, none by hand; left, right, none with three), `tricks` (follow suit, highest of the led suit wins, the 2 of Clubs leads, no Hearts or Queen of Spades on the first trick, Hearts not led until broken), `score` (taking every point, "shooting the moon", gives 26 to each other player) |
 | `victory.atleast` | the game ends when a hand ends with someone at 100, lowest score winning |
 
 ## Cribbage (2026-11-10)
@@ -72,10 +72,10 @@ patterns, a dealer's own pile, partnerships, a pegging board and a game that end
 | Key | What |
 |---|---|
 | `deck.ranks` | any key beyond `value` becomes a card field: Cribbage's `count` (face cards 10, Ace 1) beside `value` (order, for runs) |
-| `round.first.cut` | the first dealer by cut: a card each, low deals, a tie cuts again |
+| `scenes.main` First dealer | the first dealer by cut (`first.cut`; `round.first.cut` until 2026-11-11): a card each, low deals, a tie cuts again |
 | `teams`, `counters[].team` | partners by player count (four: A and C, B and D), one shared score |
 | `counters[].board` | the score drawn as a pegging board: front peg at the score, back peg where it was |
-| `phases[].enter` | `dealout` with `count` per player count and `extra` (three players: one card to the crib); `choose` to the dealer (discards to the crib); `turnup` (the starter; a Jack is 2 for the dealer, his heels); `count` (pegging to 31: fifteen and thirty-one 2, pairs 2/6/12, runs, Go said by the table, last card 1); `show` (each hand from the dealer's left, the dealer, then the crib, with the starter: fifteens, pairs, runs and double runs, flushes, his nobs; one at a time, Next to go on) |
+| `scenes.turn.steps[].enter` | `dealout` with `count` per player count and `extra` (three players: one card to the crib); `choose` to the dealer (discards to the crib); `turnup` (the starter; a Jack is 2 for the dealer, his heels); `count` (pegging to 31: fifteen and thirty-one 2, pairs 2/6/12, runs, Go said by the table, last card 1); `show` (each hand from the dealer's left, the dealer, then the crib, with the starter: fifteens, pairs, runs and double runs, flushes, his nobs; one at a time, Next to go on) |
 | `victory.instant`, `victory.margins` | the game ends at 121 the moment it's reached, mid-play or mid-show; a loser under 91 is skunked, under 61 double skunked |
 | `options`, `claim` | **Count it yourself** (2026-11-10, ootv-play [#326](https://github.com/Oracle-of-the-Void/ootv-play/pull/326)): a checkbox in the table's bar, for everyone, any time. On, nothing is scored for you: after the turned-up card, each card you peg and your hand and crib in the show, press what you scored (Fifteen, A pair, A run, …) once per piece, then Done (the last card's point is always scored for you). In the show pick the cards first: 10, K, 5, 5 and Fifteen twice is two fifteens. What you don't claim is lost and logged. Off mid-claim, the rest is counted for you. **Muggins** (needs Count it yourself): after a player's Done, the other side (not partners) may take what they missed with the same buttons, first come, until the next move; what nobody takes is lost |
 
@@ -727,3 +727,15 @@ and who picks: `{"name": "Battles", "each": {"$area": "provinces"}, "pick": "att
 phase keeps `attack {scene, commit, honor, outcome}`. The arcs that change these steps (Samurai, Emperor, Ivory, Three
 Dynasties) now patch `scenes.attack.steps` and `scenes.battle.steps` by step name; every arc's steps were checked to
 be the same as before. Nothing changes in play, and no cards changed.
+
+## The main scene (2026-11-11, l5r/play version 95)
+
+The fourth step (ootv-play [#330](https://github.com/Oracle-of-the-Void/ootv-play/pull/330)). The game itself is now a
+scene, `scenes.main`, open for the whole game. Its steps run in order as a game is made: Setup (`setup`: the shuffles
+and deals, for each player), First player (`first: {"counter": "honor"}`), then Turns (`{"scene": "turn"}`), which
+opens the turn scene one turn after another. The turn scene's steps, `scenes.turn.steps`, are the phases. So the
+top-level `setup`, `firstplayer` and `phases` are gone from `l5r/play`; Hearts and Cribbage moved the same way
+(Cribbage's cut for the first dealer is its First dealer step). The arcs that changed them now patch
+`scenes.main.steps` (Celestial and Emperor: 6 cards in the hand) and `scenes.turn.steps` (Samurai, Emperor, Ivory,
+Three Dynasties) by name; every arc was checked to be the same as before. Nothing changes in play, and no cards
+changed.
