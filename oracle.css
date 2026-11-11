@@ -3187,6 +3187,19 @@ a.cardfamily { text-decoration: none; margin-left: 4px; }
 a.cardfamilykw { text-decoration: none; margin-left: 3px; white-space: nowrap; }
 a.cardfamilykw svg.feather { width: 15px; height: 15px; vertical-align: -2px; color: var(--link); }
 span.cardfamilykwcount { font-size: 12px; margin-left: 1px; color: var(--link); }
+/* a family search's tree above its results (familytreepanel) */
+details.familytree { padding: 6px 12px; margin: 4px 4px 8px; border-radius: 6px; background: var(--panel); color: var(--text); font-family: var(--font-ui); }
+details.familytree summary { cursor: pointer; font-weight: bold; }
+details.familytree summary svg.feather { width: 16px; height: 16px; vertical-align: -3px; }
+details.familytree ul { list-style: none; margin: 0; padding-left: 0; }
+details.familytree ul ul { padding-left: 14px; margin-left: 6px; border-left: 2px solid var(--line-3); }
+details.familytree li { margin: 4px 0; }
+span.familyname { font-weight: bold; }
+span.familysoul { color: var(--text-5); font-size: small; margin-left: 4px; }
+span.familycards { display: block; }
+a.familycard { display: inline-block; padding: 0 7px; margin: 2px 4px 0 0; border: 1px solid var(--chip-border); border-radius: 10px; background: var(--chip-bg); color: var(--chip-text); text-decoration: none; font-size: small; }
+a.familycard:hover { background: var(--chip-hover); }
+a.familycard.familycurrent { border-color: var(--accent); box-shadow: var(--focus-ring); font-weight: bold; }
 span.publicformatsource { color: var(--text-6); font-size: small; }
 div.publicaward, div.listaward { color: var(--award); font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }

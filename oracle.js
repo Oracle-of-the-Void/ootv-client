@@ -4076,6 +4076,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
 	    artphotoresults(datarequest.artphoto, null);
 	  }
+	  if(from == 0 && datarequest.family) {
+	    familytreepanel(qs, null);
+	  }
   } else {
 	  if(from<1){
 	    $('.searchtextversion, .searchaddall').html('');
@@ -4116,6 +4119,9 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 		      updates[database]('#resultsearch');
 		      if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
 		        artphotoresults(datarequest.artphoto, raw.artphoto);    // the photo and its matched outline above the results
+		      }
+		      if(from == 0 && datarequest.family) {
+		        familytreepanel(qs, raw.family);    // the family as a tree above the results
 		      }
 		      dataret.forEach(function(dataitem) {
 			      searchcache[database]['querydata'][qs].push(dataitem.cardid);
@@ -13144,6 +13150,48 @@ function cardfamily(cardid, title) {
     },
     error: function() { delete cardfamilies[key]; }
   });
+}
+// a family search's tree, above its results: the characters (a card and its experienced versions) with each soul
+// under the one it is a soul of (the API's family: ootv-search lib/family.js familyTree). Every card links to its
+// card view; the card the search started from is bold. Kept per search, so a cached search draws it too.
+var familytrees = {};
+function familytreepanel(qs, fam) {
+  if(fam) { familytrees[database+'/'+qs] = fam; }
+  fam = familytrees[database+'/'+qs];
+  $('#resultsearch .familytree').remove();
+  if(!fam || !fam.tree) {
+    return;
+  }
+  var short = function(level) { return String(level || '').replace(/^Experienced\b/, 'Exp').replace(/^Inexperienced\b/, 'Inexp'); };
+  var cardlink = function(c, text, cls) {
+    return '<a class="'+(cls || '')+(c.cardid == fam.cardid ? ' familycurrent' : '')+'" href="#game='+database+',#cardid='+parseInt(c.cardid)+'"'+
+      ' onclick="docardid('+parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title+(c.level ? ' ('+c.level+')' : ''))+'">'+text+'</a>';
+  };
+  var node = function(n) {
+    var html = '<li><span class="familyname">'+htmlEncode(n.name)+'</span>';
+    // whose soul this character is, as the keyword says it, linked to that exact card when it names a level
+    var soul = n.cards.filter(function(c) { return c.soulof; })[0];
+    if(soul) {
+      var parentcard = soul.soulof.cardid ? findcard(fam, soul.soulof.cardid) : null;
+      html += ' <span class="familysoul">Soul of '+(parentcard ? cardlink(parentcard, htmlEncode(soul.soulof.name+' '+parentcard.level)) : htmlEncode(soul.soulof.name))+'</span>';
+    }
+    html += '<span class="familycards">'+n.cards.map(function(c) {
+      var text = c.level ? short(c.level) : 'Base';
+      if(c.title.toLowerCase() != n.name.toLowerCase()) { text = htmlEncode(c.title)+(c.level ? ' <small>'+htmlEncode(short(c.level))+'</small>' : ''); }
+      return cardlink(c, text, 'familycard');
+    }).join('')+'</span>';
+    if(n.children.length) { html += '<ul>'+n.children.map(node).join('')+'</ul>'; }
+    return html+'</li>';
+  };
+  var findcard = function(f, id) {
+    var found = null;
+    var walk = function(n) { n.cards.forEach(function(c) { if(c.cardid == id) { found = c; } }); n.children.forEach(walk); };
+    [f.tree].concat(f.others || []).forEach(walk);
+    return found;
+  };
+  var html = '<details class="familytree" open><summary><svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg> Family tree</summary>'+
+    '<ul>'+[fam.tree].concat(fam.others || []).map(node).join('')+'</ul></details>';
+  $('#resultsearch').prepend(html);
 }
 function cardfamilysearch(cardid) {
   window.location.hash = statehash({'view': 'search', 'qs': $.param({'table': database, 'family': cardid})});
