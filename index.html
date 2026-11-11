@@ -1019,10 +1019,12 @@ proxies and public decklists, for:</p>
   <div class="dirfoldertop">
   {{include tmpl="#template-dirtoggle"/}}
   <a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> <span class="dirfolderlabel">{{>name}}<br /><small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></span></a>
+  <span class="dirfolderbuttons">
   <button aria-label="Import files as new lists" data-balloon-pos="up" class="iiconic iblue" onclick="importfiles(eventfolder(this));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
   <button aria-label="Download its lists, in one format" data-balloon-pos="up" class="iiconic iblue" onclick="exportfiles(eventfolder(this));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
   <button aria-label="Rename folder" data-balloon-pos="up" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
   <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="up-right" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
+  </span>
   </div>
   {{if tree.length}}<div class="dirfoldertree">
   {{for tree}}<div class="dirtreeitem dirsubfolder" data-folder="{{>folder}}" data-dirdrop="1" data-dragfolder="1" draggable="true" style="padding-left: {{:(depth-1)*24}}px">
