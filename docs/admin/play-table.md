@@ -1030,3 +1030,14 @@ table is still in development, so the table no longer converts games saved by ol
 lobbying effort or duel saved in an old shape, a game from before the play areas lost their edges, or one with zones
 the config has since dropped may not open correctly. Start such a game again. No card, rule or config changed: the
 words a card's play code uses were checked, and no live card used any of the old ones that were removed.
+
+## The table's words come from the game's config (2026-11-11, l5r/play version 114)
+
+Step 2 of the generic-engine plan (ootv-play [#351](https://github.com/Oracle-of-the-Void/ootv-play/pull/351)). The
+table's own code no longer spells out L5R's words: Gold, Honor, Personality, Fate deck, Province, Attacker and Defender,
+Chi, Clan and Honor Requirement in its messages and questions now come from `l5r/play`. New there: `words` (`clan`,
+`spells`), `honorreq.name` and `article`, a zone's plural (`zones[].many`: Provinces), the attack's side names, the
+Clan allegiance question's `name` and `text` (its "2 more Gold" now reads the rule's own number), the Ivory question's
+`lost.detail`, `customtokens.example` (the hint when naming a token) and `symbols` (the L5R Symbol font and its
+classes, before in the table's style sheet). What players see reads the same, except that "it stays in the province"
+is now "it stays in the Province".
