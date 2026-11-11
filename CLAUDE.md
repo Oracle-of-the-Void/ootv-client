@@ -100,6 +100,12 @@ or tests. The files in this directory are exactly what gets served.
   Import files (the open folder), or files dropped on the directory (`dirfiledrag`; on a folder, into it). Each file goes
   through `/import`, then `newlist` with its cards, one file at a time. `newlist` POSTs `/list` (`listid=new`, `json`) since 2026-11-10,
   as a list made with its cards can be longer than a URL. Help `lists#folders`.
+- Export files (`exportfiles` in `oracle.js`, `#template-exportfiles`): a folder's download button, or the path bar's Export
+  files (the open folder). Each picked list goes through the same `listinfo(listid,false,listoutput)` its Download menu uses, one
+  at a time; every export ends in `listfileout` (file made), `listfilefail` (none) or `listfilenote` (made, with a problem),
+  which hand it to `listbatch` while an export runs, else download or alert. One list: its own file; more: one `pdfzip`,
+  subfolders as folders. PDF formats open the PDF dialog with `pdfdialogstate.batch`; `pdfgenerate` hands its options back
+  to `exportfilesstart`. A new export format, or a new early return in one, must end in one of the three. Help `lists#folders`.
 - A list's cards (`listprefetch`): `/oracle-fetch` 50 at a time (`LISTPREFETCHCHUNK`), the chunks together, the list drawn once all
   answered. One request for a ~460-card collection was over Lambda's 6 MB answer limit (413) and the list never drew.
 - Directory changes (`listdir*` in `oracle.js`): the server reads the directory through a DynamoDB index that lags writes, and a

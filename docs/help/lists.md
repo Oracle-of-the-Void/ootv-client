@@ -36,6 +36,13 @@ the format, **Printings from** (which also becomes each list's legality) and the
 **Import**. Each file then says how many cards it got, with any lines it couldn't find. A file with
 no cards found makes no list.
 
+**Export files** downloads a folder's lists all in one format: the button on a folder exports that
+folder, and the one in the folder path bar the folder you have open. Pick the format (any of the
+[downloads](#downloads)), untick lists you don't want, and tick **Include subfolders** to take the lists
+in its subfolders too. One list downloads as its own file; more come as one zip, with each subfolder's
+lists in a folder of the same name. For a PDF format the PDF options come up once and are used for
+every list. Each list then says how it went; a list that couldn't be exported is left out of the zip.
+
 ## Adding cards {#active}
 
 Click the switch beside a list's name to make it **active**. Then every card in the search

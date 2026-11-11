@@ -489,6 +489,25 @@ proxies and public decklists, for:</p>
   <div id="importfilesstatus"></div>
 </script>
 
+<!-- Export files (exportfiles in oracle.js): a folder's lists, in one format, as one file or a zip -->
+<script id="template-exportfiles" type="text/jsrender">
+  <form id="exportfilesform" class="importfilesform" onsubmit="return false;">
+    <p>Lists in <b>{{>folder}}</b>. One list downloads as its own file; more come as one zip{{if subfolders}}, with subfolders as folders in it{{/if}}.</p>
+    <label>Format: <select id="exportfilesformat" class="notomselect" onchange="exportfilesdraw();">
+      <option value="texttab">Native Oracle (Tab-delimited)</option>
+      {{if snm}}<option value="textsnm">Sun and Moon</option>{{/if}}
+      {{if pdf}}<option value="pdf">PDF Print-n-Play</option>
+      <option value="mpc">PDF for MakePlayingCards</option>{{/if}}
+    </select></label><br /><br />
+    <label class="exportfilesheaders"><input type="checkbox" id="exportfilesheaders"{{if headers}} checked{{/if}} /> Headers in downloads</label>
+    {{if subfolders}}<label><input type="checkbox" id="exportfilessub" onchange="exportfilespick();" /> Include subfolders</label>{{/if}}
+    <div class="exportfilesall"><a href="#" onclick="exportfilesall(true); return false;">All</a> &middot; <a href="#" onclick="exportfilesall(false); return false;">None</a></div>
+    <ul id="exportfileslist" class="importfileslist"></ul>
+    <input type="button" id="exportfilesgo" value="Export" disabled onclick="exportfilesrun();" />
+  </form>
+  <div id="exportfilesstatus"></div>
+</script>
+
 <!-- modal template for finalizing import of a list -->
 <script id="template-importsuccess" type="text/jsrender">
   <div class="numresults">Success</div>
@@ -955,6 +974,7 @@ proxies and public decklists, for:</p>
 <!-- directory folders (renderdirectory): the path bar, and the open folder's subfolders, before its lists -->
 <script id="template-dirpath" type="text/x-jsrender">
 <button aria-label="Import files here as new lists (or drop them on the directory)" data-balloon-pos="down-right" class="iiconic iblue dirpathimport" onclick="importfiles(dirpath());"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> <span>Import files</span></button>
+<button aria-label="Download this folder's lists, in one format" data-balloon-pos="down-right" class="iiconic iblue dirpathimport" onclick="exportfiles(dirpath());"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg> <span>Export files</span></button>
 {{if path}}<button aria-label="Up a folder" data-balloon-pos="down-left" class="iiconic iblue dirupbutton" data-folder="{{>parent}}" data-dirdrop="1" onclick="opendirfolder(folderparent(dirpath()));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#corner-left-up"></svg></button>{{/if}}
 <svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg>
 {{if path}}<a href="#" draggable="false" data-folder="" data-dirdrop="1" onclick="opendirfolder(''); return false;">All lists</a>{{else}}<b data-folder="" data-dirdrop="1">All lists</b>{{/if}}
@@ -971,6 +991,7 @@ proxies and public decklists, for:</p>
   <div class="listmiddle"></div>
   <div class="listmiddle dirfolderactions"><span>
     <button aria-label="Import files as new lists" data-balloon-pos="left" class="iiconic iblue" onclick="importfiles(eventfolder(this));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
+    <button aria-label="Download its lists, in one format" data-balloon-pos="left" class="iiconic iblue" onclick="exportfiles(eventfolder(this));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
     <button aria-label="Rename folder" data-balloon-pos="left" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
     <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="left" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
   </span></div>
@@ -982,6 +1003,7 @@ proxies and public decklists, for:</p>
   {{include tmpl="#template-dirtoggle"/}}
   <a href="#" class="dirfolderopen" draggable="false" onclick="opendirfolder(eventfolder(this)); return false;"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg> <span class="dirfolderlabel">{{>name}}<br /><small>{{:lists}} list{{if lists!=1}}s{{/if}}{{if folders}}, {{:folders}} folder{{if folders!=1}}s{{/if}}{{/if}}</small></span></a>
   <button aria-label="Import files as new lists" data-balloon-pos="up" class="iiconic iblue" onclick="importfiles(eventfolder(this));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg></button>
+  <button aria-label="Download its lists, in one format" data-balloon-pos="up" class="iiconic iblue" onclick="exportfiles(eventfolder(this));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg></button>
   <button aria-label="Rename folder" data-balloon-pos="up" class="iiconic iblue" onclick="renamefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#edit-2"></svg></button>
   <button aria-label="Remove folder (keeps what's in it)" data-balloon-pos="up-right" class="iiconic inegative" onclick="removefolder(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#folder-minus"></svg></button>
   </div>
