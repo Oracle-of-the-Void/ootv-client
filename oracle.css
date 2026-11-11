@@ -928,6 +928,9 @@ div.dirpathbar button.dirpathimport {
     font-size: medium;
     white-space: nowrap;
 }
+div.dirpathbar button.dirpathimport + button.dirpathimport {
+    margin-right: 10px;   /* Export files, left of Import files */
+}
 div.dirpathbar .dirpathsep {
     color: var(--text-6);
 }
@@ -1086,6 +1089,19 @@ ul.importfileslist pre {
 }
 form.importfilesrunning ul.importfileslist .importfilesstate button {
     display: none;
+}
+/* Export files (exportfiles): the list picks, All / None */
+form#exportfilesform label {
+    display: inline-block;
+    margin-right: 1em;
+}
+form#exportfilesform div.exportfilesall {
+    margin-top: 10px;
+    font-size: smaller;
+}
+form#exportfilesform ul.importfileslist {
+    max-height: 50vh;
+    overflow: auto;
 }
 div.dirempty .randarea {
     padding: 8px;
