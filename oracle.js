@@ -13102,17 +13102,20 @@ function mycardcount(cardid) {
 }
 // the card view's family link, after the globe and folder: how many cards are linked to this one through versions
 // and souls (Experienced, Soul of, countsas: ootv-search lib/family.js), shown only when there are others. A click
-// is the search family=<cardid>. Kept for the visit, per game and card.
+// is the search family=<cardid>. Kept for the visit, per game and card: { n, family } (the API's tree).
+// The card's keywords also gain "<Name>'s Soul" for each soul of it (cardsouls), linked to that soul's card.
 var cardfamilies = {};
 var cardfamilytitles = {};   // cardid -> title, for the search's summary line
 function cardfamily(cardid, title) {
   var key = database+'/'+cardid;
   cardfamilytitles[cardid] = title;
-  var show = function(n) {
-    $('#resultcard a.cardfamily, #resultcard a.cardfamilykw').remove();
+  var show = function(got) {
+    var n = got.n;
+    $('#resultcard a.cardfamily, #resultcard a.cardfamilykw, #resultcard .cardsoulkw').remove();
     if(String($("#lastcardid").val()) != String(cardid) || !(n > 1)) {
       return;
     }
+    cardsouls(cardid, got.family);
     var icon = function(cls, count) {
       var link = $('<a class="'+cls+'" href="" title="Family: '+n+' cards linked by versions and souls (Experienced, Soul of)">'+
                    '<svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg><span class="'+count+'">'+n+'</span></a>');
@@ -13145,7 +13148,7 @@ function cardfamily(cardid, title) {
     data: JSON.stringify({table: database, family: String(cardid), size: 0}),
     success: function(data) {
       var total = data.hits ? (typeof data.hits.total === 'object' ? data.hits.total.value : data.hits.total) : 0;
-      cardfamilies[key] = total || 0;
+      cardfamilies[key] = {n: total || 0, family: data.family || null};
       show(cardfamilies[key]);
     },
     error: function() { delete cardfamilies[key]; }
@@ -13153,7 +13156,7 @@ function cardfamily(cardid, title) {
 }
 // a family search's tree, above its results: the characters (a card and its experienced versions) with each soul
 // under the one it is a soul of (the API's family: ootv-search lib/family.js familyTree). Every card links to its
-// card view; the card the search started from is bold. Kept per search, so a cached search draws it too.
+// card view, with its legality bugs; the card the search started from is outlined. Kept per search, so a cached search draws it too.
 var familytrees = {};
 function familytreepanel(qs, fam) {
   if(fam) { familytrees[database+'/'+qs] = fam; }
@@ -13165,7 +13168,7 @@ function familytreepanel(qs, fam) {
   var short = function(level) { return String(level || '').replace(/^Experienced\b/, 'Exp').replace(/^Inexperienced\b/, 'Inexp'); };
   var cardlink = function(c, text, cls) {
     return '<a class="'+(cls || '')+(c.cardid == fam.cardid ? ' familycurrent' : '')+'" href="#game='+database+',#cardid='+parseInt(c.cardid)+'"'+
-      ' onclick="docardid('+parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title+(c.level ? ' ('+c.level+')' : ''))+'">'+text+'</a>';
+      ' onclick="cardopen('+parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title+(c.level ? ' ('+c.level+')' : ''))+'">'+text+'</a>';
   };
   var node = function(n) {
     var html = '<li><span class="familyname">'+htmlEncode(n.name)+'</span>';
@@ -13178,7 +13181,9 @@ function familytreepanel(qs, fam) {
     html += '<span class="familycards">'+n.cards.map(function(c) {
       var text = c.level ? short(c.level) : 'Base';
       if(c.title.toLowerCase() != n.name.toLowerCase()) { text = htmlEncode(c.title)+(c.level ? ' <small>'+htmlEncode(short(c.level))+'</small>' : ''); }
-      return cardlink(c, text, 'familycard');
+      // the card's arc bugs, in arc order, inside its bubble (legalitybug; none for a game without them)
+      var bugs = templatesortlegality([].concat(c.legality || [])).map(function(l) { return legalitybug(l, true); }).filter(Boolean);
+      return cardlink(c, text+(bugs.length ? '<span class="familybugs">'+bugs.join('')+'</span>' : ''), 'familycard');
     }).join('')+'</span>';
     if(n.children.length) { html += '<ul>'+n.children.map(node).join('')+'</ul>'; }
     return html+'</li>';
@@ -13192,6 +13197,43 @@ function familytreepanel(qs, fam) {
   var html = '<details class="familytree" open><summary><svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg> Family tree</summary>'+
     '<ul>'+[fam.tree].concat(fam.others || []).map(node).join('')+'</ul></details>';
   $('#resultsearch').prepend(html);
+}
+// open a card by id from a link: docardid needs it cached (a search's results), else fetch it, as a #cardid url does
+function cardopen(id) {
+  if(cache_card_is(id)) {
+    docardid(id);
+  } else {
+    cardfetch(id);
+  }
+}
+// the reverse of "Soul of": on a card that others are a soul of, "<Name>'s Soul" after its keywords, linked to the
+// soul's card (Matsu Gohei: Matsu Aoiko's Soul, Matsu Hachiro's Soul). From the family tree (ootv-search
+// familyTree): every soul whose target is this card's character, on each of its versions when the soul names no
+// level (Soul of Matsu Gohei), else only on the version it names (Akodo Kobi: Soul of Ginawa Experienced 3).
+function cardsouls(cardid, fam) {
+  if(!fam || !fam.tree) {
+    return;
+  }
+  var all = [], mine = null;
+  var walk = function(n) { all.push(n); n.cards.forEach(function(c) { if(c.cardid == cardid) { mine = n; } }); n.children.forEach(walk); };
+  [fam.tree].concat(fam.others || []).forEach(walk);
+  if(!mine) {
+    return;
+  }
+  var links = [];
+  all.forEach(function(n) {
+    n.cards.forEach(function(c) {
+      if(c.soulof && c.soulof.name == mine.name && (c.soulof.cardid === null || c.soulof.cardid == cardid) && n !== mine) {
+        links.push('<span class="cardsoulkw"> &bull; <a href="#game='+database+',#cardid='+parseInt(c.cardid)+'" onclick="cardopen('+
+          parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title)+' is a Soul of '+htmlEncode(mine.name)+'">'+
+          htmlEncode(n.name)+'\'s Soul</a></span>');
+      }
+    });
+  });
+  var dd = $('#resultcard dd.cardkeywords').first();
+  if(links.length && dd.length) {
+    dd.append(links.join(''));
+  }
 }
 function cardfamilysearch(cardid) {
   window.location.hash = statehash({'view': 'search', 'qs': $.param({'table': database, 'family': cardid})});
