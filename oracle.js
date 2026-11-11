@@ -6631,7 +6631,7 @@ function searchsummary(values) {
   Object.keys(values).forEach(function(name) {
     if(done[name]) { return; }
     var el = $('#searchform [name="'+name+'"]').first();
-    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : name == 'artphoto' ? 'Photo' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
+    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : name == 'artphoto' ? 'Photo' : name == 'family' ? 'Family of' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
     var range = name.match(/^field_(lower|upper)_(.*)/);
     var text;
     if(range) {
@@ -6640,6 +6640,8 @@ function searchsummary(values) {
       text = (lo !== undefined && hi !== undefined) ? lo+' to '+hi : (lo !== undefined ? 'at least '+lo : 'at most '+hi);
     } else if(name == 'artphoto') {
       text = 'your photo';
+    } else if(name == 'family') {
+      text = cardfamilytitles[values[name]] || 'card #'+values[name];
     } else if(el.prop('type') == 'checkbox') {
       text = name.startsWith('require_') ? (el.parent('label').text().trim() || 'yes') : 'yes';
     } else {
@@ -7328,10 +7330,12 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
       drawcard(full, lastcardprid() || prid, qs);
       $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
       if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
+      if((database+'/'+full.cardid) in cardfamilies) { cardfamily(full.cardid, pagetitlename(full)); }
     });
   }
   publiccardcount(carddata.cardid);
   mycardcount(carddata.cardid);
+  cardfamily(carddata.cardid, pagetitlename(carddata));
 
   if(!switchview) {
 	  return;
@@ -13089,6 +13093,47 @@ function mycardcount(cardid) {
       link.append('<span class="cardpubliccount">'+n+'</span>');
     }
   }));
+}
+// the card view's family link, after the globe and folder: how many cards are linked to this one through versions
+// and souls (Experienced, Soul of, countsas: ootv-search lib/family.js), shown only when there are others. A click
+// is the search family=<cardid>. Kept for the visit, per game and card.
+var cardfamilies = {};
+var cardfamilytitles = {};   // cardid -> title, for the search's summary line
+function cardfamily(cardid, title) {
+  var key = database+'/'+cardid;
+  cardfamilytitles[cardid] = title;
+  var show = function(n) {
+    $('#resultcard a.cardfamily').remove();
+    var after = $('#resultcard a.cardpubliclists, #resultcard a.cardtraders, #resultcard a.cardmylists').last();
+    if(String($("#lastcardid").val()) != String(cardid) || !after.length || !(n > 1)) {
+      return;
+    }
+    var link = $('<a class="cardfamily" href="" title="Family: '+n+' cards linked by versions and souls (Experienced, Soul of)">'+
+                 '<svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg><span class="cardpubliccount">'+n+'</span></a>');
+    link.on('click', function() { cardfamilysearch(cardid); return false; });
+    after.after(link);
+  };
+  if(key in cardfamilies) {
+    if(cardfamilies[key] !== null) { show(cardfamilies[key]); }   // null: still coming, and shows itself then
+    return;
+  }
+  cardfamilies[key] = null;
+  $.ajax({
+    type: 'POST',
+    url: apiuri+'/search',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({table: database, family: String(cardid), size: 0}),
+    success: function(data) {
+      var total = data.hits ? (typeof data.hits.total === 'object' ? data.hits.total.value : data.hits.total) : 0;
+      cardfamilies[key] = total || 0;
+      show(cardfamilies[key]);
+    },
+    error: function() { delete cardfamilies[key]; }
+  });
+}
+function cardfamilysearch(cardid) {
+  window.location.hash = statehash({'view': 'search', 'qs': $.param({'table': database, 'family': cardid})});
 }
 // the Detail search results get the card view's globe, with how many public decks play each card (only cards
 // in a deck). Every card's count comes in one /publiclists group=cardcounts call per game, kept for the visit:

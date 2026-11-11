@@ -152,6 +152,10 @@ inputs - sent in body querystring:
 * rulings (optional): `1` keeps `ruling` and `rulingref` in the hits (the Discord bot's `/rulings`)
 * querystring (optional)
   * string to do an elastic query_string (operator AND)
+* family (optional): a cardid. Only that card and every card linked to it through versions and souls
+  (Experienced/Inexperienced, Soul of, `deckconstruction.countsas`, a title's ", Soul of Name"), ANDed with the
+  rest; 404 for an unknown card. ootv-search `lib/family.js`, its CLAUDE.md "Card families". The card page's
+  family link (`cardfamily`) asks `size: 0` for the count.
 * pairs of field_xxx (contains the data) and type_xxx (defines the operation)
   * type_xxx = 'regexp'
     * Does elastic regexp
