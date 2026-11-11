@@ -754,3 +754,25 @@ unit is and how an army's Force adds up are now in `l5r/play`, not in the table'
   Before this, every player but the attacker counted as defending, and only the attacker and the defender assigned.
 
 Nothing else changes in play, and no cards changed.
+
+## Resolution as rules, allies (2026-11-11, l5r/play version 97)
+
+The battle plan's third step (ootv-play [#332](https://github.com/Oracle-of-the-Void/ootv-play/pull/332)). How a
+battle resolves is now a list of rules in `l5r/play` (the Attack phase's `attack.resolve`), not the table's code. Each
+rule whose condition holds runs:
+
+- more Force, with units on both sides: that side wins and destroys the other army, 2 Honor a card destroyed;
+- equal Force, with units on both sides: both armies are destroyed, 1 Honor a card to each;
+- the attackers' Force more than the defenders' plus the Province's Strength: the Province falls.
+
+**A change in play:** an army with nobody against it no longer wins (SCC p. 40: "the battle is not considered a
+victory"). It destroys nothing and gains no Honor, but the Province still falls if its Force is more than the Strength.
+The table used to make an unopposed attacker the winner, so Reactions that need a win (Brilliant Victory, Mercy) could
+be played after one.
+
+**Allies** (SCC pp. 35-37), in games of three or more: at the Declaration the Attacker and the Defender may ask the
+other players to join them (Ask buttons on the phase box). Only a player who was asked may join, never both sides, and
+an ally gains 2 Honor once, when it first assigns a unit. The Honor for cards destroyed still goes to the Attacker or
+Defender. Players on neither side are the `other` side, whose units go home as the attack ends. Not yet: allies
+assigning in seat order after their side's player (plan step 6). `attack.honor` and `attack.outcome` are gone; no
+cards changed.
