@@ -992,3 +992,19 @@ no rule changed.
   a player with no Fate card in hand.
 - The Strike step: `start` turns the focus cards up; `moment` `"strike"` is when Poison and Shosuro Hametsu act.
 - Gone from `duel`: `to`, `back` (now the Focus move's).
+
+## Duel card words and the Emerald Champion's series (2026-11-11, l5r/play version 113)
+
+Step 4 of the duel plan (ootv-play [#348](https://github.com/Oracle-of-the-Void/ootv-play/pull/348)). No card changed,
+no rule changed.
+
+- The duel's two sides are the ones `scenes.duel.sides` names (challenger, challenged); card words that name a side use
+  those names.
+- `duel.stages` (new): when a duel card's moment word is open. `asked`: as a challenge is issued; `entering`: the duel
+  begun, before the first focus; `focusing`: your turn to focus or strike; `strike`: the focus cards turned up, before
+  the duel resolves; `won`: just after a duel your Personality won.
+- `scenes.challenge` Answer step, `refuse` (new): the action a card can prevent ("may not refuse"). A card can also
+  prevent `challenge` (the challenge scene) and `focus` (the Focus move).
+- `duel.series` (new) `"champion"` and `scenes.champion` (new): Test of the Emerald Champion's challenges, one to each
+  other player in turn from the Champion's player, none of which can be refused. The series ends when the Champion
+  falls or every player has answered.
