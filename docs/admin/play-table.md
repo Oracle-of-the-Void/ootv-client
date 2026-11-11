@@ -1008,3 +1008,17 @@ no rule changed.
 - `duel.series` (new) `"champion"` and `scenes.champion` (new): Test of the Emerald Champion's challenges, one to each
   other player in turn from the Champion's player, none of which can be refused. The series ends when the Champion
   falls or every player has answered.
+
+## One panel for duels and lobbying (2026-11-11, l5r/play version 113)
+
+Step 5 of the duel plan, the last (ootv-play [#349](https://github.com/Oracle-of-the-Void/ootv-play/pull/349)). No
+card changed, no rule changed, no config changed.
+
+- Duels and lobbying efforts now use the same panel over the table. Its words come from config: the scene's name, each
+  side's `as` word (challenger, challenged; lobbying, opposing), the step's name and its moves.
+- The heading names the scene and each side, e.g. "Duel: Kakita Toshimoko (Player A) challenger, Doji Hoturi
+  (Player B) challenged"; before an answer, "Challenge: … challenging, … challenged".
+- A move that can't be made right now (a card's terms say that side can't focus; no cards in hand; a lobbying move
+  already used) shows disabled, with the reason when you point at it.
+- The duel's count button now reads "Resolve the duel". Before the duel, a card's optional focus (Matsu Hiroru) is
+  skipped with Pass, as in lobbying.
