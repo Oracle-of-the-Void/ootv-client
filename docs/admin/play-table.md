@@ -821,3 +821,14 @@ The Cavalry rule moved onto the Cavalry Maneuvers step (`units`: every Personali
 Cavalry); `commit` keeps "led by an unbowed Personality". Cavalry may still go in the Infantry Maneuvers, as before. The
 Battles step names whose Provinces are fought at (`whose: defender`). With three or more players on one screen, Play as
 now goes round every seat.
+
+## Ambush and side names (2026-11-11, l5r/play version 101)
+
+The battle plan's last step (ootv-play [#336](https://github.com/Oracle-of-the-Void/ootv-play/pull/336)). What an
+Ambush is now sits in `l5r/play` (`madebattle`) rather than the table's code. It opens the attack's battles on an area
+made in the defender's row, between the owners of the two units picked. Nobody else joins and no unit moves in or out.
+It is one battle, and then play goes back to the next player. The card keeps `{ambush: true}`. The log now reads
+"Ninja Spy's unit against Doji Hoturi's unit at Player B's Ambush: a battle of their own that no other unit joins".
+
+Each side of an attack now also names its card word in `l5r/play` (`as`: attacking, defending), and the table finds
+sides only through those words. A game with differently named sides needs no code change. Nothing changes in play.
