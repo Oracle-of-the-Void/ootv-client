@@ -1513,12 +1513,17 @@ $(document).on('click', '#resultdir .dirlistname', function() {
   listinfo(String($(this).data('list')),true);
 });
 // the list actions (grid) menu (directory and list view header) is placed against the window, so the scrolling directory (phones) can't clip it,
-// and opens upward when there's no room below
+// opens upward when there's no room below, and rightward when there's no room to its left (a button at the left of the row: the
+// list view header's, which on a phone ran off the screen's left edge)
 $(document).on('click', '#resultdir .dirmenucell nav > ul > li, #resultlist .dirmenucell nav > ul > li', function() {
   var li = this, ul = $(li).children('ul');
   var r = li.getBoundingClientRect();
   ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});
   requestAnimationFrame(function() {
+    var w = ul.outerWidth(), margin = 4;
+    if(r.right - w < margin) {
+      ul.css({'left': Math.max(margin, Math.min(r.left, window.innerWidth - w - margin)), 'right': 'auto'});
+    }
     var h = ul.outerHeight();
     if(r.bottom + h > window.innerHeight && r.top - h >= 0) {
       ul.css('top', r.top - h);
