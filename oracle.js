@@ -795,6 +795,9 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 		    if(listid && switchview && !listoutput && (error.status == 403 || error.status == 404)) {
 		      listunavailable();
 		    }
+		    if(listid && listoutput && listbatch) {
+		      listfilefail("Couldn't load the list"+(error.status ? " ("+error.status+")" : ""));
+		    }
 	    }
 	  }));
   }
@@ -3544,6 +3547,192 @@ $(document).on("dragover","#importfilesform",function(e) {
 function importfilesfailed(failed) {
   return failed.length ? '<details><summary>Lines not found</summary><pre>'+_.escape(failed.join('\n'))+'</pre></details>' : '';
 }
+// ***********************  export a folder's lists **************
+// Many lists at once, in one format: a folder's Export files button, or the path bar's (the open folder). The lists
+// are exported one after another the way each list's Download menu does it (listinfo with a listoutput), but
+// listfileout hands each file to listbatch instead of downloading it. One list downloads as its own file; more
+// come as one zip (pdfzip), a subfolder's lists in that folder inside it. PDF formats ask the PDF options once
+// (pdfdialog with pdfdialogstate.batch), and every list is made with them.
+var exportfilesfolder = '';   // the folder whose lists are offered
+var exportfilespicked = [];   // the lists offered: [{list, path (folder inside the export folder)}]
+var listbatch = null;         // an export running: {files, notes, next(ok, why)}
+function exportfiles(folder) {
+  if(!getuidsafe()) { return; }
+  exportfilesfolder = folder || '';
+  modal("Export lists",$.templates("#template-exportfiles").render({
+    "folder": exportfilesfolder ? exportfilesfolder.split('/').join(' › ') : "All lists (top level)",
+    "subfolders": folderchildren(exportfilesfolder).length > 0,
+    "snm": snmallowed(), "pdf": pdfallowed(), "headers": outputheaders}));
+  exportfilespick();
+}
+// the lists in the folder (and its subfolders when ticked), in the directory's sort, all ticked
+function exportfilespick() {
+  var dir = cache_thing("list","data");
+  var folders = [exportfilesfolder];
+  if($('#exportfilessub').is(':checked')) {
+    folders = folders.concat(foldertree(exportfilesfolder));
+  }
+  var sort = dirsortstate();
+  exportfilespicked = [];
+  folders.forEach(function(folder) {
+    var path = exportfilesfolder ? folder.substring(exportfilesfolder.length).replace(/^\//,'') : folder;
+    sortlists(((dir && dir.lists) ? dir.lists.Items : []).filter(function(list) { return listfolder(list) == folder; }),sort)
+      .forEach(function(list) { exportfilespicked.push({'list': list, 'path': path}); });
+  });
+  $('#exportfileslist').html(exportfilespicked.length ? exportfilespicked.map(function(p,i) {
+    return '<li data-i="'+i+'"><label><input type="checkbox" class="exportfilesbox" checked onchange="exportfilesdraw();" /> '+
+      '<span class="importfilesname">'+_.escape(p.list.name || 'Untitled')+'</span></label>'+
+      (p.path ? ' <small>'+_.escape(p.path.split('/').join(' › '))+'</small>' : '')+
+      ' <span class="importfilesstate"></span></li>';
+  }).join('') : '<li>No lists here.</li>');
+  exportfilesdraw();
+}
+function exportfilesall(on) {
+  $('#exportfileslist .exportfilesbox').prop('checked',on);
+  exportfilesdraw();
+}
+function exportfilesdraw() {
+  var n = $('#exportfileslist .exportfilesbox:checked').length;
+  var format = $('#exportfilesformat').val();
+  $('.exportfilesheaders').toggle(format == 'texttab');
+  $('#exportfilesgo').prop('disabled',!n).val(n > 1 ? 'Export '+n+' lists' : 'Export');
+}
+// PDF formats: the PDF options first (pdfgenerate comes back to exportfilesstart); text formats start now
+function exportfilesrun() {
+  var format = $('#exportfilesformat').val();
+  var picks = [];
+  $('#exportfileslist li').each(function() {
+    if($(this).find('.exportfilesbox').is(':checked')) { picks.push(parseInt($(this).attr('data-i'))); }
+  });
+  if(!picks.length) { return; }
+  var run = {'format': format, 'picks': picks, 'headers': $('#exportfilesheaders').is(':checked'),
+             'html': $('#modal-content').html(), 'sub': $('#exportfilessub').is(':checked')};
+  if(format == 'pdf' || format == 'mpc') {
+    pdfdialogstate = {'mode': 'print', 'batch': run};
+    var o = pdfstartoptions();
+    o.layout = (format == 'mpc') ? 'mpc' : 'sheet';
+    pdfrender(o);
+    return;
+  }
+  exportfilesstart(run, null);
+}
+// pdf: the PDF dialog's options, or null for text
+function exportfilesstart(run, pdf) {
+  // back to the export dialog, as it was, to show how each list goes
+  modal("Export lists",run.html);
+  $('#exportfilesformat').val(run.format);
+  $('#exportfilessub').prop('checked',run.sub);
+  $('#exportfilesheaders').prop('checked',run.headers);
+  $('#exportfileslist li').each(function() {
+    $(this).find('.exportfilesbox').prop('checked',run.picks.indexOf(parseInt($(this).attr('data-i'))) > -1);
+  });
+  $('#exportfilesform').find('input,select,button').prop('disabled',true);
+  $('#exportfilesform').addClass('importfilesrunning');
+  var picks = run.picks.map(function(i) { return {'i': i, 'p': exportfilespicked[i]}; });
+  var format = (pdf && pdf.layout == 'mpc') ? 'mpc' : run.format;
+  var row = function(i) { return $('#exportfileslist li[data-i='+i+']'); };
+  var say = function(i,cls,html) { row(i).find('.importfilesstate').attr('class','importfilesstate '+cls).html(html); };
+  var used = {}, made = 0, problems = 0;
+  var zipname = 'ootv_'+filenamecleaner(exportfilesfolder ? foldername(exportfilesfolder) : 'lists')+'_'+format;
+  var batch = {'files': [], 'notes': []};
+  listbatch = batch;
+  // the choice made here, not the list menus' Headers in downloads (listinfo adds noheaders from it)
+  var headers = outputheaders;
+  outputheaders = true;
+  var finish = function() {
+    listbatch = null;
+    outputheaders = headers;
+    if(batch.files.length && picks.length == 1) {
+      // one list: its file as its own Download menu gives it (MakePlayingCards: its zip of 1.pdf, 2.pdf, ...)
+      var parts = batch.files[0].name.split('/');
+      if(format == 'mpc') {
+        listdownload(pdfzip(batch.files.map(function(f) { return {'name': f.name.split('/').pop(), 'data': f.data}; })), parts[parts.length-2]+'.zip');
+      } else {
+        listdownload(new Blob([batch.files[0].data]), parts.pop());
+      }
+    } else if(batch.files.length) {
+      listdownload(pdfzip(batch.files), zipname+'.zip');
+    }
+    $('#exportfilesstatus').html('<b>'+made+' of '+picks.length+' list'+(picks.length!=1?'s':'')+' exported</b>'+(problems ? ', '+problems+' with problems' : '')+
+      (batch.files.length ? '' : ', nothing to download')+'. <span class="button gray" onclick="nomodal();">Close</span>');
+  };
+  var next = function(k) {
+    if(k >= picks.length) { finish(); return; }
+    var i = picks[k].i, p = picks[k].p;
+    // a name for the list's file(s), not used twice in the same folder of the zip
+    var base = 'ootv_'+filenamecleaner(p.list.name || 'list'), name = base;
+    for(var n = 2; used[p.path+'/'+name]; n++) { name = base+'_'+n; }
+    used[p.path+'/'+name] = true;
+    batch.dir = p.path ? p.path.split('/').map(filenamecleaner).join('/')+'/' : '';
+    batch.notes = [];
+    batch.next = function(ok, why) {
+      batch.next = null;
+      var notes = batch.notes.length ? '<details><summary>Problems</summary><pre>'+_.escape(batch.notes.join('\n'))+'</pre></details>' : '';
+      if(ok) {
+        made++;
+        if(notes) { problems++; }
+        say(i, notes ? 'importfilesbad' : 'importfilesok', 'Done'+notes);
+      } else {
+        problems++;
+        say(i,'importfilesbad',_.escape(why || 'Not exported')+notes);
+      }
+      next(k+1);
+    };
+    say(i,'','<progress></progress>');
+    var output;
+    if(format == 'texttab' || format == 'textsnm') {
+      output = format+',filename:'+name+((format == 'textsnm' || !run.headers) ? ',noheaders' : '');
+    } else {
+      pdfoptions = $.extend({}, pdf);
+      pdfbacksready = false;
+      output = 'pdf,filename:'+name+(format == 'mpc' ? '_mpc' : '');
+    }
+    listinfo(p.list.listid,false,output);
+  };
+  $('#exportfilesstatus').html('Exporting&hellip;');
+  next(0);
+}
+// an export's file: into the running batch (exportfilesstart), else downloaded. files: [{name, data: Uint8Array}],
+// as many as one list makes (MakePlayingCards' one PDF a card)
+function listfileout(blob, filename, files=null) {
+  if(!listbatch) {
+    listdownload(blob, filename);
+    return;
+  }
+  var batch = listbatch;
+  if(files) {
+    var folder = filename.replace(/\.zip$/,'');
+    files.forEach(function(f) { batch.files.push({'name': batch.dir+folder+'/'+f.name, 'data': f.data}); });
+    if(batch.next) { batch.next(true); }
+    return;
+  }
+  blob.arrayBuffer().then(function(buffer) {
+    batch.files.push({'name': batch.dir+filename, 'data': new Uint8Array(buffer)});
+    if(batch.next) { batch.next(true); }
+  });
+}
+// an export that made no file: the batch goes on to the next list; on its own, the reason as an alert
+function listfilefail(why) {
+  if(listbatch && listbatch.next) {
+    listbatch.next(false, why);
+  } else if(!listbatch) {
+    alert(why);
+  }
+}
+// something wrong that still makes a file (images that didn't load): noted on the batch's row, else an alert
+function listfilenote(why) {
+  if(listbatch) {
+    listbatch.notes.push(why);
+  } else {
+    alert(why);
+  }
+}
+function listdownload(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  data_url_to_download(url, filename);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 60000);
+}
+
 // files dragged from the computer onto the directory: dropped on a folder they go in it, anywhere else in the
 // open folder. (Lists and folders dragged inside the directory are dirdrag, above.)
 var dirfiletimer = null;
@@ -3973,6 +4162,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
     if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
+	if(listoutput) { listfilefail("The page isn't ready yet: try again"); }
 	return;
     }
     //console.log(listlist);
@@ -4059,13 +4249,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     "listmeta": cache_thing("list",listid).list.Items[0]
 	    });
 	    var data = new Blob([text.replace(/\n/g, "\r\n")],{type: 'text/plain'});
-	    var url = window.URL.createObjectURL(data);
-	    const a = document.createElement('a');
-	    a.style.display = 'none';
-	    a.href = url;
-	    a.download = (textparts.find(checkfilename)?textparts.find(checkfilename).replace("filename:",''):"decklist")+".txt";
-	    document.body.appendChild(a);
-	    a.click();
+	    listfileout(data, (textparts.find(checkfilename)?textparts.find(checkfilename).replace("filename:",''):"decklist")+".txt");
 	} else {
 	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
 	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html))
@@ -6627,7 +6811,7 @@ function pdfrender(o) {
   Object.keys(databasesort[database] || {}).forEach(function(k) { sorts[k] = k.charAt(0).toUpperCase()+k.slice(1); });
   if(!('title' in sorts)) { sorts['title'] = 'Title'; }
   var user = cache_thing("user","data");
-  modal(pdfdialogstate.mode == 'print' ? "PDF Print-n-Play" : "PDF print settings",
+  modal(pdfdialogstate.batch ? "PDF options for the exported lists" : pdfdialogstate.mode == 'print' ? "PDF Print-n-Play" : "PDF print settings",
         $.templates("#template-pdfoptions").render({
           'mode': pdfdialogstate.mode, 'o': o, 'v': v, 'papers': pdfpapers, 'sorts': sorts,
           'gamename': dbinfo[database].name, 'loggedin': !!(user && ("oracle" in user))
@@ -6698,6 +6882,10 @@ function pdfgenerate() {
   var layout = pdflayout(o);
   if(layout.cols < 1 || layout.rows < 1) {
     pdfsummary();
+    return;
+  }
+  if(pdfdialogstate.batch) {
+    exportfilesstart(pdfdialogstate.batch, o);   // Export files: these options for every list
     return;
   }
   pdfoptions = o;
@@ -6907,12 +7095,12 @@ function createpdf(data,listoutput='') {
     var o = pdfoptions || pdfbaseoptions();
     pdfoptions = null;
     if(!pdfallowed()) {
-      alert("PDF printing isn't available for "+dbinfo[database].name+".");
+      listfilefail("PDF printing isn't available for "+dbinfo[database].name+".");
       return;
     }
     var layout = pdflayout(o);
     if(layout.cols < 1 || layout.rows < 1) {
-      alert("The cards don't fit on the page with these margins.");
+      listfilefail("The cards don't fit on the page with these margins.");
       return;
     }
     console.log(['createpdf',o,layout,data]);
@@ -6975,7 +7163,7 @@ function createpdf(data,listoutput='') {
     var imagefailed = [];
     var loaded = 0;
     if(urls.length == 0) {
-      alert("No card images to print in this list.");
+      listfilefail("No card images to print in this list.");
       return;
     }
     var perpage = layout.cols*layout.rows;
@@ -6991,7 +7179,7 @@ function createpdf(data,listoutput='') {
           var pages = cards.filter(function(c) { return imagedata[c.front]; });
           if(imagefailed.length>0) {
             console.log("Failed"+JSON.stringify(imagefailed));
-            alert("Failed to load some images:"+JSON.stringify(imagefailed));
+            listfilenote("Failed to load some images:"+JSON.stringify(imagefailed));
           }
           if(o.layout == 'mpc') {
             pdfmpczip(pages.map(function(c) { return imagedata[c.front]; }), layout, fn);
@@ -7024,7 +7212,7 @@ function createpdf(data,listoutput='') {
           }
 		      doc.end();
 		      stream.on('finish', function() {
-		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
+		        listfileout(stream.toBlob('application/pdf'),fn+".pdf");
 		      });
 	      }
 	    }, o.cardwidth > o.cardheight, (o.layout == 'mpc') ? function(canvas) { return pdfmpcimage(canvas, o); } : null);
@@ -7036,7 +7224,7 @@ function pdfmpczip(pages, layout, fn) {
   var files = [];
   var next = function(i) {
     if(i == pages.length) {
-      data_url_to_download(URL.createObjectURL(pdfzip(files)), fn+".zip");
+      listfileout(listbatch ? null : pdfzip(files), fn+".zip", files);
       return;
     }
     const doc = new PDFDocument({
