@@ -3183,6 +3183,10 @@ a.cardmylists svg.feather { width: 18px; height: 18px; vertical-align: middle; c
 a.cardmylists { text-decoration: none; margin-left: 4px; }
 a.cardfamily svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
 a.cardfamily { text-decoration: none; margin-left: 4px; }
+/* the same link after an Experienced / Soul of keyword, on the card's light background */
+a.cardfamilykw { text-decoration: none; margin-left: 3px; white-space: nowrap; }
+a.cardfamilykw svg.feather { width: 15px; height: 15px; vertical-align: -2px; color: var(--link); }
+span.cardfamilykwcount { font-size: 12px; margin-left: 1px; color: var(--link); }
 span.publicformatsource { color: var(--text-6); font-size: small; }
 div.publicaward, div.listaward { color: var(--award); font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
