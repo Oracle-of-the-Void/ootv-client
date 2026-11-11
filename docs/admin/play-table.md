@@ -901,9 +901,13 @@ changed.
   (Send a speaker: bow a Personality of yours; its Personal Honor counts) and `gift` (Give a gift: a card from your
   hand to the discard pile; its Focus Value counts; `"once": "scene"`, one a player an effort). Each is shaped like the
   Favor's uses (`targets`, `effects`).
-- New effect words: `{"record": "target", "field": ...}` (the move's target counts for its side, by that field) and
-  `{"discard": "target"}` (the target card itself to its discard pile). The second is also in the card editor's `play`
-  description.
+- New effect word: `{"record": "target", "field": ...}` (the move's target counts for its side, by that field). The
+  gift discards with `{"discard": true, "to": "target"}`.
+- `discard` works from anywhere (ootv-play [#342](https://github.com/Oracle-of-the-Void/ootv-play/pull/342), the user:
+  "Discard should be able to work from anywhere"; `l5r/play` 107, `l5r/fields` 84): `{"discard": true}` on a card
+  target sends it to its owner's discard pile from the hand, a pile or play (what's attached goes with it; discarded,
+  not destroyed, so not Honorable Dead); on a Province target, the card in it, as before. The card editor's `play`
+  description says so.
 - `totals.lobby` (new) and `scenes.lobby.total` `"lobby"`: a side's Family Honor plus its recorded cards' fields; a
   dishonored speaker counts none, no card less than 0.
 - `tokens[0].lobby` loses `counter` and `gift` (now the total and the gift move).
