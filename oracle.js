@@ -13103,15 +13103,28 @@ function cardfamily(cardid, title) {
   var key = database+'/'+cardid;
   cardfamilytitles[cardid] = title;
   var show = function(n) {
-    $('#resultcard a.cardfamily').remove();
-    var after = $('#resultcard a.cardpubliclists, #resultcard a.cardtraders, #resultcard a.cardmylists').last();
-    if(String($("#lastcardid").val()) != String(cardid) || !after.length || !(n > 1)) {
+    $('#resultcard a.cardfamily, #resultcard a.cardfamilykw').remove();
+    if(String($("#lastcardid").val()) != String(cardid) || !(n > 1)) {
       return;
     }
-    var link = $('<a class="cardfamily" href="" title="Family: '+n+' cards linked by versions and souls (Experienced, Soul of)">'+
-                 '<svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg><span class="cardpubliccount">'+n+'</span></a>');
-    link.on('click', function() { cardfamilysearch(cardid); return false; });
-    after.after(link);
+    var icon = function(cls, count) {
+      var link = $('<a class="'+cls+'" href="" title="Family: '+n+' cards linked by versions and souls (Experienced, Soul of)">'+
+                   '<svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg><span class="'+count+'">'+n+'</span></a>');
+      link.on('click', function() { cardfamilysearch(cardid); return false; });
+      return link;
+    };
+    var after = $('#resultcard a.cardpubliclists, #resultcard a.cardtraders, #resultcard a.cardmylists').last();
+    if(after.length) {
+      after.after(icon('cardfamily', 'cardpubliccount'));
+    }
+    // and after the card's Experienced / Soul of keywords, the links to the card they name (keywordtitle)
+    $('#resultcard a[id*="field_title"]').filter(function() {
+      return /^(Soul\s+of\s|(In)?[Ee]xperienced\b)/.test($(this).text().replace(/\u00a0/g,' ').trim());
+    }).each(function() {
+      // after its rulebook link (traitsmark), which, drawn later, goes straight after the keyword, so in either order
+      var book = $(this).next('span.traitbook');
+      (book.length ? book : $(this)).after(icon('cardfamilykw', 'cardfamilykwcount'));
+    });
   };
   if(key in cardfamilies) {
     if(cardfamilies[key] !== null) { show(cardfamilies[key]); }   // null: still coming, and shows itself then

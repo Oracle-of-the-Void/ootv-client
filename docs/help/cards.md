@@ -40,7 +40,8 @@ details.
 
 Some cards are another version of a character: an Experienced or Inexperienced version, or a soul
 ("Soul of Matsu Gohei"). The branch icon beside the card's name says how many cards are linked this
-way, and a click searches for all of them. It works from any card in the family and follows every
+way, and a click searches for all of them. The same icon follows the card's Experienced and Soul of
+keywords. It works from any card in the family and follows every
 link: Matsu Gohei, Matsu Aoiko (Soul of Matsu Gohei), Matsu Tayuko (Soul of Matsu Aoiko), each of
 their Experienced versions, and Matsu Hachiro, another Soul of Matsu Gohei.
 
