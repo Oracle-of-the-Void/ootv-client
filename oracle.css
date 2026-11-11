@@ -918,8 +918,13 @@ div.dirfoldertop a.dirfolderopen > svg.feather {
     height: 34px;
     flex: none;
 }
-/* path bar over the directory: Up, then All lists > folder > ... */
+/* path bar over the directory: Up, then All lists > folder > ... on the left, Export and Import files as one group on the right. With finger-sized icons and a
+   long path there isn't room for both: the path keeps at least 10em and the buttons wrap under it, together */
 div.dirpathbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
     padding: 4px 8px;
     margin-bottom: 4px;
     background: var(--panel);
@@ -930,15 +935,24 @@ div.dirpathbar {
 div.dirpathbar a, div.dirpathbar a:visited {
     color: var(--info-1);
 }
+div.dirpathbar span.dirpathcrumbs {
+    flex: 1 1 10em;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+div.dirpathbar span.dirpathbuttons {
+    flex: none;
+    margin-left: auto;
+    white-space: nowrap;
+}
 div.dirpathbar button.dirpathimport {
-    float: right;
     height: auto;
     font-family: var(--font-ui);
     font-size: medium;
     white-space: nowrap;
 }
 div.dirpathbar button.dirpathimport + button.dirpathimport {
-    margin-right: 10px;   /* Export files, left of Import files */
+    margin-left: 10px;   /* Import files, right of Export files */
 }
 div.dirpathbar .dirpathsep {
     color: var(--text-6);

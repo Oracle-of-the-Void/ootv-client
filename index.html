@@ -990,12 +990,11 @@ proxies and public decklists, for:</p>
 </script>
 <!-- directory folders (renderdirectory): the path bar, and the open folder's subfolders, before its lists -->
 <script id="template-dirpath" type="text/x-jsrender">
-<button aria-label="Import files here as new lists (or drop them on the directory)" data-balloon-pos="down-right" class="iiconic iblue dirpathimport" onclick="importfiles(dirpath());"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> <span>Import files</span></button>
-<button aria-label="Download this folder's lists, in one format" data-balloon-pos="down-right" class="iiconic iblue dirpathimport" onclick="exportfiles(dirpath());"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg> <span>Export files</span></button>
-{{if path}}<button aria-label="Up a folder" data-balloon-pos="down-left" class="iiconic iblue dirupbutton" data-folder="{{>parent}}" data-dirdrop="1" onclick="opendirfolder(folderparent(dirpath()));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#corner-left-up"></svg></button>{{/if}}
+<span class="dirpathcrumbs">{{if path}}<button aria-label="Up a folder" data-balloon-pos="down-left" class="iiconic iblue dirupbutton" data-folder="{{>parent}}" data-dirdrop="1" onclick="opendirfolder(folderparent(dirpath()));"><svg class="feather"><use xlink:href="res/feather-sprite.svg#corner-left-up"></svg></button>{{/if}}
 <svg class="feather"><use xlink:href="res/feather-sprite.svg#folder"></svg>
 {{if path}}<a href="#" draggable="false" data-folder="" data-dirdrop="1" onclick="opendirfolder(''); return false;">All lists</a>{{else}}<b data-folder="" data-dirdrop="1">All lists</b>{{/if}}
-{{for crumbs}} <span class="dirpathsep">&rsaquo;</span> {{if !last}}<a href="#" draggable="false" data-folder="{{>folder}}" data-dirdrop="1" onclick="opendirfolder(eventfolder(this)); return false;">{{>name}}</a>{{else}}<b data-folder="{{>folder}}" data-dirdrop="1">{{>name}}</b>{{/if}}{{/for}}
+{{for crumbs}} <span class="dirpathsep">&rsaquo;</span> {{if !last}}<a href="#" draggable="false" data-folder="{{>folder}}" data-dirdrop="1" onclick="opendirfolder(eventfolder(this)); return false;">{{>name}}</a>{{else}}<b data-folder="{{>folder}}" data-dirdrop="1">{{>name}}</b>{{/if}}{{/for}}</span>
+<span class="dirpathbuttons"><button aria-label="Download this folder's lists, in one format" data-balloon-pos="down-right" class="iiconic iblue dirpathimport" onclick="exportfiles(dirpath());"><svg class="feather"><use xlink:href="res/feather-sprite.svg#download"></svg> <span>Export files</span></button><button aria-label="Import files here as new lists (or drop them on the directory)" data-balloon-pos="down-right" class="iiconic iblue dirpathimport" onclick="importfiles(dirpath());"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> <span>Import files</span></button></span>
 </script>
 <!-- a folder's subfolder toggle (applydirtree sets it open/closed), or a blank the same width -->
 <script id="template-dirtoggle" type="text/x-jsrender">
