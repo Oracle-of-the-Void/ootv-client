@@ -48,12 +48,14 @@ their Experienced versions, and Matsu Hachiro, another Soul of Matsu Gohei.
 Cards that only share part of a name, such as Gohei Sensei or Gohei's Daisho, aren't in the
 family. Cards whose names differ only by an ending in brackets, like Isawa Tanaka (IG2) and Isawa
 Tanaka (PoH), are different cards with families of their own. The icon only shows when the card
-has a family.
+has a family. A card that others are a soul of lists them after its keywords, such as "Matsu
+Aoiko's Soul" on Matsu Gohei; a click opens that soul's card.
 
 The family search shows a family tree above its results. Each character has a row of its versions
 (Base, Exp, Exp 2, ...), and each soul sits under the character it is a soul of. When a soul names
 a version, as Akodo Kobi is the Soul of Ginawa Experienced 3, that version is a link. Click any
-version to open the card; the card you started from is outlined. Click "Family tree" to fold it away.
+version to open the card; each shows the icons of the arcs it is legal in, and the card you started
+from is outlined. Click "Family tree" to fold it away.
 
 ## Card backs {#backs}
 
