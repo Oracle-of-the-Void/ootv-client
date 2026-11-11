@@ -847,3 +847,15 @@ battle take them; `there` (was `atbattle`) is the rulebook's list of what such a
 The table also keeps an attack's players and the battle just fought under the words `l5r/play` gives its sides
 (`attacker`, `defender`) instead of names of its own, and the Resolution panel's rows ("Attacking Force", "Defending
 Force") come from the sides' words. Nothing changes in play, and no card changed. Scout is unchanged for now.
+
+## Scout as its own card rule (2026-11-11, l5r/play version 103)
+
+Step 9 of the battle plan (ootv-play [#338](https://github.com/Oracle-of-the-Void/ootv-play/pull/338)). Scout no
+longer depends on a rule of the table's own (`scout` is gone from `l5r/play`). The card carries its rule: as a battle's
+Battle actions begin with a Scout in the attacking army, the Attacker (also when an ally sent the Scout) gets one free
+Battle action, a Terrain only, before the Defender's first action. Nobody else acts until the Attacker uses or passes it
+(the Pass button). It is built from general words any card can use: the trigger moment `stepstart` (new in
+`l5r/play` `moments`) and a free action's `to`, `only` and `first`.
+
+Scout (6505) was rewritten on 2026-11-11 (ootv-backups operation 2026-11-11T152250-play-actions): its play code, and
+the printed text on its Imperial, Emerald, Battle of Beiden Pass, Jade and Pearl printings, read from the scans.
