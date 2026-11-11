@@ -12,6 +12,7 @@ address bar then points at that card (and that printing), so the link can be sha
   as in [search results](lists.md).
 - **X** goes back to where you were. Escape does the same.
 - The globe beside the name shows the [public lists](public-lists.md) that have this card.
+- The branch icon beside it, with a number, shows the card's [family](#family).
 
 ## Adding to a list {#lists}
 
@@ -34,6 +35,19 @@ the card's current text.
 
 Each printing's own set, rarity, flavor text, artist and so on are listed below the card's
 details.
+
+## Family {#family}
+
+Some cards are another version of a character: an Experienced or Inexperienced version, or a soul
+("Soul of Matsu Gohei"). The branch icon beside the card's name says how many cards are linked this
+way, and a click searches for all of them. It works from any card in the family and follows every
+link: Matsu Gohei, Matsu Aoiko (Soul of Matsu Gohei), Matsu Tayuko (Soul of Matsu Aoiko), each of
+their Experienced versions, and Matsu Hachiro, another Soul of Matsu Gohei.
+
+Cards that only share part of a name, such as Gohei Sensei or Gohei's Daisho, aren't in the
+family. Cards whose names differ only by an ending in brackets, like Isawa Tanaka (IG2) and Isawa
+Tanaka (PoH), are different cards with families of their own. The icon only shows when the card
+has a family.
 
 ## Card backs {#backs}
 
