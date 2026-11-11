@@ -832,3 +832,18 @@ It is one battle, and then play goes back to the next player. The card keeps `{a
 
 Each side of an attack now also names its card word in `l5r/play` (`as`: attacking, defending), and the table finds
 sides only through those words. A game with differently named sides needs no code change. Nothing changes in play.
+
+## Battle actions (2026-11-11, l5r/play version 102)
+
+Step 8 of the battle plan (ootv-play [#337](https://github.com/Oracle-of-the-Void/ootv-play/pull/337)). When each
+kind of action may be played is now named by the part of the game it belongs to. In `l5r/play` `timing`, a window is
+a scene and a step: Limited is `{scene: turn, step: Action, own: true}`, Open is that without `own` plus
+`{scene: battle, step: Battle actions, unit: true, there: true}`, and Battle is the battle one alone. A window is open
+while the innermost part of the game being played is at that step, so an Ambush, a battle in the Action Phase, still
+takes Battle and Open actions but not Limited ones. `unit` (was `inbattle`) lets only a player with a unit in that
+battle take them; `there` (was `atbattle`) is the rulebook's list of what such an action must come from or aim at
+(SCC p. 39). The old words still work.
+
+The table also keeps an attack's players and the battle just fought under the words `l5r/play` gives its sides
+(`attacker`, `defender`) instead of names of its own, and the Resolution panel's rows ("Attacking Force", "Defending
+Force") come from the sides' words. Nothing changes in play, and no card changed. Scout is unchanged for now.
