@@ -50,6 +50,11 @@ family. Cards whose names differ only by an ending in brackets, like Isawa Tanak
 Tanaka (PoH), are different cards with families of their own. The icon only shows when the card
 has a family.
 
+The family search shows a family tree above its results. Each character has a row of its versions
+(Base, Exp, Exp 2, ...), and each soul sits under the character it is a soul of. When a soul names
+a version, as Akodo Kobi is the Soul of Ginawa Experienced 3, that version is a link. Click any
+version to open the card; the card you started from is outlined. Click "Family tree" to fold it away.
+
 ## Card backs {#backs}
 
 Under the card's image is a small picture of its back. Click it to see the back full size, and
