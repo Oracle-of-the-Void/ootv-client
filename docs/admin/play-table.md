@@ -77,6 +77,7 @@ patterns, a dealer's own pile, partnerships, a pegging board and a game that end
 | `counters[].board` | the score drawn as a pegging board: front peg at the score, back peg where it was |
 | `phases[].enter` | `dealout` with `count` per player count and `extra` (three players: one card to the crib); `choose` to the dealer (discards to the crib); `turnup` (the starter; a Jack is 2 for the dealer, his heels); `count` (pegging to 31: fifteen and thirty-one 2, pairs 2/6/12, runs, Go said by the table, last card 1); `show` (each hand from the dealer's left, the dealer, then the crib, with the starter: fifteens, pairs, runs and double runs, flushes, his nobs; one at a time, Next to go on) |
 | `victory.instant`, `victory.margins` | the game ends at 121 the moment it's reached, mid-play or mid-show; a loser under 91 is skunked, under 61 double skunked |
+| `options`, `claim` | **Count it yourself** (2026-11-10, ootv-play [#326](https://github.com/Oracle-of-the-Void/ootv-play/pull/326)): a checkbox in the table's bar, for everyone, any time. On, nothing is scored for you: after the turned-up card, each card you peg and your hand and crib in the show, press what you scored (Fifteen, A pair, A run, …) once per piece, then Done. In the show pick the cards first: 10, K, 5, 5 and Fifteen twice is two fifteens. What you don't claim is lost and logged. Off mid-claim, the rest is counted for you |
 
 ## L5R rules by arc
 
