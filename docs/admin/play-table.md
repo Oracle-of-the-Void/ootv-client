@@ -943,3 +943,16 @@ No rule changed.
   `lobby` is the id of the scene the lobbying action opens, `gift` the id of the move.
 - The lobbying panel's words come from the config: "Lobbying effort for the Imperial Favor: Player A lobbying, Player
   B opposing", a button per move (Send a speaker, Give a gift), Pass, and the count button named by its step (Count).
+
+## The duel as a scene (2026-11-11, l5r/play version 110)
+
+Step 1 of the duel plan (ootv-play [#345](https://github.com/Oracle-of-the-Void/ootv-play/pull/345)). No card
+changed, no rule changed.
+
+- `duel.scene` (new) `"challenge"`: the scene a duel card or Create challenge opens.
+- `scenes.challenge` (new): sides `challenger` and `challenged`, one step, Answer, where the challenged player accepts
+  or refuses (`"answer": "challenged"`); accepted, the duel opens (`"accept": "duel"`).
+- `scenes.duel` (new): the same sides; steps Focus and Strike (`"resolve": true`, the count).
+- While a challenge or a duel is on, only Reactions may be played ("finish the duel first"), Undo takes the whole duel
+  back, and "until the end of the duel" starts at acceptance. Focusing, striking, the totals and who wins work as
+  before (later steps move them into the config).
