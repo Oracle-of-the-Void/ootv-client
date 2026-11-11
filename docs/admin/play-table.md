@@ -891,3 +891,21 @@ effort for the Imperial Favor is now a scene from `l5r/play`, like an attack. No
 - `tokens[0].lobby.scene` (new, `"lobby"`): the Favor's Lobby action opens that scene. The other `lobby` words are as
   before.
 - No `timing` window names the lobby scene, so only Reactions can be played while it's open.
+
+## Lobbying's moves and total (2026-11-11, l5r/play version 106, l5r/fields version 83)
+
+Step 2 of the lobbying plan (ootv-play [#341](https://github.com/Oracle-of-the-Void/ootv-play/pull/341)). No card
+changed.
+
+- `scenes.lobby.steps[0].moves` (new): what a player may do on their turn in the effort besides passing. `speak`
+  (Send a speaker: bow a Personality of yours; its Personal Honor counts) and `gift` (Give a gift: a card from your
+  hand to the discard pile; its Focus Value counts; `"once": "scene"`, one a player an effort). Each is shaped like the
+  Favor's uses (`targets`, `effects`).
+- New effect words: `{"record": "target", "field": ...}` (the move's target counts for its side, by that field) and
+  `{"discard": "target"}` (the target card itself to its discard pile). The second is also in the card editor's `play`
+  description.
+- `totals.lobby` (new) and `scenes.lobby.total` `"lobby"`: a side's Family Honor plus its recorded cards' fields; a
+  dishonored speaker counts none, no card less than 0.
+- `tokens[0].lobby` loses `counter` and `gift` (now the total and the gift move).
+- Rules change: any Personality of yours may speak, whatever its Personal Honor (the rulebook doesn't limit it). The
+  Personality bowed to lobby still needs Personal Honor above zero.
