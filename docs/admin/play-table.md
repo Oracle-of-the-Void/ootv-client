@@ -876,3 +876,18 @@ engine still had of its own, now from `l5r/play`. No card changed.
 - Messages name the step and the area rather than "Cavalry" or "the Province".
 
 The `l5r/fields` description of `play` (version 82) says the same.
+
+## Lobbying as a scene (2026-11-11, l5r/play version 105)
+
+Step 1 of the lobbying plan (ootv-play [#340](https://github.com/Oracle-of-the-Void/ootv-play/pull/340)): a lobbying
+effort for the Imperial Favor is now a scene from `l5r/play`, like an attack. No card changed.
+
+- `scenes.lobby` (new): the effort. Its sides are `for` (seat word `lobbier`) and `against` (seat word `opponent`).
+  `against.pick` says who the lobbier lobbies against: whoever holds the Favor (`{"holds": "favor"}`), else the other
+  players with the most Family Honor (`{"most": "honor"}`). On a tie that is every tied player, and the lobbier must
+  beat each of them.
+- Its steps: `Lobbying` (`"turns": "lobbier"`: each player in turn from the lobbier until everyone passes in a row, the
+  same turns as the battle actions) and `Count` (`"resolve": true`: the totals, changes by hand, then Resolve).
+- `tokens[0].lobby.scene` (new, `"lobby"`): the Favor's Lobby action opens that scene. The other `lobby` words are as
+  before.
+- No `timing` window names the lobby scene, so only Reactions can be played while it's open.
