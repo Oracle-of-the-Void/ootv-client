@@ -157,7 +157,10 @@ inputs - sent in body querystring:
 * family (optional): a cardid. Only that card and every card linked to it through versions and souls
   (Experienced/Inexperienced, Soul of, `deckconstruction.countsas`, a title's ", Soul of Name"), ANDed with the
   rest; 404 for an unknown card. ootv-search `lib/family.js`, its CLAUDE.md "Card families". The card page's
-  family link (`cardfamily`) asks `size: 0` for the count.
+  family link (`cardfamily`) asks `size: 0` for the count. The answer then also has `family`, the tree the
+  results page draws (`familytreepanel`): `{ cardid, tree, others }`, a node `{ name, cards: [{ cardid, title, level,
+  soulof: { name, cardid } }], children }`; a character's versions in one node, each soul a child of the one it
+  is a soul of (`soulof.cardid`: the version its keyword names, else null).
 * pairs of field_xxx (contains the data) and type_xxx (defines the operation)
   * type_xxx = 'regexp'
     * Does elastic regexp
