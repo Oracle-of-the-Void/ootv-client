@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-09 (l5r/play version 57: Shadowlands groups J and G, the gates `declared` and `assigned`, the after `heldagainst`, the moment `attackover`, the modifiers `noassign`, `notbeside`, `attackbow`. Version 55: Shadowlands group A, the after `undefended`, the modifier `honorreq`, the moment `destroyed`. Version 54: the modifier `phasedraw`, Ring of the Void's End Phase draw. Version 53: the afters `attackend`, `enddraw`, `restored`, `seppuku` as config predicates; `honorreq.lost` with its words; the deck finder's `finder` facets. Version 52: the card states' words `is`, for "stays bowed" in the log. Version 51: the Terrain modifiers `lockout`, `calloff`, `atonce`. Version 50: the Imperial Favor's `uses` are action specs like a card's, `targets`, `effects` and `ask` (Draw `{"draw": 1}`; Restore a target `"state": "dishonored"` and `{"set": {"dishonored": false}}`; Send home `{"home": "bowed"}`; Prevent asks how much, gate `"after": "honorloss"`, `{"add": {"honor": {"of": "x", "max": {"of": "lost"}}}}`), done by the same engine as card effects, in place of the keys `draw`, `clear`, `sendhome` and `counter`; version 49: `modifiers`, the names a card's `play.modifiers` may use, each with its words; version 48: `madebattle`, the battlefield an Ambush is fought on, from config; version 46: every rule so far is Imperial's (`base`), other editions are patches in `arcrules`; game nouns, targeting words, piles, gates and afters as predicates, lasting-rule hooks (`lastinghooks`), battle watches (`watches`) and per-turn counts (`turncounts`) in config; one-card play keys replaced by compositions (Solar Eclipse, Kolat Infiltrator, the Honor refunds, Refuse Advantage, Mercy). Version 31: the engine adds up battle, duel and lobbying totals; card types, roles, piles, Honor, spell-work, Unique, Fortifications and stats as config keys; Events shown as they turn up (`faceup.show`). Version 25: Samurai seppuku; trait actions; the Declaration skipped with two players; Honor Requirements; structured card effects; Ranged Attacks and Fear; End without resolving; Reactions; Honor actions; into play, tokens, take control; Destroy; Force, Chi, Province Strength; draw, discard, look, search; move, remove from battle, send home, assign; copy, rule changes; Water Dragon's Events Phase wait; bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps; Events that resolve themselves; Events that change the rules, stay, or duel; bonuses while in play; on entering play; Gold and costs from card text, l5r/fields version 33)
+Last updated: 2026-11-11 (l5r/play version 83: the generalization review, below). Before that: 2026-11-09 (l5r/play version 57: Shadowlands groups J and G, the gates `declared` and `assigned`, the after `heldagainst`, the moment `attackover`, the modifiers `noassign`, `notbeside`, `attackbow`. Version 55: Shadowlands group A, the after `undefended`, the modifier `honorreq`, the moment `destroyed`. Version 54: the modifier `phasedraw`, Ring of the Void's End Phase draw. Version 53: the afters `attackend`, `enddraw`, `restored`, `seppuku` as config predicates; `honorreq.lost` with its words; the deck finder's `finder` facets. Version 52: the card states' words `is`, for "stays bowed" in the log. Version 51: the Terrain modifiers `lockout`, `calloff`, `atonce`. Version 50: the Imperial Favor's `uses` are action specs like a card's, `targets`, `effects` and `ask` (Draw `{"draw": 1}`; Restore a target `"state": "dishonored"` and `{"set": {"dishonored": false}}`; Send home `{"home": "bowed"}`; Prevent asks how much, gate `"after": "honorloss"`, `{"add": {"honor": {"of": "x", "max": {"of": "lost"}}}}`), done by the same engine as card effects, in place of the keys `draw`, `clear`, `sendhome` and `counter`; version 49: `modifiers`, the names a card's `play.modifiers` may use, each with its words; version 48: `madebattle`, the battlefield an Ambush is fought on, from config; version 46: every rule so far is Imperial's (`base`), other editions are patches in `arcrules`; game nouns, targeting words, piles, gates and afters as predicates, lasting-rule hooks (`lastinghooks`), battle watches (`watches`) and per-turn counts (`turncounts`) in config; one-card play keys replaced by compositions (Solar Eclipse, Kolat Infiltrator, the Honor refunds, Refuse Advantage, Mercy). Version 31: the engine adds up battle, duel and lobbying totals; card types, roles, piles, Honor, spell-work, Unique, Fortifications and stats as config keys; Events shown as they turn up (`faceup.show`). Version 25: Samurai seppuku; trait actions; the Declaration skipped with two players; Honor Requirements; structured card effects; Ranged Attacks and Fear; End without resolving; Reactions; Honor actions; into play, tokens, take control; Destroy; Force, Chi, Province Strength; draw, discard, look, search; move, remove from battle, send home, assign; copy, rule changes; Water Dragon's Events Phase wait; bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps; Events that resolve themselves; Events that change the rules, stay, or duel; bonuses while in play; on entering play; Gold and costs from card text, l5r/fields version 33)
 
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
@@ -500,7 +500,8 @@ Second batch (rows L15–L27): ootv-play [#289](https://github.com/Oracle-of-the
 - **Searching a deck**: `search: {from: 'fate', draw: 1}`.
 - **One `if`**: an entry in an action's effects that is only an `if` is checked before costs are paid
   (`{if: {turn: 'theirs'}}`: Threat of War); an `if` on an effect skips just that effect. Its situation words are
-  `turn`, `capable`, `hand`, `phase`, `counters`, `token`, `self`, `notself`, `battle`, `target`; anything else is a match
+  `turn`, `capable`, `hand`, `phase`, `counters`, `token`, `self` (`{not: ...}` for one it must not meet; `notself` until
+  2026-11-11), `battle`, `target`; anything else is a match
   on the card. `while` is only ever "for as long as".
 - `max` (was `cap`), `gold: {add, match}` (was `goldplus`), `remove: {trait}` and `remove: {gained}` (were `untrait`,
   `ungain`), a bonus's `if: {duel: true}` and `if: {casting}`.
@@ -529,3 +530,43 @@ Rows L18 and L28: ootv-play [#293](https://github.com/Oracle-of-the-Void/ootv-pl
   Taberu `{bowed: {type: 'Holding'}, by: 'other', produces: 'honor'}` (were `holdingbowed`, `holdinghonor`).
 
 Written (operation 2026-11-10T223511 play-actions): 4 cards; read back, all match.
+
+### Generalization review (2026-11-11)
+
+The rules drawn from the one-off review, applied to the words still used by only a few cards (the user: "proceed on
+each"). ootv-play [#308](https://github.com/Oracle-of-the-Void/ootv-play/pull/308),
+[#309](https://github.com/Oracle-of-the-Void/ootv-play/pull/309); `l5r/play` version 83.
+
+- **"May not" is `prevents`.** Fear: `{action: 'fear', on: 'unit', match}` (Mirumoto Hitomi, the Ancient Spear of the
+  Naga, Qamar: Followers; Matsu Chokoku, every card in the unit), `{action: 'fear', on: 'yours', match}` (The Hidden
+  Temples of the Naga). An Event's rule for a while: `prevents {action: 'attack'}` (Emperor's Peace), `'proclaim'`
+  (Proposal of Peace; the Sacred Temple of the Phoenix's `then`), `{action: 'phase', phase: 'Dynasty'}` (Emergence of
+  the Tortoise). Oni no Kamu's Stronghold: `{action: ['straighten', 'effects'], while: 'there'}`. Mists of Illusion:
+  `{action: 'destroy', where: 'battle', by: 'resolution'}`. The Armor of the Golden Samurai: `{action: 'focus', side:
+  'other', from: 'hand', match: {focus: {max: {of: 'host', field: 'ph', plus: -1}}}}`.
+- **Waived costs** sit together: `free: {gold: match}` (Bloom of the White Orchid), `free: {bow: match}` (Celestial
+  Alignment).
+- **Limits are `min` / `max`** with `{of, field, plus}`: Foxwife's bonus `{min: {ph: 5}, to: 'host'}`, Test of Honor
+  `{min: {of: 'target', field: 'ph', plus: 1}}`, Kolat Oyabun `{of: 'self', field: 'ph', plus: 1}`, Ring of Fire
+  `induel: {chi: {max: {of: 'duelist', other: true}}}` (now equal Chi counts too, as printed). Temple of Bishamon's
+  requirement is its own Honor Requirement field (`play.fields.Imperial.honor: 5`).
+- **Arithmetic** is `add`, `times`, `plus`, `div`: the battle award `{add: 8}` (Refuse Advantage) and `{times: 2}`
+  (Legendary Victory); a cost `{cost: {add: -2, min?}}` (Hida Tsuru, Otaku Kamoko, Ratling Scavenger "to a minimum of
+  1"); an Event's `cost: {add: -n, match}` (Alliance, Festering Pit of Fu Leng); `times: {force: 2, chi: 2}` (Immortal
+  Steel); `{of: 'x', div: 2}` (Geisha Assassin); `{of: 'lost', plus: -1}` (Master of the Tea Ceremony, the Samurai
+  trait's seppuku); the modifiers `gold: {add: -1, match}` (Corrupted Iron Mine) and `ranged: {times: 2, whose:
+  'defender'}` (Barbican); Feint's focus `{add: 1}`.
+- **Destroyed** (the user's word): `destroyed: {by: ['battle', 'duel']}` (Utter Defeat's target, Mountain Goblin's
+  `if`), `destroyed: {match}` (Be Prepared to Dig Two Graves; Ikoma Ujiaki's `after: {battle: {destroyed: {match}}}`).
+- **Face**: `face: 'down'` (Call Upon The Wind's target), `duelset: {focus: {face: 'up', side: 'other'}}` (Dark Oracle
+  of Fire).
+- **Until a phase**: `until: {start: 'Straighten'}` (Forced March, Summon Faeries), `{start: 'Events'}` (Dead Walk The
+  Earth).
+- **Moves**: `move: 'home'`, with `bowed: true` for the whole unit bowed (Block Supply Lines, Miya Yoto, Retreat;
+  Kakita Yuri, Nageteppo unbowed; the Imperial Favor's Battle use); `put: 'under', face: 'down' | 'up'` (The Armor of
+  Sun Tao, Forgotten Tomb); `bring: {control: 'owner'}` (Rise of the Phoenix); a battle `role: 'attacker'` (Tsuburu no
+  Oni).
+- Kept as they are: `overlay`, `keep`, `hidden`, `fought`, `attacked`, `recent`, the seat words, `mustattack`,
+  `honorwaive`, `phasedraw`, Hida Amoro's `morethan` ("more than twice").
+
+Written (operation 2026-11-11T010823 play-actions): 52 cards; read back, all match.
