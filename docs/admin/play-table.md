@@ -776,3 +776,15 @@ an ally gains 2 Honor once, when it first assigns a unit. The Honor for cards de
 Defender. Players on neither side are the `other` side, whose units go home as the attack ends. Not yet: allies
 assigning in seat order after their side's player (plan step 6). `attack.honor` and `attack.outcome` are gone; no
 cards changed.
+
+## Area modifiers (2026-11-11, l5r/play version 98)
+
+The battle plan's fourth step (ootv-play [#333](https://github.com/Oracle-of-the-Void/ootv-play/pull/333)). What a
+Terrain is moved from the table's code into `l5r/play`, as an area card kind: `areacards.terrain` `{name: Terrain,
+match: {keywords: Terrain}, scene: battle, limit: 1, full: refuse, takes: {step: "Battle actions"}, end: [{discard:
+true}]}`. It reads: a hand card with the Terrain keyword is played onto the battlefield being fought; one there at a
+time, a second refused (SCC pp. 39, 48); it takes effect as the Battle actions end; it is discarded as the battle ends.
+A game can have more than one kind (`full: replace` would destroy the oldest instead of refusing). The top-level
+`terrain {keyword}` is gone, and the after gate on Ring of Water's kind of card is now `terrain: [destroyed,
+played]`. Cards' words (`destroy: terrain`, Go Master's `terrain: target`) read the same. Nothing changes in play,
+and no cards changed.
