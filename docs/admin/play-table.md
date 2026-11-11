@@ -979,3 +979,16 @@ Step 2 of the duel plan (ootv-play [#346](https://github.com/Oracle-of-the-Void/
   gains nothing. In a duel: the winning duelist. In a battle (rule change, the user 2026-11-11): the Personalities in
   the gaining player's army as it stood at the resolution; a destroyed one brings nothing and isn't restored. Other
   players in the same battle gain as usual.
+
+## Focus and strike as the duel's moves (2026-11-11, l5r/play version 112)
+
+Step 3 of the duel plan (ootv-play [#347](https://github.com/Oracle-of-the-Void/ootv-play/pull/347)). No card changed,
+no rule changed.
+
+- `scenes.duel` Focus step: `turns` `"challenged"` (the challenged player starts); `first` (who starts instead, when it
+  holds): the challenger, when its Personality's unit carries `strikefirst` (Tetsubo).
+- Its `moves`, one a turn: Focus (a Fate card from the hand, `back`, put face down in the active area and recorded as
+  the side's focus card) and Strike (`ends`: the step ends). A Personality that may not focus has only Strike; so does
+  a player with no Fate card in hand.
+- The Strike step: `start` turns the focus cards up; `moment` `"strike"` is when Poison and Shosuro Hametsu act.
+- Gone from `duel`: `to`, `back` (now the Focus move's).
