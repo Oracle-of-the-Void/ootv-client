@@ -956,3 +956,26 @@ changed, no rule changed.
 - While a challenge or a duel is on, only Reactions may be played ("finish the duel first"), Undo takes the whole duel
   back, and "until the end of the duel" starts at acceptance. Focusing, striking, the totals and who wins work as
   before (later steps move them into the config).
+
+## The duel's total, rules and outcome (2026-11-11, l5r/play version 111)
+
+Step 2 of the duel plan (ootv-play [#346](https://github.com/Oracle-of-the-Void/ootv-play/pull/346)). No card changed.
+
+- `totals.duel` (new): a duelist's total. Its Chi as a whole (`field`), plus its focus cards' Focus Values
+  (`focus.field`, named `focus.name`), doubled for a duelist with Double Chi (`focus.double`), plus what the players
+  added by hand, never below 0 (`least`). `scenes.duel.total` names it. A card's duel terms still change it for one
+  duel (Test of Might's Force, Geisha Assassin's and Personal Champion's set Chi, Ratling Thief's +3).
+- Gone from `duel`: `stat`, `focus`, `focusname`, `double` (moved into `totals.duel`).
+- `scenes.duel` Strike step, `resolve` (was `true`): three rules. The challenger higher wins and the challenged loses;
+  the challenged higher wins; a tie, both lose. A focus card that sets the result (Kharmic Strike, Another Time,
+  Bloodsword) still decides over them.
+- `scenes.duel.outcome` (new): `lose`, the loser is destroyed; `win`, nothing. A card's terms change this for its
+  duel: the loser bowed (Test of Might), dishonored (Test of Stone), or losing Honor and choosing (Duel of Personal
+  Honor); the winner's player gains Honor (Iaijutsu Duel); a side that can't be destroyed (`safe`).
+- `duel.choices`: Seppuku and Be dishonored now carry `effects` (a destroy; set dishonored) instead of `destroy` and
+  `state`.
+- `gains` (new), `gains.honor.instead` (Scorpion Clan Coup p. 52, "Removing the Stain of Dishonor"): when one or more
+  dishonored Personalities are involved in a Family Honor gain, they are restored to honor instead and the player
+  gains nothing. In a duel: the winning duelist. In a battle (rule change, the user 2026-11-11): the Personalities in
+  the gaining player's army as it stood at the resolution; a destroyed one brings nothing and isn't restored. Other
+  players in the same battle gain as usual.
