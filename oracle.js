@@ -4989,7 +4989,7 @@ function liststatslegal() {
 //   pertype  copies of each type in deck, less except[] (max)
 //   copies   copies of one card (identity below) across decks (default: config decks); a rule with when
 //            ({field: regex}, any card of the identity matching) beats one without; between several, the lower max
-// A card's identity is its title, less a trailing "(Emperor)"-style suffix, at its experience level
+// A card's identity is its title, a "(...)" ending included, at its experience level
 // (Experienced, Experienced 2, Inexperienced in keywords; an experienced "Name, epithet" counts as Name), or the
 // card a "Soul of Name [Experienced n]" keyword names, at that level.
 function deckbuildconfig() {
@@ -5084,7 +5084,8 @@ function deckbuildidentity(card) {
 	    if(exp[2]) { name = exp[2]; }
 	}
     });
-    var title = deckbuildplain([].concat(card.title || [])[0]).replace(/\s*\([^()]*\)$/,'');
+    // a "(...)" ending is part of the name: Isawa Tanaka (IG2) and (PoH) are different cards (the user, 2026-11-11)
+    var title = deckbuildplain([].concat(card.title || [])[0]);
     var countsas = deckbuildcardconf(card).countsas;
     if(countsas) {
 	name = deckbuildplain(countsas);
