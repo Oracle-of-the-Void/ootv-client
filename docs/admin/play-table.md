@@ -47,6 +47,21 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `phases` | the turn: what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: its segments (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`; `skip` `{players}`: passed over with that many players or fewer, the Declaration with two), the battle steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
+## Hearts (2026-11-10)
+
+`?game=hearts` on the table's address plays standard Hearts, 3 or 4 players on one screen (ootv-play
+[#314](https://github.com/Oracle-of-the-Void/ootv-play/pull/314); preview only, from `games/hearts.json`; no
+`hearts/play` item and no card table: the 52 cards are in the config). It's there to grow the engine past one deck per
+player: the new config keys are general, for any game dealt from one deck and played in tricks.
+
+| Key | What |
+|---|---|
+| `seats`, `deck` | how many may play (Hearts 3–4); the game's own deck, one card per suit and rank, with cards left out by player count (`remove`: the 2 of Diamonds with three) |
+| `zones[].shared` | one zone for the whole table (the deck, the trick) instead of one per player |
+| `round` | the game is played in rounds (Hearts' hands): deal, pass, tricks, score, then the next dealer |
+| `phases[].enter` | the round's steps: `gather` and `shuffle` the cards, `dealout` evenly, `choose` (every player passes cards at once, unseen: left, right, across, none by hand; left, right, none with three), `tricks` (follow suit, highest of the led suit wins, the 2 of Clubs leads, no Hearts or Queen of Spades on the first trick, Hearts not led until broken), `score` (taking every point, "shooting the moon", gives 26 to each other player) |
+| `victory.atleast` | the game ends when a hand ends with someone at 100, lowest score winning |
+
 ## L5R rules by arc
 
 From the last complete rulebook of each arc (`ootv-play` `docs/l5r/turn-sequence`). The start screen asks for the
