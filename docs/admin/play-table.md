@@ -739,3 +739,18 @@ top-level `setup`, `firstplayer` and `phases` are gone from `l5r/play`; Hearts a
 `scenes.main.steps` (Celestial and Emperor: 6 cards in the hand) and `scenes.turn.steps` (Samurai, Emperor, Ivory,
 Three Dynasties) by name; every arc was checked to be the same as before. Nothing changes in play, and no cards
 changed.
+
+## Groups, sides and totals (2026-11-11, l5r/play version 96)
+
+The battle plan's second step (ootv-play [#331](https://github.com/Oracle-of-the-Void/ootv-play/pull/331)). What a
+unit is and how an army's Force adds up are now in `l5r/play`, not in the table's code:
+
+- `groups.unit` `{"of": "attached"}`: a unit is a card and everything attached to it.
+- `totals.force`: the Force an army adds up. Face-down and bowed cards add nothing (`skip`); a bowed Personality makes
+  its whole unit add nothing (`zero`; a unit with no Personality, Final Charge's Followers, only loses its bowed cards);
+  each card adds at least 0, a side with no units has 0. The Attack phase's `attack.total` names it.
+- `scenes.attack.sides`: the attacker's side and the defender's side. In a game of three or more, a player on neither
+  side may join one before the battles begin (a button on the phase box), and assigns units in that side's turn.
+  Before this, every player but the attacker counted as defending, and only the attacker and the defender assigned.
+
+Nothing else changes in play, and no cards changed.
