@@ -803,3 +803,21 @@ Cards keep their words (`{ranged: 3}`, `{fear: 2}`, a strength from a Chi): the 
 what it does, so no cards changed. `battleeffects` and `combine` are gone. Log lines now read "Ranged Attack 3 at X
 (Force 4): not enough". One small fix: a Force bonus that counts only when attacking (or defending) now counts only on
 that side when a card's Force is checked during a battle.
+
+## Maneuvers: whose turn it is to assign, allies (2026-11-11, l5r/play version 100)
+
+The battle plan's sixth step (ootv-play [#335](https://github.com/Oracle-of-the-Void/ootv-play/pull/335)). Who assigns
+units when in the Infantry and Cavalry Maneuvers is now in `l5r/play` (the attack scene's `assign.order`), following
+the book (SCC pp. 36-37):
+
+- the Attacker; then each player asked to join the attack, one turn each, starting on the Attacker's left, sending units
+  or passing (sending a unit joins the attack); then the Defender; then each player asked to join the defense, also
+  from the Attacker's left ("follows the same procedure").
+- The phase button names whose turn it is ("Player C passes" for an ally who has sent nothing). Before, an ally
+  assigned during its side's player's turn.
+- Ring of Water still has the Defender's side, its allies too, assign first.
+
+The Cavalry rule moved onto the Cavalry Maneuvers step (`units`: every Personality and Follower of the unit has
+Cavalry); `commit` keeps "led by an unbowed Personality". Cavalry may still go in the Infantry Maneuvers, as before. The
+Battles step names whose Provinces are fought at (`whose: defender`). With three or more players on one screen, Play as
+now goes round every seat.
