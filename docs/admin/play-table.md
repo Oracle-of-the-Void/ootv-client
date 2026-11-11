@@ -62,6 +62,22 @@ player: the new config keys are general, for any game dealt from one deck and pl
 | `phases[].enter` | the round's steps: `gather` and `shuffle` the cards, `dealout` evenly, `choose` (every player passes cards at once, unseen: left, right, across, none by hand; left, right, none with three), `tricks` (follow suit, highest of the led suit wins, the 2 of Clubs leads, no Hearts or Queen of Spades on the first trick, Hearts not led until broken), `score` (taking every point, "shooting the moon", gives 26 to each other player) |
 | `victory.atleast` | the game ends when a hand ends with someone at 100, lowest score winning |
 
+## Cribbage (2026-11-10)
+
+`?game=cribbage` plays standard cribbage, 2 or 3 players, or 4 as two partnerships, on one screen (ootv-play
+[#318](https://github.com/Oracle-of-the-Void/ootv-play/pull/318); preview only, from `games/cribbage.json`, in the game
+chooser; no `cribbage/play` item). Like Hearts it grows the engine with general keys: a running count, scoring from
+patterns, a dealer's own pile, partnerships, a pegging board and a game that ends the moment a score is reached.
+
+| Key | What |
+|---|---|
+| `deck.ranks` | any key beyond `value` becomes a card field: Cribbage's `count` (face cards 10, Ace 1) beside `value` (order, for runs) |
+| `round.first.cut` | the first dealer by cut: a card each, low deals, a tie cuts again |
+| `teams`, `counters[].team` | partners by player count (four: A and C, B and D), one shared score |
+| `counters[].board` | the score drawn as a pegging board: front peg at the score, back peg where it was |
+| `phases[].enter` | `dealout` with `count` per player count and `extra` (three players: one card to the crib); `choose` to the dealer (discards to the crib); `turnup` (the starter; a Jack is 2 for the dealer, his heels); `count` (pegging to 31: fifteen and thirty-one 2, pairs 2/6/12, runs, Go said by the table, last card 1); `show` (each hand from the dealer's left, the dealer, then the crib, with the starter: fifteens, pairs, runs and double runs, flushes, his nobs; one at a time, Next to go on) |
+| `victory.instant`, `victory.margins` | the game ends at 121 the moment it's reached, mid-play or mid-show; a loser under 91 is skunked, under 61 double skunked |
+
 ## L5R rules by arc
 
 From the last complete rulebook of each arc (`ootv-play` `docs/l5r/turn-sequence`). The start screen asks for the
