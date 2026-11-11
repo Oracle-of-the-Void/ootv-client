@@ -788,3 +788,18 @@ A game can have more than one kind (`full: replace` would destroy the oldest ins
 `terrain {keyword}` is gone, and the after gate on Ring of Water's kind of card is now `terrain: [destroyed,
 played]`. Cards' words (`destroy: terrain`, Go Master's `terrain: target`) read the same. Nothing changes in play,
 and no cards changed.
+
+## Ranged Attacks and Fear (2026-11-11, l5r/play version 99)
+
+The battle plan's fifth step (ootv-play [#334](https://github.com/Oracle-of-the-Void/ootv-play/pull/334)). What a
+Ranged Attack and Fear do is now in `l5r/play` (`effectkinds`), written as steps cards use, not the table's code:
+
+- `ranged` (Ranged Attack, SCC p. 55): at an opposing Personality without Followers attached, or a Follower; the target
+  is destroyed if its Force is no more than the strength; cards of one unit may combine theirs.
+- `fear` (Fear, SCC p. 57): at an opposing unit; its unbowed Followers with Force no more than the strength bow; once a
+  battle for each card.
+
+Cards keep their words (`{ranged: 3}`, `{fear: 2}`, a strength from a Chi): the card says how strong, the rulebook says
+what it does, so no cards changed. `battleeffects` and `combine` are gone. Log lines now read "Ranged Attack 3 at X
+(Force 4): not enough". One small fix: a Force bonus that counts only when attacking (or defending) now counts only on
+that side when a card's Force is checked during a battle.
