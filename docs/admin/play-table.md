@@ -859,3 +859,20 @@ Battle action, a Terrain only, before the Defender's first action. Nobody else a
 
 Scout (6505) was rewritten on 2026-11-11 (ootv-backups operation 2026-11-11T152250-play-actions): its play code, and
 the printed text on its Imperial, Emerald, Battle of Beiden Pass, Jade and Pearl printings, read from the scans.
+
+## The battle's last L5R words (2026-11-11, l5r/play version 104)
+
+Step 10 of the battle plan (ootv-play [#339](https://github.com/Oracle-of-the-Void/ootv-play/pull/339)): the words the
+engine still had of its own, now from `l5r/play`. No card changed.
+
+- `stat` (new, `"chi"`): the stat a card's play code means when it names none (a Ranged Attack or a count read from a
+  card with no `field`). Where the code reads an army's or a unit's number, the default is the battle's own total
+  (`totals`, Force).
+- `watches.over.when` is now `{"more": ["attack", "strength"]}`: "the attacking army's Force was above the Province
+  Strength", written with the same names as the battle's resolution rules. Cards still say `"over": true`. Card code
+  may use `"more": [a, b]` in a battle condition too.
+- `scenes.turn.stepword` `"Phase"`, `scenes.attack.stepword` and `scenes.battle.stepword` `"segment"`: the words the
+  table's messages put after a step's name ("your Action Phase", "the Battle actions segment").
+- Messages name the step and the area rather than "Cavalry" or "the Province".
+
+The `l5r/fields` description of `play` (version 82) says the same.
