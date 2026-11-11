@@ -875,10 +875,18 @@ div.directorycard.dirfoldercard {
     align-self: start;
     background: var(--folder);
 }
+/* the name keeps at least 8em: when the buttons leave less (phones, finger-sized icons), they wrap together
+   under it, to the right, rather than squeezing the name to a letter a line */
 div.dirfoldercard div.dirfoldertop {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+}
+div.dirfoldertop span.dirfolderbuttons {
+    flex: none;
+    margin-left: auto;
+    white-space: nowrap;
 }
 /* the card's tree: one line per folder under it (each opens, takes drops, and toggles its own tree) */
 div.dirfoldercard div.dirfoldertree {
@@ -894,10 +902,11 @@ div.dirfoldercard div.dirsubfolder {
     border-radius: 4px;
 }
 div.dirfoldercard div.dirsubfolder a.dirfolderopen {
+    flex-basis: 0;
     font-size: medium;
 }
 div.dirfoldercard a.dirfolderopen {
-    flex: 1;
+    flex: 1 1 8em;
     min-width: 0;
     display: flex;
     align-items: center;
@@ -2663,7 +2672,7 @@ div#phonesearchbar .numresults {
     width: 42px;
     height: 42px;
   }
-  div.dirfoldertop > button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
+  div.dirfoldertop button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
     height: auto;
   }
   div.dirfoldertop svg.feather, div.dirpathbar button.iiconic svg.feather, div.directorycard .dircardhead > .dirdraghandle svg.feather {
