@@ -80,6 +80,14 @@ patterns, a dealer's own pile, partnerships, a pegging board and a game that end
 | `victory.instant`, `victory.margins` | the game ends at 121 the moment it's reached, mid-play or mid-show; a loser under 91 is skunked, under 61 double skunked |
 | `options`, `claim` | **Count it yourself** (2026-11-10, ootv-play [#326](https://github.com/Oracle-of-the-Void/ootv-play/pull/326)): a checkbox in the table's bar, for everyone, any time. On, nothing is scored for you: after the turned-up card, each card you peg and your hand and crib in the show, press what you scored (Fifteen, A pair, A run, …) once per piece, then Done (the last card's point is always scored for you). In the show pick the cards first: 10, K, 5, 5 and Fifteen twice is two fifteens. What you don't claim is lost and logged. Off mid-claim, the rest is counted for you. **Muggins** (needs Count it yourself): after a player's Done, the other side (not partners) may take what they missed with the same buttons, first come, until the next move; what nobody takes is lost |
 
+**Pass and play** (2026-11-11, ootv-play [#372](https://github.com/Oracle-of-the-Void/ootv-play/pull/372); Hearts and
+Cribbage): the Start screen's **On one screen** picks Pass and play (the default) or Open (one person sees and plays
+every seat). In Pass and play each person sees only their own hand: when a move makes it someone else's turn, the table
+is covered by a screen with no cards on it (**Pass to** the next player, the status, scores and the last moves) until
+they press **I'm <name>: show my hand**; the one who just moved can **undo my move** there. Opening or reloading a game
+is covered too. Undo takes back only your own last move. A **Pass and play** checkbox in the bar switches it during
+the game. Not a config key: the table's own mode, kept per game in the browser.
+
 ## L5R rules by arc
 
 From the last complete rulebook of each arc (`ootv-play` `docs/l5r/turn-sequence`). The start screen asks for the
