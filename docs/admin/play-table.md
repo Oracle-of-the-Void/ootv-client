@@ -1135,3 +1135,19 @@ to assign units is kept by the scene whose step has `assign`, not by attack code
 config, `scenes.<id>.assign.words`: L5R `scenes.attack.assign.words` says "assigns", "assigns or passes", "passes",
 "is done assigning", "assigning", "assign", and "the attack" / "the defense" for a side an ally joins. The table reads
 as before. A game whose config gives no words gets plain ones ("places", "is done placing").
+
+## One scene view, and the table's open buttons from config (2026-11-11, l5r/play version 125)
+
+Engine generic step 10c ([ootv-play #370](https://github.com/Oracle-of-the-Void/ootv-play/pull/370)): the scene panel
+for a battle, a duel and a lobbying effort is built one way, from the scene's config: what the step asks (an answer,
+turns of moves, a count), the sides and their totals, the moves. Totals stay hidden while a scene's cards are face down
+(a duel's focus cards) until its count. Words the table used to fix itself now come from config:
+
+- `scenes.<id>.opens.name`: the button or menu item that opens a scene. L5R: `attack` "Declare attack" (with `ask`
+  "Attack which player?"), `challenge` "Create challenge", `lobby` "Lobby" (shown as "Lobby for the Imperial Favor").
+- `scenes.<id>.area {name, many}`: the words for the areas a scene is fought at. L5R `battle`: "battlefield",
+  "Battlefields" (the phase button, the turn mark, the Battlefields pane).
+- A count step's `button`: the count's button. L5R lobbying's Count step: "Count"; with none, "Resolve the <scene>".
+- The phase button's "end the attack", "resolve the battle", "(no attack)" use the scenes' own `name`s.
+
+The table reads as before.
