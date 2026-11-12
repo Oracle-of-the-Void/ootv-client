@@ -28,7 +28,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `table.arrange` | Arrange's rows of card types, nearest first (L5R: stronghold, sensei, wind, holdings, regions, celestials; then personalities; then the rest), and the types it stacks (Holding) |
 | `placement`, `scenes.main` Setup | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals (the main scene's Setup step, `setup`; top-level `setup` until version 95) |
 | `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords, title) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
-| `cardstates`, `counters`, `cardcounters`, `customtokens` | bow and dishonor (upside down), with their words (`is`: "bowed", "dishonored", since version 52; `unname`: Straighten); Honor, Gold and Hand size; tokens on cards, by name (+1F, ...; any name typed) |
+| `cardstates`, `counters`, `cardcounters`, `customtokens` | bow and dishonor (upside down), with their words (`is`: "bowed", "dishonored", since version 52; `isnot`: "unbowed", "honorable", since version 117, every sentence about a state takes these words; `unname`: Straighten); Honor, Gold and Hand size; tokens on cards, by name (+1F, ...; any name typed) |
 | `stats` | a card's numbers (Force, Chi, Personal Honor): a token's number that adds to one (`token`: +1F), which include what's attached printed as a bonus (`aggregate`: Force, Chi), and which have no Change menu (`change: false`: Personal Honor) |
 | `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor), how it's lobbied for (`lobby`) and what it's given up for (`uses`) |
 | `timing` | when each kind of action may be taken (L5R: Limited, Open, Battle, Reaction) |
@@ -1061,3 +1061,11 @@ the screen as before, with each army's Force and the Province's Strength, − an
 Resolve the battle, End without resolving (which still asks first) and Hide. New in `l5r/play`: `scenes.battle.panel`
 (`"middle"`) and `scenes.battle.off` (the End without resolving button's words and its question). The Resolve button
 now reads "Resolve the battle". No card codes changed.
+
+## Card-state and move words (2026-11-11, l5r/play version 117)
+
+Engine generic step 6 ([ootv-play #355](https://github.com/Oracle-of-the-Void/ootv-play/pull/355)): `cardstates[].isnot`
+("unbowed", "honorable") joins `is`, and the table's sentences about bowing and dishonor ("goes home bowed", "none
+unbowed", "bow your cards to produce", "is dishonored") take their words from `cardstates` instead of fixed English. The
+duel's Focus and Strike moves carry `does` ("focuses", "strikes"), the log's verb for them.
+
