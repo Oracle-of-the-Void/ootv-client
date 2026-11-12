@@ -1095,3 +1095,18 @@ Engine generic step 8 ([ootv-play #359](https://github.com/Oracle-of-the-Void/oo
   `scenes.battle.outcome.lose: [{destroy: true, to: "loser"}]` says what losing does. The `{destroy: "army", of, honor}`
   effects are gone from the rules; the Province's `{destroy: "area"}` stays.
 
+
+## One resolution and verdict for every scene (2026-11-11, l5r/play version 122)
+
+Engine generic step 8d ([ootv-play #363](https://github.com/Oracle-of-the-Void/ootv-play/pull/363)): battles, duels
+and lobbying resolve and word their verdict the same way. The rules that hold give the winner and the losers. The
+scene's `outcome` then applies to each side, and each rule's own effects run. A card put down by a move (a focus card)
+can still set the result.
+
+- `scenes.<id>.resolved {moment, before}`: the moment fired for each side's cards once the scene resolves.
+  `scenes.battle.resolved: {moment: "battleend"}` fires after the losers are destroyed, for the cards still in play.
+  `scenes.duel.resolved: {moment: "duelresolved", before: true}` fires before the loser is destroyed.
+- The log line for the count is named by the step ("Strike: …", "Resolution at …: …", "Count: …"). The verdict follows
+  in one shape: "Kakita Toshimoko (Player A) wins: Doji Hoturi commits seppuku or is dishonored.", "A tie: both are
+  destroyed.", "Nobody wins: nothing happens."
+- The last battle's record names its winning side, not that side's player.
