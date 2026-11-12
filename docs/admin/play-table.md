@@ -1159,3 +1159,21 @@ turns of moves, a count), the sides and their totals, the moves. Totals stay hid
 - The phase button's "end the attack", "resolve the battle", "(no attack)" use the scenes' own `name`s.
 
 The table reads as before.
+
+## Cards name scenes by their config id (2026-11-12, l5r/play version 126, l5r/fields version 86)
+
+Engine generic step 11b ([ootv-play #373](https://github.com/Oracle-of-the-Void/ootv-play/pull/373)): 74 L5R cards'
+play codes were rewritten so they name a battle, duel or attack by its scene id instead of words built into the engine.
+
+- `open {scene, ...}`: opens that scene on those terms (a duel effect: `{"open": {"scene": "challenge", ...}}`; the
+  Emerald Champion's series: `champion`; Counterattack: `attack`). Was `duel`, `challenges`, `attack`.
+- `in {scene, ...}`: while that scene is on, or just after it under `after` (`{"in": {"scene": "duel", "stage": ...}}`,
+  `{"in": {"scene": "battle", "role": ...}}`, a named gate `{"in": {"scene": "battle", "is": "defending"}}`). Was
+  `induel`, `battle`, `after.attack`.
+- `sceneset` (was `duelset`), `sceneput` (`duelfocus`), `sceneend` (`endbattle`), modifier `placebow` (`attackbow`),
+  `"sidecard"` (`"duelist"`), targets `side` / `atarea` (`army` / `attacked`), `"groups"` (`"army"`), `move: "area"`
+  (`move: "battle"`), `if {side: "attacking", has: ...}` (`if {attacking}`).
+- Config: `afters` battledestroy / terrains use `in {scene: "battle"}`, `afterwords.battle.destroyed.groups`,
+  `modifiers.placebow`, `bringin.values` `area`. The card field description (`l5r/fields` play) lists the new words.
+
+Undo record: ootv-backups `reverts/2026-11-11-l5r-play-actions.jsonl` (operation 2026-11-12T043954-play-actions).
