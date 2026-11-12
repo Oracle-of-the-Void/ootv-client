@@ -1069,3 +1069,18 @@ Engine generic step 6 ([ootv-play #355](https://github.com/Oracle-of-the-Void/oo
 unbowed", "bow your cards to produce", "is dishonored") take their words from `cardstates` instead of fixed English. The
 duel's Focus and Strike moves carry `does` ("focuses", "strikes"), the log's verb for them.
 
+## One total and one rule check for every scene (2026-11-11, l5r/play versions 118–119)
+
+Engine generic step 7 ([ootv-play #356](https://github.com/Oracle-of-the-Void/ootv-play/pull/356),
+[#357](https://github.com/Oracle-of-the-Void/ootv-play/pull/357), [#358](https://github.com/Oracle-of-the-Void/ootv-play/pull/358)):
+the battle, the duel and lobbying stop having their own totals and rule checks.
+
+- `totals.<name>` is one shape for all three: `group` + `field` (the Force of a side's units at the area), `field` on
+  the side's own card (a duelist's Chi), `counter` (Family Honor), `recorded` (the cards a side recorded: focus cards,
+  speakers, gifts; `{field, name, double}` for the duel, was `focus`), `least` per card, `min` for the whole (was the
+  duel's `least`; `totals.force.min` added), `empty`.
+- `scenes.battle.total: "force"` (version 118) and the battle's resolve rules on `scenes.battle` Resolution `resolve`
+  (version 119): both were on the turn's Attack step (`attack.total`, `attack.resolve`), now removed there.
+- The rules' conditions (`units`, `free`, `more`, `equal`) read the same way in every scene; an area property is named
+  by its id (`strength`).
+
