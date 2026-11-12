@@ -1190,3 +1190,19 @@ Engine generic step 11c ([ootv-play #374](https://github.com/Oracle-of-the-Void/
 - `effectkinds.ranged.one` / `effectkinds.fear.one`: "a Ranged Attack", "a Fear effect" (a cancel's refusal words).
 - Tactician's trait action: its gate is `{"in": {"scene": "battle", "is": "in"}}` (was `{"battle": "in"}`, which the
   engine stopped reading in 11b, so the action could be used outside the battle).
+
+## Duel terms name counters and states (2026-11-12, l5r/play version 128, l5r/fields version 88)
+
+Engine generic step 11d ([ootv-play #375](https://github.com/Oracle-of-the-Void/ootv-play/pull/375)): 16 L5R cards'
+play codes were rewritten (your yes, "Yes, all as proposed"):
+
+- A duel's `refuse` / `win` / `lose`: `honor: n` → `add {honor: n}` (negative for a loss), `dishonor: true` →
+  `set {dishonored: true}` (Iaijutsu Challenge, Iaijutsu Duel, Test of Might, Test of Stone, Test of the Emerald
+  Champion, Hida O-Ushi, Kakita Toshimoko, Mirumoto House Guard, The Hooded Ronin, Doji Hoturi).
+- Ki-Rin: `while {honorable}` → `while {not: {state: "dishonored"}}`.
+- `if {duel}` → `if {in: {scene: "duel", result?}}` (Bloodsword, Hiruma Kage, Kakita Toshimoko, Tetsubo, The Nameless
+  One); Bayushi Hisa's `if {army}` → `if {side: "in", has}`.
+- Config: `honor` removed. Added `afters.honorloss` / `offending` / `acted` `{counterloss: "honor"}` and the lobby
+  speaker's `not {state: "dishonored"}`. The card field description (`l5r/fields` play) lists the new words.
+
+Undo record: ootv-backups `reverts/2026-11-11-l5r-play-actions.jsonl` (operation 2026-11-12T050702-play-actions).
