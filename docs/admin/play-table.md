@@ -45,6 +45,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `spellwork`, `unique`, `fortification` | what counts as spell-work (a Spell; a Shugenja's own ability), the Unique rule (the keyword, by title), and what a Fortification is (the trait) |
 | `scenes.main` First player | who goes first (the main scene's step `first`): the highest of a counter (L5R: Honor), a tie at random (top-level `firstplayer` until version 95) |
 | `scenes.turn.steps` | the turn's phases (top-level `phases` until version 95): what each phase does as it starts (straighten, turn provinces up, draw), whose action it is, the hand limit, and the attack: `attack.scene` names the scene it opens (`scenes` below holds its steps); the steps (Maneuvers: `assign`, the attacker then the defender; `infantry`, `cavalry` or `any`; Three Dynasties' Cavalry `onlywithunits`; `skip` `{players}`: passed over with that many players or fewer, the Declaration with two), the battle's steps (Resolution: `resolve`), who may be assigned (`commit`: L5R, a unit led by an unbowed Personality; Cavalry when the Personality and all its Followers are) and the Honor a resolution gives (`honor`: 2 a card destroyed to the winner, 1 each on a tie) |
+| `scenes.battle` panel, off | how the table shows a battle (since version 116): `panel` `"middle"` puts it big in the middle of the screen at Resolution, with Hide; `off` is ending it with no outcome, its button's words (`name`: End without resolving) and the question asked first (`detail`, `yes`, `no`) |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
 ## Hearts (2026-11-10)
@@ -1051,3 +1052,12 @@ allegiance and the Ivory rule as its `waivers`, the player's clan is what the St
 `gold.clan.from`), Unique is a `match` (`unique`), the Honorable and Dishonorable Dead are `deaths` (were
 `honor.dead`), and a dishonored Personality's Personal Honor of 0 at most is the stat's `floor` (was
 `honorreq.statefloor`). No card codes changed.
+
+## The battle in the table's one panel (2026-11-11, l5r/play version 116)
+
+Step 5 of the generic-engine plan (ootv-play [#354](https://github.com/Oracle-of-the-Void/ootv-play/pull/354)), the
+last one. A battle at Resolution is now shown by the same panel as a duel or a lobbying effort: big in the middle of
+the screen as before, with each army's Force and the Province's Strength, − and + for card effects, what they come to,
+Resolve the battle, End without resolving (which still asks first) and Hide. New in `l5r/play`: `scenes.battle.panel`
+(`"middle"`) and `scenes.battle.off` (the End without resolving button's words and its question). The Resolve button
+now reads "Resolve the battle". No card codes changed.
