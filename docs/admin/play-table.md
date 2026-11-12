@@ -1177,3 +1177,16 @@ play codes were rewritten so they name a battle, duel or attack by its scene id 
   `modifiers.placebow`, `bringin.values` `area`. The card field description (`l5r/fields` play) lists the new words.
 
 Undo record: ootv-backups `reverts/2026-11-11-l5r-play-actions.jsonl` (operation 2026-11-12T043954-play-actions).
+
+## Once a scene, flags and scene choices from config (2026-11-12, l5r/play version 127, l5r/fields version 87)
+
+Engine generic step 11c ([ootv-play #374](https://github.com/Oracle-of-the-Void/ootv-play/pull/374)), no card writes:
+
+- `once: <scene id>` works for any scene, not only `battle`: once each time that scene is open (an effect's, or an
+  effect kind's: Fear). The card field description (`l5r/fields` play) says so.
+- `flags` (new): the rules an effect puts on a card for a while, with their words. L5R `mustattack` (Shosuro Tage):
+  `{place: "attack", text, why, open}`. These were built into the engine.
+- `scenes.duel.choices` (was `duel.choices`): a Duel of Personal Honor's loser's choice, seppuku or being dishonored.
+- `effectkinds.ranged.one` / `effectkinds.fear.one`: "a Ranged Attack", "a Fear effect" (a cancel's refusal words).
+- Tactician's trait action: its gate is `{"in": {"scene": "battle", "is": "in"}}` (was `{"battle": "in"}`, which the
+  engine stopped reading in 11b, so the action could be used outside the battle).
