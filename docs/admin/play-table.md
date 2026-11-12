@@ -32,15 +32,15 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `stats` | a card's numbers (Force, Chi, Personal Honor): a token's number that adds to one (`token`: +1F), which include what's attached printed as a bonus (`aggregate`: Force, Chi), and which have no Change menu (`change: false`: Personal Honor) |
 | `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor), how it's lobbied for (`lobby`) and what it's given up for (`uses`) |
 | `timing` | when each kind of action may be taken (L5R: Limited, Open, Battle, Reaction) |
-| `honorreq` | Honor Requirements: the card field (`honor`) and counter (`honor`) compared; `allegiance` (Gold more to ignore it for a Personality of the player's clan, and in which phases); `lost` (ignored for the player's clan once others have cost them Honor; `{"text"}` the words the log gives, since version 53); `attach` (which attachments need the Personality's Personal Honor: Follower, Ancestor) |
-| `gold` | what produces Gold (`produce`), what a purchase is and what it costs (`buy`), the clan Personality rule (`clan`: Personal Honor when paid in full, else 2 less; not Shadowlands), and whether what's left after a payment is lost (`spendall`, before Ivory) |
+| `requirement` | the Honor Requirement (`honorreq` until version 115): the card field (`honor`) and counter (`honor`) compared; `waivers` per arc, each for a Personality of the player's own clan: `pay` (Clan allegiance: Gold more to ignore it, and in which phases) or `lost` (ignored once others have cost them Honor; `text` the words the log gives); `attach` (which attachments need the Personality's Personal Honor: Follower, Ancestor) |
+| `gold` | what produces Gold (`produce`), what a purchase is and what it costs (`buy`), its cost changes (`buy.changes`: a Personality of the player's clan adds its Personal Honor when paid in full, else costs 2 less; not Shadowlands; none from Ivory on), and whether what's left after a payment is lost (`spendall`, before Ivory) |
 | `handplay` | playing a card from the hand: which cards attach to the card they're played on (`attach`: L5R Item, Follower, Spell, Ancestor) and where the rest go while they resolve (`to`: the active area); the Gold Cost is paid as a purchase is |
 | `actions` | card actions: `fromhand`, the hand cards played for their actions (Strategy, Ring). Each action is in its card's menu while its timing (`timing`) is open; using one picks its targets, pays its costs, makes the Force and Chi changes its text gives ("+2F for attacking until the end of the turn", "a 1F/2C bonus", tokens; a choice of bonuses or a condition is left to the players) and hands the action to the next player unless it was a Reaction |
 | `terrain` | which hand cards are Terrains (`keyword`: Terrain): played at the battle being fought, one at a time, shown at that battle; its text takes effect when everyone has passed in the Battle Action Segment; discarded when the battle ends |
 | `finder` | the deck finder's filters beyond name, card and format (`facets`: clan and stronghold, each with its pulldown's label), shown on each deck too; the Dynasty and Fate counts come from the deck zones (since version 53) |
 | `duel` | challenges and duels: who can duel (L5R: a Personality), where focus cards go face down (the active area) and which (Fate cards), the stat compared (Chi) and the card field added to it (Focus Value), who doubles it (Double Chi); a token's C counted in a duel |
 | `types`, `targetwords` | the card types an action's target can name, and the traits it can name instead (Shugenja, Terrain) |
-| `roles` | what the rules mean by a card's role: `leader` (L5R: Personality: leads a unit, can't be targeted bowed by its own player, the default to accept a challenge), `follower` (Follower: Fear, Ranged Attacks), `stronghold` (Stronghold: Province Strength, the player's clan), `dead` (who goes to the Honorable or Dishonorable Dead); each with its name for messages |
+| `roles` | what the rules mean by a card's role: `leader` (L5R: Personality: leads a unit, can't be targeted bowed by its own player, the default to accept a challenge), `follower` (Follower: Fear, Ranged Attacks), `stronghold` (Stronghold: Province Strength; `gives` the player's clan), `dead` (who goes to the Honorable or Dishonorable Dead, by `deaths`: Dishonorable while dishonored); each with its name for messages |
 | `piles`, `honor`, `made` | the deck an effect draws from, the hand, and the removed pile (L5R: fate, hand, removed); the counter that is Honor and the state that is dishonored; a made token's default type and back (a Follower, Fate) |
 | `spellwork`, `unique`, `fortification` | what counts as spell-work (a Spell; a Shugenja's own ability), the Unique rule (the keyword, by title), and what a Fortification is (the trait) |
 | `scenes.main` First player | who goes first (the main scene's step `first`): the highest of a counter (L5R: Honor), a tie at random (top-level `firstplayer` until version 95) |
@@ -1041,3 +1041,13 @@ Clan allegiance question's `name` and `text` (its "2 more Gold" now reads the ru
 `lost.detail`, `customtokens.example` (the hint when naming a token) and `symbols` (the L5R Symbol font and its
 classes, before in the table's style sheet). What players see reads the same, except that "it stays in the province"
 is now "it stays in the Province".
+
+## Buying and the Honor Requirement as general rules (2026-11-11, l5r/play version 115)
+
+Step 4 of the generic-engine plan (ootv-play [#353](https://github.com/Oracle-of-the-Void/ootv-play/pull/353)). The
+L5R buying rules in `l5r/play` are now written as general pieces, and play the same: the clan Personality price is a
+cost change (`gold.buy.changes`, was `gold.clan`), the Honor Requirement is `requirement` (was `honorreq`) with Clan
+allegiance and the Ivory rule as its `waivers`, the player's clan is what the Stronghold role `gives` (was
+`gold.clan.from`), Unique is a `match` (`unique`), the Honorable and Dishonorable Dead are `deaths` (were
+`honor.dead`), and a dishonored Personality's Personal Honor of 0 at most is the stat's `floor` (was
+`honorreq.statefloor`). No card codes changed.
