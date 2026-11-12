@@ -30,7 +30,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `cardfields`, `enter` | the card fields the rules read (L5R: type, keywords, title) and what happens as a card comes into play (L5R: Holdings enter bowed; Fortifications not, up to Lotus) |
 | `cardstates`, `counters`, `cardcounters`, `customtokens` | bow and dishonor (upside down), with their words (`is`: "bowed", "dishonored", since version 52; `isnot`: "unbowed", "honorable", since version 117, every sentence about a state takes these words; `unname`: Straighten); Honor, Gold and Hand size; tokens on cards, by name (+1F, ...; any name typed) |
 | `stats` | a card's numbers (Force, Chi, Personal Honor): a token's number that adds to one (`token`: +1F), which include what's attached printed as a bonus (`aggregate`: Force, Chi), and which have no Change menu (`change: false`: Personal Honor) |
-| `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor), how it's lobbied for (`lobby`) and what it's given up for (`uses`) |
+| `tokens` | a token one player holds or nobody does (L5R: the Imperial Favor), the keyword its actions carry (`keyword`) and what it's given up for (`uses`); how it's lobbied for is the lobbying scene's `opens` |
 | `timing` | when each kind of action may be taken (L5R: Limited, Open, Battle, Reaction) |
 | `requirement` | the Honor Requirement (`honorreq` until version 115): the card field (`honor`) and counter (`honor`) compared; `waivers` per arc, each for a Personality of the player's own clan: `pay` (Clan allegiance: Gold more to ignore it, and in which phases) or `lost` (ignored once others have cost them Honor; `text` the words the log gives); `attach` (which attachments need the Personality's Personal Honor: Follower, Ancestor) |
 | `gold` | what produces Gold (`produce`), what a purchase is and what it costs (`buy`), its cost changes (`buy.changes`: a Personality of the player's clan adds its Personal Honor when paid in full, else costs 2 less; not Shadowlands; none from Ivory on), and whether what's left after a payment is lost (`spendall`, before Ivory) |
@@ -38,7 +38,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 48. There's no Admin
 | `actions` | card actions: `fromhand`, the hand cards played for their actions (Strategy, Ring). Each action is in its card's menu while its timing (`timing`) is open; using one picks its targets, pays its costs, makes the Force and Chi changes its text gives ("+2F for attacking until the end of the turn", "a 1F/2C bonus", tokens; a choice of bonuses or a condition is left to the players) and hands the action to the next player unless it was a Reaction |
 | `terrain` | which hand cards are Terrains (`keyword`: Terrain): played at the battle being fought, one at a time, shown at that battle; its text takes effect when everyone has passed in the Battle Action Segment; discarded when the battle ends |
 | `finder` | the deck finder's filters beyond name, card and format (`facets`: clan and stronghold, each with its pulldown's label), shown on each deck too; the Dynasty and Fate counts come from the deck zones (since version 53) |
-| `duel` | challenges and duels: who can duel (L5R: a Personality), where focus cards go face down (the active area) and which (Fate cards), the stat compared (Chi) and the card field added to it (Focus Value), who doubles it (Double Chi); a token's C counted in a duel |
+| `duel` | challenges and duels (who can duel, L5R a Personality: `scenes.challenge.opens.cards`), where focus cards go face down (the active area) and which (Fate cards), the stat compared (Chi) and the card field added to it (Focus Value), who doubles it (Double Chi); a token's C counted in a duel |
 | `types`, `targetwords` | the card types an action's target can name, and the traits it can name instead (Shugenja, Terrain) |
 | `roles` | what the rules mean by a card's role: `leader` (L5R: Personality: leads a unit, can't be targeted bowed by its own player, the default to accept a challenge), `follower` (Follower: Fear, Ranged Attacks), `stronghold` (Stronghold: Province Strength; `gives` the player's clan), `dead` (who goes to the Honorable or Dishonorable Dead, by `deaths`: Dishonorable while dishonored); each with its name for messages |
 | `piles`, `honor`, `made` | the deck an effect draws from, the hand, and the removed pile (L5R: fate, hand, removed); the counter that is Honor and the state that is dishonored; a made token's default type and back (a Follower, Fate) |
@@ -1110,3 +1110,20 @@ can still set the result.
   in one shape: "Kakita Toshimoko (Player A) wins: Doji Hoturi commits seppuku or is dishonored.", "A tie: both are
   destroyed.", "Nobody wins: nothing happens."
 - The last battle's record names its winning side, not that side's player.
+
+## One check for opening any scene (2026-11-11, l5r/play version 123)
+
+Engine generic step 9d ([ootv-play #366](https://github.com/Oracle-of-the-Void/ootv-play/pull/366)): what may open an
+attack, a battle, a challenge or a lobbying effort is now a piece of each scene's config, `scenes.<id>.opens`, and one
+check reads it for every scene.
+
+- `turn`: the turn's player opens it. `alone`: one at a time (`"scene"`), or not while anything else is going on
+  (`"any"`). `token`: the token it is for; its holder can't open it. `timing`, `perturn` (once a turn).
+- `against`: the player it is against may be named. `at: "pick"`: an area the scene around it is picking now.
+- `cards`: the cards it is opened with, in order: what kind (`who`), yours or another player's (`own`), `unbowed`,
+  `above` (a stat above zero, and not dishonored), `bow` (bowed as the cost). `to`: whom its moves go to ("the Emperor").
+- Then a held rule naming the scene (Emperor's Peace), the player's prevents (Twist of Fate) and the card's (Kakita
+  Yoshi) are checked as before. A held rule now reads the same for every scene: "no player may lobby: Quiet Court,
+  until …".
+- Moved: the Imperial Favor's `lobby` block went to `scenes.lobby.opens` (its `keyword` stays on the token, for its
+  uses too); `duel.who` went to `scenes.challenge.opens.cards`.
