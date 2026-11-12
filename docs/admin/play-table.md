@@ -1127,3 +1127,11 @@ check reads it for every scene.
   until …".
 - Moved: the Imperial Favor's `lobby` block went to `scenes.lobby.opens` (its `keyword` stays on the token, for its
   uses too); `duel.who` went to `scenes.challenge.opens.cards`.
+
+## Placing units in turn as a general step (2026-11-11, l5r/play version 124)
+
+Engine generic step 9e ([ootv-play #367](https://github.com/Oracle-of-the-Void/ootv-play/pull/367)): whose turn it is
+to assign units is kept by the scene whose step has `assign`, not by attack code. Its words come from that scene's
+config, `scenes.<id>.assign.words`: L5R `scenes.attack.assign.words` says "assigns", "assigns or passes", "passes",
+"is done assigning", "assigning", "assign", and "the attack" / "the defense" for a side an ally joins. The table reads
+as before. A game whose config gives no words gets plain ones ("places", "is done placing").
