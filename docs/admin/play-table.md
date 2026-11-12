@@ -1084,3 +1084,14 @@ the battle, the duel and lobbying stop having their own totals and rule checks.
 - The rules' conditions (`units`, `free`, `more`, `equal`) read the same way in every scene; an area property is named
   by its id (`strength`).
 
+## Battle winnings and losers like the duel's (2026-11-11, l5r/play versions 120–121)
+
+Engine generic step 8 ([ootv-play #359](https://github.com/Oracle-of-the-Void/ootv-play/pull/359),
+[#360](https://github.com/Oracle-of-the-Void/ootv-play/pull/360)):
+
+- `scenes.battle.award: "honor"`: the counter a battle's winnings are paid in (the engine no longer assumes Honor); an
+  ally's payment is `scenes.attack.sides.<side>.join.award` (was `join.honor`).
+- The battle's resolve rules name `win`, `lose` and `award` (per card destroyed), the duel's shape;
+  `scenes.battle.outcome.lose: [{destroy: true, to: "loser"}]` says what losing does. The `{destroy: "army", of, honor}`
+  effects are gone from the rules; the Province's `{destroy: "area"}` stays.
+
