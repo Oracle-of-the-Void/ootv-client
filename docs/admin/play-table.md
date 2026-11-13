@@ -1306,3 +1306,24 @@ undo record ootv-backups `reverts/2026-11-13-l5r-play-actions.jsonl`). New words
   had no text have it now, read from the scans. Occupied Terrain: the Attacker picks one of the Defender's Holdings as the
   Terrain takes effect; it is destroyed instead of the Province only if the Province falls when the battle is resolved.
   `l5r/fields` version 94.
+
+## Always-on text by code (2026-11-13, l5r/fields version 95, l5r/play version 148)
+
+Text that works all the time, which the table left to the players, now has code
+([ootv-play #423](https://github.com/Oracle-of-the-Void/ootv-play/pull/423)). New words:
+
+- the moment `attackassigned` (`l5r/play` `moments`: `{"assign": "attacker"}`): a unit first assigned to attack; its
+  cards' triggers fire once. With a demand of the card's own player's, `{"demand": {"amount": 3, "from": "you", "may":
+  true, "short": [...]}}`, they may pay, or decline and the short effects happen (Gaijin Mercenaries: pay them 3 Gold, or
+  they are destroyed; the answer panel shows **Don't pay**);
+- a card's own cost: `{"cost": {"Imperial": [{"on": "self", "players": {"clan": "Crane"}, "cost": {"set": 5}}]}}`
+  (Fantastic Gardens), or `"set": {"per": {"in": "army", "can": "ranged"}}`, a Gold for each card in your army at the battle
+  with a Ranged Attack of its own (Blazing Arrows);
+- a token cost's `"unless"`, a match on the card using it (Secrets on the Wind: a Scorpion Shugenja destroys no token);
+- a token count `{"of": "record", "record": "battle", "path": "lost.{cardopp}"}`, from the battle's record of units
+  destroyed per side (Terrible Standard of Fu Leng's +1F tokens);
+- a bonus's `"per"` with `"other": true`, not counting the card itself (Naga Abomination's Chi).
+
+The codes for 19 cards are planned (Honor lost entering play, Kyoso no Oni's Holding, no Followers or Items, Toturi
+dishonored and the clans he won't join, the bonuses above, the Fury of Osano-Wo's tokens, one Plea of the Peasants a
+Province), with the text of 71 printings that had none, read from the scans; they wait for the card write.
