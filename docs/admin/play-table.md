@@ -1270,3 +1270,19 @@ Engine generic steps 12i–12k ([ootv-play #386](https://github.com/Oracle-of-th
   `duelset`, `endbattle`, `assignlate`, `fought`, ...); `terms` maps a word together with its value and only where it
   belongs, so `chi` as a stat or `win` on Dashmar keep their meaning. Test of Might's "opposing" Personality is read
   against its first target.
+
+## Four Shadowlands cards added (2026-11-13, l5r/play version 147, l5r/fields version 92)
+
+Mantis Bushi, Force of Will, Arrows from the Woods and Darkness Feeds... had been missed when the Shadowlands set was
+added. Their play codes now follow the Shadowlands wording, which is each card's only Imperial-arc printing
+([ootv-play #413](https://github.com/Oracle-of-the-Void/ootv-play/pull/413); operation 2026-11-13T214501-play-actions,
+undo record ootv-backups `reverts/2026-11-13-l5r-play-actions.jsonl`). New words a card can use:
+
+- `{"after": {"event": {"kind": "ranged", "by": "you"}}}`: a Reaction to an action of yours with a Ranged Attack in it.
+- `{"raise": {"ranged": 2}}`: the action reacted to has its Ranged Attack that much stronger, before it resolves.
+- A Strategy played from the hand can make a Ranged Attack (Arrows from the Woods' "Ranged 2 Attack").
+- An amount `{"of": "target", "target": 0, "field": "force"}` reads the card in that target slot (Darkness Feeds...: the
+  destroyed Personality's Force and Chi, given to the second target).
+- `"until": "nextturn"`: until the end of its player's next turn; the card shows "end of <player>'s next turn".
+
+`l5r/play` gained `afterwords.event.by.you`; the card field description (`l5r/fields` play) lists the new words.
