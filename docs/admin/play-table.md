@@ -1286,3 +1286,19 @@ undo record ootv-backups `reverts/2026-11-13-l5r-play-actions.jsonl`). New words
 - `"until": "nextturn"`: until the end of its player's next turn; the card shows "end of <player>'s next turn".
 
 `l5r/play` gained `afterwords.event.by.you`; the card field description (`l5r/fields` play) lists the new words.
+
+## Mara, Be Prepared to Dig Two Graves, Threat of War; Terrains by code (2026-11-13, l5r/fields version 93)
+
+- **Mara**: two Open actions, one adding a −2F Change token and one removing one; the tokens stack (she has Cavalry while
+  she holds any). **Be Prepared to Dig Two Graves**: its target must be in the battle being fought (`"out": "here"`), and
+  five of its printings that had no text have it now, read from the scans (operation 2026-11-13T222910-play-actions).
+- **Threat of War**: a Holding bowed for its own action's cost is taxed too: bow a samurai with it, or the action is used
+  and paid but does nothing ([ootv-play #417](https://github.com/Oracle-of-the-Void/ootv-play/pull/417)).
+- **Terrains** ([ootv-play #419](https://github.com/Oracle-of-the-Void/ootv-play/pull/419)): a Terrain can carry
+  `{"takes": {"Imperial": [effects]}}`, what it does as it takes effect, in place of the table reading its text. After
+  both players pass the Terrain takes effect (any picks it asks for come first, and nothing else can be done until
+  they're made), then the battle waits at Resolution for the players to resolve it. New words: `"to": "all"` with
+  `"all": {"type", "whose"}` (the cards at the battle), also for `gain` and `{"move": "home"}`; `{"move": "here"}`;
+  `must` with `"each": ["attacker", "defender"]`, `"then"`, `"ifpass"`, and a pick's `"where"`, `"type": "unit"`,
+  `"unbowed"`, `"whose"`, `"or": {"discard": "hand"}`; `{"fallinstead": [effects]}`. The card codes are written
+  separately.
