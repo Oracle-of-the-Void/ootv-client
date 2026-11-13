@@ -1326,4 +1326,12 @@ Text that works all the time, which the table left to the players, now has code
 
 The codes for 19 cards are planned (Honor lost entering play, Kyoso no Oni's Holding, no Followers or Items, Toturi
 dishonored and the clans he won't join, the bonuses above, the Fury of Osano-Wo's tokens, one Plea of the Peasants a
-Province), with the text of 71 printings that had none, read from the scans; they wait for the card write.
+Province), with the text of 71 printings that had none, read from the scans: written (operation
+2026-11-13T234212-play-actions, read back and checked in search).
+
+**Weapons and Armor** ([ootv-play #425](https://github.com/Oracle-of-the-Void/ootv-play/pull/425), `l5r/play` version
+149, `l5r/fields` version 96): `l5r/play` `attachlimits` holds the game's limit, one Weapon and one Armor on a Personality
+(SCC p. 23: "No Personality may have more than one weapon and one armor attached to him or her"), checked when a card is
+played onto a Personality or moved there by a card, not when moved by hand. The modifier
+`{"attachlimit": {"match": {"keywords": ["Weapon"]}, "max": 2}}` raises it, on the card attaching or one already on the
+Personality (Wakizashi: "This Personality may have a second weapon attached").
