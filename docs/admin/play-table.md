@@ -1300,5 +1300,9 @@ undo record ootv-backups `reverts/2026-11-13-l5r-play-actions.jsonl`). New words
   they're made), then the battle waits at Resolution for the players to resolve it. New words: `"to": "all"` with
   `"all": {"type", "whose"}` (the cards at the battle), also for `gain` and `{"move": "home"}`; `{"move": "here"}`;
   `must` with `"each": ["attacker", "defender"]`, `"then"`, `"ifpass"`, and a pick's `"where"`, `"type": "unit"`,
-  `"unbowed"`, `"whose"`, `"or": {"discard": "hand"}`; `{"fallinstead": [effects]}`. The card codes are written
-  separately.
+  `"unbowed"`, `"whose"`, `"or": {"discard": "hand"}`; `{"fallinstead": [effects]}`; `"unpreventable": true` (Suspended
+  Terrain's "This cannot be prevented"); `grant` to `["attacker", "defender"]` (Accessible Terrain).
+  All 12 Terrains are written with these codes (operation 2026-11-13T230315-play-actions), and 60 of their printings that
+  had no text have it now, read from the scans. Occupied Terrain: the Attacker picks one of the Defender's Holdings as the
+  Terrain takes effect; it is destroyed instead of the Province only if the Province falls when the battle is resolved.
+  `l5r/fields` version 94.
