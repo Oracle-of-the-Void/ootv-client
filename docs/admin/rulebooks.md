@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
+Last updated: 2026-11-13 (Three Dynasties Comprehensive Rules 0.3: retired Onyx keywords removed); 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -473,7 +473,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
   arc could be only one). Since 2026-10-28 it is the arcs' "Last complete rules in arc" book (moved from the datasheet,
   the user) and a trait-link source (its glossary, pp. 62–92; the Discord /rule bot answers Onyx/ShE questions from it). Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
-- **Comprehensive Rules for Three Dynasties** (2026-11-02, Version 0.2 draft): the Onyx/ShE book above plus Onyx Lives' Three
+- **Comprehensive Rules for Three Dynasties** (2026-11-13, Version 0.3 draft): the Onyx/ShE book above plus Onyx Lives' Three
   Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
   and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
   Empire". Every wording was the user's decision, one by one (record: ootv-games
@@ -481,6 +481,10 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   questions (2026-10-27): Events resolve the pre-Twenty Festivals way (a trait from a resolution area, mandatory), an Event
   revealed by the first-turn Cycle waits a turn, and Provinces flip simultaneously before the active player orders the Events.
   It also has the datasheet's update of 27 October (Action Sequence Revision, "Check" Terminology).
+  Version 0.3 (2026-11-13) retires the Onyx keywords that are on no Three Dynasties card and not on the datasheet
+  (Courage, Duty, Fortification, Honesty, Honor as a keyword, Inexperienced, Resilient, Sincerity): their glossary entries,
+  Appendix B lines and player abilities are gone, and the rules that named them were reworded one by one (JUDGEMENT.md
+  R1–R11). Appendix B now lists 21 boldface keywords: only those on the datasheet or printed on a 3D card. 97 pages.
   On the shelf since 2026-10-27 as `three-dynasties-comprehensive-rules` (type Complete, tags Fan Made and **Last complete rules
   in arc**, moved there from the Three Dynasties datasheet), after the datasheet. The tag makes it the Discord /rule bot's Three
   Dynasties book; trait links still go to the datasheet (they list books by id). Build and notes: ootv-import
