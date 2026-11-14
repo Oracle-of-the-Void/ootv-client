@@ -1338,7 +1338,7 @@ Personality may have more than one weapon and one armor attached to him or her")
 card or moved there by a card; Wakizashi's modifier `{"attachlimit": {"match": {"keywords": ["Weapon"]}, "max": 2}}` is
 the raise.
 
-## Stats that destroy, and a duelist leaving play (2026-11-13, l5r/play version 152, l5r/fields version 99)
+## Stats that destroy, a duelist leaving play, in play, Wounded in Battle (2026-11-13, l5r/play version 153, l5r/fields version 100)
 
 [ootv-play #429](https://github.com/Oracle-of-the-Void/ootv-play/pull/429). Every part of the rule is in config now, not
 the engine (the user: "those are clearly game rules and should never have been in the engine"):
@@ -1354,3 +1354,11 @@ the engine (the user: "those are clearly game rules and should never have been i
   ends without resolution: nobody wins or loses, and the focus cards go to their discard piles (`"records": "discard"`).
   Leaving play works as always (a destroyed Personality's attachments are destroyed with it). The user, from the
   Poisoned Weapon rulings: "if a personality is destroyed before the end of the duel, the duel ends without resolution".
+- `l5r/play` `inplay` `{"face": "up"}`: what counts as in play for the rules (the zones' `play` says where play is). The
+  table and the screen both read it ([ootv-play #430](https://github.com/Oracle-of-the-Void/ootv-play/pull/430)); a game
+  with no `inplay` rule counts face-down cards too.
+- **Wounded in Battle** is coded and written (the Shadowlands wording): −2C until the end of the turn; a Samurai target
+  can't be destroyed for its Chi until the battle ends (`{"negate": {"action": "destroy", "stat": "chi", "on": "self"},
+  "until": "battle", "if": {"keywords": ["Samurai"]}}`), and is destroyed then if still at 0 Chi or below; only one on a
+  Personality each turn, whichever copy (`{"once": {"per": "target", "of": "title", "until": "turn"}}`). Seven of its
+  printings that had no text have it now, read from the scans.
