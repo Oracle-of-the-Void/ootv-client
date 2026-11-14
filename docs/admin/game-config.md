@@ -85,6 +85,8 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
 - `cardbacks` (optional): which back each printing has, for the small **Back** picture on the card page
   and the PDF's duplex option. `{rules: [{when, set, before, from, cardid}, ...]}`: the first rule
   that fits the printing gives `cardid`, the card whose image is the back (backs are cards of their own).
+  The cards the rules name come with the game config (`/gameconfig` `cardbacks`), so pages don't fetch them;
+  a back named only by a printing's own `back` is fetched when first needed.
   All the conditions in a rule must hold, and each is optional: `when` `{"<field>": "<regex>"}` matches one
   of the printing's values of that field, else the card's (`deck`, `type`, ...); `set` is a regex on the
   printing's set; `before` and `from` name a set, and fit a printing whose set comes before it, or is it or
