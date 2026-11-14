@@ -608,7 +608,7 @@ function userinfocallback() {
     rendersettings();
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
-    listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
+    listdirfresh();
     if (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
       $('.showonadmin').show();
     }
@@ -724,6 +724,31 @@ function listdirapply(data) {
   return data;
 }
 
+// When this browser last read each list (listid) and the directory ('dir') from the server, kept with the lists in
+// localStorage, so all its tabs share it. Within LISTFRESHMS of a read, a tab that opens or comes back to the front
+// uses the stored copy instead of reading again: a deck built by opening cards in new tabs re-read the directory and
+// every active deck on each one, some 10 calls a card (2026-11-12). Edits elsewhere still show within LISTFRESHMS.
+var LISTFRESHMS = 15*1000;
+function listfresh(key) {
+  var t = (cache_thing("list","checked") || {})[String(key)];
+  return !!t && Date.now() - t < LISTFRESHMS;
+}
+function listchecked(key) {
+  var now = Date.now(), c = cache_thing("list","checked") || {};
+  Object.keys(c).forEach(function(k) { if(now - c[k] > LISTFRESHMS) { delete c[k]; } });
+  c[String(key)] = now;
+  cache_thing("list","checked",c);
+}
+// the directory: the stored copy if it's fresh (listfresh), else read
+function listdirfresh() {
+  if(cache_thing("list","data") && listfresh('dir') && !listdirbusy) {
+    listinfocallback();
+    renderlisteditarea();
+  } else {
+    listinfo();
+  }
+}
+
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
@@ -757,6 +782,7 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	    responseType: 'application/json',
 	    success: function(data) {
 		    console.log(data);
+		    listchecked(listid || 'dir');
 		    if(listid) {
 		      if((listunsaved(listid) || listdirty(listid)) && cache_thing("list",listid)) {
 			// unsaved local edits are newer than the server's copy
@@ -1049,10 +1075,14 @@ function listmerge(listid,server) {
 // A list shown from its cached copy: fetch the server's copy behind it, and if another computer changed
 // the list (#337), cache it and redraw what shows it. Local edits not yet saved win.
 function listrevalidate(listid) {
+  if(listfresh(listid)) {
+    return;
+  }
   $.ajax($.extend(listrequest(listid), {
     type: 'GET',
     dataType: 'json',
     success: function(data) {
+      listchecked(listid);
       var cached = cache_thing("list",listid);
       if(listunsaved(listid) || listdirty(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
         return;
@@ -1083,7 +1113,7 @@ function listsrevalidate(polling) {
   }
   listsrevalidated = Date.now();
   if(polling !== 'visible' && polling !== 'hourly') {
-    listinfo();
+    listdirfresh();
   }
   var ids = activelists.slice();
   var shown = $("#lastlistid").val();
@@ -1163,6 +1193,13 @@ function listinfoupdate(listid,field,value,failed=null) {
       }
       if(field == 'list') {
         cache_thing("listdirty",listid,null,true);
+      }
+      if(field == 'list' && status && status.rev && cache_thing("list",listid)) {
+        // the stored copy is what was just saved, at the server's new rev: keep it; only the directory's counts and
+        // dates need reading (it read the list again too, a GET after every save)
+        listchecked(listid);
+        listinfo();
+        return;
       }
       console.log("clear listid cache:"+listid);
 		    cache_thing("list",listid,null,true); //TODO  we might seed the cache..  but we get no verification that it took.  DynamoDB has no guarantee it's fresh, so might blow cache here.
@@ -9139,7 +9176,8 @@ function printingimages(p) {
 //     when fields are read from the printing if it has them, else from the card. before/from place the
 //     printing's set in the chronological set order (selectorder("printing.set")), so they never fit
 //     in a game without one.
-// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs), fetched when first needed.
+// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs). Those the rules name come with the game config
+// (gameconfigapply); a back only a printing names is fetched when first needed.
 var cardbackcards = {};   // {game: {cardid: card, false when it isn't there}}
 var cardbackwaiting = {}; // {game: {cardid: [callbacks]}} while fetching
 function cardbackrules() {
@@ -9394,6 +9432,9 @@ function gameconfigsettings(conf) {
 function gameconfigapply(db, conf) {
   var g = conf.game, settings = gameconfigsettings(conf);
   dbinfo[db] = g.info;
+  // the standard back cards come with the config (/gameconfig cardbacks), so card pages needn't fetch them
+  var backs = cardbackcards[db] = cardbackcards[db] || {};
+  Object.keys(conf.cardbacks || {}).forEach(function(id) { backs[String(id)] = conf.cardbacks[id]; });
   var lab = {};
   ['card','printing'].forEach(function(lvl) {
     Object.keys(settings[lvl]).forEach(function(f) {
@@ -13310,16 +13351,21 @@ function publiccardcount(cardid) {
     }
   };
   if(key in publiccardcounts) {
-    show(publiccardcounts[key]);
+    // null: already asked (the card drawn again while the answer is out); its answer shows it
+    if(publiccardcounts[key] !== null) {
+      show(publiccardcounts[key]);
+    }
     return;
   }
+  publiccardcounts[key] = null;
   $.ajax({
     url: apiuri+'/publiclists?game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid)+'&minqty=1&type=deck&size=0',
     dataType: 'json',
     success: function(data) {
       publiccardcounts[key] = data.total || 0;
       show(publiccardcounts[key]);
-    }
+    },
+    error: function() { delete publiccardcounts[key]; }
   });
 }
 function publicattr(v) {
@@ -13458,6 +13504,11 @@ function similarbadge(entries, listid, mine) {
 // My lists: every own list's matches, one call per game, again after SIMILARAGE; the slots fill in when it comes
 var dirsimilardata = {};    // game -> {at, lists: {listid: [entry]}}
 function dirsimilar(listid) {
+  if(!dirsimilardata[database]) {
+    // another tab's answer, if it's recent (stored below)
+    var kept = cache_thing("list","similarcounts");
+    if(kept && kept.at && Date.now() - kept.at < SIMILARAGE) { dirsimilardata[database] = kept; }
+  }
   var d = dirsimilardata[database];
   if(listloggedin() && (!d || (Date.now() - d.at > SIMILARAGE && !d.asking))) {
     var game = database;
@@ -13469,6 +13520,7 @@ function dirsimilar(listid) {
     }).done(function(r) {
       dirsimilardata[game] = {at: Date.now(), lists: (r && r.lists) || {}};
       if(game != database) { return; }
+      cache_thing("list","similarcounts",dirsimilardata[game]);
       $('.similarslot').each(function() {
 	var id = $(this).attr('data-list');
 	$(this).html(similarbadge(dirsimilardata[game].lists[id], id, true));
