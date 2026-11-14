@@ -1337,3 +1337,20 @@ and Blazing Arrows' and Terrible Standard's codes are rewritten to them. Weapons
 Personality may have more than one weapon and one armor attached to him or her"), checked when a card is played onto a
 card or moved there by a card; Wakizashi's modifier `{"attachlimit": {"match": {"keywords": ["Weapon"]}, "max": 2}}` is
 the raise.
+
+## Stats that destroy, and a duelist leaving play (2026-11-13, l5r/play version 152, l5r/fields version 99)
+
+[ootv-play #429](https://github.com/Oracle-of-the-Void/ootv-play/pull/429). Every part of the rule is in config now, not
+the engine (the user: "those are clearly game rules and should never have been in the engine"):
+
+- `l5r/play` `statdestroy` is a list, one rule per stat:
+  `[{"stat": "chi", "match": {"type": "Personality"}, "max": 0, "below": "printed", "attached": false}]` (SCC p. 53: "If
+  the Chi of a Personality drops to zero for any reason, that Personality is destroyed"; a Personality printed with 0 Chi
+  isn't destroyed until its Chi drops). After every action the table destroys the cards in play that fit a rule. With no
+  rule nothing is destroyed this way; another stat would be another entry.
+- A card's `{"negate": {"action": "destroy", "stat": "chi"}}` keeps it from that stat's destroying only (for Wounded in
+  Battle).
+- `scenes.<id>.leave`: if a Personality that was in play when the challenge or duel began leaves play before it ends, it
+  ends without resolution: nobody wins or loses, and the focus cards go to their discard piles (`"records": "discard"`).
+  Leaving play works as always (a destroyed Personality's attachments are destroyed with it). The user, from the
+  Poisoned Weapon rulings: "if a personality is destroyed before the end of the duel, the duel ends without resolution".
