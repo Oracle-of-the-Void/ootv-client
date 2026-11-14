@@ -1362,3 +1362,57 @@ the engine (the user: "those are clearly game rules and should never have been i
   "until": "battle", "if": {"keywords": ["Samurai"]}}`), and is destroyed then if still at 0 Chi or below; only one on a
   Personality each turn, whichever copy (`{"once": {"per": "target", "of": "title", "until": "turn"}}`). Seven of its
   printings that had no text have it now, read from the scans.
+
+## Game rules out of the engine: caps, values, zones, attaching, turns (2026-11-13, l5r/play version 155)
+
+Every choice the engine made by itself is a game rule now (the user, 2026-11-13). The game's config says it; with the
+key absent, the engine does the neutral thing (no limit, nothing turned, nothing moved). A generic model like the
+reaction stack stays in the engine, but the game chooses it. The play words' description in `l5r/fields` is updated to
+match. For L5R nothing plays differently, except where noted.
+[ootv-play #433](https://github.com/Oracle-of-the-Void/ootv-play/pull/433),
+[#434](https://github.com/Oracle-of-the-Void/ootv-play/pull/434),
+[#435](https://github.com/Oracle-of-the-Void/ootv-play/pull/435),
+[#436](https://github.com/Oracle-of-the-Void/ootv-play/pull/436),
+[#437](https://github.com/Oracle-of-the-Void/ootv-play/pull/437),
+[#438](https://github.com/Oracle-of-the-Void/ootv-play/pull/438).
+
+- **No caps** (#433): the engine's fixed limits on card-code numbers are gone (draw 20, tokens 99, made cards 10,
+  targets 6, effects per action 8, and many more). What the card says happens, limited only by the pile, what was
+  produced, or the card's own `max`. Loop guards stay (nesting, undo depth, chain walks).
+- **Deck entries**: one row of a saved list makes at most 250 cards (the server's input limit, `DECKMAX`). A game can
+  set its own with `deckmax`. L5R has none.
+- **Values and paying** (#434): `totals.<t>.value` (`skip`, `least`: L5R skips bowed cards, least 0), `totals.<t>.seats:
+  highest`, `stats[].floors: highest`, `stats[].times` (the parts multiplied), `stats[].min` and `effectkinds.<k>.min`,
+  `effectkinds.<k>.times: first`, `resources.<r>.produce.bonus: producing`, `produce.by: owner`,
+  `resources.<r>.earmarked: lost`, `resources.<r>.short: allowed` (the "anyway?" question shows only then),
+  `requirement.unless` (L5R: made cards), `modifiers.<m>.gained: both`. Paying by hand follows `leftover`.
+- **Zones and names** (#435): `unique.scope` (L5R `table`), `cardnames {drop, short}` (the patterns that make a card's
+  name and its short name), reveal `attach.max` and `pickers: each`, `scenes.<id>.movein`, `targeting.inplay` and
+  `targeting.whose`, `handplay.resolved` (where a resolved action card goes), `scenes.<id>.make.leftover`, top-level
+  `enterface`.
+- **Required**: `enterface`, a made area's `leftover`, and the first player (the main scene's `first` step: `seat`,
+  `counter` or `cut`; a `counter` one needs `tie`). Without them the config is refused as it loads and as a game is made.
+  L5R: `up`; `{to: discard, face: up}`; `{counter: honor, tie: random}`.
+- **Searching**: the shuffle after a search is the game rule `search {shuffle: true}` (L5R has it). Without it the pile
+  keeps its order. A card's `search` says how many it takes (`draw`); none: any number.
+- **Attaching and leaving** (#436): `attaching` (`whose`, `move.from`, `user: host`, `payer: host`, `turnwith:
+  producing`), `overlay` (`whose`, `same: name`, `order: higher`), `requirement.attach.on`, `control` (`with`, `scene`,
+  `returns`), `zones[].leaveas` (L5R's discard piles: `destroyed`). Destroying or discarding a card no longer takes its
+  attachments along by itself: `leaving` says what becomes of them, with a new `attachments: destroy`. L5R: destroyed
+  takes them destroyed, anything else discards them. **You can see one change**: a Personality dragged by hand to a
+  discard pile now destroys its attachments (they were discarded).
+- **When no leaving rule fits** (#438): the attachments go where the host went, the same way (destroyed, discarded,
+  moved), each to its own owner's zone of that kind. `detach` is still a word a rule can say. L5R's rules always fit.
+- **Turns and winning** (#437): `turns.order` (`next`, the seats clockwise; `previous`), `turns.passed: all`,
+  `turns.after: next`, `turns.ends` (scenes, home, made), `opponent: next`, `until: turn`, `drawshort: fewer`,
+  `staying {until, unused}`, `clearstate.whose`, `handlimit.whose`, enter `turns: "turn"`, `victory.outends`,
+  `victory.lastleft`. A draw with no count draws none.
+- **Reactions**: `reactions: "stack"` chooses the stack model. Without it a Reaction is refused. Hearts and Cribbage have
+  none.
+- **"The opponent"** is the next seat. That is right with two players, wrong with more; there are no multiplayer rules
+  yet.
+
+**Card words changed**: Torrential Rain's `endbattle: true` no longer bows; it needs `{endbattle: {bowed: true}}`. Free
+effects that refuse variable-cost cards say `fixed: true` (Ninja Stronghold, School of Wizardry). A face-down attachment
+revealed while illegal is destroyed by its own word, `bring.reveal.illegal: "destroy"` (Cloak of Night). These four
+cards' writes wait for the user's yes.
