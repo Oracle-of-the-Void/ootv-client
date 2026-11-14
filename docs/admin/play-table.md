@@ -1312,19 +1312,28 @@ undo record ootv-backups `reverts/2026-11-13-l5r-play-actions.jsonl`). New words
 Text that works all the time, which the table left to the players, now has code
 ([ootv-play #423](https://github.com/Oracle-of-the-Void/ootv-play/pull/423)). New words:
 
-- the moment `attackassigned` (`l5r/play` `moments`: `{"assign": "attacker"}`): a unit first assigned to attack; its
-  cards' triggers fire once. With a demand of the card's own player's, `{"demand": {"amount": 3, "from": "you", "may":
+- the moment `attackassigned` (`l5r/play` `moments`: `{"assign": "attacker", "when": "first", "face": "up"}`): a unit
+  first assigned to attack in the step; its face-up cards' triggers fire (`"when": "every"` would fire each time). With a demand of the card's own player's, `{"demand": {"amount": 3, "from": "you", "may":
   true, "short": [...]}}`, they may pay, or decline and the short effects happen (Gaijin Mercenaries: pay them 3 Gold, or
   they are destroyed; the answer panel shows **Don't pay**);
 - a card's own cost: `{"cost": {"Imperial": [{"on": "self", "players": {"clan": "Crane"}, "cost": {"set": 5}}]}}`
-  (Fantastic Gardens), or `"set": {"per": {"in": "army", "can": "ranged"}}`, a Gold for each card in your army at the battle
-  with a Ranged Attack of its own (Blazing Arrows);
+  (Fantastic Gardens), or `"set": {"per": {"in": "army", "can": {"kind": "ranged", "from": "self"}}}`, a Gold for each
+  card in your army at the battle with a Ranged Attack in one of its own actions (Blazing Arrows);
 - a token cost's `"unless"`, a match on the card using it (Secrets on the Wind: a Scorpion Shugenja destroys no token);
-- a token count `{"of": "record", "record": "battle", "path": "lost.{cardopp}"}`, from the battle's record of units
-  destroyed per side (Terrible Standard of Fu Leng's +1F tokens);
+- a token count `{"of": "record", "record": "battle", "path": "destroyed.{cardopp}", "match": {"type": ["Personality"]}}`,
+  the cards the resolution destroyed on the other side that fit (Terrible Standard of Fu Leng's +1F tokens, a unit each);
 - a bonus's `"per"` with `"other": true`, not counting the card itself (Naga Abomination's Chi).
 
 The codes for 19 cards are planned (Honor lost entering play, Kyoso no Oni's Holding, no Followers or Items, Toturi
 dishonored and the clans he won't join, the bonuses above, the Fury of Osano-Wo's tokens, one Plea of the Peasants a
 Province), with the text of 71 printings that had none, read from the scans: written (operation
 2026-11-13T234212-play-actions, read back and checked in search).
+
+**Game choices in config, not the engine** (the user, 2026-11-13; [ootv-play #427](https://github.com/Oracle-of-the-Void/ootv-play/pull/427),
+`l5r/play` version 151, `l5r/fields` version 98): the words above say each choice (`when`, `face`, `can.from`, `match`),
+and Blazing Arrows' and Terrible Standard's codes are rewritten to them. Weapons and Armor: `l5r/play` `attachlimits`,
+`[{"on": {"type": ["Personality"]}, "match": {"keywords": ["Weapon"]}, "max": 1, "name": "Weapon", "face": "up", "raise":
+{"modifier": "attachlimit", "from": ["attaching", "attached"], "take": "highest"}}, ...Armor]` (SCC p. 23: "No
+Personality may have more than one weapon and one armor attached to him or her"), checked when a card is played onto a
+card or moved there by a card; Wakizashi's modifier `{"attachlimit": {"match": {"keywords": ["Weapon"]}, "max": 2}}` is
+the raise.
