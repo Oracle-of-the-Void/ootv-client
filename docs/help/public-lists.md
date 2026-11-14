@@ -71,8 +71,9 @@ To share one of your own lists, see [Sharing](lists.md#sharing).
 ## Same, Close and Similar decks {#similar}
 
 Many decks are public more than once: a tournament winner kept by several players, an archive copy, a deck with a
-card or two changed. An open deck lists the public decks that match it, under **Same**, **Close** and **Similar**, with
-who made each one and how many cards are different. In the public results and in My lists, a deck that has any shows a
+card or two changed. An open deck lists the public decks that match it in its **Similar decks** section, next to its
+statistics ([Statistics](lists.md#stats)), under **Same**, **Close** and **Similar**, with who made each one and how
+many cards are different. In the public results and in My lists, a deck that has any shows a
 small count next to its card count: hover over it (or tap it) to see which decks they are.
 
 Decks are compared card by card, counting copies: the copies the two decks have in common, out of all the copies in

@@ -132,8 +132,8 @@ too, when any version of the card came in foil.
 A deck's header ends with its check: the cards not legal in its Legality, the formats every card is legal
 in, and the deck construction check (below). It's always in view, whatever the statistics are doing.
 
-Under the header are two folding sections, **Statistics** and **Keyword counts**. Both start open and stay the
-way you last left them. On a wide screen they're to the side of the cards: a column on the right in the Simple List,
+Under the header are folding sections, **Statistics** and **Keyword counts**, and on a deck that matches other public
+decks, **Similar decks**. They start open and stay the way you last left them. On a wide screen they're to the side of the cards: a column on the right in the Simple List,
 Text and Table views (it stays in view as you scroll), and a box at the upper right in the Detailed, Visual and Deck
 views, with the cards flowing around it. The **Above** button at the top right of the box moves them above the cards
 instead (side by side when there's room), and **To the side** moves them back; the site remembers which you chose.
@@ -157,6 +157,11 @@ numbers show. Click a keyword to highlight it: its card count turns blue and its
 cards in the list glow to match, blue for the cards in that deck with the keyword and red for the cards naming it. Click
 more keywords to add them (a card that matches one in blue and another in red glows magenta), and click one again to
 drop it. The highlights stay when you change views.
+
+**Similar decks** shows only on a deck with public decks that are the same as it or close to it. Its heading counts
+them (`Similar decks: 2 Same, 1 Close`), and the table lists each one under **Same**, **Close** or **Similar**, with
+the player who made it and how many cards are different. Click a deck to open it. Hover over Same, Close or Similar
+for what each means ([Same, Close and Similar decks](public-lists.md#similar)).
 
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. A deck's header starts that
