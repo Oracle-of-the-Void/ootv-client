@@ -79,8 +79,9 @@ $.views.converters("listTypeSelect",function(type) {
 // a deck's own Legality choice, in every game: not a format cards have, so it's no search filter, import arc or
 // /cardslegal format, and it starts with no deck construction rules (deckbuildrules)
 var decklegalityspecial = 'Special';
-function listlegalityoptions(legality) {
-  var sel='<option value=""></option>';
+function listlegalityoptions(legality, emptylabel) {
+  // the deck header's pulldown names itself when unset ("Choose Format:"); import's stays blank
+  var sel='<option value="">'+(typeof emptylabel === 'string' ? emptylabel : '')+'</option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
   // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex. Entries with
@@ -104,10 +105,10 @@ function listlegalityoptions(legality) {
   });
   return sel;
 }
-$.views.converters("listLegalitySelect",listlegalityoptions);
+$.views.converters("listLegalitySelect",function(legality) { return listlegalityoptions(legality); });
 $.views.converters("deckLegalitySelect",function(legality) {
   var current = (legality||'').replace(/&nbsp;/g, " ");
-  return listlegalityoptions(legality)+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
+  return listlegalityoptions(legality,'Choose Format:')+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
 });
 $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
