@@ -269,20 +269,20 @@
     <select name="cardtype" style="display:none"><option value="">Any card type</option></select>
     <label class="publicwinner" title="Pre-constructed decks: starters, learn-to-play"><input type="checkbox" name="precon" value="1" onchange="publicsearch(0);"> Pre-constructed <span id="publicpreconcount"></span></label>
     <label class="publicwinner" title="Lists with a tournament result"><input type="checkbox" name="winner" value="1" onchange="publicsearch(0);"> Tournament results <span id="publicwinnercount"></span></label>
-    <select name="order" style="display:none" title="Most played: by how many decks play the card; the other sorts order the 100 cards in the most decks">
+    <span class="publicsortpick" style="display:none"><svg class="feather publicsorticon" data-for="order" style="display:none" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#filter"></svg><select name="order" style="display:none" title="Most played: by how many decks play the card; the other sorts order the 100 cards in the most decks">
       <option value="">Most decks</option>
       <option value="copies">Most copies</option>
       <option value="name">Name</option>
       <option value="cardtype">Card type</option>
-    </select>
+    </select></span>
     <button type="button" name="csv" class="button gray" style="display:none" onclick="publiccardscsv(this);" title="Download these statistics as a CSV file (every card found; the top 100 for a sort other than Most decks)">CSV</button>
-    <select name="sort">
+    <span class="publicsortpick"><svg class="feather publicsorticon" data-for="sort" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#filter"></svg><select name="sort">
       <option value="">Newest first</option>
       <option value="name">Name</option>
       <option value="size">Most cards</option>
       <option value="created">Recently created</option>
       <option value="relevance">Best match</option>
-    </select>
+    </select></span>
     <button type="submit" class="button gray">Search</button>
     <button type="button" class="button gray" onclick="publicreset();">Reset</button> <span class="helpq" data-help="public-lists#search" aria-label="Help: finding decks">?</span>
   </form>
