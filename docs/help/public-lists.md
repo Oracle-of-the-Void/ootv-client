@@ -50,10 +50,11 @@ play. Each card shows:
 
 - **In N decks**: how many of the decks have at least one copy, and what share of them that is.
   Click it to see those decks.
-- **copies**: the copies over all of them, so a card played three to a deck counts three times.
+- **avg: n.n copies**: how many copies those decks play on average (decks without it don't count).
 
-**Most decks** / **Most copies** picks which count comes first, and **Any card type** narrows it to
-one type of card. Click a card to open it. Only decks count, not collections or have and want
+**Most decks** ranks every card. **Most copies**, **Name** and **Card type** sort the 100 cards played
+in the most decks; the number before each card is still its place by decks. **Any card type** narrows
+it to one type of card, and **CSV** downloads the statistics as a spreadsheet file. Click a card to open it. Only decks count, not collections or have and want
 lists. Old tournament archives make up a large share of the L5R decks, so their eras weigh more.
 
 On a card's page, and beside each card in the detailed search results, the number next to the globe

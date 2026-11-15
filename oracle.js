@@ -12749,7 +12749,7 @@ function publicrequest(query) {
   var deckonly = !group && !publicextra.owner && !mine;
   $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
   // Most played: its own order and card type; the list sort means nothing there
-  $('#publicform [name="order"]').toggle(group == 'cards');
+  $('#publicform [name="order"], #publicform [name="csv"]').toggle(group == 'cards');
   $('#publicform [name="sort"]').toggle(group != 'cards');
   if(group != 'cards') {
     $('#publicform [name="cardtype"]').hide();
@@ -13063,8 +13063,15 @@ function renderpublicgroups(data, append) {
     $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : 'No public lists match.')+'</div>');
   }
 }
-// Most played: one card per row, its rank, how many of the decks found play it and how many copies.
+// Most played: one card per row, its rank, how many of the decks found play it and the average copies in those decks.
+// Sorted by anything but Most decks, the API orders only the top 100 in the most decks (data.top).
 // The images come from /oracle-fetch for the cards not cached yet (publiccardimages).
+var publiccardorders = {'decks': 'played in the most decks first', 'copies': 'most copies first',
+                        'name': 'by name', 'cardtype': 'by card type'};
+// the average copies in the decks that play the card, to one decimal
+function publiccardavg(g) {
+  return g.decks ? (g.copies/g.decks).toFixed(1) : '0.0';
+}
 function renderpubliccards(data, append) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
@@ -13075,18 +13082,19 @@ function renderpubliccards(data, append) {
   publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
   $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
   $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
-  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true)+
-    ', '+(data.order == 'copies' ? 'most copies' : 'played in the most decks')+' first <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
+  $("#publicstatus").html(chips+' '+(data.top ? 'the '+data.groupstotal+' cards played in the most of '+data.total+' '+publicnoun(data.total, true) :
+    data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true))+
+    ', '+(publiccardorders[data.order] || publiccardorders.decks)+' <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
   var html = data.groups.map(function(g, n) {
     var pct = data.total ? Math.round(100*g.decks/data.total) : 0;
     var title = g.title || 'card #'+g.cardid;
     return '<div class="directorycard publiccard publiccardrow" data-open="card" data-cardid="'+parseInt(g.cardid)+'">'+
-      '<div class="dircardhead"><span class="publicrank">'+(data.from+n+1)+'</span> <a class="dircardname" href="#game='+database+',#cardid='+parseInt(g.cardid)+'" onclick="docardid('+parseInt(g.cardid)+'); return false;">'+htmlEncode(title)+'</a></div>'+
+      '<div class="dircardhead"><span class="publicrank"'+(data.top ? ' title="Its place by most decks"' : '')+'>'+(g.rank || data.from+n+1)+'</span> <a class="dircardname" href="#game='+database+',#cardid='+parseInt(g.cardid)+'" onclick="docardid('+parseInt(g.cardid)+'); return false;">'+htmlEncode(title)+'</a></div>'+
       '<div class="publiccardmain">'+
 	'<img class="publiccardimg" data-cardid="'+parseInt(g.cardid)+'" src="'+missingimage['select']+'" alt="">'+
 	'<div class="dircardbody">'+
 	  '<div class="dircardmeta">'+htmlEncode((g.type || []).join(', '))+'</div>'+
-	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <b>'+g.copies+'</b> '+(g.copies == 1 ? 'copy' : 'copies')+'</div>'+
+	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <span title="'+g.copies+' '+(g.copies == 1 ? 'copy' : 'copies')+' over those decks">avg: <b>'+publiccardavg(g)+'</b> copies</span></div>'+
 	  '<div class="publicbar"><span style="width:'+pct+'%"></span></div>'+
 	'</div></div></div>';
   }).join('');
@@ -13111,6 +13119,36 @@ function publiccardimages(cardids) {
   if(missing.length) {
     listprefetch(missing, [fill]);
   }
+}
+// Most played's CSV button: the statistics on screen as a CSV file, every row at once (export=1: every card found,
+// or the top 100 for a sort other than Most decks), in the order shown
+function publiccsvfield(v) {
+  v = String(v === undefined || v === null ? '' : v);
+  return /[",\r\n]/.test(v) || /^[=+\-@]/.test(v) ? '"'+(/^[=+\-@]/.test(v) ? "'" : '')+v.replace(/"/g,'""')+'"' : v;
+}
+function publiccardscsv(button) {
+  if(lastpublicquery === null) {
+    return;
+  }
+  var tail = '&'+publicrequest(lastpublicquery)+'&export=1';
+  $(button).prop('disabled', true);
+  $.ajax(Object.assign(publicmine() ? publicminerequest(tail) : {url: apiuri+'/publiclists?game='+encodeURIComponent(database)+tail}, {
+    dataType: 'json',
+    success: function(data) {
+      var rows = [['Rank by decks', 'Card ID', 'Title', 'Type', 'Decks', 'Deck %', 'Copies', 'Avg copies']];
+      (data.groups || []).forEach(function(g, n) {
+        rows.push([g.rank || n+1, g.cardid, g.title || '', (g.type || []).join(', '), g.decks,
+                   data.total ? (100*g.decks/data.total).toFixed(1) : '0.0', g.copies, publiccardavg(g)]);
+      });
+      var csv = rows.map(function(r) { return r.map(publiccsvfield).join(','); }).join('\r\n')+'\r\n';
+      var day = new Date().toISOString().slice(0,10);
+      listdownload(new Blob(['\ufeff'+csv], {type: 'text/csv;charset=utf-8'}), database+'-most-played-'+(data.order || 'decks')+'-'+day+'.csv');
+    },
+    error: function(xhr) {
+      alert('CSV export failed'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : ''));
+    },
+    complete: function() { $(button).prop('disabled', false); }
+  }));
 }
 // a Most played row's deck count: the Decks view with that card
 function publicdeckswith(cardid, title) {
