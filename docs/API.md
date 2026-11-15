@@ -806,7 +806,7 @@ Handled by lambda: ootv-search/routes/admin.js
 Input: POST JSON `{uid, action, ...}`
 * `usersearch` `{q}`: an email (exact), a uid, or part of a name / display name / email (a scan) → `{users: [{uid,
   firstname, lastname, displayname, email, emails, insert_date}], more}` (at most 50). Audited (`user-search`).
-* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, decks: [{listid, game, name, type, public, unlisted, modified, totalcount, buildbad}], logins: [{time, result, provider, ip, newDeviceUsed}]}`. `decks` is every list they own, newest `modified` first.
+* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, logins: [{time, result, provider, ip, newDeviceUsed}]}`.
   `user` is the users row without `settings`, `emailsends` or the pending code's hash, plus `patreon`. Audited (`user-view`).
 * `useredit` `{target, field, ...}`, one change, conditional on the value just read (409 if it changed), audited
   (`user-edit`, old and new) before the write; answers as `userget` (+ `warning`):

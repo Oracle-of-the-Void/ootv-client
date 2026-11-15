@@ -93,32 +93,7 @@ function userdraw(r) {
     'Empty takes all permissions away.'+(me ? ' You can\'t take <code>*</code> out of your own <code>*</code> line.' : '')+'</p>'+
     '<textarea id="useredit_groups" rows="4" cols="50">'+htmlEncode(groupstext(u.groups))+'</textarea><br>'+
     '<input type="button" value="Save groups" onclick="usersavegroups()" /> <span class="usereditstatus"></span>'+
-    userdeckshtml(r.decks)+
     (logins ? '<h4>Recent sign-ins</h4><table class="loginlog"><tr><th>Time</th><th></th><th>Provider</th><th>IP</th><th></th></tr>'+logins+'</table>' : ''));
-}
-
-// their lists, newest first; each opens in a new tab (#game=,#listid=) like a shared link. Reading it there is the
-// usual /list read (site admins read any list); editing it is Edit as admin (listadminopen), audited as always.
-function userdeckshtml(decks) {
-  if(!decks) { return ''; }
-  if(!decks.length) { return '<h4>Lists</h4><p>None.</p>'; }
-  var games = decks.map(function(d) { return d.game; }).filter(function(g, i, a) { return a.indexOf(g) == i; }).sort();
-  var picker = games.length > 1 ? '<select onchange="userdecksfilter(this.value)"><option value="">Every game</option>'+
-    games.map(function(g) { return '<option value="'+htmlEncode(g)+'">'+htmlEncode(dbinfo[g] ? dbinfo[g].name : g)+'</option>'; }).join('')+'</select>' : '';
-  return '<h4>Lists ('+decks.length+')</h4><p>'+picker+' <span class="admineditnote">opens in a new tab; private lists too. '+
-    'To change one, use Edit as admin there.</span></p>'+
-    '<table class="loginlog userdecks"><tr><th>Game</th><th>Name</th><th>Type</th><th>Shared</th><th>Cards</th><th>Modified</th></tr>'+
-    decks.map(function(d) {
-      var href = '#game='+encodeURIComponent(d.game)+',#listid='+encodeURIComponent(String(d.listid));
-      return '<tr data-game="'+htmlEncode(d.game)+'"><td>'+htmlEncode(dbinfo[d.game] ? dbinfo[d.game].name : d.game)+'</td>'+
-        '<td><a href="'+href+'" target="_blank" rel="noopener">'+htmlEncode(d.name || ('List '+d.listid))+'</a>'+
-        (d.buildbad ? ' <span class="error" title="fails its deck construction check">Illegal</span>' : '')+'</td>'+
-        '<td>'+htmlEncode(d.type || '')+'</td><td>'+(d.public ? 'public' : d.unlisted ? 'unlisted' : 'private')+'</td>'+
-        '<td>'+(d.totalcount != null ? parseInt(d.totalcount) : '')+'</td><td>'+htmlEncode(String(d.modified || '').slice(0, 10))+'</td></tr>';
-    }).join('')+'</table>';
-}
-function userdecksfilter(game) {
-  $('#userdetail table.userdecks tr[data-game]').each(function() { $(this).toggle(!game || $(this).data('game') == game); });
 }
 
 function groupstext(groups) {
