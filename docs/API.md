@@ -581,8 +581,10 @@ inputs (a value list can be repeated or comma separated):
   wins, latest`.
   `cards` (the client's Most played view): one row per card in the decks found (decks only), paged with from/size
   (`groupstotal`: how many different cards), each `cardid, title, type[], decks` (decks with at least one copy) `,
-  copies` (summed over them); `order=decks` (default) or `copies`, `cardtype` (one or more) narrows to those card
-  types. It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
+  copies` (summed over them), `rank` (its place by decks); `order=decks` (default) ranks every card, while
+  `copies`, `name` and `cardtype` (type, then title) sort only the 100 cards in the most decks (the answer has
+  `top: 100`, and `groupstotal` is at most 100); `cardtype` (one or more) narrows to those card
+  types; `export=1` answers every row at once, `from`/`size` ignored (the CSV button). It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
   `cardtype` filter).
   `cardcounts` (the Detail search results' globes): every card's deck count at once, unpaged:
   `{total, group, format, counts: {cardid: decks}, complete}`. `legality`: one value of the card search's Legality select, counting only decks of its format, answered as `format` (`Hidden&nbsp;Emperor&nbsp;(Jade)` is `Jade`; what isn't a format, like Paper or Unreleased, counts all decks). `decks` is the card page's count (decks with at least one
