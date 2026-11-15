@@ -12749,8 +12749,11 @@ function publicrequest(query) {
   var deckonly = !group && !publicextra.owner && !mine;
   $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
   // Most played: its own order and card type; the list sort means nothing there
-  $('#publicform [name="order"], #publicform [name="csv"]').toggle(group == 'cards');
-  $('#publicform [name="sort"]').toggle(group != 'cards');
+  // each pulldown sits in a span with its sort funnel (publicsortpick), shown with it
+  $('#publicform [name="order"], #publicform [name="csv"], #publicform .publicsorticon[data-for="order"]').toggle(group == 'cards');
+  $('#publicform [name="order"]').closest('.publicsortpick').toggle(group == 'cards');
+  $('#publicform [name="sort"], #publicform .publicsorticon[data-for="sort"]').toggle(group != 'cards');
+  $('#publicform [name="sort"]').closest('.publicsortpick').toggle(group != 'cards');
   if(group != 'cards') {
     $('#publicform [name="cardtype"]').hide();
   }
