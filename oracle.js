@@ -13082,7 +13082,7 @@ function renderpubliccards(data, append) {
   publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
   $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
   $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
-  $("#publicstatus").html(chips+' '+(data.top ? 'the '+data.groupstotal+' cards played in the most of '+data.total+' '+publicnoun(data.total, true) :
+  $("#publicstatus").html(chips+' '+(data.top ? 'the '+data.groupstotal+' cards played in the most decks (of '+data.total+' '+publicnoun(data.total, true)+'; the numbers rank them by decks)' :
     data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true))+
     ', '+(publiccardorders[data.order] || publiccardorders.decks)+' <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
   var html = data.groups.map(function(g, n) {
@@ -13094,7 +13094,7 @@ function renderpubliccards(data, append) {
 	'<img class="publiccardimg" data-cardid="'+parseInt(g.cardid)+'" src="'+missingimage['select']+'" alt="">'+
 	'<div class="dircardbody">'+
 	  '<div class="dircardmeta">'+htmlEncode((g.type || []).join(', '))+'</div>'+
-	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <span title="'+g.copies+' '+(g.copies == 1 ? 'copy' : 'copies')+' over those decks">avg: <b>'+publiccardavg(g)+'</b> copies</span></div>'+
+	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <span class="publicavg" title="'+g.copies+' '+(g.copies == 1 ? 'copy' : 'copies')+' over those decks">avg: <b>'+publiccardavg(g)+'</b> copies</span></div>'+
 	  '<div class="publicbar"><span style="width:'+pct+'%"></span></div>'+
 	'</div></div></div>';
   }).join('');
