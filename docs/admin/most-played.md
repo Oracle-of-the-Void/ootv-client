@@ -34,7 +34,7 @@ public, and stops counting when they make it private.
 - **CSV.** The **CSV** button downloads the statistics on screen: every card found (the 100 for the
   other sorts), in the order shown, with rank by decks, card ID, title, type, decks, deck %, copies and
   average copies.
-- **The usual filters.** Search box, contains card, clan, stronghold, format, pre-constructed and
+- **The usual filters.** Search box, contains card, clan (LBS: faction), stronghold, format, pre-constructed and
   tournament results narrow the decks first. The format is the deck's own, else the one inferred from
   its name or its cards (the Formats view's "guessed"). **Any card type** narrows the cards.
 - **Archives weigh in.** Old tournament archives (moderator-set tournament results) are a large share
