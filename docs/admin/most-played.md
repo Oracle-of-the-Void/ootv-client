@@ -20,7 +20,6 @@ public, and stops counting when they make it private.
   (`buildbad`, its saved summary, the listing's red Illegal) or whose format is one the cards are checked in while not
   all its cards are legal there. A list nobody has opened since its rules changed may have an old summary; ootv-tools
   `lists/list-summary.py` refreshes them. The card page's globe and the search results' counts don't use it.
-
 - **Decks only.** Lists of type deck. Collections, haves, wants and other lists don't count.
 - **At least one copy.** A deck entry with quantity 0 doesn't count. The card page's count, and the
   decks a "card" filter finds, use the same rule.
