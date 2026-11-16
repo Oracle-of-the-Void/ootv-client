@@ -189,9 +189,12 @@ inputs - sent in body querystring:
     * a min that isn't a number (e.g. `*`) is an exact match on `xxx.keyword` instead
   * a select field's value can be a derived name (e.g. l5r `Legacy`, `Paper`) from the game's
     `attributes.<field>.derived` config; the API expands it into its rule
+  * or a synonym from `attributes.<field>.synonyms` (e.g. lbs traits `Non-Human` for the stored `Nonhuman`;
+    case ignored, `printing.<x>` uses `<x>`'s list): the stored value(s) match too. `/attributes` lists the
+    synonyms with the field's values (since 2026-11-16, ootv-search [#201](https://github.com/Oracle-of-the-Void/ootv-search/pull/201))
 * require_xxx (optional, one or many values)
   * every value must match, ANDed with the rest of the search (field_xxx ORs its values)
-  * each value is a derived name or a stored value; no type_xxx needed
+  * each value is a derived name, a synonym or a stored value; no type_xxx needed
   * e.g. `field_legality[]=Legacy&require_legality=Paper` = Legacy cards that are paper. The
     l5r "Paper only" checkbox sends `require_legality=Paper`
 
