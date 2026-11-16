@@ -1781,7 +1781,7 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .iconic.lbska   { width: 28px; }  .smiconic.lbska { width: 20px; }
 .iconic.lbswa   { width: 21px; padding-top: 4px; }  .smiconic.lbswa { width: 16px; padding-top: 3px; }
 .iconic.lbscu   { width: 20px; }  .smiconic.lbscu { width: 15px; }
-.iconic.lbsin   { width: 40px; padding: 2px 2px 0 0; }  .smiconic.lbsin { width: 29px; padding: 1px 2px 0 0; }
+.iconic.lbsin   { width: 42px; padding: 2px 2px 0 0; }  .smiconic.lbsin { width: 31px; padding: 1px 2px 0 0; }
 /* production ("+3"): the + before the copper coin, the number on it */
 .iconic.lbsprod   { width: 30px; background-position: right center; text-align: right; padding-right: 5px; }
 .smiconic.lbsprod { width: 23px; background-position: right center; text-align: right; padding-right: 4px; }
