@@ -12703,7 +12703,9 @@ function generalnomodal(div,event) {
 // /list action=search (the same index, always filtered on you); every list type, and no People view.
 // The Card box takes a title, or a card's number (#1234) for exactly that card (two cards can share a title).
 // The statistics views (Formats, Most played) also have All decks in the mine select (everyone, logged in or not:
-// every deck, private ones too, as counts; ootv-search /publiclists scope=all, which drops the name search and owner)
+// every deck, private ones too, as counts; ootv-search /publiclists scope=all, which drops the name search and owner),
+// their default (the user, 2026-11-16): entering them from another view picks it, and Public lists there is mine=public
+// in the URL
 // and Legal decks only (on by default: legal=1, illegal decks left out; off is legal=0 in the URL).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
@@ -12755,6 +12757,9 @@ function publicquery() {
   });
   if(!$('#publicform [name="legal"]').prop('checked')) {
     parts.push('legal=0');   // on by default, so off is the one kept
+  }
+  if(publicstatsview($('#publicform [name="group"]').val() || '') && !$('#publicform [name="mine"]').val()) {
+    parts.push('mine=public');   // All decks is the statistics' default, so Public lists is the one kept
   }
   ['cardid','owner'].forEach(function(k) {
     if(publicextra[k] && !(k == 'owner' && (publicmine() || publicall()))) {   // My lists: always yours; All decks: nobody's
@@ -12812,7 +12817,8 @@ function publicfillform(qs) {
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   $('#publicform [name="group"]').val(q.group || '');
-  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : (q.mine == 'all' ? 'all' : ''));
+  // the statistics views: All decks unless the URL says otherwise
+  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : (q.mine == 'all' || (q.mine === undefined && publicstatsview(q.group || '')) ? 'all' : ''));
   $('#publicform [name="legal"]').prop('checked', q.legal != '0');
   ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
@@ -13045,6 +13051,10 @@ function updatepublicbuttons() {
 }
 // the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
 function publicgroup(group) {
+  // into the statistics from another view: All decks, their default (a pick made in one of them stays)
+  if(publicstatsview(group) && !publicstatsview($('#publicform [name="group"]').val() || '') && !$('#publicform [name="mine"]').val()) {
+    $('#publicform [name="mine"]').val('all');
+  }
   $('#publicform [name="group"]').val(group);
   if(group != 'cards') {
     $('#publicform [name="cardtype"], #publicform [name="order"]').val('');
@@ -13652,6 +13662,9 @@ function publicreset() {
   $("#publicform")[0].reset();
   $('#publicform select').val('');
   $('#publicform [name="group"]').val(group);
+  if(publicstatsview(group)) {
+    $('#publicform [name="mine"]').val('all');   // the statistics' default
+  }
   publicextra = {};
   publicsearch(0);
 }

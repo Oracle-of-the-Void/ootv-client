@@ -13,8 +13,8 @@ public, and stops counting when they make it private.
 
 ## What counts
 
-- **Public, or all decks.** By default the public decks. **All decks** (the first pull-down, Formats and Most played
-  only, for everyone) counts private decks too: `scope=all` reads the index's all-lists alias, drops the name search
+- **All decks, or public.** **All decks** (the first pull-down, Formats and Most played only, for everyone; the
+  default there since 2026-11-16, Public lists is `mine=public` in the URL) counts private decks too: `scope=all` reads the index's all-lists alias, drops the name search
   and owner filter, and only answers counts, never lists or people (the user, 2026-11-15).
 - **Legal decks only** (a check box, on by default; `legal=1`). Leaves out a deck whose construction check fails
   (`buildbad`, its saved summary, the listing's red Illegal) or whose format is one the cards are checked in while not
