@@ -29,8 +29,9 @@ here. A list you just saved shows up within a few seconds.
 
 In the **Formats** and **Most played** views:
 
-- **All decks** (in the first pull-down) counts every deck on the site, private ones too, not only the public ones.
-  Nobody's private deck is shown: you only get the counts, and the name search box is left out.
+- **All decks** (in the first pull-down, picked unless you choose another) counts every deck on the site, private ones
+  too, not only the public ones. Nobody's private deck is shown: you only get the counts, and the name search box is
+  left out. Pick **Public lists** for the public decks alone.
 - **Legal decks only** (on unless you untick it) leaves out illegal decks: the ones that break their deck
   construction rules (the red **Illegal**) or hold cards that aren't legal in their format.
 
