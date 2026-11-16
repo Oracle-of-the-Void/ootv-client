@@ -1,6 +1,6 @@
 # Most played cards (public decks)
 
-Last updated 2026-11-02.
+Last updated 2026-11-15.
 
 **Public lists → Most played** (the bar chart button) ranks the cards in the public decks, and a
 card's page shows how many public decks play it, as a number next to the globe beside its title. The
@@ -12,6 +12,14 @@ read the public lists index, so there is nothing to edit: a list counts as soon 
 public, and stops counting when they make it private.
 
 ## What counts
+
+- **Public, or all decks.** By default the public decks. **All decks** (the first pull-down, Formats and Most played
+  only, for everyone) counts private decks too: `scope=all` reads the index's all-lists alias, drops the name search
+  and owner filter, and only answers counts, never lists or people (the user, 2026-11-15).
+- **Legal decks only** (a check box, on by default; `legal=1`). Leaves out a deck whose construction check fails
+  (`buildbad`, its saved summary, the listing's red Illegal) or whose format is one the cards are checked in while not
+  all its cards are legal there. A list nobody has opened since its rules changed may have an old summary; ootv-tools
+  `lists/list-summary.py` refreshes them. The card page's globe and the search results' counts don't use it.
 
 - **Decks only.** Lists of type deck. Collections, haves, wants and other lists don't count.
 - **At least one copy.** A deck entry with quantity 0 doesn't count. The card page's count, and the
