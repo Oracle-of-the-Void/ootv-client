@@ -1782,11 +1782,11 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .lbsfa { background-image: url('res/icon-cards-lbs/fate.png'); }
 .lbsci { background-image: url('res/icon-cards-lbs/city.png'); }
 /* each box as wide as its icon; the number where the card prints it (the skin's belly, the lamp's bowl, low in the triangle) */
-.iconic.lbsst   { width: 29px; }  .smiconic.lbsst { width: 21px; }
-.iconic.lbska   { width: 28px; }  .smiconic.lbska { width: 20px; }
-.iconic.lbswa   { width: 21px; padding-top: 4px; }  .smiconic.lbswa { width: 16px; padding-top: 3px; }
+.iconic.lbsst   { width: 27px; }  .smiconic.lbsst { width: 20px; }
+.iconic.lbska   { width: 27px; }  .smiconic.lbska { width: 20px; }
+.iconic.lbswa   { width: 20px; padding-top: 5px; }  .smiconic.lbswa { width: 15px; padding-top: 4px; }
 .iconic.lbscu   { width: 20px; }  .smiconic.lbscu { width: 15px; }
-.iconic.lbsin   { width: 42px; padding: 2px 2px 0 0; }  .smiconic.lbsin { width: 31px; padding: 1px 2px 0 0; }
+.iconic.lbsin   { width: 40px; padding: 2px 3px 0 0; }  .smiconic.lbsin { width: 30px; padding: 1px 2px 0 0; }
 /* production ("+3"): the + before the copper coin, the number on it */
 .iconic.lbsprod   { width: 30px; background-position: right center; text-align: right; padding-right: 5px; }
 .smiconic.lbsprod { width: 23px; background-position: right center; text-align: right; padding-right: 4px; }
