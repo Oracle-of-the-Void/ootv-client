@@ -2249,7 +2249,7 @@ function refreshactivelistviews() {
 	var scrolled = [window, '#maincontent', '#resultsearch'].map(function(el) { return [el, $(el).scrollTop()]; });
 	$("#resultsearch").html(rendercards(data,request,qs));
 	dosearchpostcallback(qs);
-	updates[database]('#resultsearch');
+	updates[database]('#resultsearch'); resultimagesreserve('#resultsearch');
 	scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
     }
     if($("#lastcardid").val()) {
@@ -4112,7 +4112,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  if(from == 0) {
 	    defaultcard(qs);
 	  }
-	  updates[database]('#resultsearch');
+	  updates[database]('#resultsearch'); resultimagesreserve('#resultsearch');
 	  if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
 	    artphotoresults(datarequest.artphoto, null);
 	  }
@@ -4156,7 +4156,7 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      $("#resultsearch").html(html);
 			      searchcache[database]['querydata'][qs] = [];
 		      }
-		      updates[database]('#resultsearch');
+		      updates[database]('#resultsearch'); resultimagesreserve('#resultsearch');
 		      if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
 		        artphotoresults(datarequest.artphoto, raw.artphoto);    // the photo and its matched outline above the results
 		      }
@@ -4316,6 +4316,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
 	    deckviewflow();
+	    resultimagesreserve('#resultlist');
 	    liststatskwmark(); // after the symbols and deck flow, which rebuild the cards' html
 	    listcountready('#resultlist');
 	    pagetitle();
@@ -4916,6 +4917,29 @@ function liststats(listdata,listid=null) {
 // "meets the rules", and it goes in the summary's buildbad, so a deck's summary is saved here rather than in liststats.
 // A failed check saves nothing: the list keeps its last summary, and the next draw tries again.
 var liststatslegalcache = {};
+// the /cardslegal answers also kept in this browser for a day (60 newest per game), so a deck opened again draws its
+// "All cards legal for" formats with the header, not a second later: the line growing from one row to three pushed
+// the deck down (layout shift, CLS 0.1 on a phone)
+function cardslegalhash(key) {
+  var h = 5381;
+  for (var i = 0; i < key.length; i++) { h = ((h * 33) ^ key.charCodeAt(i)) >>> 0; }
+  return h.toString(36)+'-'+key.length;
+}
+function cardslegalstored(key) {
+  try {
+    var e = (cache_thing("cardslegal","recent") || {})[cardslegalhash(key)];
+    return (e && Date.now() - e.t < 86400000) ? e.r : null;
+  } catch(err) { return null; }
+}
+function cardslegalstore(key, r) {
+  try {
+    var all = cache_thing("cardslegal","recent") || {};
+    all[cardslegalhash(key)] = {t: Date.now(), r: r};
+    var keys = Object.keys(all).sort(function(a, b) { return all[b].t - all[a].t; });
+    keys.slice(60).forEach(function(k) { delete all[k]; });
+    cache_thing("cardslegal","recent",all);
+  } catch(err) {}
+}
 var listsummaryheld = {}; // listid: the summary from the last liststats, buildbad from the rules alone
 var listbuildinferred = {}; // listid: from the last liststats, the deck's check in a format it's inferred as
 function liststatslegal() {
@@ -4951,6 +4975,9 @@ function liststatslegal() {
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
+	if(!liststatslegalcache[key] && cardslegalstored(key)) {
+	    liststatslegalcache[key] = cardslegalstored(key);
+	}
 	if(liststatslegalcache[key]) {
 	    show(liststatslegalcache[key]);
 	    return;
@@ -4958,7 +4985,7 @@ function liststatslegal() {
 	var data = {table: database, cardids: ids};
 	if(format) { data.format = format; } else { data.name = name; data.fatecount = fate; data.dynastycount = dynasty; }
 	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
-	    success: function(r) { liststatslegalcache[key] = r; show(r); },
+	    success: function(r) { liststatslegalcache[key] = r; cardslegalstore(key, r); show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
 }
@@ -5807,6 +5834,25 @@ function postprofile(body, status, done) {
       status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
     }
   });
+}
+// the user is cached per game (<game>_user_data). The first visit to another game would wait for /user, and its saved
+// views (applyviewdefaults) would then re-draw a page already drawn in the site's default: a layout shift of up to 1.3 on a
+// phone (a deck switching to Visual Large). Every game's copy is the same user, so start from another game's
+function usercacheseed() {
+  if(cache_thing("user","data")) {
+    return;
+  }
+  try {
+    for (var i = 0; i < window.localStorage.length; i++) {
+      var k = window.localStorage.key(i);
+      if(!/_user_data$/.test(k)) { continue; }
+      var cached = JSON.parse(window.localStorage.getItem(k));
+      if(cached && ("oracle" in cached)) {
+        cache_thing("user","data",cached);
+        return;
+      }
+    }
+  } catch(e) {}
 }
 // a /user answer: the user is cached per game, so put the server's copy in each cached one, keeping its cognito part
 function storeoracle(data) {
@@ -8361,11 +8407,17 @@ document.addEventListener('click', function(e) {
 // Add to a list button, which picks a list as a swipe does. Drawn here, not in the card-top partial: the same steps and
 // checks as a swipe (deckswipeapply: going to 0 asks), so a list's count is one thing. The card-bottom partial's rows
 // below the card's text do every printing.
+// the search results' and lists' card pictures the same way: a thumbnail (_select) a 150x210 box, a large one (_details)
+// a portrait card scaled to its column. Without it, the Deck view's stacks grew frame by frame as each picture's size
+// arrived, ~0.5s after the tap (layout shift 0.4 on a phone), and so did Visual Large
+function resultimagesreserve(sel) {
+  imagesreserve(sel+' img[src*="_select."]:not([width]), '+sel+' img[src*="_details."]:not([width])');
+}
 // a picture not loaded yet holds a portrait card's box (oracle.css img.imgloading) until it arrives or fails, so the card
 // page's text doesn't drop ~500px when it does (layout shift: a shared card link on a phone was CLS 0.54)
 function imagesreserve(sel) {
   $(sel).each(function() {
-    if(this.complete) { return; }
+    if(this.complete || $(this).hasClass('imgloading')) { return; }
     var img = $(this).addClass('imgloading');
     img.one('load error', function() { img.removeClass('imgloading'); });
   });
@@ -10218,6 +10270,7 @@ function startpage() {
 	  auth.parseCognitoWebResponse('');
   }
   if(signedin()) {
+	  usercacheseed();
 	  logincallback(auth.getSession());
   } else {
 	  logoutcallback();
@@ -12844,6 +12897,7 @@ function publicsearch(page=0, qs=null, replace=false) {
     publicfillform(qs);
   }
   var query = publicquery();
+  publicfacetsearly();
   $("#publicstatus").text('Searching...');
   publicseq++;
   publicfetch(query, 0, function(data) {
@@ -12983,19 +13037,50 @@ function publicfacetoptions(name, facet, label) {
   el.html(opts).val(current || '');
   el.toggle(!!current || found.length > 0 || rest.length > 0);
 }
+// the filter pulldowns and counts from a result's facets. The last ones drawn are kept per game and view
+// (publicfacetkey), and publicsearch draws them before its request goes out: the form has its final rows from the
+// first paint, not ~85px more once the results arrive (Clan, Stronghold, Format appearing), a layout shift (CLS)
+function publicfacetkey() {
+  var group = $('#publicform [name="group"]').val() || '';
+  return (group == 'cards' ? 'cards' : group ? 'groups' : 'decks') + (publicmine() ? '-mine' : '');
+}
+function publicfacetsdraw(facets, cards) {
+  if(!cards) {
+    publicfacetoptions('type', (facets.type || []).map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
+    $('#publicform [name="type"] option').each(function() {
+      if(this.value && listtypes[this.value]) {
+        $(this).text($(this).text().replace(this.value, listtypes[this.value]));
+      }
+    });
+    $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
+  }
+  publicfacetoptions('clan', facets.clan, 'Any clan');
+  publicfacetoptions('stronghold', facets.stronghold, 'Any stronghold');
+  publicfacetoptions('format', facets.format, 'Any format');
+  if(cards) {
+    publicfacetoptions('cardtype', facets.cardtype, 'Any card type');
+  }
+  $("#publicwinnercount").text(facets.winner ? '('+facets.winner+')' : '');
+  $("#publicpreconcount").text(facets.precon ? '('+facets.precon+')' : '');
+}
+function publicfacetsremember(facets) {
+  try { cache_thing("publicfacets", publicfacetkey(), facets); } catch(e) {}   // a full localStorage: only the shift comes back
+}
+var publicfacetsdrawn = {};   // per publicfacetkey: drawn this page load (from the cache or a result), so the cache isn't drawn over newer ones
+function publicfacetsearly() {
+  var key = publicfacetkey();
+  if(publicfacetsdrawn[key]) {
+    return;
+  }
+  publicfacetsdrawn[key] = true;
+  var facets = cache_thing("publicfacets", key);
+  if(facets) {
+    publicfacetsdraw(facets, key.indexOf('cards') == 0);
+  }
+}
 function renderpublic(data, append) {
-  publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
-  $('#publicform [name="type"] option').each(function() {
-    if(this.value && listtypes[this.value]) {
-      $(this).text($(this).text().replace(this.value, listtypes[this.value]));
-    }
-  });
-  $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
-  publicfacetoptions('clan', data.facets.clan, 'Any clan');
-  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
-  publicfacetoptions('format', data.facets.format, 'Any format');
-  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
-  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
+  publicfacetsdraw(data.facets, false);
+  publicfacetsremember(data.facets);
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
@@ -13136,12 +13221,8 @@ function renderpubliccards(data, append) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
-  publicfacetoptions('clan', data.facets.clan, 'Any clan');
-  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
-  publicfacetoptions('format', data.facets.format, 'Any format');
-  publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
-  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
-  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
+  publicfacetsdraw(data.facets, true);
+  publicfacetsremember(data.facets);
   $("#publicstatus").html(chips+' '+(data.top ? 'the '+data.groupstotal+' cards played in the most decks (of '+data.total+' '+publicnoun(data.total, true)+'; the numbers rank them by decks)' :
     data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true))+
     ', '+(publiccardorders[data.order] || publiccardorders.decks)+' <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');

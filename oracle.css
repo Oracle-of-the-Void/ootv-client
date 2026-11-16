@@ -470,6 +470,11 @@ a.deckswipe > img[src*="_select."]:not([width]):not([style*="width"]) { display:
 /* imagesreserve (oracle.js): a card page picture still loading takes a portrait _details box (~428x600; phones' 90vw cap
    scales it down), so the text under it doesn't move when it arrives */
 img.cardsidefront.imgloading { width: 428px; aspect-ratio: 428 / 600; height: auto; }
+/* resultimagesreserve (oracle.js): the search results' and lists' pictures still loading. A thumbnail holds the _select
+   box (the Deck view's stacks overlap by a negative margin, so each card needs its height before it arrives), a large
+   picture a portrait _details box within its column (its inline max-width: 100% still applies) */
+img[src*="_select."].imgloading { width: 150px; height: 210px; }
+img[src*="_details."].imgloading { width: 428px; aspect-ratio: 428 / 600; height: auto; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 /* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells
