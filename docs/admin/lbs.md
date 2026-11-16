@@ -16,7 +16,12 @@ On 2026-11-15 the trait line was moved out of the text into `traits` on 431 card
   Carry +2" is `Moto Clan`, `Huntress`, `Unique`, `Carry +2`. Groups split the same way: Celestial Alliance,
   Houses of Dahab, Ivory Kingdoms, Sand Pirate, Lion Clan, Scorpion Clan. Rules traits at the start of the rest
   are split off too ("Unaligned Undead Khadi Traitor": `Unaligned`, `Undead`, `Khadi`, `Traitor`). A phrase with
-  the faction word in the middle stays whole ("Former Moto Clan Tar-khan").
+  a word before the faction splits in three: "Former Moto Clan Tar-khan" is `Former`, `Moto Clan`, `Tar-khan`;
+  "Gypsy Jackal" is `Gypsy`, `Jackal` (2026-11-15).
+- **Jinn spells**: "Summon Jinn of Earthly Pleasures" is `Summon Jinn`, `Jinn of Earthly Pleasures`, so a
+  Traits search for Summon Jinn finds every Jinn; Alakrai's "Summon Elder Jinn Trickster" is `Summon Jinn`,
+  `Elder Jinn Trickster`.
+- **Capitals as printed**: `Tavern-Master`, `Brother of the Black Shield`, even where our text had them in lower case.
 - **Numbered traits** are written with the sign: `Archery +2`, `Raid -1`, `Carry +1`; plain `Archery` when
   printed without a number.
 - **Actions, Spells and Stories** also get the kind words before their timing ("Buried Curse Day:" gives
@@ -26,7 +31,8 @@ On 2026-11-15 the trait line was moved out of the text into `traits` on 431 card
   its trait line has no `text`.
 - **`printing[].traits`** only when a printing's own line differs from the card's (the card holds the MRP);
   the site shows it in printed mode. Takiyah's Shadow of the Tyrant printing reads "Watcher of Omens", the
-  Awakening one "Watcher".
+  Awakening one "Watcher". An empty list means the printing has no traits: Blood Oath's 1998 printings
+  print no Omen.
 
 Search: Traits is a keyword field in the search form, after Faction; each trait on a card is a link to that search.
 
