@@ -47,6 +47,17 @@ Follower; it can produce 1 Influence instead, which isn't recorded here) and the
 
 Search: Copper Production is a numeric field in the search form, after Influence; "2*" matches 2, "*" matches any amount.
 
+## Story Points (`storypoints`)
+
+The Story Points a Story card counts toward a Story Victory, as a one-entry list: `"2"`. Each Story prints them as
+the first line of its text, "2 Story Points" or just "2 Points"; on 2026-11-16 that line was moved out of the card
+and printing text into `storypoints` on all 10 Stories (0 to 2 points; ootv-tools `field-fixes/lbs-traits.py`,
+revert file ootv-backups `reverts/2026-11-16-lbs-storypoints.jsonl`). The same pass gave The Tale of the Stolen
+Heart and The Tale of the Moto and the Senpet their missing `Tale` trait, and The Tale of Selqet and the Eye of
+Night its `Reward`. Text that mentions Story Points (Truth of the Prophecy, Qaliraq's Mystical Lute) is unchanged.
+
+Search: Story Points is a numeric field in the search form, after Copper Production.
+
 ## Card text
 
 The Awakening (1999) printings' rules text was proofread against the scans on 2026-11-15: 171 printings had
