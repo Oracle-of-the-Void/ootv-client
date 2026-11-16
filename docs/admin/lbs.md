@@ -35,6 +35,8 @@ On 2026-11-15 the trait line was moved out of the text into `traits` on 431 card
   print no Omen.
 
 Search: Traits is a keyword field in the search form, after Faction; each trait on a card is a link to that search.
+Traits with rules (Archery, Flying, Sahir, Unique, ...) get a 📖 to their rule in the rulebooks, as L5R keywords do
+(Rulebooks, "Trait links").
 
 ## Copper Production (`production`)
 
