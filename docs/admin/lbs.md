@@ -1,6 +1,6 @@
 # Legend of the Burning Sands (table `lbs`)
 
-Last updated: 2026-11-15
+Last updated: 2026-11-16
 
 AEG's Legend of the Burning Sands CCG (1998–2000): Shadow of the Tyrant, Secrets and Lies, Black Hand Black
 Heart, The Awakening, and promos. This page covers the LBS card fields that aren't the same as other games'.
@@ -56,3 +56,12 @@ printing, was fixed with it. The card's own misprints stay as printed ("additona
 Kaleel"). Flavor text found in rules text went to the printing's `flavor`. The same pass found trait lines the
 first split missed (Omen and Council written in lower case, Burning Oil's Fortification, Jinn Horde's Jinn, Jinn of
 Destruction's Carry -1 and Raid +1). Octavius and Phyrrus print "Beserk"; their trait is `Berserk`.
+
+The other sets (Shadow of the Tyrant, Secrets and Lies, Black Hand Black Heart, promos) got the same proofread on
+2026-11-16: text and flavor on 225 printings, and the card text on 95 cards whose text was that printing's. Among
+them were missing clauses (The Moto Oasis's "All Moto Heroes you control", Judgement's "Judgment will only join an
+Ebonite player."), "Day Open" for "Day Omen" (The Last Oasis) and Scimitar's flavor sitting in its text. The seven
+promo Stronghold printings that had no text got it from their scans; they print it differently from the card. The
+same misprint rule applies ("targetted", "may not distributed", "Armu", "Lammassu", "damge"). Trait lines that
+differ only in spelling or order ("Non-human", "Raid-1", Tahir's "Smokless") keep the normalised trait so the
+search finds them; Hensatti's trait is `Pharaoh` as printed.
