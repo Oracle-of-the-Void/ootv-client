@@ -12537,7 +12537,8 @@ function rulingopenrules(book,page) {
 // than one book, a choice of them). From the structure item <game>/traits (ootv-import SCRIPTS/rulebook-traits.py,
 // docs/admin/rulebooks.md "Trait links"): books {<id>: {title, year, arc, order}}, editions {<legality>: [book
 // ids, the one to prefer first]}, sets {<printing.set>: <legality>}, traits {<trait>: {<book id>: {page, find, text}}},
-// textskip [traits marked in the keywords only].
+// textskip [traits marked in the keywords only], arclabel (optional, "printed in %s": the reason an arc's book shows).
+// The game's card rows mark where to look: ddclass cardkeywords (L5R keywords, LBS traits) and cardtext.
 // A trait's books on a card: the edition of the printing shown, the newest book that defines it, and the last
 // complete rules of each arc whose bug the card has; one book only once. A printing's arc is its legality and the
 // arc its set was printed in (sets), so a printing with no legality there (a ban, KYD cards) still gets that arc's book.
@@ -12580,7 +12581,8 @@ function traitbooks(data,trait,legal) {
   if(traitfanmade(data.books[bynewest[0]])) {   // the fan rules changed AEG's: show AEG's newest beside them
     add(bynewest.find(function(id) { return !traitfanmade(data.books[id]); }), 'newest AEG rules');
   }
-  legal.card.concat(printed(legal.sets)).forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
+  // why an arc's book shows: the item's arclabel ("%s" is the arc; LBS "printed in %s"), else L5R's "<arc> bug"
+  legal.card.concat(printed(legal.sets)).forEach(function(l) { add(edition(l), (data.arclabel || '%s bug').replace('%s', selectplaintext(l))); });
   return Object.values(out).sort(function(a,b) { return (data.books[a.id].order ?? 0) - (data.books[b.id].order ?? 0); });
 }
 // mark the traits in a card's keywords (a book after each) and the first time each is named in its text

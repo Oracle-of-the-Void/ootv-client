@@ -131,6 +131,11 @@ The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 - `sets`: each set (as `printing.set` has it) → the arc it was released in (in the config: arc → its sets);
 - `traits`: the traits to look for.
 - `textskip`: traits marked in the Keywords only, never in card text (Honor; copied into the item as is).
+- `arclabel`: how a card names the arc a book is listed for, `%s` the arc (LBS: "printed in The Awakening");
+  without it, L5R's "Imperial bug".
+
+The card page marks the traits in its row with `ddclass` `cardkeywords` (L5R Keywords, LBS Traits) and the text in
+the row with `ddclass` `cardtext` (the game's card rows, Admin → Game config).
 
 The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for
 each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it,
@@ -150,6 +155,18 @@ book, run it again:
 python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json            # writes build-traits/l5r-traits.json, prints what it found
 python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json --upload   # and puts the structure item
 ```
+
+A printed modifier around the trait's name in an entry is ignored ("Archery (+X)", "Carry +X", "Raid +X, –X",
+"+/- X Raid"), as is the gap before the dash in a "Term - definition" entry ("Carry- A Hero ...").
+
+**LBS** (2026-11-16, `rulebooks/lbs-traits.json`): 19 traits (Advisor, Archery, Berserk, Buried, Carry, Council,
+Duelist, Experienced, Flying, Fortification, Jinn, Khadi, Nonhuman, Omen, Raid, Sahir, Tactician, Undead, Unique)
+from the Special Card Traits pages and glossaries of Black Hand, Black Heart and The Awakening, and the fan Revised
+Rulebook's Keywords and glossary; Unique, Experienced, Fortification, Omen and Council from the main text (`places`).
+LBS has no legality, so each set goes to the rulebook of its base set: Black Hand, Black Heart, Shadow of the Tyrant
+and Secrets and Lies to Black Hand, Black Heart; The Awakening to The Awakening (Promo: newest rules only). The
+WotC online rulebook (Black Hand, Black Heart's text) is left out. Buried and Raid are marked in Traits only
+(`textskip`: card text mostly means the Buried pile and the raid action).
 
 The site reads the item when Card Details first opens, so a change needs no deploy (only a reload).
 Floor rules and Special books (War of Honor) aren't searched. AEG's addenda mostly aren't either, except
