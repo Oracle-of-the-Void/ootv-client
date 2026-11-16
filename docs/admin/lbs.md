@@ -46,3 +46,13 @@ Follower; it can produce 1 Influence instead, which isn't recorded here) and the
 `production` is its printed Copper, which stays in `copper` as well; on every other card `copper` is the cost.
 
 Search: Copper Production is a numeric field in the search form, after Influence; "2*" matches 2, "*" matches any amount.
+
+## Card text
+
+The Awakening (1999) printings' rules text was proofread against the scans on 2026-11-15: 171 printings had
+wording, missing words, capitals or periods that differed from the card (Blood Oath's "Every Hero challenged",
+Staff of Sumarkhan's "Every Hero and Follower"), and each card's text, which was the same as its Awakening
+printing, was fixed with it. The card's own misprints stay as printed ("additonal", "lower then", "Abjar ibn
+Kaleel"). Flavor text found in rules text went to the printing's `flavor`. The same pass found trait lines the
+first split missed (Omen and Council written in lower case, Burning Oil's Fortification, Jinn Horde's Jinn, Jinn of
+Destruction's Carry -1 and Raid +1). Octavius and Phyrrus print "Beserk"; their trait is `Berserk`.
