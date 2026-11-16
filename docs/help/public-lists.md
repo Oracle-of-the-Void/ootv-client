@@ -25,6 +25,15 @@ searches your own lists, private ones too, with the same boxes and pull-downs, a
 type pull-down); each says whether it's public, unlisted or private. Nobody else sees your private lists
 here. A list you just saved shows up within a few seconds.
 
+## All decks and Legal decks only {#all-decks}
+
+In the **Formats** and **Most played** views:
+
+- **All decks** (in the first pull-down) counts every deck on the site, private ones too, not only the public ones.
+  Nobody's private deck is shown: you only get the counts, and the name search box is left out.
+- **Legal decks only** (on unless you untick it) leaves out illegal decks: the ones that break their deck
+  construction rules (the red **Illegal**) or hold cards that aren't legal in their format.
+
 On a card's page, the folder next to the globe opens your lists with that card, with how many
 of them hold it. It goes by the card itself, not its title, so two cards with the same name stay
 apart.
@@ -39,6 +48,8 @@ The buttons on the right of the menu bar group the results:
 - **Formats**: how many decks there are for each format. Click one to see them. Decks set to
   **Special** ([no limits](lists.md#stats)) have a row of their own.
 - **Most played**: the cards the decks play most ([below](#most-played)).
+
+Formats and Most played can count private decks too, and leave out illegal ones ([All decks and Legal decks only](#all-decks)).
 
 "by *name*" on a deck shows that player's other lists.
 
