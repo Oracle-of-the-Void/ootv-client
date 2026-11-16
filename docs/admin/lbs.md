@@ -74,5 +74,7 @@ them were missing clauses (The Moto Oasis's "All Moto Heroes you control", Judge
 Ebonite player."), "Day Open" for "Day Omen" (The Last Oasis) and Scimitar's flavor sitting in its text. The seven
 promo Stronghold printings that had no text got it from their scans; they print it differently from the card. The
 same misprint rule applies ("targetted", "may not distributed", "Armu", "Lammassu", "damge"). Trait lines that
-differ only in spelling or order ("Non-human", "Raid-1", Tahir's "Smokless") keep the normalised trait so the
-search finds them; Hensatti's trait is `Pharaoh` as printed.
+differ only in spelling or order ("Raid-1", Tahir's "Smokless") keep the normalised trait so the search finds
+them; Hensatti's trait is `Pharaoh` as printed. The six cards printing "Non-Human", "Non-human" or "Nonhuman" have
+the one trait `Nonhuman`, L5R's keyword (2026-11-16; Rohshem's Black Hand printing too). Lady Sun's Temple's text
+keeps its printed "Non-Human Hero".
