@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-11-03 (the front page's logos come from the game menu)
+Last updated: 2026-11-16 (LBS stat icons)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -27,7 +27,11 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   (`any`, `all`, `always`, a field, or a list of fields), `else` (a row drawn instead when this one
   has nothing), `helper`/`helpers` (`sortlegality`, `makelinks`, `soultitle`), `valuelabels`,
   `suffix`, `prefix`, `concat`, `ddclass`. A field marked `show: "hidden"` on Fields drops out of
-  every row by itself.
+  every row by itself. `wraps` names each value's classes in `oracle.css`; the stat icons are `iconic` (card page)
+  or `smiconic` (search results) plus the icon: L5R `force`/`smforce`, `smgc` and friends; LBS `lbsicon` and one of
+  `lbsst` (Strength), `lbska` (Ka), `lbswa` (Water), `lbscu` (Copper), `lbsin` (Influence), `lbsfa` (Fate),
+  `lbsci` (City Points), with `lbscu lbsprod` for Production's "+3". Inside `lbsicon` the row's `suffix` is hidden
+  (the icon says which stat), and a field with no value draws nothing.
 - `search`: the search form's fields, in order (a field's search settings are on Fields).
 - `deckconstruction` (optional): the deck construction rules, each legality's changes to them, and the
   choices a deck's owner can make (which deck Sensei go in). A deck's own pick beats `sort.pick` below.

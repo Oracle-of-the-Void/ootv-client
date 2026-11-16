@@ -1757,6 +1757,37 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
 
+/* LBS stats (game config lbs/game rows: "iconic lbsicon lbsst" on the card page, "smiconic lbsicon lbsst" in search
+   results): the card's own icons with the number taken off (ootv-assets stat-icons/lbs), 54 px tall, drawn at 27 / 20.
+   The number is printed black on all of them, in dark mode too. A row's suffix ("3S") is the icon here, so it's hidden. */
+.lbsicon {
+  display: inline-block; vertical-align: middle; box-sizing: border-box; padding: 0; margin-right: 2px;
+  background-repeat: no-repeat; background-position: center; color: black; font-weight: bold; text-align: center;
+  font-family: inherit;
+}
+.lbsicon > .rowsuffix { display: none; }
+.lbsicon:empty { display: none; }   /* a stat the card doesn't have (a Stronghold's Water) */
+.iconic.lbsicon   { height: 27px; line-height: 27px; background-size: auto 27px; font-size: 15px; }
+.smiconic.lbsicon { height: 20px; line-height: 20px; background-size: auto 20px; font-size: 12px; }
+.lbsst { background-image: url('res/icon-cards-lbs/strength.png'); }
+.lbska { background-image: url('res/icon-cards-lbs/ka.png'); }
+.lbswa { background-image: url('res/icon-cards-lbs/water.png'); }
+.lbscu { background-image: url('res/icon-cards-lbs/copper.png'); }
+.lbsin { background-image: url('res/icon-cards-lbs/influence.png'); }
+.lbsfa { background-image: url('res/icon-cards-lbs/fate.png'); }
+.lbsci { background-image: url('res/icon-cards-lbs/city.png'); }
+/* each box as wide as its icon; the number where the card prints it (the skin's belly, the lamp's bowl, low in the triangle) */
+.iconic.lbsst   { width: 29px; }  .smiconic.lbsst { width: 21px; }
+.iconic.lbska   { width: 28px; }  .smiconic.lbska { width: 20px; }
+.iconic.lbswa   { width: 21px; padding-top: 4px; }  .smiconic.lbswa { width: 16px; padding-top: 3px; }
+.iconic.lbscu   { width: 20px; }  .smiconic.lbscu { width: 15px; }
+.iconic.lbsin   { width: 40px; padding: 2px 2px 0 0; }  .smiconic.lbsin { width: 29px; padding: 1px 2px 0 0; }
+/* production ("+3"): the + before the copper coin, the number on it */
+.iconic.lbsprod   { width: 30px; background-position: right center; text-align: right; padding-right: 5px; }
+.smiconic.lbsprod { width: 23px; background-position: right center; text-align: right; padding-right: 4px; }
+.iconic.lbsfa   { width: 30px; padding-top: 5px; }  .smiconic.lbsfa { width: 22px; padding-top: 4px; }
+.iconic.lbsci   { width: 27px; font-size: 13px; }  .smiconic.lbsci { width: 20px; font-size: 10px; }
+
 button.iiconic {
     padding: 0;
     height: 17px;

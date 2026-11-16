@@ -9637,7 +9637,8 @@ function gamesymbols(symbols) {
 // search result ('detail'). A row: {fields, label | labelfields, sep, join, wrap, wraps, when, else, helper,
 // ddclass, valuelabels, suffix, seps}; label false draws the value on its own line (no <dt>); valuelabels lists
 // each field with a value as "value label"; suffix puts each field's short label after its value (true: right
-// after, LBS "3S"; a string: with it between, 7th Sea "2 Can"); seps gives the separator before each field after
+// after, LBS "3S"; a string: with it between, 7th Sea "2 Can"; none on a field with no value; in its own span.rowsuffix, which an icon wrap
+// that shows the stat by itself hides: oracle.css .lbsicon); seps gives the separator before each field after
 // the first (7th Sea cost/cancel: [" ", " / ", " "]); concat joins the values of all the fields as one list
 // with join (Warlord traits: faction, traits, feats); joins and helpers give a join or helper per field (L5R keywords
 // " &#149; " then iconised " "; publisher, then publisherurl through makelinks); prefix goes before the first value, inside its
@@ -9721,8 +9722,8 @@ function gamerow(data, r) {
       v = (v === undefined || v === null) ? '' : v === true ? 'Yes' :
           (Array.isArray(v) ? v.join(join !== undefined ? join : ',') : String(v));
     }
-    if(r.suffix) {
-      v += (r.suffix === true ? '' : r.suffix)+(lab['short'+f] !== undefined ? lab['short'+f] : f);
+    if(r.suffix && v !== '') {
+      v += '<span class="rowsuffix">'+(r.suffix === true ? '' : r.suffix)+(lab['short'+f] !== undefined ? lab['short'+f] : f)+'</span>';
     }
     if(r.prefix && i == 0) { v = r.prefix+v; }
     var cls = r.wraps && r.wraps[i];
