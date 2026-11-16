@@ -49,8 +49,16 @@ or tests. The files in this directory are exactly what gets served.
   cleared by `showview`) hides the view buttons on a load that opens the About page, and `html.bootresults` (any other load)
   makes `updateviewbuttons` leave them alone through the load's placeholder About (with `afterpaint`, it hid them for a frame); `index.html`'s game list is already
   the logo tiles `homegamesdraw` draws, and their logos keep a 64px box. The menubar is drawn as the load will end it before its first paint (`menubarboot`, run by an inline script in `index.html` right after the menubar): the game logo with its size from `logoshape`, Log In when no Cognito tokens are kept, and on a `#cardid` url the view row as the card view shows it (no sort or template buttons; size buttons only for `cardlargegames`, or what the stored game config says). On phones a wide logo and Log In arriving with the config wrapped the row a line down and back (0.42–0.48 on wide-logo games' card links). A new game's logo needs its line in `logoshape`. `updateviewbuttons` hides the whole row when nothing in it is shown. The card page's big picture holds a portrait `_details`
-  box while it loads (`imagesreserve` in `drawcard`, `img.imgloading`). Measure with Playwright on a phone at 4× CPU and a
-  slow network, a `layout-shift` PerformanceObserver, after load *and* after a tapped search (shifts more than 0.5s after a tap count).
+  box while it loads (`imagesreserve` in `drawcard`, `img.imgloading`); search results and lists do the same for `_select` and `_details`
+  pictures (`resultimagesreserve`): without it the Deck view's stacks and Visual Large grew as each picture's size arrived.
+  Google's real-user CLS (CrUX, 2026-11-16: 0.54 phone, 0.18 desktop) comes mostly from **using** the app, not from loads (0.000–0.014):
+  anything that changes the page after a request or a slow re-draw counts once it lands more than 0.5s after the tap. So what a
+  response will add is drawn before the request goes out where it can be known: the Public lists filters are the last ones drawn
+  for that game and view (`publicfacetsearly`, `publicfacetsremember`); a deck's "All cards legal for" formats come from the
+  browser's day-old copy of `/cardslegal` (`cardslegalstored`); a logged-in user's saved views apply before the first draw, from
+  another game's cached user if this game has none (`usercacheseed`). Measure with Playwright on a phone at 4× CPU (and 10×) and a
+  slow network, a `layout-shift` PerformanceObserver, after load *and* after taps through the views (search, Visual, Large, Deck view,
+  Public lists, Most played), with the API delayed ~1.5s by `page.route` to see what a slow response moves.
 - The search form's rows (`initializeform` in `oracle.js`): each label is a floated 30px `dt`, so a `dd` must be at least 30px tall or the labels drift from their fields down the form (#552). A new field type shorter than that needs the same `min-height` as the checkbox rows.
 - The search sidebar on wide screens (`sidebarfit` in `oracle.js`, called from `showview`): the views in `sidebarnosearch` (Help, Bookshelf,
   Public lists) start with it collapsed; opening or closing it by hand holds for those views together, and separately for the others
