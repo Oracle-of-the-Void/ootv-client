@@ -13057,10 +13057,12 @@ function publicfacetsdraw(facets, cards) {
     });
     $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
   }
-  // the clan filter is the deck's Stronghold's clan, or its faction in a game with factions (LBS; ootv-search deriveStronghold)
-  var s = searchables[database] || {};
-  publicfacetoptions('clan', facets.clan, s.faction && !s.clan ? 'Any faction' : 'Any clan');
-  publicfacetoptions('stronghold', facets.stronghold, 'Any stronghold');
+  // the home card filters (game config publiclists.home {type, align}; ootv-search deriveHome): the deck's one card of
+  // that type, and its align field, each named by the game's own words
+  var home = (((gameconfig[database] || {}).game || {}).publiclists || {}).home || {};
+  var anyof = function(word) { return 'Any '+String(word || '').toLowerCase(); };
+  publicfacetoptions('clan', home.align ? facets.clan : [], anyof((labels[database] || {})['tag'+home.align] || home.align));
+  publicfacetoptions('stronghold', home.type ? facets.stronghold : [], anyof(home.type));
   publicfacetoptions('format', facets.format, 'Any format');
   if(cards) {
     publicfacetoptions('cardtype', facets.cardtype, 'Any card type');
