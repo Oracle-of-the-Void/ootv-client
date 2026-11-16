@@ -1,6 +1,6 @@
 # Most played cards (public decks)
 
-Last updated 2026-11-15.
+Last updated 2026-11-16.
 
 **Public lists → Most played** (the bar chart button) ranks the cards in the public decks, and a
 card's page shows how many public decks play it, as a number next to the globe beside its title. The
@@ -26,8 +26,14 @@ public, and stops counting when they make it private.
 - **Per card, not per title.** Each `cardid` is its own row, so two cards with the same title (Border
   Keep 1106 and 1107) are counted apart, as the card page counts them.
 - **Two counts.** *Decks*: how many of the decks found have the card, shown with their share of
-  those decks. *Copies*: the copies summed over them. **Most decks** (the default) or **Most copies**
-  picks which one ranks the list.
+  those decks. *Copies*: the copies summed over them, shown as the average in those decks
+  (`avg: 2.4 copies` = copies ÷ decks; the hover shows the total).
+- **Sorts.** **Most decks** (the default) ranks every card. **Most copies**, **Name** and **Card type**
+  (type, then name) sort only the 100 cards in the most decks; the number before each card stays its
+  place by decks.
+- **CSV.** The **CSV** button downloads the statistics on screen: every card found (the 100 for the
+  other sorts), in the order shown, with rank by decks, card ID, title, type, decks, deck %, copies and
+  average copies.
 - **The usual filters.** Search box, contains card, clan, stronghold, format, pre-constructed and
   tournament results narrow the decks first. The format is the deck's own, else the one inferred from
   its name or its cards (the Formats view's "guessed"). **Any card type** narrows the cards.

@@ -269,17 +269,20 @@
     <label class="publicwinner" title="Pre-constructed decks: starters, learn-to-play"><input type="checkbox" name="precon" value="1" onchange="publicsearch(0);"> Pre-constructed <span id="publicpreconcount"></span></label>
     <label class="publicwinner" title="Lists with a tournament result"><input type="checkbox" name="winner" value="1" onchange="publicsearch(0);"> Tournament results <span id="publicwinnercount"></span></label>
     <label class="publicwinner publiclegal" style="display:none" title="Formats and Most played: leave out illegal decks, the ones that break their deck construction rules or hold cards not legal in their format"><input type="checkbox" name="legal" value="1" checked onchange="publicsearch(0);"> Legal decks only</label>
-    <select name="order" style="display:none" title="Most played: by how many decks play the card, or by copies over all decks">
+    <span class="publicsortpick" style="display:none"><svg class="feather publicsorticon" data-for="order" style="display:none" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#filter"></svg><select name="order" style="display:none" title="Most played: by how many decks play the card; the other sorts order the 100 cards in the most decks">
       <option value="">Most decks</option>
       <option value="copies">Most copies</option>
-    </select>
-    <select name="sort">
+      <option value="name">Name</option>
+      <option value="cardtype">Card type</option>
+    </select></span>
+    <button type="button" name="csv" class="button gray" style="display:none" onclick="publiccardscsv(this);" title="Download these statistics as a CSV file (every card found; the top 100 for a sort other than Most decks)">CSV</button>
+    <span class="publicsortpick"><svg class="feather publicsorticon" data-for="sort" aria-hidden="true"><use xlink:href="res/feather-sprite.svg#filter"></svg><select name="sort">
       <option value="">Newest first</option>
       <option value="name">Name</option>
       <option value="size">Most cards</option>
       <option value="created">Recently created</option>
       <option value="relevance">Best match</option>
-    </select>
+    </select></span>
     <button type="submit" class="button gray">Search</button>
     <button type="button" class="button gray" onclick="publicreset();">Reset</button> <span class="helpq" data-help="public-lists#search" aria-label="Help: finding decks">?</span>
   </form>
