@@ -1757,6 +1757,39 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
 
+/* LBS stats (game config lbs/game rows: "iconic lbsicon lbsst" on the card page, "smiconic lbsicon lbsst" in search
+   results): the card's own icons with the number taken off (ootv-assets stat-icons/lbs), 54 px tall, drawn at 27 / 20.
+   The number is printed black on all of them, in dark mode too. A row's suffix ("3S") is the icon here, so it's hidden. */
+.lbsicon {
+  display: inline-block; vertical-align: middle; box-sizing: border-box; padding: 0; margin-right: 2px;
+  background-repeat: no-repeat; background-position: center; color: black; font-weight: bold; text-align: center;
+  font-family: inherit;
+}
+.lbsicon > .rowsuffix { display: none; }
+.lbsicon:empty { display: none; }   /* a stat the card doesn't have (a Stronghold's Water) */
+.iconic.lbsicon   { height: 27px; line-height: 27px; background-size: auto 27px; font-size: 15px; }
+.smiconic.lbsicon { height: 20px; line-height: 20px; background-size: auto 20px; font-size: 12px; }
+.lbsst { background-image: url('res/icon-cards-lbs/strength.png'); }
+.lbska { background-image: url('res/icon-cards-lbs/ka.png'); }
+.lbswa { background-image: url('res/icon-cards-lbs/water.png'); }
+.lbscu { background-image: url('res/icon-cards-lbs/copper.png'); }
+.lbsin { background-image: url('res/icon-cards-lbs/influence.png'); }
+.lbsfa { background-image: url('res/icon-cards-lbs/fate.png'); }
+.lbsci { background-image: url('res/icon-cards-lbs/city.png'); }
+/* each box as wide as its icon. Water, copper and influence sit in one row, so their numbers share one height (the
+   user, 2026-11-16): midway between the bottle's belly (60% down) and the lamp's bowl (49%), 55% down; the lamp's
+   number on its bowl across (42%, the spout takes the right); fate's sits low in the triangle */
+.iconic.lbsst   { width: 27px; }  .smiconic.lbsst { width: 20px; }
+.iconic.lbska   { width: 27px; }  .smiconic.lbska { width: 20px; }
+.iconic.lbswa   { width: 20px; padding-top: 1.3px; }  .smiconic.lbswa { width: 15px; padding-top: 1px; }
+.iconic.lbscu   { width: 20px; padding-top: 1.3px; }  .smiconic.lbscu { width: 15px; padding-top: 1px; }
+.iconic.lbsin   { width: 40px; padding: 1.3px 6px 0 0; }  .smiconic.lbsin { width: 30px; padding: 1px 5px 0 0; }
+/* production ("+3"): the + before the copper coin, the number on it */
+.iconic.lbsprod   { width: 30px; background-position: right center; text-align: right; padding-right: 5px; }
+.smiconic.lbsprod { width: 23px; background-position: right center; text-align: right; padding-right: 4px; }
+.iconic.lbsfa   { width: 30px; padding-top: 5px; }  .smiconic.lbsfa { width: 22px; padding-top: 4px; }
+.iconic.lbsci   { width: 27px; font-size: 13px; }  .smiconic.lbsci { width: 20px; font-size: 10px; }
+
 button.iiconic {
     padding: 0;
     height: 17px;
