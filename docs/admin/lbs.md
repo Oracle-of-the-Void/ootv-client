@@ -13,7 +13,7 @@ On 2026-11-15 the trait line was moved out of the text into `traits` on 431 card
 `field-fixes/lbs-traits.py`):
 
 - **A Hero's opening phrase is split** into its faction or group and the rest: "Moto Clan Huntress * Unique *
-  Carry +2" is `Moto Clan`, `Huntress`, `Unique`, `Carry +2`. Groups split the same way: Celestial Alliance,
+  Carry +2" is `Moto Clan`, `Huntress`, `Unique`, `Carry` (and `carry` `"+2"`, below). Groups split the same way: Celestial Alliance,
   Houses of Dahab, Ivory Kingdoms, Sand Pirate, Lion Clan, Scorpion Clan. Rules traits at the start of the rest
   are split off too ("Unaligned Undead Khadi Traitor": `Unaligned`, `Undead`, `Khadi`, `Traitor`). A phrase with
   a word before the faction splits in three: "Former Moto Clan Tar-khan" is `Former`, `Moto Clan`, `Tar-khan`;
@@ -22,8 +22,8 @@ On 2026-11-15 the trait line was moved out of the text into `traits` on 431 card
   Traits search for Summon Jinn finds every Jinn; Alakrai's "Summon Elder Jinn Trickster" is `Summon Jinn`,
   `Elder Jinn Trickster`.
 - **Capitals as printed**: `Tavern-Master`, `Brother of the Black Shield`, even where our text had them in lower case.
-- **Numbered traits** are written with the sign: `Archery +2`, `Raid -1`, `Carry +1`; plain `Archery` when
-  printed without a number.
+- **Numbered traits** keep only the word (`Archery`, `Raid`, `Carry`); the number is in its own field
+  (Carry, Raid and Archery, below). Plain `Archery` with no number (Nekhebet) is printed that way.
 - **Actions, Spells and Stories** also get the kind words before their timing ("Buried Curse Day:" gives
   `Buried`, `Curse`; "Open Omen:" gives `Omen`): Omen, Buried, Curse, Council, Spirit, Event, Blessing, Tale,
   Reward. Those words stay in the ability text as well.
@@ -57,6 +57,18 @@ Heart and The Tale of the Moto and the Senpet their missing `Tale` trait, and Th
 Night its `Reward`. Text that mentions Story Points (Truth of the Prophecy, Qaliraq's Mystical Lute) is unchanged.
 
 Search: Story Points is a numeric field in the search form, after Copper Production.
+
+## Carry, Raid and Archery (`carry`, `raid`, `archery`)
+
+The number of a Carry +X, Raid ±X or Archery ±X trait, signed as printed, as a one-entry list: `"+2"`, `"-1"`.
+The trait itself stays in `traits` as the bare word, so a Traits search for Carry still finds every card with it.
+Until 2026-11-16 the number was part of the trait (`Carry +2`); that day it moved to these fields on 26 cards (Raid
+10, Carry 10, Archery 9; Kiyoshi's and The Ferryman's printing traits too; ootv-tools `field-fixes/lbs-traits.py`,
+revert file ootv-backups `reverts/2026-11-16-lbs-numeric-traits.jsonl`), so they can be searched as numbers and
+read by the play table. Negative values: Carry -1 (Jinn of Destruction, The Ferryman), Archery -1 (Kumpal,
+Spearmen), Raid -1 (Adnan).
+
+Search: Carry, Raid and Archery are numeric fields in the search form, after Story Points.
 
 ## Card text
 
