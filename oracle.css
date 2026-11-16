@@ -1782,12 +1782,13 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .lbsfa { background-image: url('res/icon-cards-lbs/fate.png'); }
 .lbsci { background-image: url('res/icon-cards-lbs/city.png'); }
 /* each box as wide as its icon. Water, copper and influence sit in one row, so their numbers share one height (the
-   user, 2026-11-16), a little below centre, on the bottle's belly, the coin and the lamp's bowl; fate's sits low in the triangle */
+   user, 2026-11-16): midway between the bottle's belly (60% down) and the lamp's bowl (49%), 55% down; the lamp's
+   number on its bowl across (42%, the spout takes the right); fate's sits low in the triangle */
 .iconic.lbsst   { width: 27px; }  .smiconic.lbsst { width: 20px; }
 .iconic.lbska   { width: 27px; }  .smiconic.lbska { width: 20px; }
-.iconic.lbswa   { width: 20px; padding-top: 3px; }  .smiconic.lbswa { width: 15px; padding-top: 2px; }
-.iconic.lbscu   { width: 20px; padding-top: 3px; }  .smiconic.lbscu { width: 15px; padding-top: 2px; }
-.iconic.lbsin   { width: 40px; padding: 3px 3px 0 0; }  .smiconic.lbsin { width: 30px; padding: 2px 2px 0 0; }
+.iconic.lbswa   { width: 20px; padding-top: 1.3px; }  .smiconic.lbswa { width: 15px; padding-top: 1px; }
+.iconic.lbscu   { width: 20px; padding-top: 1.3px; }  .smiconic.lbscu { width: 15px; padding-top: 1px; }
+.iconic.lbsin   { width: 40px; padding: 1.3px 6px 0 0; }  .smiconic.lbsin { width: 30px; padding: 1px 5px 0 0; }
 /* production ("+3"): the + before the copper coin, the number on it */
 .iconic.lbsprod   { width: 30px; background-position: right center; text-align: right; padding-right: 5px; }
 .smiconic.lbsprod { width: 23px; background-position: right center; text-align: right; padding-right: 4px; }
