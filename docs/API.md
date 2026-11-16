@@ -544,6 +544,11 @@ inputs (a value list can be repeated or comma separated):
   `cardcounts` (the Detail search results' globes): every card's deck count at once, unpaged:
   `{total, group, format, counts: {cardid: decks}, complete}`. `legality`: one value of the card search's Legality select, counting only decks of its format, answered as `format` (`Hidden&nbsp;Emperor&nbsp;(Jade)` is `Jade`; what isn't a format, like Paper or Unreleased, counts all decks). `decks` is the card page's count (decks with at least one
   copy); only cards in a deck are in `counts`; `complete` is false if it was cut short (more cards than it takes).
+* legal=1 (with `group=formats` or `cards`, the client's Legal decks only, on by default): leaves out illegal decks: the
+  deck construction check fails (`buildbad`, from the list's saved summary), or the deck's format is one the cards are
+  checked in and not all its cards are legal there (`derived.cardslegal`). A list with no summary yet passes its rules.
+* scope=all (with `group=formats` or `cards` only, 400 otherwise; the client's All decks): every deck, private ones
+  too, counted. Anyone may ask; `q` and `owner` are ignored so a name can't single out one private deck.
 
 outputs:
 
@@ -808,7 +813,7 @@ Handled by lambda: ootv-search/routes/admin.js
 Input: POST JSON `{uid, action, ...}`
 * `usersearch` `{q}`: an email (exact), a uid, or part of a name / display name / email (a scan) → `{users: [{uid,
   firstname, lastname, displayname, email, emails, insert_date}], more}` (at most 50). Audited (`user-search`).
-* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, logins: [{time, result, provider, ip, newDeviceUsed}]}`.
+* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, decks: [{listid, game, name, type, public, unlisted, modified, totalcount, buildbad}], logins: [{time, result, provider, ip, newDeviceUsed}]}`. `decks` is every list they own, newest `modified` first.
   `user` is the users row without `settings`, `emailsends` or the pending code's hash, plus `patreon`. Audited (`user-view`).
 * `useredit` `{target, field, ...}`, one change, conditional on the value just read (409 if it changed), audited
   (`user-edit`, old and new) before the write; answers as `userget` (+ `warning`):

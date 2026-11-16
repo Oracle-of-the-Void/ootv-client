@@ -79,8 +79,9 @@ $.views.converters("listTypeSelect",function(type) {
 // a deck's own Legality choice, in every game: not a format cards have, so it's no search filter, import arc or
 // /cardslegal format, and it starts with no deck construction rules (deckbuildrules)
 var decklegalityspecial = 'Special';
-function listlegalityoptions(legality) {
-  var sel='<option value=""></option>';
+function listlegalityoptions(legality, emptylabel) {
+  // the deck header's pulldown names itself when unset ("Choose Format:"); import's stays blank
+  var sel='<option value="">'+(typeof emptylabel === 'string' ? emptylabel : '')+'</option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
   // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex. Entries with
@@ -104,10 +105,10 @@ function listlegalityoptions(legality) {
   });
   return sel;
 }
-$.views.converters("listLegalitySelect",listlegalityoptions);
+$.views.converters("listLegalitySelect",function(legality) { return listlegalityoptions(legality); });
 $.views.converters("deckLegalitySelect",function(legality) {
   var current = (legality||'').replace(/&nbsp;/g, " ");
-  return listlegalityoptions(legality)+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
+  return listlegalityoptions(legality,'Choose Format:')+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
 });
 $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
@@ -367,6 +368,7 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
+    publicformstate();   // the Public lists form's My lists choice
     rendersettings(); // logged out it shows only the search settings kept in this browser
     rendersavedsearches();
     updateviewbuttons();
@@ -380,6 +382,7 @@ function logincallback(session) {
 	$('.loginfo').show();
 	$('.showonlogin').show();
 	$('.hideonlogin').hide();
+	publicformstate();
     }
     if(window.location.href.includes("#access_token") || window.location.href.includes("?code=")) {
 	window.location = location.protocol + '//' + location.host + location.pathname;
@@ -12699,6 +12702,9 @@ function generalnomodal(div,event) {
 // My lists (the form's mine select, logged in): the same search over your own lists, private ones too, through
 // /list action=search (the same index, always filtered on you); every list type, and no People view.
 // The Card box takes a title, or a card's number (#1234) for exactly that card (two cards can share a title).
+// The statistics views (Formats, Most played) also have All decks in the mine select (everyone, logged in or not:
+// every deck, private ones too, as counts; ootv-search /publiclists scope=all, which drops the name search and owner)
+// and Legal decks only (on by default: legal=1, illegal decks left out; off is legal=0 in the URL).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
 var publicshown = 0;          // results on screen for it
@@ -12715,16 +12721,43 @@ var publicformatnote = {'name': ['from the name', 'The owner didn\'t set a forma
 function publicmine() {
   return $('#publicform [name="mine"]').val() == '1' && listloggedin();
 }
+// Formats and Most played: the views All decks and Legal decks only apply to
+function publicstatsview(group) {
+  return group == 'formats' || group == 'cards';
+}
+// the statistics are over every deck, private ones too (All decks)
+function publicall() {
+  return $('#publicform [name="mine"]').val() == 'all' && publicstatsview($('#publicform [name="group"]').val() || '');
+}
+// the form's parts that depend on the view and login: All decks only in the statistics views (else Public lists),
+// My lists only logged in, the select whenever it has a choice, Legal decks only in the statistics views, and no
+// name search over All decks
+function publicformstate() {
+  var stats = publicstatsview($('#publicform [name="group"]').val() || '');
+  var sel = $('#publicform [name="mine"]');
+  if((sel.val() == 'all' && !stats) || (sel.val() == '1' && !listloggedin())) {
+    sel.val('');
+  }
+  sel.find('option[value="1"]').prop('hidden', !listloggedin());
+  sel.find('option[value="all"]').prop('hidden', !stats);
+  sel.toggle(listloggedin() || stats);
+  $('#publicform .publiclegal').toggle(stats);
+  $('#publicform [name="q"]').toggle(!publicall());
+}
 // the form (and extra filters) -> query string, empty fields left out
 function publicquery() {
+  publicformstate();
   var parts = [];
   $("#publicform").serializeArray().forEach(function(f) {
     if(f.value.trim() !== '') {
       parts.push(encodeURIComponent(f.name)+'='+encodeURIComponent(f.value.trim()));
     }
   });
+  if(!$('#publicform [name="legal"]').prop('checked')) {
+    parts.push('legal=0');   // on by default, so off is the one kept
+  }
   ['cardid','owner'].forEach(function(k) {
-    if(publicextra[k] && !(k == 'owner' && publicmine())) {   // My lists: always yours
+    if(publicextra[k] && !(k == 'owner' && (publicmine() || publicall()))) {   // My lists: always yours; All decks: nobody's
       parts.push(k+'='+encodeURIComponent(publicextra[k].value));
     }
   });
@@ -12744,8 +12777,15 @@ function publicrequest(query) {
       query = query.replace(/(^|&)group=people/g,'');
     }
   }
+  var all = publicall();
   query = query.replace(/(^|&)mine=[^&]*/g,'');
   var group = $('#publicform [name="group"]').val() || '';
+  // the statistics: legal=1 when checked (legal=0 is the URL's), All decks without the name search
+  query = query.replace(publicstatsview(group) ? /(^|&)legal=0/g : /(^|&)legal=[^&]*/g, '');
+  if(all) {
+    delete publicextra.owner;   // nobody's: counts only
+    query = query.replace(/(^|&)q=[^&]*/g,'') + '&scope=all';
+  }
   var deckonly = !group && !publicextra.owner && !mine;
   $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
   // Most played: its own order and card type; the list sort means nothing there
@@ -12772,7 +12812,8 @@ function publicfillform(qs) {
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   $('#publicform [name="group"]').val(q.group || '');
-  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : '');
+  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : (q.mine == 'all' ? 'all' : ''));
+  $('#publicform [name="legal"]').prop('checked', q.legal != '0');
   ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
@@ -12855,6 +12896,9 @@ function publicminerequest(tail) {
 // "public decks", "of your lists": what the results are, for the status line
 function publicnoun(n, deckonly) {
   var noun = deckonly ? (n == 1 ? 'deck' : 'decks') : (n == 1 ? 'list' : 'lists');
+  if(publicall()) {
+    return noun+' (public and private)';
+  }
   return publicmine() ? 'of your '+noun : 'public '+noun;
 }
 function publicrender(data, append) {
@@ -12890,7 +12934,10 @@ function publicmorecheck() {
 // is one pick away, not a trip through Any format. Fetched once per game and whose lists; the answer redraws the pulldowns
 var publicfacetbase = {}, publicfacetlast = {};
 function publicfacetbasekey() {
-  var mine = publicmine(), owner = !mine && publicextra.owner ? publicextra.owner.value : '';
+  var mine = publicmine(), all = publicall(), owner = !mine && !all && publicextra.owner ? publicextra.owner.value : '';
+  if(all) {   // scope=all answers the statistics only: Most played's facets
+    return {key: database+'|all', tail: '&scope=all&group=cards&from=0&size=1'};
+  }
   return {key: database+'|'+(mine ? 'mine' : owner), tail: (owner ? '&owner='+encodeURIComponent(owner) : (mine ? '' : '&type=deck'))+'&from=0&size=1'};
 }
 function publicfacetbasefetch() {
@@ -13063,7 +13110,7 @@ function renderpublicgroups(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : 'No public lists match.')+'</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : (publicall() ? 'No decks match.' : 'No public lists match.'))+'</div>');
   }
 }
 // Most played: one card per row, its rank, how many of the decks found play it and the average copies in those decks.
@@ -13104,7 +13151,7 @@ function renderpubliccards(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your decks match.' : 'No public decks match.')+'</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your decks match.' : (publicall() ? 'No decks match.' : 'No public decks match.'))+'</div>');
   }
   publiccardimages(data.groups.map(function(g) { return g.cardid; }));
 }

@@ -1,6 +1,6 @@
 # Users (look up and edit accounts)
 
-Last updated 2026-10-30.
+Last updated 2026-11-14.
 
 **Admin → Audit → Users** finds an account and changes it. Site admins only (`*: *`). Every
 search, every account you open and every change goes into the [audit log](admin-editing.md)
@@ -14,6 +14,12 @@ opens it; several give a list to pick from (at most 50: narrow the search if the
 An account shows when it was created, its lists per game (and how many are public), its Patreon
 tier, its recent sign-ins (from the login log, when they're recent enough to be there), and a
 link to the audit log rows about it.
+
+**Lists** shows every list they own, newest change first, with its game, type, whether it's public,
+unlisted or private, its card count and an *Illegal* mark when it fails its deck construction check.
+Pick a game to see only that game's lists. Click a name to open the list in a new tab, private lists
+too. It opens read only; to change it, use **Edit as admin** there (that needs `listedit`, which a
+site admin has, and is in the audit log like any [admin edit](admin-editing.md)).
 
 ## Changing an account
 
