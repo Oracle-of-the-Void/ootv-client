@@ -8,7 +8,7 @@ shared, including tournament-winning decks and the pre-constructed starter decks
 - The first box searches deck names, notes and players' names. The **card** box finds decks
   with a card in them, by its title. When two cards share a title, type the card's number
   instead (`#1234`, the number at the end of the card page's link) to find exactly that one.
-- The pull-downs narrow by type, and in L5R by clan, stronghold and format.
+- The pull-downs narrow by type, in L5R by clan, stronghold and format, and in Legend of the Burning Sands by faction and stronghold (the deck's Stronghold's faction).
   Once you've narrowed the search, each one shows the choices in your results first, with their counts, and the rest under **Others**, so you can switch straight to another format or clan.
 - **Pre-constructed** shows only starter and learn-to-play decks. **Tournament results** shows
   only decks with a tournament result.

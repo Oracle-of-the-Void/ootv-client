@@ -13182,7 +13182,9 @@ function publicfacetsdraw(facets, cards) {
     });
     $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
   }
-  publicfacetoptions('clan', facets.clan, 'Any clan');
+  // the clan filter is the deck's Stronghold's clan, or its faction in a game with factions (LBS; ootv-search deriveStronghold)
+  var s = searchables[database] || {};
+  publicfacetoptions('clan', facets.clan, s.faction && !s.clan ? 'Any faction' : 'Any clan');
   publicfacetoptions('stronghold', facets.stronghold, 'Any stronghold');
   publicfacetoptions('format', facets.format, 'Any format');
   if(cards) {
