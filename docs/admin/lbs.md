@@ -89,4 +89,5 @@ same misprint rule applies ("targetted", "may not distributed", "Armu", "Lammass
 differ only in spelling or order ("Raid-1", Tahir's "Smokless") keep the normalised trait so the search finds
 them; Hensatti's trait is `Pharaoh` as printed. The six cards printing "Non-Human", "Non-human" or "Nonhuman" have
 the one trait `Nonhuman`, L5R's keyword (2026-11-16; Rohshem's Black Hand printing too). Lady Sun's Temple's text
-keeps its printed "Non-Human Hero".
+keeps its printed "Non-Human Hero". A Traits search for "Non-Human" finds them too: it is a search synonym, `lbs/attributes`
+`traits.synonyms` (ootv-search [#201](https://github.com/Oracle-of-the-Void/ootv-search/pull/201)).
