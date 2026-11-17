@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-11-16 (LBS stat icons)
+Last updated: 2026-11-16 (publiclists.home)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -67,8 +67,12 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   game takes: set, rarity, type, clan, keywords, text, legality). A game without it isn't offered in
   the bot. The bot picks up a save within 5 minutes; a new game also needs the bot's commands
   registered again (ootv-discord `register-commands.js`).
-- `publiclists`: `{fields: [...]}`, the card fields copied into each public list for its search
-  (L5R: type, deck, clan; default: type).
+- `publiclists`: `{fields: [...], home: {type, align}}`. `fields`: the card fields copied into each public list
+  for its search (L5R: type, deck, clan; LBS: type, faction; default: type). `home`: the card type a deck has one of
+  to say who it is (L5R `Stronghold`, LBS `stronghold`, exactly as the cards spell it) and the card field on it that
+  says its side (L5R `clan`, LBS `faction`; it must be in `fields`). Public lists, Formats and Most played get a
+  pulldown for each, "Any stronghold" and "Any " + that field's label; a game without `home` has neither. A change
+  shows after the next public lists rebuild (nightly).
 - `legalitybugs`: `{path, bugs: {<legality>: <image>}}`, the arc bug drawn before a legality's name
   wherever one is shown (card page, deck stats, a deck's format, Public lists), and alone, small, on a
   line under the versions in a Detailed Search result (`~legalitybugs(#data)` in the `search` view). The

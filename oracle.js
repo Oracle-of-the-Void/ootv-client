@@ -12994,6 +12994,9 @@ function publicrequest(query) {
 // a query string -> the form and extra filters
 function publicfillform(qs) {
   var q = uri2json(qs || '');
+  // links from before 2026-11-16 name the home card filters clan= and stronghold=
+  if(q.align === undefined && q.clan !== undefined) { q.align = q.clan; }
+  if(q.home === undefined && q.stronghold !== undefined) { q.home = q.stronghold; }
   $("#publicform")[0].reset();
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
@@ -13001,7 +13004,7 @@ function publicfillform(qs) {
   // the statistics views: All decks unless the URL says otherwise
   $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : (q.mine == 'all' || (q.mine === undefined && publicstatsview(q.group || '')) ? 'all' : ''));
   $('#publicform [name="legal"]').prop('checked', q.legal != '0');
-  ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
+  ['q','card','type','align','format','home','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
       return;
@@ -13167,7 +13170,7 @@ function publicfacetoptions(name, facet, label) {
 }
 // the filter pulldowns and counts from a result's facets. The last ones drawn are kept per game and view
 // (publicfacetkey), and publicsearch draws them before its request goes out: the form has its final rows from the
-// first paint, not ~85px more once the results arrive (Clan, Stronghold, Format appearing), a layout shift (CLS)
+// first paint, not ~85px more once the results arrive (the home card filters and Format appearing), a layout shift (CLS)
 function publicfacetkey() {
   var group = $('#publicform [name="group"]').val() || '';
   return (group == 'cards' ? 'cards' : group ? 'groups' : 'decks') + (publicmine() ? '-mine' : '');
@@ -13182,10 +13185,12 @@ function publicfacetsdraw(facets, cards) {
     });
     $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
   }
-  // the clan filter is the deck's Stronghold's clan, or its faction in a game with factions (LBS; ootv-search deriveStronghold)
-  var s = searchables[database] || {};
-  publicfacetoptions('clan', facets.clan, s.faction && !s.clan ? 'Any faction' : 'Any clan');
-  publicfacetoptions('stronghold', facets.stronghold, 'Any stronghold');
+  // the home card filters (game config publiclists.home {type, align}; ootv-search deriveHome): the deck's one card of
+  // that type (home), and its align field (align), each named by the game's own words
+  var home = (((gameconfig[database] || {}).game || {}).publiclists || {}).home || {};
+  var anyof = function(word) { return 'Any '+String(word || '').toLowerCase(); };
+  publicfacetoptions('align', home.align ? facets.align : [], anyof((labels[database] || {})['tag'+home.align] || home.align));
+  publicfacetoptions('home', home.type ? facets.home : [], anyof(home.type));
   publicfacetoptions('format', facets.format, 'Any format');
   if(cards) {
     publicfacetoptions('cardtype', facets.cardtype, 'Any card type');
@@ -13220,10 +13225,10 @@ function renderpublic(data, append) {
   var html = data.hits.map(function(h) {
     var d = h.derived || {};
     var meta = [listtypes[h.type] || h.type];
-    if(d.clan) meta.push(d.clan);
-    if(d.stronghold) meta.push(d.stronghold.title);
+    if(d.align) meta.push(d.align);
+    if(d.home) meta.push(d.home.title);
     meta = meta.map(htmlEncode);
-    if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
+    if(d.align) { meta[1] = clanmon(d.align)+meta[1]; }
     var counts = deckcounthtml(d.fatecount || d.dynastycount ? [{"name": "Dynasty", "copies": d.dynastycount}, {"name": "Fate", "copies": d.fatecount}] : [],
 			       h.totalcount || 0, h.buildbad)+deckbuildownmark(h)+similarbadge(h.similar, h.listid, mine);
     var when = String(h.modified || h.created || '').slice(0,10);
