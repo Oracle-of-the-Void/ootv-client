@@ -38,7 +38,7 @@ that names a rule brings the whole rule back from `deckconstruction.rules`: the 
 unticked for the owner to tick, and `deckconstruction.legality["Special"]` would give a game's Special decks some by
 default (no game has one). A card's `rules` change only the rules a Special deck has; they don't add any
 (Forgotten Legacy's Holdings rule stays out). The public listing shows Special as the deck's format, like any owner's
-legality; the search-engine deck pages (ootv-tools `seo/build.py`) leave it out of "legal in".
+legality; the search-engine deck pages (ootv-search `browse/`) leave it out of "legal in".
 
 **A deck's own rules show:** the header lists them ("This deck's own rules: ...", `deckbuildownhtml`), and the directory
 and public listing show **Own rules** by the Count, with the list on hover (`deckbuildownmark`; the lists index keeps the
