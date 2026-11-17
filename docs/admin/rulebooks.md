@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-13 (Three Dynasties Comprehensive Rules 0.3: retired Onyx keywords removed); 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
+Last updated: 2026-11-17 (shelf Sort: A–Z, Recently updated); 2026-11-13 (Three Dynasties Comprehensive Rules 0.3: retired Onyx keywords removed); 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2); 2026-11-01 (Ivory Comprehensive Rules: The New Order only); 2026-10-31 (7th Sea: Five Sails shelf)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -227,7 +227,7 @@ Two **Inserts** (type `Inserts`) came with the same archive: Heroes of Rokugan a
 `/structure?database=<game>&key=rulebooks`): `books` is a map from each book's id to its title,
 subtitle, year, arc, type, tags, note, page count, cover size, build time and `order` (its place in
 the list below). The shelf shows the books by date: by `year`, and within a year in list order (since
-2026-10-21; before that, list order only), so a book added at the end of the list still lands among its year's. `upload` writes only the entries of the books it's given, so sessions working
+2026-10-21; before that, list order only), so a book added at the end of the list still lands among its year's. Readers can re-sort a shelf (its **Sort** box, saved per shelf with its filters): A–Z by `title` (then `subtitle`), or **Recently updated** by `built`, newest first (since 2026-11-17). `upload` writes only the entries of the books it's given, so sessions working
 on different books, each with its own build folder, can't drop or revert each other's books. (Until
 2026-10-20 the shelf was an `index.json` on the bucket, rebuilt from whatever books the uploading
 checkout had built; ootv-claude `DEPRECATED.md`.)
