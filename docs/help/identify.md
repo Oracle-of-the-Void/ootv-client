@@ -64,17 +64,17 @@ set's border.
 
 | Set | Border |
 |---|---|
-| Pre-Imperial Edition ![](res/help/identify/border-pre.jpg) | black, with a thin rule just inside the edge, solid red along the bottom and right |
-| Imperial Edition ![](res/help/identify/border-imperial.jpg) | black with faint grey veins, and a thin rule that runs gold and red on every side |
-| Shadowlands ![](res/help/identify/border-sl.jpg) | purple and green speckle that changes around the card |
-| Forbidden Knowledge ![](res/help/identify/border-fk.jpg) | dense rust-red speckle, like lichen |
-| Emerald Edition ![](res/help/identify/border-emerald.jpg) | black marble with faint grey-green veins |
-| Battle of Beiden Pass ![](res/help/identify/border-bobp.jpg) | plain black, no set marks anywhere, and the old card back |
-| Anvil of Despair ![](res/help/identify/border-aod.jpg) | an even slate blue-grey mottle |
-| Crimson and Jade ![](res/help/identify/border-cj.jpg) | dark green mottle, like moss |
-| Obsidian Edition ![](res/help/identify/border-obsidian.jpg) | black with fine brown crackle veins |
-| Time of the Void ![](res/help/identify/border-totv.jpg) | black with gold veins and a gold glow, strongest on the left edge |
-| Scorpion Clan Coup ![](res/help/identify/border-scc1.jpg) | black with bright red lightning lines (all three scrolls are the same) |
+| Pre-Imperial Edition ![Pre-Imperial Edition border](res/help/identify/border-pre.jpg) | black, with a thin rule just inside the edge, solid red along the bottom and right |
+| Imperial Edition ![Imperial Edition border](res/help/identify/border-imperial.jpg) | black with faint grey veins, and a thin rule that runs gold and red on every side |
+| Shadowlands ![Shadowlands border](res/help/identify/border-sl.jpg) | purple and green speckle that changes around the card |
+| Forbidden Knowledge ![Forbidden Knowledge border](res/help/identify/border-fk.jpg) | dense rust-red speckle, like lichen |
+| Emerald Edition ![Emerald Edition border](res/help/identify/border-emerald.jpg) | black marble with faint grey-green veins |
+| Battle of Beiden Pass ![Battle of Beiden Pass border](res/help/identify/border-bobp.jpg) | plain black, no set marks anywhere, and the old card back |
+| Anvil of Despair ![Anvil of Despair border](res/help/identify/border-aod.jpg) | an even slate blue-grey mottle |
+| Crimson and Jade ![Crimson and Jade border](res/help/identify/border-cj.jpg) | dark green mottle, like moss |
+| Obsidian Edition ![Obsidian Edition border](res/help/identify/border-obsidian.jpg) | black with fine brown crackle veins |
+| Time of the Void ![Time of the Void border](res/help/identify/border-totv.jpg) | black with gold veins and a gold glow, strongest on the left edge |
+| Scorpion Clan Coup ![Scorpion Clan Coup border](res/help/identify/border-scc1.jpg) | black with bright red lightning lines (all three scrolls are the same) |
 
 ## Which set: the Jade arc borders {#jade-borders}
 
@@ -83,18 +83,18 @@ easier to tell apart.
 
 | Set | Border |
 |---|---|
-| Jade Edition ![](res/help/identify/border-jade.jpg) | black with thin bright-green swirling lines |
-| Hidden Emperor 1–6, The Dark Journey Home ![](res/help/identify/border-he1.jpg) | wood-grain streaks of red-brown, green and blue (the same on all seven) |
-| Pearl Edition ![](res/help/identify/border-pearl.jpg) | dark indigo with violet circle swirls, like pearls |
-| Siege of Sleeping Mountain ![](res/help/identify/border-sosm.jpg) | dark slate with faint dark-red swirls |
-| Honor Bound ![](res/help/identify/border-hb.jpg) | black with a dark-red net of cells, like cracked earth |
-| Ambition's Debt ![](res/help/identify/border-ad.jpg) | black with faint dark-blue blotches (very dark) |
-| Fire and Shadow ![](res/help/identify/border-fas.jpg) | black with an olive-green net of cells |
-| Top Deck Learn to Play ![](res/help/identify/border-tdbp.jpg) | plain black |
-| Heroes of Rokugan ![](res/help/identify/border-hor.jpg) | black with gold coins round the edges |
-| Soul of the Empire ![](res/help/identify/border-sote.jpg) | black with a bright-green net of cells |
-| Storms Over Matsu Palace ![](res/help/identify/border-somp.jpg) | a purple-magenta glow fading to red, the brightest of the arc |
-| The War of Spirits ![](res/help/identify/border-sw.jpg) | black with red flame marks; the artist and "©2000 Wizards" along the bottom |
+| Jade Edition ![Jade Edition border](res/help/identify/border-jade.jpg) | black with thin bright-green swirling lines |
+| Hidden Emperor 1–6, The Dark Journey Home ![Hidden Emperor 1–6, The Dark Journey Home border](res/help/identify/border-he1.jpg) | wood-grain streaks of red-brown, green and blue (the same on all seven) |
+| Pearl Edition ![Pearl Edition border](res/help/identify/border-pearl.jpg) | dark indigo with violet circle swirls, like pearls |
+| Siege of Sleeping Mountain ![Siege of Sleeping Mountain border](res/help/identify/border-sosm.jpg) | dark slate with faint dark-red swirls |
+| Honor Bound ![Honor Bound border](res/help/identify/border-hb.jpg) | black with a dark-red net of cells, like cracked earth |
+| Ambition's Debt ![Ambition's Debt border](res/help/identify/border-ad.jpg) | black with faint dark-blue blotches (very dark) |
+| Fire and Shadow ![Fire and Shadow border](res/help/identify/border-fas.jpg) | black with an olive-green net of cells |
+| Top Deck Learn to Play ![Top Deck Learn to Play border](res/help/identify/border-tdbp.jpg) | plain black |
+| Heroes of Rokugan ![Heroes of Rokugan border](res/help/identify/border-hor.jpg) | black with gold coins round the edges |
+| Soul of the Empire ![Soul of the Empire border](res/help/identify/border-sote.jpg) | black with a bright-green net of cells |
+| Storms Over Matsu Palace ![Storms Over Matsu Palace border](res/help/identify/border-somp.jpg) | a purple-magenta glow fading to red, the brightest of the arc |
+| The War of Spirits ![The War of Spirits border](res/help/identify/border-sw.jpg) | black with red flame marks; the artist and "©2000 Wizards" along the bottom |
 
 ## Look-alikes {#look-alikes}
 
