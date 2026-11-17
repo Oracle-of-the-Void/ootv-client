@@ -169,7 +169,10 @@ $(document).on('click', '.rulesshelftabs button.rulesshelftab', function() {
 // its own bar, offering only the values its books have; the choice is kept per game and shelf in this browser.
 var RULESMULTIARC = 'Multi-Arc';   // formats spanning arcs: both their arc and their type. Their books, and the arc's
                                    // choice in the Arc filter, come last
-var rulesfilter = null;   // {game, shelf, type, arc, tags: [...]}
+var rulesfilter = null;   // {game, shelf, type, arc, tags: [...], sort}
+// the shelf's order (kept with its filters, not cleared by Clear filters): '' its own (by arc and date: rulessortbooks),
+// 'title' A to Z, 'built' the most recently updated (built, the book's last build or upload) first
+var RULESSORTS = [['', 'Arc'], ['title', 'A–Z'], ['built', 'Recently updated']];
 function rulesbooktypes(b) { return Array.isArray(b.type) ? b.type : (b.type ? [b.type] : []); }
 function rulesbookarcs(b) { return Array.isArray(b.arc) ? b.arc : (b.arc ? [b.arc] : []); }
 // where the shelf's choice is saved: the game for the Rulebooks shelf (as before there were shelves), else game/shelf
@@ -180,13 +183,14 @@ function rulesfilterload() {
   if(rulesfilter && rulesfilter.game == database && rulesfilter.shelf == rulesshelf.key) { return rulesfilter; }
   var saved = {};
   try { saved = (JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {})[rulesfilterkey()] || {}; } catch(e) {}
-  rulesfilter = {game: database, shelf: rulesshelf.key, type: saved.type || '', arc: saved.arc || '', tags: saved.tags || []};
+  rulesfilter = {game: database, shelf: rulesshelf.key, type: saved.type || '', arc: saved.arc || '', tags: saved.tags || [], sort: saved.sort || ''};
+  if(!RULESSORTS.some(function(o) { return o[0] == rulesfilter.sort; })) { rulesfilter.sort = ''; }
   return rulesfilter;
 }
 function rulesfiltersave() {
   try {
     var all = JSON.parse(localStorage.getItem('rulebookfilter') || '{}') || {};
-    all[rulesfilterkey()] = {type: rulesfilter.type, arc: rulesfilter.arc, tags: rulesfilter.tags};
+    all[rulesfilterkey()] = {type: rulesfilter.type, arc: rulesfilter.arc, tags: rulesfilter.tags, sort: rulesfilter.sort};
     localStorage.setItem('rulebookfilter', JSON.stringify(all));
   } catch(e) {}
 }
@@ -208,7 +212,6 @@ function rulesfilterbar() {
   if(!v.types.includes(f.type)) { f.type = ''; }
   if(!v.arcs.includes(f.arc)) { f.arc = ''; }
   f.tags = f.tags.filter(function(t) { return v.tags.includes(t); });
-  if(!v.types.length && !v.tags.length && v.arcs.length < 2) { return ''; }
   var pill = function(kind, value, label, on) {
     return '<button type="button" class="rulespill'+(on ? ' rulespillon' : '')+'" data-kind="'+kind+'" data-value="'+rulesesc(value)+'"'+
       ' aria-pressed="'+(on ? 'true' : 'false')+'">'+rulesesc(label)+'</button>';
@@ -228,6 +231,12 @@ function rulesfilterbar() {
       v.arcs.map(function(a) { return '<option'+(f.arc == a ? ' selected' : '')+'>'+rulesesc(a)+'</option>'; }).join('')+
       '</select></span>';
   }
+  // the shelf's own order is by date where its books have no arcs to group them by (the Newsletters)
+  out += '<span class="rulesfiltergroup"><label class="rulesfilterlabel" for="rulessort">Sort</label>'+
+    '<select id="rulessort" class="rulessort">'+RULESSORTS.map(function(o) {
+      var label = o[0] == '' && v.arcs.length < 2 ? 'Date' : o[1];
+      return '<option value="'+o[0]+'"'+(f.sort == o[0] ? ' selected' : '')+'>'+label+'</option>';
+    }).join('')+'</select></span>';
   out += '<span class="rulesfiltercount"></span>'+
     '<button type="button" class="rulespill rulesfilterclear" hidden>Clear filters <svg class="feather"><use xlink:href="res/feather-sprite.svg#x"></svg></button></div>';
   return out;
@@ -264,16 +273,35 @@ $(document).on('click', '.rulesfilters button.rulesfilterclear', function() {
   $('.rulesfilters select.rulesarc').val('');
   rulesdrawbooks();
 });
+$(document).on('change', '.rulesfilters select.rulessort', function() {
+  rulesfilterload().sort = $(this).val();
+  rulesfiltersave();
+  rulesdrawbooks();
+});
 $(document).on('change', '.rulesfilters select.rulesarc', function() {
   rulesfilterload().arc = $(this).val();
   rulesfiltersave();
   rulesdrawbooks();
 });
 
+// the shelf's books in the chosen order (rulesshelf.books is the shelf's own)
+function rulessortedbooks() {
+  var books = rulesshelf.books.slice(), sort = rulesfilterload().sort;
+  if(sort == 'title') {
+    books.sort(function(a,b) {
+      return String(a.title || a.id).localeCompare(String(b.title || b.id), undefined, {numeric: true, sensitivity: 'base'}) ||
+        String(a.subtitle || '').localeCompare(String(b.subtitle || ''), undefined, {numeric: true});
+    });
+  } else if(sort == 'built') {
+    // built is 20261020T233930Z: sorts as text; books without one last, in the shelf's order (sort is stable)
+    books.sort(function(a,b) { var x = a.built || '', y = b.built || ''; return x < y ? 1 : x > y ? -1 : 0; });
+  }
+  return books;
+}
 function rulesdrawbooks() {
   var last = ruleslastpages(), out = '', shown = 0;
   rulesfilterload();
-  rulesshelf.books.forEach(function(b) {
+  rulessortedbooks().forEach(function(b) {
     if(!rulesfilterpass(b)) { return; }
     shown++;
     var cover = rulesbase()+b.id+'/001_select.webp'+(b.built ? '?v='+b.built : '');
@@ -287,7 +315,8 @@ function rulesdrawbooks() {
       '<span class="rulesbooktitle">'+rulesesc(b.title)+'</span>'+
       (b.subtitle ? '<span class="rulesbooksub">'+rulesesc(b.subtitle)+'</span>' : '')+
       '<span class="rulesbookmeta">'+[b.year].concat(rulesbookarcs(b), [b.pages+' pages']).filter(x => x).map(rulesesc).join(' &middot; ')+
-      (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+'</span>'+
+      (at > 1 ? ' &middot; <b>at p. '+at+'</b>' : '')+
+      (rulesfilter.sort == 'built' && /^\d{8}T/.test(b.built || '') ? ' &middot; updated '+b.built.replace(/^(\d{4})(\d\d)(\d\d).*/, '$1-$2-$3') : '')+'</span>'+
       (marks.length ? '<span class="rulesbookmarks">'+marks.map(function(m) { return '<span class="rulesbookmark">'+rulesesc(m)+'</span>'; }).join('')+'</span>' : '')+
       (b.note ? '<span class="rulesbooknote">'+rulesesc(b.note)+'</span>' : '')+'</a>';
   });

@@ -8,8 +8,10 @@ the Five Rings, **Newsletters**. The site remembers the shelf you were on.
 
 The rulebooks, FAQs and rules sheets, in order of release. The bar above them narrows the shelf
 by type (complete rules, learn to play, addendum, special formats, other ways to play, floor
-rules, rulings), by tag (such as **Base set** or **Last complete rules in arc**), and by arc. The
-site remembers your choice; **Clear filters** shows the whole shelf again. A book opens at the page you last read.
+rules, rulings), by tag (such as **Base set** or **Last complete rules in arc**), and by arc. **Sort**
+puts the shelf in arc order (the default; by date on shelves without arcs), A–Z by title, or
+**Recently updated** first (with the date each book was last updated). The
+site remembers your choice; **Clear filters** shows the whole shelf again (and keeps the sort). A book opens at the page you last read.
 
 ## Newsletters {#newsletters}
 
