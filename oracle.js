@@ -6270,8 +6270,8 @@ var gestureswitches = [
   ['dirdragmouse', 'Drag lists and folders in the list directory (mouse)'],
   ['dirfolderselect', 'Folder pulldown on each list in the list directory (off: move lists by dragging only)'],
   ['tooltip', "Long-press a button to see its label (touch)"],
-  ['cardpeekmouse', 'Hover over a small card image or a Simple List title to see the card at Detailed size (mouse)'],
-  ['cardpeektouch', 'Long-press a small card image or a Simple List title to see the card at Detailed size (touch; your own lists: the version menu, unless turned off below)'],
+  ['cardpeekmouse', 'Hover over a small card image, a Simple List title or a card on Trades or Messages to see the card at Detailed size (mouse)'],
+  ['cardpeektouch', 'Long-press a small card image, a Simple List title or a card on Trades or Messages to see the card at Detailed size (touch; your own lists: the version menu, unless turned off below)'],
   ['versionmenumouse', "Right-click a card's picture, name or version in your own list to change its version (mouse; off: the browser's menu)"],
   ['versionmenutouch', "Long-press a card's picture, name or version in your own list to change its version (touch; off: long-press shows the card)"],
   ['cardswipetouch', 'Swipe the card view sideways for the previous/next search result (touch)'],
@@ -8008,10 +8008,24 @@ $(document).on('contextmenu', '[data-balloon-pos]', function(e) {
     }
 });
 // Card peek: a card image drawn smaller than Detailed (search and list rows, the deck view's stacks, public decks,
-// a Detailed image shrunk to fit a phone) or a card title in the Simple List (search or list) shows its Detailed
+// a Detailed image shrunk to fit a phone), a card title in the Simple List (search or list) or a card title on Trades
+// and in Messages (a.cardpeeklink, its card fetched on first hover) shows its Detailed
 // image on hover (mouse), or on a long-press (touch) until the next tap. The Detailed file comes from the card's
 // printing (file names don't always say _select/_details).
-var cardpeek = {"urls": {}, "timer": null, "press": null, "touch": false};
+var cardpeek = {"urls": {}, "timer": null, "press": null, "touch": false, "over": null};
+var cardpeektitles = 'a.deckswipe, a.cardpeeklink';
+// a title link whose card isn't cached yet (Trades, Messages): fetch it, then done() if it's still wanted
+function cardpeekfetch(a, done) {
+    var id = Number($(a).data('card'));
+    if(a.tagName != 'A' || !$(a).is('a.cardpeeklink') || !id || cache_card_is(id)) {
+	return false;
+    }
+    if(!$(a).data('peekfetching')) {
+	$(a).data('peekfetching', true);
+	listprefetch([id], [function() { $(a).removeData('peekfetching'); done(); }]);
+    }
+    return true;
+}
 // the Detailed image URL for img (or a Simple List title), or null if it isn't a card image or already shows about that much
 function cardpeekurl(img) {
     if(img.tagName == 'A') {
@@ -8037,7 +8051,7 @@ function cardpeekurl(img) {
     }
     return base + hash + '/' + found.details;
 }
-// a Simple List title (a.deckswipe with no image): the printing it names (data-printing), else the card's own choice
+// a Simple List title (a.deckswipe with no image) or a.cardpeeklink: the printing it names (data-printing), else the card's own choice
 function cardpeektitleurl(a) {
     var data = searchcache[database] ? searchcache[database]['data'] : {};
     var card = data[String($(a).data('card'))];
@@ -8114,18 +8128,31 @@ function cardpeekhide() {
     cardpeek.touch = false;
     $('#cardpeek').removeClass('cardpeekon cardpeektouch').find('img').off('load error');
 }
-$(document).on('mouseenter', 'img, a.deckswipe', function() {
+$(document).on('mouseenter', 'img, '+cardpeektitles, function() {
     if(lastpointertype != 'mouse' || !gestureon('cardpeekmouse')) {
 	return;
     }
     // an image's link gets this after the image, so a link with nothing to show mustn't cancel the image's peek
-    var img = this, url = cardpeekurl(img);
+    var img = this;
+    cardpeek.over = img;
+    if(cardpeekfetch(img, function() {
+	var url = cardpeek.over === img ? cardpeekurl(img) : null;
+	if(url) {
+	    cardpeekshow(img, url, false);
+	}
+    })) {
+	return;
+    }
+    var url = cardpeekurl(img);
     if(url) {
 	clearTimeout(cardpeek.timer);
 	cardpeek.timer = setTimeout(function() { cardpeekshow(img, url, false); }, 250);
     }
 });
-$(document).on('mouseleave', 'img, a.deckswipe', function() {
+$(document).on('mouseleave', 'img, '+cardpeektitles, function() {
+    if(cardpeek.over === this) {
+	cardpeek.over = null;
+    }
     if(!cardpeek.touch) {
 	cardpeekhide();
     }
@@ -8137,10 +8164,12 @@ document.addEventListener('pointerdown', function(e) {
     if(e.pointerType == 'mouse') {
 	return;
     }
-    var img = e.target.tagName == 'IMG' ? e.target : $(e.target).closest('a.deckswipe')[0];
+    var img = e.target.tagName == 'IMG' ? e.target : $(e.target).closest(cardpeektitles)[0];
     var version = versionmenutarget(e.target, false);   // your own list: the menu, which shows the card too
-    var url = (!version && img && gestureon('cardpeektouch')) ? cardpeekurl(img) : null;
-    if(!version && !url) {
+    // a Trades or Messages title whose card isn't cached: fetched now, its image looked up when the press ends
+    var fetching = !version && img && gestureon('cardpeektouch') && cardpeekfetch(img, function() {});
+    var url = (!version && !fetching && img && gestureon('cardpeektouch')) ? cardpeekurl(img) : null;
+    if(!version && !url && !fetching) {
 	return;
     }
     if(img) {
@@ -8150,6 +8179,8 @@ document.addEventListener('pointerdown', function(e) {
 	cardpeek.press.shown = true;
 	if(version) {
 	    versionmenuopen(version);
+	} else if(fetching && !(url = cardpeekurl(img))) {
+	    cardpeek.press.shown = false;   // still fetching: a normal tap
 	} else {
 	    cardpeekshow(img, url, true);
 	}

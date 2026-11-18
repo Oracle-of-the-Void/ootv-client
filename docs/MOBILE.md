@@ -85,6 +85,9 @@ card or swipe; Android's long-press menu is blocked. The Detailed file comes fro
 (`cardpeekfind`), since Dune's files aren't named `_select`/`_details`. WebKit runs it (2026-10-30, synthetic press). **Not checked on real iOS Safari**: the
 image/link callout is turned off with `-webkit-touch-callout` set on the press, which may be too late; if the
 iOS menu or link preview still opens, set it in CSS on `a.deckswipe` and its image instead.
+Card titles on Trades and in Messages (2026-11-17, `a.cardpeeklink` with `data-card` and `data-printing`, from
+`trade.js`) peek the same way; their cards usually aren't cached, so the first hover or press fetches the card
+(`cardpeekfetch`) and the peek shows once it arrives, if the mouse is still there (touch: if the press outlasts the fetch).
 
 Version menu (2026-10-31, [PR #544](https://github.com/Oracle-of-the-Void/ootv-client/pull/544), emulated touch on Chromium, synthetic press on WebKit): in the list view, on a list you can
 edit, a 500 ms press on a card's picture, name or version opens the menu of versions (`versionmenuopen`, switch
