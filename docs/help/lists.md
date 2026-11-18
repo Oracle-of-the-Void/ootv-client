@@ -49,6 +49,11 @@ Click the switch beside a list's name to make it **active**. Then every card in 
 results and on the [card page](cards.md#lists) gets + and − buttons for that list. You can have several lists
 active at once. They stay active in that browser tab until you switch them off.
 
+Each list in the **Active Lists** box has an **Adding** switch: **Regular** or **✦ Foil**, and on a
+Want list **✦ Foil or not** too. The + and − buttons in search, in Visual and on the card page add
+and count that kind (see [Foil copies](#foil)). A card that never came in foil goes in regular
+whatever the switch says.
+
 The **Active Lists** box checks each active deck as you go, with two small marks after its count.
 The **#** is green when the deck meets its [construction rules](#stats) and red when it doesn't (hover over it
 to see which rule). The **shield** is green when every card is legal in the deck's legality, red and crossed out
@@ -126,6 +131,9 @@ switch the entry between **Regular** and **✦ Foil**. On a **Want** list there'
 printing are two entries, so a Have list can hold both. A printing only ever printed in foil
 just shows its **✦ Foil** mark. Lists without a printing chosen (any version) can be marked foil
 too, when any version of the card came in foil.
+
+To add foils from search or the card page, set the list's **Adding** switch in the Active Lists
+box to **✦ Foil** (or **✦ Foil or not**) first.
 
 Trades match on it: a foil want finds only foil haves, a regular want only regular ones, and
 **Foil or not** finds either (see Help → Trading and messages).

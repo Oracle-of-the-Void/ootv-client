@@ -28,6 +28,7 @@ $.views.helpers("fieldshown",function(field) { return !gamefieldhidden(field); }
 $.views.helpers("foilmark",templatefoilmark);
 $.views.helpers("foilof",templatefoilof);
 $.views.helpers("listfoil",templatelistfoil);
+$.views.helpers("listaddfoilpick",templatelistaddfoilpick);
 $.views.helpers("cardsides",templatecardsides);
 function formatdate(val) {
     return (new Date(val)).toLocaleDateString('en-US', {
@@ -2435,8 +2436,53 @@ function savecallback() {
     renderlisteditarea(); // update card counts
 }
 
-// how many of this card (and printing, and foil) the list holds, shown beside its +/- buttons (span.listqty)
-function listquantity(listid,cardid,prid=0,foil='') {
+// What the +/- buttons outside the list view add to each active list (the user, 2026-11-17): regular (''),
+// 'foil', or on a want list 'either', picked in the Active Lists bar (listaddfoilset). Kept per game and tab with
+// the active lists. Search rows, Visual, the card page, swipes and Add all use it; the list view's own rows say
+// their entry's foil themselves.
+var listaddfoil = {};
+try { listaddfoil = JSON.parse(sessionStorage.getItem("listaddfoil")) || {}; } catch(e) {}
+function listaddfoilchoices(listid) {
+    var meta = activelistmeta(listid);
+    return meta.type == 'want' ? ['', 'foil', 'either'] : ['', 'foil'];
+}
+// the list's pick, if its type still allows it
+function listaddfoilmode(listid) {
+    var f = listaddfoil[database+'/'+listid] || '';
+    return listaddfoilchoices(listid).includes(f) ? f : '';
+}
+// the foil an add of this card and printing makes: the list's pick, but regular for a version never printed in
+// foil (or only in foil, which is foil anyway), or a card with no foil printing at all (as listversionchange)
+function listaddfoilfor(listid,cardid,prid) {
+    var f = listaddfoilmode(listid);
+    var card = f ? cache_card_fetch(cardid) : null;
+    if(!card || !Array.isArray(card.printing)) { return f; }
+    var p = prid > 0 ? card.printing.find(function(e) { return parseInt(e.printingid) == parseInt(prid); }) : null;
+    var can = p ? [].concat(p.foil || [])[0] == 'both' : card.printing.some(function(e) { return [].concat(e.foil || [])[0]; });
+    return can ? f : '';
+}
+function listaddfoilset(listid,f) {
+    if(f) { listaddfoil[database+'/'+listid] = f; } else { delete listaddfoil[database+'/'+listid]; }
+    try { sessionStorage.setItem("listaddfoil", JSON.stringify(listaddfoil)); } catch(e) {}
+    renderlisteditarea();
+    refreshactivelistviews();   // the search rows' counts are now the picked kind's
+    cardlistbar();
+}
+// ~listaddfoilpick(listid): the Active Lists bar's Adding switch, only for a list you can edit
+function templatelistaddfoilpick(listid) {
+    if(!listeditable(listid)) { return ''; }
+    var cur = listaddfoilmode(listid);
+    var names = {'': 'Regular', 'foil': '\u2726 Foil', 'either': '\u2726 Foil or not'};
+    return '<span class="listaddfoil" role="radiogroup" aria-label="Adding">Adding: '+listaddfoilchoices(listid).map(function(f) {
+	return '<button type="button" role="radio" aria-checked="'+(f == cur)+'" class="listaddfoilopt'+(f == cur ? ' on' : '')+'"'+
+	    ' onclick="listaddfoilset(\''+listid+'\',\''+f+'\'); return false;">'+names[f]+'</button>';
+    }).join('')+'</span>';
+}
+
+// how many of this card (and printing, and foil) the list holds, shown beside its +/- buttons (span.listqty).
+// foil null: what this list adds there (listaddfoilfor), for the buttons outside the list view.
+function listquantity(listid,cardid,prid=0,foil=null) {
+    if(foil === null || foil === undefined) { foil = listaddfoilfor(listid,cardid,prid); }
     var list = cache_thing("list",listid);
     if(!(list && list.list && list.list.Items && list.list.Items[0])) {
 	return '';
@@ -2455,11 +2501,13 @@ function listentry(cardid,prid,n,foil) {
 function listentryis(ele,cardid,prid,foil) {
     return ele.cardid == cardid && ele.printing == (prid||0) && (ele.foil||'') == (foil||'');
 }
-function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
+// foil null: what this list adds (listaddfoilfor); the list view's rows pass their entry's foil ('' = regular)
+function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil=null) {
     if(!listeditable(listid)) {
 	console.warn("addlistitem: list "+listid+" isn't yours");
 	return;
     }
+    if(foil === null || foil === undefined) { foil = listaddfoilfor(listid,cardid,prid); }
     //var list=cache_thing("list","data").lists.Items[cache_thing("list","datareverse")[listid]];
     // listinfoupdate(listid,'list',JSON.stringify(cache_thing("list",listid).list.Items[0].list));
     var list = cache_thing("list",listid);
@@ -2469,9 +2517,13 @@ function addlistitem(listid,cardid,prid=0,n=1,abs=false,sort=null,foil='') {
     listqtyshow(listid,cardid,prid,foil);
     listitemsdone(listid);
 }
-// the count beside this card's +/- buttons, wherever they're drawn (search rows, the card page)
+// the count beside this card's +/- buttons, wherever they're drawn (search rows, the card page). A count with no
+// data-foil (outside the list view) is for the kind the list adds.
 function listqtyshow(listid,cardid,prid=0,foil='') {
-    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() { return $(this).data('printing') == (prid||0) && ($(this).data('foil')||'') == (foil||''); }).text(listquantity(listid,cardid,prid,foil));
+    $('span.listqty[data-list="'+listid+'"][data-card="'+cardid+'"]').filter(function() {
+	var f = this.hasAttribute('data-foil') ? ($(this).attr('data-foil')||'') : listaddfoilfor(listid,cardid,prid);
+	return $(this).data('printing') == (prid||0) && f == (foil||'');
+    }).text(listquantity(listid,cardid,prid,foil));
 }
 // many cards at once (search "Add all to list"): items = [[cardid, prid], ...], n copies of each; one render and save
 function addlistitems(listid,items,n=1) {
@@ -2481,7 +2533,7 @@ function addlistitems(listid,items,n=1) {
     }
     var list = cache_thing("list",listid);
     items.forEach(function(item) {
-	listitemchange(list,item[0],item[1],n,false);
+	listitemchange(list,item[0],item[1],n,false,listaddfoilfor(listid,item[0],item[1]));
     });
     listcounts(list);
     cache_thing("list",listid,list);
@@ -8535,7 +8587,9 @@ function cardlistbar() {
     var lists = activelists.filter(function(listid) { return listeditable(listid) && listquantity(listid, cardid, prid) !== ''; });
     var rows = lists.map(function(listid) {
 	var name = esc(activelistmeta(listid).name);
+	var f = listaddfoilfor(listid, cardid, prid);
 	return '<span class="cardlistrow" data-list="'+esc(listid)+'"><span class="cardlistname" title="'+name.replace(/"/g,'&quot;')+'">'+name+'</span>'+
+	    (f ? ' '+templatefoilmark(f) : '')+
 	    '<button type="button" class="cardliststep" data-step="-1" aria-label="One fewer in '+name.replace(/"/g,'&quot;')+'">\u2212</button>'+
 	    '<span class="listqty" data-list="'+esc(listid)+'" data-card="'+cardid+'" data-printing="'+prid+'"></span>'+
 	    '<button type="button" class="cardliststep" data-step="1" aria-label="One more in '+name.replace(/"/g,'&quot;')+'">+</button>'+
@@ -8577,6 +8631,10 @@ function deckswipeapply(listid, cardid, prid, act, named=false) {
     var have = Number(listquantity(listid, cardid, prid)) || 0;
     var card = cache_card_fetch(cardid);
     var title = card ? [].concat(card.title).join() : 'card #' + cardid;
+    var f = listaddfoilfor(listid, cardid, prid);
+    if(f) {
+	title += f == 'either' ? ' (foil or not)' : ' (foil)';
+    }
     if(named) {
 	title += ' \u2192 ' + activelistmeta(listid).name;
     }

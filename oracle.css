@@ -450,6 +450,10 @@ a.ex { float: right; font-size: large;}
 .foilmark.foilregular { color: var(--text-5); border: 1px dashed var(--line-4); background: var(--panel); font-weight: normal; }
 .foiltoggle { cursor: pointer; }
 .foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
+/* the Active Lists bar's Adding switch (listaddfoilpick): what +/- outside the list view adds */
+.listaddfoil { font-size: 0.85em; color: var(--text-5); }
+.listaddfoilopt { font: inherit; padding: 0 6px; margin-left: 3px; margin-top: 2px; white-space: nowrap; border: 1px solid var(--line-4); border-radius: 9px; background: var(--panel); color: var(--text-5); cursor: pointer; }
+.listaddfoilopt.on { color: var(--foil-text); border-color: var(--foil-border); font-weight: bold; }
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
 /* a result's thumbnail (_select: 210px tall, ~150 wide; landscape 210x150) takes its room before the picture loads,
    so the rows don't reflow as each one arrives (layout shift, Search Console CLS 0.54 on phones, 2026-11-05).
