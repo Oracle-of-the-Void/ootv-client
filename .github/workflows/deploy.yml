@@ -8,6 +8,11 @@ on:
       - dev
       - master
   workflow_dispatch:
+    inputs:
+      invalidate:
+        description: 'Also invalidate CloudFront (/*; prod only). Only when the user asks for it.'
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-${{ github.ref_name }}
@@ -32,7 +37,10 @@ jobs:
             master)
               echo "bucket=oracleofthevoid.com" >> $GITHUB_OUTPUT
               echo "distribution=E6ECGAAP7LNKR" >> $GITHUB_OUTPUT
-              echo "invalidate=true" >> $GITHUB_OUTPUT
+              # never on its own (the user, 2026-11-18: "DEPLOYS ARE NOT SUPPOSED TO DO AN AUTOMATIC INVALIDATION
+              # WITHOUT MY EXPRESSED INTENT"): only a manual run with invalidate ticked. Versioned assets don't need
+              # one: the distribution's cache key includes the v query string.
+              echo "invalidate=${{ github.event_name == 'workflow_dispatch' && inputs.invalidate == true }}" >> $GITHUB_OUTPUT
               ;;
             dev)
               echo "bucket=preview.oracleofthevoid.com" >> $GITHUB_OUTPUT
@@ -80,10 +88,10 @@ jobs:
       #   *.js, *.css               versioned (?v=<commit>) -> cached a year, immutable
       #   pages, version.json, docs  revalidated on every load (no-cache; 304 when unchanged)
       #   everything else (images)   cached a day
-      # CloudFront leaves the query string out of its cache key, so oracle.js?v=new could be
-      # answered with the old oracle.js until the invalidation finishes, and a browser would
-      # then keep that for a year. So: upload assets, invalidate and wait, and only then
-      # upload the pages that point at the new URLs.
+      # CloudFront's cache key includes the v query string (prod, 2026-11-18), so oracle.js?v=new is a new object and
+      # no invalidation is needed. A changed unversioned file (an image under res/) shows within a day; if it can't
+      # wait, run this workflow by hand with invalidate ticked, which the user asks for. Order kept: assets first,
+      # pages that point at them last.
       - name: Sync to S3
         if: steps.newest.outputs.current == 'true'
         env:
