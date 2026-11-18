@@ -21,6 +21,8 @@ pair for each active list, and the number between them is how many that list hol
 showing is the one counted; pick one under **Versions** first to add that printing. With no printing
 picked, they count the card without one. If the list also holds other printings or foils of the
 card, *n in all* gives the total. Taking the last copy out asks first.
+They add a regular copy, or a foil one when the list's **Adding** switch in the Active Lists box
+says foil ([Foil copies](lists.md#foil)); a ✦ mark beside the list's name shows it.
 
 With no list active, **+ Add to a list** asks which one to use, and makes it active.
 
