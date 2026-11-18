@@ -4,6 +4,9 @@
 //     card page's traders link): who has / wants that card, GET /trade mode=cards.
 //   Messages (#view=messages, #thread=<id>): the inbox and one conversation at a time, /messages. A Message
 //     button opens the conversation with that player (msgstate.other), carrying the trade's cards as context.
+//   Play ties (ootv-claude ONLINE-PLAY-MESSAGING.md): a game invite in a conversation (context.play) links to the
+//     play table's #join; a conversation's Invite to a game opens the table with that player (/play/#with=<uid>);
+//     stars (favourite) put people first; talk links (#talk=<uid>-<code>) connect friends from outside the site.
 // Only lists their owners opened to trade count (list header: Open to trade).
 window.tradeloaded = true;
 
@@ -171,6 +174,10 @@ function messagestart(uid, el) {
 }
 function messagesrender() {
   var area = $('#messagesarea');
+  if(sessionStorage.getItem('talkpending')) {
+    talktake();
+    return;
+  }
   if(!tradeloggedin()) {
     area.html('<h2>Messages</h2>'+tradeloginprompt('read your messages'));
     return;
@@ -190,20 +197,40 @@ function messagesinbox(area) {
     success: function(data) {
       $('.msgbadge').text(data.unread > 99 ? '99+' : data.unread).toggle(data.unread > 0);
       var threads = data.threads || [];
+      // favourites first, each group newest first as the server sent it
+      threads = threads.filter(function(t) { return t.favourite; }).concat(threads.filter(function(t) { return !t.favourite; }));
       area.find('.msgstatus').html(threads.length ? '' :
-	'No conversations yet. Message someone from <a href="" onclick="showview(\'resulttrades\'); return false;">Trades</a>.');
+	'No conversations yet. Message someone from <a href="" onclick="showview(\'resulttrades\'); return false;">Trades</a>, or invite a friend to talk below.');
       area.append('<div class="msginbox">'+threads.map(function(t) {
 	return '<div class="msgthreadrow'+(t.unread && !t.muted ? ' msgunread' : '')+'" data-thread="'+tradeattr(t.threadid)+'" data-other="'+parseInt(t.other)+'">'+
+	  msgstar(t.other, t.favourite)+
 	  '<span class="msgwho">'+tradeesc(t.othername)+'</span>'+
 	  (t.subject ? ' <span class="msgsubject">'+tradeesc(t.subject)+'</span>' : '')+
 	  (t.muted ? ' <small>(muted)</small>' : '')+(t.blocked ? ' <small>(blocked)</small>' : '')+
 	  (t.unread && !t.muted ? ' <span class="msgcount">'+parseInt(t.unread)+'</span>' : '')+
 	  '<span class="msgwhen">'+tradeesc(formatdateshort(new Date(t.lastmessage)))+'</span></div>';
       }).join('')+'</div>');
+      talklinksdraw(area);
     },
     error: function(xhr) { area.find('.msgstatus').html('<span class="error">'+tradeesc(tradeerror(xhr))+'</span>'); }
   });
 }
+// a star: favourite or not (POST /messages favourite|unfavourite); favourites go first here and on the play table
+function msgstar(other, on) {
+  return '<button type="button" class="msgstar'+(on ? ' msgstarred' : '')+'" data-other="'+parseInt(other)+'" aria-pressed="'+(on ? 'true' : 'false')+'"'+
+    ' title="'+(on ? 'Favourite: click to unstar' : 'Star as a favourite')+'" aria-label="Favourite">'+(on ? '&#9733;' : '&#9734;')+'</button>';
+}
+$(document).on('click', '#messagesarea .msgstar', function(e) {
+  e.stopPropagation();
+  var btn = $(this), on = !btn.hasClass('msgstarred');
+  $.ajax({
+    type: 'POST', url: apiuri+'/messages', contentType: 'application/json', dataType: 'json',
+    data: JSON.stringify({uid: getuid(), action: on ? 'favourite' : 'unfavourite', other: btn.data('other')}),
+    beforeSend: tradeauth,
+    success: function() { btn.replaceWith(msgstar(btn.data('other'), on)); },
+    error: function(xhr) { alert('Could not change the star: '+tradeerror(xhr)); }
+  });
+});
 $(document).on('click', '#messagesarea .msgthreadrow', function() {
   msgstate = {thread: String($(this).data('thread')), other: $(this).data('other'), othername: $(this).find('.msgwho').text(), context: null};
   seturl(viewstate('messages'));
@@ -219,6 +246,7 @@ function messagesthread(area) {
   area.html('<div class="msghead"><a href="" onclick="messagesback(); return false;">&larr; All messages</a> <h2 class="msgtitle">'+tradeesc(msgstate.othername || '')+'</h2></div>'+
     '<div class="msgflags"></div><div class="msgthread"><div class="msgstatus">Loading&hellip;</div></div>'+
     '<form class="msgcompose" onsubmit="messagesend(this); return false;">'+
+      (msgstate.context && msgstate.context.play ? '<div class="msgcontext">With a game invite'+(msgstate.context.play.arc ? ' ('+tradeesc(msgstate.context.play.arc)+')' : '')+'</div>' : '')+
       (msgstate.context && (msgstate.context.cardids || []).length ? '<div class="msgcontext">About a trade of '+msgstate.context.cardids.length+' card'+(msgstate.context.cardids.length == 1 ? '' : 's')+'</div>' : '')+
       '<textarea name="text" maxlength="2000" rows="3" placeholder="Write a message" aria-label="Message"></textarea>'+
       '<button type="submit" class="button gray"><svg class="feather"><use xlink:href="res/feather-sprite.svg#send"></svg> Send</button> <span class="msgsendstatus"></span>'+
@@ -256,7 +284,8 @@ function messagesthread(area) {
 function messagesdraw(area, messages, names) {
   var me = getuid();
   area.find('.msgthread').html((messages || []).map(function(m) {
-    var ctx = m.context && (m.context.cardids || []).length ? '<div class="msgctx">Trade: '+m.context.cardids.map(function(id) {
+    var ctx = m.context && m.context.play ? msgplaycard(m.context.play, m.from == me) : '';
+    ctx += m.context && (m.context.cardids || []).length ? '<div class="msgctx">Trade: '+m.context.cardids.map(function(id) {
       var c = cache_card_is(id) ? cache_card_fetch(id) : null;
       var t = c && c.title ? $('<div>').html([].concat(c.title).join(', ')).text() : 'card #'+id;
       // card peek only for this game's cards (it reads this game's cache)
@@ -264,7 +293,7 @@ function messagesdraw(area, messages, names) {
       return '<a'+peek+' href="#game='+tradeesc(m.context.game || database)+',#cardid='+parseInt(id)+'" onclick="tradeopencard('+parseInt(id)+'); return false;">'+tradeesc(t)+'</a>';
     }).join(', ')+'</div>' : '';
     return '<div class="msg'+(m.from == me ? ' msgmine' : '')+'"><div class="msgmeta">'+tradeesc(m.from == me ? 'You' : (names[m.from] || ''))+' &middot; '+
-      tradeesc(formatdate(new Date(m.time)))+'</div>'+ctx+'<div class="msgtext">'+tradeesc(m.text).replace(/\n/g, '<br>')+'</div></div>';
+      tradeesc(formatdate(new Date(m.time)))+'</div>'+ctx+(m.text ? '<div class="msgtext">'+tradeesc(m.text).replace(/\n/g, '<br>')+'</div>' : '')+'</div>';
   }).join('') || '<div class="msgstatus"><i>No messages yet.</i></div>');
   // the cards named in trade contexts: fetch the ones not cached, then draw their titles
   var missing = [];
@@ -285,6 +314,8 @@ function messagesflags(area, thread) {
     return '<button type="button" class="button gray buttonsmaller" onclick="messageflag(\''+action+'\');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+icon+'"></svg> '+label+'</button> ';
   };
   area.find('.msgflags').html(
+    (thread.blocked ? '' : '<a class="button gray buttonsmaller" href="'+tradeattr(playurl(null, '#with='+parseInt(other)))+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#play"></svg> Invite to a game</a> ')+
+    (thread.favourite ? b('unfavourite', 'Unstar', 'star') : b('favourite', 'Star', 'star'))+
     (thread.muted ? b('unmute', 'Unmute', 'bell') : b('mute', 'Mute', 'bell-off'))+
     (thread.blocked ? b('unblock', 'Unblock', 'user-check') : b('block', 'Block', 'user-x'))+
     (thread.threadid ? b('report', 'Report', 'flag') : ''));
@@ -311,6 +342,111 @@ function messageflag(action) {
     error: function(xhr) { alert('Could not '+action+': '+tradeerror(xhr)); }
   });
 }
+// the play table's address on this site (served at /play/, ootv-play README); table: the game (?game=), none for
+// the table's own default
+function playurl(table, hash) {
+  return location.origin+'/play/'+(table ? '?game='+encodeURIComponent(table) : '')+(hash || '');
+}
+// a game invite in a conversation: the invite link (the play table's #join with its code) for the one invited
+function msgplaycard(p, mine) {
+  var what = 'a game'+(p.arc ? ' ('+tradeesc(p.arc)+')' : '');
+  if(mine) return '<div class="msgctx msgplay">You invited them to '+what+'.</div>';
+  var link = p.code ? playurl(p.table, '#join='+encodeURIComponent(p.game)+'&code='+encodeURIComponent(p.code)) : null;
+  return '<div class="msgctx msgplay">Invited you to '+what+'.'+
+    (link ? ' <a class="button gray buttonsmaller" href="'+tradeattr(link)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#play"></svg> See the invite</a>' : '')+
+    '</div>';
+}
+
+// ******************** TALK LINKS ********************
+// Invite a friend to talk: links you give outside the site, each with its own expiry and uses
+// (POST /messages talklink / talkdelete; GET ?talklinks=1). Taking one: #talk=<uid>-<code> (talktake).
+var TALKEXPIRES = [['7d', '7 days'], ['1d', '1 day'], ['30d', '30 days'], ['never', 'Never']];
+function talklinkurl(link) {
+  return location.origin+'/#talk='+link;
+}
+function talklinksdraw(area) {
+  area.find('.talklinks').remove();
+  area.append('<div class="talklinks"><h3>Invite a friend to talk</h3>'+
+    '<p>A link to give a friend any way you like. Whoever opens it, logged in, can message you and invite you to games, and you them.</p>'+
+    '<form class="talkmake" onsubmit="talklinkmake(this); return false;">'+
+      '<label>Expires <select name="expires">'+TALKEXPIRES.map(function(e) { return '<option value="'+e[0]+'">'+e[1]+'</option>'; }).join('')+'</select></label> '+
+      '<label>Uses <select name="once"><option value="true">Once</option><option value="false">Any number</option></select></label> '+
+      '<button type="submit" class="button gray buttonsmaller"><svg class="feather"><use xlink:href="res/feather-sprite.svg#link"></svg> Make a link</button> '+
+      '<span class="talkstatus"></span>'+
+    '</form><div class="talklist"></div></div>');
+  $.ajax({
+    url: apiuri+'/messages?uid='+getuid()+'&talklinks=1',
+    dataType: 'json',
+    beforeSend: tradeauth,
+    success: function(data) { talklistdraw(area, data.talklinks || []); },
+    error: function(xhr) { area.find('.talklist').html('<span class="error">'+tradeesc(tradeerror(xhr))+'</span>'); }
+  });
+}
+function talklistdraw(area, links) {
+  area.find('.talklist').html(links.map(function(t) {
+    var url = talklinkurl(t.link);
+    var state = !t.live ? (t.once && t.used ? 'used' : 'expired') :
+      (t.expires ? 'expires '+formatdateshort(new Date(t.expires)) : 'never expires')+(t.once ? ', once' : '');
+    return '<div class="talkrow'+(t.live ? '' : ' talkgone')+'">'+
+      (t.live ? '<input type="text" readonly value="'+tradeattr(url)+'" aria-label="Talk link" onclick="this.select();"> '+
+	'<button type="button" class="button gray buttonsmaller" onclick="talklinkcopy(this);"><svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg> Copy</button> ' : '')+
+      '<small>'+tradeesc(state)+' &middot; made '+tradeesc(formatdateshort(new Date(t.created)))+' &middot; taken '+parseInt(t.used || 0)+'&times;</small> '+
+      '<button type="button" class="button gray buttonsmaller" onclick="talklinkdelete(\''+tradeattr(t.code)+'\');"><svg class="feather"><use xlink:href="res/feather-sprite.svg#trash-2"></svg> Delete</button>'+
+      '</div>';
+  }).join(''));
+}
+function talklinkmake(form) {
+  var status = $(form).find('.talkstatus');
+  status.text('Making...');
+  $.ajax({
+    type: 'POST', url: apiuri+'/messages', contentType: 'application/json', dataType: 'json',
+    data: JSON.stringify({uid: getuid(), action: 'talklink', expires: $(form).find('[name="expires"]').val(), once: $(form).find('[name="once"]').val() == 'true'}),
+    beforeSend: tradeauth,
+    success: function() { talklinksdraw($('#messagesarea')); },
+    error: function(xhr) { status.text('Not made: '+tradeerror(xhr)); }
+  });
+}
+function talklinkcopy(btn) {
+  var input = $(btn).prev('input')[0];
+  var done = function() { $(btn).html('Copied'); };
+  if(navigator.clipboard) navigator.clipboard.writeText(input.value).then(done, function() { input.select(); });
+  else { input.select(); }
+}
+function talklinkdelete(code) {
+  if(!confirm('Delete this link? Nobody can connect with it after.')) return;
+  $.ajax({
+    type: 'POST', url: apiuri+'/messages', contentType: 'application/json', dataType: 'json',
+    data: JSON.stringify({uid: getuid(), action: 'talkdelete', code: code}),
+    beforeSend: tradeauth,
+    success: function() { talklinksdraw($('#messagesarea')); },
+    error: function(xhr) { alert('Could not delete: '+tradeerror(xhr)); }
+  });
+}
+// a talk link opened (#talk=, kept in sessionStorage across the login): connect, then open the conversation
+function talktake() {
+  var link = sessionStorage.getItem('talkpending');
+  if(!link) return;
+  if(!tradeloggedin()) {
+    $('#messagesarea').html('<h2>Messages</h2><p>Someone sent you a link to connect with them.</p>'+tradeloginprompt('connect'));
+    return;
+  }
+  sessionStorage.removeItem('talkpending');
+  $.ajax({
+    type: 'POST', url: apiuri+'/messages', contentType: 'application/json', dataType: 'json',
+    data: JSON.stringify({uid: getuid(), action: 'talk', link: link}),
+    beforeSend: tradeauth,
+    success: function(data) {
+      if(data.own) { msgstate = {thread: null, other: null, othername: null, context: null}; }
+      else { msgstate = {thread: data.threadid, other: data.other.uid, othername: data.other.name, context: null}; }
+      seturl(viewstate('messages'));
+      messagesrender();
+    },
+    error: function(xhr) {
+      $('#messagesarea').html('<h2>Messages</h2><p class="error">Could not connect: '+tradeesc(tradeerror(xhr))+'</p>');
+    }
+  });
+}
+
 function messagesend(form) {
   var text = $(form).find('[name="text"]').val().trim();
   var status = $(form).find('.msgsendstatus');

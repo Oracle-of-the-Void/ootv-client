@@ -70,6 +70,17 @@ haven't read, and **Messages** lists your conversations, newest first.
 A message holds up to 2,000 characters. To keep out spam, each player can start up to 20 new
 conversations and send up to 200 messages a day.
 
+### Stars, games and friends {#friends}
+
+- **Star** a conversation (the ☆ in the list, or **Star** in the conversation) to keep that player at the top.
+- **Invite to a game** in a conversation opens the play table to start a game with them. A game invite sent to
+  you shows in the conversation with **See the invite**, which opens it on the play table to pick your deck and
+  accept.
+- **Invite a friend to talk**, under your conversations, makes a link to give a friend outside the site (Discord,
+  email, in person). Choose how long it lasts (1 day, 7 days, 30 days or never) and whether it works once or for
+  anyone you give it to. Whoever opens it, logged in, is connected with you: the conversation is there for both of
+  you to message and invite each other to games. **Delete** a link to stop it working. Blocking still applies.
+
 ## After a trade {#after}
 
 Take the cards you traded away off your Have list, and the ones you got off your Want list (or

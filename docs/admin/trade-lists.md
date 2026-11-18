@@ -43,6 +43,13 @@ rebuild (`lib/tradequiet.js`); the state is `tradenotice` on the user (`warned`,
 - Limits: a verified email and a display name to send; 20 new conversations and 200 messages a day.
 - A player can switch messages off (Settings), mute or block someone.
 - Emails name the sender and link to the site, never the text, once per conversation until read.
+- Play ties (ootv-claude `ONLINE-PLAY-MESSAGING.md`): a message may carry a game invite (`context.play`: the play
+  server's game id, table, arc, invite code), shown as **See the invite**; its email is `playinvite`, with no text.
+  **Stars** (`favourite`) are a flag on the player's own conversation row.
+- **Talk links**: kept on the owner's user row (`talklinks`: created, expires, once, used); the link is
+  `/#talk=<uid>-<code>`. Taking one makes the empty conversation for both (subject `Connected by link`) and counts
+  as a new conversation against the taker's daily limit; refused if expired, used up, deleted, blocked either way,
+  or either has messages off.
 
 ## Reports
 
