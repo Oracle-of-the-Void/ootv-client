@@ -201,13 +201,17 @@ A push to `master` also runs `discord-push`, which finishes first: to wait for a
 Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stamps the
 checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
 `var ootvversion` in `index.html` gets the sha, and it writes `version.json` (the sha plus a UTC
-`timestamp`, shown on the admin page with when this browser cached each select). `.js` and `.css` are then served `immutable` for a year, the pages, `version.json` and `docs/admin`
-as `no-cache`, and images for a day. CloudFront gzips text files on both distributions (`Compress` on the default
+`timestamp`, shown on the admin page with when this browser cached each select). `.js` and `.css` are then served `immutable` for a year;
+the pages and `docs/admin`/`docs/help` as `max-age=0, s-maxage=1800, stale-while-revalidate=86400` (browsers check every
+load, CloudFront keeps them 30 minutes, then answers from its copy while fetching a fresh one: no trip to S3 per visit);
+`version.json` as `no-cache`; images for a day. CloudFront gzips text files on both distributions (`Compress` on the default
 cache behavior, since 2026-10-30; no brotli, which would need a cache policy instead of the legacy cache settings). So anything new that `oracle.js` loads at runtime from
 this repo needs `'?v='+ootvversion` on its URL (see the cardeditor.js, help.js and pica loads), or
-browsers keep a stale copy for a year. CloudFront ignores query strings, so the deploy
-uploads assets, invalidates and waits (the deploy roles need `cloudfront:GetInvalidation`),
-then uploads the pages. A tab left open across a deploy checks `version.json` when it comes
+browsers keep a stale copy for a year. Prod CloudFront's cache key includes the `v` query string (2026-11-18), so a
+new version is a new object and **the deploy never invalidates** (#666; the user, 2026-11-18: no invalidation without
+their expressed intent). One is a manual Deploy run (Actions → Deploy → Run workflow) with `invalidate` ticked, only
+when the user asks. Assets go up first, pages last. After a deploy a visitor can get the old page for up to about 30
+minutes (fine, the user's call). A tab left open across a deploy checks `version.json` when it comes
 back into view (`checkversion`) and offers a reload. Locally `ootvversion` is `'dev'` and
 the check is off.
 
