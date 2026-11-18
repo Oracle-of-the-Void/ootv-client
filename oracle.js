@@ -2823,6 +2823,11 @@ function msgunread() {
     $('.msgbadge').hide();
     return;
   }
+  // back from logging in with a talk link waiting (trade.js talktake)
+  if(sessionStorage.getItem('talkpending') && !$('#resultmessages').is(':visible')) {
+    msgstate = {thread: null, other: null, othername: null, context: null};
+    tradeviewshow('resultmessages');
+  }
   $.ajax({
     url: apiuri+'/messages?uid='+getuid()+'&unread=1',
     dataType: 'json',
@@ -11097,6 +11102,12 @@ function urlparser(keepfilters=false) {
 	  helpstate = {topic: matchstruct['help'], sec: matchstruct['helpsec'] || null};
 	  urlrestoring = 'help';
 	  helpshowview();
+  } else if(typeof(matchstruct['talk']) != 'undefined') {
+	  // a talk link (trade.js talktake): kept across the login, then the inbox connects and opens the conversation
+	  if(/^\d+-[0-9a-f]{24}$/.test(matchstruct['talk'])) sessionStorage.setItem('talkpending', matchstruct['talk']);
+	  msgstate = {thread: null, other: null, othername: null, context: null};
+	  urlrestoring = 'messages';
+	  tradeviewshow('resultmessages');
   } else if(typeof(matchstruct['thread']) != 'undefined') {
 	  msgstate = {thread: matchstruct['thread'], other: null, othername: null, context: null};
 	  urlrestoring = 'messages';

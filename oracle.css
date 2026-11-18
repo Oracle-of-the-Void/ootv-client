@@ -3652,6 +3652,16 @@ div.msgmeta { font-size: small; color: var(--text-5); }
 div.msgctx, div.msgcontext { font-size: small; color: var(--info-3); margin: 2px 0; }
 form.msgcompose textarea { width: 100%; box-sizing: border-box; font: inherit; }
 form.msgcompose { margin-top: 6px; }
+/* stars (favourites), game invites, talk links (ootv-claude ONLINE-PLAY-MESSAGING.md) */
+button.msgstar { border: 0; background: none; padding: 0 2px; font-size: 1.1em; line-height: 1; cursor: pointer; color: var(--text-6); }
+button.msgstar.msgstarred { color: var(--warn-1); }
+div.msgctx.msgplay { color: var(--text); }
+div.talklinks { margin-top: 18px; padding-top: 8px; border-top: 1px solid var(--line-3); }
+div.talklinks h3 { margin: 4px 0; }
+form.talkmake { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 6px 0; }
+div.talkrow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--line-3); }
+div.talkrow input { flex: 1 1 260px; min-width: 0; font-size: small; }
+div.talkrow.talkgone small { color: var(--text-6); text-decoration: line-through; }
 @media (max-width: 600px) {
   div.tradelist { grid-template-columns: 1fr; }
   div.msg { max-width: 92%; }

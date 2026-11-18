@@ -355,11 +355,15 @@ Messages between users, one conversation per pair (`threadid` = `<smaller uid>-<
 
 | request | does |
 |---|---|
-| `GET ?uid=` | inbox, newest first: `{threads: [{threadid, other, othername, lastmessage, lastfrom, unread, subject, muted, blocked, reported}], unread, next}`; `&before=<next>` for the next 50 |
+| `GET ?uid=` | inbox, newest first: `{threads: [{threadid, other, othername, lastmessage, lastfrom, unread, subject, muted, blocked, favourite, reported}], unread, next}`; `&before=<next>` for the next 50 |
+| `GET ?uid=&talklinks=1` | your talk links, newest first: `{talklinks: [{code, link, created, expires, once, used, live}]}` (`link` = `<uid>-<code>`, opened as `/#talk=<link>`) |
 | `GET ?uid=&unread=1` | `{unread}`: unread messages, not counting muted or blocked conversations |
 | `GET ?uid=&threadid=` | a conversation, marked read: `{thread, other: {uid, name}, names, messages: [{msgkey, from, text, context, time}], next}`, 50 at a time, oldest first. 404 if there's none yet. A site admin can read a conversation one side reported |
-| `POST {uid, to, text[, context]}` | send. `text` plain text, up to 2,000 characters. `context` `{game, listids, cardids}` (a trade) is kept on the message. Needs a verified email and a display name; 20 new conversations and 200 messages a day. 403 when blocked or the recipient doesn't accept messages |
-| `POST {uid, action: mute\|unmute\|block\|unblock, other}` | mute: no email or unread count from them; block: no messages either way |
+| `POST {uid, to, text[, context]}` | send. `text` plain text, up to 2,000 characters. `context` `{game, listids, cardids}` (a trade) or `{play: {game, table, arc, code}}` (a game invite: the play server's game id, `?game=` table, arc name, invite code; `text` may then be empty, the subject is `Game invite: <arc>`, the email `playinvite`) is kept on the message. Needs a verified email and a display name; 20 new conversations and 200 messages a day. 403 when blocked or the recipient doesn't accept messages |
+| `POST {uid, action: mute\|unmute\|block\|unblock\|favourite\|unfavourite, other}` | mute: no email or unread count from them; block: no messages either way; favourite: a star, listed first |
+| `POST {uid, action: talklink, expires: 1d\|7d\|30d\|never, once}` | a talk link: `{talklink}`; up to 20 live at once |
+| `POST {uid, action: talkdelete, code}` | deletes one |
+| `POST {uid, action: talk, link}` | connect through someone's talk link: `{threadid, other: {uid, name}}` (`already: true` if connected; `own: true` for your own). 404 expired, used up, deleted or blocked by its owner; 403 messages off or you blocked them |
 | `POST {uid, action: report, threadid[, reason]}` | emails the site admins; they can then read the conversation |
 
 The recipient gets one email per conversation until they read it (none if muted or `messageemail` is `off`). It
