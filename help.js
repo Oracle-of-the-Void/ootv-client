@@ -16,6 +16,7 @@ var HELPTOPICS = [
   {id: 'identify-lbs', title: 'Identifying LBS cards'},
   {id: 'lists', title: 'Decks and lists'},
   {id: 'public-lists', title: 'Public lists'},
+  {id: 'trading', title: 'Trading and messages'},
   {id: 'rules', title: 'Bookshelf'},
   {id: 'settings', title: 'Account and settings'},
   {id: 'fields', title: 'Card fields', generated: true},

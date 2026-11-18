@@ -621,6 +621,7 @@ function userinfocallback() {
     rendersavedsearches();
     applysearchdefault();
     applyfavoritegame();
+    msgunread();
     applysavedtheme();
 }
 // the name to show: the one saved on the user (firstname/lastname, editable on Settings, #21), else the login's
@@ -2753,6 +2754,51 @@ function helpload(done) {
 function helpshow() {
   helpload(function() { helprender(); });   // helprender is in help.js, not there yet
 }
+// Trades and Messages (trade.js, loaded on first use; ootv-claude TRADE-LISTS.md). tradestate: the card the
+// Trades view looks for traders of (null: your matches); msgstate: the conversation open (null: the inbox),
+// with the other player's uid and name when it's one you're starting.
+var tradestate = {card: null};
+var msgstate = {thread: null, other: null, othername: null, context: null};
+function tradeload(done) {
+  if(window.tradeloaded) { done(); return; }
+  $.ajax({url: 'trade.js?v='+ootvversion, dataType: 'script', cache: true})
+    .done(done)
+    .fail(function() { $('#tradesarea, #messagesarea').html('<span class="error">Could not load trading.</span>'); });
+}
+// the menubar envelope's unread count (/messages unread), on sign-in and every few minutes while the page is seen
+function msgunread() {
+  if(!signedin() || !cache_thing("user","data") || !cache_thing("user","data").oracle) {
+    $('.msgbadge').hide();
+    return;
+  }
+  $.ajax({
+    url: apiuri+'/messages?uid='+getuid()+'&unread=1',
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      var n = data.unread || 0;
+      $('.msgbadge').text(n > 99 ? '99+' : n).toggle(n > 0);
+      $('.msgbutton').attr('aria-label', n ? 'Messages ('+n+' unread)' : 'Messages');
+    }
+  });
+}
+setInterval(function() { if(document.visibilityState == 'visible') msgunread(); }, 3*60*1000);
+document.addEventListener('visibilitychange', function() { if(document.visibilityState == 'visible') msgunread(); });
+// the list header's Open to trade select (have and want lists): /list updatefield=trade, which also makes the
+// list public; the server says why it can't (no display name, messages off)
+function listtradeset(listid, el) {
+  var on = el.value == 'true';
+  listinfoupdate(listid, 'trade', on ? 'true' : 'false', function() {
+    $(el).val(on ? 'false' : 'true');
+  });
+}
+// a list update the server refused: say why (listinfoupdate's failed hook gets no message, so this reads it)
+$(document).ajaxError(function(e, xhr, settings) {
+  if(settings.url && settings.url.indexOf('updatefield=trade') >= 0 && xhr.status == 400) {
+    alert((xhr.responseJSON && xhr.responseJSON.error) || "Couldn't open this list to trade");
+  }
+});
+
 // the Help view drawn for helpstate (as rulesshowview)
 function helpshowview() {
   if($('#resulthelp').is(':visible')) {
@@ -2770,6 +2816,16 @@ function helpopen(topic,sec) {
     helpshow();
   } else {
     showview('resulthelp');
+  }
+}
+
+// the Trades / Messages view drawn for tradestate / msgstate (as rulesshowview)
+function tradeviewshow(view) {
+  if($('#'+view).is(':visible')) {
+    seturl(viewstate(view.replace(/^result/,'')), true);
+    tradeload(function() { if(view == 'resulttrades') tradesrender(); else messagesrender(); });
+  } else {
+    showview(view);
   }
 }
 
@@ -5928,6 +5984,18 @@ function saveprofiledisplayname(el) {
     $('.profiledisplaynamestatus').text("Saved.");
   });
 }
+// Settings → Messages: accept messages (off also closes your trade lists), email on a new message
+function saveprofilemessaging(el) {
+  var section = $(el).closest('dd');
+  var status = section.find('.profilemessagesstatus');
+  var accept = section.find('.profileacceptmessages').prop('checked');
+  status.text("Saving...");
+  postprofile({'action': 'messaging', 'acceptmessages': accept,
+    'messageemail': section.find('.profilemessageemail').prop('checked') ? 'each' : 'off'}, status, function() {
+    $('.profilemessagesstatus').text(accept ? "Saved." : "Saved. Your lists are no longer open to trade.");
+    $('.profilemessageemail').prop('disabled', !accept);
+  });
+}
 // the emails for the Profile section: which one you're signed in with, and a code waiting to be entered
 function profileemails(user) {
   var login = (user.cognito && user.cognito.email || '').toLowerCase();
@@ -7421,12 +7489,14 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
       if($("#lastcardid").val() != String(full.cardid)) { return; }   // moved on to another card
       var mine = $('#resultcard a.cardmylists').detach();   // its count may still be on the way (mycardcount)
       drawcard(full, lastcardprid() || prid, qs);
+      cardtraders(full.cardid);
       $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
       if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
       if((database+'/'+full.cardid) in cardfamilies) { cardfamily(full.cardid, pagetitlename(full)); }
     });
   }
   publiccardcount(carddata.cardid);
+  cardtraders(carddata.cardid);
   mycardcount(carddata.cardid);
   cardfamily(carddata.cardid, pagetitlename(carddata));
 
@@ -8719,6 +8789,8 @@ function showview(view) {
 	updateviewbuttons();
 	if(view == 'resultrules' && $('#resultrules').is(':visible')) rulesshow();
 	if(view == 'resulthelp' && $('#resulthelp').is(':visible')) helpshow();
+	if(view == 'resulttrades' && $('#resulttrades').is(':visible')) tradeload(function() { tradesrender(); });
+	if(view == 'resultmessages' && $('#resultmessages').is(':visible')) tradeload(function() { messagesrender(); });
 	if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
     });
 }
@@ -10681,6 +10753,10 @@ function hashstate(hash) {
     return {view: 'rules', shelf: m.shelf};
   } else if(m.help !== undefined) {
     return {view: 'help', topic: m.help, sec: m.helpsec || null};
+  } else if(m.thread !== undefined) {
+    return {view: 'messages', thread: m.thread};
+  } else if(m.tradecard !== undefined) {
+    return {view: 'trades', card: m.tradecard};
   } else if(m.view !== undefined) {
     return {view: m.view};
   }
@@ -10703,6 +10779,10 @@ function statehash(state) {
     return h+',#shelf='+state.shelf;
   } else if(state.view == 'help' && state.topic) {
     return h+',#help='+state.topic+(state.sec ? ',#helpsec='+state.sec : '');
+  } else if(state.view == 'messages' && state.thread) {
+    return h+',#thread='+state.thread;
+  } else if(state.view == 'trades' && state.card) {
+    return h+',#tradecard='+state.card;
   } else if(state.view == 'about') {
     return h;
   }
@@ -10721,6 +10801,10 @@ function viewstate(view) {
     return {view: view, pq: lastpublicquery || null};
   } else if(view == 'help') {
     return {view: view, topic: helpstate.topic, sec: helpstate.sec};
+  } else if(view == 'messages') {
+    return {view: view, thread: msgstate.thread};
+  } else if(view == 'trades') {
+    return {view: view, card: tradestate.card};
   } else if(view == 'rules') {
     return {view: view, shelf: rulesstate.shelf, book: rulesstate.book, page: rulesstate.page, find: rulesstate.find, line: rulesstate.line, at: rulesstate.at, sec: rulesstate.sec};
   }
@@ -10924,8 +11008,21 @@ function urlparser(keepfilters=false) {
 	  helpstate = {topic: matchstruct['help'], sec: matchstruct['helpsec'] || null};
 	  urlrestoring = 'help';
 	  helpshowview();
+  } else if(typeof(matchstruct['thread']) != 'undefined') {
+	  msgstate = {thread: matchstruct['thread'], other: null, othername: null, context: null};
+	  urlrestoring = 'messages';
+	  tradeviewshow('resultmessages');
+  } else if(typeof(matchstruct['tradecard']) != 'undefined') {
+	  tradestate.card = parseInt(matchstruct['tradecard'], 10) || null;
+	  urlrestoring = 'trades';
+	  tradeviewshow('resulttrades');
   } else if(typeof(matchstruct['view']) != 'undefined') {
-	  if(matchstruct['view'] == 'help') {
+	  if(matchstruct['view'] == 'messages' || matchstruct['view'] == 'trades') {
+	    if(matchstruct['view'] == 'messages') msgstate = {thread: null, other: null, othername: null, context: null};
+	    else tradestate.card = null;
+	    urlrestoring = matchstruct['view'];
+	    tradeviewshow('result'+matchstruct['view']);
+	  } else if(matchstruct['view'] == 'help') {
 	    helpstate = {topic: null, sec: null};
 	    urlrestoring = 'help';
 	    helpshowview();
@@ -12173,7 +12270,7 @@ function searchviewbutton() {
 }
 // wide screens: Help, the Bookshelf and Public lists don't use the search form, so it starts collapsed there. Opening or
 // closing it by hand holds for those views together, and separately for the others. The phone layout ignores this (oracle.css).
-var sidebarnosearch = {resulthelp: true, resultrules: true, resultpublic: true};
+var sidebarnosearch = {resulthelp: true, resultrules: true, resultpublic: true, resulttrades: true, resultmessages: true};
 var sidebaropen = {search: true, nosearch: false};
 var sidebarview = '';
 function sidebarkind() {
@@ -13555,6 +13652,48 @@ function publiccardcount(cardid) {
       show(publiccardcounts[key]);
     },
     error: function() { delete publiccardcounts[key]; }
+  });
+}
+// the card view: a link to the players with this card open to trade (beside the public lists globe), with
+// how many have it; only shown when someone has or wants it (GET /trade mode=cards)
+var cardtradercounts = {};
+function cardtraders(cardid) {
+  var key = database+'/'+cardid;
+  var show = function(c) {
+    var globe = $('#resultcard a.cardpubliclists');
+    if(String($("#lastcardid").val()) != String(cardid) || !globe.length) {
+      return;
+    }
+    $('#resultcard a.cardtraders').remove();
+    if(!c.have && !c.want) {
+      return;
+    }
+    var title = [c.have ? c.have+' '+(c.have == 1 ? 'player has' : 'players have')+' it' : '', c.want ? c.want+' '+(c.want == 1 ? 'wants' : 'want')+' it' : '']
+      .filter(function(x) { return x; }).join(', ')+' (open to trade)';
+    $('<a class="cardtraders" href="#game='+database+',#tradecard='+parseInt(cardid)+'"></a>')
+      .attr('title', title).attr('aria-label', title)
+      .html('<svg class="feather"><use xlink:href="res/feather-sprite.svg#repeat"></svg><span class="cardpubliccount">'+(c.have || 0)+'/'+(c.want || 0)+'</span>')
+      .on('click', function() { tradestate.card = parseInt(cardid); tradeviewshow('resulttrades'); return false; })
+      .insertAfter(globe);
+  };
+  if(key in cardtradercounts) {
+    show(cardtradercounts[key]);
+    return;
+  }
+  var counts = {};
+  var got = 0;
+  ['have','want'].forEach(function(side) {
+    $.ajax({
+      url: apiuri+'/trade?mode=cards&game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid)+'&side='+side,
+      dataType: 'json',
+      success: function(data) { counts[side] = (data.traders || []).length; },
+      complete: function() {
+        if(++got == 2) {
+          cardtradercounts[key] = counts;
+          show(counts);
+        }
+      }
+    });
   });
 }
 function publicattr(v) {
