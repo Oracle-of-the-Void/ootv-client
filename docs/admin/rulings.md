@@ -1,6 +1,6 @@
 # Rulings
 
-Last updated: 2026-10-27 (Ivory expansion rulesheets: card notes and card-named rules; weekly Discord Rules Q&A sync)
+Last updated: 2026-11-02 (those rulesheets' card notes are now in the 20F Comprehensive Rules only)
 
 `ruling` is a card-level field, in every game, for official rulings and clarifications about a
 card. Each ruling is one entry: the ruling's text, and usually a link to where it comes from.
@@ -41,7 +41,13 @@ ootv-claude `RULINGS-IMPORT.md`):
 
 - Each ruling is the archive's text with its citation (`[DW, l5rinfo, 11/4/96]`), then a link
   named for the document and page, e.g. `Rules Archive, August 18, 2007, p. 141`, that opens the
-  page marked at the ruling (`#find=` with its first words).
+  page marked at the ruling (`#find=` with its first words). The link's date is the document's;
+  the ruling's own date is in its citation.
+- A most recent printing is dated by the set's release: `[MRP, Lotus Edition, 31 October 2005]`. The
+  archives left some undated (`[MRP, Obsidian Edition]`); those got the set's release month and year
+  on 2026-11-07 (`[MRP, Obsidian Edition, August 1997]`, ootv-tools `rulings/mrp-dates.py`). Scorpion Clan
+  Coup (three scrolls) and Imperial Herald promo citations have no single date: they carry a
+  `needsreview` note until someone dates them.
 - Errata, text changes and most recent printings (`Reads, "..."`) start with `Erratum:`. They
   are meant to take over from the card-level `erratum` field in time.
 - Onyx Lives errata: each dated note in a card's `erratum` field that links an Onyx Lives
@@ -66,12 +72,15 @@ ootv-claude `RULINGS-IMPORT.md`):
   Specific Cards" are on those cards, linked to the rulesheet's page (`Evil Portents rulesheet, p. 1`). Four more cards that a
   rule on them names (Yogo Mizoguchi of Evil Portents, Sannin, Utaku Zo Sia, Grievous Wound) have that rule as a ruling plus a
   `needsreview` note asking whether the card's text needs updating, for the rules team. The same notes are chapter XV of the
-  Ivory and 20F Comprehensive Rules.
+  20F Comprehensive Rules (in the Ivory book too until 2026-11-01).
 - Rulings on general rules topics (Costs, Timing, Tokens...) and questions that name no card stay
   in the books, not on cards.
 - LBS: the 1999 LBS FAQ's card rulings went onto the LBS cards the same way (its text is OCR'd, so
   a few words carry scanning slips, like "Ifyou"). LBS has two cards for a few titles (Eyla the
   Protector, Hole in the Sky, The Weight of Dreams): both got the rulings and a `needsreview` note.
+  The FAQ's last version, 1.3 (March 2000, `lbs-faq-2000`), added 27 more on 26 cards (2026-11-05): only rulings
+  and errata the cards didn't already have from 1.1, so a ruling 1.3 repeats keeps its 1.1 link. The Engagement FAQ
+  (`lbs-engagement-faq-1999`) explains combat in general and stays in the book.
 - Imperial Herald: the card game's FAQ and errata columns in the Herald (issues 1, 3–14, 16, 17 and Vol. 2 #4,
   1995–2002; the "Oracle of the Void" column and the L5R FAQ) are on the cards the same way, linked to the issue's page on
   the Newsletters shelf (`The Imperial Herald, Issue 9, p. 11`; the page number is the shelf's, not the printed folio). The

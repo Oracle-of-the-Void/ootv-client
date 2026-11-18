@@ -46,7 +46,7 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 - [ ] Directory drag and drop (added 2026-10-15): long-press a list's move handle or a folder
   and drag it onto a folder, a folder in an expanded tree, or the path bar. It's HTML5 drag and
   drop, which iOS Safari 15+ supports and Android Chrome may not. Where it doesn't work, the
-  list's Folder menu still does the move. Check that the long-press doesn't open iOS's own menu.
+  list's Folder pull-down still does the move. Check that the long-press doesn't open iOS's own menu.
 - [ ] Tooltips: hidden on touch except after a 0.5 s long-press, then shown for 1.5 s
   (`data-balloon-visible`). Check iOS doesn't pop its own long-press menu over it.
 
@@ -58,7 +58,7 @@ entry all work. Headless Chromium can't stand in for these on iOS:
 
 ## Done since the first pass
 
-Double-size menubar icons, no debug button, start on the search form, full-width search
+Double-size menubar icons, no debug button, start on the search form (once a game is picked; a first visit gets the logos), full-width search
 panel, other views close the panel, separate saved view defaults with "(Mobile)" on the
 save items (`settings[game].mobile`), Visual Spoiler as the phone search default,
 directory scrolls sideways, list quantity beside the +/- buttons (desktop too),

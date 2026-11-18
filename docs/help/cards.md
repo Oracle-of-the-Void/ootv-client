@@ -12,6 +12,7 @@ address bar then points at that card (and that printing), so the link can be sha
   as in [search results](lists.md).
 - **X** goes back to where you were. Escape does the same.
 - The globe beside the name shows the [public lists](public-lists.md) that have this card.
+- The branch icon beside it, with a number, shows the card's [family](#family).
 
 ## Adding to a list {#lists}
 
@@ -34,6 +35,27 @@ the card's current text.
 
 Each printing's own set, rarity, flavor text, artist and so on are listed below the card's
 details.
+
+## Family {#family}
+
+Some cards are another version of a character: an Experienced or Inexperienced version, or a soul
+("Soul of Matsu Gohei"). The branch icon beside the card's name says how many cards are linked this
+way, and a click searches for all of them. The same icon follows the card's Experienced and Soul of
+keywords. It works from any card in the family and follows every
+link: Matsu Gohei, Matsu Aoiko (Soul of Matsu Gohei), Matsu Tayuko (Soul of Matsu Aoiko), each of
+their Experienced versions, and Matsu Hachiro, another Soul of Matsu Gohei.
+
+Cards that only share part of a name, such as Gohei Sensei or Gohei's Daisho, aren't in the
+family. Cards whose names differ only by an ending in brackets, like Isawa Tanaka (IG2) and Isawa
+Tanaka (PoH), are different cards with families of their own. The icon only shows when the card
+has a family. A card that others are a soul of lists them after its keywords, such as "Matsu
+Aoiko's Soul" on Matsu Gohei; a click opens that soul's card.
+
+The family search shows a family tree above its results. Each character has a row of its versions
+(Base, Exp, Exp 2, ...), and each soul sits under the character it is a soul of. When a soul names
+a version, as Akodo Kobi is the Soul of Ginawa Experienced 3, that version is a link. Click any
+version to open the card; each shows the icons of the arcs it is legal in, and the card you started
+from is outlined. Click "Family tree" to fold it away.
 
 ## Card backs {#backs}
 

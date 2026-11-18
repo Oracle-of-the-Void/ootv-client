@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-10-30 (Warhammer 40,000 CCG types and tags OK'd; Android: Netrunner and Doomtown: Reloaded shelves)
+Last updated: 2026-11-17 (shelf Sort: A–Z, Recently updated); 2026-11-13 (Three Dynasties Comprehensive Rules 0.3: retired Onyx keywords removed); 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -131,6 +131,11 @@ The links come from the `oracle-all-structure` item `<game>` / `traits` (public
 - `sets`: each set (as `printing.set` has it) → the arc it was released in (in the config: arc → its sets);
 - `traits`: the traits to look for.
 - `textskip`: traits marked in the Keywords only, never in card text (Honor; copied into the item as is).
+- `arclabel`: how a card names the arc a book is listed for, `%s` the arc (LBS: "printed in The Awakening");
+  without it, L5R's "Imperial bug".
+
+The card page marks the traits in its row with `ddclass` `cardkeywords` (L5R Keywords, LBS Traits) and the text in
+the row with `ddclass` `cardtext` (the game's card rows, Admin → Game config).
 
 The script reads the books' live `lines/` text and finds, in each book, the first glossary entry for
 each trait ("Cavalry: A unit ...", small caps "C avalry :", a heading "Cavalry" or "The Yu Trait" with the text under it,
@@ -150,6 +155,18 @@ book, run it again:
 python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json            # writes build-traits/l5r-traits.json, prints what it found
 python3 SCRIPTS/rulebook-traits.py rulebooks/l5r-traits.json --upload   # and puts the structure item
 ```
+
+A printed modifier around the trait's name in an entry is ignored ("Archery (+X)", "Carry +X", "Raid +X, –X",
+"+/- X Raid"), as is the gap before the dash in a "Term - definition" entry ("Carry- A Hero ...").
+
+**LBS** (2026-11-16, `rulebooks/lbs-traits.json`): 19 traits (Advisor, Archery, Berserk, Buried, Carry, Council,
+Duelist, Experienced, Flying, Fortification, Jinn, Khadi, Nonhuman, Omen, Raid, Sahir, Tactician, Undead, Unique)
+from the Special Card Traits pages and glossaries of Black Hand, Black Heart and The Awakening, and the fan Revised
+Rulebook's Keywords and glossary; Unique, Experienced, Fortification, Omen and Council from the main text (`places`).
+LBS has no legality, so each set goes to the rulebook of its base set: Black Hand, Black Heart, Shadow of the Tyrant
+and Secrets and Lies to Black Hand, Black Heart; The Awakening to The Awakening (Promo: newest rules only). The
+WotC online rulebook (Black Hand, Black Heart's text) is left out. Buried and Raid are marked in Traits only
+(`textskip`: card text mostly means the Buried pile and the raid action).
 
 The site reads the item when Card Details first opens, so a change needs no deploy (only a reload).
 Floor rules and Special books (War of Honor) aren't searched. AEG's addenda mostly aren't either, except
@@ -210,7 +227,7 @@ Two **Inserts** (type `Inserts`) came with the same archive: Heroes of Rokugan a
 `/structure?database=<game>&key=rulebooks`): `books` is a map from each book's id to its title,
 subtitle, year, arc, type, tags, note, page count, cover size, build time and `order` (its place in
 the list below). The shelf shows the books by date: by `year`, and within a year in list order (since
-2026-10-21; before that, list order only), so a book added at the end of the list still lands among its year's. `upload` writes only the entries of the books it's given, so sessions working
+2026-10-21; before that, list order only), so a book added at the end of the list still lands among its year's. Readers can re-sort a shelf (its **Sort** box, saved per shelf with its filters): A–Z by `title` (then `subtitle`), or **Recently updated** by `built`, newest first (since 2026-11-17). `upload` writes only the entries of the books it's given, so sessions working
 on different books, each with its own build folder, can't drop or revert each other's books. (Until
 2026-10-20 the shelf was an `index.json` on the bucket, rebuilt from whatever books the uploading
 checkout had built; ootv-claude `DEPRECATED.md`.)
@@ -449,14 +466,21 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   Machine's copy of its 2015 page, replacing the 2017 print (still a download; its trait links were rebuilt); Ivory likewise from its page's
   captures (final text as archived 15 March 2015, the page has no date; kempy's 2017 print is the second download, and it
   has trait links). Card-text icons in Ivory and 20F carry hidden labels ("[2 Gold]"), so the text layer reads in order.
-  Since 2026-10-27 the Ivory and 20F books also carry the four Ivory expansion rulesheets (The New Order, Thunderous
+  From 2026-10-27 the Ivory and 20F books carried the four Ivory expansion rulesheets (The New Order, Thunderous
   Acclaim, Evil Portents, The Blackest Storm): their new rules in their own words where they belong, each marked by a bar
   and a ◆ linking to a front chapter "Updates from the Expansion Rulesheets" (which rulesheet changed what), and their card
   notes as chapter XV, Notes on Specific Cards. Four wordings of the books' own were changed to fit, with the user's yes
   (destroyed Provinces' Fortifications, Invest, II.4 and Appendix B entries); the books grew to 90 (20F) and 89 (Ivory)
   pages and the trait links were rerun. Build and notes: ootv-import
   `rulebooks/COMPREHENSIVE-RULES.md`; card rulings: `rulings.md`.
-- **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-10-27, Version 0.1 draft): a new book, not a rebuild:
+  Since 2026-11-01 the Ivory book carries The New Order only (87 pages): Twenty Festivals' legal date, 27 March 2015, ended
+  Ivory play before the other three rulesheets came out, so they stay in the 20F book alone. Their rules and card notes are
+  no longer in Ivory; the card rulings link to the rulesheets and are unchanged.
+  Since 2026-11-02 the 20F book carries the three later rulesheets only. The 20F rulebook printed after The New Order, so what the
+  CR lacked of it is listed as "Corrections to the Twenty Festivals text", in the rulebook's words: Fortifications, Invest, and
+  Courtesy (with The New Order's definition of "has Courtesy"). AEG's broken link in glossary Control is repaired in Ivory and 20F,
+  listed under each book's corrections. Pages now: Ivory 87, 20F 90, Onyx/ShE 98, Three Dynasties 98.
+- **Comprehensive Rules for Onyx Edition & Shattered Empire** (2026-11-02, Version 0.2 draft): a new book, not a rebuild:
   the 20F book above (with its rulesheets) plus Onyx Lives' Onyx/ShE Rules Datasheet, applied in the datasheet's own words
   where the 20F rules have each topic, every change marked by a bar and a ◆ linking to a front chapter "Changes from Twenty
   Festivals". The datasheet only applies where it changes something; every other wording change was the user's decision,
@@ -466,7 +490,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
   arc could be only one). Since 2026-10-28 it is the arcs' "Last complete rules in arc" book (moved from the datasheet,
   the user) and a trait-link source (its glossary, pp. 62–92; the Discord /rule bot answers Onyx/ShE questions from it). Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
-- **Comprehensive Rules for Three Dynasties** (2026-10-27, Version 0.1 draft): the Onyx/ShE book above plus Onyx Lives' Three
+- **Comprehensive Rules for Three Dynasties** (2026-11-13, Version 0.3 draft): the Onyx/ShE book above plus Onyx Lives' Three
   Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
   and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
   Empire". Every wording was the user's decision, one by one (record: ootv-games
@@ -474,6 +498,10 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   questions (2026-10-27): Events resolve the pre-Twenty Festivals way (a trait from a resolution area, mandatory), an Event
   revealed by the first-turn Cycle waits a turn, and Provinces flip simultaneously before the active player orders the Events.
   It also has the datasheet's update of 27 October (Action Sequence Revision, "Check" Terminology).
+  Version 0.3 (2026-11-13) retires the Onyx keywords that are on no Three Dynasties card and not on the datasheet
+  (Courage, Duty, Fortification, Honesty, Honor as a keyword, Inexperienced, Resilient, Sincerity): their glossary entries,
+  Appendix B lines and player abilities are gone, and the rules that named them were reworded one by one (JUDGEMENT.md
+  R1–R11). Appendix B now lists 21 boldface keywords: only those on the datasheet or printed on a 3D card. 97 pages.
   On the shelf since 2026-10-27 as `three-dynasties-comprehensive-rules` (type Complete, tags Fan Made and **Last complete rules
   in arc**, moved there from the Three Dynasties datasheet), after the datasheet. The tag makes it the Discord /rule bot's Three
   Dynasties book; trait links still go to the datasheet (they list books by id). Build and notes: ootv-import
@@ -561,3 +589,14 @@ four scans, OCR'd with `ocr_threshold`; Battle for Delos is Sabertooth's own PDF
 reader spreads, split into single pages by crop box (pypdf, `game-wh40k/rules/clean/`; ghostscript's
 re-write turned every space into a junk character). Uploaded for review 2026-10-29 ("upload them to look
 at", the user); types and tags OK'd as proposed 2026-10-30.
+
+## The Mythos books (2026-11-04)
+
+Mythos (`mythos`, a preview game), list `rulebooks/mythos.json`, ids `mythos-*`, a shelf of its own: Chaosium's own rules
+pages from chaosium.com/mythos (Wayback Machine), printed to PDF without the site's menus and footers (ootv-games
+`scripts/game-mythos/rules-pdf.py`): Mythos Rules V4.1, February 1997, the rules of The Dreamlands set (Complete; Last
+complete rules), What's New in the Dreamlands? (Addendum), the FAQ and the Errata of April 1997 (Rulings), the Card Files
+(Rulings: 25 single-card rulings from the site plus two from BoardGameGeek's copy, a first draft and a mailing-list
+compilation, marked on their pages), the Standard Tournament Rules (Floor Rules) and the Combat Examples (Learn to Play).
+The printed Limited Edition rulebook (V1–V3) isn't on the shelf: no scan found. Types and tags are proposals until the
+user's check-off on preview.

@@ -1,6 +1,6 @@
 # Limits (photo features)
 
-Last updated 2026-10-24.
+Last updated 2026-11-01.
 
 **Admin → Config → Limits** sets how many times a person may use the photo features, per day (days
 run midnight to midnight UTC) and per minute, by level. **Find the card and Find the artist share
@@ -12,7 +12,7 @@ reread the limits that often.
 |---|---|
 | `admin` | full permission on the game (for Find the artist, also the `artcheck` permission) |
 | `maintainer` | any other permission on the game |
-| `patreon-<tier>` | a Patreon supporter at that tier (`patreon-free`, `patreon-ashigaru`, `patreon-samurai`, `patreon-maker`); see [Search by photo](art-search.md) |
+| `patreon-<tier>` | a Patreon supporter at that tier (`patreon-free`, `patreon-ashigaru`, `patreon-samurai`, `patreon-hatamoto`, `patreon-daimyo`, `patreon-kami`); see [Search by photo](art-search.md) |
 
 Someone with none of these can't use either feature. A supporter is tied to their account in
 `oracle-all-patreon` (by email, kept current by Patreon's webhooks; ootv-claude `PATREON.md`).

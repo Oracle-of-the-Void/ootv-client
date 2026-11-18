@@ -165,6 +165,8 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
 
 - Deck-type lists use `sort: 'deck'` (that's what triggers `databasesort[game].deck` and
   `headerize[game].deck`); other list types use `''`.
+- First visit and game per tab: a fresh context with no `#game=` is `gamenotpicked` (the logos, L5R loaded behind them, phones too), so go to `#game=<game>` to test a game. A tab's game is `sessionStorage` `tabgame`; a new page in the same context has none and starts on the default, then `session_database`. Set `session_gamenoask` to `true` (the JSON, in `localStorage`) to skip the default-game question.
+- Two tabs (#551): two pages of one browser context share `localStorage`, so they share the cached list. Mock `/list` on the context (`ctx.route`). Check: an edit in A, `listrevalidate` in B, and the copy keeps the edit and A's save sends it; a change on the server still applies with nothing waiting; an edit in B while A's save is held open survives and saves with no 409; a `listdirty` stamp older than `LISTDIRTYMS` runs out.
 - To test adding a card without saving it: `addlistitem('t1', id, prid, 1)`, then check
   `updatepending['t1']` (the save got queued) and `clearTimeout(savetimeout)` so the
   60 s save never fires.
@@ -178,6 +180,14 @@ activatetemplate('list', 'visual-deck'); renderlist(L);
   editable in the Simple List and both stay plain in the Table (its template has no foil). In WebKit a tap on −/+ sends no
   `click` (its pointerdown is cancelled), so run the touch case in `devices['iPhone 13']` too.
 - Version menu: `click({button: 'right'})` (mouse) or the long-press under "Handy in scripts" (touch), then the rows are `#versionmenu .versionmenuitem` (`data('prid')`, `.versionmenulegal`). `#resultlist` must hold the list `#lastlistid` names, or `liststale` skips the redraw. Set `legality` on the list item to test the ordering; Ring of Earth (l5r 6334, 35 versions) makes a good card. WebKit has no CDP long-press and `new Touch()` is illegal there: dispatch `pointerdown`, wait, then `pointerup` and an `Event('touchend')` with `changedTouches` set by hand. `touchscreen.tap` on the backdrop needs a click handler on the menu itself.
+- The Active Lists bar's deck check (`activelistcheck`, `activelistmarks`, #584): cache a fake list item (`type: 'deck'`,
+  `legality`, `list`, `totalcount`), set `activelists`, call `renderlisteditarea()` and read `#deckarea` about 4 s later
+  (the `/cardslegal` answer redraws it). Every card in the list must be cached or the marks don't show. To get a real
+  deck's cards, take a public tournament deck (`/publiclists?game=l5r&type=deck&winner=1`, then `/publiclist?listid=`)
+  and cache its cards from `/oracle-fetch?table=l5r&cardid=<ids>` (`cache_card(preparecard(c))`, 50 ids a call).
+  "2000 JE Phoenix Gencon Winner" (Jade Open) and "Super Monk! by Bret Swanson" (Jade Extended) give a green # and
+  shield; raise one entry's `quantity` (and `totalcount`) for a red #, or set five cards and Imperial for a red shield.
+  To see a live edit, change the cached item and redraw instead of calling `addlistitem`, which queues a save.
 - Header rows are `cardid: 0` entries: `decktitle` rows (`div.listhead`) and `typetitle`
   rows (`div.deckviewtype` in the deck view, `.listheadplain` in Simple List). Check the
   counts text, and that each deck header appears once.

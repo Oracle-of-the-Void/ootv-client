@@ -1,0 +1,23 @@
+# Tell the reporter on Discord when a /oraclebug issue closes (.github/discord-closed-notice.js).
+# The secret is the bot's token, the same value as SSM /ootv/discord/bot-token.
+name: discord-closed-notice
+
+on:
+  issues:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  notify:
+    if: contains(github.event.issue.labels.*.name, 'discord')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Message the reporter
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/discord-closed-notice.js

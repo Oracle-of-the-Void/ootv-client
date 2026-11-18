@@ -451,6 +451,12 @@ a.ex { float: right; font-size: large;}
 .foiltoggle { cursor: pointer; }
 .foiltoggle:hover .foilmark { box-shadow: 0 0 0 2px #c9b8f0; }
 .printingimages, a.deckswipe { position: relative; display: inline-block; }
+/* a result's thumbnail (_select: 210px tall, ~150 wide; landscape 210x150) takes its room before the picture loads,
+   so the rows don't reflow as each one arrives (layout shift, Search Console CLS 0.54 on phones, 2026-11-05).
+   Top-aligned with a block picture: an inline-block's baseline otherwise jumps from its top line (nothing loaded yet)
+   to the picture's bottom, moving the whole row */
+a.deckswipe:has(> img[src*="_select."]:not([width]):not([style*="width"])) { min-width: 150px; min-height: 210px; vertical-align: top; }
+a.deckswipe > img[src*="_select."]:not([width]):not([style*="width"]) { display: block; margin: 0 auto; }
 /* the card page's sides (~cardsides, oracle.js "CARD BACKS"): each front full size, with "Print n of m" when the
    printing was printed more than one way, and its back always as a thumbnail under it, never as another card */
 .cardside { margin-bottom: 8px; }
@@ -461,6 +467,14 @@ a.ex { float: right; font-size: large;}
 .cardbackthumb.cardbackown img.cardbackimg { outline: 2px solid #c9a227; }
 .cardbackflip { text-decoration: underline; }
 .cardside.cardsideback img.cardsidefront { outline: 3px dashed #c9a227; }
+/* imagesreserve (oracle.js): a card page picture still loading takes a portrait _details box (~428x600; phones' 90vw cap
+   scales it down), so the text under it doesn't move when it arrives */
+img.cardsidefront.imgloading { width: 428px; aspect-ratio: 428 / 600; height: auto; }
+/* resultimagesreserve (oracle.js): the search results' and lists' pictures still loading. A thumbnail holds the _select
+   box (the Deck view's stacks overlap by a negative margin, so each card needs its height before it arrives), a large
+   picture a portrait _details box within its column (its inline max-width: 100% still applies) */
+img[src*="_select."].imgloading { width: 150px; height: 210px; }
+img[src*="_details."].imgloading { width: 428px; aspect-ratio: 428 / 600; height: auto; }
 .printingimages > .foilmark, a.deckswipe > .foilmark { position: absolute; top: 8px; left: 8px; pointer-events: none;
   font-size: 0.85em; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
 /* thumbnails (search results, Visual): only a small ✦, so the card title stays readable; the fill still tells
@@ -489,6 +503,9 @@ div.searchinput {
 div#sidebar div.searchinput { width: 100%; box-sizing: border-box; }
 div.searchinput dt:not(:empty)::after { content: none; }
 div.searchinput dd { margin-left: 92px; padding-bottom: 6px; font-size: 11pt; }
+/* a checkbox row as tall as its 30px label, or the labels (floated) drift away from their boxes down the form */
+div.searchinput dd:has(> input[type=checkbox]), div.searchinput dd:has(> label > input[type=checkbox]) { display: flex; align-items: center; min-height: 30px; }
+div.searchinput dd > input[type=checkbox] { margin: 0; }
 div.searchinput dd > input[type=text] { width: 100%; height: 30px; box-sizing: border-box; padding: 3px 7px;
   border: 1px solid var(--field-border); border-radius: 6px; background: var(--panel); font: inherit; font-size: 10.5pt; }
 div.searchinput dd > input.searchnumeric[type=text] { width: 44px; }
@@ -536,6 +553,10 @@ div.searchinput .button.gray:active { background: var(--fill-12); }
 div.searchinput .button.gray .iyellow { color: inherit; }
 div.searchinput #dosearchbutton.button { background: var(--accent); border-color: #c4a53e; color: #222; }
 div.searchinput #dosearchbutton.button:hover { background: #e8cf72; }
+/* until initializeform has drawn the game's rows (#selectsloaded): no Advanced-only buttons (it hides them, so they'd
+   move the form up) and the Search row held invisible (it'd jump down past the new rows): layout shift on phones */
+#searchform:not(:has(#selectsloaded)) .advanced { display: none; }
+#searchform:not(:has(#selectsloaded)) #searchbottom { visibility: hidden; }
 /*
 div.ui-layout-center { 
   float: left;
@@ -859,10 +880,18 @@ div.directorycard.dirfoldercard {
     align-self: start;
     background: var(--folder);
 }
+/* the name keeps at least 8em: when the buttons leave less (phones, finger-sized icons), they wrap together
+   under it, to the right, rather than squeezing the name to a letter a line */
 div.dirfoldercard div.dirfoldertop {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+}
+div.dirfoldertop span.dirfolderbuttons {
+    flex: none;
+    margin-left: auto;
+    white-space: nowrap;
 }
 /* the card's tree: one line per folder under it (each opens, takes drops, and toggles its own tree) */
 div.dirfoldercard div.dirfoldertree {
@@ -878,10 +907,11 @@ div.dirfoldercard div.dirsubfolder {
     border-radius: 4px;
 }
 div.dirfoldercard div.dirsubfolder a.dirfolderopen {
+    flex-basis: 0;
     font-size: medium;
 }
 div.dirfoldercard a.dirfolderopen {
-    flex: 1;
+    flex: 1 1 8em;
     min-width: 0;
     display: flex;
     align-items: center;
@@ -893,8 +923,13 @@ div.dirfoldertop a.dirfolderopen > svg.feather {
     height: 34px;
     flex: none;
 }
-/* path bar over the directory: Up, then All lists > folder > ... */
+/* path bar over the directory: Up, then All lists > folder > ... on the left, Export and Import files as one group on the right. With finger-sized icons and a
+   long path there isn't room for both: the path keeps at least 10em and the buttons wrap under it, together */
 div.dirpathbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
     padding: 4px 8px;
     margin-bottom: 4px;
     background: var(--panel);
@@ -904,6 +939,25 @@ div.dirpathbar {
 }
 div.dirpathbar a, div.dirpathbar a:visited {
     color: var(--info-1);
+}
+div.dirpathbar span.dirpathcrumbs {
+    flex: 1 1 10em;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+div.dirpathbar span.dirpathbuttons {
+    flex: none;
+    margin-left: auto;
+    white-space: nowrap;
+}
+div.dirpathbar button.dirpathimport {
+    height: auto;
+    font-family: var(--font-ui);
+    font-size: medium;
+    white-space: nowrap;
+}
+div.dirpathbar button.dirpathimport + button.dirpathimport {
+    margin-left: 10px;   /* Import files, right of Export files */
 }
 div.dirpathbar .dirpathsep {
     color: var(--text-6);
@@ -1004,8 +1058,91 @@ div.dirfolderrow a, div.dirfoldercard a, div.dirfolderrow button, div.dirfolderc
 div.listitem.dirfolderrow.dirdropover > div {
     background: var(--drop-row);
 }
+/* files from the computer dragged over the directory (dirfiledrag): the open folder takes them unless a folder does */
+#resultdir.dirfiledrop {
+    outline: 2px dashed var(--good-1);
+    outline-offset: -2px;
+}
+#resultdir.dirfiledrop div.dirfoldercard, #resultdir.dirfiledrop div.dirsubfolder, #resultdir.dirfiledrop div.dirpathbar [data-dirdrop] {
+    outline: 1px dashed var(--line-7);
+    outline-offset: -1px;
+}
+/* Import files as new lists (importfiles) */
+form.importfilesform.importfilesdrop {
+    outline: 2px dashed var(--good-1);
+    outline-offset: 4px;
+}
+span.importfilesdrophint {
+    color: var(--text-6);
+    margin-left: 8px;
+}
+form.importfilesform select {
+    max-width: 100%;
+}
+@media (hover: none) {
+    span.importfilesdrophint { display: none; }
+}
+ul.importfileslist {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+ul.importfileslist li {
+    padding: 4px 0;
+    border-bottom: 1px solid var(--line-faint);
+}
+ul.importfileslist small {
+    color: var(--text-6);
+}
+ul.importfileslist .importfilesstate {
+    float: right;
+    margin-left: 8px;
+}
+ul.importfileslist .importfilesstate.importfilesok, ul.importfileslist .importfilesstate.importfilesbad {
+    float: none;
+    display: block;
+    margin: 2px 0 0 1em;
+}
+ul.importfileslist .importfilesok {
+    color: var(--good-1);
+}
+ul.importfileslist .importfilesbad {
+    color: var(--bad-1);
+}
+ul.importfileslist pre {
+    color: var(--text);
+    max-height: 12em;
+    overflow: auto;
+    white-space: pre-wrap;
+}
+form.importfilesrunning ul.importfileslist .importfilesstate button {
+    display: none;
+}
+/* Export files (exportfiles): the list picks, All / None */
+form#exportfilesform label {
+    display: inline-block;
+    margin-right: 1em;
+}
+form#exportfilesform div.exportfilesall {
+    margin-top: 10px;
+    font-size: smaller;
+}
+form#exportfilesform ul.importfileslist {
+    max-height: 50vh;
+    overflow: auto;
+}
 div.dirempty .randarea {
     padding: 8px;
+    max-width: 46em;
+    margin: 0 auto;
+    text-align: left;
+    box-sizing: border-box;
+}
+div.dirempty .randarea p, div.dirempty .randarea ul {
+    margin: 0 0 8px 0;
+}
+div.dirempty .randarea ul {
+    padding-left: 1.4em;
 }
 /* community and support links (home page, sidebar, help page): one pill each, a Feather icon and a word */
 .communitylinks { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
@@ -1020,6 +1157,15 @@ a.communitylink small { color: var(--text-6); }
 .homepage { padding: 8px 16px 16px; }
 .homepage h1.hometitle { font-family: var(--font-display); font-weight: normal; font-size: 2.4em; margin: 8px 0 4px; }
 .homepage .homelede { font-size: 1.15em; }
+/* html.bootabout (top of oracle.js): a load opening on this page, until the first showview */
+html.bootabout div.menubar nav li.searchviewbuttons { display: none; }
+.homegamepicker { list-style: none; margin: 12px 0 16px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.homegamepicker a { display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; box-sizing: border-box; padding: 10px 8px; text-align: center; text-decoration: none; color: var(--text);
+  background: var(--panel); border-radius: 6px; box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow); }
+.homegamepicker a:hover, .homegamepicker .homegameactive a { box-shadow: 0 0 0 2px var(--accent), var(--panel-shadow); }
+/* !important: the phones' #maincontent img height: auto would leave each logo 0 tall until it loads (layout shift) */
+.homegamepicker img { height: 64px !important; max-width: 100%; object-fit: contain; }
+body.gamenotpicked .homeupdateshead, body.gamenotpicked #updatelog { display: none; }
 .homepage .homecardlists { margin-top: 24px; font-size: 0.9em; }
 .homepage p { line-height: 1.5; }
 .homepage h2 { font-size: 0.85em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-5);
@@ -1043,6 +1189,8 @@ div.helpdoc table { border-collapse: collapse; margin: 6px 0; }
 div.helpdoc th, div.helpdoc td { border-bottom: 1px solid var(--line-2); padding: 4px 8px; text-align: left; vertical-align: middle; }
 div.helpdoc td img { display: block; max-width: 100%; border-radius: 3px; margin: 2px 0; }
 div.helpdoc td img[src*="/bug-"] { display: inline-block; width: 56px; height: 56px; margin-right: 4px; }
+div.helpdoc td img[src*="/identify-lbs/"] { width: 110px; height: auto; max-width: none; }
+div.helpdoc td img[src*="/identify-lbs/guide-"] { width: 170px; }
 div.helpdoc code, #traitpop .helppeek code { background: var(--fill-7); padding: 0 3px; border-radius: 3px; }
 div.helpdoc pre code { display: block; padding: 6px; white-space: pre-wrap; }
 dl.helpfields dt { margin-top: 6px; }
@@ -1614,6 +1762,39 @@ tr > td.justcost > div > table > tbody > tr >td.iconic {  width: 92px; }
 .smforce {   background-image: url('res/icon-cards-small/ee_f_unaligned.png');  color: white;/*  width: 34px; */}
 .smchi {   background-image: url('res/icon-cards-small/ee_c_unaligned.png');  color: white;/*   width: 33px; */}
 
+/* LBS stats (game config lbs/game rows: "iconic lbsicon lbsst" on the card page, "smiconic lbsicon lbsst" in search
+   results): the card's own icons with the number taken off (ootv-assets stat-icons/lbs), 54 px tall, drawn at 27 / 20.
+   The number is printed black on all of them, in dark mode too. A row's suffix ("3S") is the icon here, so it's hidden. */
+.lbsicon {
+  display: inline-block; vertical-align: middle; box-sizing: border-box; padding: 0; margin-right: 2px;
+  background-repeat: no-repeat; background-position: center; color: black; font-weight: bold; text-align: center;
+  font-family: inherit;
+}
+.lbsicon > .rowsuffix { display: none; }
+.lbsicon:empty { display: none; }   /* a stat the card doesn't have (a Stronghold's Water) */
+.iconic.lbsicon   { height: 27px; line-height: 27px; background-size: auto 27px; font-size: 15px; }
+.smiconic.lbsicon { height: 20px; line-height: 20px; background-size: auto 20px; font-size: 12px; }
+.lbsst { background-image: url('res/icon-cards-lbs/strength.png'); }
+.lbska { background-image: url('res/icon-cards-lbs/ka.png'); }
+.lbswa { background-image: url('res/icon-cards-lbs/water.png'); }
+.lbscu { background-image: url('res/icon-cards-lbs/copper.png'); }
+.lbsin { background-image: url('res/icon-cards-lbs/influence.png'); }
+.lbsfa { background-image: url('res/icon-cards-lbs/fate.png'); }
+.lbsci { background-image: url('res/icon-cards-lbs/city.png'); }
+/* each box as wide as its icon. Water, copper and influence sit in one row, so their numbers share one height (the
+   user, 2026-11-16): midway between the bottle's belly (60% down) and the lamp's bowl (49%), 55% down; the lamp's
+   number on its bowl across (42%, the spout takes the right); fate's sits low in the triangle */
+.iconic.lbsst   { width: 27px; }  .smiconic.lbsst { width: 20px; }
+.iconic.lbska   { width: 27px; }  .smiconic.lbska { width: 20px; }
+.iconic.lbswa   { width: 20px; padding-top: 1.3px; }  .smiconic.lbswa { width: 15px; padding-top: 1px; }
+.iconic.lbscu   { width: 20px; padding-top: 1.3px; }  .smiconic.lbscu { width: 15px; padding-top: 1px; }
+.iconic.lbsin   { width: 40px; padding: 1.3px 6px 0 0; }  .smiconic.lbsin { width: 30px; padding: 1px 5px 0 0; }
+/* production ("+3"): the + before the copper coin, the number on it */
+.iconic.lbsprod   { width: 30px; background-position: right center; text-align: right; padding-right: 5px; }
+.smiconic.lbsprod { width: 23px; background-position: right center; text-align: right; padding-right: 4px; }
+.iconic.lbsfa   { width: 30px; padding-top: 5px; }  .smiconic.lbsfa { width: 22px; padding-top: 4px; }
+.iconic.lbsci   { width: 27px; font-size: 13px; }  .smiconic.lbsci { width: 20px; font-size: 10px; }
+
 button.iiconic {
     padding: 0;
     height: 17px;
@@ -2051,6 +2232,8 @@ nav ul li ul li.menuactive {
   background-color: rgb(192,255,192);
 }
 */
+/* the first menu: a line between the views and the rest */
+div.menubar nav ul li ul li.menusep { padding: 0; height: 0; border-top: 1px solid var(--line-3); cursor: default; }
 nav ul li ul li.menuactive::before {
     content: url('res/icon-buttons/led_green_on.png');
     margin-right: .4em;
@@ -2542,7 +2725,7 @@ div#phonesearchbar .numresults {
     width: 42px;
     height: 42px;
   }
-  div.dirfoldertop > button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
+  div.dirfoldertop button.iiconic, div.dirpathbar button.iiconic, div.dirsubfolder > button.iiconic {
     height: auto;
   }
   div.dirfoldertop svg.feather, div.dirpathbar button.iiconic svg.feather, div.directorycard .dircardhead > .dirdraghandle svg.feather {
@@ -2589,8 +2772,14 @@ div#phonesearchbar .numresults {
   div#sidebaropener, .sidebarextras {
     display: none !important;
   }
+  /* laid out all the time, moved off the screen until opened: showing it from display: none laid out the whole form
+     inside the tap (129 ms at 10x CPU on the first open, Search Console's mobile INP), and a tap only moves it (about
+     1 ms). Off the screen, so tomselectauto's IntersectionObserver still builds its pulldowns only once it's opened.
+     sidebarstowed (mobilesearchtoggle) hides the closed panel from focus and screen readers, set after the closing
+     paint, since restyling the whole form for it costs ~20 ms */
   div#sidebar {
-    display: none !important;
+    display: block !important;
+    transform: translateX(-105%);
     position: fixed;
     top: 0;
     left: 0;
@@ -2603,7 +2792,10 @@ div#phonesearchbar .numresults {
     box-shadow: 2px 0 8px rgba(0,0,0,.5);
   }
   body.mobilesearch div#sidebar {
-    display: block !important;
+    transform: none;
+  }
+  div#sidebar.sidebarstowed {
+    visibility: hidden;
   }
   /* Edit search bar above the search results (index.html), opens the panel */
   body.viewsearch div#phonesearchbar {
@@ -2647,6 +2839,8 @@ div#phonesearchbar .numresults {
     max-width: 90vw !important;
     height: auto;
   }
+  /* the front page's logos keep their 64px box (no shift as they load) but, as before, aren't scaled up in it */
+  .homegamepicker img { object-fit: scale-down; }
 }
 /* admin login log */
 .loginlog-nav { margin: 10px 0; }
@@ -2911,7 +3105,7 @@ span.dirmenucell, span.dirmenucell nav, span.dirmenucell nav > ul, span.dirmenuc
 }
 /* the white title font of a card title bar or the list view's header (div.upperhead) doesn't carry into the menu */
 div.directorycard .dircardhead ul.dirlistmenu, div.listviewheader ul.dirlistmenu {
-  color: black;
+  color: var(--text);
   font-size: medium;
   font-weight: normal;
 }
@@ -3006,6 +3200,9 @@ div.publicformats span {
     border-radius: 8px;
     color: var(--good-2);
 }
+div.listviewnotes a.notelink, div.publicnotes a.notelink {
+    overflow-wrap: anywhere;
+}
 div.publicnotes {
     margin-top: 4px;
     font-size: small;
@@ -3023,6 +3220,27 @@ a.cardpubliclists { text-decoration: none; }
 span.cardpubliccount { font-size: 13px; color: #fff; vertical-align: middle; margin-left: 2px; }
 a.cardmylists svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
 a.cardmylists { text-decoration: none; margin-left: 4px; }
+a.cardfamily svg.feather { width: 18px; height: 18px; vertical-align: middle; color: #fff; }
+a.cardfamily { text-decoration: none; margin-left: 4px; }
+/* the same link after an Experienced / Soul of keyword, on the card's light background */
+a.cardfamilykw { text-decoration: none; margin-left: 3px; white-space: nowrap; }
+a.cardfamilykw svg.feather { width: 15px; height: 15px; vertical-align: -2px; color: var(--link); }
+span.cardfamilykwcount { font-size: 12px; margin-left: 1px; color: var(--link); }
+/* a family search's tree above its results (familytreepanel) */
+details.familytree { padding: 6px 12px; margin: 4px 4px 8px; border-radius: 6px; background: var(--panel); color: var(--text); font-family: var(--font-ui); }
+details.familytree summary { cursor: pointer; font-weight: bold; }
+details.familytree summary svg.feather { width: 16px; height: 16px; vertical-align: -3px; }
+details.familytree ul { list-style: none; margin: 0; padding-left: 0; }
+details.familytree ul ul { padding-left: 14px; margin-left: 6px; border-left: 2px solid var(--line-3); }
+details.familytree li { margin: 4px 0; }
+span.familyname { font-weight: bold; }
+span.familysoul { color: var(--text-5); font-size: small; margin-left: 4px; }
+span.familycards { display: block; }
+a.familycard { display: inline-block; padding: 0 7px; margin: 2px 4px 0 0; border: 1px solid var(--chip-border); border-radius: 10px; background: var(--chip-bg); color: var(--chip-text); text-decoration: none; font-size: small; }
+a.familycard:hover { background: var(--chip-hover); }
+span.familybugs { margin-left: 4px; white-space: nowrap; }
+span.familybugs img.legalitybugsmall { height: 16px; width: 16px; vertical-align: -3px; margin: 0 1px; }
+a.familycard.familycurrent { border-color: var(--accent); box-shadow: var(--focus-ring); font-weight: bold; }
 span.publicformatsource { color: var(--text-6); font-size: small; }
 div.publicaward, div.listaward { color: var(--award); font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
@@ -3167,7 +3385,7 @@ button.rulesshelftab.rulesshelftabon { color: var(--text); border-bottom-color: 
 button.rulespill { font: inherit; font-size: .88em; margin: 0; padding: 2px 10px; border: 1px solid var(--pill-border); border-radius: 12px; background: var(--panel); color: var(--text-2); cursor: pointer; }
 button.rulespill:hover { border-color: var(--pill-hover); background: var(--warm-hover-2); }
 button.rulespill.rulespillon { background: var(--accent); border-color: #b89a32; color: #000; }
-select.rulesarc { font: inherit; font-size: .9em; padding: 1px 4px; max-width: 100%; }
+select.rulesarc, select.rulessort { font: inherit; font-size: .9em; padding: 1px 4px; max-width: 100%; }
 .rulesfiltercount { color: var(--text-6); font-size: .85em; }
 button.rulespill.rulesfilterclear { color: var(--text-4); }
 button.rulesfilterclear .feather { width: 1em; height: 1em; vertical-align: -2px; }
@@ -3319,6 +3537,11 @@ div.publiccardrow div.dircardmeta:first-child { margin-top: 0; }
 span.publicrank { color: #fff; font-weight: bold; min-width: 1.5em; }
 div.publicbar { height: 6px; background: var(--fill-10); border-radius: 3px; margin-top: 4px; overflow: hidden; }
 div.publicbar span { display: block; height: 100%; background: var(--good-1); }
+span.publicavg { white-space: nowrap; }
+/* the funnel before the Public lists sort pulldowns, as on the Sort menu button */
+span.publicsortpick { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+svg.publicsorticon { flex: none; width: 1.1em; height: 1.1em; color: var(--text); }
+span.publicsortpick select, span.publicsortpick .ts-wrapper { min-width: 9.5em; }
 
 /* L5R arc bugs (legality kanji) before a legality's name (legalitybug in oracle.js); the Detailed Search
    result's line of small ones under the set names (legalitybugline) */
@@ -3343,6 +3566,14 @@ span.dirillegal {
   color: var(--bad-3);
   font-weight: bold;
 }
+/* Active Lists bar (activelistmarks in oracle.js): the # by the construction rules, the shield by the cards' legality */
+span.activemarkok { color: var(--good-10); }
+span.activemarkbad { color: var(--bad-8); }
+span.activemarknone { color: var(--text-7); }
+span.activemark svg.feather { width: 1em; height: 1em; vertical-align: -0.125em; }
+/* a deck with construction rules of its own (deckbuildownmark, deckbuildownhtml in oracle.js) */
+span.dirownrules, div.liststatsbuildown { font-style: italic; }
+span.dirownrules { font-weight: bold; }
 
 /* card peek (oracle.js cardpeekshow): a small card image at Detailed size, beside it on hover, or centered over a
    backdrop after a long-press (a tap closes it) */
@@ -3354,6 +3585,9 @@ span.dirillegal {
   background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
 #cardpeek.cardpeektouch.cardpeekon { display: flex; }
 #cardpeek.cardpeektouch img { max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+/* an open menu stays above the peek and takes clicks (search form pulldowns, the menubar's tapped menus): the
+   peek, and on touch its backdrop, go under the menus while one is open */
+body:has(.ts-wrapper.dropdown-active, nav li.menuopen) #cardpeek { z-index: 3; }
 
 /* version menu (oracle.js versionmenuopen): at the mouse, or in the middle of the screen over a backdrop (touch).
    z-index above card peek. On touch, a long-press on your own list's rows opens it rather than selecting their text */
@@ -3436,3 +3670,23 @@ div.msghead h2 { text-align: left; }
 /* an ad's frame draws on its own light page: left dark it would get an opaque white background */
 ins.adsbygoogle, ins.adsbygoogle iframe { color-scheme: light; }
 .cardeditmrp { color: #000; }
+
+/* Same, Close and Similar decks (similarbadge, listsimilar, similarpop in oracle.js) */
+.similarbadge { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; padding: 0 5px; border: solid var(--chip-border) 1px;
+  border-radius: 9px; background: var(--chip-bg); color: var(--chip-text); font-size: 11px; font-weight: bold; line-height: 16px; cursor: default;
+  vertical-align: 1px; white-space: nowrap; }
+.similarbadge svg.feather { width: 11px; height: 11px; }
+.similarbadge:focus-visible { outline: solid var(--focus-ring) 2px; }
+/* the statistics box's Similar decks part: its slot's details is one of the box's flex items */
+div.liststatssimslot { display: contents; }
+/* text columns, not counts: left aligned, unshaded; a deck name gets room before it wraps */
+table.liststatssimtable th, table.liststatssimtable td { text-align: left; }
+table.liststatssimtable td:nth-child(even), table.liststatssimtable thead th:nth-child(even) { background-color: transparent; }
+table.liststatssimtable tbody th { min-width: 9em; max-width: 22em; }
+.similarband + .similarband { margin-top: 3px; }
+.similarby { color: var(--text-2); }
+.helpq.similarword { font-family: inherit; font-size: inherit; font-weight: bold; color: inherit; vertical-align: baseline;
+  text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+:is(div.listhead, div.listheadxl, div.listheadplain, div.upperhead, div.listheadmiddle) .helpq.similarword { color: inherit; }
+#similarpop { position: absolute; z-index: 100000; max-width: min(420px, calc(100vw - 16px)); box-sizing: border-box; padding: 8px 10px;
+  background: var(--panel); color: var(--text); border: solid var(--rule) 1px; box-shadow: var(--panel-shadow); font-size: 13px; }

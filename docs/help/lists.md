@@ -19,7 +19,7 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 - Open a list to see or change its **Legality** (the format a deck is for; its cards are checked against it,
   see [Statistics](#stats)) and its **Id**. **Special** is for a deck that isn't built for a format: see
   [the rules](#stats).
-- **Public** shares the list (see [Sharing](#sharing)).
+- **Private**, **Unlisted** or **Public**: who can see the list (see [Sharing](#sharing)).
 
 ## Folders {#folders}
 
@@ -28,11 +28,31 @@ bar show them as a table (**Detailed list**) or as cards (**Cards**), and **Sort
 Folders can be dragged into each other too. Removing a folder keeps what's in it: its lists
 move up a level.
 
+**Import files** makes a new list from each deck file you pick, named after the file, in a folder:
+the button on a folder puts them in that folder, and the one at the right of the folder path bar in the
+folder you have open. You can also drop files from your computer straight onto the list directory (into
+the open folder) or onto a folder. The files are read the way [Import](#downloads) reads one; pick
+the format, **Printings from** (which also becomes each list's legality) and the lists' type, then
+**Import**. Each file then says how many cards it got, with any lines it couldn't find. A file with
+no cards found makes no list.
+
+**Export files** downloads a folder's lists all in one format: the button on a folder exports that
+folder, and the one in the folder path bar the folder you have open. Pick the format (any of the
+[downloads](#downloads)), untick lists you don't want, and tick **Include subfolders** to take the lists
+in its subfolders too. One list downloads as its own file; more come as one zip, with each subfolder's
+lists in a folder of the same name. For a PDF format the PDF options come up once and are used for
+every list. Each list then says how it went; a list that couldn't be exported is left out of the zip.
+
 ## Adding cards {#active}
 
 Click the switch beside a list's name to make it **active**. Then every card in the search
 results and on the [card page](cards.md#lists) gets + and − buttons for that list. You can have several lists
 active at once. They stay active in that browser tab until you switch them off.
+
+The **Active Lists** box checks each active deck as you go, with two small marks after its count.
+The **#** is green when the deck meets its [construction rules](#stats) and red when it doesn't (hover over it
+to see which rule). The **shield** is green when every card is legal in the deck's legality, red and crossed out
+when some aren't (hover for their names), and grey when the deck has no legality chosen.
 
 Quicker ways:
 
@@ -53,14 +73,16 @@ Quicker ways:
 - **Import**, in the list's menu, adds cards from a pasted deck list or a file (see
   [Downloads](#downloads)).
 
-Lists save themselves shortly after you change them.
+Lists save themselves shortly after you change them. If a save fails, a red **Not saved** shows where the list's
+Modified date is; hover over it to see why. Card changes stay in the browser and are tried again a minute
+later; an import that didn't save needs running again.
 
 ## Looking at a list {#view}
 
 Open a list to see its cards. The buttons on the right of the menu bar change the layout:
 the deck split up by type, the card pictures, a table, or plain text to copy. The list's name,
 type, legality and notes are at the top, and can be changed there too, with when it was made and
-last changed beside the name. Long notes start cut to three lines: **Show more** opens them, and so does clicking in to edit. In the deck view, a short section (8 cards or fewer, usually Pre-Game) sits beside the next one
+last changed beside the name. Long notes start cut to three lines: **Show more** opens them, and so does clicking in to edit. A web address (http or https) in the notes shows as a link: this site's links open in place (Ctrl, Cmd or Shift-click for a new tab), others in a new tab. In the deck view, a short section (8 cards or fewer, usually Pre-Game) sits beside the next one
 instead of taking a whole row, when there's room, so Pre-Game sits beside Dynasty and Fate starts below. In L5R a deck's name starts with its Stronghold's clan mon, here, in your lists and in Public lists. Phones open lists as a
 simple list of card names, unless you've saved another list view for your phone (Settings).
 
@@ -113,8 +135,8 @@ Trades match on it: a foil want finds only foil haves, a regular want only regul
 A deck's header ends with its check: the cards not legal in its Legality, the formats every card is legal
 in, and the deck construction check (below). It's always in view, whatever the statistics are doing.
 
-Under the header are two folding sections, **Statistics** and **Keyword counts**. Both start open and stay the
-way you last left them. On a wide screen they're to the side of the cards: a column on the right in the Simple List,
+Under the header are folding sections, **Statistics** and **Keyword counts**, and on a deck that matches other public
+decks, **Similar decks**. They start open and stay the way you last left them. On a wide screen they're to the side of the cards: a column on the right in the Simple List,
 Text and Table views (it stays in view as you scroll), and a box at the upper right in the Detailed, Visual and Deck
 views, with the cards flowing around it. The **Above** button at the top right of the box moves them above the cards
 instead (side by side when there's room), and **To the side** moves them back; the site remembers which you chose.
@@ -139,11 +161,19 @@ cards in the list glow to match, blue for the cards in that deck with the keywor
 more keywords to add them (a card that matches one in blue and another in red glows magenta), and click one again to
 drop it. The highlights stay when you change views.
 
+**Similar decks** shows only on a deck with public decks that are the same as it or close to it. Its heading counts
+them (`Similar decks: 2 Same, 1 Close`), and the table lists each one under **Same**, **Close** or **Similar**, with
+the player who made it and how many cards are different. Click a deck to open it. Hover over Same, Close or Similar
+for what each means ([Same, Close and Similar decks](public-lists.md#similar)).
+
 When the list has a **Legality**, the cards that aren't legal in that format are pointed out,
 and **All cards legal for** lists the formats every card is legal in. A deck's header starts that
 line with its size (`40/40 (81 total)`), so it's in view when the statistics are off to the side. A deck with a card that
 isn't legal counts as breaking its construction, just like breaking a rule. Proxy cards
 aren't checked at all: they're in the deck to be printed and played, not part of its construction.
+
+A deck with no Legality is checked by the arc it's listed as, when its name or cards point to a regular arc: an old
+30/30 deck whose cards all fit Imperial goes by Imperial's rules. Hover over the line to see which rules it used.
 
 **Deck construction** checks the deck as a whole against the game's deck construction rules
 (see below) and lists each one it breaks, or says it meets them. It's a reminder, not a block:
@@ -168,8 +198,14 @@ Stronghold, no more than one of each kind of Pre-Game card, and at most three co
 A format can change the rules, and the deck's **Legality** picks which: Imperial needs only 30 Fate
 and 30 Dynasty cards; BigDeck needs 80 of each, Modern 50 of each, and both allow one copy of any card, even one that says you may include more. To change them for one
 deck, open **Construction rules** at the top of the deck: change a number, untick a rule to drop
-it, or say which deck Sensei and Border Keep / Bamboo Harvesters go in for this deck. **Back to
-the legality's rules** clears your changes.
+it, tick **cards can't change it** so cards in the deck leave that rule alone (Coastal Lane doesn't raise the
+minimum, Achirin stops at the deck's limit), or say which deck Sensei and Border Keep / Bamboo Harvesters go in for
+this deck. A rule a card adds, like Forgotten Legacy's Holdings, has a **cards can't add it** box while the card is in
+the deck. BigDeck and Modern start with that box ticked on Copies; untick it and cards can go past one copy again.
+**Back to the legality's rules** clears your changes.
+
+A deck with changes like these says so: its header lists them under **This deck's own rules**, and the directory and
+[Public lists](public-lists.md) mark it **Own rules** (hover to read them, or open the deck).
 
 **Special** at the end of the Legality menu is for a deck outside the formats: a theme deck, a house
 rules game. It has no limits at all, so the check says **no limits**, its cards aren't checked against a format, and
@@ -184,6 +220,12 @@ site's rules. Every admin change is recorded, and you may get an email saying on
 **Copy link** (at the top of the open list) copies a link to send. Public lists also show in
 [Public lists](public-lists.md), under your display name (Settings → Account), or your initials
 if you haven't set one.
+
+Set a list to **Unlisted** and only people with its link can see it. **Copy share link** gives you the
+link. The list isn't in Public lists, the public deck counts or search engines. Anyone you give the link
+to can pass it on or copy the list to their own lists. To cut off the link, use **New link**, which
+replaces it, or set the list to Private. A list that was Public can stay in search engines for a while
+after you make it Unlisted.
 
 ## The list menu {#menu}
 
@@ -209,7 +251,10 @@ The list's menu (the grid button) has:
 
 **Import** takes a deck list pasted into its box, or a file: Sun and Moon, Native Oracle, or any
 plain list with one card per line. A line can start with a count (`3x Card`, `3 Card`), end in a
-set in brackets (`Card (Set)`) to pick that printing, and end in `[foil]`; `#` starts a comment,
+set in brackets (`Card (Set)`) or after a comma (`Card,Set`, as a spreadsheet saves it, with
+`"3x Card, With Comma",Set` for a title with a comma) to pick that printing, and end in `[foil]`. The set also tells
+apart cards that share a name. An experienced level can be written any way: `Card - exp 2`, `Card xp2`,
+`Card • Experienced 2`, `Card -- Inexperienced`. `#` starts a comment,
 and a `Legality: <arc>` line picks printings from that arc. **Printings from** does the same for the
 whole import and starts on the list's legality, so an Imperial deck gets its Imperial arc printings
 (the newest printing in that arc); a `Legality:` line in the list wins from where it stands. It says which cards it found and which

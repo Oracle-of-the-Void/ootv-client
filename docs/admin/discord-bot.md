@@ -1,6 +1,6 @@
 # Discord bot settings
 
-Last updated: 2026-10-25 (/rule)
+Last updated: 2026-11-02 (/oraclebug closing notice)
 
 The Oracle Discord bot (`/card`, `/cardtext`, `/rulings`, `/search`, `/rule`, `/oraclebug` and `/oraclehelp` by default) answers in each server it has been
 invited to. The **Discord bot** link on this Admin tab edits its settings: which game a
@@ -107,6 +107,15 @@ ootv-client. With a card name in a channel that has a game, it gets that game's 
 `discord`, and the issue names the reporter's Discord account and channel.
 Each user can file 3 reports per 15 minutes. To stop a server filing issues, untick
 `oraclebug` in its Commands column and re-register its commands.
+
+**When the issue closes**, the GitHub Action `discord-closed-notice` (since 2026-11-02, PR #565) pings the
+reporter in the channel the report came from, or by direct message if there's no channel or the post
+fails: "has been handled", or "was closed without a change" for not planned, plus the newest maintainer
+comment from the hour before the close. So write the closing comment for the reporter, then close.
+Nothing is sent for duplicates or issues labelled `duplicate` or `invalid` (label test reports
+`invalid`). Reopening and closing again sends another message. The Action uses the repo secret
+`DISCORD_BOT_TOKEN`, the bot's token: update it when the token is rotated. Runs are under the repo's
+Actions tab; a failed run means the reporter wasn't told.
 
 ## Help (/oraclehelp)
 

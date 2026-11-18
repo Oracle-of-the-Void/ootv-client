@@ -1,6 +1,6 @@
 # Patreon supporters
 
-Last updated 2026-10-26.
+Last updated 2026-11-02.
 
 Supporters of [our Patreon](https://www.patreon.com/oracleofthevoid) get site privileges by tier.
 The site keeps a list of who supports at which tier, and each feature decides what a tier gets.
@@ -54,9 +54,38 @@ they haven't used Link with Patreon); "unlinked by the user" means they pressed 
 
 ## What tiers get
 
+| Tier | Price a month | Photo searches a day | Discord role | Also |
+|---|---|---|---|---|
+| Free | $0 | 1 | none | |
+| Ashigaru | $2 | 5 | Ashigaru Patron | |
+| Samurai | $5 | 25 | Samurai Patron | bigger images, promised for "eventually", not built yet |
+| Hatamoto | $10 | 100 | Hatamoto Patron | |
+| Daimyo | $25 | 250 | Daimyo Patron | |
+| Kami (Maker until 2026-11-02) | $50 | 500 | Kami Patron | a game of their choice worked into the Oracle |
+
+Each tier includes the ones below it. The numbers on this page are copies, so a change means updating
+the tier's description on Patreon too.
+
 | Feature | Where the tiers are set |
 |---|---|
 | Photo: Find the card and Find the artist | Admin → Config → [Limits](limits.md), levels `patreon-<tier>` |
+| Discord roles | Patreon's own Discord integration: the role on each tier in Patreon, on the Oracle of the Void server. None of our code reads them |
+
+The tier images on Patreon are built in ootv-assets `patreon/` (Patreon trims them to 460 × 200).
+
+## Adding or renaming a tier
+
+1. Add its `patreon-<title>` level in Limits first: a supporter on a tier with no level is refused photo search.
+2. Create its `<Tier> Patron` role on Discord, below Patreon's bot role, which can't assign a role above its own.
+3. Create or rename the tier on Patreon, with the exact title, and pick its role.
+4. Name it in `limitsadmin.js`, here, in [Limits](limits.md), [Search by photo](art-search.md) and help `searching.md`.
+5. After a rename, remove the old level from Limits.
+
+## Discord and the Oracle are separate ties
+
+A supporter's Discord role depends on the Discord account they connected on Patreon. Their photo
+searches depend on the Oracle tie above. Having one says nothing about the other, so a supporter can
+have the role and no searches, or the reverse. The supporter list shows both.
 
 A new privilege adds its own tier → privilege setting in that feature's config; the supporter list
 doesn't change. Tier keys are `patreon-` plus the tier's title in lower case, so renaming a tier on

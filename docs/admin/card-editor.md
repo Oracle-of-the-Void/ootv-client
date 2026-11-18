@@ -72,6 +72,11 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   editor to pick the file, directory and file name. The upload goes to S3 straight away, but the
   image joins the instance only in the editor: when it's done the box closes, and you Commit to
   save it on the card. The box can't be closed while an upload is running.
+- Card images are PNGs with transparent rounded corners, cut at the card's edge (no inset), the full-size image at
+  most 745 px on its short side. Every L5R image was brought to that on 2026-11-06: worn edges and corners cleaned up
+  from the set's other cards, and the old `.jpg` files replaced by `.png` files of the same name (each card updated,
+  one bulk update per batch of sets in the update log; old `.jpg` links redirect to the `.png`). Upload new images
+  the same way.
 - **Delete card** asks, then deletes the card immediately rather than on commit.
 
 ## Commit

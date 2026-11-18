@@ -1,6 +1,6 @@
 # Derived legalities (L5R)
 
-Last updated: 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
+Last updated: 2026-11-08 (Obsidian Hand 2026 renamed Obsidian Hand SnM); 2026-11-04 (Obsidian Hand 2026, now Obsidian Hand SnM: for use in Sun and Moon Discord tournaments: Obsidian Hand with 8 extra bans); 2026-11-03 (Jade Open: everything legal in Imperial or Jade); 2026-10-31 (ban notes checked against `remove`; the card field `banned` moved to `remove` exceptions and notes, the Banned search, Ivory Extended's bans; Emperor Extended, with Foothold of the Mad banned; a card not legal in a deck's legality makes the deck Illegal); 2026-10-30 (the deck/list menu's Special; a list's legality is checked); 2026-10-28 (Jade Extended 2000 = Jade Extended without the experienced rule)
 
 A derived legality is a value in the Legality menu that no card actually holds. When someone
 selects it, the search API turns it into a rule over the card data: arc legality, set, the
@@ -45,8 +45,8 @@ Ring of the Void in Jade shows Siege of Sleeping Mountain unless that printing i
 it shows Pearl. The Discord bot picks the same way, and so does a decklist import's `Legality:` line.
 
 `notmrp` is set on: Siege of Sleeping Mountain, the Promotional–Emperor Rings and full-bleed
-Personalities/Strongholds (2026-10-15), and the Imperial-arc starter-deck reprints (2026-10-16, 315
-printings). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
+Personalities/Strongholds (2026-10-15), the Imperial-arc starter-deck reprints (2026-10-16, 315
+printings), and the Ivory and Twenty Festivals deck cards (2026-11-01, 298 of 299 printings; Advance Warning 121 keeps MRP, its only Twenty Festivals printing). Starter reprints whose rules text plays differently keep it unset: the 4 Shadowlands
 honor/gold variants, Isawa Tomo (Time of the Void) and Summon Faeries (Shadowlands, Anvil of Despair,
 Crimson and Jade).
 
@@ -86,7 +86,7 @@ War of Honor ban is in the card's `notes`. Cards on the format ban lists below m
 - **In a derived format holding that arc:** the card stays banned, unless a newer arc in the format has it back
   (the user, 2026-10-31). So a card banned from Emperor is out of Emperor Extended and Ivory Extended unless it's
   legal in a newer arc of that format. The format's name goes in `remove`, even where the rule already leaves the card out.
-- **Legacy, Modern, BigDeck and Obsidian Hand** keep their own ban lists (below), whatever the arcs' bans are.
+- **Legacy, Modern, BigDeck, Obsidian Hand and Obsidian Hand SnM** keep their own ban lists (below), whatever the arcs' bans are.
 - **War of Honor** has no legality value. Its three cards hold the name in `remove`, so the Banned search finds them.
 
 **The Banned search** (the Banned checkbox, `field_banned`): the Legality selects say what the card is banned from, instead of
@@ -96,7 +96,7 @@ Code: ootv-search `lib/attributeopts.js` `bannedQuery`. To add a ban, add the na
 
 ## Common exclusions
 
-Legacy, Modern, BigDeck and Obsidian Hand share these `none` clauses:
+Legacy, Modern, BigDeck, Obsidian Hand, Obsidian Hand SnM and Jade Open share these `none` clauses:
 
 - legality `Unreleased` or `Not Legal (Proxy)`
 - type Proxy, Other, Clock or Territory (Clock and Territory are Siege board pieces)
@@ -183,6 +183,14 @@ Jade's experienced rule (a Personality whose experienced version was printed in 
 Jade) puts Jade on the card only, never on a printing, so the printing condition leaves out exactly
 those 56 Imperial Personalities (Akodo Toturi, Bayushi Kachiko, the Dragons, ...). Everything else
 matches Jade Extended.
+
+### Jade Open (2,771)
+
+Everything legal in Imperial or Jade, any type (the user, 2026-11-03): the Imperial and Jade card
+pools together, without Jade Extended's type rule. Made for Jade-era decks that play Imperial
+Strongholds, Personalities, Events or Spells beside Jade cards, such as the 2000 Gen Con Phoenix winner
+and Imperial Herald decks from 1999–2000. Rule: `any` legality Imperial or Jade, the common exclusions,
+`prefer` Jade. No bans of its own. Jade Extended and Jade Extended 2000 are subsets of it.
 
 ### Emperor Extended (3,741)
 
@@ -343,7 +351,7 @@ A name on a ban list without "(exp)" means only the non-experienced card. That's
 inexperienced Mirumoto Hakahime is banned. Experienced versions are separate cards; check the
 card's title and keywords for "Experienced".
 
-### Obsidian Hand (11,949)
+### Obsidian Hand (11,945)
 
 Rules shelf: [The Obsidian Hand](https://oracleofthevoid.com/#game=l5r,#rulebook=obsidian-hand) (the current ClickUp docs), the [2016 ruleset v.01](https://oracleofthevoid.com/#game=l5r,#rulebook=obsidian-hand-2016) and the [group queries 2016–2024](https://oracleofthevoid.com/#game=l5r,#rulebook=obsidian-hand-queries-2024).
 
@@ -403,6 +411,28 @@ The primer's other rules don't change the card pool, so they aren't modeled: Sta
 same now counting as different for deck building, and the gameplay rules (Dishonor Victory,
 turn structure, player abilities, Performing).
 
+### Obsidian Hand SnM (11,937)
+
+Named Obsidian Hand 2026 until 2026-11-08. For use in Sun and Moon Discord tournaments. The "Modified The Obsidian Hand BAN LIST" (2026-11-04):
+Obsidian Hand's ban list, unchanged, plus 8 cards the tournament organizer banned. Same
+clauses as Obsidian Hand, no prefer. Its own `remove: Obsidian Hand SnM` exceptions, 52 cards
+(`ootv-tools/legality/derived-exception.py`, bulkupdate 2026-11-04, renamed by its `--rename-from` 2026-11-08): Obsidian Hand's 44 (the named
+bans and the 21 Rank (Kabuto) cards) and these:
+
+| Card | ID | Type |
+|---|---|---|
+| Foothold of the Mad | 10562 | Stronghold |
+| Heart of the Shinomen Forest | 3021 | Stronghold |
+| The Imperial Palace of Fu Leng | 8148 | Stronghold |
+| At'tok'tuk Sensei | 642 | Sensei |
+| Corrupt Geisha House (exp) | 12605 | Holding |
+| Stone of Remembrance | 7501 | Holding |
+| Make A Wish | 4802 | Strategy |
+| Blade of Penance | 1009 | Item |
+
+Only the experienced Corrupt Geisha House is banned; the inexperienced one (1503) stays legal.
+A change to Obsidian Hand's list doesn't carry over: each list is its own exceptions.
+
 ## Filters
 
 Derived values that aren't formats. They sit in the Legality menu's "Misc" group, and their
@@ -438,7 +468,8 @@ The publishers come from the set (`ootv-tools/printings/printing-publisher.py`, 
 | Onyx Lives | The Blackest Storm and later (already set). The Blackest Storm also has AEG (2026-10-23) |
 
 In the Oracle of the Void set, the proxies are AEG and the Old, New and SotE card backs are
-FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. A new set needs its
+FRPG, WotC and WotC. The three Mike Petke printings keep that publisher. The four Gold Edition
+koku (1, 5, 10 and 50 Koku) are AEG, as printed on them (© 2001 AEG). A new set needs its
 publisher set at import time.
 
 ## Showing derived values on the card page
@@ -497,8 +528,12 @@ change up through the DynamoDB stream; no cold start is needed.
 - 2026-10-28: Jade Extended 2000 corrected to Jade Extended without the experienced rule (Jade on a
   printing for Strongholds, Personalities, Events, Spells, Rings); the Jade-arc set clause, which also
   dropped 428 Imperial non-Personality cards, is gone. 1,918 → 2,346.
+- 2026-11-03: Jade Open (2,771): any card legal in Imperial or Jade; `Open` added to the Format optgroup
+  (and kept out of Arc).
 - 2026-10-31: Emperor Extended (Celestial or Emperor, 5 `remove` exceptions for Emperor's bans); the 18 EEex decks in
   kempy's archive already stored the name and all stay legal.
 - 2026-10-31: the card field `banned` (32 cards) moved to `notes` and `remove` (`ootv-tools/legality/banned-to-exceptions.py`, bulkupdate); the Banned search reads `remove`; Advance Warning, Exotic Farmlands and Well-Defended Farm out of Ivory Extended (2,952 → 2,949).
 - 2026-10-31: Foothold of the Mad banned in Emperor Extended (a 6th `remove` exception; still legal in Emperor). 3,742 → 3,741.
 - 2026-10-31: checked every card and printing note mentioning a ban, all games, against `remove`: 32 L5R cards, all card `notes`, all correct, and no banned arc still in a card's or printing's `legality`. Nothing changed. Well-Defended Farm's exception (the *A Matter of Honor* decklist) is in its note only; `remove` can't express it.
+- 2026-11-04: Obsidian Hand 2026 (11,937): Obsidian Hand's clauses, its 44 bans plus 8 more, for Sun and Moon Discord tournaments, 52 `remove` exceptions.
+- 2026-11-08: Obsidian Hand 2026 renamed Obsidian Hand SnM: the derived entry's `name` and the 52 cards' `remove` exceptions (`derived-exception.py --rename-from`, bulkupdate). No deck used the old name.

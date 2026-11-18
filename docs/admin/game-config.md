@@ -1,6 +1,6 @@
 # Game config and templates
 
-Last updated: 2026-10-31 (Emperor Extended in `sort.pick`; clanmons recoloured for light and dark)
+Last updated: 2026-11-16 (publiclists.home)
 
 Every game on the site is drawn from three kinds of settings kept on the site (`oracle-all-structure`),
 not in the site's code. Each is edited in Admin, previewed on a card before it's saved, and keeps its
@@ -27,7 +27,11 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   (`any`, `all`, `always`, a field, or a list of fields), `else` (a row drawn instead when this one
   has nothing), `helper`/`helpers` (`sortlegality`, `makelinks`, `soultitle`), `valuelabels`,
   `suffix`, `prefix`, `concat`, `ddclass`. A field marked `show: "hidden"` on Fields drops out of
-  every row by itself.
+  every row by itself. `wraps` names each value's classes in `oracle.css`; the stat icons are `iconic` (card page)
+  or `smiconic` (search results) plus the icon: L5R `force`/`smforce`, `smgc` and friends; LBS `lbsicon` and one of
+  `lbsst` (Strength), `lbska` (Ka), `lbswa` (Water), `lbscu` (Copper), `lbsin` (Influence), `lbsfa` (Fate),
+  `lbsci` (City Points), with `lbscu lbsprod` for Production's "+3". Inside `lbsicon` the row's `suffix` is hidden
+  (the icon says which stat), and a field with no value draws nothing.
 - `search`: the search form's fields, in order (a field's search settings are on Fields).
 - `deckconstruction` (optional): the deck construction rules, each legality's changes to them, and the
   choices a deck's owner can make (which deck Sensei go in). A deck's own pick beats `sort.pick` below.
@@ -63,8 +67,12 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
   game takes: set, rarity, type, clan, keywords, text, legality). A game without it isn't offered in
   the bot. The bot picks up a save within 5 minutes; a new game also needs the bot's commands
   registered again (ootv-discord `register-commands.js`).
-- `publiclists`: `{fields: [...]}`, the card fields copied into each public list for its search
-  (L5R: type, deck, clan; default: type).
+- `publiclists`: `{fields: [...], home: {type, align}}`. `fields`: the card fields copied into each public list
+  for its search (L5R: type, deck, clan; LBS: type, faction; default: type). `home`: the card type a deck has one of
+  to say who it is (L5R `Stronghold`, LBS `stronghold`, exactly as the cards spell it) and the card field on it that
+  says its side (L5R `clan`, LBS `faction`; it must be in `fields`). Public lists, Formats and Most played get a
+  pulldown for each, "Any stronghold" and "Any " + that field's label; a game without `home` has neither. A change
+  shows after the next public lists rebuild (nightly).
 - `legalitybugs`: `{path, bugs: {<legality>: <image>}}`, the arc bug drawn before a legality's name
   wherever one is shown (card page, deck stats, a deck's format, Public lists), and alone, small, on a
   line under the versions in a Detailed Search result (`~legalitybugs(#data)` in the `search` view). The
@@ -85,6 +93,8 @@ Fields has [its own page](field-descriptions.md). The plan behind all of this is
 - `cardbacks` (optional): which back each printing has, for the small **Back** picture on the card page
   and the PDF's duplex option. `{rules: [{when, set, before, from, cardid}, ...]}`: the first rule
   that fits the printing gives `cardid`, the card whose image is the back (backs are cards of their own).
+  The cards the rules name come with the game config (`/gameconfig` `cardbacks`), so pages don't fetch them;
+  a back named only by a printing's own `back` is fetched when first needed.
   All the conditions in a rule must hold, and each is optional: `when` `{"<field>": "<regex>"}` matches one
   of the printing's values of that field, else the card's (`deck`, `type`, ...); `set` is a regex on the
   printing's set; `before` and `from` name a set, and fit a printing whose set comes before it, or is it or
@@ -120,6 +130,9 @@ previewing is live for anyone who has the link. To release the game, delete `pre
 (ootv-tools `structure/set.py all/games --remove 'games[N].preview' --expect 'games[N].table="<table>"'`,
 which removes only that flag; not `push.py`, which writes the whole item back); no deploy, the menus pick it up on
 their next load, the bot within 5 minutes.
+
+The front page draws a logo for every game in the menu, in the same order and with the same preview rule, from
+`gamelogos/64/<logo>`, so a game needs that file or its tile is blank.
 
 ## Templates
 

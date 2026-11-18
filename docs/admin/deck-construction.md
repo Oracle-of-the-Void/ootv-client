@@ -1,6 +1,6 @@
 # Deck construction rules
 
-Last updated: 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
+Last updated: 2026-11-11 (a `(...)` title ending is part of the card's name; `countsas` on 11 versions and souls); 2026-11-04 (the Active Lists bar shows the check live: a green or red #, a legality shield); 2026-11-02 (a deck with no Legality uses the arc it's inferred as; a card's `legality`: Isawa Osugi, Oni no Kamu; `countsas` keeps Hida Yakamo (Oni) apart from the Hero; `cap` on any rule, a deck's "cards can't change it" boxes; decks with their own rules are marked); 2026-10-31 (Emperor Extended; a card not legal in the deck's format breaks its construction; an admin's edit saves the summary too); 2026-10-30 (the Special legality; `titles`: Eternal Victory Dojo); 2026-10-29 (the check moved to the list header; Strength Remains, Forgotten Legacy; `cap`: BigDeck 80/80 and Modern 50/50 hold every card to one copy; `add`: Coastal Lane, Hato-gurama)
 
 A soft check of a deck as a whole: deck sizes, copy limits, Pre-Game limits, and every card being legal in the
 deck's Legality. The result shows at the
@@ -23,6 +23,11 @@ switches the rule off (`{"copies": null}`). A rule id the game doesn't have adds
 `add` changes a number already there instead of setting it (`{"dynasty": {"add": {"min": 2}}}`: the
 minimum the layers before set, plus two), so one overlay works in every legality.
 
+A deck with no Legality uses the format the public listing shows for it when that's a regular arc (the deck's name, else its
+cards; `/cardslegal` answers `inferred`), so an old 30/30 deck whose cards all fit Imperial is checked as Imperial, and the hover
+says "inferred from the deck". An inferred BigDeck, Extended or eternal format changes nothing: those are guesses, and their
+limits would mark decks nobody built for them (the user, 2026-11-02).
+
 A legality with no entry in `deckconstruction.legality` uses the game's rules as they stand. That's most of them,
 Emperor and Emperor Extended among them, so those two build the same way.
 
@@ -33,7 +38,11 @@ that names a rule brings the whole rule back from `deckconstruction.rules`: the 
 unticked for the owner to tick, and `deckconstruction.legality["Special"]` would give a game's Special decks some by
 default (no game has one). A card's `rules` change only the rules a Special deck has; they don't add any
 (Forgotten Legacy's Holdings rule stays out). The public listing shows Special as the deck's format, like any owner's
-legality; the search-engine deck pages (ootv-tools `seo/build.py`) leave it out of "legal in".
+legality; the search-engine deck pages (ootv-search `browse/`) leave it out of "legal in".
+
+**A deck's own rules show:** the header lists them ("This deck's own rules: ...", `deckbuildownhtml`), and the directory
+and public listing show **Own rules** by the Count, with the list on hover (`deckbuildownmark`; the lists index keeps the
+field in `_source`). Any change to `rules` or `pick` counts.
 
 A broken rule shows in red on the Deck construction line, part of the list header
 (`template-listcheck`), which also says "Breaks the deck construction rules" just before the not-legal cards.
@@ -44,6 +53,13 @@ or with Special, has no cards to fail this way. The red line and the "Not legal 
 
 The check's answer, rules and cards together, is also saved on the list (`summary.buildbad`, with the copies per deck) whenever the owner
 opens it or an admin edits it (`listsummarysave()`, once `/cardslegal` answers: `liststatslegal()`): the directory's Count and the public deck listing show a red Illegal from it.
+
+**The Active Lists bar shows the check live** while cards go in from search or the card page (`activelistcheck()` in
+`oracle.js`, redone on every edit from the deck's loaded cards): a # after the deck's count is green when it meets the rules and red
+when not (the hover lists the broken rules), and a shield after that is green when every card is legal in the deck's
+Legality, red (crossed out) when some aren't (the hover names them), grey with no Legality or one `/cardslegal` doesn't
+check. A game with no rules has no #; a list that isn't a deck has neither. It saves nothing: the summary is still
+saved from the list view.
 Every list was backfilled on 2026-10-29 (ootv-tools `lists/list-summary.py`, 18,681 lists; it runs the site's
 own check in a headless browser), and again on 2026-10-31 for the cards' legality (216 lists). **After changing a rule or a card's legality, rerun that script** (scan, compute, write): a deck
 keeps the answer from its last draw until its owner opens it or an admin edits it, and some owners never come
@@ -87,19 +103,35 @@ a JSON object, empty removes it).
 | `decks` | The decks copy limits count in (cards in any other deck, L5R `Other`, aren't counted). A `copies` rule can set its own `decks`. |
 | `label` | What the stats line and the panel call the rule. |
 | `order` | Order shown; then by id. |
+| `cap` | On any rule, from a legality or a deck's **cards can't change it** box (`false` undoes a legality's): a card's `rules` and `skip` leave this rule alone. A deck's `{"cap": true, "label": "..."}` on a rule only a card adds keeps that rule out (**cards can't add it**; the box shows while such a card is in the deck, and the part with no `check` tests nothing). A card's `countsas` still applies. |
 | `deck` | The deck the rule looks at, as the deck view groups the card (after `sort.pick` and the deck's picks). |
 | `check: size` | Copies in `deck`: `min`, `max`. |
 | `check: type` | Copies of `type` in `deck`: `min`, `max`. |
 | `check: pertype` | Copies of each type in `deck`, less `except`: `max`. Type Proxy is never counted as a type. |
-| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too). With `titles: n` only n different cards may go past the limit they'd have without this rule; more than that is a problem naming them all, since the check can't tell which ones the player meant (Eternal Victory Dojo). |
+| `check: copies` | Copies of one card (below) across `decks`: `max`. A rule with `when` (`{field: regex}` on the plain values, any card of that card matching) wins over one without; between two that both apply, the lower `max`. With `cap: true` the rule's `max` holds every card it applies to, even one with its own `max` or a rule added by a card (BigDeck, Modern: one copy of any card, "up to six" cards and Depths of the Shinomen's Ratlings too; see `cap` below). With `titles: n` only n different cards may go past the limit they'd have without this rule; more than that is a problem naming them all, since the check can't tell which ones the player meant (Eternal Victory Dojo). |
 
 Values are compared without HTML and with plain spaces (`<b>Unique</b>` is `Unique`).
 
-**One card, for copy limits:** the title, less a trailing `(...)` (`Hida Kisada (Emperor)` is Hida
-Kisada), at its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`). Each
-level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, the Little Bear`
-is Hida Kisada Experienced); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
-keyword makes the card count as Name at that level.
+**One card, for copy limits:** the title, a `(...)` ending included: cards that share a name and differ only by
+it are different cards (`Isawa Tanaka (IG2)` and `Isawa Tanaka (PoH)`, `Hida Kisada (Emperor)` and `Hida Kisada (Imperial)`;
+the user, 2026-11-11). At its experience level from keywords (`Experienced`, `Experienced 2`, `Inexperienced`); each
+level is its own card. An experienced card titled `Name, epithet` is Name (`Hida Kisada, Clan Champion`
+is Hida Kisada Experienced 2); `Experienced 4 Ginawa` names the card. A `Soul of Name [Experienced n]`
+keyword makes the card count as Name at that level. A version or soul whose title or keyword names the bare name of a
+`(...)` card says which one with the card field `countsas` (`deckconstruction.countsas`, written 2026-11-11 by ootv-tools
+`bulk/field-fixes.py l5r-paren-countsas`):
+
+| Cards | `countsas` |
+|---|---|
+| Isawa Mochiko (Soul of Isawa Tanaka) | Isawa Tanaka (IG2) |
+| Hida Yakamo Experienced 2, 3, 3KYD; Hida Yakamo, Seven Thunder (2CW) | Hida Yakamo (Hero) |
+| Utaku Keyo Experienced | Utaku Keyo (LE) |
+| Hida Kisada Inexperienced and Experienced (printed before Emperor) | Hida Kisada (Imperial) |
+| Hida Kisada, the Little Bear; Hida Kisada, Clan Champion; The Little Bear (printed after Emperor) | Hida Kisada (Emperor) |
+
+`Hida Yakamo (Oni)` (3240, 3241) still has `{"countsas": "Hida Yakamo (Oni)"}` from 2026-11-02, from when the `(...)`
+was dropped; it now says the same as its title. `(Bio)` cards are type Other, never in a deck. The decklist import
+(ootv-search `/import`) reads a `(...)` on a line on its own and isn't changed by this.
 
 **Choices** (`choices`): which deck a card goes in, for a deck's owner to set (`pick` in the deck's
 field: `{"sensei": "Fate"}`). A pick beats the game config `sort.pick` rules and moves (docs:
@@ -115,6 +147,9 @@ game-config.md). Public list counts (Fate/Dynasty counts) follow it too.
 | `countsas` | The title this card counts as for copy limits. |
 | `skip` | Rule ids this card isn't counted in (e.g. a card that doesn't count toward deck size). |
 | `rules` | While this card is in the deck, an overlay on the deck's rules (as a legality's), for cards that change the limits of others. |
+| `legality` | `{"<legality>": {max, skip, rules}}`: those keys in place of the card's own, in decks of that Legality (or inferred arc). `countsas` isn't read from here. |
+
+Isawa Osugi 3887 wasn't Unique when printed for Imperial (Anvil of Despair; Jade Edition adds it): `{"legality": {"Imperial": {"skip": ["unique"]}}}`, so three copies there, one elsewhere. Oni no Kamu 5737 the same (its Shadowlands printing has no Unique). A sweep of every Imperial-legal printing of the Unique cards, 2026-11-02, found no others; Events, Rings and experienced Personalities were Unique by rule until Emperor Edition, printed or not (the user).
 
 E.g. Achirin ("You may include up to six copies") `{"max": 6}`; Lesser Oni `{"max": null}`; Depths of the
 Shinomen ("Your deck may include four copies of any non-unique Ratling card")

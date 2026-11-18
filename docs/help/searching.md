@@ -63,8 +63,9 @@ Terms are joined with AND unless you say otherwise.
   negative number, use quotes or a backslash: `chi:"-1"` or `chi:\-1`. `chi:-1` is an error.
   In card text the minus isn't searched at all, so `text:"-1C"` also finds `1C`.
 - **Double quotes must come in pairs.** `"Suzume'` is an error; `"Suzume"` is fine.
-- **Type plain letters.** Use `kyuden`, not `Kyūden`, and a straight apostrophe in
-  `Shinsei's Shrine`, not a curly one, or the search finds nothing.
+- **Type plain letters.** Use `kyuden`, not `Kyūden`, or the search finds nothing. Apostrophes
+  can be curly or straight, or left out: `Shinsei’s Shrine`, `Shinsei's Shrine` and `Shinseis Shrine`
+  all find it, and `Shinsei` alone finds it too.
 - **`cost:>15` only sees plain numbers.** Cards with a cost of `*` or `X` are left out. See the
   next section.
 
@@ -114,9 +115,12 @@ leaves out by name for another reason, such as a stronghold that was never legal
 - The buttons on the right of the menu bar change how results look (detailed list, card images,
   simple list), their size, and their order (**Sort**).
 - In the detailed list, a globe with a number beside a card's name is how many public decks play
-  it. Click it to see them ([public lists](public-lists.md)).
+  it. Click it to see them ([public lists](public-lists.md)). **Sort** → **Public decks** puts
+  the cards in the most public decks first; choose it again for the fewest first. With one
+  **Legality** picked, the number and the sort count only decks of that format.
 - Hover over a small card picture, or a name in the simple list, to see the card at full size.
-  On a phone, press and hold it; tap to close.
+  On a phone, press and hold it; tap to close. An open menu or pulldown stays on top of the card
+  and keeps working, and closing the card leaves the menu open.
 - Click a card to open it. On the card, the arrows (or the arrow keys, with or without Alt, or a
   sideways swipe on a phone) go to the next or previous result.
 - Searches are kept in the address bar, so you can bookmark or share them, and Back returns to
@@ -153,4 +157,4 @@ account, or by **Link with Patreon** in [Settings](settings.md#account). It asks
   **Submit for approval**: once a maintainer has checked it, it's shown beside future results.
 
 The two share one daily and per-minute allowance (for supporters it grows with the tier: Free 1 a
-day, Ashigaru 5, Samurai 25, Maker 500); if you use it up, the message says when it resets.
+day, Ashigaru 5, Samurai 25, Hatamoto 100, Daimyo 250, Kami 500); if you use it up, the message says when it resets.

@@ -18,7 +18,6 @@ settings are kept in that browser only, and **Clear Cache** deletes them.
   [photo searches](searching.md#photo). A Patreon account whose email is one of your emails is
   tied to your account by itself. If it uses another email, **Link with Patreon** signs in to
   Patreon to tie it instead. **Unlink** unties it, and the email match won't tie it again.
-- **Favorite game**: the game the site opens with in a new browser.
 
 ## Theme {#theme}
 
@@ -37,6 +36,14 @@ other devices pick it up too. **Clear Cache** and logging out keep it.
 
 The starting options for PDF printing (layout, paper, card size, the grid of cards, margins and
 so on). The print dialog starts from them each time. See [Downloads](lists.md#downloads).
+
+## Default game {#game}
+
+The game the site opens on in a new tab. Without one, it opens on the last game you used in that browser, or on a
+first visit shows every game's logo to pick from. Each tab stays on its own game, so you can have different games open
+side by side. Picking a game asks whether to make it your default; **Never ask
+again** stops that, and the checkbox here brings it back. Logged out, both are kept in that browser, and **Clear
+Cache** and logging out keep them.
 
 ## Gestures {#gestures}
 

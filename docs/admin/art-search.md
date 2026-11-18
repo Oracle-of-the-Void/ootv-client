@@ -46,7 +46,7 @@ Each person has a daily and a per-minute allowance by level, **one count for Fin
 Find the artist together** (the user's call, 2026-10-23), set in **Admin → Config → Limits**
 ([Limits](limits.md); stored in `oracle-all-structure`, database `all`, key `artphoto`, field
 `limits`; the API rereads it every 5 minutes). A level with no day or minute number has no
-limit in that period. Set 2026-10-23:
+limit in that period. Set 2026-10-23, the Hatamoto and Daimyo tiers and Kami's name 2026-11-01:
 
 | Level | Who | Per day | Per minute |
 |---|---|---|---|
@@ -55,7 +55,9 @@ limit in that period. Set 2026-10-23:
 | `patreon-free` | Patreon Free tier | 1 | 1 |
 | `patreon-ashigaru` | Patreon Ashigaru ($2) | 5 | 1 |
 | `patreon-samurai` | Patreon Samurai ($5) | 25 | 5 |
-| `patreon-maker` | Patreon Maker ($50) | 500 | 10 |
+| `patreon-hatamoto` | Patreon Hatamoto ($10) | 100 | 5 |
+| `patreon-daimyo` | Patreon Daimyo ($25) | 250 | 10 |
+| `patreon-kami` | Patreon Kami ($50; Maker until 2026-11-01) | 500 | 10 |
 
 A supporter gets the level of their highest tier. The key is `patreon-` plus the tier's title on
 Patreon in lower case (anything not a letter or digit becomes `-`), so **renaming a tier on

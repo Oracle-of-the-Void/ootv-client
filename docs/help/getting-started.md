@@ -5,8 +5,10 @@ You can use it without an account. Log in (free) to build [decks and lists](list
 
 ## Pick a game {#game}
 
-The game's name in the menu bar opens the list of games. Each game has its own cards, search
-form and rules. The site remembers the last game you used.
+Click a game's logo on the front page, or use the list of games that the game's name in the menu bar
+opens. Each game has its own cards, search form and rules. Each browser tab stays on its own game, so you
+can have several open at once. A new tab opens on your [default game](settings.md#game), or without one
+on the last game you used. When you pick a game, the site offers to make it your default, until you tick **Never ask again**.
 
 ## Find cards {#find}
 
@@ -31,6 +33,8 @@ on a phone) to see its name.
 - **Public lists**: decks and lists other people have shared ([Public lists](public-lists.md)).
 - **Bookshelf**: the rulebooks and newsletters, to read and search ([Bookshelf](rules.md)).
 - **Help**: these pages.
+
+The menu (the three lines at the top left) has the same views by name, then About, Clear Cache, Theme and Settings.
 
 The buttons on the right change how results look and how they're sorted. Settings is in the
 menu under your name, or the first menu when logged out ([Account and settings](settings.md)).

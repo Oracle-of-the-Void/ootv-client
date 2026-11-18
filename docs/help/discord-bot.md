@@ -107,6 +107,7 @@ Not every game has every option, just as on the site's search form:
 | Pathfinder Pawns | `set`, `type` |
 | Legend of the Five Rings: The Card Game | `set`, `type`, `clan`, `text`, `legality` |
 | Deadlands: Doomtown (1998) | `set`, `type`, `outfit`, `text`, `legality` |
+| Mythos | `set`, `rarity`, `type`, `text` |
 
 In a channel that already narrows searches, an option narrows them further: `legality:Jade
 Extended` in a channel for another arc finds cards legal in both.
@@ -125,3 +126,5 @@ Every card command also takes:
 steps to reproduce a website problem, and your device and browser. Sending it files an issue
 on our GitHub, and only you see the reply, with a link to it. The form can't take
 screenshots, so add those on GitHub. Each person can send 3 reports every 15 minutes.
+When the issue is closed, the bot tells you in the channel you reported from (or by direct
+message), with a link and a note on what was done.

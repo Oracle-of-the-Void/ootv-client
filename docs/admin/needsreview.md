@@ -38,3 +38,9 @@ Edit the card in the card editor (`docs/admin/card-editor.md`):
 
 Bulk runs (ootv-backups / ootv-import scripts) write it with their other changes, e.g. the L5R
 starter-reprint batches (`starter-batch.py`: the plan's `needsreview` column and `card_updates`).
+
+## 7th Sea: fan rebuild images
+
+Some 7th Sea images are fan-made template rebuilds (footer "Custom Illus"), not scans of the printed card (2026-11-01).
+Each one has a public printing note saying so and a `needsreview` entry naming what real scan is known. When a real scan replaces the
+image, remove both. 7th Sea's card page now has a printing Notes row (`rows.printing`), and its fields carry `imagecleaned`.

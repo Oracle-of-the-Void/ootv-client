@@ -29,6 +29,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   * `Stronghold`: a stronghold from before strongholds were printed on cards (it came in the box).
   * Several values are allowed when one printing covers versions that differ only in typesetting or
     flavor. A gameplay difference is a separate printing.
+  * Two values can also make a printing show in both rarity searches: the Gold Edition koku (1, 5, 10 and 50
+    Koku) are `["Promo","Premium"]`, extras in the regular Gold product (the user, 2026-11-01, ootv-client #98).
 * printing.imagehash (the image directory; required with `image`, left out with it when there is no scan)
 * printing.printingid (required)
 * printing.publisher (optional, array of one string). L5R: Five Rings Publishing Group, Wizards
@@ -125,10 +127,13 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   the browser, the card editor hides all four, and an edit that changes the image drops them until
   the vectors are recomputed. In OpenSearch `artvec` becomes `printing.artvector` (k-NN, not in `_source`).
 * printing.imagecleaned (optional, array of strings, internal: Fields `show: "internal"`, not on card
-  pages): where the printing's image came from when its watermark was removed, one note per image,
-  e.g. `ccgtrader scan, watermark removed by duneccg.webflow.io (their Drive folder, fetched
-  2026-10-25)`. Marks images to replace with a clean scan of our own; drop it when the image is
-  replaced. First used on Dune, 2026-10-25 (ootv-tools `printings/dune-scans.py`).
+  pages): where the printing's image came from when its watermark was removed or it was pieced
+  together from two scans, one note per image, e.g. `ccgtrader scan, watermark removed by
+  duneccg.webflow.io (their Drive folder, fetched 2026-10-25)`, or LBS's franckjeb scans that were
+  trimmed inside the card, straightened with the outer border ring filled from ccgtrader's scan
+  (2026-11-05, ootv-tools `printings/lbs-fjfill.py`). Marks images to replace with a whole clean
+  scan; drop it when the image is replaced. First used on Dune, 2026-10-25 (ootv-tools
+  `printings/dune-scans.py`).
 
 ### optional
 
@@ -152,6 +157,19 @@ What each field holds is also kept on the site, for the card editor: Admin → F
   Table cells (`span.deckvalue`, title = printed value and why) and stats averages (`deckcontext`,
   `deckstatvalue` in `oracle.js`; lists of another type keep the printed value). L5R: 83 cards (clan discounts, clan Gold productions), from
   ootv-tools `field-fixes/fill-variable-values.py`, whose `--revert` puts a run back.
+* play (optional, L5R so far, map, since 2026-11-03): what the card brings to the play table (ootv-play), read only
+  there: `attached` (zone settings while it's attached: Shinsei's Shrine `{"attached": {"autorefill": false}}`),
+  `force` (Matsu Gohei's +2F while attacking) and, since 2026-11-05, `actions.<rule set>`: the card's printed actions
+  as play codes (timing, keywords, costs, targets, effect; for Imperial from the Clan Wars printing's text). L5R:
+  186 Imperial Edition cards have `actions.Imperial`, from ootv-tools `field-fixes/play-actions.py` (which also put
+  that printing's text on 268 printings); on 28 of them the same day also structured `effects` (what the table does:
+  `add` Force/Chi or a player's Honor, tokens, dishonor; when, until) and target `match` (clan, Personal Honor, Chi); then Ranged Attacks and Fear (`ranged`, `fear`, `destroy`) on 25 more, duels and challenges (`duel`, `induel`,
+  `duelset`, ...) on 16, cancelling Reactions (`cancel`, `to: "actor"`) on 6, and the Honor
+  actions (`after`, `battle`, `once`, `take`, `award`, `even`, `refund`, `spare`, `intoplay`, `to: "highest"`/`"owner"`,
+  cost `discard`) on 16, into play, tokens and taking control (`make`, `control`, `bring`, `gain`, `copy`, `rally`,
+  targets `from`, an action's `ask`) on 14, Destroy (targets `army`, `attacked`, `destroy.attached`) on 14, and Force, Chi, Province Strength (`to: inplay | yours`, `align`, `swap`, `double`, `nodestroy`, `strength`, `iftarget`, gates `battle: defending | attacking | unopposed` and `once: turn`, a token's `hold`, an action's `anywhere`) on 14, and draw, discard, look, search (`draw`, `discard`, `look`, `turn`, `test`, `search`, targets `facedown`, `after: provincefell | enddraw`, an action's `inplay`) on 12, and move, remove from battle, send home, assign (`home`, `move`, `attach`, `endbattle`, `destroy: terrain`, `ambush`, `ahead`, `to: leader`, gates `battle: defender | outside`, targets `whose: attacking | defending | defender` and `at`, a Gold cost `of: unit`, and the card rule `assign`) on 13, and copy, rule changes (`perform`, `learn`, `mimic`, `redirect`, `first`, `counter`, `unbow`, gates `hand`, `produced`, `battle: start`, `after: attackend | terrains | fought`, `once: turn` with `key`, `phase`, and the card rule `waits`) on 11, and the last four groups, bow, straighten, dishonor; Gold and costs; Cavalry; Terrain swaps (`nostraighten`, `by`, `to: host | stronghold | unit`, `trait`, `gold`, `goldplus`, `free`, `terrain`, `store`, gate `after: killed`, targets `from: under`, `hidden`, `same: unit`, `army: opposed`) on 22, and on 10 Imperial Events the card rule `event` (what the Event does when it turns up: `to: each | lowest`, amount `of: dead`, `province`, `turnover`, `pick`, search `match` and `reveal`), and on 14 more `lasting` (rules for a while: `noattack`, `skip`, `free`, `nobow`, `nospells`, `nohonor`, `force`, `nostraighten`, `draw`, `discount`), picks by the Event's player (`whose: any | others`, `unbowed`, `choose`), `duel`, `quest`, `champion` and `stay`, and on 21 cards the card rule `bonus` (what a card gives while in play: `add` or `strength`, `to: self | host | unit | inplay | attackers | defenders | province`, `match`, `per`, `if: host`, `when`, `opposed`, `while`). Since 2026-11-09, `fields.<rule set>`: the numbers that rule set's era printed where they differ from the card's own, which are its most recent printing's (never changed to an older era's), stored like the card's fields: The Ancestral Home of the Lion `{"fields": {"Imperial": {"strength": ["6"]}}}` (7 on the 2006 Crab vs. Lion); the table uses them when it builds decks under that rule set. Not in search documents (since 2026-11-05; read with `/oracle-fetch`, as the table and the card
+  editor do), and its changes aren't written to `updatelog` while the play table is in development. Shape and keys:
+  `docs/admin/play-table.md`.
 * ruling (optional, every game, array of HTML strings): official rulings about the card, one per
   entry, each usually ending in an `<a href>` to its source. On the card's details page the links open
   in a popup (a Bookshelf page `#rulebook=<id>,#page=<n>`, an image or a PDF in the site's modal;
@@ -166,7 +184,8 @@ What each field holds is also kept on the site, for the card editor: Admin → F
 * updatelog (every card, array of maps): one row per change (`op`, `uid`, `uname`, `timestamp` in ms,
   `olddata`/`newdata`), shown under "Latest Updates" on the card page. Not in `/search` answers (since
   2026-10-29), which carry `updatelast` (the newest row's `timestamp`) instead; the card page fetches the
-  rows when "Latest Updates" opens.
+  rows when "Latest Updates" opens. Since 2026-11-05 not in search documents at all: the stream stores `updatelast`
+  on each. `play` changes don't get rows (see play).
 * formattedtitle (with bold html/whatnot)
 * puretexttitle (text spoiler ver.. remove special chars, \&149\; Exp to -exp, etc)
 

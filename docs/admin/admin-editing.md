@@ -1,6 +1,6 @@
 # Editing other people's lists, and the audit log
 
-Last updated 2026-10-31.
+Last updated 2026-11-01.
 
 Admins can open and fix anyone's deck or list, private ones too: a mistyped card the owner asked
 about, a list made public by accident, or something that breaks the site's rules. Every step is
@@ -30,6 +30,9 @@ Card changes save about 15 seconds after the last one. **Stop editing** saves an
 and finishes once they're in (it shows *Saving...*, or *Not saved, retrying...* if the save fails,
 and the list stays open for editing until it works). Reloading doesn't wait: card changes from the
 last 15 seconds are lost, so use Stop editing first.
+
+An unlisted list shows as Unlisted, but you never see its link. You can make it Public or Private, which ends
+its link; you can't make a list Unlisted.
 
 What you can change: the cards, name, notes, type, legality, public/private and the deck
 construction rules. What you can't: delete it, or change its folder (that's the owner's filing).

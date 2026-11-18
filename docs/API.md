@@ -9,7 +9,7 @@
 * [/gameconfig (GET)](#gameconfig)             -> A game's config in one request (or every game's Discord block)
 * [/oracle-updatelog (POST or GET)](#updatelog)-> Fetch information about recent updates
 * [/visit (GET)](#visit)                       -> Anonymous daily visitor ping
-* [/publiclist (GET)](#publiclist)             -> Read a public deck/list without logging in
+* [/publiclist (GET)](#publiclist)             -> Read a public or unlisted deck/list without logging in
 * [/publiclists (GET)](#publiclists)           -> Search every public deck/list (the Public lists view)
 * [/trade (GET)](#trade)                       -> Trade matching over lists open to trade (the Trades view)
 
@@ -122,8 +122,9 @@ outputs:
 
 codes:
 
-* 200: success
-* 404: cards not found
+* 200: success. With several cardids, cards that don't exist are left out of the array (the client shows them as
+  deleted, #188); the server asks DynamoDB again for any it didn't answer (`UnprocessedKeys`, ootv-search #172)
+* 404: cards not found (none of them)
 * other: errors returned by DynamoDB.DocumentClient passed through
 
 ## /search
@@ -140,6 +141,7 @@ inputs - sent in body querystring:
   * "random": random order
   * any other valid elastic sort clause
   * `<field>.keyword` sorts are case-insensitive (the API swaps them for a script sort)
+  * `[{"publicdecks": {"order": "desc"}}]`: by how many public decks have at least one copy (`/publiclists?group=cardcounts`; up to 10 minutes behind), title breaking ties; with exactly one `field_legality` and no `field_banned`, only decks of that format count
 * sortmode (optional) - how `.keyword` sorts compare text, all case-insensitive
   * "lex" (default): plain A–Z
   * "punct": skip leading punctuation and spaces (`"Guest" of the Chuda` under G)
@@ -152,6 +154,13 @@ inputs - sent in body querystring:
 * rulings (optional): `1` keeps `ruling` and `rulingref` in the hits (the Discord bot's `/rulings`)
 * querystring (optional)
   * string to do an elastic query_string (operator AND)
+* family (optional): a cardid. Only that card and every card linked to it through versions and souls
+  (Experienced/Inexperienced, Soul of, `deckconstruction.countsas`, a title's ", Soul of Name"), ANDed with the
+  rest; 404 for an unknown card. ootv-search `lib/family.js`, its CLAUDE.md "Card families". The card page's
+  family link (`cardfamily`) asks `size: 0` for the count. The answer then also has `family`, the tree the
+  results page draws (`familytreepanel`): `{ cardid, tree, others }`, a node `{ name, cards: [{ cardid, title, level, legality,
+  soulof: { name, cardid } }], children }`; a character's versions in one node, each soul a child of the one it
+  is a soul of (`soulof.cardid`: the version its keyword names, else null).
 * pairs of field_xxx (contains the data) and type_xxx (defines the operation)
   * type_xxx = 'regexp'
     * Does elastic regexp
@@ -180,9 +189,12 @@ inputs - sent in body querystring:
     * a min that isn't a number (e.g. `*`) is an exact match on `xxx.keyword` instead
   * a select field's value can be a derived name (e.g. l5r `Legacy`, `Paper`) from the game's
     `attributes.<field>.derived` config; the API expands it into its rule
+  * or a synonym from `attributes.<field>.synonyms` (e.g. lbs traits `Non-Human` for the stored `Nonhuman`;
+    case ignored, `printing.<x>` uses `<x>`'s list): the stored value(s) match too. `/attributes` lists the
+    synonyms with the field's values (since 2026-11-16, ootv-search [#201](https://github.com/Oracle-of-the-Void/ootv-search/pull/201))
 * require_xxx (optional, one or many values)
   * every value must match, ANDed with the rest of the search (field_xxx ORs its values)
-  * each value is a derived name or a stored value; no type_xxx needed
+  * each value is a derived name, a synonym or a stored value; no type_xxx needed
   * e.g. `field_legality[]=Legacy&require_legality=Paper` = Legacy cards that are paper. The
     l5r "Paper only" checkbox sends `require_legality=Paper`
 
@@ -197,7 +209,9 @@ outputs:
       ootv-search PROBLEMS.md #21). In their place `_source.updatelast` (the newest updatelog row's
       timestamp, ms), `rulingcount` and `rulingrefcount` (left out when 0). The whole card comes
       with `/oracle-fetch`: the card page fetches it for a card with rulings or Rules Q&A, and the
-      update log when "Latest Updates" opens
+      update log when "Latest Updates" opens. Since 2026-11-05 (ootv-dynamo #15) search documents hold no `updatelog`
+      or `play` at all: `updatelast` is stored on the document by the stream; the card editor and the play
+      table read whole cards with `/oracle-fetch`
 
 codes:
 
@@ -375,7 +389,13 @@ inputs: form/multipart
   * text, one card per line
   * a leading count is the quantity: `3 `, `3x `, `3 x ` (not the `1` of "1,000 Cuts Technique")
   * `#` starts a comment; blank lines are skipped
-  * `Title (Set)`: the printing from a Sun and Moon edition code, else a set name or set initials
+  * a set on the line: `Title (Set)`, `Title,Set` (after the last comma) or a spreadsheet's `"3x Title, Epithet",Set`
+    (CSV quotes read): first the one card of that title with a printing in that set (set names compared without case,
+    entities, dashes or spaces: `Promotional–Lotus`), with that printing; this tells apart cards sharing a name
+    (The Iron Citadel) and beats a `Legality:` line (since 2026-11-03, ootv-search #174). Else `(Set)` is a Sun and
+    Moon edition code, then a set name or set initials, and a comma tail is taken as part of the title
+  * an experienced level may be written any way after the title: `- exp 2`, `xp2`, `• Experienced 2`,
+    `-- Inexperienced` (bullets, dashes, colons or a comma between)
   * a trailing `[foil]` / `[foil or not]` sets the entry's `foil` (`foil` / `either`)
   * `Legality: <arc>` (`_` read as a space): the following lines get the newest printing whose
     legality is that arc ("Emperor" is Age of Conquest (Emperor), "Ivory" finds "(Ivory Edition)"),
@@ -413,6 +433,11 @@ Handles deck/card lists
 
 Handled by lambda: ootv-search/routes/list.js
 
+GET with the inputs below in the query string, or POST with the same inputs as a JSON object body
+(`Content-Type: application/json`; values as strings, e.g. `updatevalue` = the list's JSON text). Saves go as POST
+(`listinfoupdate`): a big list as `updatevalue` is longer than API Gateway takes in a URL (ootv-claude
+`issues/ootv-search/PROBLEMS.md` #26).
+
 inputs:
 
 * Header: Authorization (required)
@@ -442,6 +467,9 @@ inputs:
     `buildbad` into its summaries for the public listing's Illegal mark
   * if this is set we update that field of the list (updatevalue), and modified, except for folder and summary
   * saving `list` also adds 1 to the list's `rev` and returns the new one as `rev`
+  * `public` takes `true`, `false` or `unlisted`. Unlisted stores `public: false` and a random `sharecode`, kept if the list has one;
+    `true` or `false` remove the code, so its link stops working. Only the owner can set `unlisted`. `sharecode` itself can't be set
+* code (optional): an unlisted list's code. With it, someone else can read and duplicate the list
 * baserev (optional, with updatefield=list)
   * the `rev` the client's edits started from (0 if the list has none yet). The save only goes through if
     that's still the list's `rev`; otherwise it answers **409** with `list` (the current item, `list.Items[0]`),
@@ -450,11 +478,14 @@ inputs:
 * action (optional)
   * search (no listid; database required): the [/publiclists](#publiclists) search over this user's own lists,
     private ones too, with the same parameters and answer (`game` is `database`; `owner` is ignored: always you).
-    Each hit also has `public`. The client's My lists (`publicmine()` in `oracle.js`) and the card view's folder
+    Each hit also has `public`, and `unlisted: true` on an unlisted list. The client's My lists (`publicmine()` in `oracle.js`) and the card view's folder
     link (`cardid=N&minqty=1&size=0`, its `total`) use it. A save reaches it within seconds (the index's stream)
   * remove
     * delete that list (owner only, 403 otherwise)
+  * sharecode
+    * a new code for your own unlisted list, answered as `sharecode`; the old link stops working (owner only, 403; 400 if the list isn't unlisted)
   * duplicate
+    * never copies `sharecode`, so a copy of an unlisted list is private
     * your own list: a copy named "Copy of <name>"
     * someone else's public list (the list view's "Copy to my lists"): a private copy, with no `folder`, that
       keeps where it came from in `source: {listid, owner, ownername, name, modified, copied}` (plus the
@@ -479,6 +510,8 @@ outputs:
     * modified
     * list (array of { {cardid: x, quantity: x, printing: x }, ... } )
     * source (a copy of someone else's list; see duplicate)
+    * sharecode (your own unlisted list only)
+    * unlisted: true (someone else's unlisted list, which never comes with its `sharecode`)
     * someone else's public list: also `ownername` (their display name, else initials such as "A.L.", else
       "another player"), and no `folder`. Escape it when showing it
 * listid 'new'
@@ -498,8 +531,8 @@ codes:
 
 ## /publiclist
 
-GET, no authentication (ootv-search `routes/publiclist.js`): a list whose `public` is true, for shared
-deck links (`#game=<g>,#listid=N`) opened without logging in. Logged in, `/list` with the listid
+GET, no authentication (ootv-search `routes/publiclist.js`): a list whose `public` is true, or an unlisted one
+with its code, for shared deck links (`#game=<g>,#listid=N`) opened without logging in. Logged in, `/list` with the listid
 returns another user's public list too.
 
 Call it as a CORS simple request: no `Authorization` or `Content-Type` header (the route has no
@@ -508,17 +541,18 @@ OPTIONS preflight), so don't pass `contentType` to `$.ajax`.
 inputs:
 
 * listid (required)
+* code (optional): an unlisted list's code, from its link (`#game=<g>,#listid=N,#share=<code>`)
 
 outputs:
 
-* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing),
+* list.Items[0]: the list, as from `/list` with a listid, without `folder` (the owner's directory filing) or `sharecode`,
   with `ownername` (as `/list` gives for someone else's list)
 
 codes:
 
 * 200 success
 * 400 no listid
-* 404 no such list, or it isn't public (the same answer, so a link doesn't show whether a private list exists)
+* 404 no such list, it isn't public, or a wrong code (the same answer, so a link doesn't show whether a private list exists)
 
 
 ## /publiclists
@@ -550,18 +584,25 @@ inputs (a value list can be repeated or comma separated):
   wins, latest`.
   `cards` (the client's Most played view): one row per card in the decks found (decks only), paged with from/size
   (`groupstotal`: how many different cards), each `cardid, title, type[], decks` (decks with at least one copy) `,
-  copies` (summed over them); `order=decks` (default) or `copies`, `cardtype` (one or more) narrows to those card
-  types. It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
+  copies` (summed over them), `rank` (its place by decks); `order=decks` (default) ranks every card, while
+  `copies`, `name` and `cardtype` (type, then title) sort only the 100 cards in the most decks (the answer has
+  `top: 100`, and `groupstotal` is at most 100); `cardtype` (one or more) narrows to those card
+  types; `export=1` answers every row at once, `from`/`size` ignored (the CSV button). It answers `order` and `facets` too: the usual ones plus `cardtype` (different cards per type, ignoring the
   `cardtype` filter).
   `cardcounts` (the Detail search results' globes): every card's deck count at once, unpaged:
-  `{total, group, counts: {cardid: decks}, complete}`. `decks` is the card page's count (decks with at least one
+  `{total, group, format, counts: {cardid: decks}, complete}`. `legality`: one value of the card search's Legality select, counting only decks of its format, answered as `format` (`Hidden&nbsp;Emperor&nbsp;(Jade)` is `Jade`; what isn't a format, like Paper or Unreleased, counts all decks). `decks` is the card page's count (decks with at least one
   copy); only cards in a deck are in `counts`; `complete` is false if it was cut short (more cards than it takes).
+* legal=1 (with `group=formats` or `cards`, the client's Legal decks only, on by default): leaves out illegal decks: the
+  deck construction check fails (`buildbad`, from the list's saved summary), or the deck's format is one the cards are
+  checked in and not all its cards are legal there (`derived.cardslegal`). A list with no summary yet passes its rules.
+* scope=all (with `group=formats` or `cards` only, 400 otherwise; the client's All decks): every deck, private ones
+  too, counted. Anyone may ask; `q` and `owner` are ignored so a name can't single out one private deck.
 
 outputs:
 
 * total, from, size, sort
 * hits[]: `listid, game, public, type, name, notes` (plain text, first 300 characters), `owner, ownername, legalitylabel`
-  (the owner's own legality label), `created, modified, totalcount, distinctcount, buildbad, sourcelistid`, `award {event, result, year}`, `derived`
+  (the owner's own legality label), `created, modified, totalcount, distinctcount, buildbad, deckconstruction` (the deck's own rules, when it has any)`, sourcelistid`, `award {event, result, year}`, `derived`
   (`stronghold {cardid, title}, clan, sensei, wind, fatecount, dynastycount, format, formatsource` (`owner` | `name` | `cards`),
   `cardslegal[], unknowncards`; `fatecount`/`dynastycount` follow the game config's `sort.pick` `moves` for the list's
   own legality: L5R Sensei count as Fate in Jade and Imperial decks), and with
@@ -582,7 +623,9 @@ only at the cards, not at the deck's size or copy limits; the client adds its `i
 (the summary's `buildbad`). Proxy cards (type Proxy or legality Not Legal (Proxy)) are left out. Answers `{cardslegal: [...], unknown:
 <cards not found>}`; 400 without a table or with over 5000 cards. With `format` (the list's legality) it also answers
 `format` and `illegal: [{cardid, title}]`, the cards not legal in it; `illegal` is null for a value the game doesn't
-check, such as Proxy or a deck's Special.
+check, such as Proxy or a deck's Special. Without `format`, send the deck's `name`, `fatecount` and `dynastycount`, and when the
+public listing would infer a regular arc for it (not BigDeck, an Extended or an eternal format), it also answers
+`inferred`: that arc, whose deck construction rules the client then checks the deck by.
 
 ## /list action=award, action=precon
 
@@ -818,7 +861,7 @@ Handled by lambda: ootv-search/routes/admin.js
 Input: POST JSON `{uid, action, ...}`
 * `usersearch` `{q}`: an email (exact), a uid, or part of a name / display name / email (a scan) → `{users: [{uid,
   firstname, lastname, displayname, email, emails, insert_date}], more}` (at most 50). Audited (`user-search`).
-* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, logins: [{time, result, provider, ip, newDeviceUsed}]}`.
+* `userget` `{target}`: → `{user, lists: {<game>: {lists, public}}, decks: [{listid, game, name, type, public, unlisted, modified, totalcount, buildbad}], logins: [{time, result, provider, ip, newDeviceUsed}]}`. `decks` is every list they own, newest `modified` first.
   `user` is the users row without `settings`, `emailsends` or the pending code's hash, plus `patreon`. Audited (`user-view`).
 * `useredit` `{target, field, ...}`, one change, conditional on the value just read (409 if it changed), audited
   (`user-edit`, old and new) before the write; answers as `userget` (+ `warning`):

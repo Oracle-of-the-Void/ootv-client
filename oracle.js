@@ -16,6 +16,7 @@ $.views.tags("fetchdata",templatefetchdata);
 $.views.tags("fetchfull",templatefetch);
 $.views.helpers("concatarrays",templateconcatarrays);
 $.views.helpers("makelinks",templatemakelinks);
+$.views.helpers("notelinks",notelinks);
 $.views.helpers("sortlegality",templatesortlegality);
 $.views.helpers("legalitybugs",function(data) { return legalitybugline(data); });
 $.views.helpers("sortprintings",templatesortprintings);
@@ -78,8 +79,9 @@ $.views.converters("listTypeSelect",function(type) {
 // a deck's own Legality choice, in every game: not a format cards have, so it's no search filter, import arc or
 // /cardslegal format, and it starts with no deck construction rules (deckbuildrules)
 var decklegalityspecial = 'Special';
-function listlegalityoptions(legality) {
-  var sel='<option value=""></option>';
+function listlegalityoptions(legality, emptylabel) {
+  // the deck header's pulldown names itself when unset ("Choose Format:"); import's stays blank
+  var sel='<option value="">'+(typeof emptylabel === 'string' ? emptylabel : '')+'</option>';
   var base = (cache_select("legality.sortregex") || []).map(function(l) { return l.replace(/&nbsp;/g, " "); });
   // derived formats (Ivory Strict, Jade Extended, ...) go right after their base format; the rest
   // (BigDeck) at the end. Some (Legacy, Modern) are already in sortregex. Entries with
@@ -103,10 +105,10 @@ function listlegalityoptions(legality) {
   });
   return sel;
 }
-$.views.converters("listLegalitySelect",listlegalityoptions);
+$.views.converters("listLegalitySelect",function(legality) { return listlegalityoptions(legality); });
 $.views.converters("deckLegalitySelect",function(legality) {
   var current = (legality||'').replace(/&nbsp;/g, " ");
-  return listlegalityoptions(legality)+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
+  return listlegalityoptions(legality,'Choose Format:')+'<option value="'+decklegalityspecial+'"'+(current==decklegalityspecial?' selected':'')+'>'+decklegalityspecial+'</option>';
 });
 $.views.converters("nbsptospace",function(val) {
   return (val||'').replace(/&nbsp;/g, " ");
@@ -218,6 +220,7 @@ if(found = window.location.href.match(/([\w_-]+)\.html/)) {
 	  database = found[1];
 	  console.log("database: "+database);
     cache_session("database",found[1]);
+    sessionStorage.setItem("tabgame",found[1]);
     window.location = location.protocol + '//' + location.host + location.pathname;
   }
 }
@@ -234,12 +237,82 @@ function hashrepair() {
   }
 }
 hashrepair();
-if(cache_session("database")) {
+// Which game this page load draws, so each tab can be on its own game. A #game= url says itself. A tab already in use
+// (a game menu click, a reload, back from logging in) stays on its game, sessionStorage tabgame. A tab just opened starts
+// on the default game, or the last one this browser used (session_database). With none of them, the front page asks: the
+// game picker (gamepick), over L5R's search form.
+var gamenotpicked = false;
+var hashgame = location.hash.match(/#game=([^,#]+)/);
+if(hashgame) {
+  database = decodeURIComponent(hashgame[1]);
+  cache_session("database",database);
+} else if(sessionStorage.getItem("tabgame")) {
+  database = sessionStorage.getItem("tabgame");
+} else if(gamedefaultstored()) {
+  database = gamedefaultstored();
+  cache_session("database",database);
+} else if(cache_session("database")) {
   database = cache_session("database");
-} else if(cache_session("favoritegame") && !/#game=/.test(location.hash)) {
-  // no game picked in this browser yet: open the logged-in user's favorite (settings.all.game, copied by applyfavoritegame)
-  database = cache_session("favoritegame");
+} else {
+  gamenotpicked = true;
 }
+if(!gamenotpicked) { sessionStorage.setItem("tabgame",database); }
+// a blank url that will open on the About page (the urlparser's start page): the menubar's view buttons stay hidden from
+// the first paint, not drawn and then hidden by the first showview, which moved the whole page up (layout shift)
+// Any other load (phones' search form, a #search, #cardid or list url) is bootresults: the About page the load shows first is
+// only a placeholder, and the view buttons keep the row the real view will show (updateviewbuttons), not hidden for a frame
+// or two between them (afterpaint) and back, moving the page twice
+if(!location.hash.replace(/#game=[^#]*/,'') && (gamenotpicked || !narrowscreen())) {
+  document.documentElement.classList.add('bootabout');
+} else {
+  document.documentElement.classList.add('bootresults');
+}
+// The menubar as the load will end it, before its first paint (menubarboot, run by index.html straight after the menubar):
+// on phones a wide game logo (Initial D, Doomtown, Mythos) and the Log In button arriving with the game config, and the
+// view row only narrowing to the card view's buttons after that, wrapped the row a line down and back (mobile CLS 0.42-0.47).
+// Each game's logo's size (gamelogos/64, width and height), so its <img> has its shape before it loads: a new game's logo
+// gets a line here (any game without one draws as before, its room taken when the logo arrives)
+var logoshape = {'l5r': [61,64], 'lbs': [78,64], '7thsea': [64,60], 'initiald': [64,28], 'warlord': [64,34], 'dune': [101,64],
+  'pathfinder-pawns': [47,64], 'l5rlcg': [64,64], 'netrunner': [82,64], 'dtccg': [172,64], 'dtlcg': [241,64], 'qftg': [33,64],
+  'wh40k': [163,64], '7s5s': [64,64], 'swccg': [94,64], 'mythos': [205,64]};
+// the games whose card page has the large view (card-premium in their views), so a card url starts with the size buttons only
+// for them. A stored game config (a returning visitor) says it itself; this list is for a first visit, and a stale entry only
+// costs a layout shift on that game's card links
+var cardlargegames = ['l5r', 'lbs', '7thsea', 'initiald', 'pathfinder-pawns'];
+function bootcardlarge() {
+  var conf = null;
+  try { conf = cache_thing('gameconfig', database); } catch(e) {}
+  if(conf && conf.game && conf.game.views && conf.templates && conf.templates.standard) {
+    var v = conf.game.views;
+    return conf.templates.standard.filter(function(k) { return !(v.remove || []).includes(k); }).concat(v.add || []).includes('card-premium');
+  }
+  return cardlargegames.includes(database);
+}
+// a game logo's alt text: the game's name (an empty alt reads as missing to Bing's SEO check)
+function gamelogoalt(name) {
+  return name ? String(name).replace(/"/g, '&quot;')+' logo' : '';
+}
+// the menubar's game logo: logo is the file name (all/games), table the game's key in logoshape, name the game's name
+function gamelogoimg(logo, table, name) {
+  var s = logoshape[table];
+  return '<img src="gamelogos/64/'+logo+'" alt="'+gamelogoalt(name)+'"'+(s ? ' width="'+s[0]+'" height="'+s[1]+'"' : '')+'>';
+}
+function menubarboot() {
+  if(logoshape[database]) { $('.gameinfo-game').html(gamelogoimg(database+'.png', database)); } // every game's logo is <table>.png
+  // logged out (no Cognito tokens kept): Log In now, not when the login check answers (logoutcallback shows it again)
+  var tokens = false;
+  try { for(var i = 0; i < localStorage.length; i++) { if(localStorage.key(i).indexOf('CognitoIdentityServiceProvider.') === 0) { tokens = true; break; } } } catch(e) { tokens = true; }
+  if(!tokens) { $('#loginbutton').show(); }
+  // a card or list url: the view row starts as that view draws it (updateviewbuttons): sort is for search results only,
+  // and the card view has no template buttons (card and card-premium are the size buttons)
+  var hash = location.hash;
+  if(/#cardid=|#listid=/.test(hash) && !/#search=/.test(hash)) { $('li.sortbuttons').hide(); }
+  if(/#cardid=/.test(hash) && !/#search=|#listid=/.test(hash)) {
+    $('#templatebuttons').hide();
+    if(!bootcardlarge()) { $('#sizebuttons').hide(); $('li.searchviewbuttons').hide(); }
+  }
+}
+var showviewcount = 0;
 var labels = {};
 var populatecallback = [];
 var auth;
@@ -253,6 +326,7 @@ searchsorts[''][JSON.stringify([{'title.keyword':{'order': 'asc'}}])] = 'Title';
 //	'random': 'Random'
 searchsorts[database] = searchsorts[''];
 // how /search compares text sorts (all case-insensitive); the first is the default
+var publicdeckssort = JSON.stringify([{'publicdecks':{'order': 'asc'}}]);   // how many public decks play the card
 var sortmodes = {'lex': 'A\u2013Z', 'punct': 'Skip leading punctuation', 'library': 'Library (skip A/An/The)'};
 var activelists = [];
 var savetimeout = '';    // fires 15s after the last list edit
@@ -269,15 +343,19 @@ function dologin() {
 function dologout() {
     auth.signOut();
     var theme = cache_session("theme");
+    var keepgame = cache_session("gamedefault"), keepnoask = cache_session("gamenoask"), keeptab = sessionStorage.getItem("tabgame");
     localStorage.clear();
     sessionStorage.clear();
+    if(keeptab) sessionStorage.setItem("tabgame",keeptab);
     if(theme) cache_session("theme",theme);
+    if(keepgame) cache_session("gamedefault",keepgame);
+    if(keepnoask) cache_session("gamenoask",keepnoask);
 }
 // Clear Cache menu: drop cached data but keep the Cognito login tokens
 function clearcache() {
     for (var i = localStorage.length - 1; i >= 0; i--) {
 	var key = localStorage.key(i);
-	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0 && key != "session_theme") {
+	if (key.indexOf("CognitoIdentityServiceProvider.") !== 0 && key != "session_theme" && key != "session_gamedefault" && key != "session_gamenoask") {
 	    localStorage.removeItem(key);
 	}
     }
@@ -290,6 +368,7 @@ function logoutcallback() {
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
+    publicformstate();   // the Public lists form's My lists choice
     rendersettings(); // logged out it shows only the search settings kept in this browser
     rendersavedsearches();
     updateviewbuttons();
@@ -303,6 +382,7 @@ function logincallback(session) {
 	$('.loginfo').show();
 	$('.showonlogin').show();
 	$('.hideonlogin').hide();
+	publicformstate();
     }
     if(window.location.href.includes("#access_token") || window.location.href.includes("?code=")) {
 	window.location = location.protocol + '//' + location.host + location.pathname;
@@ -531,7 +611,7 @@ function userinfocallback() {
     rendersettings();
 //    $(".helloplace").replaceWith(hellotemplate.render({cognito: info.cognito, oracle: info.oracle[0]}));
     //	  $(".infoplace:first-child").before(hellotemplate.render({cognito: data.cognito, oracle: data.oracle[0]}));
-    listinfo(); // TODO:  more intelligently decide if we need to do listinfo or just the callback
+    listdirfresh();
     if (("oracle" in cache_thing("user","data")) && ("groups" in cache_thing("user","data").oracle[0])) {
       $('.showonadmin').show();
     }
@@ -606,9 +686,81 @@ function listsuperseded(listid) {
 function liststale(listid) {
   return listsuperseded(listid) || $("#lastlistid").val() != listid;
 }
+// Directory changes this tab just made (new list, copy, remove). The server reads the directory through a DynamoDB
+// index (owner-index3) that takes a moment to catch up after a write, and a directory read already out when a list is
+// created answers without it: a new list showed, then vanished until the next reload (2026-11-03). So a directory read
+// asked for while a change is in flight waits until it's done (listdirbusy, listdirwanted), and for LISTDIRLAGMS after
+// a change every directory answer gets this tab's new lists added and its removed ones dropped (listdirapply).
+var LISTDIRLAGMS = 60*1000;
+var listdirbusy = 0, listdirwanted = false;
+var listdirchanges = {};   // listid -> {at, item} for a list added, {at, removed: true} for one removed
+function listdirstart() {
+  listdirbusy++;
+}
+// the change is done: re-read the directory now if anything asked for it meanwhile (or reread is set)
+function listdirdone(reread=false) {
+  if(listdirbusy > 0) { listdirbusy--; }
+  if(reread) { listdirwanted = true; }
+  if(!listdirbusy && listdirwanted) {
+    listdirwanted = false;
+    listinfo();
+  }
+}
+function listdirnote(listid, item=null) {
+  listdirchanges[String(listid)] = item ? {"at": Date.now(), "item": item} : {"at": Date.now(), "removed": true};
+}
+function listdirapply(data) {
+  if(!(data && data.lists && data.lists.Items)) { return data; }
+  var now = Date.now();
+  Object.keys(listdirchanges).forEach(function(id) {
+    var change = listdirchanges[id];
+    if(now - change.at > LISTDIRLAGMS) {
+      delete listdirchanges[id];
+      return;
+    }
+    var at = data.lists.Items.findIndex(function(l) { return String(l.listid) == id; });
+    if(change.removed && at >= 0) {
+      data.lists.Items.splice(at,1);
+    } else if(!change.removed && at < 0) {
+      data.lists.Items.unshift(change.item);
+    }
+  });
+  return data;
+}
+
+// When this browser last read each list (listid) and the directory ('dir') from the server, kept with the lists in
+// localStorage, so all its tabs share it. Within LISTFRESHMS of a read, a tab that opens or comes back to the front
+// uses the stored copy instead of reading again: a deck built by opening cards in new tabs re-read the directory and
+// every active deck on each one, some 10 calls a card (2026-11-12). Edits elsewhere still show within LISTFRESHMS.
+var LISTFRESHMS = 15*1000;
+function listfresh(key) {
+  var t = (cache_thing("list","checked") || {})[String(key)];
+  return !!t && Date.now() - t < LISTFRESHMS;
+}
+function listchecked(key) {
+  var now = Date.now(), c = cache_thing("list","checked") || {};
+  Object.keys(c).forEach(function(k) { if(now - c[k] > LISTFRESHMS) { delete c[k]; } });
+  c[String(key)] = now;
+  cache_thing("list","checked",c);
+}
+// the directory: the stored copy if it's fresh (listfresh), else read
+function listdirfresh() {
+  if(cache_thing("list","data") && listfresh('dir') && !listdirbusy) {
+    listinfocallback();
+    renderlisteditarea();
+  } else {
+    listinfo();
+  }
+}
+
 // done: called once the list's data is in the cache (listid set)
 function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
   console.log(["listinfo",listid,switchview,listoutput]);
+  if(!listid && listdirbusy) {
+    // a list is being created or removed: read the directory once that's done (listdirdone)
+    listdirwanted = true;
+    return;
+  }
   if(listid && switchview && !listoutput) {
     listopening = listid;
     listopencount++;
@@ -634,8 +786,9 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 	    responseType: 'application/json',
 	    success: function(data) {
 		    console.log(data);
+		    listchecked(listid || 'dir');
 		    if(listid) {
-		      if(listunsaved(listid) && cache_thing("list",listid)) {
+		      if((listunsaved(listid) || listdirty(listid)) && cache_thing("list",listid)) {
 			// unsaved local edits are newer than the server's copy
 			data = cache_thing("list",listid);
 		      } else {
@@ -662,7 +815,7 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 			              renderlist(data.list.Items[0],false,listoutput);
 		                } */
 		    } else {
-		      cache_thing("list","data",data);
+		      cache_thing("list","data",listdirapply(data));
 		      listinfocallback();
           renderlisteditarea();
 		    }
@@ -672,21 +825,30 @@ function listinfo(listid=null,switchview=true,listoutput=null,done=null) {
 		    if(listid && switchview && !listoutput && (error.status == 403 || error.status == 404)) {
 		      listunavailable();
 		    }
+		    if(listid && listoutput && listbatch) {
+		      listfilefail("Couldn't load the list"+(error.status ? " ("+error.status+")" : ""));
+		    }
 	    }
 	  }));
   }
 }
 // a list's GET: your own lists (and others' public ones) through /list; logged out, a public list through
 // /publiclist, as a CORS simple request (no Content-Type or Authorization: it has no OPTIONS route)
+// An unlisted list opened from its link: listid -> the code in that link (#share=), sent with each read and copy.
+// In memory and in the address bar only.
+var listsharecodes = {};
+function listcodeparam(listid) {
+  return listsharecodes[listid] ? "&code="+encodeURIComponent(listsharecodes[listid]) : "";
+}
 function listrequest(listid) {
   if(!listid || listloggedin()) {
     return {
-      url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid:""),
+      url: apiuri+"/list?uid="+getuid()+"&database="+database+(listid?"&listid="+listid+listcodeparam(listid):""),
       contentType: 'application/json',
       beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
     };
   }
-  return {url: apiuri+"/publiclist?listid="+encodeURIComponent(listid)};
+  return {url: apiuri+"/publiclist?listid="+encodeURIComponent(listid)+listcodeparam(listid)};
 }
 function listloggedin() {
   var user = cache_thing("user","data");
@@ -711,7 +873,7 @@ function listmine(listid) {
 // listid: {notify} for the lists being edited now; in memory only, never saved
 var adminediting = {};
 // the popup text's version, kept in the open's audit row: change it whenever the text changes
-var ADMINEDITWARNING = '2026-10-30';
+var ADMINEDITWARNING = '2026-11-01';
 // may edit anyone's list in this game: the 'listedit' operation for this game or every game, or a site
 // admin. A '*' in a game's own groups isn't enough (as ootv-search lib/admin.js listeditallowed)
 function listeditpermission() {
@@ -749,7 +911,7 @@ function listadminopen(listid) {
   var ispub = item.public === true || item.public === 'true';
   modal('Edit '+owner+'\'s list as an admin',
     '<div class="admineditwarning">'+
-    '<p><b>This list belongs to '+owner+'.</b> It is '+(ispub ? 'shared publicly' : '<b>private</b>: only its owner normally sees it')+
+    '<p><b>This list belongs to '+owner+'.</b> It is '+(ispub ? 'shared publicly' : (item.unlisted ? '<b>unlisted</b>: only people its owner gave the link to normally see it' : '<b>private</b>: only its owner normally sees it'))+
     ', and it is their personal data.</p>'+
     '<ul><li>Only change it for a good reason: fixing a mistake the owner asked about, or moderating something that breaks the site\'s rules.</li>'+
     '<li>Everything you do, starting now, is recorded in the audit log under your name: opening it, and each change with the old and new values.</li>'+
@@ -845,6 +1007,18 @@ var listsaving = {};
 function listunsaved(listid) {
   return !!(updatepending[listid] || listsaving[listid]);
 }
+// The cached copy is in localStorage, shared by every tab, but updatepending is this tab's: without this mark
+// another tab's refetch replaced a copy with edits waiting to save, and the save then wrote the old cards over
+// the server's. Every edit stamps it (any tab), a save that went through clears its own stamp. A tab closed
+// before saving leaves one behind, so it runs out.
+var LISTDIRTYMS = 3*60*1000;
+function listdirtymark(listid) {
+  cache_thing("listdirty",listid,Date.now());
+}
+function listdirty(listid) {
+  var at = cache_thing("listdirty",listid);
+  return !!at && Date.now() - at < LISTDIRTYMS;
+}
 // The server's copy local edits started from: when another computer saved first (409), the cards are
 // merged three ways, so both computers' changes are kept.
 function listsetbase(listid,list,rev) {
@@ -897,6 +1071,7 @@ function listmerge(listid,server) {
   renderlisteditarea();
   refreshactivelistviews();
   // save the merged cards soon
+  listdirtymark(listid);
   updatepending[listid] = 1;
   clearTimeout(savetimeout);
   savetimeout = setTimeout(savecallback,1000);
@@ -904,12 +1079,16 @@ function listmerge(listid,server) {
 // A list shown from its cached copy: fetch the server's copy behind it, and if another computer changed
 // the list (#337), cache it and redraw what shows it. Local edits not yet saved win.
 function listrevalidate(listid) {
+  if(listfresh(listid)) {
+    return;
+  }
   $.ajax($.extend(listrequest(listid), {
     type: 'GET',
     dataType: 'json',
     success: function(data) {
+      listchecked(listid);
       var cached = cache_thing("list",listid);
-      if(listunsaved(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
+      if(listunsaved(listid) || listdirty(listid) || !cached || !(data && data.list && data.list.Items && data.list.Items[0])) {
         return;
       }
       listsortdefault(data);
@@ -938,7 +1117,7 @@ function listsrevalidate(polling) {
   }
   listsrevalidated = Date.now();
   if(polling !== 'visible' && polling !== 'hourly') {
-    listinfo();
+    listdirfresh();
   }
   var ids = activelists.slice();
   var shown = $("#lastlistid").val();
@@ -966,23 +1145,28 @@ function listinfoupdate(listid,field,value,failed=null) {
   //    either way, we need to trap pulling new list info if we have pending updates.
   // TODO:   when listinfoupdate is called, and lastmod is newer than what we have and we have a list, force update or dump cache
   var message_status = $('#list_modified\\:'+listid);
-  var url = apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&updatefield="+field+"&updatevalue="+encodeURIComponent(value);
+  // POSTed as a JSON body, not a GET query: a big list (an imported collection) is longer than API Gateway
+  // takes in a URL, and the save never reached the server (ootv-claude issues/ootv-search/PROBLEMS.md #26)
+  var params = {"uid": String(getuid()), "database": database, "listid": String(listid), "updatefield": field, "updatevalue": String(value)};
   if(listadminedit(listid)) {
     // someone else's list, opened as an admin (listadminopen); the server audits each save
-    url += "&adminedit=1&notify="+(adminediting[listid].notify ? 1 : 0);
+    params.adminedit = "1";
+    params.notify = adminediting[listid].notify ? "1" : "0";
   }
-  console.log(url);
+  console.log(["listinfoupdate",listid,field,String(value).length+" chars"]);
   var cachedlist = cache_thing("list",listid);
+  var dirtysent = cache_thing("listdirty",listid);
   if(field == 'list') {
     listsaving[listid] = (listsaving[listid] || 0) + 1;
     if(cachedlist && cachedlist.list && cachedlist.list.Items && cachedlist.list.Items[0]) {
       // save over the version these edits started from; another computer's save since gets a 409 (#337)
-      url += "&baserev="+(cachedlist.list.Items[0].rev || 0);
+      params.baserev = String(cachedlist.list.Items[0].rev || 0);
     }
   }
   $.ajax({
-	  type: "GET",
-	  url: url,
+	  type: "POST",
+	  url: apiuri+"/list",
+	  data: JSON.stringify(params),
 	  contentType: 'application/json',
 	  dataType: 'json',
 	  beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
@@ -1006,9 +1190,19 @@ function listinfoupdate(listid,field,value,failed=null) {
 		    listid = $("#importlistid").val();
 		    erasemodal();
       }
-      if(field == 'list' && updatepending[listid]) {
-        // edited again while this save was in flight: keep the newer local copy, the next save sends it
+      if(field == 'list' && (updatepending[listid] || cache_thing("listdirty",listid) != dirtysent)) {
+        // edited again while this save was in flight (here or in another tab): keep the newer local copy, the next save sends it
         console.log("keep listid cache, edits pending:"+listid);
+        return;
+      }
+      if(field == 'list') {
+        cache_thing("listdirty",listid,null,true);
+      }
+      if(field == 'list' && status && status.rev && cache_thing("list",listid)) {
+        // the stored copy is what was just saved, at the server's new rev: keep it; only the directory's counts and
+        // dates need reading (it read the list again too, a GET after every save)
+        listchecked(listid);
+        listinfo();
         return;
       }
       console.log("clear listid cache:"+listid);
@@ -1023,6 +1217,10 @@ function listinfoupdate(listid,field,value,failed=null) {
 		listmerge(listid,status.responseJSON.list);
 		return;
 	    }
+	    // say so: a failed save used to leave no trace on screen (PROBLEMS.md #26)
+	    var why = (status.responseJSON && status.responseJSON.error) || status.statusText || 'no answer';
+	    message_status.html('<span class="error">Not saved'+(failed ? ', will retry' : '')+'</span>')
+		.attr('title','Saving '+field+' failed ('+(status.status || 'network')+'): '+why);
 	    if(failed) {
 		failed();
 	    }
@@ -1101,7 +1299,8 @@ function dircount(list) {
   if(!total) {
     return '';
   }
-  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad);
+  return deckcounthtml((list.summary || {}).decks || [], total, list.summary && list.summary.buildbad)+deckbuildownmark(list)+
+    (list.type == 'deck' ? '<span class="similarslot" data-list="'+parseInt(list.listid)+'">'+similarbadge(dirsimilar(list.listid), list.listid, true)+'</span>' : '');
 }
 // a list's count in the Active Lists bar, as the directory's but live: the decks from its last draw (liststats; every edit
 // redraws), else its saved summary. Decks that don't add up to the total (a stale summary, cards still loading): the total alone
@@ -1109,19 +1308,106 @@ var listdeckdrawn = {}; // listid: the summary's decks from the last liststats
 function activelistcount(list) {
   var item = list.listdata.list.Items[0];
   var total = parseInt(item.totalcount) || 0;
-  var decks = listdeckdrawn[list.listid] || (item.summary || list.summary || {}).decks || [];
+  var live = activelistcheck(list.listid, item);
+  var decks = (live && live.decks) || listdeckdrawn[list.listid] || (item.summary || list.summary || {}).decks || [];
   var sum = decks.reduce(function(t,d) { return t + d.copies; }, 0);
-  return deckcounthtml(sum == total ? decks : [], total, false);
+  return deckcounthtml(sum == total ? decks : [], total, false, live);
+}
+// A deck's live check for the Active Lists bar, from its cached cards, redone on every edit (renderlisteditarea), so it
+// shows while cards go in from search: the count green or red by the deck construction rules (deckbuildcheck, as the
+// deck's header; no legality: the arc /cardslegal infers, listbuildinferred's way), and a shield for its cards'
+// legality (/cardslegal, kept in liststatslegalcache): green all legal in its legality, red some not, grey no legality
+// chosen. null (the bar as before) for a list that isn't a deck, has no cards, or has cards not loaded yet.
+var activelegalwait = {}; // listid: the timer before its /cardslegal, so a run of clicks asks once
+function activelistcheck(listid, item) {
+  if(!(item.type == 'deck' || !item.type) || !Array.isArray(item.list)) {
+    return null;
+  }
+  var entries = item.list.filter(function(e) { return e.cardid > 0 && (parseInt(e.quantity) || 0) > 0; });
+  if(!entries.length || entries.some(function(e) { return !cache_card_is(e.cardid); })) {
+    return null;
+  }
+  var listdata = entries.map(function(e) {
+    var card = cache_card_fetch(e.cardid);
+    card.listprinting = e.printing;
+    card.listquantity = e.quantity;
+    card.listfoil = e.foil || '';
+    return card;
+  });
+  gamepicklist(listdata, listid);
+  var decksort = (databasesort[database] || {}).deck;
+  if(decksort) { listdata.sort(decksort); }
+  var cards = listdata.map(function(c) { return {"card": c, "qty": parseInt(c.listquantity) || 0}; });
+  var deckfield = liststatsdeckfield();
+  var plain = function(v) { return (Array.isArray(v) ? v.join(', ') : String(v || '')).replace(/&nbsp;/g,' ').trim(); };
+  var deckkey = function(c) { return deckfield ? (plain(gamepicked(c.card, deckfield)) || 'Other') : ''; };
+  var decks = [];
+  cards.forEach(function(c) {
+    var k = deckkey(c), d = decks.filter(function(d) { return d.name == k; })[0];
+    if(!d) { decks.push(d = {"name": k, "copies": 0}); }
+    d.copies += c.qty;
+  });
+  var size = function(name) { return (decks.filter(function(d) { return d.name.toLowerCase() == name; })[0] || {}).copies || 0; };
+  var format = item.legality ? String(item.legality).replace(/&nbsp;/g,' ').trim() : '';
+  var ids = cards.map(function(c) { return c.card.cardid; }).sort(function(a,b) { return a - b; }).join(',');
+  var key = format+'|'+(format ? '' : (item.name || '')+'|'+size('fate')+'|'+size('dynasty')+'|')+ids;
+  var legal = liststatslegalcache[key];
+  if(!legal) {
+    clearTimeout(activelegalwait[listid]);
+    activelegalwait[listid] = setTimeout(function() {
+      var data = {table: database, cardids: ids};
+      if(format) { data.format = format; } else { data.name = item.name || ''; data.fatecount = size('fate'); data.dynastycount = size('dynasty'); }
+      $.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
+	success: function(r) { liststatslegalcache[key] = r; renderlisteditarea(); }});
+    }, 700);
+  }
+  var meta = $.extend({}, item);
+  var inferred = legal && !format && legal.inferred ? legal.inferred : '';
+  if(inferred) { meta.legality = inferred; }
+  var build = deckbuildcheck(cards, meta, deckkey, inferred || undefined);
+  return {"decks": decks, "build": build, "format": format, "legal": legal};
+}
+// the live check's marks after the count (activelistcheck): a # green when the deck meets its construction rules, red
+// with the broken ones in its hover when not (none for a game with no rules); then the legality shield
+function activelistmark(icon, cls, title) {
+  return ' <span class="activemark '+cls+'" title="'+noteattr(title)+'" aria-label="'+noteattr(title)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#'+icon+'"></svg></span>';
+}
+function activelistmarks(live) {
+  var out = '';
+  if(live.build && !live.build.norules) {
+    var problems = live.build.problems;
+    out = activelistmark('hash', problems.length ? 'activemarkbad' : 'activemarkok', problems.length ?
+      'Breaks the deck construction rules:\n'+problems.map(function(p) { return p.label+': '+p.text; }).join('\n') : 'Meets the deck construction rules');
+  }
+  var legal = live.legal, icon = 'shield', cls = 'activemarknone', title;
+  if(!legal) {
+    title = 'Checking the cards\' legality…';
+  } else if(live.format && legal.illegal) {
+    if(legal.illegal.length) {
+      icon = 'shield-off';
+      cls = 'activemarkbad';
+      title = 'Not legal in '+live.format+': '+legal.illegal.map(function(c) { return c.title; }).join(', ');
+    } else {
+      cls = 'activemarkok';
+      title = 'Every card is legal in '+live.format;
+    }
+  } else {
+    title = (live.format ? live.format+' isn\'t checked. ' : 'No legality chosen. ')+
+      'Every card is legal for: '+(legal.cardslegal && legal.cardslegal.length ? legal.cardslegal.join(', ') : 'none');
+  }
+  return out+activelistmark(icon, cls, title);
 }
 // the mon before a list's name in the directory: its summary's clan (the first Stronghold's, listsummarysave)
 function dirmon(list) {
   return list.summary && list.summary.clan ? clanmon(list.summary.clan) : '';
 }
-function deckcounthtml(decks, total, buildbad) {
+// live: the Active Lists bar's check (activelistcheck): its marks after the count (activelistmarks)
+function deckcounthtml(decks, total, buildbad, live) {
   decks = decks.filter(function(d) { return !/^pre-?game$/i.test(d.name); });
   var text = decks.length > 1 ? decks.map(function(d) { return d.copies; }).join('/')+' ('+total+' total)' : total+' card'+(total == 1 ? '' : 's');
   var title = decks.length > 1 ? decks.map(function(d) { return (d.name || 'Other')+' '+d.copies; }).join(', ') : '';
-  return '<span'+(title ? ' title="'+htmlEncode(title)+'"' : '')+'>'+text+'</span>'+
+  return '<span'+(title ? ' title="'+noteattr(title)+'"' : '')+'>'+text+'</span>'+
+    (live ? activelistmarks(live) : '')+
     (buildbad ? ' <span class="dirillegal" title="Breaks the deck construction rules">Illegal</span>' : '');
 }
 // the list view keeps the directory's Count current: after drawing one of my lists' stats (a deck's after
@@ -1181,7 +1467,7 @@ function renderdirectory() {
   var lists = sortlists(dir.lists.Items.filter(function(list) { return listfolder(list) == path; }),sort);
   var html = foldertemplate.render(folderrows) + listtemplate.render(lists,ctx);
   if(!subfolders.length && !lists.length && path) {
-    html += '<div class="directorylistitem dirempty"><div class="randarea">This folder is empty. New lists made here go in it, or drag a list onto a folder (or use its Folder menu).</div></div>';
+    html += '<div class="directorylistitem dirempty"><div class="randarea">'+emptyfolderhelp(path)+'</div></div>';
   }
   $("#dirpathbar").html($.templates("#template-dirpath").render({"path": path, "parent": folderparent(path), "crumbs": foldercrumbs(path)})).show();
   $(".directorylistitem").remove();
@@ -1267,12 +1553,17 @@ $(document).on('click', '#resultdir .dirlistname', function() {
   listinfo(String($(this).data('list')),true);
 });
 // the list actions (grid) menu (directory and list view header) is placed against the window, so the scrolling directory (phones) can't clip it,
-// and opens upward when there's no room below
+// opens upward when there's no room below, and rightward when there's no room to its left (a button at the left of the row: the
+// list view header's, which on a phone ran off the screen's left edge)
 $(document).on('click', '#resultdir .dirmenucell nav > ul > li, #resultlist .dirmenucell nav > ul > li', function() {
   var li = this, ul = $(li).children('ul');
   var r = li.getBoundingClientRect();
   ul.css({'position': 'fixed', 'top': r.bottom, 'left': 'auto', 'right': window.innerWidth - r.right});
   requestAnimationFrame(function() {
+    var w = ul.outerWidth(), margin = 4;
+    if(r.right - w < margin) {
+      ul.css({'left': Math.max(margin, Math.min(r.left, window.innerWidth - w - margin)), 'right': 'auto'});
+    }
     var h = ul.outerHeight();
     if(r.bottom + h > window.innerHeight && r.top - h >= 0) {
       ul.css('top', r.top - h);
@@ -1379,6 +1670,21 @@ function opendirfolder(folder) {
 // the folder of the clicked directory element (paths go through data-folder, so they need no quoting in onclick)
 function eventfolder(el) {
   return $(el).closest("[data-folder]").attr("data-folder") || '';
+}
+// what an empty folder in the list directory says: how lists get into it, by drag or by a list's Folder pull-down
+function emptyfolderhelp(path) {
+  var name = '<b>'+_.escape(foldername(path))+'</b>';
+  var pulldown = gestureon('dirfolderselect') ?
+    '<li>pick '+name+' in that list&rsquo;s <b>Folder</b> pull-down: the Folder column in the table view, or the pull-down on '+
+      'the list&rsquo;s card in the card view. The same pull-down&rsquo;s <b>Top level</b> takes a list out of its folder, '+
+      'and <b>New folder here&hellip;</b> makes a new folder.</li>' :
+    '<li>turn on the <b>Folder</b> pull-down on each list (Settings &rarr; Gestures) and pick '+name+' there.</li>';
+  return '<p>This folder is empty. New lists you make while you&rsquo;re in it go here.</p>'+
+    '<p>To move a list you already have into it, go to where that list is now (<b>All lists</b> in the bar above is the top level), then either:</p>'+
+    '<ul><li>drag the list by its handle onto '+name+', or</li>'+pulldown+'</ul>'+
+    '<p>Folders can be dragged into other folders the same way.</p>'+
+    '<p>Deck files on your computer can be dropped here (or on any folder) to make a new list from each one, '+
+    'or picked with the folder&rsquo;s <b>Import files</b> button.</p>';
 }
 // <option>s for a list's Folder select: every folder by its path
 function folderoptions(current) {
@@ -1548,7 +1854,7 @@ function applydirtree() {
 // ***********************  directory drag and drop **************
 // Drag a list (by its move handle) or a folder onto a folder (a row, a card, or a folder in an expanded tree)
 // or onto the path bar (All lists = the top level) to move it there. Holding it over a collapsed folder
-// opens that folder's tree. The Folder menu does the same without dragging.
+// opens that folder's tree. A list's Folder pull-down does the same without dragging.
 // Mice use HTML5 drag and drop. Touch has its own drag (Android Chrome doesn't drag from touch): a list
 // drags from its handle straight away, a folder after a long-press, so a swipe across folders still scrolls.
 // Both show the same label by the pointer, naming what's moving and where it would go; the item moved fades.
@@ -1944,7 +2250,7 @@ function refreshactivelistviews() {
 	var scrolled = [window, '#maincontent', '#resultsearch'].map(function(el) { return [el, $(el).scrollTop()]; });
 	$("#resultsearch").html(rendercards(data,request,qs));
 	dosearchpostcallback(qs);
-	updates[database]('#resultsearch');
+	updates[database]('#resultsearch'); resultimagesreserve('#resultsearch');
 	scrolled.forEach(function(s) { $(s[0]).scrollTop(s[1]); });
     }
     if($("#lastcardid").val()) {
@@ -1952,8 +2258,8 @@ function refreshactivelistviews() {
     }
 }
 
-// done(listid): after the new list is in the directory (default: make it active)
-function newlist(json=null, done=null) {
+// done(listid): after the new list is in the directory (default: make it active); failed(why): it wasn't made
+function newlist(json=null, done=null, failed=null) {
     // from the directory or the swipe list picker: ask for a name (cancel: no list), and it goes in the open folder
     if(json === null) {
 	var path = dirpath();
@@ -1982,15 +2288,22 @@ function newlist(json=null, done=null) {
     owner is set from authentication information and matching queryString
     createdate, modified are automatically set and non-modifiable currently
     */
+    var created = false;
+    listdirstart();
+    // POSTed as a JSON body: a list made with its cards (an imported file) can be longer than a URL takes
     $.ajax({
-	type: 'GET',
-	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid=new"+(json?"&json="+encodeURIComponent(JSON.stringify(json)):''),
+	type: 'POST',
+	url: apiuri+"/list",
+	data: JSON.stringify({"uid": String(getuid()), "database": database, "listid": "new", "json": JSON.stringify(json)}),
 	contentType: 'application/json',
 	dataType: 'json',
 	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
 	responseType: 'application/json',
 	success: function(data) {
 	    console.log(data);
+	    created = true;
+	    // in the directory at once; the re-read waits until this is done, and keeps it while the index catches up
+	    listdirnote(data.list.Item.listid, data.list.Item);
 	    var oldlists = cache_thing("list","data");
 	    oldlists.lists.Items.unshift(data.list.Item);
 	    cache_thing("list","data",oldlists);
@@ -2001,21 +2314,32 @@ function newlist(json=null, done=null) {
 		activatelist(String(data.list.Item.listid));
 	    }
 	},
-	error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+	error: function(error) {
+	    console.log("Epic Fail: "+JSON.stringify(error));
+	    if(failed) {
+		failed(error.responseJSON && error.responseJSON.error ? error.responseJSON.error : (error.statusText || 'error'));
+	    }
+	}
+    }).always(function() {
+	listdirdone(created);
     });
 }
 
 // done(item): the new list, once it's in the directory; failed: the copy didn't go through
 function duplicatelist(listid, done=null, failed=null) {
+  var copied = false;
+  listdirstart();
   $.ajax({
     type: 'GET',
-    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate",
+    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=duplicate"+listcodeparam(listid),
     contentType: 'application/json',
     dataType: 'json',
     beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
     responseType: 'application/json',
     success: function(data) {
   console.log(data);
+  copied = true;
+  listdirnote(data.list.Item.listid, data.list.Item);   // as newlist: kept while the directory index catches up
   var oldlists = cache_thing("list","data");
   oldlists.lists.Items.unshift(data.list.Item);
   cache_thing("list","data",oldlists);
@@ -2030,11 +2354,16 @@ function duplicatelist(listid, done=null, failed=null) {
         failed(error);
       }
     }
-  })
+  }).always(function() {
+    listdirdone(copied);
+  });
 }
 
 function removelist(listid) {
     if(confirm("Really remove list: "+listid+"?")) {
+	// out of the directory at once; directory reads wait until the server is done, and leave it out while the index catches up
+	listdirnote(listid);
+	listdirstart();
 	$.ajax({
 	    type: 'GET',
 	    url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=remove",
@@ -2044,9 +2373,13 @@ function removelist(listid) {
 	    responseType: 'application/json',
 	    success: function(data) {
 		console.log(data);
-
+		listdirdone(true);
 	    },
-	    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+	    error: function(error) {
+		console.log("Epic Fail: "+JSON.stringify(error));
+		delete listdirchanges[String(listid)];   // not removed: the re-read brings it back
+		listdirdone(true);
+	    }
 	});
 	var oldlists = cache_thing("list","data");
 	oldlists.lists.Items = oldlists.lists.Items.filter(function(list) { return list.listid != listid; });
@@ -2063,6 +2396,7 @@ function removelist(listid) {
 // a list was edited: save 15s after the last edit, and at least every minute while edits keep coming
 function listedited(listid) {
     cardlistcounts();
+    listdirtymark(listid);
     updatepending[listid]=1;
     clearTimeout(savetimeout);
     savetimeout = setTimeout(savecallback,15*1000);
@@ -2084,6 +2418,7 @@ function savecallback() {
 	}
 	var retry = function() {
 	    // keep it pending and try again at the next checkpoint
+	    listdirtymark(listid);
 	    updatepending[listid]=1;
 	    if(!savecheckpoint) {
 		savecheckpoint = setTimeout(savecallback,60*1000);
@@ -3181,6 +3516,374 @@ function importlistfinalize() {
     nomodal();
 }
 
+// ***********************  import files as new lists **************
+// Many files at once, into a folder: each file is read by /import (as the Import menu item reads one) and made
+// a new list named after the file, in that folder. Opened by a folder's Import files button, the directory's
+// Import files button (the open folder), or files dropped on the directory (dirfiledrop*).
+var importfilespicked = [];   // the files waiting in the dialog
+var importfilesfolder = '';   // the folder they go in
+function importfiles(folder,files=null) {
+  if(!getuidsafe()) { return; }
+  importfilesfolder = folder || '';
+  importfilespicked = [];
+  modal("Import files as new lists",$.templates("#template-importfiles").render({
+    "folder": importfilesfolder ? importfilesfolder.split('/').join(' › ') : "All lists (top level)",
+    "snm": snmallowed()}));
+  $('#importfileslegality').html(listlegalityoptions(''));
+  $('#importfileslegality option[value=""]').text("Each file's own, else the default printing");
+  if($('#importfileslegality option').length < 2) { $('.importlegalityrow').hide(); }
+  if(files) { importfilesadd(files); }
+}
+function getuidsafe() {
+  var user = cache_thing("user","data");
+  return user && user.oracle && user.oracle[0] ? user.oracle[0].uid : null;
+}
+// files picked or dropped (a FileList or array): added to the ones waiting, without repeats
+function importfilesadd(files) {
+  Array.prototype.forEach.call(files || [],function(f) {
+    if(!importfilespicked.some(function(p) { return p.name == f.name && p.size == f.size && p.lastModified == f.lastModified; })) {
+      importfilespicked.push(f);
+    }
+  });
+  importfilesdraw();
+}
+function importfilesname(file) {
+  return (file.name.replace(/\.[^.\/]{1,5}$/,'').replace(/_/g,' ').trim() || file.name).substring(0,200);
+}
+function importfilesdraw() {
+  $('#importfileslist').html(importfilespicked.map(function(f,i) {
+    return '<li data-i="'+i+'"><span class="importfilesname">'+_.escape(importfilesname(f))+'</span> <small>'+_.escape(f.name)+'</small>'+
+      ' <span class="importfilesstate"><button class="iiconic inegative" aria-label="Leave out" onclick="importfilesremove('+i+');">'+
+      '<svg class="feather"><use xlink:href="res/feather-sprite.svg#x-circle"></svg></button></span></li>';
+  }).join(''));
+  $('#importfilesgo').prop('disabled',!importfilespicked.length)
+    .val(importfilespicked.length > 1 ? 'Import '+importfilespicked.length+' files' : 'Import');
+}
+function importfilesremove(i) {
+  importfilespicked.splice(i,1);
+  importfilesdraw();
+}
+// one file at a time: /import, then the new list; each row says how it went
+function importfilesrun() {
+  var files = importfilespicked.slice(), folder = importfilesfolder;
+  if(!files.length) { return; }
+  var fieldlist = $('#importfilesform select[name=fieldlist]').val(), type = $('#importfilestype').val();
+  var legality = $('#importfileslegality').val() || '', arc = importlegalityarc(legality);
+  $('#importfilesform').find('input,select,button').prop('disabled',true);
+  $('#importfilesform').addClass('importfilesrunning');
+  var made = 0, problems = 0;
+  var row = function(i) { return $('#importfileslist li[data-i='+i+']'); };
+  var say = function(i,cls,html) { row(i).find('.importfilesstate').attr('class','importfilesstate '+cls).html(html); };
+  var next = function(i) {
+    if(i >= files.length) {
+      $('#importfilesstatus').html('<b>'+made+' list'+(made!=1?'s':'')+' made</b>'+(problems ? ', '+problems+' with problems' : '')+
+        '. <span class="button gray" onclick="nomodal();">Close</span>');
+      return;
+    }
+    var file = files[i];
+    say(i,'','<progress></progress>');
+    file.text().then(function(text) {
+      var form = new FormData();
+      form.set('table',database);
+      form.set('fieldlist',fieldlist);
+      form.set('file',new Blob([(arc ? 'Legality: '+arc+'\n' : '')+text],{type: 'text/plain'}),file.name);
+      $.ajax({url: apiuri+'/import', type: 'POST', data: form, cache: false, contentType: false, processData: false,
+        success: function(data) {
+          var failed = (data.failed || []).filter(function(l) { return String(l).trim(); });
+          if(!data.list || !data.list.length) {
+            problems++;
+            say(i,'importfilesbad','No cards found, so no list'+importfilesfailed(failed));
+            next(i+1);
+            return;
+          }
+          var json = {"name": importfilesname(file), "list": data.list, "public": false, "type": type};
+          if(folder) { json.folder = folder; }
+          if(legality) { json.legality = legality; }
+          var cards = data.list.reduce(function(n,e) { return n + (parseInt(e.quantity) || 0); },0);
+          newlist(json,function(listid) {
+            made++;
+            if(failed.length) { problems++; }
+            say(i,failed.length ? 'importfilesbad' : 'importfilesok',
+              '<a href="#" onclick="nomodal(); listinfo(\''+listid+'\',true); return false;">'+cards+' card'+(cards!=1?'s':'')+'</a>'+
+              (failed.length ? ', '+failed.length+' line'+(failed.length!=1?'s':'')+' not found'+importfilesfailed(failed) : ''));
+            next(i+1);
+          },function(why) {
+            problems++;
+            say(i,'importfilesbad','The list wasn\'t made: '+_.escape(why));
+            next(i+1);
+          });
+        },
+        error: function(xhr) {
+          problems++;
+          var why = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : (xhr.statusText || 'error');
+          say(i,'importfilesbad','Couldn\'t read it: '+_.escape(why));
+          next(i+1);
+        }
+      });
+    },function() {
+      problems++;
+      say(i,'importfilesbad','Couldn\'t open the file');
+      next(i+1);
+    });
+  };
+  $('#importfilesstatus').html('Importing&hellip;');
+  next(0);
+}
+// files dropped on the dialog itself are added to it (until the import starts)
+$(document).on("dragover","#importfilesform",function(e) {
+  var dt = e.originalEvent.dataTransfer;
+  if(!dt || Array.prototype.indexOf.call(dt.types || [],'Files') < 0 || $(this).hasClass('importfilesrunning')) { return; }
+  e.preventDefault();
+  dt.dropEffect = "copy";
+  var form = $(this).addClass('importfilesdrop');
+  clearTimeout(dirfiletimer);
+  dirfiletimer = setTimeout(function() { form.removeClass('importfilesdrop'); },250);
+}).on("drop","#importfilesform",function(e) {
+  var dt = e.originalEvent.dataTransfer;
+  if(!dt || !dt.files || !dt.files.length || $(this).hasClass('importfilesrunning')) { return; }
+  e.preventDefault();
+  $(this).removeClass('importfilesdrop');
+  importfilesadd(dt.files);
+});
+function importfilesfailed(failed) {
+  return failed.length ? '<details><summary>Lines not found</summary><pre>'+_.escape(failed.join('\n'))+'</pre></details>' : '';
+}
+// ***********************  export a folder's lists **************
+// Many lists at once, in one format: a folder's Export files button, or the path bar's (the open folder). The lists
+// are exported one after another the way each list's Download menu does it (listinfo with a listoutput), but
+// listfileout hands each file to listbatch instead of downloading it. One list downloads as its own file; more
+// come as one zip (pdfzip), a subfolder's lists in that folder inside it. PDF formats ask the PDF options once
+// (pdfdialog with pdfdialogstate.batch), and every list is made with them.
+var exportfilesfolder = '';   // the folder whose lists are offered
+var exportfilespicked = [];   // the lists offered: [{list, path (folder inside the export folder)}]
+var listbatch = null;         // an export running: {files, notes, next(ok, why)}
+function exportfiles(folder) {
+  if(!getuidsafe()) { return; }
+  exportfilesfolder = folder || '';
+  modal("Export lists",$.templates("#template-exportfiles").render({
+    "folder": exportfilesfolder ? exportfilesfolder.split('/').join(' › ') : "All lists (top level)",
+    "subfolders": folderchildren(exportfilesfolder).length > 0,
+    "snm": snmallowed(), "pdf": pdfallowed(), "headers": outputheaders}));
+  exportfilespick();
+}
+// the lists in the folder (and its subfolders when ticked), in the directory's sort, all ticked
+function exportfilespick() {
+  var dir = cache_thing("list","data");
+  var folders = [exportfilesfolder];
+  if($('#exportfilessub').is(':checked')) {
+    folders = folders.concat(foldertree(exportfilesfolder));
+  }
+  var sort = dirsortstate();
+  exportfilespicked = [];
+  folders.forEach(function(folder) {
+    var path = exportfilesfolder ? folder.substring(exportfilesfolder.length).replace(/^\//,'') : folder;
+    sortlists(((dir && dir.lists) ? dir.lists.Items : []).filter(function(list) { return listfolder(list) == folder; }),sort)
+      .forEach(function(list) { exportfilespicked.push({'list': list, 'path': path}); });
+  });
+  $('#exportfileslist').html(exportfilespicked.length ? exportfilespicked.map(function(p,i) {
+    return '<li data-i="'+i+'"><label><input type="checkbox" class="exportfilesbox" checked onchange="exportfilesdraw();" /> '+
+      '<span class="importfilesname">'+_.escape(p.list.name || 'Untitled')+'</span></label>'+
+      (p.path ? ' <small>'+_.escape(p.path.split('/').join(' › '))+'</small>' : '')+
+      ' <span class="importfilesstate"></span></li>';
+  }).join('') : '<li>No lists here.</li>');
+  exportfilesdraw();
+}
+function exportfilesall(on) {
+  $('#exportfileslist .exportfilesbox').prop('checked',on);
+  exportfilesdraw();
+}
+function exportfilesdraw() {
+  var n = $('#exportfileslist .exportfilesbox:checked').length;
+  var format = $('#exportfilesformat').val();
+  $('.exportfilesheaders').toggle(format == 'texttab');
+  $('#exportfilesgo').prop('disabled',!n).val(n > 1 ? 'Export '+n+' lists' : 'Export');
+}
+// PDF formats: the PDF options first (pdfgenerate comes back to exportfilesstart); text formats start now
+function exportfilesrun() {
+  var format = $('#exportfilesformat').val();
+  var picks = [];
+  $('#exportfileslist li').each(function() {
+    if($(this).find('.exportfilesbox').is(':checked')) { picks.push(parseInt($(this).attr('data-i'))); }
+  });
+  if(!picks.length) { return; }
+  var run = {'format': format, 'picks': picks, 'headers': $('#exportfilesheaders').is(':checked'),
+             'html': $('#modal-content').html(), 'sub': $('#exportfilessub').is(':checked')};
+  if(format == 'pdf' || format == 'mpc') {
+    pdfdialogstate = {'mode': 'print', 'batch': run};
+    var o = pdfstartoptions();
+    o.layout = (format == 'mpc') ? 'mpc' : 'sheet';
+    pdfrender(o);
+    return;
+  }
+  exportfilesstart(run, null);
+}
+// pdf: the PDF dialog's options, or null for text
+function exportfilesstart(run, pdf) {
+  // back to the export dialog, as it was, to show how each list goes
+  modal("Export lists",run.html);
+  $('#exportfilesformat').val(run.format);
+  $('#exportfilessub').prop('checked',run.sub);
+  $('#exportfilesheaders').prop('checked',run.headers);
+  $('#exportfileslist li').each(function() {
+    $(this).find('.exportfilesbox').prop('checked',run.picks.indexOf(parseInt($(this).attr('data-i'))) > -1);
+  });
+  $('#exportfilesform').find('input,select,button').prop('disabled',true);
+  $('#exportfilesform').addClass('importfilesrunning');
+  var picks = run.picks.map(function(i) { return {'i': i, 'p': exportfilespicked[i]}; });
+  var format = (pdf && pdf.layout == 'mpc') ? 'mpc' : run.format;
+  var row = function(i) { return $('#exportfileslist li[data-i='+i+']'); };
+  var say = function(i,cls,html) { row(i).find('.importfilesstate').attr('class','importfilesstate '+cls).html(html); };
+  var used = {}, made = 0, problems = 0;
+  var zipname = 'ootv_'+filenamecleaner(exportfilesfolder ? foldername(exportfilesfolder) : 'lists')+'_'+format;
+  var batch = {'files': [], 'notes': []};
+  listbatch = batch;
+  // the choice made here, not the list menus' Headers in downloads (listinfo adds noheaders from it)
+  var headers = outputheaders;
+  outputheaders = true;
+  var finish = function() {
+    listbatch = null;
+    outputheaders = headers;
+    if(batch.files.length && picks.length == 1) {
+      // one list: its file as its own Download menu gives it (MakePlayingCards: its zip of 1.pdf, 2.pdf, ...)
+      var parts = batch.files[0].name.split('/');
+      if(format == 'mpc') {
+        listdownload(pdfzip(batch.files.map(function(f) { return {'name': f.name.split('/').pop(), 'data': f.data}; })), parts[parts.length-2]+'.zip');
+      } else {
+        listdownload(new Blob([batch.files[0].data]), parts.pop());
+      }
+    } else if(batch.files.length) {
+      listdownload(pdfzip(batch.files), zipname+'.zip');
+    }
+    $('#exportfilesstatus').html('<b>'+made+' of '+picks.length+' list'+(picks.length!=1?'s':'')+' exported</b>'+(problems ? ', '+problems+' with problems' : '')+
+      (batch.files.length ? '' : ', nothing to download')+'. <span class="button gray" onclick="nomodal();">Close</span>');
+  };
+  var next = function(k) {
+    if(k >= picks.length) { finish(); return; }
+    var i = picks[k].i, p = picks[k].p;
+    // a name for the list's file(s), not used twice in the same folder of the zip
+    var base = 'ootv_'+filenamecleaner(p.list.name || 'list'), name = base;
+    for(var n = 2; used[p.path+'/'+name]; n++) { name = base+'_'+n; }
+    used[p.path+'/'+name] = true;
+    batch.dir = p.path ? p.path.split('/').map(filenamecleaner).join('/')+'/' : '';
+    batch.notes = [];
+    batch.next = function(ok, why) {
+      batch.next = null;
+      var notes = batch.notes.length ? '<details><summary>Problems</summary><pre>'+_.escape(batch.notes.join('\n'))+'</pre></details>' : '';
+      if(ok) {
+        made++;
+        if(notes) { problems++; }
+        say(i, notes ? 'importfilesbad' : 'importfilesok', 'Done'+notes);
+      } else {
+        problems++;
+        say(i,'importfilesbad',_.escape(why || 'Not exported')+notes);
+      }
+      next(k+1);
+    };
+    say(i,'','<progress></progress>');
+    var output;
+    if(format == 'texttab' || format == 'textsnm') {
+      output = format+',filename:'+name+((format == 'textsnm' || !run.headers) ? ',noheaders' : '');
+    } else {
+      pdfoptions = $.extend({}, pdf);
+      pdfbacksready = false;
+      output = 'pdf,filename:'+name+(format == 'mpc' ? '_mpc' : '');
+    }
+    listinfo(p.list.listid,false,output);
+  };
+  $('#exportfilesstatus').html('Exporting&hellip;');
+  next(0);
+}
+// an export's file: into the running batch (exportfilesstart), else downloaded. files: [{name, data: Uint8Array}],
+// as many as one list makes (MakePlayingCards' one PDF a card)
+function listfileout(blob, filename, files=null) {
+  if(!listbatch) {
+    listdownload(blob, filename);
+    return;
+  }
+  var batch = listbatch;
+  if(files) {
+    var folder = filename.replace(/\.zip$/,'');
+    files.forEach(function(f) { batch.files.push({'name': batch.dir+folder+'/'+f.name, 'data': f.data}); });
+    if(batch.next) { batch.next(true); }
+    return;
+  }
+  blob.arrayBuffer().then(function(buffer) {
+    batch.files.push({'name': batch.dir+filename, 'data': new Uint8Array(buffer)});
+    if(batch.next) { batch.next(true); }
+  });
+}
+// an export that made no file: the batch goes on to the next list; on its own, the reason as an alert
+function listfilefail(why) {
+  if(listbatch && listbatch.next) {
+    listbatch.next(false, why);
+  } else if(!listbatch) {
+    alert(why);
+  }
+}
+// something wrong that still makes a file (images that didn't load): noted on the batch's row, else an alert
+function listfilenote(why) {
+  if(listbatch) {
+    listbatch.notes.push(why);
+  } else {
+    alert(why);
+  }
+}
+function listdownload(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  data_url_to_download(url, filename);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 60000);
+}
+
+// files dragged from the computer onto the directory: dropped on a folder they go in it, anywhere else in the
+// open folder. (Lists and folders dragged inside the directory are dirdrag, above.)
+var dirfiletimer = null;
+function dirfiledrag(e) {
+  var dt = e.originalEvent.dataTransfer;
+  return !dirdrag && dt && Array.prototype.indexOf.call(dt.types || [],'Files') > -1 &&
+    $(e.target).closest('#resultdir').length && $('#resultdir').is(':visible') && !!getuidsafe();
+}
+function dirfiletarget(e) {
+  var el = dirdroptarget(e.target);
+  return el.length ? el.attr("data-folder") : dirpath();
+}
+function dirfileclear() {
+  clearTimeout(dirfiletimer);
+  $("#resultdir").removeClass("dirfiledrop");
+  dirdropclear();
+  if(dirghost && !dirdrag) {
+    dirghost.remove();
+    dirghost = null;
+  }
+}
+$(document).on("dragover",function(e) {
+  if(!dirfiledrag(e)) { return; }
+  e.preventDefault();
+  e.originalEvent.dataTransfer.dropEffect = "copy";
+  var el = dirdroptarget(e.target), folder = dirfiletarget(e);
+  $("#resultdir").addClass("dirfiledrop");
+  if(!el.hasClass("dirdropover")) {
+    dirdropclear();
+    el.addClass("dirdropover");
+  }
+  if(!dirghost) {
+    dirghost = $('<div class="dirdragghost dirghostok"><div class="dirghostname"><svg class="feather"><use xlink:href="res/feather-sprite.svg#upload"></svg> '+
+      '<span>Import as new lists</span></div><div class="dirghosttarget"></div></div>').appendTo("body");
+  }
+  dirghost.find(".dirghosttarget").text("→ "+(folder ? foldername(folder) : "All lists (top level)"));
+  var w = dirghost.outerWidth(), h = dirghost.outerHeight(), x = e.originalEvent.clientX, y = e.originalEvent.clientY;
+  dirghost.css({"left": Math.max(6,Math.min(x+16,window.innerWidth-w-6)), "top": Math.max(6,Math.min(y+20,window.innerHeight-h-6))});
+  // dragover repeats while the files are over the directory; when it stops they've left (or the drag ended)
+  clearTimeout(dirfiletimer);
+  dirfiletimer = setTimeout(dirfileclear,250);
+});
+$(document).on("drop",function(e) {
+  if(!dirfiledrag(e)) { return; }
+  e.preventDefault();
+  var folder = dirfiletarget(e), files = e.originalEvent.dataTransfer.files;
+  dirfileclear();
+  if(files && files.length) { importfiles(folder,files); }
+});
+
 //   *********************************   fetching / querying the api ******************8
 // TODO: sometimes this fails if I do a card not primed from c/p
 //   e.g: https://dev.oracleofthevoid.com/#cardid=999
@@ -3201,32 +3904,41 @@ function cardfetch(cardid,prid=null,qs=null,handler=null) {
   });
 }
 
+// Whole cards, LISTPREFETCHCHUNK per /oracle-fetch: one request for an ~800-card collection answered over Lambda's
+// 6 MB limit (413) and the list never drew (2026-11-03), and its card ids came close to API Gateway's URL limit.
+// The chunks go out together; the callback runs once every one has answered.
+var LISTPREFETCHCHUNK = 50;   // ~25 KB a card, up to 2.5 MB per 100 (2026-11-03)
 function listprefetch(listids,callback=null) {
-    console.log(['listprefetch',listids,callback]);
-  $.ajax({
-    type: 'GET',
-      url: apiuri+"/oracle-fetch?table="+database+"&cardid="+listids.join(),
-    contentType: 'application/json',
-    dataType: 'json',
-    responseType: 'application/json',
-      success: function(data) {
-	  console.log(data);
-	  // cards deleted from the site are left out of the reply (#188); refreshlist flags them
-	  [].concat(data).forEach(function(c) {
-	      if(c && c.cardid) { cache_card(preparecard(c)); }
-	  });
-	  if(callback) {
-	      callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
-	  }
-    },
-    error: function(error) {
-	console.log("Epic Fail: "+JSON.stringify(error));
-	// 404 "Card not found": every card fetched was deleted, still show the rest of the list
-	if(error.status == 404 && callback) {
+    console.log(['listprefetch',listids.length+' cards',callback]);
+    var chunks = [];
+    for(var i = 0; i < listids.length; i += LISTPREFETCHCHUNK) {
+	chunks.push(listids.slice(i, i+LISTPREFETCHCHUNK));
+    }
+    var failed = false;
+    $.when.apply($, chunks.map(function(ids) {
+	return $.ajax({
+	    type: 'GET',
+	    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+ids.join(),
+	    contentType: 'application/json',
+	    dataType: 'json',
+	    responseType: 'application/json',
+	    success: function(data) {
+		// cards deleted from the site are left out of the reply (#188); refreshlist flags them
+		[].concat(data).forEach(function(c) {
+		    if(c && c.cardid) { cache_card(preparecard(c)); }
+		});
+	    },
+	    error: function(error) {
+		console.log("Epic Fail: "+JSON.stringify(error));
+		// 404 "Card not found": every card of this chunk was deleted, still show the rest of the list
+		if(error.status != 404) { failed = true; }
+	    }
+	}).then(null,function() { return $.Deferred().resolve(); });  // wait for every chunk, failed or not
+    })).then(function() {
+	if(callback && !failed) {
 	    callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
 	}
-    }
-  });
+    });
 }
 
 // A fetched card, ready for the templates: card.printingreverse maps each reverse searchable's
@@ -3456,9 +4168,12 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 	  if(from == 0) {
 	    defaultcard(qs);
 	  }
-	  updates[database]('#resultsearch');
+	  updates[database]('#resultsearch'); resultimagesreserve('#resultsearch');
 	  if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
 	    artphotoresults(datarequest.artphoto, null);
+	  }
+	  if(from == 0 && datarequest.family) {
+	    familytreepanel(qs, null);
 	  }
   } else {
 	  if(from<1){
@@ -3497,9 +4212,12 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 			      $("#resultsearch").html(html);
 			      searchcache[database]['querydata'][qs] = [];
 		      }
-		      updates[database]('#resultsearch');
+		      updates[database]('#resultsearch'); resultimagesreserve('#resultsearch');
 		      if(from == 0 && datarequest.artphoto && typeof artphotoresults === 'function') {
 		        artphotoresults(datarequest.artphoto, raw.artphoto);    // the photo and its matched outline above the results
+		      }
+		      if(from == 0 && datarequest.family) {
+		        familytreepanel(qs, raw.family);    // the family as a tree above the results
 		      }
 		      dataret.forEach(function(dataitem) {
 			      searchcache[database]['querydata'][qs].push(dataitem.cardid);
@@ -3536,7 +4254,12 @@ function dosearch(from=0,forcedata=false,skipload=false) {
 
 // *****************************88 RENDERING DATA ********************
 function docardid(id,prid=null,qs=null,pop=false,switchview=true) {
-    docard(cache_card_fetch(id),prid,qs,pop,switchview);
+    // opened by a tap or click (a result's link): draw it after the paint, so the tap answers at once (INP)
+    if(switchview && window.event && window.event.type == 'click') {
+	afterpaint(function() { docard(searchcache[database]['data'][id] || {},prid,qs,pop,switchview); });
+	return;
+    }
+    docard(searchcache[database]['data'][id] || {},prid,qs,pop,switchview);   // docard copies it
 }
 function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     console.log(["rendering list: "+sort,listid,listoutput]);
@@ -3546,6 +4269,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     }
     if(getactivetemplate('list') === undefined) {
 	console.log("templates not loaded yet");
+	if(listoutput) { listfilefail("The page isn't ready yet: try again"); }
 	return;
     }
     //console.log(listlist);
@@ -3632,13 +4356,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
     "listmeta": cache_thing("list",listid).list.Items[0]
 	    });
 	    var data = new Blob([text.replace(/\n/g, "\r\n")],{type: 'text/plain'});
-	    var url = window.URL.createObjectURL(data);
-	    const a = document.createElement('a');
-	    a.style.display = 'none';
-	    a.href = url;
-	    a.download = (textparts.find(checkfilename)?textparts.find(checkfilename).replace("filename:",''):"decklist")+".txt";
-	    document.body.appendChild(a);
-	    a.click();
+	    listfileout(data, (textparts.find(checkfilename)?textparts.find(checkfilename).replace("filename:",''):"decklist")+".txt");
 	} else {
 	    var stats = liststats(listdata,listid); // before the header, which shows its deck check (listcheckhtml)
 	    $("#resultlist").html(listheader(listid)+listlayout(stats, listmissing(listid,missing)+html))
@@ -3654,6 +4372,7 @@ function refreshlist(listdata=[],listlist=[],sort,listid=null,listoutput=null) {
 	    // since it rewrites the .listbody html
 	    updates[database]('#resultlist');
 	    deckviewflow();
+	    resultimagesreserve('#resultlist');
 	    liststatskwmark(); // after the symbols and deck flow, which rebuild the cards' html
 	    listcountready('#resultlist');
 	    pagetitle();
@@ -3852,7 +4571,31 @@ function listpreconedit(listid) {
 }
 // the link that opens a list for anyone (logged out: /publiclist), as the address bar has it
 function sharelink(listid) {
-    return location.origin+location.pathname+statehash({view: 'list', listid: listid});
+    var list = cache_thing("list",listid), item = list && list.list && list.list.Items[0];
+    return location.origin+location.pathname+statehash({view: 'list', listid: listid}).replace(/,#share=[^,]*/,'')+(item && item.sharecode ? ',#share='+item.sharecode : '');
+}
+// New link on an unlisted list: the old link stops working
+function listnewsharecode(el,listid) {
+    if(!confirm("Make a new link? The old link will stop working for everyone who has it.")) {
+	return;
+    }
+    $(el).prop('disabled', true);
+    $.ajax({
+	type: 'GET',
+	url: apiuri+"/list?uid="+getuid()+"&database="+database+"&listid="+listid+"&action=sharecode",
+	contentType: 'application/json',
+	dataType: 'json',
+	beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+	success: function() {
+	    cache_thing("list",listid,null,true);
+	    listinfo();
+	    listinfo(listid,false);
+	},
+	error: function(error) {
+	    console.log(error);
+	    $(el).prop('disabled', false);
+	}
+    });
 }
 function copysharelink(el,listid) {
     var link = sharelink(listid);
@@ -4185,6 +4928,11 @@ function liststats(listdata,listid=null) {
 	return {"name": d.name, "match": function(c) { return deckkey(c) == d.name; }};
     }));
     var build = (meta.type == 'deck' || !meta.type) ? deckbuildcheck(cards, meta, deckkey) : null;
+    listbuildcardrules[listid] = build ? build.cardrules : {};
+    // a deck with no legality, once /cardslegal names the arc it's inferred as (liststatslegal): the check again in that arc
+    listbuildinferred[listid] = function(format) {
+	return deckbuildcheck(cards, $.extend({}, meta, {"legality": format}), deckkey, format);
+    };
     // the summary's decks in the game's deck order, whatever sort the list is shown in (dynasty before fate)
     var decksort = (databasesort[database] || {}).deck;
     var summarydecks = decksort ? group(cards.slice().sort(function(a,b) { return decksort(a.card,b.card); }), deckkey) : decks;
@@ -4208,13 +4956,15 @@ function liststats(listdata,listid=null) {
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
-	"listid": listid, "legalids": legalids, "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
+	"listid": listid, "legalids": legalids, "listname": meta.name || '', "fatecount": decksize('fate'), "dynastycount": decksize('dynasty'), "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
-	"buildbad": !!(build && build.problems.length), "buildhtml": deckbuildhtml(build)});
+	"buildbad": !!(build && build.problems.length), "buildhtml": build ? deckbuildhtml(build)+deckbuildownhtml(meta) : ''});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
 	"distinctcount": (meta.type == 'deck' || !meta.type) ? 0 : cards.length,
 	"decks": decks, "keywords": keywords, "open": liststatsopen(),
-	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield()});
+	"kwopen": cache_session("liststatskwopen") !== false, "kwcutoff": liststatskwcutoff(), "textfield": !!liststatstextfield(),
+	"similarid": meta.type == 'deck' && listid ? parseInt(listid) : 0,
+	"similar": meta.type == 'deck' && listid ? listsimilar(listid, listeditable(listid)) : ''});
 }
 // the list header's "All cards legal for" line: ootv-search /cardslegal for the deck's cards (any list, mine or
 // not; decks only). With a legality chosen for the deck, also (in red) the cards not legal in it. Answers are
@@ -4223,19 +4973,53 @@ function liststats(listdata,listid=null) {
 // "meets the rules", and it goes in the summary's buildbad, so a deck's summary is saved here rather than in liststats.
 // A failed check saves nothing: the list keeps its last summary, and the next draw tries again.
 var liststatslegalcache = {};
+// the /cardslegal answers also kept in this browser for a day (60 newest per game), so a deck opened again draws its
+// "All cards legal for" formats with the header, not a second later: the line growing from one row to three pushed
+// the deck down (layout shift, CLS 0.1 on a phone)
+function cardslegalhash(key) {
+  var h = 5381;
+  for (var i = 0; i < key.length; i++) { h = ((h * 33) ^ key.charCodeAt(i)) >>> 0; }
+  return h.toString(36)+'-'+key.length;
+}
+function cardslegalstored(key) {
+  try {
+    var e = (cache_thing("cardslegal","recent") || {})[cardslegalhash(key)];
+    return (e && Date.now() - e.t < 86400000) ? e.r : null;
+  } catch(err) { return null; }
+}
+function cardslegalstore(key, r) {
+  try {
+    var all = cache_thing("cardslegal","recent") || {};
+    all[cardslegalhash(key)] = {t: Date.now(), r: r};
+    var keys = Object.keys(all).sort(function(a, b) { return all[b].t - all[a].t; });
+    keys.slice(60).forEach(function(k) { delete all[k]; });
+    cache_thing("cardslegal","recent",all);
+  } catch(err) {}
+}
 var listsummaryheld = {}; // listid: the summary from the last liststats, buildbad from the rules alone
+var listbuildinferred = {}; // listid: from the last liststats, the deck's check in a format it's inferred as
 function liststatslegal() {
     $(".liststatslegal[data-cardids]").each(function() {
 	var el = $(this), ids = el.attr('data-cardids'), format = el.attr('data-format') || '';
-	var key = format+'|'+ids, listid = el.attr('data-listid'), held = listsummaryheld[listid];
+	var name = el.attr('data-name') || '', fate = el.attr('data-fate'), dynasty = el.attr('data-dynasty');
+	var key = format+'|'+(format ? '' : name+'|'+fate+'|'+dynasty+'|')+ids, listid = el.attr('data-listid'), held = listsummaryheld[listid];
 	var show = function(r) {
 	    var bad = el.siblings('.liststatsillegal');
 	    var illegal = !!(r.illegal && r.illegal.length);
-	    el.siblings('.liststatsflag').toggle(!!(held && held.buildbad) || illegal);
+	    var buildbad = !!(held && held.buildbad);
+	    // no legality, but the listing infers an arc: that arc's rules (only arcs: the user, 2026-11-02)
+	    if(r.inferred && listbuildinferred[listid]) {
+		var build = listbuildinferred[listid](r.inferred);
+		if(build) {
+		    buildbad = !!build.problems.length;
+		    el.siblings('.liststatsbuild').replaceWith(deckbuildhtml(build));
+		}
+	    }
+	    el.siblings('.liststatsflag').toggle(buildbad || illegal);
 	    el.siblings('.liststatsbuildok').toggle(!illegal);
 	    // an answer that lands after a newer draw leaves that draw's summary alone
 	    if(held && listsummaryheld[listid] === held) {
-		listsummarysave(listid, $.extend({}, held, {"buildbad": held.buildbad || illegal}));
+		listsummarysave(listid, $.extend({}, held, {"buildbad": buildbad || illegal}));
 	    }
 	    if(illegal) {
 		bad.html('Not legal in '+htmlEncode(r.format)+': '+r.illegal.map(function(c) {
@@ -4247,14 +5031,17 @@ function liststatslegal() {
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
+	if(!liststatslegalcache[key] && cardslegalstored(key)) {
+	    liststatslegalcache[key] = cardslegalstored(key);
+	}
 	if(liststatslegalcache[key]) {
 	    show(liststatslegalcache[key]);
 	    return;
 	}
 	var data = {table: database, cardids: ids};
-	if(format) data.format = format;
+	if(format) { data.format = format; } else { data.name = name; data.fatecount = fate; data.dynastycount = dynasty; }
 	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
-	    success: function(r) { liststatslegalcache[key] = r; show(r); },
+	    success: function(r) { liststatslegalcache[key] = r; cardslegalstore(key, r); show(r); },
 	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
     });
 }
@@ -4265,14 +5052,17 @@ function liststatslegal() {
 // legality starts from no rules instead of the game's: the deck's layers turn on the ones it wants, and cards
 // change only those. In an overlay a rule id maps to the parts that change, or null to switch it off. Single cards change their own
 // limits with the card field deckconstruction: {max: n | null (any number), countsas: "Title", skip: [rule ids]},
-// and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}.
+// and a card in the deck can change the rules for the others with rules: {<rule id>: {...} | null}. Its
+// legality: {<legality>: {max, skip, rules}} replaces those keys in decks of that legality (Isawa Osugi: not Unique in Imperial).
+// A rule with cap: true (a legality's or the deck's own) can't be changed by cards: their rules and skip leave it alone,
+// and a copies rule's max holds even cards with their own. A deck's {cap: true, label} on a rule only a card adds keeps it out.
 // Rule checks:
 //   size     copies in deck (min/max)
 //   type     copies of type in deck (min/max)
 //   pertype  copies of each type in deck, less except[] (max)
 //   copies   copies of one card (identity below) across decks (default: config decks); a rule with when
 //            ({field: regex}, any card of the identity matching) beats one without; between several, the lower max
-// A card's identity is its title, less a trailing "(Emperor)"-style suffix, at its experience level
+// A card's identity is its title, a "(...)" ending included, at its experience level
 // (Experienced, Experienced 2, Inexperienced in keywords; an experienced "Name, epithet" counts as Name), or the
 // card a "Soul of Name [Experienced n]" keyword names, at that level.
 function deckbuildconfig() {
@@ -4338,12 +5128,18 @@ function deckbuildrules(meta, layer) {
     }
     return {"rules": rules, "decks": conf.decks || null, "source": source, "special": special};
 }
-function deckbuildcardconf(card) {
+function deckbuildcardconf(card, legality) {
     var v = card.deckconstruction;
     if(typeof v === 'string') {
 	try { v = JSON.parse(v); } catch(e) { v = null; }
     }
-    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+    v = v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+    if(legality && v.legality) {
+	Object.keys(v.legality).forEach(function(k) {
+	    if(deckbuildplain(k) == legality) { v = $.extend({}, v, v.legality[k]); }
+	});
+    }
+    return v;
 }
 function deckbuildidentity(card) {
     var kws = [].concat(card.keywords || []).map(deckbuildplain);
@@ -4361,7 +5157,8 @@ function deckbuildidentity(card) {
 	    if(exp[2]) { name = exp[2]; }
 	}
     });
-    var title = deckbuildplain([].concat(card.title || [])[0]).replace(/\s*\([^()]*\)$/,'');
+    // a "(...)" ending is part of the name: Isawa Tanaka (IG2) and (PoH) are different cards (the user, 2026-11-11)
+    var title = deckbuildplain([].concat(card.title || [])[0]);
     var countsas = deckbuildcardconf(card).countsas;
     if(countsas) {
 	name = deckbuildplain(countsas);
@@ -4372,17 +5169,26 @@ function deckbuildidentity(card) {
     return {"key": name.toLowerCase()+'\u0000'+level.toLowerCase(), "name": name+(level ? ' ('+level+')' : '')};
 }
 // what breaks: [{rule, label, text}], or null when the game has no rules
-function deckbuildcheck(cards, meta, deckkey) {
+function deckbuildcheck(cards, meta, deckkey, inferred) {
     var set = deckbuildrules(meta);
     if(!set) {
 	return null;
     }
+    var conf = deckbuildconfig(), cardrules = {};
+    if(inferred) {
+	set.source = set.source.map(function(s) { return s == inferred ? s+' (inferred from the deck)' : s; });
+    }
+    var legality = deckbuildplain((meta || {}).legality);
     // a card in the deck that changes the rules for others (Depths of the Shinomen: four of any non-unique Ratling)
     cards.forEach(function(c) {
-	var over = deckbuildcardconf(c.card).rules;
+	var over = deckbuildcardconf(c.card, legality).rules;
 	if(over && typeof over === 'object') {
 	    var change = {};
-	    Object.keys(over).forEach(function(id) { if(!set.special || set.rules[id]) { change[id] = over[id]; } });
+	    Object.keys(over).forEach(function(id) {
+		if(over[id] && !conf.rules[id] && !set.special) { cardrules[id] = over[id].label || id; }
+		if((set.special && !set.rules[id]) || (set.rules[id] && set.rules[id].cap)) { return; }
+		change[id] = over[id];
+	    });
 	    if(!Object.keys(change).length) { return; }
 	    // once per copy: an add counts each copy (three Coastal Lanes: +6), the rest is the same each time
 	    for(var i = 0; i < Math.max(1, c.qty || 1); i++) {
@@ -4392,7 +5198,7 @@ function deckbuildcheck(cards, meta, deckkey) {
 	}
     });
     var types = function(c) { return [].concat(c.card.type || []).map(deckbuildplain).filter(function(t) { return t && t != 'Proxy'; }); };
-    var skips = function(c, id) { return [].concat(deckbuildcardconf(c.card).skip || []).indexOf(id) >= 0; };
+    var skips = function(c, id) { return !set.rules[id].cap && [].concat(deckbuildcardconf(c.card, legality).skip || []).indexOf(id) >= 0; };
     var test = function(when, c) {
 	return Object.keys(when || {}).every(function(f) {
 	    var re;
@@ -4452,7 +5258,7 @@ function deckbuildcheck(cards, meta, deckkey) {
 	    if(!best) { return {"best": null, "max": null}; }
 	    var max = best.r.max;
 	    best.cards.forEach(function(c) {
-		var cc = deckbuildcardconf(c.card);
+		var cc = deckbuildcardconf(c.card, legality);
 		if(cc.hasOwnProperty('max')) { max = cc.max; }
 	    });
 	    // a rule with cap (BigDeck's one copy) holds even cards with their own limit or a rule of their own
@@ -4492,7 +5298,7 @@ function deckbuildcheck(cards, meta, deckkey) {
 	    }
 	});
     }
-    return {"problems": out, "source": set.source, "norules": !ids.length};
+    return {"problems": out, "source": set.source, "cardrules": cardrules, "norules": !ids.some(function(id) { return set.rules[id].check; })};
 }
 function deckbuildhtml(r) {
     if(!r) {
@@ -4513,6 +5319,31 @@ function deckbuildhtml(r) {
 	return '<span class="liststatsbuildrule">'+htmlEncode(p.label)+': '+text+'</span>';
     }).join('; ')+'</div>';
 }
+// what a deck changes from its legality, in words: for its header, and the mark in the directory and public listing
+function deckbuildownlist(item) {
+    var conf = deckbuildconfig() || {}, own = deckbuildlistoverlay(item), ownrules = own.rules || {}, ownpick = own.pick || {};
+    var out = Object.keys(ownrules).map(function(id) {
+	var o = ownrules[id], known = (conf.rules || {})[id], label = (known && known.label) || (o && o.label) || id;
+	if(o === null) { return label+': off'; }
+	if(!known) { return label+': cards can\'t add it'; }
+	var parts = ['min','max'].filter(function(p) { return o[p] !== undefined && o[p] !== null; }).map(function(p) { return p+' '+o[p]; });
+	if(o.cap === true) { parts.push('cards can\'t change it'); }
+	if(o.cap === false) { parts.push('cards can change it'); }
+	return label+': '+(parts.join(', ') || 'on');
+    });
+    return out.concat(Object.keys(ownpick).map(function(id) {
+	return ((conf.choices || {})[id] || {}).label ? conf.choices[id].label+': '+ownpick[id] : id+': '+ownpick[id];
+    }));
+}
+function deckbuildownhtml(item) {
+    var own = deckbuildownlist(item);
+    return own.length ? '<div class="liststatsbuildown">This deck\'s own rules: '+own.map(htmlEncode).join('; ')+'</div>' : '';
+}
+function deckbuildownmark(item) {
+    var own = deckbuildownlist(item);
+    return own.length ? ' <span class="dirownrules" title="'+htmlEncode('This deck\'s own rules: '+own.join('; '))+'">Own rules</span>' : '';
+}
+var listbuildcardrules = {}; // listid: the rules cards in the deck add, {id: label}, from the last liststats
 // the deck's own rules, in its header (owner only): each rule as its legality sets it, with the deck's change
 // filled in; a box switches a rule off for this deck. Then the game's choices (Sensei in Pre-Game or Fate, ...).
 // Saved as the list's deckconstruction field, only what differs from the legality's rules.
@@ -4541,8 +5372,17 @@ function listbuildform(listid) {
     var rows = ids.map(function(id) {
 	var r = all[id], on = base.rules[id] ? ownrules[id] !== null : !!ownrules[id];
 	var parts = r.check == 'size' || r.check == 'type' ? ['min','max'] : ['max'];
+	var basecap = !!(base.rules[id] || r).cap, cap = ownrules[id] && ownrules[id].hasOwnProperty('cap') ? ownrules[id].cap === true : basecap;
 	return '<tr><td><label><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="on" data-base="'+(base.rules[id] ? 1 : 0)+'"'+(on ? ' checked' : '')+'> '+htmlEncode(r.label || id)+'</label></td><td>'+
-	    parts.map(function(p) { return num(id, p, base.rules[id] || r); }).join(' ')+'</td></tr>';
+	    parts.map(function(p) { return num(id, p, base.rules[id] || r); }).join(' ')+
+	    ' <label title="Cards in the deck can\'t change this rule"><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="cap" data-base="'+(basecap ? 1 : 0)+'"'+(cap ? ' checked' : '')+'> cards can\'t change it</label></td></tr>';
+    });
+    // rules only a card adds (Forgotten Legacy's Holdings): those of the deck's cards, and any the deck has already kept out
+    var added = $.extend({}, listbuildcardrules[listid]);
+    Object.keys(ownrules).forEach(function(id) { if(ownrules[id] && !all[id]) { added[id] = ownrules[id].label || added[id] || id; } });
+    Object.keys(added).sort().forEach(function(id) {
+	if(all[id]) { return; }
+	rows.push('<tr><td>'+htmlEncode(added[id])+'</td><td><label><input type="checkbox" data-rule="'+htmlEncode(id)+'" data-part="block" data-label="'+htmlEncode(added[id])+'"'+(ownrules[id] ? ' checked' : '')+'> cards can\'t add it</label></td></tr>');
     });
     var picks = Object.keys(conf.choices || {}).map(function(id) {
 	var ch = conf.choices[id];
@@ -4574,7 +5414,13 @@ function listbuildsave(el, reset) {
 		var b = $(this).attr('data-base') === '' ? null : parseInt($(this).attr('data-base'));
 		if(v !== b || !was) { change[$(this).attr('data-part')] = v; }
 	    });
+	    panel.find('input[data-part=cap]').filter(function() { return $(this).attr('data-rule') == id; }).each(function() {
+		if(this.checked != ($(this).attr('data-base') == '1')) { change.cap = this.checked; }
+	    });
 	    if(Object.keys(change).length) { rules[id] = change; }
+	});
+	panel.find('input[data-part=block]:checked').each(function() {
+	    rules[$(this).attr('data-rule')] = {"cap": true, "label": $(this).attr('data-label')};
 	});
 	panel.find('select[data-pick]').each(function() {
 	    if($(this).val()) { pick[$(this).attr('data-pick')] = $(this).val(); }
@@ -4728,7 +5574,7 @@ function liststatsopen() {
     return cache_session("liststatsopen") !== false;
 }
 function liststatstoggle(el) {
-    cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : "liststatsopen", el.open);
+    cache_session($(el).hasClass('liststatskw') ? "liststatskwopen" : $(el).hasClass('liststatssim') ? "liststatssimopen" : "liststatsopen", el.open);
     deckviewfit(); // folding changes how wide the statistics are
 }
 // ***********************  list Table view (template-table) **************
@@ -4932,7 +5778,7 @@ function showsettings() {
   showview('resultsettings');
 }
 // The page's tabs; a section joins one with data-settingstab. Logged out, only the ones kept in this browser.
-var settingstabs = [['account','Account',true],['display','Display',true],['printing','Printing',true],['gestures','Gestures',false],['searches','Searches',false]];
+var settingstabs = [['account','Account',true],['display','Display',true],['printing','Printing',true],['game','Default game',false],['gestures','Gestures',false],['searches','Searches',false]];
 var settingstab = null; // the tab picked this session, kept through rendersettings() after a save
 function settingstablist(loggedin) {
   return settingstabs.filter(function(t) { return loggedin || !t[2]; }).map(function(t) { return {'key': t[0], 'label': t[1]}; });
@@ -4992,6 +5838,7 @@ function rendersettings() {
   var searches = searchsettings();
   var searchctx = {
     'gamename': dbinfo[database].name, 'loggedin': searchloggedin(), 'gestures': gesturesettingsctx(),
+    'favorite': gamedefaultnow() || '', 'gameask': !gamenoask(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
     'searchdefault': searches['default'] ? searchsummary(searches['default']) : null,
     'searches': Object.keys(searches['saved']).sort(searchnamecmp).map(function(name) {
       return {'name': name, 'summary': searchsummary(searches['saved'][name])};
@@ -5015,7 +5862,7 @@ function rendersettings() {
   $('#settingsarea').html($.templates("#template-settings").render(Object.assign(searchctx, {
     'name': username(user), 'sharedname': sharedname(user.oracle[0]), 'oracle': user.oracle[0], 'emaillist': profileemails(user).emaillist, 'pending': profileemails(user).pending,
     'patreonoauth': !!(user.oracle[0].patreon && (user.oracle[0].patreon.linkedby || []).indexOf('oauth') >= 0), 'patreonmsg': patreonmsg,
-    'favorite': favoritegame() || '', 'textversion': savedtextversion(), 'games': Object.keys(dbinfo).map(function(k) { return {'key': k, 'name': dbinfo[k].name}; }),
+    'textversion': savedtextversion(),
     'phone': narrowscreen(), 'views': views, 'folders': dirfolders().length,
     'pdfallowed': pdfallowed(), 'pdfsaved': pdfsaveddefaults().saved, 'pdf': settingspdfsummary(pdfstartoptions()),
     'tabs': settingstablist(true)
@@ -5043,6 +5890,25 @@ function postprofile(body, status, done) {
       status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
     }
   });
+}
+// the user is cached per game (<game>_user_data). The first visit to another game would wait for /user, and its saved
+// views (applyviewdefaults) would then re-draw a page already drawn in the site's default: a layout shift of up to 1.3 on a
+// phone (a deck switching to Visual Large). Every game's copy is the same user, so start from another game's
+function usercacheseed() {
+  if(cache_thing("user","data")) {
+    return;
+  }
+  try {
+    for (var i = 0; i < window.localStorage.length; i++) {
+      var k = window.localStorage.key(i);
+      if(!/_user_data$/.test(k)) { continue; }
+      var cached = JSON.parse(window.localStorage.getItem(k));
+      if(cached && ("oracle" in cached)) {
+        cache_thing("user","data",cached);
+        return;
+      }
+    }
+  } catch(e) {}
 }
 // a /user answer: the user is cached per game, so put the server's copy in each cached one, keeping its cognito part
 function storeoracle(data) {
@@ -5286,10 +6152,72 @@ if(window.matchMedia) {
   if(themequery.addEventListener) themequery.addEventListener('change', themeapply);
 }
 
-//**********************************************************  Favorite game ****************
-// users.settings.all.game: the game to open when this browser hasn't picked one (no game menu click or
-// #game= url yet: a new browser, or after logging out or Clear Cache). Without one it's L5R, as before.
-// A copy is kept in localStorage (session_favoritegame) so the next page load starts on it.
+//**********************************************************  Default game ****************
+// users.settings.all.game: the game a newly opened tab starts on (the top of this file). A copy is kept in
+// localStorage (session_favoritegame) so the next page load can start on it. Logged out, or for an account with
+// none, it's session_gamedefault, which logging out and Clear Cache keep. Settings → Default game changes it, and the
+// question gamepick asks. Without one a tab opens on the last game this browser used, or the front page's picker.
+function gamedefaultstored() {
+  return cache_session("favoritegame") || cache_session("gamedefault") || null;
+}
+function gamedefaultnow() {
+  var local = cache_session("gamedefault");
+  return favoritegame() || (local && dbinfo[local] ? local : null);
+}
+// "Never ask" for the question below: users.settings.all.gamenoask, and session_gamenoask in this browser
+function gamenoask() {
+  var user = cache_thing("user","data");
+  var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
+  return !!((all && all['gamenoask']) || cache_session("gamenoask"));
+}
+// A click on a game, on the front page or in the game menu. Ctrl-click and friends are left to the link (#game=).
+function gamepick(db,e) {
+  if(e && (e.ctrlKey || e.metaKey || e.shiftKey || e.button)) { return true; }
+  if(gamenoask() || db == gamedefaultnow()) {
+    gameopen(db);
+    return false;
+  }
+  modal('Open '+dbinfo[db].name,
+    '<p>Make <b>'+dbinfo[db].name+'</b> your default game? The site will open on it from now on.</p>'+
+    '<p><label><input type="checkbox" id="gameasknever"> Never ask again</label></p>'+
+    '<p><button type="button" class="button gray" onclick="gameanswer(\''+db+'\',true);">Yes, make it my default</button> '+
+    '<button type="button" class="button gray" onclick="gameanswer(\''+db+'\',false);">No, just open it</button> <span class="gamepickstatus"></span></p>');
+  return false;
+}
+function gameanswer(db,yes) {
+  var never = $('#gameasknever').prop('checked');
+  var saves = [];
+  $('#modal-content button').prop('disabled',true);
+  if(yes) {
+    cache_session("gamedefault",db);
+    if(searchloggedin()) { cache_session("favoritegame",db); saves.push(['game',db]); }
+  }
+  if(never) {
+    cache_session("gamenoask",true);
+    if(searchloggedin()) { saves.push(['gamenoask',true]); }
+  }
+  // the copy in this browser holds if the account's can't be saved, so go on either way
+  (function next() {
+    var save = saves.shift();
+    if(!save) { gameopen(db); return; }
+    saveallsetting(save[0],save[1],$('.gamepickstatus'),next,next);
+  })();
+}
+function gameopen(db) {
+  cache_session("database",db);
+  sessionStorage.setItem("tabgame",db);
+  nomodal();
+  window.location = '.';
+}
+// the front page's logos, the whole game menu; index.html has the main games as plain links for search engines
+function homegamesdraw() {
+  if(!gamemenu) { return; }
+  $('.homegames').addClass('homegamepicker').html(gamemenu.filter(function(db) { return dbinfo[db]; }).map(function(db) {
+    return '<li'+(db == database && !gamenotpicked ? ' class="homegameactive"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);">'+
+      '<img src="gamelogos/64/'+dbinfo[db].logo+'" alt="'+gamelogoalt(dbinfo[db].name)+'"><span>'+dbinfo[db].name+
+      (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</span></a></li>';
+  }).join(''));
+}
 function favoritegame() {
   var user = cache_thing("user","data");
   var all = user && ("oracle" in user) && user.oracle[0].settings && user.oracle[0].settings['all'];
@@ -5299,16 +6227,29 @@ function favoritegame() {
 function applyfavoritegame() {
   var game = favoritegame();
   cache_session("favoritegame", game || "");
-  if(game && game != database && !cache_session("database") && !/#game=/.test(location.hash)) {
+  if(gamenoask()) { cache_session("gamenoask",true); }
+  if(game && gamenotpicked) {
     location.reload(); // first login in this browser: the top of this file now starts on the favorite
   }
 }
 function savefavoritegame(game,el) {
-  saveallsetting('game', game || null, $(el).siblings('.favoritegamestatus'), function() {
+  cache_session("gamedefault", game || "");
+  var saved = function() {
     cache_session("favoritegame", favoritegame() || "");
     rendersettings();
     $('.favoritegamestatus').text("Saved.");
-  });
+  };
+  if(!searchloggedin()) { saved(); return; }
+  saveallsetting('game', game || null, $(el).siblings('.favoritegamestatus'), saved);
+}
+function savegameask(ask,el) {
+  cache_session("gamenoask", !ask);
+  var saved = function() {
+    rendersettings();
+    $('.gameaskstatus').text("Saved.");
+  };
+  if(!searchloggedin()) { saved(); return; }
+  saveallsetting('gamenoask', ask ? null : true, $(el).closest('label').siblings('.gameaskstatus'), saved);
 }
 // the Card text setting: which wording (textversionnow) a new session starts with
 function savetextversion(value,el) {
@@ -5438,11 +6379,12 @@ function resetgestures(el) {
 // Set (or with value null, remove) one key of users.settings.all. settings.all is shared by every game
 // (PDF defaults live there too) and the cached user is per game, so start from a fresh copy rather than
 // overwrite something saved in another game.
-function saveallsetting(key,value,status,done) {
+function saveallsetting(key,value,status,done,failed) {
   status.text("Saving...");
   var fail = function(error) {
     console.log("Setting "+key+" save failed: "+JSON.stringify(error));
     status.text("Couldn't save: "+((error.responseJSON && error.responseJSON.error) || error.statusText));
+    if(failed) { failed(); }
   };
   $.ajax({
     type: 'GET',
@@ -5850,7 +6792,7 @@ function searchsummary(values) {
   Object.keys(values).forEach(function(name) {
     if(done[name]) { return; }
     var el = $('#searchform [name="'+name+'"]').first();
-    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : name == 'artphoto' ? 'Photo' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
+    var label = name == 'querystring' ? 'All' : name == 'artlike' ? 'Art like' : name == 'artphoto' ? 'Photo' : name == 'family' ? 'Family of' : (el.closest('dd').prev('dt').text().trim() || name.replace(/^(field_|require_)/,''));
     var range = name.match(/^field_(lower|upper)_(.*)/);
     var text;
     if(range) {
@@ -5859,6 +6801,8 @@ function searchsummary(values) {
       text = (lo !== undefined && hi !== undefined) ? lo+' to '+hi : (lo !== undefined ? 'at least '+lo : 'at most '+hi);
     } else if(name == 'artphoto') {
       text = 'your photo';
+    } else if(name == 'family') {
+      text = cardfamilytitles[values[name]] || 'card #'+values[name];
     } else if(el.prop('type') == 'checkbox') {
       text = name.startsWith('require_') ? (el.parent('label').text().trim() || 'yes') : 'yes';
     } else {
@@ -6036,7 +6980,7 @@ function pdfrender(o) {
   Object.keys(databasesort[database] || {}).forEach(function(k) { sorts[k] = k.charAt(0).toUpperCase()+k.slice(1); });
   if(!('title' in sorts)) { sorts['title'] = 'Title'; }
   var user = cache_thing("user","data");
-  modal(pdfdialogstate.mode == 'print' ? "PDF Print-n-Play" : "PDF print settings",
+  modal(pdfdialogstate.batch ? "PDF options for the exported lists" : pdfdialogstate.mode == 'print' ? "PDF Print-n-Play" : "PDF print settings",
         $.templates("#template-pdfoptions").render({
           'mode': pdfdialogstate.mode, 'o': o, 'v': v, 'papers': pdfpapers, 'sorts': sorts,
           'gamename': dbinfo[database].name, 'loggedin': !!(user && ("oracle" in user))
@@ -6107,6 +7051,10 @@ function pdfgenerate() {
   var layout = pdflayout(o);
   if(layout.cols < 1 || layout.rows < 1) {
     pdfsummary();
+    return;
+  }
+  if(pdfdialogstate.batch) {
+    exportfilesstart(pdfdialogstate.batch, o);   // Export files: these options for every list
     return;
   }
   pdfoptions = o;
@@ -6316,12 +7264,12 @@ function createpdf(data,listoutput='') {
     var o = pdfoptions || pdfbaseoptions();
     pdfoptions = null;
     if(!pdfallowed()) {
-      alert("PDF printing isn't available for "+dbinfo[database].name+".");
+      listfilefail("PDF printing isn't available for "+dbinfo[database].name+".");
       return;
     }
     var layout = pdflayout(o);
     if(layout.cols < 1 || layout.rows < 1) {
-      alert("The cards don't fit on the page with these margins.");
+      listfilefail("The cards don't fit on the page with these margins.");
       return;
     }
     console.log(['createpdf',o,layout,data]);
@@ -6384,7 +7332,7 @@ function createpdf(data,listoutput='') {
     var imagefailed = [];
     var loaded = 0;
     if(urls.length == 0) {
-      alert("No card images to print in this list.");
+      listfilefail("No card images to print in this list.");
       return;
     }
     var perpage = layout.cols*layout.rows;
@@ -6400,7 +7348,7 @@ function createpdf(data,listoutput='') {
           var pages = cards.filter(function(c) { return imagedata[c.front]; });
           if(imagefailed.length>0) {
             console.log("Failed"+JSON.stringify(imagefailed));
-            alert("Failed to load some images:"+JSON.stringify(imagefailed));
+            listfilenote("Failed to load some images:"+JSON.stringify(imagefailed));
           }
           if(o.layout == 'mpc') {
             pdfmpczip(pages.map(function(c) { return imagedata[c.front]; }), layout, fn);
@@ -6433,7 +7381,7 @@ function createpdf(data,listoutput='') {
           }
 		      doc.end();
 		      stream.on('finish', function() {
-		        data_url_to_download(stream.toBlobURL('application/pdf'),fn+".pdf");
+		        listfileout(stream.toBlob('application/pdf'),fn+".pdf");
 		      });
 	      }
 	    }, o.cardwidth > o.cardheight, (o.layout == 'mpc') ? function(canvas) { return pdfmpcimage(canvas, o); } : null);
@@ -6445,7 +7393,7 @@ function pdfmpczip(pages, layout, fn) {
   var files = [];
   var next = function(i) {
     if(i == pages.length) {
-      data_url_to_download(URL.createObjectURL(pdfzip(files)), fn+".zip");
+      listfileout(listbatch ? null : pdfzip(files), fn+".zip", files);
       return;
     }
     const doc = new PDFDocument({
@@ -6523,8 +7471,10 @@ function data_url_to_download(data_url, filename) {
 // If a card is being displayed, render new card, and replace state on history, so back still goes back to the list
 // prid = printingid.   Note: This should only happen on a page load, otherwise javascript handles switches
 // switchview=false renders the card view behind the scenes: no history entry, the view on screen stays
+var carddrawcount = 0;   // cards docard has drawn: defaultcard doesn't draw over a newer one
 function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var carddata = JSON.parse(JSON.stringify(carddata));
+  carddrawcount++;
   console.log(["rendering: "+carddata['cardid']+(prid?'/'+prid:''),qs]);
   if(getactivetemplate('card') === undefined) {
 	  console.log("templates not loaded yet");
@@ -6542,11 +7492,13 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
       cardtraders(full.cardid);
       $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
       if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
+      if((database+'/'+full.cardid) in cardfamilies) { cardfamily(full.cardid, pagetitlename(full)); }
     });
   }
   publiccardcount(carddata.cardid);
   cardtraders(carddata.cardid);
   mycardcount(carddata.cardid);
+  cardfamily(carddata.cardid, pagetitlename(carddata));
 
   if(!switchview) {
 	  return;
@@ -6588,6 +7540,7 @@ function drawcard(carddata,prid=null,qs=null) {
   var drawn = cardhtml(carddata,prid,qs);
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
+  imagesreserve('#resultcard img.cardsidefront');
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
@@ -6599,7 +7552,7 @@ function drawcard(carddata,prid=null,qs=null) {
     set: legality.set[showpr] || [], sets: legality.sets});
   rulingsfold('#resultcard');
   cardlistbar();
-  pagetitlecard = {cardid: String(carddata.cardid), title: selectplaintext([].concat(carddata.title || [])[0] || '')};
+  pagetitlecard = {cardid: String(carddata.cardid), title: pagetitlename(carddata)};
   pagetitle();
 }
 
@@ -6674,7 +7627,7 @@ function cardhtml(carddata,prid=null,qs=null) {
       if(key.includes('.')) {
         keys = key.split('.');
       }
-      if(searchables[database][key].clickable !== true) {
+      if(typeof searchables[database][key].clickable == 'string') {   // the name of the array holding it ("printing"); any other truthy value is a plain flag
         keys = [searchables[database][key].clickable,key];
       }
       if(key == "printing.set" || key == "printing.rarity") {
@@ -6993,7 +7946,7 @@ function searchpageable(qs) {
 function dosearchpostcallback(qs) {
     searchtextversion(qs);
     searchaddall(qs);
-    searchdeckcounts();
+    searchdeckcounts(qs);
     if(!$('.error').length) {
 	if(searchcache[database]['querydata'][qs].length < searchpageable(qs)) {
 	    $("#resultsearch").append('<a href="" onclick="scrollforceload(); return false;">'+searcherror['more']+'</a>');
@@ -7007,11 +7960,16 @@ function dosearchpostcallback(qs) {
 }
 
 // a new search puts its first result in the card view, as if it had been clicked (without leaving the search view)
+// a new search's first card, drawn behind the scenes for the Card tab: after the paint (it's not on screen), and not over a
+// card drawn in the meantime
 function defaultcard(qs) {
-    var ids = searchcache[database]['querydata'][qs];
-    if(ids && ids.length) {
-	docardid(ids[0],null,qs,false,false);
-    }
+    var drawn = carddrawcount;
+    afterpaint(function() {
+	var ids = searchcache[database]['querydata'][qs];
+	if(ids && ids.length && carddrawcount == drawn && $('#lastsearchquery').val() == qs) {
+	    docardid(ids[0],null,qs,false,false);
+	}
+    });
 }
 // Touch screens: menubar (and list download) dropdowns open on hover only with a mouse, so a tap toggles them instead.
 // Tapping a menu header opens its dropdown (closing other open menus outside it); tapping an item or anywhere else closes them.
@@ -7114,7 +8072,22 @@ function cardpeekshow(img, url, touch) {
     var peek = $('#cardpeek');
     if(!peek.length) {
 	peek = $('<div id="cardpeek"><img alt=""></div>').appendTo('body');
-	peek.on('click', cardpeekhide);
+	// a tap that closes the peek closes only the peek: it doesn't reach an open menu or pulldown (Tom Select closes on a
+	// mousedown outside it, the menubar on a click), which needs its own tap to close
+	peek.on('pointerdown mousedown', function(e) {
+	    e.stopPropagation();
+	    if(e.type == 'mousedown') {
+		e.preventDefault();   // no focus change, which would close a pulldown
+	    }
+	}).on('touchend', function(e) {
+	    // the finger's release closes it, with no mousedown or click after (WebKit drops the click if pointerdown is prevented)
+	    e.preventDefault();
+	    e.stopPropagation();
+	    cardpeekhide();
+	}).on('click', function(e) {
+	    e.stopPropagation();
+	    cardpeekhide();
+	});
     }
     var big = peek.find('img'), place = function() {
 	if(touch) {
@@ -7504,6 +8477,21 @@ document.addEventListener('click', function(e) {
 // Add to a list button, which picks a list as a swipe does. Drawn here, not in the card-top partial: the same steps and
 // checks as a swipe (deckswipeapply: going to 0 asks), so a list's count is one thing. The card-bottom partial's rows
 // below the card's text do every printing.
+// the search results' and lists' card pictures the same way: a thumbnail (_select) a 150x210 box, a large one (_details)
+// a portrait card scaled to its column. Without it, the Deck view's stacks grew frame by frame as each picture's size
+// arrived, ~0.5s after the tap (layout shift 0.4 on a phone), and so did Visual Large
+function resultimagesreserve(sel) {
+  imagesreserve(sel+' img[src*="_select."]:not([width]), '+sel+' img[src*="_details."]:not([width])');
+}
+// a picture not loaded yet holds a portrait card's box (oracle.css img.imgloading) until it arrives or fails, so the card
+// page's text doesn't drop ~500px when it does (layout shift: a shared card link on a phone was CLS 0.54)
+function imagesreserve(sel) {
+  $(sel).each(function() {
+    if(this.complete || $(this).hasClass('imgloading')) { return; }
+    var img = $(this).addClass('imgloading');
+    img.one('load error', function() { img.removeClass('imgloading'); });
+  });
+}
 function cardlistbar() {
     var cardid = Number($('#lastcardid').val()), head = $('#resultcard .listheadxl').first();
     $('#cardlistbar').remove();
@@ -7773,6 +8761,9 @@ function menutap(target) {
 }
 // switch the main content area to one of the result* views (menubar view icons, about, admin)
 function showview(view) {
+    // updateviewbuttons decides from here on; bootresults stays through the load's placeholder About (the first showview)
+    showviewcount++;
+    if(!(showviewcount == 1 && view == 'resultabout')) { document.documentElement.classList.remove('bootabout','bootresults'); }
     if(view != 'resultsearch' && $('body').hasClass('mobilesearch')) {
 	mobilesearchtoggle(false); // phone search panel would cover the other views
     }
@@ -7787,17 +8778,28 @@ function showview(view) {
     $(".ui-layout-center div[id^=result]").hide(); // Hide all content
     $(".viewicons button").removeClass("searchviewactive");
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
+    $('li.menuone > ul > li[data-view]').each(function() { $(this).toggleClass('menuactive', $(this).data('view') == view); });
     $('#' + view).fadeIn();
     seturl(viewstate(view.replace(/^result/,'')));
-    pagetitle();
-    updateviewbuttons();
     if(view == 'resultadmin') loadadmininfo();
     if(view == 'resultadmin') showadmintab(admintab);
-    if(view == 'resultrules') rulesshow();
-    if(view == 'resulthelp') helpshow();
-    if(view == 'resulttrades') tradeload(function() { tradesrender(); });
-    if(view == 'resultmessages') tradeload(function() { messagesrender(); });
-    if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
+    // the rest waits for the view to be painted, so a tap answers at once (INP): they all read what's on screen when they run
+    afterpaint(function() {
+	pagetitle();
+	updateviewbuttons();
+	if(view == 'resultrules' && $('#resultrules').is(':visible')) rulesshow();
+	if(view == 'resulthelp' && $('#resulthelp').is(':visible')) helpshow();
+	if(view == 'resulttrades' && $('#resulttrades').is(':visible')) tradeload(function() { tradesrender(); });
+	if(view == 'resultmessages' && $('#resultmessages').is(':visible')) tradeload(function() { messagesrender(); });
+	if(view == 'resultpublic' && lastpublicquery === null && !publicsearching) publicsearch(0, null, true);
+    });
+}
+// run fn after the browser has painted what the current task changed. A tap's handler shows its answer (the view, the
+// button lit), then the heavy drawing runs here, so the tap's Interaction to Next Paint doesn't wait for it (Search Console:
+// INP 341 ms on phones, 2026-11-05). requestAnimationFrame runs just before the paint; the timeout then lands after it.
+function afterpaint(fn) {
+    if(document.hidden) { setTimeout(fn, 0); return; }   // no frames in a background tab
+    requestAnimationFrame(function() { setTimeout(fn, 0); });
 }
 function showcard() {
     showview('resultcard');
@@ -7820,18 +8822,48 @@ function showsearch() {
 // the browser tab and search engine title for what's shown: the card or deck name and the game (Google reads it
 // after running the page; index.html has the start page's). drawcard keeps the card's name here.
 var pagetitlecard = {cardid: null, title: ''};
+// at most 70 characters (Bing flags longer titles): the full game name with the site name, then the short one
+// (L5R), then without the site name, then the card or deck name cut at a word. ootv-tools seo/build.py fittitle does the same.
+function pagetitlefit(fmt, name) {
+  var info = dbinfo[database] || {}, max = 70, brand = ' | Oracle of the Void';
+  var games = [info.name || ''];
+  if(info.nameshort && info.nameshort != database && info.nameshort != info.name) { games.push(info.nameshort); }
+  var fill = function(n, g) { return fmt.replace('{name}', n).replace('{game}', g); };
+  for(var b = 0; b < 2; b++) {
+    for(var i = 0; i < games.length; i++) {
+      var t = fill(name || '', games[i]) + (b ? '' : brand);
+      if(t.length <= max) { return t; }
+    }
+  }
+  var game = games[games.length - 1];
+  var cut = (name || '').slice(0, Math.max(max - fill('', game).length - 1, 1)).replace(/\s+$/, '');
+  if(/\s/.test(cut)) { cut = cut.slice(0, cut.search(/\s\S*$/)); }
+  return fill(cut.replace(/[\s,.:;–-]+$/, '') + '…', game).slice(0, max);
+}
+// the card's name with its version, so versions don't share a title: formattedtitle "Hida Kuon &#149; Experienced 2"
+// (title is the bare name) gives "Hida Kuon (Experienced 2)". ootv-tools seo/build.py cardversiontitle does the same.
+function pagetitlename(carddata) {
+  var plain = function(v) { return $('<textarea>').html(selectplaintext(v || '')).text().replace(/\s+/g, ' ').trim(); };
+  var name = plain([].concat(carddata.title || [])[0]);
+  var full = plain(carddata.formattedtitle);
+  if(name && full.toLowerCase().indexOf(name.toLowerCase()) == 0 && full.length > name.length) {
+    var rest = full.slice(name.length).replace(/^[\s•·–—\-:,()]+|[\s•·–—\-:,()]+$/g, '');
+    if(rest) { return name + ' (' + rest + ')'; }
+  }
+  return name || full;
+}
 function pagetitle() {
   var game = (dbinfo[database] || {}).name;
   var title = 'Oracle of the Void';
   var view = $(".ui-layout-center div[id^=result]:visible").attr('id');
   if(view == 'resultcard' && pagetitlecard.title && pagetitlecard.cardid == $('#lastcardid').val()) {
-    title = pagetitlecard.title + (game ? ' – ' + game + ' card' : '') + ' | ' + title;
+    title = game ? pagetitlefit('{name} – {game} card', pagetitlecard.title) : pagetitlecard.title + ' | ' + title;
   } else if(view == 'resultlist' && $('#lastlistid').val()) {
     var list = cache_thing("list", $('#lastlistid').val());
     var name = list && list.list && list.list.Items[0] ? selectplaintext(list.list.Items[0].name || '') : '';
-    title = (name || 'Deck') + (game ? ' – ' + game + ' deck' : '') + ' | ' + title;
-  } else if(game) {
-    title = game + ' card database and deck builder | ' + title;
+    title = game ? pagetitlefit('{name} – {game} deck', name || 'Deck') : (name || 'Deck') + ' | ' + title;
+  } else if(game && !(gamenotpicked && view == 'resultabout')) {
+    title = pagetitlefit('{game} card database and deck builder');
   }
   document.title = title;
 }
@@ -8101,23 +9133,19 @@ function templatefetch(card,id=false,datarequest={}) {
         for(att in card.printingreverse) {
           //console.log("onyx deb: "+att);
             if("field_printing_"+att in datarequest) {
-              console.log("printing field in search: "+att);
               if(!Array.isArray(datarequest["field_printing_"+att])) {
                 datarequest["field_printing_"+att] = [datarequest["field_printing_"+att]];
               }
               for (checkatt of datarequest["field_printing_"+att]) {
-                console.log(checkatt);
                 if(checkatt in card.printingreverse[att]) {
                     pr = card.printingreverse[att][checkatt];
                 }
               }
             } else if("field_"+att in datarequest) {
-              console.log("top field in search: "+att);
               if(!Array.isArray(datarequest["field_"+att])) {
                 datarequest["field_"+att] = [datarequest["field_"+att]];
               }
               for (checkatt of datarequest["field_"+att]) {
-                console.log(checkatt);
                 var spr = storedprinting(card,att,checkatt);
                 if(spr !== null) {
                     pr = spr;
@@ -8275,7 +9303,8 @@ function printingimages(p) {
 //     when fields are read from the printing if it has them, else from the card. before/from place the
 //     printing's set in the chronological set order (selectorder("printing.set")), so they never fit
 //     in a game without one.
-// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs), fetched when first needed.
+// The standard backs are cards (L5R: the Oracle of the Void set's Card Backs). Those the rules name come with the game config
+// (gameconfigapply); a back only a printing names is fetched when first needed.
 var cardbackcards = {};   // {game: {cardid: card, false when it isn't there}}
 var cardbackwaiting = {}; // {game: {cardid: [callbacks]}} while fetching
 function cardbackrules() {
@@ -8435,7 +9464,6 @@ function cardsideflip(thumb) {
 }
 
 function templatefetchimage(card,size,id=false,datarequest={}) {
-    console.log(['templatefetchimage',card,size,id,datarequest]);
     prdata = templatefetch(card,id,datarequest);
     var front = printingimages(prdata)[0];
     if(front) {
@@ -8531,6 +9559,9 @@ function gameconfigsettings(conf) {
 function gameconfigapply(db, conf) {
   var g = conf.game, settings = gameconfigsettings(conf);
   dbinfo[db] = g.info;
+  // the standard back cards come with the config (/gameconfig cardbacks), so card pages needn't fetch them
+  var backs = cardbackcards[db] = cardbackcards[db] || {};
+  Object.keys(conf.cardbacks || {}).forEach(function(id) { backs[String(id)] = conf.cardbacks[id]; });
   var lab = {};
   ['card','printing'].forEach(function(lvl) {
     Object.keys(settings[lvl]).forEach(function(f) {
@@ -8730,7 +9761,8 @@ function gamesymbols(symbols) {
 // search result ('detail'). A row: {fields, label | labelfields, sep, join, wrap, wraps, when, else, helper,
 // ddclass, valuelabels, suffix, seps}; label false draws the value on its own line (no <dt>); valuelabels lists
 // each field with a value as "value label"; suffix puts each field's short label after its value (true: right
-// after, LBS "3S"; a string: with it between, 7th Sea "2 Can"); seps gives the separator before each field after
+// after, LBS "3S"; a string: with it between, 7th Sea "2 Can"; none on a field with no value; in its own span.rowsuffix, which an icon wrap
+// that shows the stat by itself hides: oracle.css .lbsicon); seps gives the separator before each field after
 // the first (7th Sea cost/cancel: [" ", " / ", " "]); concat joins the values of all the fields as one list
 // with join (Warlord traits: faction, traits, feats); joins and helpers give a join or helper per field (L5R keywords
 // " &#149; " then iconised " "; publisher, then publisherurl through makelinks); prefix goes before the first value, inside its
@@ -8814,8 +9846,8 @@ function gamerow(data, r) {
       v = (v === undefined || v === null) ? '' : v === true ? 'Yes' :
           (Array.isArray(v) ? v.join(join !== undefined ? join : ',') : String(v));
     }
-    if(r.suffix) {
-      v += (r.suffix === true ? '' : r.suffix)+(lab['short'+f] !== undefined ? lab['short'+f] : f);
+    if(r.suffix && v !== '') {
+      v += '<span class="rowsuffix">'+(r.suffix === true ? '' : r.suffix)+(lab['short'+f] !== undefined ? lab['short'+f] : f)+'</span>';
     }
     if(r.prefix && i == 0) { v = r.prefix+v; }
     var cls = r.wraps && r.wraps[i];
@@ -8882,6 +9914,7 @@ function fullgamepermission() {
 // menubar template buttons: show the ones this game has for the view in play, highlight the active one.
 // debug also needs full game permission and the debug tab itself on screen, and isn't offered on phones.
 function updateviewbuttons() {
+  if(document.documentElement.classList.contains('bootresults')) { return; } // the load's placeholder About (top of this file)
   var type = viewbuttontype();
   var available = templates[database]['available'];
   var active = (templates[database]['active'][type]||'').replace(/-premium$/,'');
@@ -8900,7 +9933,6 @@ function updateviewbuttons() {
   if(tab == 'dir' || tab == 'public') {
     $("#templatebuttons button[data-template]").hide();
   }
-  $(".searchviewbuttons").toggle(formatview || tab == 'dir' || tab == 'public');
   $(".artphotobutton").show();     // the photo features: for everyone; photochooser says how to get access
   $(".sortbuttons").not(".dirsortbuttons").toggle(formatview && type == 'search'); // sort only applies to search results
   updatesizebuttons();
@@ -8910,6 +9942,9 @@ function updateviewbuttons() {
   updatedirbuttons();
   updatepublicbuttons();
   $("#templatebuttons").toggle($("#templatebuttons button").filter(function() { return this.style.display != 'none'; }).length > 0);
+  // the whole block, unless nothing in it is shown (a game's card page without a large view): no empty box, no line of its own
+  var anyshown = $('#templatebuttons, #sizebuttons, li.sortbuttons').filter(function() { return this.style.display != 'none'; }).length > 0;
+  $(".searchviewbuttons").toggle((formatview || tab == 'dir' || tab == 'public') && anyshown);
 }
 // menubar template button: switch the view in play; visual follows the size toggle.
 // debug toggles: a second click goes back to the template it replaced (the Card tab has no other button)
@@ -8927,7 +9962,9 @@ function viewbutton(template) {
   if(template == 'visual' && largeview[type] && templates[database]['available']['visual-premium']) {
 	  template = 'visual-premium';
   }
-  activatetemplate(type,template);
+  var lit = template.replace(/-premium$/,'');
+  $("#templatebuttons button[data-template]").each(function() { $(this).toggleClass("searchviewactive", $(this).data("template") == lit); });
+  afterpaint(function() { activatetemplate(type,template); });   // redrawing the results is the slow part (INP)
 }
 // saved view defaults: users.settings[database] = {search, card, list, sort, sortdir, sortmode, mobile: {same keys}}, saved via /user?settings=
 // (settings[database].folders, the directory folders, shares the object: saves here keep it)
@@ -9137,7 +10174,8 @@ function changesort(type,key,rerender=true) {
 	}
     } else {
 	templates[database]['sort'][type] = decodeURI(key);
-	templates[database]['sortdir']['search'] = 'asc';
+	// the most played cards first
+	templates[database]['sortdir']['search'] = decodeURI(key) == publicdeckssort ? 'desc' : 'asc';
     }
     // need to update menus
     updatemenubar(type);
@@ -9145,6 +10183,24 @@ function changesort(type,key,rerender=true) {
     if(rerender) {
 	dosearch(0);
     }
+}
+// a restored search (url, back/forward, game switch) sets the sort it was run with: never toggles like a menu click.
+// dosearch sends a descending sort as the menu key with its first "asc" made "desc", so undo that here
+function setsortfromrequest(sort,mode) {
+  var dir = 'asc';
+  if(!(sort in searchsorts[database]) && /"desc"/.test(sort)) {
+	  var key = sort.replace(/"desc"/,'"asc"');
+	  if(key in searchsorts[database]) {
+	    sort = key;
+	    dir = 'desc';
+	  }
+  }
+  templates[database]['sort']['search'] = sort;
+  templates[database]['sortdir']['search'] = dir;
+  if(mode in sortmodes) {
+	  templates[database]['sortmode']['search'] = mode;
+  }
+  updatemenubar('search');
 }
 function changesortmode(type,mode) {
   if(!(mode in sortmodes) || templates[database]['sortmode'][type] == mode) {
@@ -9277,6 +10333,7 @@ function startpage() {
 	    }
 	  }
   }
+  searchsorts[database][publicdeckssort] = 'Public decks';
 
   auth = initCognitoSDK();
   var curUrl = window.location.href;
@@ -9286,6 +10343,7 @@ function startpage() {
 	  auth.parseCognitoWebResponse('');
   }
   if(signedin()) {
+	  usercacheseed();
 	  logincallback(auth.getSession());
   } else {
 	  logoutcallback();
@@ -9298,6 +10356,7 @@ function startpage() {
   
   $(".ui-layout-center div[id^=result]").hide(); // Hide all content
   showview('resultabout');
+  $('body').toggleClass('gamenotpicked', gamenotpicked);
   
   // phones default search results to the Visual Spoiler, unless a saved phone default says otherwise
   if(narrowscreen() && templates[database]['available']['visual'] && !(viewdefaults() || {})['search']) {
@@ -9324,7 +10383,7 @@ function startpage() {
 	  $('#searchtop').html('');
   }
 
-  loadupdates(database);
+  if(!gamenotpicked) { loadupdates(database); }
   
   // Enter performs a search
   $('.searchinput').keypress(function(e){
@@ -9341,20 +10400,21 @@ function startpage() {
   $(".ui-layout-center").scroll(scrollcheck);
   //    $(window).on("click",function() { alert(   $(window).scrollTop() + " > "+ ($(document).height() - $(window).height())); });
   
-  $('.gameinfo-game').html('<img src="gamelogos/64/'+dbinfo[database].logo+'"><span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
+  $('.gameinfo-game').html(gamelogoimg(dbinfo[database].logo, database, dbinfo[database].name)+'<span class="gamename">&nbsp;'+dbinfo[database].name+'</span>');
   $('.gameinfo-gameshort').html(dbinfo[database].nameshort);
-  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'">');
+  $('.gameinfo-gamelogo15').html('<img src="gamelogos/15/'+dbinfo[database].logo+'" alt="'+gamelogoalt(dbinfo[database].name)+'">');
   
   urlready = true;
   urlparser();
   // phones start on the search form, unless the url asked for something (beyond the game)
-  if(narrowscreen() && !location.hash.replace(/#game=[^#]*/,'')) {
+  if(narrowscreen() && !gamenotpicked && !location.hash.replace(/#game=[^#]*/,'')) {
 	  showviewkeepurl('resultsearch');
 	  mobilesearchtoggle(true);
   }
   // all/games' order; a game missing from it (none should be) goes last
   (gamemenu || []).concat(Object.keys(dbinfo).filter(function(k) { return !(gamemenu || []).includes(k); }))
     .forEach(function(k) { if(dbinfo[k]) { addgametolist(k); } });
+  homegamesdraw();
   
 
 }
@@ -9470,7 +10530,7 @@ function templateerrtext(e) {
 // the search form's multiple selects, as Tom Select controls (the selects stay, hidden, and serialize as usual)
 function tomselectify() {
   $('select.tomselect:not(.tomselected)').each(function() {
-    new TomSelect(this, {
+    var ts = new TomSelect(this, {
       plugins: ['remove_button', 'checkbox_options'],
       maxOptions: null,        // the default stops at 50: L5R has more sets than that
       refreshThrottle: 0,      // the default filters 300 ms late: a quick Enter would pick the old top option
@@ -9479,6 +10539,15 @@ function tomselectify() {
       onDropdownOpen: function(dropdown) {   // room to the window's right edge: the dropdown's width rule in oracle.css
         dropdown.style.setProperty('--tsdropdownmax', (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px');
       }
+    });
+    // checkbox_options ticks a box only when it hears of a pick or unpick, and the rows are kept between drawings, so a box
+    // could stay ticked with nothing picked: every drawing of the dropdown sets each row's box and "selected" from the picks
+    ts.hook('after', 'refreshOptions', function() {
+      ts.dropdown_content.querySelectorAll('.option[data-value]').forEach(function(o) {
+        var on = ts.items.indexOf(o.dataset.value) > -1, box = o.querySelector('input.tomselect-checkbox');
+        o.classList.toggle('selected', on);
+        if(box) { box.checked = on; }
+      });
     });
   });
 }
@@ -9503,9 +10572,18 @@ if(typeof TomSelect != 'undefined') {
     });
   });
 }
+// selects that came into view are converted after the paint, a few per task, so a tap that shows a view full of them (Public
+// lists) isn't held up by building them (INP)
+var tomselectqueue = [];
 var tomselectseen = typeof IntersectionObserver != 'undefined' && new IntersectionObserver(function(entries) {
-  entries.forEach(function(e) { if(e.isIntersecting) { tomselectauto(e.target); } });
+  entries.forEach(function(e) { if(e.isIntersecting && !tomselectqueue.includes(e.target)) { tomselectqueue.push(e.target); } });
+  if(tomselectqueue.length) { afterpaint(tomselectdrain); }
 });
+function tomselectdrain() {
+  var until = performance.now() + 30;
+  while(tomselectqueue.length && performance.now() < until) { tomselectauto(tomselectqueue.shift()); }
+  if(tomselectqueue.length) { setTimeout(tomselectdrain, 0); }
+}
 function tomselectsig(el) {
   return Array.prototype.map.call(el.options, function(o) { return o.value+'\u0001'+o.text+'\u0001'+o.disabled; }).join('\u0002');
 }
@@ -9612,8 +10690,8 @@ if(typeof IntersectionObserver != 'undefined') {
 
 function addgametolist(db) {
   var cls = (database == db ? ['menuactive'] : []).concat(gamepreviewonly.includes(db) ? ['gamepreviewonly'] : []);
-  $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="." onclick="cache_session(\'database\',\''+db+'\');"'+
-    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'">&nbsp;'+dbinfo[db].name+
+  $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);"'+
+    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'" alt="">&nbsp;'+dbinfo[db].name+
     (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</a></li>');
 }
 
@@ -9621,7 +10699,7 @@ function addgametolist(db) {
 // ****************************** URL / HISTORY ******************************
 // The address bar always says what's on screen, so reload, bookmarks and Back/Forward all land in the
 // same place: #game=<g>, then one of
-//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N | #publiclists=<qs> | #help=<topic>[,#helpsec=<id>] |
+//   #search=<qs> | #cardid=N[,#cnprintingid=P] | #listid=N[,#share=<code>] | #publiclists=<qs> | #help=<topic>[,#helpsec=<id>] |
 //   #view=<dir|public|help|settings|admin|search|card|list>
 // (the About page is #game alone). Old links (no #game, #quicksearch=, #quicksearchtitle=) still work.
 // seturl() is the only place that calls history.*: showview() calls it for every view switch.
@@ -9649,6 +10727,9 @@ function parsehash(hash) {
         matchstruct[RegExp.$1].push(RegExp.$2);
       }
     }
+  }
+  if(matchstruct.listid && /^[\w-]+$/.test(matchstruct.share || '')) {
+    listsharecodes[matchstruct.listid] = matchstruct.share;
   }
   return matchstruct;
 }
@@ -9689,7 +10770,7 @@ function statehash(state) {
   } else if(state.view == 'card' && state.cardid) {
     return h+',#cardid='+state.cardid+(state.prid ? ',#cnprintingid='+state.prid : '');
   } else if(state.view == 'list' && state.listid) {
-    return h+',#listid='+state.listid;
+    return h+',#listid='+state.listid+(listsharecodes[state.listid] ? ',#share='+listsharecodes[state.listid] : '');
   } else if(state.view == 'public' && state.pq) {
     return h+',#publiclists='+encodeURIComponent(state.pq);
   } else if(state.view == 'rules' && state.book) {
@@ -9761,7 +10842,7 @@ $(window).on('popstate', function (e) {
   console.log(['popstate',e.originalEvent.state,location.hash]);
   hashrepair();
   // phones: back/forward shows results or a card, so close the search panel; back to the blank start page opens it, as on load
-  mobilesearchtoggle(narrowscreen() && !location.hash.replace(/#game=[^#]*/,''));
+  mobilesearchtoggle(narrowscreen() && !gamenotpicked && !location.hash.replace(/#game=[^#]*/,''));
   // no state: a link or a typed url, which keeps the form's filters (urlparser)
   urlparser(!e.originalEvent.state);
 });
@@ -9858,6 +10939,7 @@ function urlparser(keepfilters=false) {
   if(typeof(matchstruct["game"]) != "undefined") {
     if((matchstruct["game"] != database) && (matchstruct["game"] != "")) {
       cache_session("database",matchstruct["game"]);
+      sessionStorage.setItem("tabgame",matchstruct["game"]);
       location.reload();
       return;
     }
@@ -9970,12 +11052,12 @@ function urlparser(keepfilters=false) {
 	    populatecallback.push(function() {fillsearchform(fdata);});
 	  }
 	  if('sort' in fdata) {
-	    changesort('search',fdata['sort'],false);
+	    setsortfromrequest(fdata['sort'], fdata['sortmode']);
 	  }
 	  dosearch(0,fdata);
   } else {
     // nothing asked for: the start page (phones: the search form), left as the blank url it is
-    showviewkeepurl(narrowscreen() ? 'resultsearch' : 'resultabout');
+    showviewkeepurl(narrowscreen() && !gamenotpicked ? 'resultsearch' : 'resultabout');
   }
 }
 
@@ -10939,6 +12021,47 @@ function htmlEncode(value){
   return $('<textarea/>').text(value).html();
 }
 
+// list notes as html (they're whatever their owner typed): the text escaped, and each web address in it a link,
+// only when it parses as an http(s) URL; the href is the parsed URL, escaped for an attribute, so nothing typed can
+// add markup, attributes or another kind of link. This site's links open in place, others in a new tab.
+function noteattr(v) {
+  return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function notelinks(text) {
+  var out = '', at = 0, rx = /https?:\/\/[^\s<>"'`]+/gi, m;
+  text = String(text || '');
+  while((m = rx.exec(text))) {
+    var raw = m[0].replace(/[.,;:!?)\]]+$/,''), url = null;
+    try { url = new URL(raw); } catch(e) {}
+    out += htmlEncode(text.slice(at, m.index));
+    if(url && /^https?:$/.test(url.protocol)) {
+      var here = url.host == location.host || /(^|\.)oracleofthevoid\.com$/.test(url.hostname);
+      out += '<a class="notelink" href="'+noteattr(url.href)+'"'+(here ? '' : ' target="_blank" rel="noopener noreferrer nofollow"')+'>'+htmlEncode(raw)+'</a>';
+    } else {
+      out += htmlEncode(raw);
+    }
+    at = m.index + raw.length;
+    rx.lastIndex = at;
+  }
+  return out + htmlEncode(text.slice(at));
+}
+// a link in notes opens, even inside a box being edited or a card that opens on click
+$(document).on('click', '.listviewnotes a.notelink, .publicnotes a.notelink', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  var url = new URL(this.href);
+  if(this.target == '_blank') {
+    window.open(url.href, '_blank', 'noopener,noreferrer');
+  } else if(e.ctrlKey || e.metaKey || e.shiftKey) {
+    // ctrl/cmd/shift-click: a new tab, like any other link; this site's page on the site that's running
+    window.open(url.hash ? location.href.split('#')[0] + url.hash : url.href, '_blank');
+  } else if(url.hash) {
+    location.hash = url.hash;   // this site's page, opened where the site is running (preview, local) too
+  } else {
+    location.href = url.href;
+  }
+});
+
 // invert the above
 function htmlDecode(value){
   return $('<textarea/>').html(value).text();
@@ -11114,9 +12237,16 @@ function narrowscreen() {
     return window.matchMedia('(max-width: 768px), (pointer: coarse) and (max-height: 500px)').matches;
 }
 function mobilesearchtoggle(open) {
-    $('body').toggleClass('mobilesearch', open);
-    // start the panel below the menubar (when it's on screen) so the button that toggles it stays reachable
-    $('#sidebar').css('top', Math.max(0, $('div.menubar')[0].getBoundingClientRect().bottom));
+    // start the panel below the menubar (when it's on screen) so the button that toggles it stays reachable. Read before
+    // the class changes, so the read doesn't make the browser restyle and lay out the page inside the tap (INP)
+    var top = Math.max(0, $('div.menubar')[0].getBoundingClientRect().bottom);
+    var shown = $('body').toggleClass('mobilesearch', open).hasClass('mobilesearch');
+    $('#sidebar').css('top', top);
+    if(shown) {
+	$('#sidebar').removeClass('sidebarstowed');
+    } else {
+	afterpaint(function() { if(!$('body').hasClass('mobilesearch')) { $('#sidebar').addClass('sidebarstowed'); } });
+    }
 }
 // tapping the results while the panel is open closes it
 $(document).on('click', '#maincontent', function() {
@@ -11504,7 +12634,8 @@ function rulingopenrules(book,page) {
 // than one book, a choice of them). From the structure item <game>/traits (ootv-import SCRIPTS/rulebook-traits.py,
 // docs/admin/rulebooks.md "Trait links"): books {<id>: {title, year, arc, order}}, editions {<legality>: [book
 // ids, the one to prefer first]}, sets {<printing.set>: <legality>}, traits {<trait>: {<book id>: {page, find, text}}},
-// textskip [traits marked in the keywords only].
+// textskip [traits marked in the keywords only], arclabel (optional, "printed in %s": the reason an arc's book shows).
+// The game's card rows mark where to look: ddclass cardkeywords (L5R keywords, LBS traits) and cardtext.
 // A trait's books on a card: the edition of the printing shown, the newest book that defines it, and the last
 // complete rules of each arc whose bug the card has; one book only once. A printing's arc is its legality and the
 // arc its set was printed in (sets), so a printing with no legality there (a ban, KYD cards) still gets that arc's book.
@@ -11547,7 +12678,8 @@ function traitbooks(data,trait,legal) {
   if(traitfanmade(data.books[bynewest[0]])) {   // the fan rules changed AEG's: show AEG's newest beside them
     add(bynewest.find(function(id) { return !traitfanmade(data.books[id]); }), 'newest AEG rules');
   }
-  legal.card.concat(printed(legal.sets)).forEach(function(l) { add(edition(l), selectplaintext(l)+' bug'); });
+  // why an arc's book shows: the item's arclabel ("%s" is the arc; LBS "printed in %s"), else L5R's "<arc> bug"
+  legal.card.concat(printed(legal.sets)).forEach(function(l) { add(edition(l), (data.arclabel || '%s bug').replace('%s', selectplaintext(l))); });
   return Object.values(out).sort(function(a,b) { return (data.books[a.id].order ?? 0) - (data.books[b.id].order ?? 0); });
 }
 // mark the traits in a card's keywords (a book after each) and the first time each is named in its text
@@ -11723,6 +12855,11 @@ function generalnomodal(div,event) {
 // My lists (the form's mine select, logged in): the same search over your own lists, private ones too, through
 // /list action=search (the same index, always filtered on you); every list type, and no People view.
 // The Card box takes a title, or a card's number (#1234) for exactly that card (two cards can share a title).
+// The statistics views (Formats, Most played) also have All decks in the mine select (everyone, logged in or not:
+// every deck, private ones too, as counts; ootv-search /publiclists scope=all, which drops the name search and owner),
+// their default (the user, 2026-11-16): entering them from another view picks it, and Public lists there is mine=public
+// in the URL
+// and Legal decks only (on by default: legal=1, illegal decks left out; off is legal=0 in the URL).
 var publicpagesize = 24;
 var lastpublicquery = null;   // the query on screen (null: never searched)
 var publicshown = 0;          // results on screen for it
@@ -11739,16 +12876,46 @@ var publicformatnote = {'name': ['from the name', 'The owner didn\'t set a forma
 function publicmine() {
   return $('#publicform [name="mine"]').val() == '1' && listloggedin();
 }
+// Formats and Most played: the views All decks and Legal decks only apply to
+function publicstatsview(group) {
+  return group == 'formats' || group == 'cards';
+}
+// the statistics are over every deck, private ones too (All decks)
+function publicall() {
+  return $('#publicform [name="mine"]').val() == 'all' && publicstatsview($('#publicform [name="group"]').val() || '');
+}
+// the form's parts that depend on the view and login: All decks only in the statistics views (else Public lists),
+// My lists only logged in, the select whenever it has a choice, Legal decks only in the statistics views, and no
+// name search over All decks
+function publicformstate() {
+  var stats = publicstatsview($('#publicform [name="group"]').val() || '');
+  var sel = $('#publicform [name="mine"]');
+  if((sel.val() == 'all' && !stats) || (sel.val() == '1' && !listloggedin())) {
+    sel.val('');
+  }
+  sel.find('option[value="1"]').prop('hidden', !listloggedin());
+  sel.find('option[value="all"]').prop('hidden', !stats);
+  sel.toggle(listloggedin() || stats);
+  $('#publicform .publiclegal').toggle(stats);
+  $('#publicform [name="q"]').toggle(!publicall());
+}
 // the form (and extra filters) -> query string, empty fields left out
 function publicquery() {
+  publicformstate();
   var parts = [];
   $("#publicform").serializeArray().forEach(function(f) {
     if(f.value.trim() !== '') {
       parts.push(encodeURIComponent(f.name)+'='+encodeURIComponent(f.value.trim()));
     }
   });
+  if(!$('#publicform [name="legal"]').prop('checked')) {
+    parts.push('legal=0');   // on by default, so off is the one kept
+  }
+  if(publicstatsview($('#publicform [name="group"]').val() || '') && !$('#publicform [name="mine"]').val()) {
+    parts.push('mine=public');   // All decks is the statistics' default, so Public lists is the one kept
+  }
   ['cardid','owner'].forEach(function(k) {
-    if(publicextra[k] && !(k == 'owner' && publicmine())) {   // My lists: always yours
+    if(publicextra[k] && !(k == 'owner' && (publicmine() || publicall()))) {   // My lists: always yours; All decks: nobody's
       parts.push(k+'='+encodeURIComponent(publicextra[k].value));
     }
   });
@@ -11768,13 +12935,23 @@ function publicrequest(query) {
       query = query.replace(/(^|&)group=people/g,'');
     }
   }
+  var all = publicall();
   query = query.replace(/(^|&)mine=[^&]*/g,'');
   var group = $('#publicform [name="group"]').val() || '';
+  // the statistics: legal=1 when checked (legal=0 is the URL's), All decks without the name search
+  query = query.replace(publicstatsview(group) ? /(^|&)legal=0/g : /(^|&)legal=[^&]*/g, '');
+  if(all) {
+    delete publicextra.owner;   // nobody's: counts only
+    query = query.replace(/(^|&)q=[^&]*/g,'') + '&scope=all';
+  }
   var deckonly = !group && !publicextra.owner && !mine;
   $('#publicform [name="type"]').toggle(!deckonly && group != 'formats' && group != 'cards');
   // Most played: its own order and card type; the list sort means nothing there
-  $('#publicform [name="order"]').toggle(group == 'cards');
-  $('#publicform [name="sort"]').toggle(group != 'cards');
+  // each pulldown sits in a span with its sort funnel (publicsortpick), shown with it
+  $('#publicform [name="order"], #publicform [name="csv"], #publicform .publicsorticon[data-for="order"]').toggle(group == 'cards');
+  $('#publicform [name="order"]').closest('.publicsortpick').toggle(group == 'cards');
+  $('#publicform [name="sort"], #publicform .publicsorticon[data-for="sort"]').toggle(group != 'cards');
+  $('#publicform [name="sort"]').closest('.publicsortpick').toggle(group != 'cards');
   if(group != 'cards') {
     $('#publicform [name="cardtype"]').hide();
   }
@@ -11789,12 +12966,17 @@ function publicrequest(query) {
 // a query string -> the form and extra filters
 function publicfillform(qs) {
   var q = uri2json(qs || '');
+  // links from before 2026-11-16 name the home card filters clan= and stronghold=
+  if(q.align === undefined && q.clan !== undefined) { q.align = q.clan; }
+  if(q.home === undefined && q.stronghold !== undefined) { q.home = q.stronghold; }
   $("#publicform")[0].reset();
   $('#publicform [name="winner"]').prop('checked', q.winner == 1);
   $('#publicform [name="precon"]').prop('checked', q.precon == 1);
   $('#publicform [name="group"]').val(q.group || '');
-  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : '');
-  ['q','card','type','clan','format','stronghold','sort','cardtype','order'].forEach(function(k) {
+  // the statistics views: All decks unless the URL says otherwise
+  $('#publicform [name="mine"]').val(q.mine == 1 ? '1' : (q.mine == 'all' || (q.mine === undefined && publicstatsview(q.group || '')) ? 'all' : ''));
+  $('#publicform [name="legal"]').prop('checked', q.legal != '0');
+  ['q','card','type','align','format','home','sort','cardtype','order'].forEach(function(k) {
     var el = $('#publicform [name="'+k+'"]');
     if(q[k] === undefined) {
       return;
@@ -11818,6 +13000,7 @@ function publicsearch(page=0, qs=null, replace=false) {
     publicfillform(qs);
   }
   var query = publicquery();
+  publicfacetsearly();
   $("#publicstatus").text('Searching...');
   publicseq++;
   publicfetch(query, 0, function(data) {
@@ -11876,6 +13059,9 @@ function publicminerequest(tail) {
 // "public decks", "of your lists": what the results are, for the status line
 function publicnoun(n, deckonly) {
   var noun = deckonly ? (n == 1 ? 'deck' : 'decks') : (n == 1 ? 'list' : 'lists');
+  if(publicall()) {
+    return noun+' (public and private)';
+  }
   return publicmine() ? 'of your '+noun : 'public '+noun;
 }
 function publicrender(data, append) {
@@ -11911,7 +13097,10 @@ function publicmorecheck() {
 // is one pick away, not a trip through Any format. Fetched once per game and whose lists; the answer redraws the pulldowns
 var publicfacetbase = {}, publicfacetlast = {};
 function publicfacetbasekey() {
-  var mine = publicmine(), owner = !mine && publicextra.owner ? publicextra.owner.value : '';
+  var mine = publicmine(), all = publicall(), owner = !mine && !all && publicextra.owner ? publicextra.owner.value : '';
+  if(all) {   // scope=all answers the statistics only: Most played's facets
+    return {key: database+'|all', tail: '&scope=all&group=cards&from=0&size=1'};
+  }
   return {key: database+'|'+(mine ? 'mine' : owner), tail: (owner ? '&owner='+encodeURIComponent(owner) : (mine ? '' : '&type=deck'))+'&from=0&size=1'};
 }
 function publicfacetbasefetch() {
@@ -11951,19 +13140,54 @@ function publicfacetoptions(name, facet, label) {
   el.html(opts).val(current || '');
   el.toggle(!!current || found.length > 0 || rest.length > 0);
 }
+// the filter pulldowns and counts from a result's facets. The last ones drawn are kept per game and view
+// (publicfacetkey), and publicsearch draws them before its request goes out: the form has its final rows from the
+// first paint, not ~85px more once the results arrive (the home card filters and Format appearing), a layout shift (CLS)
+function publicfacetkey() {
+  var group = $('#publicform [name="group"]').val() || '';
+  return (group == 'cards' ? 'cards' : group ? 'groups' : 'decks') + (publicmine() ? '-mine' : '');
+}
+function publicfacetsdraw(facets, cards) {
+  if(!cards) {
+    publicfacetoptions('type', (facets.type || []).map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
+    $('#publicform [name="type"] option').each(function() {
+      if(this.value && listtypes[this.value]) {
+        $(this).text($(this).text().replace(this.value, listtypes[this.value]));
+      }
+    });
+    $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
+  }
+  // the home card filters (game config publiclists.home {type, align}; ootv-search deriveHome): the deck's one card of
+  // that type (home), and its align field (align), each named by the game's own words
+  var home = (((gameconfig[database] || {}).game || {}).publiclists || {}).home || {};
+  var anyof = function(word) { return 'Any '+String(word || '').toLowerCase(); };
+  publicfacetoptions('align', home.align ? facets.align : [], anyof((labels[database] || {})['tag'+home.align] || home.align));
+  publicfacetoptions('home', home.type ? facets.home : [], anyof(home.type));
+  publicfacetoptions('format', facets.format, 'Any format');
+  if(cards) {
+    publicfacetoptions('cardtype', facets.cardtype, 'Any card type');
+  }
+  $("#publicwinnercount").text(facets.winner ? '('+facets.winner+')' : '');
+  $("#publicpreconcount").text(facets.precon ? '('+facets.precon+')' : '');
+}
+function publicfacetsremember(facets) {
+  try { cache_thing("publicfacets", publicfacetkey(), facets); } catch(e) {}   // a full localStorage: only the shift comes back
+}
+var publicfacetsdrawn = {};   // per publicfacetkey: drawn this page load (from the cache or a result), so the cache isn't drawn over newer ones
+function publicfacetsearly() {
+  var key = publicfacetkey();
+  if(publicfacetsdrawn[key]) {
+    return;
+  }
+  publicfacetsdrawn[key] = true;
+  var facets = cache_thing("publicfacets", key);
+  if(facets) {
+    publicfacetsdraw(facets, key.indexOf('cards') == 0);
+  }
+}
 function renderpublic(data, append) {
-  publicfacetoptions('type', data.facets.type.map(function(f) { return {value: f.value, count: f.count}; }), 'Any type');
-  $('#publicform [name="type"] option').each(function() {
-    if(this.value && listtypes[this.value]) {
-      $(this).text($(this).text().replace(this.value, listtypes[this.value]));
-    }
-  });
-  $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
-  publicfacetoptions('clan', data.facets.clan, 'Any clan');
-  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
-  publicfacetoptions('format', data.facets.format, 'Any format');
-  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
-  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
+  publicfacetsdraw(data.facets, false);
+  publicfacetsremember(data.facets);
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
@@ -11973,12 +13197,12 @@ function renderpublic(data, append) {
   var html = data.hits.map(function(h) {
     var d = h.derived || {};
     var meta = [listtypes[h.type] || h.type];
-    if(d.clan) meta.push(d.clan);
-    if(d.stronghold) meta.push(d.stronghold.title);
+    if(d.align) meta.push(d.align);
+    if(d.home) meta.push(d.home.title);
     meta = meta.map(htmlEncode);
-    if(d.clan) { meta[1] = clanmon(d.clan)+meta[1]; }
+    if(d.align) { meta[1] = clanmon(d.align)+meta[1]; }
     var counts = deckcounthtml(d.fatecount || d.dynastycount ? [{"name": "Dynasty", "copies": d.dynastycount}, {"name": "Fate", "copies": d.fatecount}] : [],
-			       h.totalcount || 0, h.buildbad);
+			       h.totalcount || 0, h.buildbad)+deckbuildownmark(h)+similarbadge(h.similar, h.listid, mine);
     var when = String(h.modified || h.created || '').slice(0,10);
     var format = d.format ? '<div class="dircardmeta">Format: <b>'+legalitybug(d.format)+htmlEncode(d.format)+'</b>'+
       (publicformatnote[d.formatsource] ? ' <span class="publicformatsource" title="'+publicformatnote[d.formatsource][1]+'">('+publicformatnote[d.formatsource][0]+')</span>' : '')+'</div>' : '';
@@ -11993,10 +13217,10 @@ function renderpublic(data, append) {
         '<div class="dircardmeta">'+meta.join(' &middot; ')+'</div>'+
         format+
         '<div class="dircardmeta">'+counts+(h.card ? ' &middot; <b>'+h.card.quantity+'&times;</b> the card' : '')+'</div>'+
-        '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : 'Private') :
+        '<div class="dircardmeta">'+(mine ? (h.public ? 'Public' : (h.unlisted ? 'Unlisted' : 'Private')) :
           'by <a href="" onclick="publicbyowner('+parseInt(h.owner)+',this); return false;">'+htmlEncode(h.ownername || 'another player')+'</a>')+(when ? ' &middot; '+when : '')+'</div>'+
         formats+
-        (h.notes ? '<div class="publicnotes">'+htmlEncode(h.notes)+'</div>' : '')+
+        (h.notes ? '<div class="publicnotes">'+notelinks(h.notes)+'</div>' : '')+
       '</div></div>';
   }).join('');
   if(append) {
@@ -12019,6 +13243,10 @@ function updatepublicbuttons() {
 }
 // the People / Formats views: one card per owner or deck format, over the same filters (/publiclists group=)
 function publicgroup(group) {
+  // into the statistics from another view: All decks, their default (a pick made in one of them stays)
+  if(publicstatsview(group) && !publicstatsview($('#publicform [name="group"]').val() || '') && !$('#publicform [name="mine"]').val()) {
+    $('#publicform [name="mine"]').val('all');
+  }
   $('#publicform [name="group"]').val(group);
   if(group != 'cards') {
     $('#publicform [name="cardtype"], #publicform [name="order"]').val('');
@@ -12084,40 +13312,44 @@ function renderpublicgroups(data, append) {
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : 'No public lists match.')+'</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your lists match.' : (publicall() ? 'No decks match.' : 'No public lists match.'))+'</div>');
   }
 }
-// Most played: one card per row, its rank, how many of the decks found play it and how many copies.
+// Most played: one card per row, its rank, how many of the decks found play it and the average copies in those decks.
+// Sorted by anything but Most decks, the API orders only the top 100 in the most decks (data.top).
 // The images come from /oracle-fetch for the cards not cached yet (publiccardimages).
+var publiccardorders = {'decks': 'played in the most decks first', 'copies': 'most copies first',
+                        'name': 'by name', 'cardtype': 'by card type'};
+// the average copies in the decks that play the card, to one decimal
+function publiccardavg(g) {
+  return g.decks ? (g.copies/g.decks).toFixed(1) : '0.0';
+}
 function renderpubliccards(data, append) {
   var chips = Object.keys(publicextra).map(function(k) {
     return '<span class="publicchip">'+htmlEncode(publicextra[k].label)+' <a href="" onclick="delete publicextra[\''+k+'\']; publicsearch(0); return false;">&times;</a></span>';
   }).join(' ');
-  publicfacetoptions('clan', data.facets.clan, 'Any clan');
-  publicfacetoptions('stronghold', data.facets.stronghold, 'Any stronghold');
-  publicfacetoptions('format', data.facets.format, 'Any format');
-  publicfacetoptions('cardtype', data.facets.cardtype, 'Any card type');
-  $("#publicwinnercount").text(data.facets.winner ? '('+data.facets.winner+')' : '');
-  $("#publicpreconcount").text(data.facets.precon ? '('+data.facets.precon+')' : '');
-  $("#publicstatus").html(chips+' '+data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true)+
-    ', '+(data.order == 'copies' ? 'most copies' : 'played in the most decks')+' first <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
+  publicfacetsdraw(data.facets, true);
+  publicfacetsremember(data.facets);
+  $("#publicstatus").html(chips+' '+(data.top ? 'the '+data.groupstotal+' cards played in the most decks (of '+data.total+' '+publicnoun(data.total, true)+'; the numbers rank them by decks)' :
+    data.groupstotal+' different cards in '+data.total+' '+publicnoun(data.total, true))+
+    ', '+(publiccardorders[data.order] || publiccardorders.decks)+' <span class="helpq" data-help="public-lists#most-played" aria-label="Help: most played cards">?</span>');
   var html = data.groups.map(function(g, n) {
     var pct = data.total ? Math.round(100*g.decks/data.total) : 0;
     var title = g.title || 'card #'+g.cardid;
     return '<div class="directorycard publiccard publiccardrow" data-open="card" data-cardid="'+parseInt(g.cardid)+'">'+
-      '<div class="dircardhead"><span class="publicrank">'+(data.from+n+1)+'</span> <a class="dircardname" href="#game='+database+',#cardid='+parseInt(g.cardid)+'" onclick="docardid('+parseInt(g.cardid)+'); return false;">'+htmlEncode(title)+'</a></div>'+
+      '<div class="dircardhead"><span class="publicrank"'+(data.top ? ' title="Its place by most decks"' : '')+'>'+(g.rank || data.from+n+1)+'</span> <a class="dircardname" href="#game='+database+',#cardid='+parseInt(g.cardid)+'" onclick="docardid('+parseInt(g.cardid)+'); return false;">'+htmlEncode(title)+'</a></div>'+
       '<div class="publiccardmain">'+
 	'<img class="publiccardimg" data-cardid="'+parseInt(g.cardid)+'" src="'+missingimage['select']+'" alt="">'+
 	'<div class="dircardbody">'+
 	  '<div class="dircardmeta">'+htmlEncode((g.type || []).join(', '))+'</div>'+
-	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <b>'+g.copies+'</b> '+(g.copies == 1 ? 'copy' : 'copies')+'</div>'+
+	  '<div class="dircardmeta"><a href="" data-title="'+publicattr(title)+'" onclick="publicdeckswith('+parseInt(g.cardid)+', $(this).data(\'title\')); return false;" title="The decks that play this card">In <b>'+g.decks+'</b> '+(g.decks == 1 ? 'deck' : 'decks')+'</a> ('+pct+'%) &middot; <span class="publicavg" title="'+g.copies+' '+(g.copies == 1 ? 'copy' : 'copies')+' over those decks">avg: <b>'+publiccardavg(g)+'</b> copies</span></div>'+
 	  '<div class="publicbar"><span style="width:'+pct+'%"></span></div>'+
 	'</div></div></div>';
   }).join('');
   if(append) {
     $("#publicresults").append(html);
   } else {
-    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your decks match.' : 'No public decks match.')+'</div>');
+    $("#publicresults").html(html || '<div class="randarea">'+(publicmine() ? 'None of your decks match.' : (publicall() ? 'No decks match.' : 'No public decks match.'))+'</div>');
   }
   publiccardimages(data.groups.map(function(g) { return g.cardid; }));
 }
@@ -12135,6 +13367,36 @@ function publiccardimages(cardids) {
   if(missing.length) {
     listprefetch(missing, [fill]);
   }
+}
+// Most played's CSV button: the statistics on screen as a CSV file, every row at once (export=1: every card found,
+// or the top 100 for a sort other than Most decks), in the order shown
+function publiccsvfield(v) {
+  v = String(v === undefined || v === null ? '' : v);
+  return /[",\r\n]/.test(v) || /^[=+\-@]/.test(v) ? '"'+(/^[=+\-@]/.test(v) ? "'" : '')+v.replace(/"/g,'""')+'"' : v;
+}
+function publiccardscsv(button) {
+  if(lastpublicquery === null) {
+    return;
+  }
+  var tail = '&'+publicrequest(lastpublicquery)+'&export=1';
+  $(button).prop('disabled', true);
+  $.ajax(Object.assign(publicmine() ? publicminerequest(tail) : {url: apiuri+'/publiclists?game='+encodeURIComponent(database)+tail}, {
+    dataType: 'json',
+    success: function(data) {
+      var rows = [['Rank by decks', 'Card ID', 'Title', 'Type', 'Decks', 'Deck %', 'Copies', 'Avg copies']];
+      (data.groups || []).forEach(function(g, n) {
+        rows.push([g.rank || n+1, g.cardid, g.title || '', (g.type || []).join(', '), g.decks,
+                   data.total ? (100*g.decks/data.total).toFixed(1) : '0.0', g.copies, publiccardavg(g)]);
+      });
+      var csv = rows.map(function(r) { return r.map(publiccsvfield).join(','); }).join('\r\n')+'\r\n';
+      var day = new Date().toISOString().slice(0,10);
+      listdownload(new Blob(['\ufeff'+csv], {type: 'text/csv;charset=utf-8'}), database+'-most-played-'+(data.order || 'decks')+'-'+day+'.csv');
+    },
+    error: function(xhr) {
+      alert('CSV export failed'+(xhr.responseJSON && xhr.responseJSON.error ? ': '+xhr.responseJSON.error : ''));
+    },
+    complete: function() { $(button).prop('disabled', false); }
+  }));
 }
 // a Most played row's deck count: the Decks view with that card
 function publicdeckswith(cardid, title) {
@@ -12166,20 +13428,170 @@ function mycardcount(cardid) {
     }
   }));
 }
+// the card view's family link, after the globe and folder: how many cards are linked to this one through versions
+// and souls (Experienced, Soul of, countsas: ootv-search lib/family.js), shown only when there are others. A click
+// is the search family=<cardid>. Kept for the visit, per game and card: { n, family } (the API's tree).
+// The card's keywords also gain "<Name>'s Soul" for each soul of it (cardsouls), linked to that soul's card.
+var cardfamilies = {};
+var cardfamilytitles = {};   // cardid -> title, for the search's summary line
+function cardfamily(cardid, title) {
+  var key = database+'/'+cardid;
+  cardfamilytitles[cardid] = title;
+  var show = function(got) {
+    var n = got.n;
+    $('#resultcard a.cardfamily, #resultcard a.cardfamilykw, #resultcard .cardsoulkw').remove();
+    if(String($("#lastcardid").val()) != String(cardid) || !(n > 1)) {
+      return;
+    }
+    cardsouls(cardid, got.family);
+    var icon = function(cls, count) {
+      var link = $('<a class="'+cls+'" href="" title="Family: '+n+' cards linked by versions and souls (Experienced, Soul of)">'+
+                   '<svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg><span class="'+count+'">'+n+'</span></a>');
+      link.on('click', function() { cardfamilysearch(cardid); return false; });
+      return link;
+    };
+    var after = $('#resultcard a.cardpubliclists, #resultcard a.cardtraders, #resultcard a.cardmylists').last();
+    if(after.length) {
+      after.after(icon('cardfamily', 'cardpubliccount'));
+    }
+    // and after the card's Experienced / Soul of keywords, the links to the card they name (keywordtitle)
+    $('#resultcard a[id*="field_title"]').filter(function() {
+      return /^(Soul\s+of\s|(In)?[Ee]xperienced\b)/.test($(this).text().replace(/\u00a0/g,' ').trim());
+    }).each(function() {
+      // after its rulebook link (traitsmark), which, drawn later, goes straight after the keyword, so in either order
+      var book = $(this).next('span.traitbook');
+      (book.length ? book : $(this)).after(icon('cardfamilykw', 'cardfamilykwcount'));
+    });
+  };
+  if(key in cardfamilies) {
+    if(cardfamilies[key] !== null) { show(cardfamilies[key]); }   // null: still coming, and shows itself then
+    return;
+  }
+  cardfamilies[key] = null;
+  $.ajax({
+    type: 'POST',
+    url: apiuri+'/search',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({table: database, family: String(cardid), size: 0}),
+    success: function(data) {
+      var total = data.hits ? (typeof data.hits.total === 'object' ? data.hits.total.value : data.hits.total) : 0;
+      cardfamilies[key] = {n: total || 0, family: data.family || null};
+      show(cardfamilies[key]);
+    },
+    error: function() { delete cardfamilies[key]; }
+  });
+}
+// a family search's tree, above its results: the characters (a card and its experienced versions) with each soul
+// under the one it is a soul of (the API's family: ootv-search lib/family.js familyTree). Every card links to its
+// card view, with its legality bugs; the card the search started from is outlined. Kept per search, so a cached search draws it too.
+var familytrees = {};
+function familytreepanel(qs, fam) {
+  if(fam) { familytrees[database+'/'+qs] = fam; }
+  fam = familytrees[database+'/'+qs];
+  $('#resultsearch .familytree').remove();
+  if(!fam || !fam.tree) {
+    return;
+  }
+  var short = function(level) { return String(level || '').replace(/^Experienced\b/, 'Exp').replace(/^Inexperienced\b/, 'Inexp'); };
+  var cardlink = function(c, text, cls) {
+    return '<a class="'+(cls || '')+(c.cardid == fam.cardid ? ' familycurrent' : '')+'" href="#game='+database+',#cardid='+parseInt(c.cardid)+'"'+
+      ' onclick="cardopen('+parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title+(c.level ? ' ('+c.level+')' : ''))+'">'+text+'</a>';
+  };
+  var node = function(n) {
+    var html = '<li><span class="familyname">'+htmlEncode(n.name)+'</span>';
+    // whose soul this character is, as the keyword says it, linked to that exact card when it names a level
+    var soul = n.cards.filter(function(c) { return c.soulof; })[0];
+    if(soul) {
+      var parentcard = soul.soulof.cardid ? findcard(fam, soul.soulof.cardid) : null;
+      html += ' <span class="familysoul">Soul of '+(parentcard ? cardlink(parentcard, htmlEncode(soul.soulof.name+' '+parentcard.level)) : htmlEncode(soul.soulof.name))+'</span>';
+    }
+    html += '<span class="familycards">'+n.cards.map(function(c) {
+      var text = c.level ? short(c.level) : 'Base';
+      if(c.title.toLowerCase() != n.name.toLowerCase()) { text = htmlEncode(c.title)+(c.level ? ' <small>'+htmlEncode(short(c.level))+'</small>' : ''); }
+      // the card's arc bugs, in arc order, inside its bubble (legalitybug; none for a game without them)
+      var bugs = templatesortlegality([].concat(c.legality || [])).map(function(l) { return legalitybug(l, true); }).filter(Boolean);
+      return cardlink(c, text+(bugs.length ? '<span class="familybugs">'+bugs.join('')+'</span>' : ''), 'familycard');
+    }).join('')+'</span>';
+    if(n.children.length) { html += '<ul>'+n.children.map(node).join('')+'</ul>'; }
+    return html+'</li>';
+  };
+  var findcard = function(f, id) {
+    var found = null;
+    var walk = function(n) { n.cards.forEach(function(c) { if(c.cardid == id) { found = c; } }); n.children.forEach(walk); };
+    [f.tree].concat(f.others || []).forEach(walk);
+    return found;
+  };
+  var html = '<details class="familytree" open><summary><svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg> Family tree</summary>'+
+    '<ul>'+[fam.tree].concat(fam.others || []).map(node).join('')+'</ul></details>';
+  $('#resultsearch').prepend(html);
+}
+// open a card by id from a link: docardid needs it cached (a search's results), else fetch it, as a #cardid url does
+function cardopen(id) {
+  if(cache_card_is(id)) {
+    docardid(id);
+  } else {
+    cardfetch(id);
+  }
+}
+// the reverse of "Soul of": on a card that others are a soul of, "<Name>'s Soul" after its keywords, linked to the
+// soul's card (Matsu Gohei: Matsu Aoiko's Soul, Matsu Hachiro's Soul). From the family tree (ootv-search
+// familyTree): every soul whose target is this card's character, on each of its versions when the soul names no
+// level (Soul of Matsu Gohei), else only on the version it names (Akodo Kobi: Soul of Ginawa Experienced 3).
+function cardsouls(cardid, fam) {
+  if(!fam || !fam.tree) {
+    return;
+  }
+  var all = [], mine = null;
+  var walk = function(n) { all.push(n); n.cards.forEach(function(c) { if(c.cardid == cardid) { mine = n; } }); n.children.forEach(walk); };
+  [fam.tree].concat(fam.others || []).forEach(walk);
+  if(!mine) {
+    return;
+  }
+  var links = [];
+  all.forEach(function(n) {
+    n.cards.forEach(function(c) {
+      if(c.soulof && c.soulof.name == mine.name && (c.soulof.cardid === null || c.soulof.cardid == cardid) && n !== mine) {
+        links.push('<span class="cardsoulkw"> &bull; <a href="#game='+database+',#cardid='+parseInt(c.cardid)+'" onclick="cardopen('+
+          parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title)+' is a Soul of '+htmlEncode(mine.name)+'">'+
+          htmlEncode(n.name)+'\'s Soul</a></span>');
+      }
+    });
+  });
+  var dd = $('#resultcard dd.cardkeywords').first();
+  if(links.length && dd.length) {
+    dd.append(links.join(''));
+  }
+}
+function cardfamilysearch(cardid) {
+  window.location.hash = statehash({'view': 'search', 'qs': $.param({'table': database, 'family': cardid})});
+}
 // the Detail search results get the card view's globe, with how many public decks play each card (only cards
 // in a deck). Every card's count comes in one /publiclists group=cardcounts call per game, kept for the visit:
-// a call per row would cost a Lambda and a search each, on every results page.
+// a call per row would cost a Lambda and a search each, on every results page. With exactly one Legality searched,
+// only decks of that format count, as in the API's Public decks sort (not with Banned, where it names a ban).
 var publicgamecounts = {};
-function searchdeckcounts() {
+var publiccountsshown = '';
+function searchdecklegality(qs) {
+  var request = (searchcache[database]['queryrequest'] || {})[qs] || {};
+  var picked = [].concat(request['field_legality'] || []).filter(function(v) { return v; });
+  return (picked.length == 1 && !request['field_banned']) ? String(picked[0]) : '';
+}
+function searchdeckcounts(qs) {
   var game = database;
   if(templates[game]['active']['search'] != 'search') {
     return;
   }
+  var legality = searchdecklegality(qs);
+  var key = game+'|'+legality;
+  publiccountsshown = key;
   var fill = function() {
-    var counts = publicgamecounts[game];
-    if(database != game || !counts || templates[game]['active']['search'] != 'search') {
+    var answer = publicgamecounts[key];
+    if(database != game || publiccountsshown != key || !answer || templates[game]['active']['search'] != 'search') {
       return;
     }
+    var counts = answer.counts || {};
+    var format = answer.format || '';   // the API's name for the legality's decks: Hidden Emperor (Jade) is Jade
     $('#resultsearch .listitem').each(function() {
       var head = $(this).find('.listhead').first();
       var cardid = parseInt($(this).find('.deckswipe').first().data('card'));
@@ -12187,25 +13599,25 @@ function searchdeckcounts() {
       if(!n || !head.length || head.find('a.cardpubliclists').length) {
         return;
       }
-      var link = $('<a class="cardpubliclists" href="" title="In '+n+' public '+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg><span class="cardpubliccount">'+n+'</span></a>');
-      link.on('click', function() { publicwithcard(cardid); return false; });
+      var link = $('<a class="cardpubliclists" href="" title="In '+n+' public '+(format ? htmlEncode(format)+' ' : '')+(n == 1 ? 'deck' : 'decks')+' (public lists with this card)"><svg class="feather"><use xlink:href="res/feather-sprite.svg#globe"></svg><span class="cardpubliccount">'+n+'</span></a>');
+      link.on('click', function() { publicwithcard(cardid, false, format); return false; });
       head.children('a').first().after(' ', link);
     });
   };
-  if(game in publicgamecounts) {
+  if(key in publicgamecounts) {
     fill();   // still loading (null): the answer fills every row on screen then
     return;
   }
-  publicgamecounts[game] = null;
+  publicgamecounts[key] = null;
   $.ajax({
-    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts',
+    url: apiuri+'/publiclists?game='+encodeURIComponent(game)+'&group=cardcounts'+(legality ? '&legality='+encodeURIComponent(legality) : ''),
     dataType: 'json',
     success: function(data) {
-      publicgamecounts[game] = data.counts || {};
+      publicgamecounts[key] = data;
       fill();
     },
     error: function() {
-      delete publicgamecounts[game];
+      delete publicgamecounts[key];
     }
   });
 }
@@ -12225,16 +13637,21 @@ function publiccardcount(cardid) {
     }
   };
   if(key in publiccardcounts) {
-    show(publiccardcounts[key]);
+    // null: already asked (the card drawn again while the answer is out); its answer shows it
+    if(publiccardcounts[key] !== null) {
+      show(publiccardcounts[key]);
+    }
     return;
   }
+  publiccardcounts[key] = null;
   $.ajax({
     url: apiuri+'/publiclists?game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid)+'&minqty=1&type=deck&size=0',
     dataType: 'json',
     success: function(data) {
       publiccardcounts[key] = data.total || 0;
       show(publiccardcounts[key]);
-    }
+    },
+    error: function() { delete publiccardcounts[key]; }
   });
 }
 // the card view: a link to the players with this card open to trade (beside the public lists globe), with
@@ -12324,12 +13741,160 @@ $(document).on('click', '#publicresults .publiccard', function(e) {
 function openpubliclist(listid) {
   listinfo(String(listid), true);
 }
+
+// Same, Close and Similar decks (ootv-search lib/similar.js; ootv-claude projects/similar-decks.md). Two decks compare
+// by card, copies counted, printing ignored: the copies they share over the copies in either one. Same is every copy
+// alike, Close 90% or more, Similar 78% or more (the user, 2026-11-06), and only public decks are ever named. The lists
+// index keeps each list's matches ({listid, band, score}); the names come from GET /publiclists?similarto=<listid> (a
+// public list) or /list action=similar (one of your own, private too). Shown in a deck's statistics box as its own
+// Similar decks part (listsimilar, template-liststatssim), as a
+// count in public results and My lists (similarbadge, the decks listed on hover), explained in Help, Public lists,
+// whose sections each word's hover shows.
+var SIMILARBANDS = [['same', 'Same'], ['close', 'Close'], ['similar', 'Similar']];
+var SIMILARAGE = 60000;     // a list's matches are asked again after this long (a save reaches the index in seconds)
+var similarcache = {};      // listid -> {at, promise of [match]}
+function similarfetch(listid, mine) {
+  var key = parseInt(listid);
+  var c = similarcache[key];
+  if(c && Date.now() - c.at < SIMILARAGE) { return c.promise; }
+  var pub = function() { return Promise.resolve($.ajax({url: apiuri+'/publiclists?similarto='+key})); };
+  var promise = (mine && listloggedin() ? Promise.resolve($.ajax({
+      url: apiuri+"/list?uid="+getuid()+"&database="+encodeURIComponent(database)+"&action=similar&similar="+key,
+      contentType: 'application/json',
+      beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+    })).catch(pub) : pub())   // an admin editing someone else's list: theirs isn't "mine" to the API
+    .then(function(d) { return (d && d.similar) || []; })
+    .catch(function() { delete similarcache[key]; return []; });
+  similarcache[key] = {at: Date.now(), promise: promise};
+  return promise;
+}
+// a band word: hovering it shows its Help section, a click opens Help there
+function similarword(band) {
+  var b = SIMILARBANDS.find(function(x) { return x[0] == band; });
+  return '<span class="helpq similarword" data-help="public-lists#similar-'+band+'" aria-label="Help: '+b[1]+' decks">'+b[1]+'</span>';
+}
+function similardiff(m) {
+  var n = (m.missing || 0)+(m.extra || 0);
+  return n ? n+(n == 1 ? ' card' : ' cards')+' different' : 'identical';
+}
+// the matches grouped by band: Same: a, b · Close: c
+function similarhtml(matches, linkclass) {
+  return SIMILARBANDS.map(function(b) {
+    var these = matches.filter(function(m) { return m.band == b[0]; });
+    if(!these.length) { return ''; }
+    return '<div class="similarband">'+similarword(b[0])+': '+these.map(function(m) {
+      return '<a class="'+(linkclass || '')+'" href="#game='+database+',#listid='+parseInt(m.listid)+'" onclick="similarclose(); openpubliclist('+parseInt(m.listid)+'); return false;">'+
+	htmlEncode(m.name || 'Unnamed list')+'</a> <span class="similarby">('+htmlEncode(m.ownername || 'another player')+', '+similardiff(m)+')</span>';
+    }).join('; ')+'</div>';
+  }).join('');
+}
+// a deck's Similar decks part of the statistics box: '' until its matches come (and with none), then drawn in its slot.
+// Starts open, and stays the way it was last left this session.
+function listsimilarsection(matches) {
+  var bands = SIMILARBANDS.map(function(b) {
+    return {word: similarword(b[0]), name: b[1], matches: matches.filter(function(m) { return m.band == b[0]; }).map(function(m) {
+      return {listid: parseInt(m.listid), name: m.name || 'Unnamed list', owner: m.ownername || 'another player', diff: similardiff(m)};
+    })};
+  }).filter(function(b) { return b.matches.length; });
+  if(!bands.length) { return ''; }
+  return $.templates("#template-liststatssim").render({bands: bands, database: database,
+    counts: bands.map(function(b) { return b.matches.length+' '+b.name; }).join(', '), open: cache_session("liststatssimopen") !== false});
+}
+var listsimilarmatches = {};   // listid -> {at, matches}
+function listsimilar(listid, mine) {
+  listid = parseInt(listid);
+  var c = listsimilarmatches[listid];
+  if(!c || Date.now() - c.at > SIMILARAGE) {
+    listsimilarmatches[listid] = {at: Date.now(), matches: c ? c.matches : []};
+    similarfetch(listid, mine).then(function(matches) {
+      var was = JSON.stringify(listsimilarmatches[listid].matches);
+      listsimilarmatches[listid] = {at: Date.now(), matches: matches};
+      var slot = $('.liststatssimslot[data-list="'+listid+'"]');
+      if(slot.length && (was != JSON.stringify(matches) || slot.is(':empty'))) {
+        slot.html(listsimilarsection(matches));
+        deckviewfit();
+      }
+    });
+  }
+  return listsimilarsection(listsimilarmatches[listid].matches);
+}
+// the count of a list's matches ('' with none); the names on hover
+function similarbadge(entries, listid, mine) {
+  entries = entries || [];
+  if(!entries.length) { return ''; }
+  var counts = SIMILARBANDS.map(function(b) {
+    var n = entries.filter(function(e) { return e.band == b[0]; }).length;
+    return n ? n+' '+b[1] : '';
+  }).filter(function(x) { return x; }).join(', ');
+  return ' <span class="similarbadge" tabindex="0" data-similar="'+parseInt(listid)+'"'+(mine ? ' data-mine="1"' : '')+' aria-label="Same, Close or Similar public decks: '+counts+'">'+
+    '<svg class="feather"><use xlink:href="res/feather-sprite.svg#copy"></svg>'+entries.length+'</span>';
+}
+// My lists: every own list's matches, one call per game, again after SIMILARAGE; the slots fill in when it comes
+var dirsimilardata = {};    // game -> {at, lists: {listid: [entry]}}
+function dirsimilar(listid) {
+  if(!dirsimilardata[database]) {
+    // another tab's answer, if it's recent (stored below)
+    var kept = cache_thing("list","similarcounts");
+    if(kept && kept.at && Date.now() - kept.at < SIMILARAGE) { dirsimilardata[database] = kept; }
+  }
+  var d = dirsimilardata[database];
+  if(listloggedin() && (!d || (Date.now() - d.at > SIMILARAGE && !d.asking))) {
+    var game = database;
+    dirsimilardata[game] = d = {at: Date.now(), lists: d ? d.lists : {}, asking: true};
+    $.ajax({
+      url: apiuri+"/list?uid="+getuid()+"&database="+encodeURIComponent(game)+"&action=similarcounts",
+      contentType: 'application/json',
+      beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());}
+    }).done(function(r) {
+      dirsimilardata[game] = {at: Date.now(), lists: (r && r.lists) || {}};
+      if(game != database) { return; }
+      cache_thing("list","similarcounts",dirsimilardata[game]);
+      $('.similarslot').each(function() {
+	var id = $(this).attr('data-list');
+	$(this).html(similarbadge(dirsimilardata[game].lists[id], id, true));
+      });
+    }).fail(function() { dirsimilardata[game].asking = false; });
+  }
+  return (d && d.lists[listid]) || [];
+}
+// the hover list: the badge's decks by band, fetched on the first hover
+function similarclose() {
+  $('#similarpop').remove();
+}
+function similaropen(el) {
+  var badge = $(el);
+  var id = badge.attr('data-similar');
+  if($('#similarpop').attr('data-similar') == id) { return; }
+  similarclose();
+  var pop = $('<div id="similarpop" role="tooltip">').attr('data-similar', id).html('<div class="similarband">Loading…</div>').appendTo('body');
+  var place = function() {
+    var r = el.getBoundingClientRect();
+    var w = pop.outerWidth();
+    var left = Math.max(8, Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - w - 8));
+    pop.css({left: left, top: r.bottom + window.scrollY + 4});
+  };
+  place();
+  similarfetch(id, badge.attr('data-mine') == '1').then(function(matches) {
+    if($('#similarpop').attr('data-similar') != id) { return; }
+    pop.html(matches.length ? similarhtml(matches) : '<div class="similarband">No matching public decks now.</div>');
+    place();
+  });
+}
+var similarhide = null;
+$(document).on('mouseenter focusin', '.similarbadge', function() { clearTimeout(similarhide); similaropen(this); })
+  .on('mouseleave focusout', '.similarbadge, #similarpop', function() { similarhide = setTimeout(similarclose, 300); })
+  .on('mouseenter focusin', '#similarpop', function() { clearTimeout(similarhide); })
+  .on('click', '.similarbadge', function(e) { e.preventDefault(); e.stopPropagation(); similaropen(this); })
+  .on('keydown', function(e) { if(e.key == 'Escape') { similarclose(); } });
 // Reset: every filter cleared (form, person, card), staying in the view on screen
 function publicreset() {
   var group = $('#publicform [name="group"]').val() || '';
   $("#publicform")[0].reset();
   $('#publicform select').val('');
   $('#publicform [name="group"]').val(group);
+  if(publicstatsview(group)) {
+    $('#publicform [name="mine"]').val('all');   // the statistics' default
+  }
   publicextra = {};
   publicsearch(0);
 }
@@ -12340,12 +13905,19 @@ function publicbyowner(uid, el) {
   publicsearch(0);
 }
 // the card view's links: public lists with this card (the globe), or with mine, your own lists (the folder)
-function publicwithcard(cardid, mine=false) {
+function publicwithcard(cardid, mine=false, format='') {
   var cached = cache_card_is(cardid) ? cache_card_fetch(cardid) : null;
   var title = cached && cached.title ? $('<div>').html([].concat(cached.title).join(', ')).text() : 'card #'+cardid;
   publicextra = {cardid: {value: cardid, label: 'with '+title}};
   $("#publicform")[0].reset();
   $('#publicform [name="mine"]').val(mine ? '1' : '');
+  if(format) {
+    var formatsel = $('#publicform [name="format"]');
+    if(!formatsel.find('option').filter(function() { return this.value == format; }).length) {
+      formatsel.append($('<option>').val(format).text(format));   // facet options arrive with the results
+    }
+    formatsel.val(format);
+  }
   showviewkeepurl('resultpublic');
   publicsearch(0);
 }
