@@ -68,7 +68,10 @@ function tradesrender() {
     tradesforcard(area, tradestate.card);
     return;
   }
-  area.html('<h2>Trades <span class="helpq" data-help="trading" aria-label="Help: trading">?</span></h2><div class="tradestatus">Loading&hellip;</div>');
+  // matching is a preview (the user, 2026-11-17): it may become a Patreon supporter feature; card search stays open
+  area.html('<h2>Trades <span class="gamepreviewtag">preview</span> <span class="helpq" data-help="trading#matches" aria-label="Help: trading">?</span></h2>'+
+    '<p class="tradepreviewnote">Matching is a preview and may become a <a href="https://www.patreon.com/oracleofthevoid" target="_blank" rel="noopener">Patreon</a> supporter feature later.</p>'+
+    '<div class="tradestatus">Loading&hellip;</div>');
   if(!tradeloggedin()) {
     area.find('.tradestatus').html(tradeloginprompt('see who you can trade with')+
       '<p>Any card page shows who has it or wants it for trade (the <svg class="feather"><use xlink:href="res/feather-sprite.svg#repeat"></svg> link beside the public lists globe).</p>');
