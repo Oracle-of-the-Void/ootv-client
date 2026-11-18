@@ -10,9 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       invalidate:
-        description: 'Also invalidate CloudFront (/*; prod only). Only when the user asks for it.'
-        type: boolean
-        default: false
+        description: 'CloudFront invalidation after the upload (prod only), only when the user asks: index = / and /index.html (2 paths), all = /*'
+        type: choice
+        options: [none, index, all]
+        default: none
 
 concurrency:
   group: deploy-${{ github.ref_name }}
@@ -38,9 +39,11 @@ jobs:
               echo "bucket=oracleofthevoid.com" >> $GITHUB_OUTPUT
               echo "distribution=E6ECGAAP7LNKR" >> $GITHUB_OUTPUT
               # never on its own (the user, 2026-11-18: "DEPLOYS ARE NOT SUPPOSED TO DO AN AUTOMATIC INVALIDATION
-              # WITHOUT MY EXPRESSED INTENT"): only a manual run with invalidate ticked. Versioned assets don't need
+              # WITHOUT MY EXPRESSED INTENT"): only a manual run with invalidate picked. Versioned assets don't need
               # one: the distribution's cache key includes the v query string.
-              echo "invalidate=${{ github.event_name == 'workflow_dispatch' && inputs.invalidate == true }}" >> $GITHUB_OUTPUT
+              echo "invalidate=${{ github.event_name == 'workflow_dispatch' && inputs.invalidate || 'none' }}" >> $GITHUB_OUTPUT
+              # pages kept an hour at CloudFront (below)
+              echo "pagecache=max-age=0, s-maxage=3600, stale-while-revalidate=86400" >> $GITHUB_OUTPUT
               ;;
             dev)
               echo "bucket=preview.oracleofthevoid.com" >> $GITHUB_OUTPUT
@@ -48,6 +51,9 @@ jobs:
               # preview's CloudFront caches nothing but robots.txt (CachingDisabled, 2026-11-09): no invalidation
               # (they cost $0.005 a path past 1,000 a month, and preview deploys were half of them)
               echo "invalidate=false" >> $GITHUB_OUTPUT
+              # preview is where the user develops: pages, help and docs show changes at once (the user, 2026-11-18:
+              # "caching is for prod")
+              echo "pagecache=no-cache" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "No deploy target for branch ${{ github.ref_name }}"
@@ -86,11 +92,12 @@ jobs:
 
       # Caching (see .github/stamp-version.sh):
       #   *.js, *.css               versioned (?v=<commit>) -> cached a year, immutable
-      #   pages, version.json, docs  revalidated on every load (no-cache; 304 when unchanged)
+      #   pages, docs               browsers revalidate every load; prod's CloudFront keeps them an hour, preview no-cache
+      #   version.json              no-cache
       #   everything else (images)   cached a day
       # CloudFront's cache key includes the v query string (prod, 2026-11-18), so oracle.js?v=new is a new object and
       # no invalidation is needed. A changed unversioned file (an image under res/) shows within a day; if it can't
-      # wait, run this workflow by hand with invalidate ticked, which the user asks for. Order kept: assets first,
+      # wait, run this workflow by hand with invalidate picked, which the user asks for. Order kept: assets first,
       # pages that point at them last.
       - name: Sync to S3
         if: steps.newest.outputs.current == 'true'
@@ -98,6 +105,7 @@ jobs:
           BUCKET: ${{ steps.target.outputs.bucket }}
           DISTRIBUTION: ${{ steps.target.outputs.distribution }}
           INVALIDATE: ${{ steps.target.outputs.invalidate }}
+          PAGECACHE: ${{ steps.target.outputs.pagecache }}
         run: |
           junk=(--exclude '.DS*' --exclude '._*' --exclude '.git' --exclude '.git/*' --exclude '.gitignore'
                 --exclude '*/.*' --exclude '*~' --exclude '*\+' --exclude '#*' --exclude '.swp*'
@@ -115,16 +123,30 @@ jobs:
             --exclude '*.html' --exclude 'version.json' --exclude '*.js' --exclude '*.css' \
             --cache-control 'public, max-age=86400'
 
-          if [ "$INVALIDATE" = true ]; then
-            id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths '/*' --query Invalidation.Id --output text)
-            aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
-          fi
-
-          # 2. pages and version.json, then drop files that are gone from the repo
-          aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --cache-control 'no-cache'
+          # 2. pages, version.json, then drop files that are gone from the repo. Pages on prod: browsers check every
+          # time (max-age=0), CloudFront keeps a page an hour and then serves that copy while it fetches a fresh
+          # one (no trip to S3 per visit: that trip doubled phone TTFB, 2026-10-14..11-18). After a deploy a
+          # visitor can get the old page for up to about that long; fine (the user, 2026-11-18: "Make it an hour
+          # on the cache"; "If index.html ever changes, we will do an invalidation for index.html only": a manual
+          # run with invalidate = index). version.json stays no-cache: the reload offer (checkversion) must see a deploy.
+          aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --exclude 'version.json' \
+            --cache-control "$PAGECACHE"
+          aws s3 cp version.json "s3://$BUCKET/version.json" --cache-control 'no-cache'
           # browse/ is the static card, set and deck pages for search engines, built and uploaded by
-          # ootv-tools seo/build.py, not in this repo: never delete it. play/ is the play table, deployed by ootv-play: same
+          # ootv-search browse/ (prod-ootv-browse), not in this repo: never delete it. play/ is the play table, deployed by ootv-play: same
           aws s3 sync . "s3://$BUCKET/" --delete "${junk[@]}" --exclude 'browse/*' --exclude 'play/*' \
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
             --include 'docs/admin/*' --include 'docs/help/*'
+
+          # 3. an invalidation only when the user asked for one (manual run); last, so CloudFront refetches the new files.
+          # The homepage is cached as both / and /index.html.
+          case "$INVALIDATE" in
+            index) paths=(/ /index.html) ;;
+            all)   paths=('/*') ;;
+            *)     paths=() ;;
+          esac
+          if [ ${#paths[@]} -gt 0 ]; then
+            id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION" --paths "${paths[@]}" --query Invalidation.Id --output text)
+            aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
+          fi
 
