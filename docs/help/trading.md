@@ -75,7 +75,7 @@ conversations and send up to 200 messages a day.
 - **Star** a conversation (the ☆ in the list, or **Star** in the conversation) to keep that player at the top.
 - **Invite to a game** in a conversation opens the play table to start a game with them. A game invite sent to
   you shows in the conversation with **See the invite**, which opens it on the play table to pick your deck and
-  accept.
+  accept. Once it's taken or called off the invite says so (**Open the game** once you're both in it).
 - **Invite a friend to talk**, under your conversations, makes a link to give a friend outside the site (Discord,
   email, in person). Choose how long it lasts (1 day, 7 days, 30 days or never) and whether it works once or for
   anyone you give it to. Whoever opens it, logged in, is connected with you: the conversation is there for both of
