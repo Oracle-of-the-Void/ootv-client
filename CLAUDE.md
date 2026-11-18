@@ -202,8 +202,9 @@ Browsers pick up a deploy without a hard reload. `.github/stamp-version.sh` stam
 checkout with the commit: local `.js`/`.css` refs in the top-level `*.html` get `?v=<sha>`,
 `var ootvversion` in `index.html` gets the sha, and it writes `version.json` (the sha plus a UTC
 `timestamp`, shown on the admin page with when this browser cached each select). `.js` and `.css` are then served `immutable` for a year;
-the pages and `docs/admin`/`docs/help` as `max-age=0, s-maxage=3600, stale-while-revalidate=86400` (browsers check every
-load, CloudFront keeps them an hour, then answers from its copy while fetching a fresh one: no trip to S3 per visit);
+the pages and `docs/admin`/`docs/help` on prod as `max-age=0, s-maxage=3600, stale-while-revalidate=86400` (browsers check
+every load, CloudFront keeps them an hour, then answers from its copy while fetching a fresh one: no trip to S3 per
+visit), on preview `no-cache` (changes show at once: "caching is for prod", the user, 2026-11-18);
 `version.json` as `no-cache`; images for a day. CloudFront gzips text files on both distributions (`Compress` on the default
 cache behavior, since 2026-10-30; no brotli, which would need a cache policy instead of the legacy cache settings). So anything new that `oracle.js` loads at runtime from
 this repo needs `'?v='+ootvversion` on its URL (see the cardeditor.js, help.js and pica loads), or
