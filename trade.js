@@ -243,6 +243,10 @@ function messagesback() {
 }
 function messagesthread(area) {
   var tid = msgstate.thread;
+  // opened by its address (#thread=<uid>-<uid>, the play table's Message): the other player is the uid that isn't yours,
+  // so a conversation not started yet can be
+  var parts = String(tid).split('-'), me = String(getuid());
+  if(!msgstate.other && parts.length == 2 && parts.indexOf(me) >= 0) msgstate.other = parseInt(parts[0] == me ? parts[1] : parts[0], 10);
   area.html('<div class="msghead"><a href="" onclick="messagesback(); return false;">&larr; All messages</a> <h2 class="msgtitle">'+tradeesc(msgstate.othername || '')+'</h2></div>'+
     '<div class="msgflags"></div><div class="msgthread"><div class="msgstatus">Loading&hellip;</div></div>'+
     '<form class="msgcompose" onsubmit="messagesend(this); return false;">'+
@@ -273,7 +277,8 @@ function messagesthread(area) {
     },
     error: function(xhr) {
       if(xhr.status == 404 && msgstate.other) {   // a new conversation
-	area.find('.msgthread').html('<div class="msgstatus"><i>No messages yet. Say what you\'d like to trade.</i></div>');
+	if(!msgstate.othername) area.find('.msgtitle').text('New conversation');
+	area.find('.msgthread').html('<div class="msgstatus"><i>No messages yet. Say hello, or what you\'d like to trade.</i></div>');
 	messagesflags(area, {});
 	return;
       }
