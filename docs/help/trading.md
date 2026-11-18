@@ -21,6 +21,9 @@ that was only made in foil is always foil.
 
 ## Your matches {#matches}
 
+Matching is a **preview**: it may become a [Patreon](https://www.patreon.com/oracleofthevoid)
+supporter feature later. Looking up who has a card stays open to everyone.
+
 **Trades** shows the players who have cards you want and want cards you have. The best ones come
 first: players who match both ways (marked **two-way**), then those who have more of what you're
 looking for. Each shows when they were last active, the cards on each side and their lists.
