@@ -44,7 +44,8 @@ rebuild (`lib/tradequiet.js`); the state is `tradenotice` on the user (`warned`,
 - A player can switch messages off (Settings), mute or block someone.
 - Emails name the sender and link to the site, never the text, once per conversation until read.
 - Play ties (ootv-claude `ONLINE-PLAY-MESSAGING.md`): a message may carry a game invite (`context.play`: the play
-  server's game id, table, arc, invite code), shown as **See the invite**; its email is `playinvite`, with no text.
+  server's game id, table, arc, invite code), shown as **See the invite** while it's open, else as taken (**Open the game** for the two in it) or called
+  off (`playstate`, read from the play server's game when the conversation is read); its email is `playinvite`, with no text.
   **Stars** (`favourite`) are a flag on the player's own conversation row.
 - **Talk links**: kept on the owner's user row (`talklinks`: created, expires, once, used); the link is
   `/#talk=<uid>-<code>`. Taking one makes the empty conversation for both (subject `Connected by link`) and counts

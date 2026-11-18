@@ -3656,6 +3656,7 @@ form.msgcompose { margin-top: 6px; }
 button.msgstar { border: 0; background: none; padding: 0 2px; font-size: 1.1em; line-height: 1; cursor: pointer; color: var(--text-6); }
 button.msgstar.msgstarred { color: var(--warn-1); }
 div.msgctx.msgplay { color: var(--text); }
+div.msgctx.msgplay.msgplayover, span.msgplaystate { color: var(--text-5); }
 div.talklinks { margin-top: 18px; padding-top: 8px; border-top: 1px solid var(--line-3); }
 div.talklinks h3 { margin: 4px 0; }
 form.talkmake { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 6px 0; }

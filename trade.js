@@ -289,7 +289,7 @@ function messagesthread(area) {
 function messagesdraw(area, messages, names) {
   var me = getuid();
   area.find('.msgthread').html((messages || []).map(function(m) {
-    var ctx = m.context && m.context.play ? msgplaycard(m.context.play, m.from == me) : '';
+    var ctx = m.context && m.context.play ? msgplaycard(m.context.play, m.from == me, m.playstate) : '';
     ctx += m.context && (m.context.cardids || []).length ? '<div class="msgctx">Trade: '+m.context.cardids.map(function(id) {
       var c = cache_card_is(id) ? cache_card_fetch(id) : null;
       var t = c && c.title ? $('<div>').html([].concat(c.title).join(', ')).text() : 'card #'+id;
@@ -352,14 +352,24 @@ function messageflag(action) {
 function playurl(table, hash) {
   return location.origin+'/play/'+(table ? '?game='+encodeURIComponent(table) : '')+(hash || '');
 }
-// a game invite in a conversation: the invite link (the play table's #join with its code) for the one invited
-function msgplaycard(p, mine) {
+// a game invite in a conversation: the invite link (the play table's #join with its code) for the one invited.
+// state (from the site API, the play server's game): open, joined (the two of you are in it), taken (by someone
+// else), gone (called off); none when it couldn't be read: the card offers the invite as it was
+function msgplaycard(p, mine, state) {
   var what = 'a game'+(p.arc ? ' ('+tradeesc(p.arc)+')' : '');
-  if(mine) return '<div class="msgctx msgplay">You invited them to '+what+'.</div>';
   var link = p.code ? playurl(p.table, '#join='+encodeURIComponent(p.game)+'&code='+encodeURIComponent(p.code)) : null;
-  return '<div class="msgctx msgplay">Invited you to '+what+'.'+
-    (link ? ' <a class="button gray buttonsmaller" href="'+tradeattr(link)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#play"></svg> See the invite</a>' : '')+
-    '</div>';
+  var button = function(label) {
+    return link ? ' <a class="button gray buttonsmaller" href="'+tradeattr(link)+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#play"></svg> '+label+'</a>' : '';
+  };
+  var said = {
+    joined: ' <span class="msgplaystate">'+(mine ? 'They took it.' : 'You took it.')+'</span>',
+    taken: ' <span class="msgplaystate">'+(mine ? 'It was taken.' : 'Someone else took it.')+'</span>',
+    gone: ' <span class="msgplaystate">It was called off.</span>'
+  }[state] || '';
+  if(state == 'joined') return '<div class="msgctx msgplay">'+(mine ? 'You invited them to ' : 'Invited you to ')+what+'.'+said+
+    ' <a class="button gray buttonsmaller" href="'+tradeattr(playurl(p.table, '#server='+encodeURIComponent(p.game)))+'"><svg class="feather"><use xlink:href="res/feather-sprite.svg#play"></svg> Open the game</a></div>';
+  if(mine) return '<div class="msgctx msgplay">You invited them to '+what+'.'+said+'</div>';
+  return '<div class="msgctx msgplay'+(said ? ' msgplayover' : '')+'">Invited you to '+what+'.'+(said || button('See the invite'))+'</div>';
 }
 
 // ******************** TALK LINKS ********************
