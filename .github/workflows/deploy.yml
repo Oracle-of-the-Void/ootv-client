@@ -86,7 +86,8 @@ jobs:
 
       # Caching (see .github/stamp-version.sh):
       #   *.js, *.css               versioned (?v=<commit>) -> cached a year, immutable
-      #   pages, version.json, docs  revalidated on every load (no-cache; 304 when unchanged)
+      #   pages, docs               browsers revalidate every load; CloudFront keeps them 30 min (below)
+      #   version.json              no-cache
       #   everything else (images)   cached a day
       # CloudFront's cache key includes the v query string (prod, 2026-11-18), so oracle.js?v=new is a new object and
       # no invalidation is needed. A changed unversioned file (an image under res/) shows within a day; if it can't
@@ -120,10 +121,16 @@ jobs:
             aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
           fi
 
-          # 2. pages and version.json, then drop files that are gone from the repo
-          aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --cache-control 'no-cache'
+          # 2. pages, version.json, then drop files that are gone from the repo. Pages: browsers check every
+          # time (max-age=0), CloudFront keeps a page 30 minutes and then serves that copy while it fetches a fresh
+          # one (no trip to S3 per visit: that trip doubled phone TTFB, 2026-10-14..11-18). After a deploy a
+          # visitor can get the old page for up to about that long; fine (the user, 2026-11-18: "30 minutes is
+          # not a long time"). version.json stays no-cache: the reload offer (checkversion) must see a deploy.
+          aws s3 sync . "s3://$BUCKET/" "${pages[@]}" --exclude 'version.json' \
+            --cache-control 'max-age=0, s-maxage=1800, stale-while-revalidate=86400'
+          aws s3 cp version.json "s3://$BUCKET/version.json" --cache-control 'no-cache'
           # browse/ is the static card, set and deck pages for search engines, built and uploaded by
-          # ootv-tools seo/build.py, not in this repo: never delete it. play/ is the play table, deployed by ootv-play: same
+          # ootv-search browse/ (prod-ootv-browse), not in this repo: never delete it. play/ is the play table, deployed by ootv-play: same
           aws s3 sync . "s3://$BUCKET/" --delete "${junk[@]}" --exclude 'browse/*' --exclude 'play/*' \
             --exclude '*.md' --exclude '*.drawio' --exclude '*/*.md' --exclude '*/*.drawio' --exclude 'docs/*' \
             --include 'docs/admin/*' --include 'docs/help/*'
