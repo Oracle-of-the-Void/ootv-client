@@ -455,6 +455,7 @@ Written (ootv-backups operation 2026-11-09T231011 play-actions: play codes on 4 
 ootv-play [#253](https://github.com/Oracle-of-the-Void/ootv-play/pull/253); `l5r/play` version 63 (`afters` `actorloss`, `holdinghonor`, `boughtfull`, `dynastyend`), `l5r/fields` version 66. The new reaction conditions read the whole action the picked log line belongs to (a purchase is its move, its Personal Honor and its refill).
 
 - **Court Jester:** `{"after": "actorloss", "once": "event"}`, then `{"add": {"honor": {"of": "lost", "who": "actor", "times": -1}}, "to": "actor"}`: the other player loses their own loss again; one Jester a loss.
+- **Another player's action, after your own answer:** your answer to a question another player's scene asked is their action to you. Refusing an Iaijutsu Challenge costs you 7 Honor by the challenger's action, so Defend Your Honor (`{"after": {"event": {"by": "other", "counter": {"lost": "honor", "who": "you"}}}}`) may answer it, and its `actor` is the challenger.
 - **Bayushi Goshiu:** `{"after": "honorloss"}`, then your loss `{"of": "lost", "who": "you", "times": -1}` to another player.
 - **Shosuro Taberu** (Political, as his Battle of Beiden Pass printing): `{"after": "holdinghonor"}`; you gain what the other player gained, and they lose it.
 - **Togashi Gaijutsu:** `{"after": "boughtfull"}`, a target of yours with clan Dragon and the Samurai trait: no Personal Honor gain, the top Fate card discarded, its Focus Value in Force and Chi for good.
