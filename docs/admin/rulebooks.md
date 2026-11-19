@@ -303,8 +303,8 @@ Books are built by `SCRIPTS/rulebook-convert.py` in ootv-import from a per-game 
   number in the headings' colour, from the page Chromium's named destination puts it on.
 - `downloads`: `[{"file", "label"}]` in place of the default (the source PDF). The first is saved as
   `<id>.<ext>`, later ones as `<id>-<label>.<ext>`.
-  The viewer hides the download buttons for now (`rulesdownloads = false` in `rules.js`, since
-  2026-10-20); the files are still built and uploaded.
+  The reader shows a button for each in its bottom bar, with the file's size (`rulesdownloads` in
+  `rules.js`; off from 2026-10-20, on again 2026-11-19).
 - File paths are relative to the list's `source` folder (`../..` reaches outside it).
 - `note`: the book's credit line, e.g. "Oracle of the Void Remaster (Don Eisele)" on the Imperial,
   SCC, Jade and Pearl remasters. It's published in `book.json` and the shelf; the viewer shows it under

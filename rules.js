@@ -19,7 +19,7 @@ var rulesmarkzoomed = '';   // the mark (rulesmarkkey) last zoomed to, so redraw
 var rulespanel = null;      // side panel shown: 'contents', 'pages', 'search' or null
 var ruleszoom = 1;          // 1: the page(s) fit the stage; more: larger, dragged or scrolled around (ruleszoomto)
 var rulesloading = null;    // the book id being fetched
-var rulesdownloads = false; // show the book's download buttons (book.json downloads); off for now (2026-10-20)
+var rulesdownloads = true; // show the book's download buttons (book.json downloads); on since 2026-11-19 (off 2026-10-20 to 2026-11-18)
 
 function rulesbase() {
   return dbinfo[database].imageuri+'rulebooks/';
