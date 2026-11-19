@@ -9214,6 +9214,11 @@ function storedprinting(card,att,value) {
     }
     return card.printingreverse[att] && (value in card.printingreverse[att]) ? card.printingreverse[att][value] : null;
 }
+// the values a search asked of a printing field (field_printing_<att>, else field_<att>), blanks dropped
+function searchedvalues(datarequest,att) {
+    var key = ("field_printing_"+att in datarequest) ? "field_printing_"+att : "field_"+att;
+    return [].concat(datarequest[key] || []).filter(function(v) { return v !== ''; });
+}
 function templatefetch(card,id=false,datarequest={}) {
     pr = card.printingreverse.printingid[card.printingprimary];
     if(id) {
@@ -9252,6 +9257,26 @@ function templatefetch(card,id=false,datarequest={}) {
                     }
                 }
               }
+            }
+        }
+        // several searched fields (Set + Rarity, Set + Legality, ...): each one above picked its own
+        // printing, the last field winning, so a Shadowlands + Common search showed a card's latest
+        // Common printing from another set. Show a printing that fits the most searched fields at
+        // once: the one chosen above if it is one, else the latest of them.
+        var searchedatts = Object.keys(card.printingreverse).filter(function(a) {
+            return a != 'printingid' && a != 'foil' && searchedvalues(datarequest, a).length;
+        });
+        if(searchedatts.length > 1) {
+            var fitcount = card.printing.map(function(p,i) {
+                return searchedatts.filter(function(a) {
+                    return searchedvalues(datarequest, a).some(function(v) { return printingfits(card,i,a,v); });
+                }).length;
+            });
+            var most = Math.max.apply(null, fitcount);
+            if(most > 0 && fitcount[pr] !== most) {
+                var mostfit = [];
+                fitcount.forEach(function(n,i) { if(n === most) { mostfit.push(i); } });
+                pr = latestprinting(card, mostfit);
             }
         }
         // the Foil search (field_printing_foil: any / foil / both / none): keep the printing chosen above if
