@@ -72,7 +72,7 @@ separately for search and for the deck/list view, and turns each gesture off (de
 directory drag touch and mouse, long-press labels, card peek touch and mouse, version menu touch and mouse; `settings.all.gestures`, or this browser when logged out). A short toast confirms each change; going to 0 asks before removing the card. They work in search (Detail, Visual
 Spoiler and Simple List, on the first active list; the toast names the list when several are active), on the card page's picture with a mouse only (with a list active, by search's settings, on the printing chosen if any; on touch, the whole card page keeps the prev/next swipe)
 and in the deck/list view (Deck, Detail, Visual Spoiler and Simple List, on the list shown). Mostly vertical
-drags still scroll. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16; the down-right and
+drags still scroll. First use (added 2026-11-20, emulated touch and mouse only, Chromium and WebKit; **not checked on a real phone**): the first count swipe that would do something, and the first card-view prev/next swipe with a card to go to, is held while a question offers Use swipes or Turn off (`gestureprompt`, families `deckswipe` = touch + mouse, `cardswipe`; answered families in `gestures.seen`; stored gestures with no `seen` list are from before and aren't asked; closing the question unanswered asks again next time). It comes before the which-list question. Swipes and Settings → Gestures were checked on a real phone on 2026-10-16; the down-right and
 down-left swipes (2026-10-31, [PR #541](https://github.com/Oracle-of-the-Void/ootv-client/pull/541)) only in emulation,
 with scrolling tried on Chrome only, so **check on a real iPhone** that a turned-on diagonal blocks the scroll.
 
