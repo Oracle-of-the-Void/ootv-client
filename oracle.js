@@ -10655,6 +10655,9 @@ function tomselectify() {
       refreshThrottle: 0,      // the default filters 300 ms late: a quick Enter would pick the old top option
       placeholder: 'Select',
       hidePlaceholder: true,
+      onItemAdd: function() {   // a pick uses up what was typed to find it: Tom Select would leave "per" after Personality
+        if(this.control_input.value) { this.setTextboxValue(''); this.refreshOptions(false); }
+      },
       onDropdownOpen: function(dropdown) {   // room to the window's right edge: the dropdown's width rule in oracle.css
         dropdown.style.setProperty('--tsdropdownmax', (document.documentElement.clientWidth - this.wrapper.getBoundingClientRect().left - 8)+'px');
       }
