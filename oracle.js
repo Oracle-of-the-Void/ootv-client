@@ -6318,7 +6318,7 @@ function savetextversion(value,el) {
 
 //**********************************************************  Gestures ****************
 // users.settings.all.gestures (logged out: this browser, session_gestures): {off: [switch keys],
-// search: {direction: [action, count]}, list: {...}}. Only what differs from the defaults is stored.
+// search: {direction: [action, count]}, list: {...}, seen: [family keys]}. Only what differs from the defaults is stored.
 // Switches: each gesture's handler checks gestureon() and, when it's off, leaves the browser's own behavior alone.
 var gestureswitches = [
   ['deckswipetouch', 'Swipe a card image or Simple List title to change its count (touch)'],
@@ -6342,15 +6342,21 @@ var swipedefaults = {
   'search': {'right': ['add',1], 'upright': ['add',3], 'downright': ['off',0], 'left': ['sub',1], 'upleft': ['zero',0], 'downleft': ['off',0]},
   'list': {'right': ['add',1], 'upright': ['add',2], 'downright': ['off',0], 'left': ['sub',1], 'upleft': ['zero',0], 'downleft': ['off',0]}
 };
-function gesturesettings() {
-  var g = null;
+// what is stored, or null when nothing ever was. gesturespending: an answer to a first-use question whose save
+// hasn't come back yet (or failed: it then holds for this page)
+var gesturespending = null;
+function gesturesstored() {
+  if(gesturespending) {
+    return gesturespending;
+  }
   if(searchloggedin()) {
     var settings = cache_thing("user","data").oracle[0].settings;
-    g = settings && settings['all'] && settings['all']['gestures'];
-  } else {
-    g = cache_session("gestures");
+    return (settings && settings['all'] && settings['all']['gestures']) || null;
   }
-  g = g || {};
+  return cache_session("gestures") || null;
+}
+function gesturesettings() {
+  var g = gesturesstored() || {};
   var out = {'off': g['off'] || []};
   swipeviews.forEach(function(v) {
     out[v[0]] = Object.assign({}, swipedefaults[v[0]], g[v[0]] || {});
@@ -6375,7 +6381,7 @@ function gesturesettingsctx() {
   };
 }
 function gesturesfromform(section) {
-  var g = {'off': []};
+  var g = {'off': [], 'seen': Object.keys(gesturefamilies)};   // someone who sets gestures here isn't asked about them
   section.find('input[data-gesture]').each(function() {
     if(!this.checked) {
       g['off'].push($(this).attr('data-gesture'));
@@ -6395,7 +6401,7 @@ function gesturesfromform(section) {
   if(!g['off'].length) {
     delete g['off'];
   }
-  return $.isEmptyObject(g) ? null : g;
+  return g;
 }
 // any change in the section: show the count only where the action takes one, then save shortly after
 var gesturesavetimer = null;
@@ -6422,13 +6428,71 @@ function savegestures(status, g, done) {
     if(done) { done(); }
   }
 }
+// First use: the first time a gesture of a family would do something, it is held and a question says what it does:
+// Use it (the held action then happens) or Turn it off (the family's switches go off). Either answer puts the family
+// in gestures.seen, so it is asked once per account (logged out: per browser). Closing the question without an
+// answer does nothing and it asks again next time. Stored gestures with no seen list are from before the question
+// (or from Settings -> Gestures): those people know the gestures and aren't asked.
+var gesturefamilies = {
+  'deckswipe': {'switches': ['deckswipetouch', 'deckswipemouse'], 'title': 'Swipe cards to change their count?',
+    'text': 'Swiping a card\'s picture or name sideways (or click-dragging it with a mouse) changes how many copies are in your list: right adds one, left removes one.',
+    'off': 'Card swipes are off.'},
+  'cardswipe': {'switches': ['cardswipetouch'], 'title': 'Swipe between cards?',
+    'text': 'Swiping sideways on a card goes to the next or previous search result.',
+    'off': 'The card swipe is off.'}
+};
+function gestureseen(family) {
+  var g = gesturesstored();
+  return !!g && (!g['seen'] || g['seen'].indexOf(family) >= 0);
+}
+var gestureheld = null;
+// held: what the gesture does. Runs now when the family was answered before, else on "Use"
+function gestureprompt(family, held) {
+  if(gestureseen(family)) {
+    held();
+    return;
+  }
+  var f = gesturefamilies[family];
+  gestureheld = {'family': family, 'held': held};
+  modal(f['title'],
+    '<p>'+f['text']+'</p>'+
+    '<p><button type="button" class="button gray" onclick="gestureanswer(true);">Use swipes</button> '+
+    '<button type="button" class="button gray" onclick="gestureanswer(false);">Turn off</button></p>'+
+    '<p>You can change this, and what each swipe does, in <a href="#view=settings" onclick="gesturetosettings();">Settings \u2192 Gestures</a>.</p>');
+}
+function gestureanswer(use) {
+  var p = gestureheld;
+  gestureheld = null;
+  nomodal();
+  if(!p) {
+    return;
+  }
+  var f = gesturefamilies[p['family']];
+  var g = Object.assign({}, gesturesstored() || {});
+  g['seen'] = (g['seen'] || []).filter(function(k) { return k != p['family']; }).concat(p['family']);
+  if(!use) {
+    g['off'] = (g['off'] || []).filter(function(k) { return f['switches'].indexOf(k) < 0; }).concat(f['switches']);
+  }
+  gesturespending = g;
+  savegestures($(), g, function() { gesturespending = null; });
+  if(use) {
+    p['held']();
+  } else {
+    deckswipetoast(f['off']+' Settings \u2192 Gestures turns it back on.', 3500);
+  }
+}
+function gesturetosettings() {
+  gestureheld = null;
+  nomodal();
+  settingstab = 'gestures';
+}
 // the dirfolderselect switch: off hides the list directory's Folder column (table) and Folder select (cards)
 function applyfolderselect() {
   $('#resultdir').toggleClass('nofolderselect', !gestureon('dirfolderselect'));
 }
 function resetgestures(el) {
   clearTimeout(gesturesavetimer);
-  savegestures($(el).siblings('.gesturestatus'), null, function() {
+  savegestures($(el).siblings('.gesturestatus'), {'seen': Object.keys(gesturefamilies)}, function() {
     rendersettings();
     $('.gesturestatus').text("Back to the defaults.");
   });
@@ -8501,12 +8565,17 @@ function deckswipeend(x, y) {
     var angle = Math.atan2(-dy,dx) * 180 / Math.PI;   // 0 = right, 90 = up, 180 = left, -90 = down
     var dir = (Math.abs(angle) <= 30) ? 'right' : (angle > 30 && angle <= 65) ? 'upright' : (angle < -30 && angle >= -65) ? 'downright' :
 	(Math.abs(angle) >= 150) ? 'left' : (angle >= 115 && angle < 150) ? 'upleft' : (angle <= -115 && angle > -150) ? 'downleft' : null;
+    // the first swipe that would do something asks first (gestureprompt)
     if(dir && s.acts[dir][0] != 'off' && !s.listid) {
 	if(s.acts[dir][0] == 'add' || s.acts[dir][0] == 'set') {
-	    deckswipepicklist(s.a.data('card'), s.a.data('printing') || 0, s.acts[dir]);
+	    gestureprompt('deckswipe', function() {
+		deckswipepicklist(s.a.data('card'), s.a.data('printing') || 0, s.acts[dir]);
+	    });
 	}
     } else if(dir && s.acts[dir][0] != 'off') {
-	deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, s.acts[dir], !s.a.data('list') && activelists.length > 1);
+	gestureprompt('deckswipe', function() {
+	    deckswipeapply(s.listid, s.a.data('card'), s.a.data('printing') || 0, s.acts[dir], !s.a.data('list') && activelists.length > 1);
+	});
     }
 }
 document.addEventListener('touchstart', function(e) {
@@ -8829,14 +8898,14 @@ function searchaddallfetch(qs, done) {
     };
     next();
 }
-function deckswipetoast(html) {
+function deckswipetoast(html, ms=1200) {
     var t = $('#deckswipetoast');
     if(!t.length) {
 	t = $('<div id="deckswipetoast"></div>').appendTo('body');
     }
     t.html(html).stop(true, true).show();
     clearTimeout(t.data('timer'));
-    t.data('timer', setTimeout(function() { t.fadeOut(300); }, 1200));
+    t.data('timer', setTimeout(function() { t.fadeOut(300); }, ms));
 }
 function menutap(target) {
     // the innermost nav li whose dropdown doesn't contain the tap is the header that was tapped
@@ -11054,7 +11123,13 @@ document.addEventListener('touchend', function(e) {
     }
     var dx = e.changedTouches[0].clientX - s.x, dy = e.changedTouches[0].clientY - s.y;
     if(Math.abs(dx) >= 60 && Math.abs(dx) > 2*Math.abs(dy) && !String(window.getSelection() || '')) {
-	$(dx < 0 ? "#cardnext" : "#cardprev").click();
+	// the first swipe with a card to go to asks first (gestureprompt)
+	var to = $(dx < 0 ? "#cardnext" : "#cardprev");
+	if(to.is(':visible')) {
+	    gestureprompt('cardswipe', function() { to.click(); });
+	} else {
+	    to.click();
+	}
     }
 });
 

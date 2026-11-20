@@ -56,6 +56,11 @@ remove, set the count, remove all), separately for search results and for lists.
 down-left do nothing until you choose an action; a drag that way starting on a card then changes its
 count instead of scrolling.
 
+The first time you swipe a card to change its count, and the first time you swipe from one card to
+the next, the site stops and asks: **Use swipes** does what the swipe would have done, **Turn off**
+switches that swipe off. It asks once for each of the two; the answer is kept with your account (logged
+out, in that browser), and the switches here change it afterwards.
+
 ## Searches {#searches}
 
 Your default search and saved searches for this game, made with the search form's
