@@ -1878,3 +1878,16 @@ where a player had already said they lost Honor to another player asks them once
   Honor Requirements of their clan's Personalities are ignored for the rest of the game".
 - Gone: `requirement` (`name`, `article`, `field`, `counter`, `when`, `unless`, `waivers`, `attach`) and
   `overlay.requirement`.
+
+## The dishonor floor for every reader; Test of Honor without `test` (2026-11-21, ootv-play #686)
+
+ootv-play [#686](https://github.com/Oracle-of-the-Void/ootv-play/pull/686), whole-code pass H2 (a). No `l5r/play` path
+changed. A dishonored Personality's Personal Honor is 0 for every reader (SCC p. 52: "Dishonored Personalities have a
+Personal Honor of zero."): every match and condition, every amount, and the number the table shows. Before, only Test of
+Honor and a Follower's or Ancestor's Honor Requirement saw the 0. The stat's `floor` is applied with the card's own caps,
+before any attachment's minimum, so Foxwife's `{"min": {"ph": 5}}` still holds her dishonored Personality at 5 (SCC p. 10,
+Cardinal Rule 1). Switches and copies of a card's own numbers (Force of Will, Shapeshifting) move the printed numbers, as
+before. 23 cards name Personal Honor; one was rewritten: Test of Honor (7922) is now a top discard,
+`{"discard": {"top": true, "from": "draw"}, "to": "controller", "then": [{"dishonored": "target", "unless": {"ph": {"min":
+{"of": "discard", "field": "focus"}}}}, {"destroy": "target", "unless": {"ph": {"min": {"of": "discard", "field":
+"focus"}}}}]}` (written 2026-11-21, ootv-backups operation 2026-11-21T140654-play-actions). The card word `test` is gone.
