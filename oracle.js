@@ -4001,10 +4001,14 @@ function cardfetchwhole(cardid,prid=null,qs=null,handler=null) {
   });
 }
 
-// Whole cards, LISTPREFETCHCHUNK per /oracle-fetch: one request for an ~800-card collection answered over Lambda's
-// 6 MB limit (413) and the list never drew (2026-11-03), and its card ids came close to API Gateway's URL limit.
-// The chunks go out together; the callback runs once every one has answered.
-var LISTPREFETCHCHUNK = 50;   // ~25 KB a card, up to 2.5 MB per 100 (2026-11-03)
+// A list's cards from the search index, LISTPREFETCHCHUNK per /search cardid= (ootv-claude projects/card-counts.md):
+// the same cards search results draw, with their counts, and without rulings, Rules Q&A and the update log, which only
+// the card page shows (it fetches the whole card for them, as from a search result). ~2 KB a card against ~25 KB from
+// /oracle-fetch, which answered an ~800-card collection over Lambda's 6 MB limit (413, 2026-11-03) at 50 a request.
+// A chunk the search can't answer comes from /oracle-fetch instead, 50 at a time as before. Cards deleted from the
+// site are left out of either answer (#188); refreshlist flags them. The callback runs once every chunk has answered.
+var LISTPREFETCHCHUNK = 250;
+var LISTFETCHCHUNK = 50;      // /oracle-fetch's: ~25 KB a card
 function listprefetch(listids,callback=null) {
     console.log(['listprefetch',listids.length+' cards',callback]);
     var chunks = [];
@@ -4012,25 +4016,44 @@ function listprefetch(listids,callback=null) {
 	chunks.push(listids.slice(i, i+LISTPREFETCHCHUNK));
     }
     var failed = false;
+    var whole = function(ids) {
+	var parts = [];
+	for(var i = 0; i < ids.length; i += LISTFETCHCHUNK) {
+	    parts.push(ids.slice(i, i+LISTFETCHCHUNK));
+	}
+	return $.when.apply($, parts.map(function(part) {
+	    return $.ajax({
+		type: 'GET',
+		url: apiuri+"/oracle-fetch?table="+database+"&cardid="+part.join(),
+		dataType: 'json',
+		success: function(data) {
+		    [].concat(data).forEach(function(c) {
+			if(c && c.cardid) { cache_card(preparecard(c)); }
+		    });
+		},
+		error: function(error) {
+		    console.log("Epic Fail: "+JSON.stringify(error));
+		    // 404 "Card not found": every card of this part was deleted, still show the rest of the list
+		    if(error.status != 404) { failed = true; }
+		}
+	    }).then(null,function() { return $.Deferred().resolve(); });
+	}));
+    };
     $.when.apply($, chunks.map(function(ids) {
 	return $.ajax({
-	    type: 'GET',
-	    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+ids.join(),
+	    type: 'POST',
+	    url: apiuri+'/search',
 	    contentType: 'application/json',
 	    dataType: 'json',
-	    responseType: 'application/json',
-	    success: function(data) {
-		// cards deleted from the site are left out of the reply (#188); refreshlist flags them
-		[].concat(data).forEach(function(c) {
-		    if(c && c.cardid) { cache_card(preparecard(c)); }
-		});
-	    },
-	    error: function(error) {
-		console.log("Epic Fail: "+JSON.stringify(error));
-		// 404 "Card not found": every card of this chunk was deleted, still show the rest of the list
-		if(error.status != 404) { failed = true; }
-	    }
-	}).then(null,function() { return $.Deferred().resolve(); });  // wait for every chunk, failed or not
+	    data: JSON.stringify({table: database, cardid: ids.map(function(id) { return parseInt(id); }).join(), size: ids.length})
+	}).then(function(raw) {
+	    ((raw && raw.hits && raw.hits.hits) || []).forEach(function(h) {
+		if(h && h._source && h._source.cardid) { cache_card(preparecard(h._source)); }
+	    });
+	}, function(error) {
+	    console.log(["listprefetch: search failed, from DynamoDB", error.status]);
+	    return whole(ids);
+	});
     })).then(function() {
 	if(callback && !failed) {
 	    callback[0](callback[1],callback[2],callback[3],callback[4],callback[5]);
