@@ -113,7 +113,9 @@ link to the rulebook or FAQ page they come from: hover over the link to see that
 where the ruling is (on a phone, press and hold it), and click it to open the page.
 **Open in the Bookshelf** takes you to that place in the [Bookshelf](rules.md).
 
-A card with many rulings shows the first three: **Show N more** lists the rest, and **Show
+A card opened from a search, a list or a link shows how many rulings it has, folded away as **Show N
+rulings**: click that (or the arrow by the label) to load and show them. Once open, a card with many
+rulings shows the first three: **Show N more** lists the rest, and **Show
 fewer** goes back. The arrow by the **Rulings** label folds the whole list away to **Show N rulings**;
 click that (or the arrow again) to bring them back.
 

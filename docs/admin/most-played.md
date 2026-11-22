@@ -47,7 +47,7 @@ public, and stops counting when they make it private.
 
 ootv-search `GET /publiclists?group=cards` (ootv-client `docs/API.md`, ootv-search `CLAUDE.md` "Public
 lists search"): a nested aggregation over each deck's cards. The card page's count is stored on the card: every
-15 minutes ootv-search's counts job writes each card's public deck count (with its traders and family size) onto its
+15 minutes ootv-search's counts job writes each card's public deck count (with its traders, family size and soul links) onto its
 search document from `group=cardcounts`, only for cards whose numbers changed, so the card page asks nothing
 (2026-11-22, search #224, client #675; ootv-claude `projects/card-counts.md`). A count can be up to 15 minutes behind
 a deck save. A card with no stored counts yet asks `/publiclists` for decks with the card, as before. The Detail search results get every card's count at
