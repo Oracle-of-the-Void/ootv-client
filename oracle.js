@@ -3961,8 +3961,8 @@ $(document).on("drop",function(e) {
 
 //   *********************************   fetching / querying the api ******************8
 // A card opened from a link (no search before it): from the search index like a result (/search cardid=), with its
-// counts (ootv-claude projects/card-counts.md); docard then fetches the whole card (/oracle-fetch) only when it has
-// rulings or Rules Q&A. A card the index doesn't have (written seconds ago) comes from DynamoDB as before.
+// counts (ootv-claude projects/card-counts.md). Its rulings and Rules Q&A come only when opened (cardextras).
+// A card the index doesn't have (written seconds ago) comes from DynamoDB as before.
 function cardfetch(cardid,prid=null,qs=null,handler=null) {
   $.ajax({
     type: 'POST',
@@ -7668,19 +7668,6 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   qs = listcardqs(carddata.cardid,prid,qs,switchview);
   $("#lastcardid").val(carddata.cardid).data({prid: prid, qs: qs});
   drawcard(carddata,prid,qs);
-  if(cardpartial(carddata)) {
-    // a search hit: draw it now, then again with its rulings and Rules Q&A once the whole card comes
-    cardfull(carddata.cardid, function(full) {
-      if($("#lastcardid").val() != String(full.cardid)) { return; }   // moved on to another card
-      var mine = $('#resultcard a.cardmylists').detach();   // its count may still be on the way (mycardcount)
-      drawcard(full, lastcardprid() || prid, qs);
-      cardtraders(full.cardid);
-      $('#resultcard a.cardpubliclists, #resultcard a.cardtraders').last().after(mine);
-      if((database+'/'+full.cardid) in publiccardcounts) { publiccardcount(full.cardid); }   // else it's still coming, and finds the new link
-      if((database+'/'+full.cardid) in cardtradercounts) { cardtraders(full.cardid); }
-      if((database+'/'+full.cardid) in cardfamilies) { cardfamily(full.cardid, pagetitlename(full)); }
-    });
-  }
   publiccardcount(carddata.cardid);
   cardtraders(carddata.cardid);
   mycardcount(carddata.cardid);
@@ -7694,37 +7681,45 @@ function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
 }
 
 // Search answers leave out a card's rulings and Rules Q&A (ootv-search PROBLEMS.md #21), sending only
-// rulingcount/rulingrefcount: such a card is partial until fetched whole (cardfull)
-function cardpartial(carddata) {
-  return !!((carddata.rulingcount && !carddata.ruling) || (carddata.rulingrefcount && !carddata.rulingref));
-}
-// the whole card from DynamoDB (/oracle-fetch: rulings, Rules Q&A and update log), cached in place of the search hit
-// A card drawn again while its whole card is on the way (a link's page load draws it twice) waits for that answer.
-var cardfullwaiting = {};   // game/cardid -> [handler]
-function cardfull(cardid,handler) {
-  var key = database+'/'+cardid;
-  if(cardfullwaiting[key]) {
-    cardfullwaiting[key].push(handler);
+// rulingcount/rulingrefcount. The card page shows those counts (cardhtml: the rulings folded to "Show N rulings", the
+// Rules Q&A button with its count) and fetches the text only when one is opened (rulingsfill, rulingrefs): from the
+// search index (rulings=1), once a card and visit, kept on the cached card so it draws whole from then on.
+// done(card) with ruling and rulingref, or done(null) when it can't be had.
+var cardextraswaiting = {};   // game/cardid -> [done]
+function cardextras(cardid, done) {
+  var game = database, key = game+'/'+cardid, id = String(parseInt(cardid));
+  if(cardextraswaiting[key]) {
+    cardextraswaiting[key].push(done);
     return;
   }
-  cardfullwaiting[key] = [handler];
+  cardextraswaiting[key] = [done];
+  var finish = function(card) {
+    var handlers = cardextraswaiting[key] || [];
+    delete cardextraswaiting[key];
+    var cached = card && searchcache[game] && searchcache[game]['data'][id];
+    if(cached) {
+      cached.ruling = [].concat(card.ruling || []);
+      cached.rulingref = [].concat(card.rulingref || []);
+    }
+    handlers.forEach(function(h) { h(card); });
+  };
+  // the index can miss a card written seconds ago: DynamoDB has it
+  var whole = function() {
+    $.ajax({type: 'GET', url: apiuri+"/oracle-fetch?table="+game+"&cardid="+id, dataType: 'json',
+      success: function(data) { finish(data && data.cardid ? data : null); },
+      error: function() { finish(null); }});
+  };
   $.ajax({
-    type: 'GET',
-    url: apiuri+"/oracle-fetch?table="+database+"&cardid="+cardid,
+    type: 'POST',
+    url: apiuri+'/search',
+    contentType: 'application/json',
     dataType: 'json',
-    success: function(data) {
-      var handlers = cardfullwaiting[key] || [];
-      delete cardfullwaiting[key];
-      if(!data || !data.cardid) { return; }
-      data = preparecard(data);
-      if(!data.counts && cardcountsof(data.cardid)) {
-        data.counts = cardcountsof(data.cardid);   // the search document's counts: DynamoDB doesn't have them
-      }
-      cache_card(data);
-      // drawing changes the card it's given; the cache keeps its own
-      handlers.forEach(function(h) { h(JSON.parse(JSON.stringify(data))); });
+    data: JSON.stringify({table: game, cardid: id, size: 1, rulings: '1'}),
+    success: function(raw) {
+      var hit = raw && raw.hits && raw.hits.hits && raw.hits.hits[0];
+      if(hit && hit._source && String(hit._source.cardid) == id) { finish(hit._source); } else { whole(); }
     },
-    error: function(error) { delete cardfullwaiting[key]; console.log("Epic Fail: "+JSON.stringify(error)); }
+    error: whole
   });
 }
 
@@ -7870,8 +7865,19 @@ function cardhtml(carddata,prid=null,qs=null) {
   // TODO onyx: do something similar to 1578 here.  bring top values up from bottom
   //   note: might muck with editing, so care is needed
 	console.log(["rendering card",tmpl,carddata]);
+  // rulings and Rules Q&A a search hit only counts: as many placeholders, so the template draws the counts; opening
+  // them fetches the text (cardextras)
+  var pending = [];
+  [['ruling', 'rulingcount'], ['rulingref', 'rulingrefcount']].forEach(function(f) {
+    if(carddata[f[1]] > 0 && !carddata[f[0]]) {
+      carddata[f[0]] = Array(carddata[f[1]]).fill('<span class="rulingpending" data-cardid="'+parseInt(carddata.cardid)+'"></span>');
+      pending.push(f[0]);
+    }
+  });
   var shown = markprinteddiffs(bubbleup([carddata],qs,prid))[0];
-  return {"html": getactivetemplate('card').render(shown,tmpl), "shown": shown};
+  var html = getactivetemplate('card').render(shown,tmpl);
+  pending.forEach(function(f) { delete carddata[f]; delete shown[f]; });
+  return {"html": html, "shown": shown};
 }
 
 function bubbleup(data,request=null,prid=null) {
@@ -12777,12 +12783,35 @@ function rulingsfold(where) {
     if(more > 0) {
       dd.addClass('rulingssome').append('<span class="rulingsmore" role="button" tabindex="0" data-more="Show '+plural(more,true)+'">Show '+plural(more,true)+'</span>');
     }
+    // only counted so far (a search hit): folded, and opening fetches them (rulingsfill)
+    if(dd.find('.rulingpending').length) {
+      dd.addClass('rulingsnone').prev('dt').find('.rulingsfoldbtn').html('&#9656;')
+        .attr({'aria-expanded': 'false', title: 'Show the rulings'});
+    }
+  });
+}
+// a folded card's rulings, fetched when opened: drawn in place, then folded as a card drawn with them is (partly shown)
+function rulingsfill(dd) {
+  if(dd.data('loading')) { return; }
+  dd.data('loading', true);
+  var open = dd.find('.rulingsopen').text('Loading...');
+  cardextras(dd.find('.rulingpending').first().data('cardid'), function(card) {
+    dd.data('loading', false);
+    if(!card) {
+      open.text('Could not load the rulings. Try again');
+      return;
+    }
+    var where = dd.parent();
+    dd.prev('dt').find('.rulingsfoldbtn').remove();
+    dd.removeClass('rulingsnone rulingssome rulingsall').html([].concat(card.ruling || []).map(function(r) { return '<div>'+r+'</div>'; }).join(''));
+    rulingsfold(where);
   });
 }
 $(document).on('click keydown', 'dt .rulingsfoldbtn, dd.rulings .rulingsopen', function(e) {
   if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
   e.preventDefault();
   var dd = $(this).closest('dt').next('dd.rulings').add($(this).closest('dd.rulings')), open = dd.hasClass('rulingsnone');
+  if(open && dd.find('.rulingpending').length) { rulingsfill(dd); return; }
   dd.toggleClass('rulingsnone', !open);
   if(open && dd.hasClass('rulingsall')) { dd.find('.rulingsmore').trigger('click'); }   // opens partly shown again
   dd.prev('dt').find('.rulingsfoldbtn').html(open ? '&#9662;' : '&#9656;')
@@ -12908,6 +12937,19 @@ function rulingpopupshow(href,label,l) {
 // the modal. A click on an answer opens its digest there, scrolled to the answer, with Back to the list;
 // Ctrl/Cmd/Shift-click opens the digest in a new tab.
 function rulingrefs(el) {
+  var holder = $(el).siblings('.rulingreflist');
+  if(holder.find('.rulingpending').length) {
+    // only counted so far (a search hit): fetch them, then open (cardextras)
+    if($(el).data('loading')) { return; }
+    $(el).data('loading', true).addClass('loading');
+    cardextras(holder.find('.rulingpending').first().data('cardid'), function(card) {
+      $(el).data('loading', false).removeClass('loading');
+      if(!card) { return; }
+      holder.html([].concat(card.rulingref || []).map(function(r) { return '<div class="rulingref">'+r+'</div>'; }).join(''));
+      rulingrefs(el);
+    });
+    return;
+  }
   var title = $('<div>').text('Rules Q&A: '+($(el).data('title') || '')).html();
   var list = $(el).siblings('.rulingreflist').html();
   modal(title, '<div class="rulingreflist">'+list+'</div>');
@@ -13739,15 +13781,21 @@ function mycardcount(cardid) {
 }
 // the card view's family link, after the globe and folder: how many cards are linked to this one through versions
 // and souls (Experienced, Soul of, countsas: ootv-search lib/family.js), shown only when there are others. A click
-// is the search family=<cardid>. Kept for the visit, per game and card: { n, family } (the API's tree).
+// is the search family=<cardid>. Kept for the visit, per game and card: { n, souls } (the card's soul links).
 // The card's keywords also gain "<Name>'s Soul" for each soul of it (cardsouls), linked to that soul's card.
+// Both come with the card (its counts: family and souls, from the counts job, ootv-search counts/job.js), so the card
+// page asks nothing; only a card counted before souls were (no counts.souls) asks the family search for its tree.
 var cardfamilies = {};
 var cardfamilytitles = {};   // cardid -> title, for the search's summary line
 function cardfamily(cardid, title) {
   var key = database+'/'+cardid;
   var known = cardcountsof(cardid);
-  if(known && (known.family || 1) <= 1 && !(key in cardfamilies)) {
-    cardfamilies[key] = {n: 1, family: null};   // no family: no link, nothing to ask
+  if(known && !(key in cardfamilies)) {
+    if((known.family || 1) <= 1) {
+      cardfamilies[key] = {n: 1, souls: []};   // no family: no link, nothing to ask
+    } else if(Array.isArray(known.souls)) {
+      cardfamilies[key] = {n: known.family, souls: known.souls};
+    }
   }
   cardfamilytitles[cardid] = title;
   var show = function(got) {
@@ -13756,7 +13804,7 @@ function cardfamily(cardid, title) {
     if(String($("#lastcardid").val()) != String(cardid) || !(n > 1)) {
       return;
     }
-    cardsouls(cardid, got.family);
+    cardsouls(cardid, got.souls);
     var icon = function(cls, count) {
       var link = $('<a class="'+cls+'" href="" title="Family: '+n+' cards linked by versions and souls (Experienced, Soul of)">'+
                    '<svg class="feather"><use xlink:href="res/feather-sprite.svg#git-branch"></svg><span class="'+count+'">'+n+'</span></a>');
@@ -13789,7 +13837,7 @@ function cardfamily(cardid, title) {
     data: JSON.stringify({table: database, family: String(cardid), size: 0}),
     success: function(data) {
       var total = data.hits ? (typeof data.hits.total === 'object' ? data.hits.total.value : data.hits.total) : 0;
-      cardfamilies[key] = {n: total || 0, family: data.family || null};
+      cardfamilies[key] = {n: total || 0, souls: soulsfromtree(cardid, data.family)};
       show(cardfamilies[key]);
     },
     error: function() { delete cardfamilies[key]; }
@@ -13848,28 +13896,35 @@ function cardopen(id) {
   }
 }
 // the reverse of "Soul of": on a card that others are a soul of, "<Name>'s Soul" after its keywords, linked to the
-// soul's card (Matsu Gohei: Matsu Aoiko's Soul, Matsu Hachiro's Soul). From the family tree (ootv-search
-// familyTree): every soul whose target is this card's character, on each of its versions when the soul names no
-// level (Soul of Matsu Gohei), else only on the version it names (Akodo Kobi: Soul of Ginawa Experienced 3).
-function cardsouls(cardid, fam) {
+// soul's card (Matsu Gohei: Matsu Aoiko's Soul, Matsu Hachiro's Soul): every soul whose target is this card's
+// character, on each of its versions when the soul names no level (Soul of Matsu Gohei), else only on the version it
+// names (Akodo Kobi: Soul of Ginawa Experienced 3). souls: [{cardid, title, name, of}], the card's counts.souls
+// (ootv-search lib/family.js soulLinks), or soulsfromtree's from a family search.
+function soulsfromtree(cardid, fam) {
   if(!fam || !fam.tree) {
-    return;
+    return [];
   }
   var all = [], mine = null;
   var walk = function(n) { all.push(n); n.cards.forEach(function(c) { if(c.cardid == cardid) { mine = n; } }); n.children.forEach(walk); };
   [fam.tree].concat(fam.others || []).forEach(walk);
   if(!mine) {
-    return;
+    return [];
   }
-  var links = [];
+  var out = [];
   all.forEach(function(n) {
     n.cards.forEach(function(c) {
       if(c.soulof && c.soulof.name == mine.name && (c.soulof.cardid === null || c.soulof.cardid == cardid) && n !== mine) {
-        links.push('<span class="cardsoulkw"> &bull; <a href="#game='+database+',#cardid='+parseInt(c.cardid)+'" onclick="cardopen('+
-          parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title)+' is a Soul of '+htmlEncode(mine.name)+'">'+
-          htmlEncode(n.name)+'\'s Soul</a></span>');
+        out.push({cardid: c.cardid, title: c.title, name: n.name, of: mine.name});
       }
     });
+  });
+  return out;
+}
+function cardsouls(cardid, souls) {
+  var links = (souls || []).map(function(c) {
+    return '<span class="cardsoulkw"> &bull; <a href="#game='+database+',#cardid='+parseInt(c.cardid)+'" onclick="cardopen('+
+      parseInt(c.cardid)+'); return false;" title="'+htmlEncode(c.title)+' is a Soul of '+htmlEncode(c.of)+'">'+
+      htmlEncode(c.name)+'\'s Soul</a></span>';
   });
   var dd = $('#resultcard dd.cardkeywords').first();
   if(links.length && dd.length) {
