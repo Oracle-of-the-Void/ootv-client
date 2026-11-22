@@ -3960,9 +3960,31 @@ $(document).on("drop",function(e) {
 });
 
 //   *********************************   fetching / querying the api ******************8
-// TODO: sometimes this fails if I do a card not primed from c/p
-//   e.g: https://dev.oracleofthevoid.com/#cardid=999
+// A card opened from a link (no search before it): from the search index like a result (/search cardid=), with its
+// counts (ootv-claude projects/card-counts.md); docard then fetches the whole card (/oracle-fetch) only when it has
+// rulings or Rules Q&A. A card the index doesn't have (written seconds ago) comes from DynamoDB as before.
 function cardfetch(cardid,prid=null,qs=null,handler=null) {
+  $.ajax({
+    type: 'POST',
+    url: apiuri+'/search',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify({table: database, cardid: String(parseInt(cardid)), size: 1}),
+    success: function(raw) {
+      var hit = raw && raw.hits && raw.hits.hits && raw.hits.hits[0];
+      if(!hit || !hit._source || String(hit._source.cardid) != String(parseInt(cardid))) {
+        cardfetchwhole(cardid,prid,qs,handler);
+        return;
+      }
+      var data = preparecard(hit._source);
+      cache_card(data);
+      docard(data,prid,qs);
+      if(handler) { handler(); }
+    },
+    error: function() { cardfetchwhole(cardid,prid,qs,handler); }
+  });
+}
+function cardfetchwhole(cardid,prid=null,qs=null,handler=null) {
   $.ajax({
     type: 'GET',
     url: apiuri+"/oracle-fetch?table="+database+"&cardid="+cardid,
@@ -7613,6 +7635,7 @@ function data_url_to_download(data_url, filename) {
 var carddrawcount = 0;   // cards docard has drawn: defaultcard doesn't draw over a newer one
 function docard(carddata,prid=null,qs=null,pop=false,switchview=true) {
   var carddata = JSON.parse(JSON.stringify(carddata));
+  cardcountsnote(carddata);
   carddrawcount++;
   console.log(["rendering: "+carddata['cardid']+(prid?'/'+prid:''),qs]);
   if(getactivetemplate('card') === undefined) {
@@ -7653,18 +7676,32 @@ function cardpartial(carddata) {
   return !!((carddata.rulingcount && !carddata.ruling) || (carddata.rulingrefcount && !carddata.rulingref));
 }
 // the whole card from DynamoDB (/oracle-fetch: rulings, Rules Q&A and update log), cached in place of the search hit
+// A card drawn again while its whole card is on the way (a link's page load draws it twice) waits for that answer.
+var cardfullwaiting = {};   // game/cardid -> [handler]
 function cardfull(cardid,handler) {
+  var key = database+'/'+cardid;
+  if(cardfullwaiting[key]) {
+    cardfullwaiting[key].push(handler);
+    return;
+  }
+  cardfullwaiting[key] = [handler];
   $.ajax({
     type: 'GET',
     url: apiuri+"/oracle-fetch?table="+database+"&cardid="+cardid,
     dataType: 'json',
     success: function(data) {
+      var handlers = cardfullwaiting[key] || [];
+      delete cardfullwaiting[key];
       if(!data || !data.cardid) { return; }
       data = preparecard(data);
+      if(!data.counts && cardcountsof(data.cardid)) {
+        data.counts = cardcountsof(data.cardid);   // the search document's counts: DynamoDB doesn't have them
+      }
       cache_card(data);
-      handler(JSON.parse(JSON.stringify(data)));   // drawing changes the card it's given; the cache keeps its own
+      // drawing changes the card it's given; the cache keeps its own
+      handlers.forEach(function(h) { h(JSON.parse(JSON.stringify(data))); });
     },
-    error: function(error) { console.log("Epic Fail: "+JSON.stringify(error)); }
+    error: function(error) { delete cardfullwaiting[key]; console.log("Epic Fail: "+JSON.stringify(error)); }
   });
 }
 
@@ -13685,6 +13722,10 @@ var cardfamilies = {};
 var cardfamilytitles = {};   // cardid -> title, for the search's summary line
 function cardfamily(cardid, title) {
   var key = database+'/'+cardid;
+  var known = cardcountsof(cardid);
+  if(known && (known.family || 1) <= 1 && !(key in cardfamilies)) {
+    cardfamilies[key] = {n: 1, family: null};   // no family: no link, nothing to ask
+  }
   cardfamilytitles[cardid] = title;
   var show = function(got) {
     var n = got.n;
@@ -13870,10 +13911,27 @@ function searchdeckcounts(qs) {
     }
   });
 }
+// A card's counts as its search document has them (ootv-search counts/, every 15 minutes: decks, have, want, family;
+// ootv-claude projects/card-counts.md). The globe, trade and family links draw from them with no requests; a card
+// without them (not counted yet, or loaded from a list) asks as before. Kept per game and card when a card is drawn
+// (docard), since the whole card from /oracle-fetch (rulings) doesn't carry them.
+var cardcountsseen = {};
+function cardcountsnote(card) {
+  if(card && card.cardid && card.counts && typeof card.counts === 'object') {
+    cardcountsseen[database+'/'+card.cardid] = card.counts;
+  }
+}
+function cardcountsof(cardid) {
+  return cardcountsseen[database+'/'+cardid] || null;
+}
 // the card view's globe link gets how many public decks play the card (at least one copy)
 var publiccardcounts = {};
 function publiccardcount(cardid) {
   var key = database+'/'+cardid;
+  var known = cardcountsof(cardid);
+  if(known) {
+    publiccardcounts[key] = known.decks || 0;
+  }
   var show = function(n) {
     var link = $('#resultcard a.cardpubliclists');
     if(String($("#lastcardid").val()) != String(cardid) || !link.length) {
@@ -13908,6 +13966,10 @@ function publiccardcount(cardid) {
 var cardtradercounts = {};
 function cardtraders(cardid) {
   var key = database+'/'+cardid;
+  var known = cardcountsof(cardid);
+  if(known) {
+    cardtradercounts[key] = {have: known.have || 0, want: known.want || 0};
+  }
   var show = function(c) {
     var globe = $('#resultcard a.cardpubliclists');
     if(String($("#lastcardid").val()) != String(cardid) || !globe.length) {
