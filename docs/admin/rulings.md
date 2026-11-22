@@ -116,6 +116,12 @@ rules team"). It opens the list in a popup; clicking an answer opens its source 
 answer, with **Back to the list** and **Open in a new tab** (Ctrl/Cmd-click opens it in a new tab
 straight away). Newest answers come first.
 
+Search answers leave out `ruling` and `rulingref` (their size: ootv-search `routes/search.js`), sending only
+`rulingcount` and `rulingrefcount`. So the card page shows the counts, the rulings folded to **Show N rulings** and
+the Q&A button with its number, and loads the text only when one is opened: one `/search` with `rulings=1` for that
+card, kept for the visit (2026-11-22, ootv-claude `projects/card-counts.md`). Before, every card with either made a
+DynamoDB read (`/oracle-fetch`) as soon as it was drawn.
+
 ### L5R: the rules digests (2000–2006)
 
 The L5R entries come from the rules team's digests on the l5r-ccg and l5r-useful mailing lists ("Rules
