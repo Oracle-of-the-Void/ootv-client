@@ -72,7 +72,7 @@ function gcadminopen(which) {
     gcadmin = {which: which, db: database, item: item, draft: gcadminbody(item), view: view, cardid: cardid || gcadmindefaultcard()};
     gcadminshow();
   };
-  $.ajax({url: apiuri+'/structure?database='+db+'&key='+key, dataType: 'json', cache: false})
+  $.ajax({url: apiuri+'/structure?database='+db+'&key='+key+'&history=1', dataType: 'json', cache: false})   // the history is its own item (ootv-search lib/structhistory.js)
     .done(start)
     .fail(function(raw) {
       if(raw.status == 404 && which == 'game') { start(null); return; }   // a new game: no config yet

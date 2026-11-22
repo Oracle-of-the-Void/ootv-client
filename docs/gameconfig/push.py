@@ -12,7 +12,8 @@ DIR holds all-games.json (all/games), all-templates.json (all/templates), and pe
 descriptions in `fields` are left alone, edited in Admin -> Field descriptions). A push writes the files
 that are there: all/games merged into the stored list (a game missing from the file keeps its entry and
 place), all/templates, <game>/game, the fields settings. Each item gets version + 1 and a history entry
-(the last 50), and is written only if its version is still the one pulled (DIR/versions.json, written by
+(the last 50) in its own <key>#history item (ootv-search lib/structhistory.js; written with the item in one
+transaction, an item still holding its history has it moved out), and is written only if its version is still the one pulled (DIR/versions.json, written by
 pull): if anyone saved the item since your pull, the push stops for it, dry run included; pull again. The items are the source since every game moved off templates/<game>.js (2026-10-23; the
 old build.js that made them from those files is in ootv-claude DEPRECATED.md). ootv-claude
 GAME-TEMPLATES.md §2-3.
@@ -20,6 +21,7 @@ GAME-TEMPLATES.md §2-3.
 import argparse, glob, json, os, sys, time
 from decimal import Decimal
 import boto3
+from boto3.dynamodb.types import TypeSerializer
 
 VERSIONS = 'versions.json'   # the version of each item at pull time: a push refuses an item that moved since
 TABLE, HISTORY, KEEPOLD = 'oracle-all-structure', 50, 10   # full old copies only in the newest 10 (item size)
@@ -27,6 +29,24 @@ UID, UNAME = 21069, 'Don Eisele'
 
 
 META = ('database', 'key', 'version', 'updated', 'uid', 'uname', 'history')
+
+
+HSUFFIX = '#history'
+
+
+def write(t, item, history, cond):
+    """The item (no history) and its <key>#history item, in one transaction; cond: the item's condition."""
+    ser = TypeSerializer()
+    typed = lambda d: {k: ser.serialize(v) for k, v in d.items()}
+    item = {k: v for k, v in item.items() if k != 'history'}
+    hist = {'database': item['database'], 'key': item['key'] + HSUFFIX, 'of': item['key'], 'updated': item['updated'],
+            'history': history}
+    hist = json.loads(json.dumps(hist, default=lambda d: float(d) if d % 1 else int(d)), parse_float=Decimal)
+    put = dict(TableName=TABLE, Item=typed(item), ConditionExpression=cond['ConditionExpression'],
+               ExpressionAttributeNames=cond['ExpressionAttributeNames'])
+    if cond.get('ExpressionAttributeValues'):
+        put['ExpressionAttributeValues'] = typed(cond['ExpressionAttributeValues'])
+    t.meta.client.transact_write_items(TransactItems=[{'Put': put}, {'Put': {'TableName': TABLE, 'Item': typed(hist)}}])
 
 
 def plain(item):
@@ -111,19 +131,21 @@ def main():
         entry = {'version': version + 1, 'updated': now, 'uid': UID, 'uname': UNAME, 'changes': entry_changes}
         if settings is None and old:
             entry['old'] = {k: v for k, v in old.items() if k not in ('history', 'database', 'key')}
-        item.update(version=version + 1, updated=now, uid=UID, uname=UNAME,
-                    history=([entry] + list((old or {}).get('history') or []))[:HISTORY])
-        for h in item['history'][KEEPOLD:]:
+        had = t.get_item(Key={'database': db, 'key': key + HSUFFIX}, ConsistentRead=True).get('Item')
+        history = ([entry] + list((had or {}).get('history') or (old or {}).get('history') or []))[:HISTORY]
+        for h in history[KEEPOLD:]:
             h.pop('old', None)
+        item.update(version=version + 1, updated=now, uid=UID, uname=UNAME)
+        item.pop('history', None)
         item = json.loads(json.dumps(item, default=lambda d: float(d) if d % 1 else int(d)), parse_float=Decimal)
         if old and 'version' in old:
-            t.put_item(Item=item, ConditionExpression='#v = :v', ExpressionAttributeNames={'#v': 'version'},
-                       ExpressionAttributeValues={':v': old['version']})
+            write(t, item, history, dict(ConditionExpression='#v = :v', ExpressionAttributeNames={'#v': 'version'},
+                                         ExpressionAttributeValues={':v': old['version']}))
         elif old:
-            t.put_item(Item=item, ConditionExpression='attribute_exists(#k) AND attribute_not_exists(#v)',
-                       ExpressionAttributeNames={'#k': 'key', '#v': 'version'})
+            write(t, item, history, dict(ConditionExpression='attribute_exists(#k) AND attribute_not_exists(#v)',
+                                         ExpressionAttributeNames={'#k': 'key', '#v': 'version'}))
         else:
-            t.put_item(Item=item, ConditionExpression='attribute_not_exists(#k)', ExpressionAttributeNames={'#k': 'key'})
+            write(t, item, history, dict(ConditionExpression='attribute_not_exists(#k)', ExpressionAttributeNames={'#k': 'key'}))
         pulled[db + '/' + key] = version + 1
         open(os.path.join(a.dir, VERSIONS), 'w').write(json.dumps(pulled, indent=1) + '\n')
         print('   written, version %d' % (version + 1))

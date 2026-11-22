@@ -10761,7 +10761,7 @@ function templatefallback(db, key, htmlkey, error) {
   if(templatefallbacks[db][key]) { return templatefallbacks[db][key]; }
   var fb = templatefallbacks[db][key] = {error: error, loading: true};
   console.log(['template failed, looking for an earlier version', key, error]);
-  templatehistory = templatehistory || Promise.resolve($.ajax({url: apiuri+'/structure?database=all&key=templates', dataType: 'json', cache: false}))
+  templatehistory = templatehistory || Promise.resolve($.ajax({url: apiuri+'/structure?database=all&key=templates&history=1', dataType: 'json', cache: false}))
     .then(function(item) { return item.history || []; }).catch(function() { return []; });
   templatehistory.then(function(history) {
     var now = (gameconfig[db] || {}).templates || {};
@@ -13641,7 +13641,7 @@ function renderpublicgroups(data, append) {
 }
 // Most played: one card per row, its rank, how many of the decks found play it and the average copies in those decks.
 // Sorted by anything but Most decks, the API orders only the top 100 in the most decks (data.top).
-// The images come from /oracle-fetch for the cards not cached yet (publiccardimages).
+// The images come from the search index for the cards not cached yet (publiccardimages, listprefetch).
 var publiccardorders = {'decks': 'played in the most decks first', 'copies': 'most copies first',
                         'name': 'by name', 'cardtype': 'by card type'};
 // the average copies in the decks that play the card, to one decimal
@@ -13677,7 +13677,7 @@ function renderpubliccards(data, append) {
   }
   publiccardimages(data.groups.map(function(g) { return g.cardid; }));
 }
-// the Most played rows' images: cached cards at once, the rest with one /oracle-fetch
+// the Most played rows' images: cached cards at once, the rest from the search index (listprefetch: /search cardid=)
 function publiccardimages(cardids) {
   var fill = function() {
     cardids.forEach(function(id) {
