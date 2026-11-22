@@ -21,7 +21,8 @@ and nightly.
 
 Matches (Trades, `GET /trade mode=matches`) are marked **preview** on the site, with a note that they may
 become a Patreon supporter feature (the user, 2026-11-17). Not gated yet; a gate would be a tier → privilege
-entry like the photo features ([Patreon](patreon.md)). Card search (`mode=cards`) stays open.
+entry like the photo features ([Patreon](patreon.md)). Card search (`mode=cards`) stays open, and so does the card
+page's have/want count (`mode=counts`, one call per card view).
 
 By card: a want matches any printing unless both sides name different printings. Foil (the list entry's
 foil toggle: none, `foil`, or `either` on a want) must agree unless either side says `either`. An entry for a

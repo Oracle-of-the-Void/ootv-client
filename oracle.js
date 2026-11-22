@@ -1133,7 +1133,25 @@ function listsrevalidate(polling) {
 }
 document.addEventListener('visibilitychange', listsrevalidate);
 window.addEventListener('focus', listsrevalidate);
-setInterval(function() { listsrevalidate('visible'); }, 30*1000);
+// The 30s check stops after LISTIDLEMS with no input on the page: a tab left on screen read its lists all day
+// (2026-11-21: one tab, 2 lists, 7,295 calls). The first input after that checks at once.
+var LISTIDLEMS = 5*60*1000;
+var listlastinput = Date.now();
+function listinputseen() {
+  var was = listlastinput;
+  listlastinput = Date.now();
+  if(listlastinput - was > LISTIDLEMS) {
+    listsrevalidate('visible');
+  }
+}
+['pointerdown','pointermove','keydown','wheel','touchstart','scroll'].forEach(function(ev) {
+  window.addEventListener(ev, listinputseen, {passive: true, capture: true});
+});
+setInterval(function() {
+  if(Date.now() - listlastinput < LISTIDLEMS) {
+    listsrevalidate('visible');
+  }
+}, 30*1000);
 setInterval(function() { listsrevalidate('hourly'); }, 60*60*1000);
 
 // failed: called if the update doesn't go through
@@ -13858,7 +13876,7 @@ function publiccardcount(cardid) {
   });
 }
 // the card view: a link to the players with this card open to trade (beside the public lists globe), with
-// how many have it; only shown when someone has or wants it (GET /trade mode=cards)
+// how many have it; only shown when someone has or wants it (GET /trade mode=counts: both sides in one call)
 var cardtradercounts = {};
 function cardtraders(cardid) {
   var key = database+'/'+cardid;
@@ -13880,23 +13898,21 @@ function cardtraders(cardid) {
       .insertAfter(globe);
   };
   if(key in cardtradercounts) {
-    show(cardtradercounts[key]);
+    // null: already asked (the card drawn again while the answer is out); its answer shows it
+    if(cardtradercounts[key] !== null) {
+      show(cardtradercounts[key]);
+    }
     return;
   }
-  var counts = {};
-  var got = 0;
-  ['have','want'].forEach(function(side) {
-    $.ajax({
-      url: apiuri+'/trade?mode=cards&game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid)+'&side='+side,
-      dataType: 'json',
-      success: function(data) { counts[side] = (data.traders || []).length; },
-      complete: function() {
-        if(++got == 2) {
-          cardtradercounts[key] = counts;
-          show(counts);
-        }
-      }
-    });
+  cardtradercounts[key] = null;
+  $.ajax({
+    url: apiuri+'/trade?mode=counts&game='+encodeURIComponent(database)+'&cardid='+parseInt(cardid),
+    dataType: 'json',
+    success: function(data) {
+      cardtradercounts[key] = {have: (data && data.have) || 0, want: (data && data.want) || 0};
+      show(cardtradercounts[key]);
+    },
+    error: function() { delete cardtradercounts[key]; }
   });
 }
 function publicattr(v) {
