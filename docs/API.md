@@ -830,6 +830,20 @@ Afterwards, save the image on the printing with /update `updateinstance`, using 
 A printing has one `imagehash` directory, so every image of the printing goes there, and a new image
 is appended to `image`, not swapped in.
 
+## /largeimage
+
+The card page's Larger image (ootv-search `routes/largeimage.js`). Signed in (Cognito authorizer); GET only.
+
+    GET /largeimage?uid=&database=&cardid=&printingid=[&n=]
+
+`uid` must be the token's user. `n` is the entry in the printing's `image` (default 0). Allowed for a Patreon
+supporter (any tier, free included) or an admin of the game (`*` on it or on every game); anyone else 403.
+
+* The entry has `large` (1490 px WebP in `<game>/private/<imagehash>/`, which CloudFront refuses):
+  `{url, size: "large", expires}`, a presigned S3 GET signed at the start of the hour, good for two hours.
+* Else its master: `{url, size: "master"}`, the public URL.
+* 404 for no such card, printing or image; 401 when the token and uid don't match.
+
 ## /loginlog
 
 Sign-in log for the Admin tab's "Login log" view, newest first.

@@ -6885,6 +6885,92 @@ function artphotoallowed() {
   return !!artphotolevel();
 }
 var PATREON_URL = 'https://www.patreon.com/oracleofthevoid';
+
+// ******************** LARGER IMAGE ********************
+// The card page's "Larger image" under each front that has a bigger file (ootv-claude projects/webp-only-images.md):
+// the printing's `large` (1490 px, kept private: GET /largeimage hands out a signed link for an hour), else its
+// master. For Patreon supporters and the game's admins (the user, 2026-11-23: a soft gate, the master files stay
+// public for the PDF export; only this view is theirs). Anyone else gets what it is and how to get it.
+function cardzoomlevel() {
+  var level = artphotolevel();
+  return (level == 'admin' || (level && level.indexOf('patreon-') == 0)) ? level : null;
+}
+function cardzoomlinks(card) {
+  $('#resultcard .printing').each(function() {
+    var pid = $(this).data('printingid');
+    var p = (card.printing || []).find(function(x) { return String(x.printingid) == String(pid); });
+    if(!p || !Array.isArray(p.image)) { return; }
+    $(this).find('.cardside').each(function() {
+      var file = ($(this).find('img.cardsidefront').attr('src') || '').split('/').pop();
+      var n = p.image.findIndex(function(e) { return e && typeof e === 'object' && ['details','select','master'].some(function(k) { return e[k] === file; }); });
+      var e = p.image[n];
+      if(n < 0 || !(e.large || e.master)) { return; }
+      var link = $('<span class="cardzoomlink" role="button" tabindex="0" title="A bigger picture of this card (Patreon supporters)">Larger image</span>')
+        .attr({'data-cardid': card.cardid, 'data-printingid': pid, 'data-n': n});
+      var bar = $(this).children('.cardsidebar');
+      if(!bar.length) {
+        bar = $('<div class="cardsidebar"></div>').insertAfter($(this).find('img.cardsidefront'));
+      }
+      bar.append(link);
+    });
+  });
+}
+$(document).on('click keydown', '.cardzoomlink', function(e) {
+  if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
+  e.preventDefault();
+  var link = $(this);
+  if(!cardzoomlevel()) {
+    var user = cache_thing("user","data");
+    var loggedin = !!(user && user.oracle && user.oracle[0]);
+    return modal('Larger image',
+      '<p><b>Larger images</b>, twice the size of the card page\'s picture where we have a big enough scan, are for our '+
+        '<a href="'+PATREON_URL+'" target="_blank" rel="noopener">Patreon</a> supporters, and <b>a free Patreon membership is enough</b>.</p>'+
+      '<p>Patreon support is what keeps the site running.</p>'+
+      '<p><a class="button gray" href="'+PATREON_URL+'" target="_blank" rel="noopener">Join on Patreon</a>'+
+        (loggedin ? '' : ' <span class="button gray" onclick="dologin();">Log&nbsp;In/Register</span>')+'</p>');
+  }
+  cardzoomshow(null, 'Loading...');
+  $.ajax({
+    url: apiuri+'/largeimage?uid='+getuid()+'&database='+database+'&cardid='+link.data('cardid')+
+      '&printingid='+encodeURIComponent(link.data('printingid'))+'&n='+link.data('n'),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) { cardzoomshow(data.url); },
+    error: function(xhr) {
+      cardzoomshow(null, (xhr.responseJSON && xhr.responseJSON.error) || 'The larger image could not be loaded.');
+    }
+  });
+});
+// the full-window viewer: fitted to the window; a click on the picture shows it at full size (scroll to move
+// around) and back; a click beside it, the close button or Escape closes it
+function cardzoomshow(url, text) {
+  var box = $('#cardzoom');
+  if(!box.length) {
+    box = $('<div id="cardzoom" role="dialog" aria-label="Larger image"><span class="cardzoomclose" role="button" aria-label="Close">&times;</span>'+
+            '<div class="cardzoomtext"></div><img alt=""></div>').appendTo('body');
+    box.on('click', function(e) {
+      if(e.target.tagName == 'IMG') {
+        box.toggleClass('cardzoomfull');
+      } else {
+        cardzoomhide();
+      }
+    });
+    $(document).on('keydown', function(e) { if(e.key == 'Escape' && $('#cardzoom').hasClass('cardzoomon')) { cardzoomhide(); } });
+  }
+  var img = box.find('img');
+  box.removeClass('cardzoomfull').addClass('cardzoomon');
+  box.find('.cardzoomtext').text(text || '').toggle(!!text);
+  img.off('load error').hide();
+  if(url) {
+    box.find('.cardzoomtext').text('Loading...').show();
+    img.on('load', function() { box.find('.cardzoomtext').hide(); img.show(); })
+       .on('error', function() { box.find('.cardzoomtext').text('The larger image could not be loaded.').show(); })
+       .attr('src', url);
+  }
+}
+function cardzoomhide() {
+  $('#cardzoom').removeClass('cardzoomon cardzoomfull').find('img').off('load error').removeAttr('src');
+}
 // the Photo button (shown to everyone): find the card (Search by photo, artphoto.js) or find
 // the artist (an artist check of an uploaded picture, artcheck.js; ootv-claude ARTIST-CHECK.md).
 // Both count against one per-level limit (Admin → Config → Limits), shown at the bottom. Without a
@@ -7736,6 +7822,7 @@ function drawcard(carddata,prid=null,qs=null) {
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
   imagesreserve('#resultcard img.cardsidefront');
+  cardzoomlinks(carddata);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
@@ -11156,8 +11243,9 @@ $(window).on('popstate', function (e) {
 $(document).on('keydown', function ( e ) {
     var altstep = e.altKey && (e.key == "ArrowRight" || e.key == "ArrowLeft") && !$(e.target).closest('input, select, textarea, [contenteditable=true]').length;
     if(e.target.nodeName=='BODY' || altstep) {
-	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it
-	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible"))) {
+	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it; nor does the
+	// Larger image viewer, whose Escape closes only itself
+	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible")) && !$("#cardzoom").hasClass("cardzoomon")) {
 	    if(altstep && $("#cardnext").length) {
 		e.preventDefault();
 	    }
