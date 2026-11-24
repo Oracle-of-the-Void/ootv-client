@@ -75,7 +75,7 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
 - Card images are WebP only (since 2026-11-23), with transparent rounded corners, cut at the card's edge (no inset).
   Upload the biggest scan you have (PNG, JPEG or WebP): the upload makes `_master` (745 px on the short side), `_details` (600 px
   long side), `_select` (210 px), and `_large` (1490 px on the short side, for Patreon supporters, kept in a private folder) when the
-  scan is bigger than that. It needs Chrome, Edge or Firefox: Safari can't make WebP. Older images are still PNG or
+  scan is at least 820 px on its short side (1.1 times the master). It needs Chrome, Edge or Firefox: Safari can't make WebP. Older images are still PNG or
   JPG (L5R's were cleaned up and made PNG on 2026-11-06) until their game is converted.
 - **Delete card** asks, then deletes the card immediately rather than on commit.
 
