@@ -75,13 +75,17 @@ back thumbnail, so a second print is never mistaken for a back.
 
 ## Larger image {#larger}
 
-**Larger image** under the card's picture opens a bigger one over the whole window: twice the
-card page's size where we have a big enough scan, otherwise the largest we have. Click the
+**Larger image** under the card's picture opens a bigger one over the whole window. Click the
 picture to see it at full size and scroll around it; click beside it, the × or press Escape to
 close it.
 
-Larger images are for our [Patreon](https://www.patreon.com/oracleofthevoid) supporters: a free
-membership is enough. Log in with the account your Patreon is linked to.
+Bigger pictures are for our [Patreon](https://www.patreon.com/oracleofthevoid) supporters:
+
+- **Ashigaru** and up: each card's full-size scan, in Larger image and in the **Large** card
+  view (the size buttons at the top).
+- **Samurai** and up: twice that size again in Larger image, where we have a big enough scan.
+
+Log in with the account your Patreon is linked to.
 
 ## Foil {#foil}
 
