@@ -3183,9 +3183,18 @@ form.publicform input[type=search] {
 form.publicform select {
     max-width: 100%;
 }
+/* the pulldowns a result fills (publicfacetsdraw): one width whatever their options, so the values arriving (the
+   result, then the Others from publicfacetbasefetch) don't re-wrap the form's rows, a layout shift (CLS) */
+form.publicform select:is([name="align"], [name="home"], [name="format"], [name="cardtype"]) {
+    width: 11em;
+}
 div.publicstatus {
     margin: 4px 2px 8px;
     color: #fff;
+}
+/* Most played's status line takes two lines on a phone: held from the search, not grown when the answer lands */
+@media (max-width: 768px) {
+    div.publicstatus.publicstatuscards { min-height: 2lh; }
 }
 span.publicchip {
     display: inline-block;
@@ -3257,6 +3266,8 @@ span.publicformatsource { color: var(--text-6); font-size: small; }
 div.publicaward, div.listaward { color: var(--award); font-weight: bold; }
 div.publicaward svg.feather, div.listaward svg.feather { width: 16px; height: 16px; vertical-align: -2px; }
 label.publicwinner { white-space: nowrap; }
+/* their counts arrive with the results (publicfacetsdraw): room held for "(282)", so the labels don't re-wrap the row (CLS) */
+#publicpreconcount, #publicwinnercount { display: inline-block; min-width: 5ch; }
 /* the deck check at the foot of the list header (template-listcheck): a light strip, so its red and green read */
 div.listviewheader div.listviewcheck { margin: 6px -4px -4px; padding: 2px 8px; background: var(--panel); color: var(--text-1); font-family: var(--font-ui); font-size: medium; border-radius: 0 0 7px 7px; }
 div.liststatslegal { margin: 4px 0 6px; }
