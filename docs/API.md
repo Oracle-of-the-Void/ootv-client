@@ -836,12 +836,14 @@ The card page's Larger image (ootv-search `routes/largeimage.js`). Signed in (Co
 
     GET /largeimage?uid=&database=&cardid=&printingid=[&n=]
 
-`uid` must be the token's user. `n` is the entry in the printing's `image` (default 0). Allowed for a Patreon
-supporter (any tier, free included) or an admin of the game (`*` on it or on every game); anyone else 403.
+`uid` must be the token's user. `n` is the entry in the printing's `image` (default 0). By Patreon tier (the
+highest entitled tier's `cents`, also in `/user`'s `patreon.cents`):
 
-* The entry has `large` (1490 px WebP in `<game>/private/<imagehash>/`, which CloudFront refuses):
-  `{url, size: "large", expires}`, a presigned S3 GET signed at the start of the hour, good for two hours.
-* Else its master: `{url, size: "master"}`, the public URL.
+* Samurai ($5) and up, or an admin of the game (`*` on it or on every game): the entry's `large` (1490 px WebP in
+  `<game>/private/<imagehash>/`, which CloudFront refuses) as `{url, size: "large", expires}`, a presigned S3 GET
+  signed at the start of the hour, good for two hours; an entry without one gets its master.
+* Ashigaru ($2): the master, `{url, size: "master"}` (its public URL), with `larger: true` when the entry has a `large`.
+* Anyone else: 403.
 * 404 for no such card, printing or image; 401 when the token and uid don't match.
 
 ## /loginlog
