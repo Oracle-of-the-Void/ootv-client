@@ -150,3 +150,13 @@ jobs:
             aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION" --id "$id"
           fi
 
+
+      # IndexNow (Bing, Yandex, Seznam, Naver): tell them the homepage changed. Only with an index or all invalidation:
+      # that's the run for a changed index.html (above). The key file is ffaeb898f332c84edc5886cc3fc73822.txt in this
+      # repo (public by design). The browse/ pages are sent by ootv-search prod-ootv-indexnow after each daily build.
+      - name: IndexNow homepage
+        if: github.ref_name == 'master' && steps.target.outputs.invalidate != 'none'
+        run: |
+          curl -sS -w ' HTTP %{http_code}\n' -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d '{"host":"oracleofthevoid.com","key":"ffaeb898f332c84edc5886cc3fc73822","keyLocation":"https://oracleofthevoid.com/ffaeb898f332c84edc5886cc3fc73822.txt","urlList":["https://oracleofthevoid.com/"]}'
