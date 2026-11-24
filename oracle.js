@@ -6885,6 +6885,109 @@ function artphotoallowed() {
   return !!artphotolevel();
 }
 var PATREON_URL = 'https://www.patreon.com/oracleofthevoid';
+
+// ******************** LARGER IMAGE ********************
+// Bigger card pictures by Patreon tier (ootv-claude projects/webp-only-images.md; the user, 2026-11-23: "master for
+// ashigaru+, large for samurai+", paid tiers only). A soft gate: the master files stay public for the PDF export,
+// only the site's views of them are the supporters'. The card page's "Larger image" under each front opens the
+// printing's `large` (1490 px, kept private: GET /largeimage hands out a signed link) for Samurai and up, its master
+// for Ashigaru; Card(L) draws the master for Ashigaru and up (templatecardsides). Anyone else: what it is and how
+// to get it. The API checks again; this only decides what to offer.
+var IMAGETIERCENTS = {'master': 200, 'large': 500};   // Ashigaru $2, Samurai $5 (ootv-claude PATREON.md)
+// 'large' (Samurai and up, or an admin of the game), 'master' (Ashigaru), else null
+function imagetier() {
+  var user = cache_thing("user","data");
+  if(!(user && user.oracle && user.oracle[0])) { return null; }
+  var groups = user.oracle[0].groups || {};
+  if([database,'*'].map(g => groups[g]).some(g => Array.isArray(g) && g.indexOf('*') >= 0)) { return 'large'; }
+  var cents = (user.oracle[0].patreon || {}).cents || 0;
+  return cents >= IMAGETIERCENTS.large ? 'large' : (cents >= IMAGETIERCENTS.master ? 'master' : null);
+}
+function cardzoomlinks(card) {
+  $('#resultcard .printing').each(function() {
+    var pid = $(this).data('printingid');
+    var p = (card.printing || []).find(function(x) { return String(x.printingid) == String(pid); });
+    if(!p || !Array.isArray(p.image)) { return; }
+    $(this).find('.cardside').each(function() {
+      var file = ($(this).find('img.cardsidefront').attr('src') || '').split('/').pop();
+      var n = p.image.findIndex(function(e) { return e && typeof e === 'object' && ['details','select','master'].some(function(k) { return e[k] === file; }); });
+      var e = p.image[n];
+      if(n < 0 || !(e.large || e.master)) { return; }
+      var link = $('<span class="cardzoomlink" role="button" tabindex="0" title="A bigger picture of this card (Patreon supporters)">Larger image</span>')
+        .attr({'data-cardid': card.cardid, 'data-printingid': pid, 'data-n': n});
+      var bar = $(this).children('.cardsidebar');
+      if(!bar.length) {
+        bar = $('<div class="cardsidebar"></div>').insertAfter($(this).find('img.cardsidefront'));
+      }
+      bar.append(link);
+    });
+  });
+}
+// what bigger pictures are and how to get them: the Larger image link and Card(L) for those whose tier hasn't them
+function imagetierpitch(title) {
+  var user = cache_thing("user","data");
+  var loggedin = !!(user && user.oracle && user.oracle[0]);
+  modal(title,
+    '<p><b>Larger images</b> are for our <a href="'+PATREON_URL+'" target="_blank" rel="noopener">Patreon</a> supporters: '+
+      '<b>Ashigaru</b> and up see each card\'s full-size scan (here and in the Large card view), and <b>Samurai</b> and up '+
+      'twice that size again, where we have a big enough scan.</p>'+
+    '<p>Patreon support is what keeps the site running.</p>'+
+    '<p><a class="button gray" href="'+PATREON_URL+'" target="_blank" rel="noopener">Join on Patreon</a>'+
+      (loggedin ? '' : ' <span class="button gray" onclick="dologin();">Log&nbsp;In/Register</span>')+'</p>');
+}
+$(document).on('click keydown', '.cardzoomlink', function(e) {
+  if(e.type == 'keydown' && e.key != 'Enter' && e.key != ' ') { return; }
+  e.preventDefault();
+  var link = $(this);
+  if(!imagetier()) {
+    return imagetierpitch('Larger image');
+  }
+
+  cardzoomshow(null, 'Loading...');
+  $.ajax({
+    url: apiuri+'/largeimage?uid='+getuid()+'&database='+database+'&cardid='+link.data('cardid')+
+      '&printingid='+encodeURIComponent(link.data('printingid'))+'&n='+link.data('n'),
+    dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) {
+      cardzoomshow(data.url, null, data.larger ? 'Samurai supporters and up see this card twice the size.' : '');
+    },
+    error: function(xhr) {
+      cardzoomshow(null, (xhr.responseJSON && xhr.responseJSON.error) || 'The larger image could not be loaded.');
+    }
+  });
+});
+// the full-window viewer: fitted to the window; a click on the picture shows it at full size (scroll to move
+// around) and back; a click beside it, the close button or Escape closes it
+function cardzoomshow(url, text, note) {
+  var box = $('#cardzoom');
+  if(!box.length) {
+    box = $('<div id="cardzoom" role="dialog" aria-label="Larger image"><span class="cardzoomclose" role="button" aria-label="Close">&times;</span>'+
+            '<div class="cardzoomtext"></div><img alt=""><div class="cardzoomnote"></div></div>').appendTo('body');
+    box.on('click', function(e) {
+      if(e.target.tagName == 'IMG') {
+        box.toggleClass('cardzoomfull');
+      } else {
+        cardzoomhide();
+      }
+    });
+    $(document).on('keydown', function(e) { if(e.key == 'Escape' && $('#cardzoom').hasClass('cardzoomon')) { cardzoomhide(); } });
+  }
+  var img = box.find('img');
+  box.removeClass('cardzoomfull').addClass('cardzoomon');
+  box.find('.cardzoomtext').text(text || '').toggle(!!text);
+  box.find('.cardzoomnote').text(note || '').toggle(!!note);
+  img.off('load error').hide();
+  if(url) {
+    box.find('.cardzoomtext').text('Loading...').show();
+    img.on('load', function() { box.find('.cardzoomtext').hide(); img.show(); })
+       .on('error', function() { box.find('.cardzoomtext').text('The larger image could not be loaded.').show(); })
+       .attr('src', url);
+  }
+}
+function cardzoomhide() {
+  $('#cardzoom').removeClass('cardzoomon cardzoomfull').find('img').off('load error').removeAttr('src');
+}
 // the Photo button (shown to everyone): find the card (Search by photo, artphoto.js) or find
 // the artist (an artist check of an uploaded picture, artcheck.js; ootv-claude ARTIST-CHECK.md).
 // Both count against one per-level limit (Admin → Config → Limits), shown at the bottom. Without a
@@ -7736,6 +7839,7 @@ function drawcard(carddata,prid=null,qs=null) {
   var shown = drawn.shown;
   $("#resultcard").html(drawn.html);
   imagesreserve('#resultcard img.cardsidefront');
+  cardzoomlinks(carddata);
   updates[database]('#resultcard');
   var primary = $("#printingprimary").val();
   // Show the printing the link asked for (versioned search links carry it), else the one qs matched, else the primary
@@ -9686,12 +9790,14 @@ function cardbackurl(card, p, side, size) {
     var b = cardbackstandard(card, p);
     return b ? cardbackcardurl((cardbackcards[database] || {})[b.cardid], size) : null;
 }
-// ~cardsides(card, printing) for the card page: one entry per front,
+// ~cardsides(card, printing) for the card page: one entry per front, drawn at Detailed size, or at the master's in
+// Card(L) (~imageclass master) for those whose tier has it (imagetier: Ashigaru and up, admins; the rest keep Detailed),
 //   {front: url, print: "Print 2 of 3" or '', back: null or {own, url, details, cardid, title}}
 // own: true for a back printed with this card, false for the standard back (a card of its own, cardid).
 // A standard back still loading gets url '': its img.cardbackimg[data-backid] is filled in when it arrives.
 function templatecardsides(card, p) {
     var base = dbinfo[database].imageuri + p.imagehash + '/';
+    var size = (this && this.ctxPrm && this.ctxPrm('imageclass') == 'master' && imagetier()) ? 'master' : 'details';
     var sides = printingsides(p), game = database;
     var standard = sides.some(function(s) { return !s.back; }) ? cardbackstandard(card, p) : null;
     var stdback = null;
@@ -9716,9 +9822,9 @@ function templatecardsides(card, p) {
     }
     return sides.map(function(s, i) {
         return {
-            'front': base + (s.front.details || s.front.select || s.front.master),
+            'front': base + (s.front[size] || s.front.details || s.front.select || s.front.master),
             'print': sides.length > 1 ? 'Print '+(i+1)+' of '+sides.length : '',
-            'back': s.back ? {'own': true, 'url': base + (s.back.select || s.back.details), 'details': base + (s.back.details || s.back.select)} : stdback
+            'back': s.back ? {'own': true, 'url': base + (s.back.select || s.back.details), 'details': base + (s.back[size] || s.back.details || s.back.select)} : stdback
         };
     });
 }
@@ -10382,6 +10488,10 @@ function refreshviewdefaults() {
 // About/Directory/Help drive search without re-rendering it (dosearch would jump to the Search tab).
 function setlargeview(large) {
   var type = viewbuttontype();
+  // Card(L) draws the master only for supporters' tiers (imagetier): for anyone else it would look the same
+  if(type == 'card' && large && !imagetier()) {
+    return imagetierpitch('Large card view');
+  }
   var available = templates[database]['available'];
   var active = templates[database]['active'];
   largeview[type] = large;
@@ -11129,8 +11239,9 @@ $(window).on('popstate', function (e) {
 $(document).on('keydown', function ( e ) {
     var altstep = e.altKey && (e.key == "ArrowRight" || e.key == "ArrowLeft") && !$(e.target).closest('input, select, textarea, [contenteditable=true]').length;
     if(e.target.nodeName=='BODY' || altstep) {
-	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it
-	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible"))) {
+	// the card editor uses the arrows for its own instances (cardeditor.js), not the card behind it; nor does the
+	// Larger image viewer, whose Escape closes only itself
+	if($("#resultcard").is(":visible") && !($("#modal").hasClass("cardeditmodal") && $("#modal").is(":visible")) && !$("#cardzoom").hasClass("cardzoomon")) {
 	    if(altstep && $("#cardnext").length) {
 		e.preventDefault();
 	    }
