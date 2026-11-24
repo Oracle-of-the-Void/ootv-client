@@ -5076,7 +5076,7 @@ function liststats(listdata,listid=null) {
     var dynfate = (meta.type == 'deck' || !meta.type) && decks.some(function(d) { return /^(dynasty|fate)$/i.test(d.name); }) ?
 	decksize('dynasty')+'/'+decksize('fate') : '';
     listcheckhtml[listid] = $.templates("#template-listcheck").render({
-	"listid": listid, "legalids": legalids, "listname": meta.name || '', "fatecount": decksize('fate'), "dynastycount": decksize('dynasty'), "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
+	"listid": listid, "legalids": legalids, "legalopen": liststatslegalopen(), "listname": meta.name || '', "fatecount": decksize('fate'), "dynastycount": decksize('dynasty'), "counts": legalids ? deckcounthtml(summary.decks, total, false) : '',
 	"legalformat": meta.legality ? String(meta.legality).replace(/&nbsp;/g,' ').trim() : '',
 	"buildbad": !!(build && build.problems.length), "buildhtml": build ? deckbuildhtml(build)+deckbuildownhtml(meta) : ''});
     return $.templates("#template-liststats").render({"totalcount": total, "dynfate": dynfate,
@@ -5148,6 +5148,8 @@ function liststatslegal() {
 	    } else {
 		bad.hide();
 	    }
+	    el.find('.liststatslegalcount').text(r.cardslegal.length ? r.cardslegal.length+' format'+(r.cardslegal.length == 1 ? '' : 's') :
+		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	    el.find('.liststatslegalvalue').html(r.cardslegal.length ? r.cardslegal.map(function(f) { return '<span class="liststatsformat">'+legalitybug(f)+htmlEncode(f)+'</span>'; }).join('') :
 		'none'+(r.unknown ? ' ('+r.unknown+' card'+(r.unknown==1?'':'s')+' not found)' : ''));
 	};
@@ -5162,8 +5164,19 @@ function liststatslegal() {
 	if(format) { data.format = format; } else { data.name = name; data.fatecount = fate; data.dynastycount = dynasty; }
 	$.ajax({url: apiuri+'/cardslegal', type: 'POST', data: data, dataType: 'json',
 	    success: function(r) { liststatslegalcache[key] = r; cardslegalstore(key, r); show(r); },
-	    error: function() { el.find('.liststatslegalvalue').text('(could not check)'); }});
+	    error: function() { el.find('.liststatslegalvalue, .liststatslegalcount').text('(could not check)'); }});
     });
+}
+// On phones the formats are folded to "n formats", a tap opens them (oracle.css): the line no longer grows from one row
+// to three when a first-opened deck's /cardslegal answers, pushing the deck down (layout shift, CLS 0.1). Open or not is
+// kept for the session.
+function liststatslegalopen() {
+    return cache_session("liststatslegalopen") === true;
+}
+function liststatslegalfold() {
+    var open = !liststatslegalopen();
+    cache_session("liststatslegalopen", open);
+    $('div.liststatslegal').toggleClass('liststatslegalopen', open).find('.liststatslegalcount').attr('aria-expanded', open ? 'true' : 'false');
 }
 // ***********************  deck construction rules **************
 // A soft check shown at the foot of the list header (template-listcheck; docs/admin/deck-construction.md). The game's rules are game config

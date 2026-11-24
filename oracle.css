@@ -3267,6 +3267,17 @@ div.liststatslegal { margin: 4px 0 6px; }
 /* in the header strip the three parts run as one line of phrases, wrapping as needed; a hidden part takes its dot with it */
 div.listviewcheck > div { display: inline; }
 div.listviewcheck > div + div::before { content: " \2022  "; color: var(--text-5); font-weight: normal; }
+/* liststatslegalfold (oracle.js): the count is the phones' folded line; wider screens show the formats themselves */
+div.liststatslegal span.liststatslegalcount { display: none; }
+@media (max-width: 768px) {
+    /* one width for "checking... ▸" and "12 formats ▸": the strip's phrases wrap as one line, so a shorter answer
+       would pull the next phrase up a row (CLS) */
+    div.liststatslegal span.liststatslegalcount { display: inline-block; min-width: 6.5em; cursor: pointer; text-decoration: underline dotted; white-space: nowrap; }
+    div.liststatslegal span.liststatslegalcount::after { content: " \25B8"; }
+    div.liststatslegal.liststatslegalopen span.liststatslegalcount::after { content: " \25BE"; }
+    div.liststatslegal:not(.liststatslegalopen) span.liststatslegalvalue { display: none; }
+    div.liststatslegal.liststatslegalopen span.liststatslegalvalue { display: block; }
+}
 div.liststatslegal span.liststatsformat { display: inline-block; padding: 0 5px; margin: 1px 2px; border: 1px solid var(--good-1); border-radius: 8px; color: var(--good-2); font-size: small; }
 div.liststatsillegal { margin: 4px 0; color: var(--bad-3); font-weight: bold; }
 div.liststatsillegal a, div.liststatsillegal a:visited { color: var(--bad-3); }
