@@ -1,6 +1,6 @@
 # Patreon supporters
 
-Last updated 2026-11-02.
+Last updated 2026-11-23.
 
 Supporters of [our Patreon](https://www.patreon.com/oracleofthevoid) get site privileges by tier.
 The site keeps a list of who supports at which tier, and each feature decides what a tier gets.
@@ -57,8 +57,8 @@ they haven't used Link with Patreon); "unlinked by the user" means they pressed 
 | Tier | Price a month | Photo searches a day | Discord role | Also |
 |---|---|---|---|---|
 | Free | $0 | 1 | none | |
-| Ashigaru | $2 | 5 | Ashigaru Patron | |
-| Samurai | $5 | 25 | Samurai Patron | bigger images, promised for "eventually", not built yet |
+| Ashigaru | $2 | 5 | Ashigaru Patron | full-size card scans (master, 745 px): the Large card view and Larger image |
+| Samurai | $5 | 25 | Samurai Patron | bigger images: Larger image shows the 1490 px `large` where a printing has one |
 | Hatamoto | $10 | 100 | Hatamoto Patron | |
 | Daimyo | $25 | 250 | Daimyo Patron | |
 | Kami (Maker until 2026-11-02) | $50 | 500 | Kami Patron | a game of their choice worked into the Oracle |
@@ -69,6 +69,7 @@ the tier's description on Patreon too.
 | Feature | Where the tiers are set |
 |---|---|
 | Photo: Find the card and Find the artist | Admin → Config → [Limits](limits.md), levels `patreon-<tier>` |
+| Bigger card pictures | By price, not title: the highest entitled tier's cents, 200+ the master, 500+ the `large` (`IMAGETIERCENTS` in `oracle.js`, `MASTER_CENTS`/`LARGE_CENTS` in ootv-search `routes/largeimage.js`); admins of a game get both. Master files stay public for the PDF export; `large` files are in `<game>/private/` and served only by signed links |
 | Discord roles | Patreon's own Discord integration: the role on each tier in Patreon, on the Oracle of the Void server. None of our code reads them |
 
 The tier images on Patreon are built in ootv-assets `patreon/` (Patreon trims them to 460 × 200).
