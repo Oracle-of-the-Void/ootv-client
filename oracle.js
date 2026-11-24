@@ -366,6 +366,7 @@ function logoutcallback() {
     console.log("Not logged in");
     $('#loginfo').html("");
     $('.loginfo').hide()
+    patreonbadge();
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
@@ -638,7 +639,22 @@ function showloginfo(user) {
     var o = user && ("oracle" in user) && user.oracle[0];
     var first = (o && o.firstname) || full.split(/\s+/)[0];
     $('#loginfo').empty().append($('<span class="phonehide">').text(full), $('<span class="phoneonly">').text(first));
+    patreonbadge();
     fitmenubar();
+}
+// the menu bar's Patreon badge (the user, 2026-11-23: "a visible badge as a reminder of the support (with a link
+// to the patreon otherwise)"): a paid tier shows its name, filled (staff: the tier they picked, perkpatreon());
+// anyone else, logged out included, gets the plain Patreon link. Both open our Patreon.
+function patreonbadge() {
+  var user = cache_thing("user","data");
+  var p = perkpatreon(user && user.oracle && user.oracle[0]);
+  var tier = p && p.tiers && p.tiers.length && (p.cents || 0) > 0 ? p.tiers[0] : null;
+  $('#patreonbadge').toggleClass('supporter', !!tier)
+    .attr('title', tier ? 'Thank you for supporting the Oracle on Patreon ('+tier+')' : 'Support the Oracle on Patreon')
+    .find('.patreonbadgetext').text(tier || 'Patreon');
+  // phones have no room beside the name: logged in, it's the first item of the name's menu instead
+  $('li.patreonbadgeitem').toggleClass('loggedin', !!(user && user.oracle && user.oracle[0]));
+  $('li.patreonmenuitem').toggleClass('supporter', !!tier).find('.patreonbadgetext').text(tier ? tier+' supporter' : 'Support us on Patreon');
 }
 // the menubar is one row of floats: while an item is pushed onto a second row, shorten it step by step:
 // first name only, then the game logo without its name (as phones always show them)
@@ -6223,6 +6239,22 @@ function patreonunlink(el) {
   });
 }
 // reread /user (the patreon part changed on the server) into every cached copy
+// staff (a permission on every game) pick the Patreon tier they use the site as (ootv-search lib/stafftier.js):
+// /user?stafftier=<title> saves it and answers with the user
+function savestafftier(el) {
+  var status = $(el).closest('dd').find('.profilestafftierstatus');
+  status.text("Saving...");
+  $.ajax({
+    type: 'GET', url: apiuri+"/user?stafftier="+encodeURIComponent($(el).val()), contentType: 'application/json', dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) { storeoracle(data); status.text("Saved."); },
+    error: function(xhr) { status.text("Not saved: "+((xhr.responseJSON && xhr.responseJSON.error) || "the server didn't answer")); }
+  });
+}
+// the Patreon membership the perks go by: the tier a staff member picked, else their own
+function perkpatreon(oracle) {
+  return (oracle && (oracle.staffpatreon || oracle.patreon)) || null;
+}
 function patreonrefresh() {
   $.ajax({
     type: 'GET', url: apiuri+"/user", contentType: 'application/json', dataType: 'json',
@@ -6873,8 +6905,8 @@ function artsimilarhit(datarequest,hit) {
 
 // Search by photo (artphoto.js, loaded on first use; ootv-search artembed/ and POST /artphoto): the
 // Photo button is a label around a file input, so the picker opens straight from the click.
-// Only for a logged-in user with a permission on this game (any operation in groups[database] or
-// groups['*']) or a Patreon tier (artphotolevel()). Keep it
+// Only for a logged-in user with a permission on this game (any operation in groups[database]) or a
+// Patreon tier (artphotolevel(); staff on every game: the tier they picked). Keep it
 // the same as the API's check, ootv-search artembed/app.py allowed().
 // the user's level for the photo features (Find the card and Find the artist), as ootv-search
 // artembed level() and ootv-admin user(): 'admin' / 'maintainer' (a permission on this game),
@@ -6885,10 +6917,12 @@ function artphotolevel() {
     return null;
   }
   var groups = user.oracle[0].groups || {};
-  var lists = [database,'*'].map(g => groups[g]).filter(Array.isArray);
-  if(lists.some(g => g.indexOf('*') >= 0)) { return 'admin'; }
-  if(lists.some(g => g.length > 0)) { return 'maintainer'; }
-  var patreon = user.oracle[0].patreon;
+  // staff on every game go by the tier they picked (staffpatreon), not as admins
+  if(!user.oracle[0].staffpatreon && Array.isArray(groups[database])) {
+    if(groups[database].indexOf('*') >= 0) { return 'admin'; }
+    if(groups[database].length > 0) { return 'maintainer'; }
+  }
+  var patreon = perkpatreon(user.oracle[0]);
   if(patreon && patreon.tiers && patreon.tiers.length) {
     return 'patreon-'+patreon.tiers[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   }
@@ -6900,21 +6934,44 @@ function artphotoallowed() {
 var PATREON_URL = 'https://www.patreon.com/oracleofthevoid';
 
 // ******************** LARGER IMAGE ********************
-// Bigger card pictures by Patreon tier (ootv-claude projects/webp-only-images.md; the user, 2026-11-23: "master for
+// Bigger card pictures by level (ootv-claude projects/webp-only-images.md; the user, 2026-11-23: "master for
 // ashigaru+, large for samurai+", paid tiers only). A soft gate: the master files stay public for the PDF export,
 // only the site's views of them are the supporters'. The card page's "Larger image" under each front opens the
-// printing's `large` (1490 px, kept private: GET /largeimage hands out a signed link) for Samurai and up, its master
-// for Ashigaru; Card(L) draws the master for Ashigaru and up (templatecardsides). Anyone else: what it is and how
-// to get it. The API checks again; this only decides what to offer.
-var IMAGETIERCENTS = {'master': 200, 'large': 500};   // Ashigaru $2, Samurai $5 (ootv-claude PATREON.md)
-// 'large' (Samurai and up, or an admin of the game), 'master' (Ashigaru), else null
-function imagetier() {
+// printing's `large` (1490 px, kept private: GET /largeimage hands out a signed link) for levels set to large, its
+// master for those set to master; Card(L) draws the master for either (templatecardsides). Anyone else: what it is
+// and how to get it. Which level gets which size is Admin → Config → Limits (all/largeimage, limitsadmin.js;
+// IMAGESIZEDEFAULTS until it's saved). The API checks again (ootv-search routes/largeimage.js); this only decides
+// what to offer.
+var IMAGESIZEDEFAULTS = {'admin': {'size': 'large'}, 'patreon-ashigaru': {'size': 'master'}, 'patreon-samurai': {'size': 'large'},
+                         'patreon-hatamoto': {'size': 'large'}, 'patreon-daimyo': {'size': 'large'}, 'patreon-kami': {'size': 'large'}};
+var imagesizes = null;   // all/largeimage's limits, read once (the defaults meanwhile)
+function imagesizesload() {
+  if(imagesizes) { return; }
+  imagesizes = IMAGESIZEDEFAULTS;
+  $.ajax({url: apiuri+'/structure?database=all&key=largeimage', dataType: 'json'})
+    .done(function(item) { if(item && item.limits) { imagesizes = item.limits; } });
+}
+// 'patreon-' + a tier title (ootv-search lib/stafftier.js tierlevel())
+function tierlevel(title) {
+  return 'patreon-'+String(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+// the levels the user's perks on this game go by (ootv-search lib/stafftier.js perklevels()): staff on every
+// game only the tier they picked; anyone else admin / maintainer of the game, and their own Patreon tier
+function perklevels() {
   var user = cache_thing("user","data");
-  if(!(user && user.oracle && user.oracle[0])) { return null; }
-  var groups = user.oracle[0].groups || {};
-  if([database,'*'].map(g => groups[g]).some(g => Array.isArray(g) && g.indexOf('*') >= 0)) { return 'large'; }
-  var cents = (user.oracle[0].patreon || {}).cents || 0;
-  return cents >= IMAGETIERCENTS.large ? 'large' : (cents >= IMAGETIERCENTS.master ? 'master' : null);
+  if(!(user && user.oracle && user.oracle[0])) { return []; }
+  var o = user.oracle[0], g = (o.groups || {})[database], out = [];
+  if(o.staffpatreon) { return [tierlevel(o.staffpatreon.tiers[0])]; }
+  if(Array.isArray(g) && g.indexOf('*') >= 0) { out.push('admin'); }
+  else if(Array.isArray(g) && g.length) { out.push('maintainer'); }
+  if(o.patreon && o.patreon.tiers && o.patreon.tiers.length) { out.push(tierlevel(o.patreon.tiers[0])); }
+  return out;
+}
+// 'large', 'master' or null: the best size any of the user's levels gets
+function imagetier() {
+  imagesizesload();
+  var got = perklevels().map(function(l) { return (imagesizes[l] || {}).size; });
+  return got.indexOf('large') >= 0 ? 'large' : (got.indexOf('master') >= 0 ? 'master' : null);
 }
 function cardzoomlinks(card) {
   $('#resultcard .printing').each(function() {
@@ -7046,7 +7103,7 @@ function photolimitnote() {
     // "25 photo searches a day (up to 5 a minute)"
     var allowance = (day ? lim.day+' photo search'+(lim.day == 1 ? '' : 'es')+' a day' : 'unlimited photo searches')+
       (minute ? ' (up to '+lim.minute+' a minute)' : '');
-    var user = cache_thing("user","data"), patreon = user.oracle[0].patreon;
+    var user = cache_thing("user","data"), patreon = perkpatreon(user.oracle[0]);
     var text = !lim ? (level.indexOf('patreon-') === 0 ?
         'Photo searches aren\'t set up for your Patreon tier ('+htmlEncode(patreon.tiers[0])+') yet.' :
         'No limit on your photo searches.') :
