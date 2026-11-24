@@ -1,6 +1,6 @@
 # Set import and import profiles
 
-Last updated: 2026-10-18
+Last updated: 2026-11-23
 
 **Admin → Data → Set import (this game)** takes a set's spreadsheet to cards on the live site. It replaces
 `new-set.py`, `proc.sh`/`parse.jq` and `set-import.py` on the jump box (ootv-import STEPS.md).
@@ -163,7 +163,9 @@ Steps go in `fields` too:
 - `{"step": "copytoprinting", "fields": [...], "except": {field: condition}}` copies card
   fields onto the printing.
 - `{"step": "images", "name": "{{imagehash}}_{{row|pad:imagedigits}}", "extra": [{"when": ..., "suffix": "b"}]}`
-  sets `printing.imagehash` and `printing.image` (`_master`, `_details` and `_select` `.png`): one
+  sets `printing.imagehash` and `printing.image` (`_master`, `_details` and `_select` `.webp`; `"ext": "png"` for a
+  set uploaded as PNG before 2026-11-23; `"large": true` adds `_large.webp`, for sets whose scans were wider than
+  the master, which the mass upload reports): one
   name, plus one more for each `extra` whose condition matches. Strongholds in Ivory, Twenty
   Festivals and Onyx have a back side (`b`); Three Dynasties' don't. So the L5R profiles ask with
   a `bool` question `strongholdback` ("Strongholds have a back image (b)"), and the extra's
