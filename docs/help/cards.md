@@ -73,6 +73,16 @@ When a version was printed more than one way (different art or typesetting in th
 each print is shown full size, marked **Print 1 of 2**, **Print 2 of 2**. Each print has its own
 back thumbnail, so a second print is never mistaken for a back.
 
+## Larger image {#larger}
+
+**Larger image** under the card's picture opens a bigger one over the whole window: twice the
+card page's size where we have a big enough scan, otherwise the largest we have. Click the
+picture to see it at full size and scroll around it; click beside it, the × or press Escape to
+close it.
+
+Larger images are for our [Patreon](https://www.patreon.com/oracleofthevoid) supporters: a free
+membership is enough. Log in with the account your Patreon is linked to.
+
 ## Foil {#foil}
 
 A printing that came in foil carries a foil mark, on its Versions button, in its details and in
