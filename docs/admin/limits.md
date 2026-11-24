@@ -1,6 +1,6 @@
-# Limits (photo features)
+# Limits (photo features, larger images)
 
-Last updated 2026-11-01.
+Last updated 2026-11-23.
 
 **Admin → Config → Limits** sets how many times a person may use the photo features, per day (days
 run midnight to midnight UTC) and per minute, by level. **Find the card and Find the artist share
@@ -12,7 +12,7 @@ reread the limits that often.
 |---|---|
 | `admin` | full permission on the game (for Find the artist, also the `artcheck` permission) |
 | `maintainer` | any other permission on the game |
-| `patreon-<tier>` | a Patreon supporter at that tier (`patreon-free`, `patreon-ashigaru`, `patreon-samurai`, `patreon-hatamoto`, `patreon-daimyo`, `patreon-kami`); see [Search by photo](art-search.md) |
+| `patreon-<tier>` | a Patreon supporter at that tier (`patreon-free`, `patreon-ashigaru`, `patreon-samurai`, `patreon-hatamoto`, `patreon-daimyo`, `patreon-kami`); see [Search by photo](art-search.md). Staff with a permission on every game get only the tier they picked under Settings → Account → Patreon (Daimyo until they pick), not `admin`/`maintainer`: [Patreon supporters](patreon.md) "Staff tier" |
 
 Someone with none of these can't use either feature. A supporter is tied to their account in
 `oracle-all-patreon` (by email, kept current by Patreon's webhooks; ootv-claude `PATREON.md`).
@@ -31,3 +31,16 @@ Where they live: `oracle-all-structure`, database `all`, key `artphoto`, field `
 `admin/artcheck.mjs` (Find the artist). Both count in `oracle-all-artquery` (`rate#<uid>#<day or
 minute>`). The old `all/artcheck` item (separate Find the artist limits, until 2026-10-23) is no
 longer read.
+
+## Larger image
+
+The second table sets which bigger card picture each level gets: the card page's **Larger image**
+and the **Large card view**. **Master** is the full-size scan (745 px), **Large** the 1490 px image
+where a printing has one (else the master), **Neither** shows the Patreon pitch. Someone with more
+than one level (a game maintainer who is also a supporter) gets the best of them. Until it's first
+saved, the defaults are: admin and Samurai and up large, Ashigaru master, everyone else neither.
+
+Where it lives: `oracle-all-structure`, database `all`, key `largeimage`, field `limits`:
+`{<level>: {size: "master" | "large"}}`, read by ootv-search `routes/largeimage.js` (every 5
+minutes) and the site (once per page load). The pitch text in `oracle.js` `imagetierpitch()` names
+the tiers: change it with the sizes.

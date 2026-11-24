@@ -38,7 +38,7 @@ leaves them alone; only Link with Patreon ties them again.
 
 Staff with a permission on every game (`groups['*']` lists anything; the user list in Admin → Users)
 get **Use the site as** under Settings → Account → Patreon: the Patreon tier whose perks they get,
-**Daimyo** until they pick one. It replaces their admin level for the Patreon perks, photo searches
+**Daimyo** until they pick one. It replaces their admin level for the Patreon perks set in Limits, photo searches
 and Larger image, so they see the site as that tier's supporters do; their other permissions don't
 change. A creator's own Patreon account isn't a member of the campaign, so it can't be linked: this
 is how the creator and the other staff get a tier. Kept in the user row's `stafftier`; the tiers are
@@ -79,17 +79,17 @@ the tier's description on Patreon too.
 | Feature | Where the tiers are set |
 |---|---|
 | Photo: Find the card and Find the artist | Admin → Config → [Limits](limits.md), levels `patreon-<tier>` |
-| Bigger card pictures | By price, not title: the highest entitled tier's cents, 200+ the master, 500+ the `large` (`IMAGETIERCENTS` in `oracle.js`, `MASTER_CENTS`/`LARGE_CENTS` in ootv-search `routes/largeimage.js`); admins of a game get both. Master files stay public for the PDF export; `large` files are in `<game>/private/` and served only by signed links |
+| Bigger card pictures | Admin → Config → [Limits](limits.md), the Larger image table (levels `patreon-<tier>`; admins of a game get large by default). Master files stay public for the PDF export; `large` files are in `<game>/private/` and served only by signed links |
 | Discord roles | Patreon's own Discord integration: the role on each tier in Patreon, on the Oracle of the Void server. None of our code reads them |
 
 The tier images on Patreon are built in ootv-assets `patreon/` (Patreon trims them to 460 × 200).
 
 ## Adding or renaming a tier
 
-1. Add its `patreon-<title>` level in Limits first: a supporter on a tier with no level is refused photo search.
+1. Add its `patreon-<title>` level in Limits first (photo searches and, if it gets one, its larger image): a supporter on a tier with no level is refused photo search.
 2. Create its `<Tier> Patron` role on Discord, below Patreon's bot role, which can't assign a role above its own.
 3. Create or rename the tier on Patreon, with the exact title, and pick its role.
-4. Name it in `limitsadmin.js`, here, in [Limits](limits.md), [Search by photo](art-search.md) and help `searching.md`.
+4. Name it in `limitsadmin.js` (both tables), here, in [Limits](limits.md), [Search by photo](art-search.md), help `searching.md`, and in the staff tiers (ootv-search `lib/stafftier.js`, artembed `STAFF_TIERS`).
 5. After a rename, remove the old level from Limits.
 
 ## Discord and the Oracle are separate ties
