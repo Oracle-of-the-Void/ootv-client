@@ -366,13 +366,17 @@
         p[f] = ctx.card[f];
       });
     },
-    // printing.imagehash and printing.image: [{master, details, select}] named from a template,
-    // plus extra images (a stronghold's back) when their condition holds
+    // printing.imagehash and printing.image: [{master, details, select[, large]}] named from a template,
+    // plus extra images (a stronghold's back) when their condition holds. WebP by default (card images are
+    // WebP only, ootv-claude projects/webp-only-images.md; ext is for profiles of sets uploaded before);
+    // large: true names <name>_large.webp too, for sets whose scans are wider than the master (the mass
+    // upload says which got one; the import's check finds any missing)
     images: function(step, ctx) {
       var p = ctx.card.printing[0];
       var base = render(step.name, ctx);
-      var ext = step.ext || 'png';
-      var one = sfx => ({details: base+sfx+'_details.'+ext, select: base+sfx+'_select.'+ext, master: base+sfx+'_master.'+ext});
+      var ext = step.ext || 'webp';
+      var one = sfx => Object.assign({details: base+sfx+'_details.'+ext, select: base+sfx+'_select.'+ext, master: base+sfx+'_master.'+ext},
+                                     step.large && ext == 'webp' ? {large: base+sfx+'_large.webp'} : {});
       p.imagehash = render(step.imagehash || '{{imagehash}}', ctx);
       p.image = [one('')].concat((step.extra || []).filter(x => !x.when || condition(x.when, ctx)).map(x => one(x.suffix)));
     }

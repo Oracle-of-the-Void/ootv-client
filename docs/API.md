@@ -788,8 +788,11 @@ inputs: JSON
 * imagehash (required)
   * the directory under the game's imageuri: one name, letters, digits, `_` or `-`
 * files (required): 1-10 of `{name, contentType}`
-  * name must end `_master`, `_details` or `_select`, with `.png`, `.jpg` or `.jpeg`
-  * contentType must match (`image/png` or `image/jpeg`)
+  * name must end `_master`, `_details`, `_select` or `_large`, with `.webp` (card images are WebP only since
+    2026-11-23); a `_large` file goes to `<database>/private/<imagehash>/` (Patreon only, see `/largeimage`)
+  * contentType `image/webp`
+  * every URL signs `x-amz-meta-webp: original` (in the returned headers): it keeps the WebP Lambda from
+    replacing or deleting the file as its copy of a PNG
 * overwrite (optional)
   * without it, `If-None-Match: *` is signed into the URL and S3 refuses (412) to replace an existing file
   * with it, each file that already exists is first copied to `<name>.bak-<UTC time>.<ext>` in the same

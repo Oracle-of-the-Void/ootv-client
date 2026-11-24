@@ -641,16 +641,18 @@ proxies and public decklists, for:</p>
 <!-- admin mass image upload (loadmassimage, massimagetrigger): the result rows are built in oracle.js -->
 <script id="template-massimage" type="text/jsrender">
   <h3>Mass image upload: {{>name}}</h3>
-  <p>Each image goes to <code>{{>imageuri}}<i>stub</i>/</code> as <code><i>name</i>_master.png</code> (or <code>.jpg</code>),
-    with <code>_details</code> and <code>_select</code> made the same way as the card editor's image upload.
-    Files already named <code>_master</code> keep the name; <code>_details</code>/<code>_select</code> files are skipped.
+  <p>Each image goes to <code>{{>imageuri}}<i>stub</i>/</code> as WebP: <code><i>name</i>_master.webp</code> (745 on the short side),
+    <code>_details</code> and <code>_select</code>, the same way as the card editor's image upload, plus <code>_large.webp</code>
+    (1490 on the short side, for Patreon supporters, kept in a private folder) when the picture is bigger than the master.
+    Files already named <code>_master</code> keep the name; <code>_details</code>/<code>_select</code>/<code>_large</code> files are skipped.
     No card is changed: point printings at the files with the set import or the card editor.
-    Card images are PNG, with the area outside rounded corners transparent; JPEG is accepted.
+    Upload the biggest scan you have (PNG, JPEG or WebP), with the area outside rounded corners transparent.
+    Needs Chrome, Edge or Firefox (Safari can't make WebP).
     Check files lists anything irregular before anything is uploaded.</p>
   <input type="hidden" id="massimagedb" value="{{>database}}" />
   <p>Stub <input type="text" id="massimagestub" size="12" placeholder="e.g. CRIII" onchange="massimagereset()" /> the directory, usually the set's initials</p>
   <p>Folder <input type="file" id="massimagedir" webkitdirectory multiple onchange="massimagereset()" /><br />
-    or files <input type="file" id="massimagefiles" accept="image/png,image/jpeg" multiple onchange="massimagereset()" /></p>
+    or files <input type="file" id="massimagefiles" accept="image/png,image/jpeg,image/webp" multiple onchange="massimagereset()" /></p>
   <p><label><input type="checkbox" id="massimageoverwrite" onchange="massimagereset()" /> Replace existing files (the old ones are kept as backups)</label></p>
   <input type="button" id="massimagecheck" value="Check files" onclick="massimagecheck();" />
   <input type="button" id="massimagestop" value="Stop" onclick="massimagestop();" style="display: none" />

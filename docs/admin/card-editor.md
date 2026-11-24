@@ -1,6 +1,6 @@
 # Card editor
 
-Last updated: 2026-10-30
+Last updated: 2026-11-23
 
 The **Edit** button at the top right of a card (shown to anyone with an edit permission on the
 game) opens one editor for the whole card: its own fields, every instance (printing), and which
@@ -72,11 +72,11 @@ stay on the server). **Close** (or clicking outside the box) asks before throwin
   editor to pick the file, directory and file name. The upload goes to S3 straight away, but the
   image joins the instance only in the editor: when it's done the box closes, and you Commit to
   save it on the card. The box can't be closed while an upload is running.
-- Card images are PNGs with transparent rounded corners, cut at the card's edge (no inset), the full-size image at
-  most 745 px on its short side. Every L5R image was brought to that on 2026-11-06: worn edges and corners cleaned up
-  from the set's other cards, and the old `.jpg` files replaced by `.png` files of the same name (each card updated,
-  one bulk update per batch of sets in the update log; old `.jpg` links redirect to the `.png`). Upload new images
-  the same way.
+- Card images are WebP only (since 2026-11-23), with transparent rounded corners, cut at the card's edge (no inset).
+  Upload the biggest scan you have (PNG, JPEG or WebP): the upload makes `_master` (745 px on the short side), `_details` (600 px
+  long side), `_select` (210 px), and `_large` (1490 px on the short side, for Patreon supporters, kept in a private folder) when the
+  scan is bigger than that. It needs Chrome, Edge or Firefox: Safari can't make WebP. Older images are still PNG or
+  JPG (L5R's were cleaned up and made PNG on 2026-11-06) until their game is converted.
 - **Delete card** asks, then deletes the card immediately rather than on commit.
 
 ## Commit
