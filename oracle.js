@@ -2991,8 +2991,10 @@ function resizeimage(resizer,bitmap,w,h,mime,quality) {
 // Card images are WebP only (ootv-claude projects/webp-only-images.md; the same sizes as ootv-tools
 // lib/cardimages.py and ootv-import's set import): master 745 on the short side q90 (the cap, the user
 // 2026-10-28), details and select fitted inside 600 and 210 q80, and large 1490 on the short side q70
-// (Patreon only, kept in <game>/private/ by /upload), made only from a picture whose short side is over
-// the master's. Nothing is enlarged; transparency is kept.
+// (Patreon only, kept in <game>/private/ by /upload), made only from a picture whose short side is at least
+// 1.1x the master's, 820 (the user, 2026-11-23: ">= 1.1x"; lib/cardimages.py LARGE_FROM). Nothing is enlarged;
+// transparency is kept.
+var CARDIMAGELARGEFROM = 820;
 var CARDIMAGESIZES = {
   "master": {"short": 745, "q": 0.90},
   "details": {"w": 600, "h": 600, "q": 0.80},
@@ -3018,7 +3020,7 @@ var WEBPNEEDED = 'This browser can\'t make WebP images, and card images are WebP
 // every size of one picture: [{name, blob, size}], large only when the picture's short side is over the master's
 function cardimagefiles(resizer,bitmap,names) {
   var short = Math.min(bitmap.width, bitmap.height);
-  var sizes = Object.keys(CARDIMAGESIZES).filter(k => k != 'large' || short > CARDIMAGESIZES.master.short);
+  var sizes = Object.keys(CARDIMAGESIZES).filter(k => k != 'large' || short >= CARDIMAGELARGEFROM);
   return sizes.reduce(function(prev,k) {
     return prev.then(function(files) {
       var z = CARDIMAGESIZES[k];
