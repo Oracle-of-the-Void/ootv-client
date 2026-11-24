@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+# Admin -> Set import's preview window: an empty page outside the app (Bing Site Scan flagged its title, description and h1)
+Disallow: /setimport-preview.html
 
 Sitemap: https://oracleofthevoid.com/browse/sitemap.xml
