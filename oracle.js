@@ -13325,7 +13325,7 @@ function publicsearch(page=0, qs=null, replace=false) {
   }
   var query = publicquery();
   publicfacetsearly();
-  $("#publicstatus").text('Searching...');
+  $("#publicstatus").text('Searching...').toggleClass('publicstatuscards', ($('#publicform [name="group"]').val() || '') == 'cards');
   publicseq++;
   publicfetch(query, 0, function(data) {
     lastpublicquery = query;
@@ -13462,7 +13462,11 @@ function publicfacetoptions(name, facet, label) {
   opts += !rest.length ? here :
     (here ? '<optgroup label="In these results">'+here+'</optgroup>' : '')+'<optgroup label="Others">'+rest.map(function(v) { return option(v); }).join('')+'</optgroup>';
   el.html(opts).val(current || '');
-  el.toggle(!!current || found.length > 0 || rest.length > 0);
+  // Type is shown or not by publicquery, per view; Card type on Most played only. publicfacetbasefetch redraws every
+  // pulldown drawn before, so showing them here would put one in the wrong view, for a frame at least (a layout shift)
+  if(name != 'type') {
+    el.toggle(name == 'cardtype' && publicfacetkey().indexOf('cards') != 0 ? false : !!current || found.length > 0 || rest.length > 0);
+  }
 }
 // the filter pulldowns and counts from a result's facets. The last ones drawn are kept per game and view
 // (publicfacetkey), and publicsearch draws them before its request goes out: the form has its final rows from the
@@ -13479,7 +13483,6 @@ function publicfacetsdraw(facets, cards) {
         $(this).text($(this).text().replace(this.value, listtypes[this.value]));
       }
     });
-    $('#publicform [name="type"]').toggle(!!publicextra.owner || publicmine());   // decks only, unless it's one person's lists
   }
   // the home card filters (game config publiclists.home {type, align}; ootv-search deriveHome): the deck's one card of
   // that type (home), and its align field (align), each named by the game's own words
@@ -13504,9 +13507,21 @@ function publicfacetsearly() {
     return;
   }
   publicfacetsdrawn[key] = true;
+  var cards = key.indexOf('cards') == 0;
   var facets = cache_thing("publicfacets", key);
   if(facets) {
-    publicfacetsdraw(facets, key.indexOf('cards') == 0);
+    publicfacetsdraw(facets, cards);
+    return;
+  }
+  // nothing remembered (a first visit): the pulldowns a result brings, empty but in place, so the form doesn't grow
+  // when it arrives: the home card filters the game config names, Format, and Card type on Most played
+  var home = (((gameconfig[database] || {}).game || {}).publiclists || {}).home || {};
+  publicfacetsdraw({}, cards);
+  $('#publicform [name="format"]').show();
+  $('#publicform [name="align"]').toggle(!!home.align);
+  $('#publicform [name="home"]').toggle(!!home.type);
+  if(cards) {
+    $('#publicform [name="cardtype"]').show();
   }
 }
 function renderpublic(data, append) {

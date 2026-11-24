@@ -54,7 +54,7 @@ or tests. The files in this directory are exactly what gets served.
   Google's real-user CLS (CrUX, 2026-11-16: 0.54 phone, 0.18 desktop) comes mostly from **using** the app, not from loads (0.000–0.014):
   anything that changes the page after a request or a slow re-draw counts once it lands more than 0.5s after the tap. So what a
   response will add is drawn before the request goes out where it can be known: the Public lists filters are the last ones drawn
-  for that game and view (`publicfacetsearly`, `publicfacetsremember`); a deck's "All cards legal for" formats come from the
+  for that game and view (`publicfacetsearly`, `publicfacetsremember`), and on a first visit the ones the game config promises, empty (Format, `publiclists.home`'s, Card type), at one fixed width, with room held for the Pre-constructed/Tournament counts; a deck's "All cards legal for" formats come from the
   browser's day-old copy of `/cardslegal` (`cardslegalstored`); a logged-in user's saved views apply before the first draw, from
   another game's cached user if this game has none (`usercacheseed`). Measure with Playwright on a phone at 4× CPU (and 10×) and a
   slow network, a `layout-shift` PerformanceObserver, after load *and* after taps through the views (search, Visual, Large, Deck view,
