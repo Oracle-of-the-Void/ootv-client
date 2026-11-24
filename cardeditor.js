@@ -376,9 +376,9 @@ function cardedituploadopen() {
   var up = imageuploaddefaults(cardedit.cardid,p.printingid,p);
   $('#cardeditupload-title').text('Upload image: instance '+p.printingid);
   $('#cardeditupload-content').html('<div class="cardedituploadform">'+
-    '<div><input type="file" id="editimagefile" accept="image/png,image/jpeg" /></div>'+
+    '<div><input type="file" id="editimagefile" accept="image/png,image/jpeg,image/webp" /></div>'+
     '<div>Directory <input type="text" id="editimagehash" size="12" value="'+htmlEncode(up.imagehash)+'"'+(up.locked ? ' readonly title="All images of an instance share its directory"' : '')+' /></div>'+
-    '<div>File name <input type="text" id="editimagestem" size="16" value="'+htmlEncode(up.stem)+'" />_master / _details / _select</div>'+
+    '<div>File name <input type="text" id="editimagestem" size="16" value="'+htmlEncode(up.stem)+'" />_master / _details / _select / _large .webp</div>'+
     '<div><label><input type="checkbox" id="editimageoverwrite" /> Replace existing files</label></div>'+
     '<div><input type="button" id="editimagebutton" value="Upload image" onclick="uploadimagetrigger();" /> '+
     '<input type="button" value="Cancel" onclick="cardedituploadclose();" /></div>'+

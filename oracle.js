@@ -2963,13 +2963,58 @@ function loadpica(callback,fail) {
 
 // Fit within w x h without enlarging, Lanczos3 + unsharp, like
 // ootv-import/SCRIPTS/imagemogrify-generic.sh (convert -resize WxH -unsharp 0x.5).
-function resizeimage(resizer,bitmap,w,h,mime) {
+function resizeimage(resizer,bitmap,w,h,mime,quality) {
   var scale = Math.min(w/bitmap.width, h/bitmap.height, 1);
   var canvas = document.createElement('canvas');
   canvas.width = Math.max(1,Math.round(bitmap.width*scale));
   canvas.height = Math.max(1,Math.round(bitmap.height*scale));
   return resizer.resize(bitmap, canvas, {filter: 'lanczos3', unsharpAmount: 100, unsharpRadius: 0.5, unsharpThreshold: 0})
-    .then(c => resizer.toBlob(c, mime, 0.92));
+    .then(c => resizer.toBlob(c, mime, quality || 0.92));
+}
+
+// Card images are WebP only (ootv-claude projects/webp-only-images.md; the same sizes as ootv-tools
+// lib/cardimages.py and ootv-import's set import): master 745 on the short side q90 (the cap, the user
+// 2026-10-28), details and select fitted inside 600 and 210 q80, and large 1490 on the short side q70
+// (Patreon only, kept in <game>/private/ by /upload), made only from a picture whose short side is over
+// the master's. Nothing is enlarged; transparency is kept.
+var CARDIMAGESIZES = {
+  "master": {"short": 745, "q": 0.90},
+  "details": {"w": 600, "h": 600, "q": 0.80},
+  "select": {"w": 210, "h": 210, "q": 0.80},
+  "large": {"short": 1490, "q": 0.70}
+};
+function cardimagenames(stem) {
+  var names = {};
+  Object.keys(CARDIMAGESIZES).forEach(k => { names[k] = stem+'_'+k+'.webp'; });
+  return names;
+}
+// whether this browser's canvas makes WebP (Safari's doesn't: it hands back a PNG)
+function webpencodes() {
+  try {
+    var c = document.createElement('canvas');
+    c.width = c.height = 1;
+    return c.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  } catch(e) {
+    return false;
+  }
+}
+var WEBPNEEDED = 'This browser can\'t make WebP images, and card images are WebP only: use Chrome, Edge or Firefox.';
+// every size of one picture: [{name, blob, size}], large only when the picture's short side is over the master's
+function cardimagefiles(resizer,bitmap,names) {
+  var short = Math.min(bitmap.width, bitmap.height);
+  var sizes = Object.keys(CARDIMAGESIZES).filter(k => k != 'large' || short > CARDIMAGESIZES.master.short);
+  return sizes.reduce(function(prev,k) {
+    return prev.then(function(files) {
+      var z = CARDIMAGESIZES[k];
+      // a short-side size is a box as long as the picture on its long side
+      var w = z.short ? (bitmap.width <= bitmap.height ? z.short : 100000) : z.w;
+      var h = z.short ? (bitmap.width <= bitmap.height ? 100000 : z.short) : z.h;
+      return resizeimage(resizer,bitmap,w,h,'image/webp',z.q).then(function(b) {
+        if(b.type != 'image/webp') { throw new Error(WEBPNEEDED); }
+        return files.concat([{"name": names[k], "blob": b, "size": k}]);
+      });
+    });
+  }, Promise.resolve([]));
 }
 
 // Presigned PUT URLs from /upload for at most 10 files of one directory:
@@ -3053,11 +3098,11 @@ function uploadimagetrigger() {
     status('This instance keeps its images in "'+htmlEncode(printing.imagehash)+'"; new images have to go there too.',1); return;
   }
   if(!file) { status('Choose an image file first.',1); return; }
-  if(file.type != 'image/png' && file.type != 'image/jpeg') { status('The image must be PNG or JPEG.',1); return; }
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)) { status('The image must be PNG, JPEG or WebP.',1); return; }
+  if(!webpencodes()) { status(WEBPNEEDED,1); return; }
   if(!hash.match(/^[A-Za-z0-9_-]+$/)) { status('Directory: letters, digits, _ or - only.',1); return; }
   if(!stem.match(/^[A-Za-z0-9_.-]+$/)) { status('File name: letters, digits, _ . or - only.',1); return; }
-  var ext = (file.type == 'image/png') ? 'png' : 'jpg';
-  var names = {"master": stem+'_master.'+ext, "details": stem+'_details.'+ext, "select": stem+'_select.'+ext};
+  var names = cardimagenames(stem);
   if(!overwrite && existing.some(e => e.master == names.master)) {
     status('This instance already has '+htmlEncode(names.master)+'. Change the file name, or tick "Replace existing files".',1); return;
   }
@@ -3085,11 +3130,10 @@ function uploadimagetrigger() {
   new Promise(function(resolve,reject) { loadpica(resolve); })
     .then(function() { return createImageBitmap(file); })
     .then(function(bitmap) {
-      var resizer = pica();
-      files.push({"name": names.master, "blob": file});
-      return resizeimage(resizer,bitmap,1000,600,file.type)
-        .then(function(b) { files.push({"name": names.details, "blob": b}); return resizeimage(resizer,bitmap,1000,210,file.type); })
-        .then(function(b) { files.push({"name": names.select, "blob": b}); });
+      return cardimagefiles(pica(),bitmap,names).then(function(made) {
+        files = made;
+        if(!made.some(f => f.size == 'large')) { delete names.large; }
+      }).finally(function() { bitmap.close(); });
     })
     .then(function() {
       status('Uploading...');
@@ -3145,20 +3189,19 @@ function loadmassimage() {
                                                                    "imageuri": dbinfo[database].imageuri}));
 }
 
-// What a chosen file uploads as: name.png -> name_master.png (a name already ending _master keeps it).
-// Characters other than letters, digits, _ . - become _. _details/_select files are skipped,
-// since they're made from the master.
+// What a chosen file uploads as: name.png -> name_master.webp, name_details.webp, ... (cardimagenames; a name
+// already ending _master keeps its stem). Characters other than letters, digits, _ . - become _.
+// _details/_select/_large files are skipped, since they're made from the master.
 function massimageitem(file) {
   var item = {"file": file};
-  var m = /^(.*?)(_master|_details|_select)?\.(png|jpe?g)$/i.exec(file.name);
-  if(file.type != 'image/png' && file.type != 'image/jpeg') { item.skip = 'not a PNG or JPEG'; }
+  var m = /^(.*?)(_master|_details|_select|_large)?\.(png|jpe?g|webp)$/i.exec(file.name);
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)) { item.skip = 'not a PNG, JPEG or WebP'; }
   else if(!m) { item.skip = 'the extension doesn\'t match the file type'; }
   else if(m[2] && m[2].toLowerCase() != '_master') { item.skip = 'made from the master, so not uploaded'; }
   else {
     var stem = m[1].replace(/[^A-Za-z0-9_.-]/g,'_');
     if(stem != m[1]) { item.renamed = true; }
-    var ext = (file.type == 'image/png') ? 'png' : 'jpg';
-    item.names = {"master": stem+'_master.'+ext, "details": stem+'_details.'+ext, "select": stem+'_select.'+ext};
+    item.names = cardimagenames(stem);
   }
   return item;
 }
@@ -3288,6 +3331,7 @@ function massimagecheck() {
   var status = function(msg,err) { $('#massimagestatus').html('<span'+(err?' class="error"':'')+'>'+msg+'</span>'); };
   massimagereset();
   if(!stub.match(/^[A-Za-z0-9_-]+$/)) { status('Stub: letters, digits, _ or - only.',1); return; }
+  if(!webpencodes()) { status(WEBPNEEDED,1); return; }
   var chosen = Array.from($('#massimagedir')[0].files).concat(Array.from($('#massimagefiles')[0].files))
     .filter(f => !f.name.startsWith('.'));
   if(!chosen.length) { status('Choose a folder or some image files first.',1); return; }
@@ -3313,7 +3357,7 @@ function massimagecheck() {
       var c = cornerinfo(bitmap);
       bitmap.close();
       if(c.rounded && item.file.type == 'image/jpeg') {
-        item.corners = 'JPEG with rounded corners: PNG with the corners transparent is preferred';
+        item.corners = 'JPEG with rounded corners: PNG or WebP with the corners transparent is preferred';
       } else if(c.rounded) {
         item.corners = 'rounded corners that aren\'t transparent: make the area outside the corners transparent';
       }
@@ -3360,7 +3404,7 @@ function massimagereport(plan) {
   var irregular = li(renamed, 'renamed: characters other than letters, digits, _ . - become _')+
     li(replacing.length, 'replace images already there ('+replacing.reduce((n,i) => n+i.replace.length,0)+' files). '+
        'Each old file is kept as <i>name</i>.bak-<i>time</i> and listed in the image trash.')+
-    li(corners, 'have rounded corners that aren\'t transparent. PNG with the area outside the corners transparent is '+
+    li(corners, 'have rounded corners that aren\'t transparent. PNG or WebP with the area outside the corners transparent is '+
        'preferred for cards with rounded corners (JPEG can\'t be transparent).')+
     li(skipped, 'skipped (see the list)');
   html += irregular ? '<p>Irregularities:</p><ul>'+irregular+'</ul>' : '<p>No irregularities.</p>';
@@ -3388,19 +3432,18 @@ function massimageupload() {
   $('#massimagereport').empty();
   $('#massimagestop').show();
   var todo = plan.todo, done = 0;
-  // 3 images (9 files) per /upload call, its limit being 10 files
+  // 2 images (up to 8 files: master, details, select, large) per /upload call, its limit being 10 files
   var groups = [];
-  for (let i = 0; i < todo.length; i += 3) { groups.push(todo.slice(i,i+3)); }
+  for (let i = 0; i < todo.length; i += 2) { groups.push(todo.slice(i,i+2)); }
   var dogroup = function(group) {
     var files = [];
     return Promise.all(group.map(function(item) {
       return createImageBitmap(item.file).then(function(bitmap) {
-        var resizer = pica();
-        var mine = [{"name": item.names.master, "blob": item.file, "item": item, "size": 'master'}];
-        return resizeimage(resizer,bitmap,1000,600,item.file.type)
-          .then(function(b) { mine.push({"name": item.names.details, "blob": b, "item": item, "size": 'details'}); return resizeimage(resizer,bitmap,1000,210,item.file.type); })
-          .then(function(b) { mine.push({"name": item.names.select, "blob": b, "item": item, "size": 'select'}); files = files.concat(mine); })
-          .finally(function() { bitmap.close(); });
+        return cardimagefiles(pica(),bitmap,item.names).then(function(mine) {
+          mine.forEach(f => { f.item = item; });
+          if(!mine.some(f => f.size == 'large')) { delete item.names.large; }
+          files = files.concat(mine);
+        }).finally(function() { bitmap.close(); });
       }).catch(function(e) {
         item.result = 'failed';
         item.message = 'could not read or resize the image: '+(e.message || e);
