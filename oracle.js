@@ -6210,6 +6210,22 @@ function patreonunlink(el) {
   });
 }
 // reread /user (the patreon part changed on the server) into every cached copy
+// staff (a permission on every game) pick the Patreon tier they use the site as (ootv-search lib/stafftier.js):
+// /user?stafftier=<title> saves it and answers with the user
+function savestafftier(el) {
+  var status = $(el).closest('dd').find('.profilestafftierstatus');
+  status.text("Saving...");
+  $.ajax({
+    type: 'GET', url: apiuri+"/user?stafftier="+encodeURIComponent($(el).val()), contentType: 'application/json', dataType: 'json',
+    beforeSend: function(xhr){xhr.setRequestHeader('Authorization', getidtoken());},
+    success: function(data) { storeoracle(data); status.text("Saved."); },
+    error: function(xhr) { status.text("Not saved: "+((xhr.responseJSON && xhr.responseJSON.error) || "the server didn't answer")); }
+  });
+}
+// the Patreon membership the perks go by: the tier a staff member picked, else their own
+function perkpatreon(oracle) {
+  return (oracle && (oracle.staffpatreon || oracle.patreon)) || null;
+}
 function patreonrefresh() {
   $.ajax({
     type: 'GET', url: apiuri+"/user", contentType: 'application/json', dataType: 'json',
@@ -6860,8 +6876,8 @@ function artsimilarhit(datarequest,hit) {
 
 // Search by photo (artphoto.js, loaded on first use; ootv-search artembed/ and POST /artphoto): the
 // Photo button is a label around a file input, so the picker opens straight from the click.
-// Only for a logged-in user with a permission on this game (any operation in groups[database] or
-// groups['*']) or a Patreon tier (artphotolevel()). Keep it
+// Only for a logged-in user with a permission on this game (any operation in groups[database]) or a
+// Patreon tier (artphotolevel(); staff on every game: the tier they picked). Keep it
 // the same as the API's check, ootv-search artembed/app.py allowed().
 // the user's level for the photo features (Find the card and Find the artist), as ootv-search
 // artembed level() and ootv-admin user(): 'admin' / 'maintainer' (a permission on this game),
@@ -6872,10 +6888,12 @@ function artphotolevel() {
     return null;
   }
   var groups = user.oracle[0].groups || {};
-  var lists = [database,'*'].map(g => groups[g]).filter(Array.isArray);
-  if(lists.some(g => g.indexOf('*') >= 0)) { return 'admin'; }
-  if(lists.some(g => g.length > 0)) { return 'maintainer'; }
-  var patreon = user.oracle[0].patreon;
+  // staff on every game go by the tier they picked (staffpatreon), not as admins
+  if(!user.oracle[0].staffpatreon && Array.isArray(groups[database])) {
+    if(groups[database].indexOf('*') >= 0) { return 'admin'; }
+    if(groups[database].length > 0) { return 'maintainer'; }
+  }
+  var patreon = perkpatreon(user.oracle[0]);
   if(patreon && patreon.tiers && patreon.tiers.length) {
     return 'patreon-'+patreon.tiers[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   }
@@ -6894,13 +6912,14 @@ var PATREON_URL = 'https://www.patreon.com/oracleofthevoid';
 // for Ashigaru; Card(L) draws the master for Ashigaru and up (templatecardsides). Anyone else: what it is and how
 // to get it. The API checks again; this only decides what to offer.
 var IMAGETIERCENTS = {'master': 200, 'large': 500};   // Ashigaru $2, Samurai $5 (ootv-claude PATREON.md)
-// 'large' (Samurai and up, or an admin of the game), 'master' (Ashigaru), else null
+// 'large' (Samurai and up, or an admin of the game), 'master' (Ashigaru), else null; staff on every game go
+// by the tier they picked (staffpatreon)
 function imagetier() {
   var user = cache_thing("user","data");
   if(!(user && user.oracle && user.oracle[0])) { return null; }
   var groups = user.oracle[0].groups || {};
-  if([database,'*'].map(g => groups[g]).some(g => Array.isArray(g) && g.indexOf('*') >= 0)) { return 'large'; }
-  var cents = (user.oracle[0].patreon || {}).cents || 0;
+  if(!user.oracle[0].staffpatreon && Array.isArray(groups[database]) && groups[database].indexOf('*') >= 0) { return 'large'; }
+  var cents = (perkpatreon(user.oracle[0]) || {}).cents || 0;
   return cents >= IMAGETIERCENTS.large ? 'large' : (cents >= IMAGETIERCENTS.master ? 'master' : null);
 }
 function cardzoomlinks(card) {
@@ -7033,7 +7052,7 @@ function photolimitnote() {
     // "25 photo searches a day (up to 5 a minute)"
     var allowance = (day ? lim.day+' photo search'+(lim.day == 1 ? '' : 'es')+' a day' : 'unlimited photo searches')+
       (minute ? ' (up to '+lim.minute+' a minute)' : '');
-    var user = cache_thing("user","data"), patreon = user.oracle[0].patreon;
+    var user = cache_thing("user","data"), patreon = perkpatreon(user.oracle[0]);
     var text = !lim ? (level.indexOf('patreon-') === 0 ?
         'Photo searches aren\'t set up for your Patreon tier ('+htmlEncode(patreon.tiers[0])+') yet.' :
         'No limit on your photo searches.') :
