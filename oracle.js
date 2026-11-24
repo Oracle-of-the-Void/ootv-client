@@ -7866,6 +7866,21 @@ function drawcard(carddata,prid=null,qs=null) {
   cardlistbar();
   pagetitlecard = {cardid: String(carddata.cardid), title: pagetitlename(carddata)};
   pagetitle();
+  cardwarm();
+}
+// a card drawn while its view is hidden (a search draws the first result's) is laid out once off the screen when the page
+// is idle, so the card view button's tap doesn't pay for the first use of the game's fonts and the card's text: about
+// 40 of a phone's ~150 ms at 10x CPU, 2026-11-24. The view stays hidden; the style is put back in the same task.
+function cardwarm() {
+  var run = function() {
+    var el = document.getElementById('resultcard');
+    if(!el || el.style.display != 'none') { return; }   // on screen, so already laid out
+    var old = el.style.cssText;
+    el.style.cssText = old + ';display:block;position:absolute;visibility:hidden;left:-10000px;top:0;width:' + (el.parentNode.clientWidth || 360) + 'px';
+    void el.offsetHeight;
+    el.style.cssText = old;
+  };
+  if(window.requestIdleCallback) { requestIdleCallback(run, {timeout: 2000}); } else { setTimeout(run, 300); }
 }
 
 // the Card Details html for a card, {html, shown}: docard, and the Admin set import's card preview
@@ -9144,7 +9159,8 @@ function showview(view) {
     $(".viewicons button").removeClass("searchviewactive");
     $('.viewicons button[data-view=' + view + ']').addClass("searchviewactive");
     $('li.menuone > ul > li[data-view]').each(function() { $(this).toggleClass('menuactive', $(this).data('view') == view); });
-    $('#' + view).fadeIn();
+    // shown at once, not faded: jQuery's fadeIn reads the view's style inside the tap, forcing its whole layout there (INP)
+    $('#' + view).css('display', '');
     seturl(viewstate(view.replace(/^result/,'')));
     if(view == 'resultadmin') loadadmininfo();
     if(view == 'resultadmin') showadmintab(admintab);
