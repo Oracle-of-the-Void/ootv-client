@@ -80,6 +80,7 @@ the tier's description on Patreon too.
 |---|---|
 | Photo: Find the card and Find the artist | Admin → Config → [Limits](limits.md), levels `patreon-<tier>` |
 | Bigger card pictures | Admin → Config → [Limits](limits.md), the Larger image table (levels `patreon-<tier>`; admins of a game get large by default). Master files stay public for the PDF export; `large` files are in `<game>/private/` and served only by signed links |
+| Menu bar badge | Everyone: a paid tier shows its name in gold beside the user's name (staff: the tier they picked); anyone else, logged out included, gets a plain Patreon link. Both open our Patreon. Phones show the heart alone when logged out, and the name's menu has it when logged in (`patreonbadge()` in `oracle.js`) |
 | Discord roles | Patreon's own Discord integration: the role on each tier in Patreon, on the Oracle of the Void server. None of our code reads them |
 
 The tier images on Patreon are built in ootv-assets `patreon/` (Patreon trims them to 460 × 200).
