@@ -97,6 +97,8 @@
       <li class="textversionmenu"><span class="searchtextversion"></span> <span class="searchaddall"></span><span class="listtextversion"></span></li>
       <li class="loginfo right"><span id="loginfo"></span>
 	<ul class="dropdown menuone">
+	  <!-- phones: the Patreon badge lives here while logged in (no room beside the name; patreonbadge()) -->
+	  <li class="patreonmenuitem"><a href="https://www.patreon.com/oracleofthevoid" target="_blank" rel="noopener"><span class="patreonbadgetext">Patreon</span> <svg class="feather"><use xlink:href="res/feather-sprite.svg#heart"></svg></a></li>
 	  <li onclick="showsettings();">Settings <svg class="feather"><use xlink:href="res/feather-sprite.svg#settings"></svg></li>
 	  <li class="showonadmin" onclick="showview('resultadmin');">Admin <svg class="feather"><use xlink:href="res/feather-sprite.svg#tool"></svg></li>
 	  <li onclick="dologout();">Log Out</li>
@@ -104,6 +106,8 @@
       </li>
       <li class="right" id="newversion" style="display:none"><span class="button" onclick="location.reload();" title="A new version of the site is available">New version <svg class="feather"><use xlink:href="res/feather-sprite.svg#refresh-cw"></svg></span></li>
       <li class="right"><span class="button gray" id="loginbutton" onclick="dologin();" style="display: none;">Log&nbsp;In/Register</span></li>
+      <!-- Patreon badge (patreonbadge() in oracle.js): a paid supporter's tier, else a link to our Patreon -->
+      <li class="right patreonbadgeitem"><a id="patreonbadge" href="https://www.patreon.com/oracleofthevoid" target="_blank" rel="noopener"><svg class="feather"><use xlink:href="res/feather-sprite.svg#heart"></svg><span class="patreonbadgetext">Patreon</span></a></li>
       <!-- the format block: views, card size and sort. Its own list so the sort dropdowns sit in it; phones draw it as one box -->
       <li class="right searchviewbuttons"><ul class="viewblock">
 	<li class="menunone"><span class="searchviewgroup" id="templatebuttons">

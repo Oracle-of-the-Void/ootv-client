@@ -1166,6 +1166,26 @@ a.communitylink { display: inline-flex; align-items: center; gap: 6px; padding: 
   box-shadow: 0 0 0 1px var(--panel-border), var(--panel-shadow); }
 a.communitylink:hover { background: var(--surface-warm); box-shadow: 0 0 0 1px var(--accent), var(--panel-shadow); }
 a.communitylink svg.feather { width: 16px; height: 16px; flex: none; }
+/* the menu bar's Patreon badge (patreonbadge() in oracle.js): an outline link, filled gold for a paid tier */
+li.patreonbadgeitem { padding-right: 4px; }
+a#patreonbadge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 9px; border-radius: 999px;
+  border: 1px solid var(--field-border); color: var(--text-2); text-decoration: none; font-size: 10pt; white-space: nowrap; }
+a#patreonbadge svg.feather { width: 13px; height: 13px; flex: none; }
+a#patreonbadge:hover { border-color: var(--accent); background: var(--surface-warm); }
+a#patreonbadge.supporter { background: var(--accent); border-color: #c4a53e; color: #222; font-weight: bold; }
+a#patreonbadge.supporter svg.feather { fill: #a3241b; stroke: #a3241b; }
+a#patreonbadge.supporter:hover { background: #e8cf72; }
+li.patreonmenuitem { display: none; }
+li.patreonmenuitem a { color: inherit; text-decoration: none; }
+li.patreonmenuitem.supporter svg.feather { fill: #a3241b; stroke: #a3241b; }
+/* phones: logged out, the heart alone beside Log In (the tier is in its title); logged in, the name's menu has it */
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  li.patreonbadgeitem.loggedin { display: none; }
+  li.patreonmenuitem { display: block; }
+  a#patreonbadge .patreonbadgetext { display: none; }
+  a#patreonbadge { padding: 2px 6px; }
+  a#patreonbadge svg.feather { width: 15px; height: 15px; }
+}
 a.communitylink small { color: var(--text-6); }
 /* the home page (#resultabout) */
 .homepage { padding: 8px 16px 16px; }

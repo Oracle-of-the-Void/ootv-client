@@ -366,6 +366,7 @@ function logoutcallback() {
     console.log("Not logged in");
     $('#loginfo').html("");
     $('.loginfo').hide()
+    patreonbadge();
     $('#loginbutton').show();
     $('.showonlogin').hide();
     $('.hideonlogin').show();
@@ -638,7 +639,22 @@ function showloginfo(user) {
     var o = user && ("oracle" in user) && user.oracle[0];
     var first = (o && o.firstname) || full.split(/\s+/)[0];
     $('#loginfo').empty().append($('<span class="phonehide">').text(full), $('<span class="phoneonly">').text(first));
+    patreonbadge();
     fitmenubar();
+}
+// the menu bar's Patreon badge (the user, 2026-11-23: "a visible badge as a reminder of the support (with a link
+// to the patreon otherwise)"): a paid tier shows its name, filled (staff: the tier they picked, perkpatreon());
+// anyone else, logged out included, gets the plain Patreon link. Both open our Patreon.
+function patreonbadge() {
+  var user = cache_thing("user","data");
+  var p = perkpatreon(user && user.oracle && user.oracle[0]);
+  var tier = p && p.tiers && p.tiers.length && (p.cents || 0) > 0 ? p.tiers[0] : null;
+  $('#patreonbadge').toggleClass('supporter', !!tier)
+    .attr('title', tier ? 'Thank you for supporting the Oracle on Patreon ('+tier+')' : 'Support the Oracle on Patreon')
+    .find('.patreonbadgetext').text(tier || 'Patreon');
+  // phones have no room beside the name: logged in, it's the first item of the name's menu instead
+  $('li.patreonbadgeitem').toggleClass('loggedin', !!(user && user.oracle && user.oracle[0]));
+  $('li.patreonmenuitem').toggleClass('supporter', !!tier).find('.patreonbadgetext').text(tier ? tier+' supporter' : 'Support us on Patreon');
 }
 // the menubar is one row of floats: while an item is pushed onto a second row, shorten it step by step:
 // first name only, then the game logo without its name (as phones always show them)
