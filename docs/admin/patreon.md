@@ -34,6 +34,16 @@ be linked; the user is told to join first.
 **Unlink** unties every membership tied to the account and marks them `nomatch`, so email matching
 leaves them alone; only Link with Patreon ties them again.
 
+## Staff tier
+
+Staff with a permission on every game (`groups['*']` lists anything; the user list in Admin → Users)
+get **Use the site as** under Settings → Account → Patreon: the Patreon tier whose perks they get,
+**Daimyo** until they pick one. It replaces their admin level for the Patreon perks, photo searches
+and Larger image, so they see the site as that tier's supporters do; their other permissions don't
+change. A creator's own Patreon account isn't a member of the campaign, so it can't be linked: this
+is how the creator and the other staff get a tier. Kept in the user row's `stafftier`; the tiers are
+in ootv-search `lib/stafftier.js` and artembed `STAFF_TIERS` (a new tier goes in both).
+
 ## Who's who: Admin → Audit → Patreon supporters
 
 Site admins (full permission on every game) see every member of the campaign: status, tier, pledge,
