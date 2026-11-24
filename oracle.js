@@ -6905,22 +6905,44 @@ function artphotoallowed() {
 var PATREON_URL = 'https://www.patreon.com/oracleofthevoid';
 
 // ******************** LARGER IMAGE ********************
-// Bigger card pictures by Patreon tier (ootv-claude projects/webp-only-images.md; the user, 2026-11-23: "master for
+// Bigger card pictures by level (ootv-claude projects/webp-only-images.md; the user, 2026-11-23: "master for
 // ashigaru+, large for samurai+", paid tiers only). A soft gate: the master files stay public for the PDF export,
 // only the site's views of them are the supporters'. The card page's "Larger image" under each front opens the
-// printing's `large` (1490 px, kept private: GET /largeimage hands out a signed link) for Samurai and up, its master
-// for Ashigaru; Card(L) draws the master for Ashigaru and up (templatecardsides). Anyone else: what it is and how
-// to get it. The API checks again; this only decides what to offer.
-var IMAGETIERCENTS = {'master': 200, 'large': 500};   // Ashigaru $2, Samurai $5 (ootv-claude PATREON.md)
-// 'large' (Samurai and up, or an admin of the game), 'master' (Ashigaru), else null; staff on every game go
-// by the tier they picked (staffpatreon)
-function imagetier() {
+// printing's `large` (1490 px, kept private: GET /largeimage hands out a signed link) for levels set to large, its
+// master for those set to master; Card(L) draws the master for either (templatecardsides). Anyone else: what it is
+// and how to get it. Which level gets which size is Admin → Config → Limits (all/largeimage, limitsadmin.js;
+// IMAGESIZEDEFAULTS until it's saved). The API checks again (ootv-search routes/largeimage.js); this only decides
+// what to offer.
+var IMAGESIZEDEFAULTS = {'admin': {'size': 'large'}, 'patreon-ashigaru': {'size': 'master'}, 'patreon-samurai': {'size': 'large'},
+                         'patreon-hatamoto': {'size': 'large'}, 'patreon-daimyo': {'size': 'large'}, 'patreon-kami': {'size': 'large'}};
+var imagesizes = null;   // all/largeimage's limits, read once (the defaults meanwhile)
+function imagesizesload() {
+  if(imagesizes) { return; }
+  imagesizes = IMAGESIZEDEFAULTS;
+  $.ajax({url: apiuri+'/structure?database=all&key=largeimage', dataType: 'json'})
+    .done(function(item) { if(item && item.limits) { imagesizes = item.limits; } });
+}
+// 'patreon-' + a tier title (ootv-search lib/stafftier.js tierlevel())
+function tierlevel(title) {
+  return 'patreon-'+String(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+// the levels the user's perks on this game go by (ootv-search lib/stafftier.js perklevels()): staff on every
+// game only the tier they picked; anyone else admin / maintainer of the game, and their own Patreon tier
+function perklevels() {
   var user = cache_thing("user","data");
-  if(!(user && user.oracle && user.oracle[0])) { return null; }
-  var groups = user.oracle[0].groups || {};
-  if(!user.oracle[0].staffpatreon && Array.isArray(groups[database]) && groups[database].indexOf('*') >= 0) { return 'large'; }
-  var cents = (perkpatreon(user.oracle[0]) || {}).cents || 0;
-  return cents >= IMAGETIERCENTS.large ? 'large' : (cents >= IMAGETIERCENTS.master ? 'master' : null);
+  if(!(user && user.oracle && user.oracle[0])) { return []; }
+  var o = user.oracle[0], g = (o.groups || {})[database], out = [];
+  if(o.staffpatreon) { return [tierlevel(o.staffpatreon.tiers[0])]; }
+  if(Array.isArray(g) && g.indexOf('*') >= 0) { out.push('admin'); }
+  else if(Array.isArray(g) && g.length) { out.push('maintainer'); }
+  if(o.patreon && o.patreon.tiers && o.patreon.tiers.length) { out.push(tierlevel(o.patreon.tiers[0])); }
+  return out;
+}
+// 'large', 'master' or null: the best size any of the user's levels gets
+function imagetier() {
+  imagesizesload();
+  var got = perklevels().map(function(l) { return (imagesizes[l] || {}).size; });
+  return got.indexOf('large') >= 0 ? 'large' : (got.indexOf('master') >= 0 ? 'master' : null);
 }
 function cardzoomlinks(card) {
   $('#resultcard .printing').each(function() {
