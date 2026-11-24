@@ -9336,6 +9336,8 @@ function pagetitlename(carddata) {
 function pagetitle() {
   var game = (dbinfo[database] || {}).name;
   var title = 'Oracle of the Void';
+  // no game picked: a title as long as index.html's, not the bare site name (Bing Site Scan 2026-11-24: "title too short")
+  var start = 'Oracle of the Void: CCG card database and deck builder';
   var view = $(".ui-layout-center div[id^=result]:visible").attr('id');
   if(view == 'resultcard' && pagetitlecard.title && pagetitlecard.cardid == $('#lastcardid').val()) {
     title = game ? pagetitlefit('{name} – {game} card', pagetitlecard.title) : pagetitlecard.title + ' | ' + title;
@@ -9345,6 +9347,8 @@ function pagetitle() {
     title = game ? pagetitlefit('{name} – {game} deck', name || 'Deck') : (name || 'Deck') + ' | ' + title;
   } else if(game && !(gamenotpicked && view == 'resultabout')) {
     title = pagetitlefit('{game} card database and deck builder');
+  } else {
+    title = start;
   }
   document.title = title;
 }
@@ -11206,7 +11210,7 @@ if(typeof IntersectionObserver != 'undefined') {
 function addgametolist(db) {
   var cls = (database == db ? ['menuactive'] : []).concat(gamepreviewonly.includes(db) ? ['gamepreviewonly'] : []);
   $('.gamelist').append('<li'+(cls.length ? ' class="'+cls.join(' ')+'"' : '')+'><a href="#game='+db+'" onclick="return gamepick(\''+db+'\',event);"'+
-    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'" alt="">&nbsp;'+dbinfo[db].name+
+    (gamepreviewonly.includes(db) ? ' title="Preview only: not in the main site\'s menu yet"' : '')+'><img src="gamelogos/15/'+dbinfo[db].logo+'" alt="'+gamelogoalt(dbinfo[db].name)+'">&nbsp;'+dbinfo[db].name+
     (gamepreviewonly.includes(db) ? '<span class="gamepreviewtag">preview</span>' : '')+'</a></li>');
 }
 
