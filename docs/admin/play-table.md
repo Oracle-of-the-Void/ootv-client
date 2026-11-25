@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-25 (a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
+Last updated: 2026-11-25 (the X rows of Play Engine Asks, ootv-play [#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815) to [#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825), l5r/play version 243, `l5r/fields` 184 (the `play` description says all of it; section at the end); before that a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
 
 Before that: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
 
@@ -2423,3 +2423,60 @@ the attempting player's own condition, so a player it holds for may ignore the r
 **Card written** (operation 2026-11-25T171024): Winter Warfare ("terrain cards cannot be played during battles and
 units cannot be moved into or out of battles with actions. Players with Yuki no Onna in play may ignore these
 restrictions"), until your Events Phase two turns from now.
+
+## The X rows of Play Engine Asks (2026-11-25, l5r/play version 243, l5r/fields 184)
+
+ootv-play [#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815), [#816](https://github.com/Oracle-of-the-Void/ootv-play/pull/816), [#817](https://github.com/Oracle-of-the-Void/ootv-play/pull/817), [#818](https://github.com/Oracle-of-the-Void/ootv-play/pull/818), [#819](https://github.com/Oracle-of-the-Void/ootv-play/pull/819), [#820](https://github.com/Oracle-of-the-Void/ootv-play/pull/820), [#821](https://github.com/Oracle-of-the-Void/ootv-play/pull/821), [#822](https://github.com/Oracle-of-the-Void/ootv-play/pull/822), [#823](https://github.com/Oracle-of-the-Void/ootv-play/pull/823), [#824](https://github.com/Oracle-of-the-Void/ootv-play/pull/824), [#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825). The engine words are in the ootv-play README and the
+`l5r/fields` `play` description.
+
+**Config** (l5r/play 243): `search.shuffle: "hidden"` (only a pile nobody sees is shuffled after a search; a discard
+pile keeps its order: Shiryo no Kaiu); `sources: [{action: {keywords: [Kiho]}, as: {type: [Spell]}}]` (a Kiho counts as a
+Spell where a target stop reads its source, ruling 58); a third `attachlimits` entry, one Region to a Province;
+`unique.sameas` and `overlay.sameas` (a card "considered" another title for the Unique rule or the Experienced overlay:
+The False Hoturi, Shahadet); `scenes.duel.points.Strike {moment: striking}` (a Reaction to a strike: Bend like a Reed);
+the moments `dishonors`, `striking`, `honorwin`, `movedin`, `movedout`, `enteredfrom`, `firstterrain`, `selftarget`; the
+modifier texts `attachover`, `presence`, `sameas`, `instead`, `grant`; `terms.side.words[0].within` adds `of` (a
+trigger's `of` match takes `opposing`).
+
+**What the table now does**, by group:
+
+- Stat-change negates and negates by words ([#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815)): Monsoon
+  (temporary Force bonuses only), The Ways (an action whose card has the element's word in its title, traits or text).
+- Looks one card at a time, an attack kind done as other effects, combined Ranged Attacks, the players with the highest
+  amount ([#816](https://github.com/Oracle-of-the-Void/ootv-play/pull/816)): The Endless Well, Nogoten's Bow, Coordinated
+  Fire, The Death of Tsuko, The 12th Black Scroll.
+- Presence at a Province, attaching past a host's restriction, a stop from an attachment on its host, an exact copy of a
+  chosen item, gaining every action of a card ([#817](https://github.com/Oracle-of-the-Void/ootv-play/pull/817)):
+  Garrison, Whispers of the Land, Ogre Warriors, Dragon Pearl, War Wagon, Hitomi.
+- A Stronghold replaced for good, a player barred from an Honor victory, Kiho as Spell effects
+  ([#818](https://github.com/Oracle-of-the-Void/ootv-play/pull/818)): The Iron Citadel, The Sight of Death; A Terrible
+  Oath's "may not win through Honor Victory" is now enforced.
+- New moments: a unit moved into or out of a battle by an action, a card entering play from a Province, the first
+  Terrain of a battle, a player's own may-trigger asked first ([#819](https://github.com/Oracle-of-the-Void/ootv-play/pull/819)):
+  Not this Day!, The Crab Arrive, Lieutenant Morito, Plains Above Evil, Mujina Miners, Peasant Levies.
+- A strike as a reactable point, ending the battle action step, Reactions from the discard pile, a Reaction before an
+  Honor victory ([#820](https://github.com/Oracle-of-the-Void/ootv-play/pull/820)): Bend like a Reed, Crushing Attack,
+  Hida Kisada, Kenku.
+- An attack stop by the attacked player's Honor, held phase skips per player, a frozen unit, a choice per player, a must-attack,
+  history facts ([#821](https://github.com/Oracle-of-the-Void/ootv-play/pull/821)): The Touch of Shinsei, Light of the Sun
+  Goddess, Toturi's Last Stand, The Fair Voice of Lies, Matsu Hiroru.
+- Multiplied or stopped honor gains, a loss cancelled or redirected, once per event, an effect that resumes after death,
+  an action lent to cards at a Province ([#822](https://github.com/Oracle-of-the-Void/ootv-play/pull/822)): Battlefield
+  of Shallow Graves, The Unclean Cut, As the Shadow Falls, Bayushi Goshiu, Seer, Today We Die, Forest of Thorns.
+- Cost words (remove a trait, reveal the hand, dishonor), bring costs, join conditions, search bounds, a bow stop by
+  card, costs set by other cards in play or by a target, retoken, the amount paid
+  ([#823](https://github.com/Oracle-of-the-Void/ootv-play/pull/823)): Heavy and Light Mounted Infantry, Destiny Has No
+  Secrets, Hantei the 38th, Farmlands, Shioda, Trading Port, al-Hazaad, Shazaar, Dashmar, Shoju's Armor, Night of a
+  Thousand Fires, The Fortune's Wisdom, Mitsu.
+- "Opposing" from a card away from the battle (ruling 121), honor-producing Holdings, token and clan-count matches,
+  once-per-card watching triggers, stops by an action's keywords, counting from the target, "considered" titles, a look
+  stop, placing destroyed Followers ([#824](https://github.com/Oracle-of-the-Void/ootv-play/pull/824)): Heartbeat
+  Drummers, Ikoma Kimura, Daikua, Dark Daughter of Fu Leng, Kolat's Favor, Shinjo Riding Stables, Shahadet, The False
+  Hoturi, Yazaki (other players only, ruling 122), six Ancestral Standards, Toturi's Battle Standard, four
+  Battle Standards, Passing on the Soul.
+- `instead`: a destruction or state replaced, or a card destroyed or discarded sent elsewhere
+  ([#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825)): Akiyoshi, A Greater Destiny, Golden Obi of the Sun
+  Goddess, Isawa Suma.
+
+**Cards written** (79; operations 2026-11-25T225334, 225639, 225757, 225938, 230053, 230331, 230423, 230613, 230954,
+231301, 231404, `play-actions`).
