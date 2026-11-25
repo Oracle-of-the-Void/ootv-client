@@ -1,6 +1,8 @@
 # Play table
 
-Last updated: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
+Last updated: 2026-11-25 (the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
+
+Before that: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
 
 Before that: 2026-11-25 (the Imperial general pass's new words, Hyobe, card backs on WebP and the join words, ootv-play [#769](https://github.com/Oracle-of-the-Void/ootv-play/pull/769) to [#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803), l5r/play versions 235 to 240, `l5r/fields` 167 to 180 (the `play` description says all of it). Config: version 235, `modifiers.bring`'s text: a bring cost may discard the whole hand ([#779](https://github.com/Oracle-of-the-Void/ootv-play/pull/779)); version 236, `negates` adds `bow`: a card about to bow asks the cards in play first ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)); version 237, the moment `returning` and `scenes.battle.points.end {moment: returning}`: the battle's end is a point a Reaction can answer before the armies go home ([#794](https://github.com/Oracle-of-the-Void/ootv-play/pull/794)); version 238, `matching.aliases.clan` Shadowlands = Yogo Junzo's Army ([#795](https://github.com/Oracle-of-the-Void/ootv-play/pull/795)); version 239, `backs` on the WebP files ([#799](https://github.com/Oracle-of-the-Void/ootv-play/pull/799)); version 240, the ally words are join words ([#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803)). Card words and the cards written: "The Imperial general pass's words, join words" at the end.)
 
@@ -13,7 +15,7 @@ Before that: 2026-11-23 (the decisions-page changes, ootv-play [#745](https://gi
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 241. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 242. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -2385,3 +2387,27 @@ ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#
 
 **Cards written** (operations 2026-11-25T034011, 034437, 035312): To Save an Empire, Doom of the Dark Lord, Spiritual
 Presence, Daisho Technique, Rest, My Brother, Ogre Outlaw, Togashi Yokuni, Mirumoto Satsu.
+
+## The Play Engine Asks words, subtitles as keywords (2026-11-25, l5r/play version 242, l5r/fields 182)
+
+ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813). Card words:
+
+- Host and place: an `until {at, of: host}` set in an action reads the host its card keeps even after its cost
+  destroyed it (Summon Nightstalker); cost `{destroy: host, stay: self}` keeps the action's card in play on nothing while
+  its effects run (Shiryo no Asako); a target's `location: {target: n}` and a kind effect's `from: {target: n}` (Jade
+  Strike: the target at the Item's battle, the Ranged Attack from the Item) ([#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808)).
+- Costs and tokens: a cost `discard` takes the same who words as cost `destroy` (`self`, `host`, `{target: n}`, a
+  `pick` from play or a zone; a Province target's `other: picked`: Tao of Shinsei, Kuni Yori); tokens picked by their
+  numbers `destroy {tokens: {match: {chi: {max: -1}}}}` (Antidote); `aimed: host | self` on a negate or redirect
+  (Antidote, Tapestry of Air); an event's `min: n` with `took` (Tapestry of Air: three Shugenja) ([#812](https://github.com/Oracle-of-the-Void/ootv-play/pull/812)).
+- Duels and gates: an event's `move: focus, by: other` and `look: laid` (Whispering Winds); an entry with only `unless`
+  is a gate; `inplay {whose}`; a choose option's `unit: target`; a ranged attack's `fixed: true` (Pitch and Fire)
+  ([#810](https://github.com/Oracle-of-the-Void/ootv-play/pull/810)).
+- Triggers and amounts: a trigger's `of: <match>` for any player's card, the `challenged` moment (Kyojin); `until
+  {start}` with `turns: n` (One Man's Honor); a player counter `bonus {add: {handsize: 2}, to: you}` (Shiryo no
+  Agasha); an amount's `scenestat: true` (The Face of My Enemy); the player responsible for a destruction is one
+  player: the action's, or at a battle or duel resolution the destroying side's leader ([#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
+
+**Cards written** (operations 2026-11-25T163403, 164236, 164551, 164643): Summon Nightstalker, Shiryo no Asako, Jade
+Strike, Whispering Winds, Pitch and Fire, Kyojin, One Man's Honor, Shiryo no Agasha, The Face of My Enemy, Tao of
+Shinsei, Kuni Yori, Antidote, Tapestry of Air.
