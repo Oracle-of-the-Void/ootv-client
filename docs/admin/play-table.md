@@ -1,6 +1,8 @@
 # Play table
 
-Last updated: 2026-11-25 (the Imperial general pass's new words, Hyobe, card backs on WebP and the join words, ootv-play [#769](https://github.com/Oracle-of-the-Void/ootv-play/pull/769) to [#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803), l5r/play versions 235 to 240, `l5r/fields` 167 to 180 (the `play` description says all of it). Config: version 235, `modifiers.bring`'s text: a bring cost may discard the whole hand ([#779](https://github.com/Oracle-of-the-Void/ootv-play/pull/779)); version 236, `negates` adds `bow`: a card about to bow asks the cards in play first ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)); version 237, the moment `returning` and `scenes.battle.points.end {moment: returning}`: the battle's end is a point a Reaction can answer before the armies go home ([#794](https://github.com/Oracle-of-the-Void/ootv-play/pull/794)); version 238, `matching.aliases.clan` Shadowlands = Yogo Junzo's Army ([#795](https://github.com/Oracle-of-the-Void/ootv-play/pull/795)); version 239, `backs` on the WebP files ([#799](https://github.com/Oracle-of-the-Void/ootv-play/pull/799)); version 240, the ally words are join words ([#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803)). Card words and the cards written: "The Imperial general pass's words, join words" at the end.)
+Last updated: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
+
+Before that: 2026-11-25 (the Imperial general pass's new words, Hyobe, card backs on WebP and the join words, ootv-play [#769](https://github.com/Oracle-of-the-Void/ootv-play/pull/769) to [#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803), l5r/play versions 235 to 240, `l5r/fields` 167 to 180 (the `play` description says all of it). Config: version 235, `modifiers.bring`'s text: a bring cost may discard the whole hand ([#779](https://github.com/Oracle-of-the-Void/ootv-play/pull/779)); version 236, `negates` adds `bow`: a card about to bow asks the cards in play first ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)); version 237, the moment `returning` and `scenes.battle.points.end {moment: returning}`: the battle's end is a point a Reaction can answer before the armies go home ([#794](https://github.com/Oracle-of-the-Void/ootv-play/pull/794)); version 238, `matching.aliases.clan` Shadowlands = Yogo Junzo's Army ([#795](https://github.com/Oracle-of-the-Void/ootv-play/pull/795)); version 239, `backs` on the WebP files ([#799](https://github.com/Oracle-of-the-Void/ootv-play/pull/799)); version 240, the ally words are join words ([#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803)). Card words and the cards written: "The Imperial general pass's words, join words" at the end.)
 
 Before that: 2026-11-23 (follow-ups to #761 and #766, ootv-play [#767](https://github.com/Oracle-of-the-Void/ootv-play/pull/767) and [#768](https://github.com/Oracle-of-the-Void/ootv-play/pull/768), l5r/play version 234, `l5r/fields` 166. Config: version 234, the moment `leftplay` is `{left: play}`: a card in play gone anywhere out of play, returned to the hand or put in a deck too, not only to a discard pile (Nemesis's bonus ends, and its once frees up, whichever way the Nemesis or your Personality leaves play; the user: "a card in hand is also out of play") ([#767](https://github.com/Oracle-of-the-Void/ootv-play/pull/767)). Engine: Kolat Infiltrator negating a Holding bowed for Gold for one kind of card (`produce {for}`) takes that earmarked Gold back too; a Holding's production and its `conditionalvalues` ("if controlled by a Scorpion Clan player") read the player who controls it, checked and now tested ([#768](https://github.com/Oracle-of-the-Void/ootv-play/pull/768)).
 
@@ -11,7 +13,7 @@ Before that: 2026-11-23 (the decisions-page changes, ootv-play [#745](https://gi
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 240. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 241. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -2357,3 +2359,29 @@ Void, Suru's Mempo, Soshi Ujemi, Doom of Fu Leng, Calling the Elements, Hyobe, M
 Heart of Iuchiban, Tsunami, Suzume Mukashino, Imperial Quest, Through the Waterways, Kuroshin's Prayer, Hiruma's Last
 Breath, Qakar, A Terrible Oath, The Fires that Cleanse, Kasuga Kyoji, Drum of Water, Lesser Oni, Bayushi Dozan, A Time of
 Legends, Hammer of Earth, Goblin Berserkers.
+
+## Player triggers, printed values, step points, one waive word (2026-11-25, l5r/play version 241, l5r/fields 181)
+
+ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807). Card words:
+
+- Player triggers: a trigger a player gains fires with no card and may change a player's counter (To Save an Empire:
+  `add {honor: <count>}, to: you` at the End Phase); the moment `drawshort` fires once for each Fate card a player
+  should draw and can't; `until {out: you}` ends when its player is out of the game (Doom of the Dark Lord,
+  `until: [ever, {out: you}]`) ([#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)).
+- Printed values: any amount reading a card's field takes `printed: true` (the rule set's printed number, no bonus,
+  token or gain: Spiritual Presence), and a match may hold `printed {...}` (Daisho Technique's printed Chi 3 or more;
+  Rest, My Brother's "not printed Shadowlands"); `destroyed {during: battle | duel}` is any destruction while that
+  scene was underway (ruling 101; `by: battle` stays the resolution only); an effect's `produce` takes `to` (a players
+  word: Ogre Outlaw's `to: responsible`) and an earmarked one (`for`) an `until` ([#805](https://github.com/Oracle-of-the-Void/ootv-play/pull/805)).
+- Step points: a scene's `points` may name `begin`, any step (a phase's too) or `end`, each a point a Reaction can
+  answer before it; the end point comes however the scene ends unless `points.end.unresolved: false`; `quiet: true`
+  now also hides counter changes (Honor gained or lost) from every trigger and Reaction ([#806](https://github.com/Oracle-of-the-Void/ootv-play/pull/806)).
+- Waive: one word `waive {<check>: true | words, match, unless, players, once}` for any check: `joins` (the default:
+  Hidden Temples, Toturi's Army), `join` (a card's own, `clan` = Loyal: Togashi Yokuni), `prevents`, `attachto`,
+  `attaching`, `attachlimits`, `unique`; held as `lasting {waive}`, `once` used by the next card it reaches
+  (Mirumoto Satsu). Gone: the Honor Requirement's `ignore {modifier: waive}`. A duel's `replace: self` with `of` takes
+  any player's duelist that fits and is refused before anything is paid when it would set one player's cards against
+  each other (ruling 7: Kyojin, Bayushi Tangen) ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
+
+**Cards written** (operations 2026-11-25T034011, 034437, 035312): To Save an Empire, Doom of the Dark Lord, Spiritual
+Presence, Daisho Technique, Rest, My Brother, Ogre Outlaw, Togashi Yokuni, Mirumoto Satsu.
