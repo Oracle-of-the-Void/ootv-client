@@ -1,6 +1,8 @@
 # Play table
 
-Last updated: 2026-11-23 (follow-ups to #761 and #766, ootv-play [#767](https://github.com/Oracle-of-the-Void/ootv-play/pull/767) and [#768](https://github.com/Oracle-of-the-Void/ootv-play/pull/768), l5r/play version 234, `l5r/fields` 166. Config: version 234, the moment `leftplay` is `{left: play}`: a card in play gone anywhere out of play, returned to the hand or put in a deck too, not only to a discard pile (Nemesis's bonus ends, and its once frees up, whichever way the Nemesis or your Personality leaves play; the user: "a card in hand is also out of play") ([#767](https://github.com/Oracle-of-the-Void/ootv-play/pull/767)). Engine: Kolat Infiltrator negating a Holding bowed for Gold for one kind of card (`produce {for}`) takes that earmarked Gold back too; a Holding's production and its `conditionalvalues` ("if controlled by a Scorpion Clan player") read the player who controls it, checked and now tested ([#768](https://github.com/Oracle-of-the-Void/ootv-play/pull/768)).
+Last updated: 2026-11-25 (the Imperial general pass's new words, Hyobe, card backs on WebP and the join words, ootv-play [#769](https://github.com/Oracle-of-the-Void/ootv-play/pull/769) to [#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803), l5r/play versions 235 to 240, `l5r/fields` 167 to 180 (the `play` description says all of it). Config: version 235, `modifiers.bring`'s text: a bring cost may discard the whole hand ([#779](https://github.com/Oracle-of-the-Void/ootv-play/pull/779)); version 236, `negates` adds `bow`: a card about to bow asks the cards in play first ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)); version 237, the moment `returning` and `scenes.battle.points.end {moment: returning}`: the battle's end is a point a Reaction can answer before the armies go home ([#794](https://github.com/Oracle-of-the-Void/ootv-play/pull/794)); version 238, `matching.aliases.clan` Shadowlands = Yogo Junzo's Army ([#795](https://github.com/Oracle-of-the-Void/ootv-play/pull/795)); version 239, `backs` on the WebP files ([#799](https://github.com/Oracle-of-the-Void/ootv-play/pull/799)); version 240, the ally words are join words ([#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803)). Card words and the cards written: "The Imperial general pass's words, join words" at the end.)
+
+Before that: 2026-11-23 (follow-ups to #761 and #766, ootv-play [#767](https://github.com/Oracle-of-the-Void/ootv-play/pull/767) and [#768](https://github.com/Oracle-of-the-Void/ootv-play/pull/768), l5r/play version 234, `l5r/fields` 166. Config: version 234, the moment `leftplay` is `{left: play}`: a card in play gone anywhere out of play, returned to the hand or put in a deck too, not only to a discard pile (Nemesis's bonus ends, and its once frees up, whichever way the Nemesis or your Personality leaves play; the user: "a card in hand is also out of play") ([#767](https://github.com/Oracle-of-the-Void/ootv-play/pull/767)). Engine: Kolat Infiltrator negating a Holding bowed for Gold for one kind of card (`produce {for}`) takes that earmarked Gold back too; a Holding's production and its `conditionalvalues` ("if controlled by a Scorpion Clan player") read the player who controls it, checked and now tested ([#768](https://github.com/Oracle-of-the-Void/ootv-play/pull/768)).
 
 Before that: 2026-11-23 (more decisions-page changes, ootv-play [#760](https://github.com/Oracle-of-the-Void/ootv-play/pull/760) and [#762](https://github.com/Oracle-of-the-Void/ootv-play/pull/762) to [#766](https://github.com/Oracle-of-the-Void/ootv-play/pull/766), l5r/play versions 230 to 233, `l5r/fields` 160 to 165 (the `play` description says all of it). Config: version 230, `scenes.turn.says.passfree` ("Pass the free action ({card})"), the phase button while a free action holds the Events Phase ([#760](https://github.com/Oracle-of-the-Void/ootv-play/pull/760)); version 231, `costwords.actionfree`/`actionadd`/`actionraise` and `oneaction`, a held cost entry's action part in words ([#762](https://github.com/Oracle-of-the-Void/ootv-play/pull/762)); version 232, `terms.nosides`, the card word `noattack: owner` inside `control` ([#763](https://github.com/Oracle-of-the-Void/ootv-play/pull/763), [#764](https://github.com/Oracle-of-the-Void/ootv-play/pull/764)); version 233, the moment `leftplay` (`{left: pile}`: a card in play gone to a pile, any way) ([#766](https://github.com/Oracle-of-the-Void/ootv-play/pull/766)). Card words: `{resume: subject}` after `prevents: revealing`, the Event resolves after a free action ([#760](https://github.com/Oracle-of-the-Void/ootv-play/pull/760), The Time is Now); a held cost entry's `action: {keywords}`, the actions whose own cost it changes ([#762](https://github.com/Oracle-of-the-Void/ootv-play/pull/762), Chinoko); a control's `until` and `noattack`, an `until` list (whichever first), `until {start: turn, of: owner}` ([#763](https://github.com/Oracle-of-the-Void/ootv-play/pull/763), Akodo Kage); `{terrain: self}`, a card that places itself as the Terrain ([#765](https://github.com/Oracle-of-the-Void/ootv-play/pull/765), Mystical Terrain); a held bonus `to: {target: n}`, `opposed {of: own, card: {target: n}}`, a held `until {at, of: {target: n}}` ([#766](https://github.com/Oracle-of-the-Void/ootv-play/pull/766), Nemesis). Written cards: The Time is Now, Chinoko, Akodo Kage, Mystical Terrain, Nemesis.)
 
@@ -9,7 +11,7 @@ Before that: 2026-11-23 (the decisions-page changes, ootv-play [#745](https://gi
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 234. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 240. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -37,7 +39,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 234. There's no Admi
 | `placement`, `scenes.main` Setup | where each deck card starts (L5R: the stronghold and pre-game cards in play, in the corner; spots in card widths from the near right-hand corner) and the opening shuffles and deals (the main scene's Setup step, its `start` effects since version 195: `shuffle {zone}` and `move {zones, top: n}` to a zone, for each player (`top` an amount since ootv-play [#704](https://github.com/Oracle-of-the-Void/ootv-play/pull/704)); the step list `setup` until then, top-level `setup` until version 95) |
 | `cardfields` | the card fields the rules read (L5R: type, keywords, title, and every numeric search field) |
 | `triggers`, `moments.<m>.into` | rules no card carries, written as triggers (since ootv-play [#671](https://github.com/Oracle-of-the-Void/ootv-play/pull/671), l5r/play version 207; top-level `enter` until then): `[{id, at, match, text, effects}]`, fired at their moment before the cards' own. A moment may be a card coming into a zone: `moments.arrived {"into": {"zone": "home"}}`, fired as a card lands there from any other zone, however it came (bought, played, put into play by a card or by hand, made). L5R: `holdingsbowed`, "Holdings enter play bowed", at `arrived`, `{"bow": "self"}` for a Holding that is not a Fortification (up to Lotus; from Samurai on every Holding, the arcs' patch `{"$items": {"holdingsbowed": {"match": {"not": null}}}}`). A trigger with `"for": "player"` fires once for each player a player's moment is about (Ivory and Three Dynasties: `honortaken`, see "The Honor Requirement in config") |
-| `matching` | how a card's match is read (since version 219, ootv-play [#733](https://github.com/Oracle-of-the-Void/ootv-play/pull/733)): `group.of`, the roles whose cards make a unit for a `{unit: {all: match}}` or `{unit: {none: match}}` match (L5R `leader`, `follower`: a unit is Cavalry only if its Personality and every Follower are, SCC p. 63; Pikemen); `aliases`, values that match alike (`keywords` Creature and Nonhuman, `clan` Mantis and Yoritomo Alliance); `names`, the name rule (a name in a title or a trait, plural allowed, "Foo of Bar" a Foo, reserved words such as Clan only whole: SCC p. 31), on for the match keys `keys` lists (L5R `keywords` since version 221, the "foo" rule: "Weapon" matches Weapons Master and Concealed Weapon, "Dragon" Flight of Dragons, "Shadowlands" Shadowlands Sickness; "Dragon Clan" is no Dragon; none before); `not`, the card field whose values are names a card is not, whatever its title and traits say (since version 226: `notnames`) |
+| `matching` | how a card's match is read (since version 219, ootv-play [#733](https://github.com/Oracle-of-the-Void/ootv-play/pull/733)): `group.of`, the roles whose cards make a unit for a `{unit: {all: match}}` or `{unit: {none: match}}` match (L5R `leader`, `follower`: a unit is Cavalry only if its Personality and every Follower are, SCC p. 63; Pikemen); `aliases`, values that match alike (`keywords` Creature and Nonhuman, `clan` Mantis and Yoritomo Alliance, Shadowlands and Yogo Junzo's Army since version 238; a players match such as `players {clan}` reads them too, since ootv-play [#795](https://github.com/Oracle-of-the-Void/ootv-play/pull/795)); `names`, the name rule (a name in a title or a trait, plural allowed, "Foo of Bar" a Foo, reserved words such as Clan only whole: SCC p. 31), on for the match keys `keys` lists (L5R `keywords` since version 221, the "foo" rule: "Weapon" matches Weapons Master and Concealed Weapon, "Dragon" Flight of Dragons, "Shadowlands" Shadowlands Sickness; "Dragon Clan" is no Dragon; none before); `not`, the card field whose values are names a card is not, whatever its title and traits say (since version 226: `notnames`) |
 | `cardstates`, `counters` | bow and dishonor (upside down), with their words (`is`: "bowed", "dishonored", since version 52; `isnot`: "unbowed", "honorable", since version 117, every sentence about a state takes these words; `unname`: Straighten); Honor, Gold and Hand size, and Rings (since version 172: worked out from the Rings in play, `from: {collect}`, `seatbar: false`, read by Enlightenment); tokens on cards: `tokens` below |
 | `stats` | a card's numbers (Force, Chi, Personal Honor): which include what's attached printed as a bonus (`aggregate`: Force, Chi), and which have no Change menu (`change: false`: Personal Honor) |
 | `tokens` | token types (since version 137; were `tokens` as a list, `cardcounters`, `customtokens`, `made` and `stats[].token`), each token on the table its own piece: `favor`, the Imperial Favor, one player holds it or nobody does (`on: player`, one in the game), the keyword its actions carry (`keyword`) and what it's given up for (`uses`), lobbied for by the lobbying scene's `opens`; `token`, tokens on cards (`on: card`), any name typed or one press away (+1F, +1C, +1F/+1C, -1F: `quick`), their Force and Chi read from the name (`attrs`: +1F adds 1 Force); `proxy`, cards made in play (any card type, a Follower unless the card says, titled Proxy unless it says; Fate back, a Personality Dynasty), cards for every rule and never tokens (moving a token, destroying tokens to bring a card in, counting tokens), and whenever one leaves play (destroyed, discarded, shuffled in) it leaves the game (`leaving`, since version 141) entirely, in no pile (`leaves: gone`, since version 138; the removed pile in 137). Destroying or counting tokens (Setsuban Festival) touches only `token` tokens, never a proxy or the Favor. How each is drawn (`look`, since version 139): `token` tokens are glass beads on the card's bottom edge, coloured by their numbers (`tint: attrs`: green a bonus, red a penalty, both halves for one of each, blue a word token), dots when the card is zoomed far out; the Favor is the Imperial mon (`icon`), in the top bar while nobody holds it, beside its holder's name once taken. A token's own action (Shosuro Hametsu's Poison) holds only while the card that gave it is in play. A proxy is drawn on a blank frame of its type, its name, numbers, keywords and text written in (`proxy.look.frames.<rule set>.<type>`: `src` under the image address, `layout` where each goes, as fractions of the card; since version 145, Imperial's eleven types at `l5r/frames/imperial/`; since version 146 every rule set: Jade's twelve, Celestial's eleven, a rule set's entry may say `like` another and add its own, as Gold adds the Wind and Ivory the Sensei); a framed proxy fills the card with a blue glow on the frame's black border; a type with no frame gets a plain one drawn by the table inside a ghost edge |
@@ -80,7 +82,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 234. There's no Admi
 | `drawing`, `drawshort` | what a draw checks first, by why it happens, and what a draw from a deck with too few cards does (L5R `fewer`: the cards there) |
 | `search` | what a search does beyond its own words (L5R `shuffle: true`: the pile is shuffled once the search is over) |
 | `cancel` | what cancelling an action does with its costs (L5R `keep`: they stay paid) |
-| `negates` | the actions a card's `negate` may name (straighten, destroy, move, rehonor, effects, fear, draw, resolution, control) |
+| `negates` | the actions a card's `negate` may name (straighten, destroy, move, rehonor, effects, fear, draw, resolution, control, and bow since version 236: a card about to bow asks the cards in play first, ootv-play [#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)) |
 | `preventwords`, `costwords` | the words the table says for a held `prevents` on every player, and for a held cost change, by kind |
 | `reacting`, `reactions`, `reactorder` | the timing words that answer an event (L5R Reaction), the reaction model (`stack`: the table is taken back to the event and the Reaction resolves first), and the order of Reactions to one event (`turns`) |
 | `interrupted` | an action a Reaction came before, resolving after it: `players: true`, a player reached through a target gone by then still is |
@@ -91,7 +93,7 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 234. There's no Admi
 | `victory` | winning and losing: each check a counter at a mark (L5R -20 Honor is out, five Rings win) or none of a kind of area left (L5R no Provinces: out), the last player left wins (L5R: Military, Dishonor, Enlightenment and Honor victories) |
 | `cardnames` | how a card's name is said at the table: patterns dropped from the title (L5R "(Experienced)", a parenthesis) and its short name |
 | `discardvalue` | the play key a recorded card's value is read from in a total (L5R `focus`) |
-| `cardratio`, `imageuri`, `backs`, `symbols` | the card's shape (width ÷ height, 0.714), where the images and card backs are, and the card-text symbol font and classes |
+| `cardratio`, `imageuri`, `backs`, `symbols` | the card's shape (width ÷ height, 0.714), where the images and card backs are (the backs WebP files since version 239, ootv-play [#799](https://github.com/Oracle-of-the-Void/ootv-play/pull/799)), and the card-text symbol font and classes |
 | `arcrules`, `rulesets` | what changes by arc or format, and the rule sets a player can pick at the start (see below) |
 
 ## Hearts (2026-11-10)
@@ -1498,9 +1500,9 @@ Five Imperial cards about allies in multiplayer attacks now work at the table. T
   Provinces (target `whose: "remembered"`). An illegal request is refused. That player chooses: send the unit there
   (`assign`: they join your side and gain the 2 Honor for allying), or lose 8 Honor. The code follows the
   Emerald/Obsidian wording. The Imperial Edition printing's older wording is stored as printed.
-- **False Alliance**: a Battle action only an ally can play (`if {ally: true}`). Your units in this battle go over to
+- **False Alliance**: a Battle action only an ally can play (`if {joined: true}`; `if {ally: true}` until version 240). Your units in this battle go over to
   the other army, at this battle only (`switchside: "yours"`), and you lose 4 Honor.
-- **When Darkness Draws Near**: a Battle action that sends an allying unit in this battle (target `allied: true`) home,
+- **When Darkness Draws Near**: a Battle action that sends an allying unit in this battle (target `joined: true`; `allied: true` until version 240) home,
   bowed. If its player has no other unit in the attack, they lose the 2 Honor for allying (`unaward`).
 - **Moto Tsume**: bows the Personalities with Personal Honor above 1 in his own army, including an ally's units
   (`all {whose: "same"}`, was `yours`).
@@ -1658,7 +1660,7 @@ form, `gains.honor.instead.if` became one flat condition, and the entries that s
   `"require"`, `"name"`, `"then"` and `"else"` work on every where: into play, a zone, under a card, a deck, as they
   did for home, an area and onto a card. A card put under another is still found by a later effect on `target`.
   `{"move": ..., "to": {"host": "self"}}` checks this card's attach limits before anything is paid.
-- **Every `"if"` knows every key** ([#592](https://github.com/Oracle-of-the-Void/ootv-play/pull/592)). `turn`, `capable`, `hand`, `phase`, `counters`, `target` and `ally` work
+- **Every `"if"` knows every key** ([#592](https://github.com/Oracle-of-the-Void/ootv-play/pull/592)). `turn`, `capable`, `hand`, `phase`, `counters`, `target` and `ally` (`joined` since version 240) work
   in a trigger's `"if"` or `"unless"`, a bonus's and a `negate` or `prevents` entry's, not only an action's: Ring of
   the Void's `{"hand": "empty"}` on its negate holds now. An action's or effect's `"if"` reads `inplay`, `count` and
   `destroyed` too. `token` and `players` still mean one thing on a trigger and another on an action.
@@ -2133,7 +2135,7 @@ the scene's `answer.text.cost`), and a Reaction to that Honor loss (a Samurai's 
   `freepassed`, `freeused`, `freebegins` (`pick` gone in version 217). `scenes.turn.says` `picksfirst` "{name} picks first" (gone in 217), `searchfirst` "finish the
   search first", `nothing` "nothing (Undo or Reset)". `scenes.attack.says` `allyonly` "only as an ally", `allykeeps`
   "{who} has other {groups} in it: keeps what allying gave", `unally` "{who} loses the {n} {counter} gained as an
-  ally". The words are the ones the table had; a key not written says nothing. `ornot` came and went (#719).
+  ally" (since version 240 `joinedonly`, `joinedkeeps` and `unjoin`, same words). The words are the ones the table had; a key not written says nothing. `ornot` came and went (#719).
 - `terms.turn {name}` is required ([#705](https://github.com/Oracle-of-the-Void/ootv-play/pull/705)): L5R and LBS `"Turn"`.
 - `destroying.battle`, `moving.battle` removed ([#708](https://github.com/Oracle-of-the-Void/ootv-play/pull/708)): a battle's and a duel's losers and a falling Province are
   removed for the reason `scene`.
@@ -2268,3 +2270,90 @@ duel. The says trace and seeded full games (L5R and LBS) were identical before a
 
 **Card:** Test of the Emerald Champion (7933) loses `open.accept.may` (written 2026-11-22, ootv-backups operation 2026-11-22T040425-play-actions, read back equal), which the engine no longer reads. A series'
 challenge may be refused at no cost unless the card asked may not, as its printed "which may be accepted" says.
+
+## The Imperial general pass's words, join words (2026-11-23 to 2026-11-25, ootv-play #769 to #803; l5r/play versions 235 to 240)
+
+The Imperial-arc general pass tests each written Imperial play code clause by clause. Where a card needed a word the
+table didn't read, or read wrong, the user said yes to each fix, grouped by word family (W2, W4, W13, W16). Each change
+was checked against the live play codes (the `oracle-playcodes` index) first. Unless a card is named below, no live card
+plays differently. `l5r/play` 234 → 240, synced from `games/l5r.json` on `games/base/aeg.json`; `l5r/fields` 166 → 180
+(the `play` description has the card words).
+
+**Config (`l5r/play`):**
+
+- **235** `modifiers.bring`'s text: a bring cost may be `{"discard": {"from": "hand", "all": true}}`, the player's whole hand,
+  an empty one too (Oni no Ianwa, "You must discard your whole hand to put this Personality into play") ([#779](https://github.com/Oracle-of-the-Void/ootv-play/pull/779)).
+- **236** `negates` adds `bow`. A card about to bow asks the cards in play first, as a straighten does. A held
+  `negate {action: bow, by: <reason or scene>}` keeps it straightened: it says "<title> doesn't bow", and a cost can't be paid
+  with it ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)).
+- **237** the moment `returning` and `scenes.battle.points {end: {moment: returning}}`. The end of a battle (the armies
+  going home) is its own point. A Reaction to "your army is returning home" answers it *before* the move home: the move is
+  taken back, the Reaction resolves, then the armies go home ([#794](https://github.com/Oracle-of-the-Void/ootv-play/pull/794), Hyobe). Other Reactions answer after it, as before.
+- **238** `matching.aliases.clan` adds Shadowlands = Yogo Junzo's Army. A players match (`players {clan}`) now reads the
+  aliases too, so The Hidden Heart of Iuchiban's Gold change reaches a Shadowlands Horde player ([#795](https://github.com/Oracle-of-the-Void/ootv-play/pull/795)).
+- **239** `backs`: L5R's Fate and Dynasty backs are the `.jpg.webp` files (the `.jpg` files were deleted 2026-11-24 and
+  only redirect). LBS uses its new back `backs/back_details.webp` (repo config) ([#799](https://github.com/Oracle-of-the-Void/ootv-play/pull/799)).
+- **240** the join words (below) ([#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803)).
+
+**Card words:**
+
+- Choices: a step's `each: "target"` beside a `choose` asks once per target card ([#769](https://github.com/Oracle-of-the-Void/ootv-play/pull/769), Agasha's Illusion, ruling 78);
+  `choose {again: true}` asks again, without the cards already chosen, until Done ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)). Its Done answer takes the
+  choose's `done` label ([#802](https://github.com/Oracle-of-the-Void/ootv-play/pull/802)).
+- Amounts: `{of: named}` and `{of: discard}` with `count: true`, how many cards ([#770](https://github.com/Oracle-of-the-Void/ootv-play/pull/770), Mempo of the Void);
+  Fear and Ranged Attack strength may be any amount, `{of: named, field: chi}` ([#771](https://github.com/Oracle-of-the-Void/ootv-play/pull/771), The Wrath of Osano-Wo);
+  `{of: granted, field}`, the card the granting action targeted ([#777](https://github.com/Oracle-of-the-Void/ootv-play/pull/777), Ruby of Iuchiban); `other: "host"` on a
+  count or an effect leaves out the card this one is attached to ([#785](https://github.com/Oracle-of-the-Void/ootv-play/pull/785), Suru's Mempo). An add's `{of: own}` amount
+  now shows the number it came to in the log ("−2C", was "Chi +-1× its own") ([#791](https://github.com/Oracle-of-the-Void/ootv-play/pull/791), Doom of Fu Leng).
+- Costs: a cost pick's `match` takes condition keys such as `here: true` ([#773](https://github.com/Oracle-of-the-Void/ootv-play/pull/773)). A named cost pick that a target's
+  count or bound reads is asked before the targets ([#774](https://github.com/Oracle-of-the-Void/ootv-play/pull/774)). New: `cost {discard: {from: hand, all: true}}`
+  ([#789](https://github.com/Oracle-of-the-Void/ootv-play/pull/789), Acolyte Kaede) and `cost {token: {name, n, destroy}}` (any kind `*`, any number, destroyed) ([#782](https://github.com/Oracle-of-the-Void/ootv-play/pull/782),
+  Lieutenant Daini). An effect's `destroy {tokens}` that names no token now destroys nothing, never the card. New:
+  `cost {destroy: <who>}` (`self`, `host`, `{target: n}`, `{pick}`). A cost word the table doesn't know refuses the
+  action instead of being skipped ([#796](https://github.com/Oracle-of-the-Void/ootv-play/pull/796)). A card's own `on: self` cost entries `free` and `add` are read for the
+  buyer ([#790](https://github.com/Oracle-of-the-Void/ootv-play/pull/790), Mempo of the Void).
+- Targets and matches: a target slot's `min`, the fewest an `upto` slot takes ([#781](https://github.com/Oracle-of-the-Void/ootv-play/pull/781), Gift of the Wind). `atarea`
+  ([#778](https://github.com/Oracle-of-the-Void/ootv-play/pull/778), Fury of the Earth) and a side word ([#788](https://github.com/Oracle-of-the-Void/ootv-play/pull/788), Kaze-do, Bribery) work from a card in the hand. A cancel's
+  card part is read as a whole match ([#780](https://github.com/Oracle-of-the-Void/ootv-play/pull/780), One with the Elements). A match value that is an object with no `min`,
+  `max` or `has` fails instead of passing ([#772](https://github.com/Oracle-of-the-Void/ootv-play/pull/772)).
+- Grants, attaching, moves: a granted action is the whole action, costs and targets included ([#775](https://github.com/Oracle-of-the-Void/ootv-play/pull/775)); a card's
+  `attachto {whose}` replaces the config's `attaching.whose` (Kolat Bodyguard, on another player's Personality)
+  ([#776](https://github.com/Oracle-of-the-Void/ootv-play/pull/776)); a move `to: {host: host}`, onto the card this one is on, without entering play ([#786](https://github.com/Oracle-of-the-Void/ootv-play/pull/786), Soshi Ujemi); a
+  host move with `face: down` and `reveal` turns the card down where it lies, still in play ([#792](https://github.com/Oracle-of-the-Void/ootv-play/pull/792), Agasha's
+  Illusion); `movetoken {from, to}` takes who words and asks which token when there are several kinds ([#784](https://github.com/Oracle-of-the-Void/ootv-play/pull/784)); an
+  action's own card keeps its host while its effects run, even after its cost destroyed it ([#801](https://github.com/Oracle-of-the-Void/ootv-play/pull/801), Hammer of Earth,
+  Goblin Berserkers); `search {from, match, to}`: a search from another pile, into a Province, a target zone or play
+  ([#797](https://github.com/Oracle-of-the-Void/ootv-play/pull/797), Through the Waterways, Kuroshin's Prayer).
+- Holds and stops: a hold is re-checked inside one action, and turning several cards is one moment ([#787](https://github.com/Oracle-of-the-Void/ootv-play/pull/787), Ruby of
+  Iuchiban); a card entering play asks every card in play (`prevents {action: play}`, Oni no Ianwa's "may not put the
+  Ring of Void into play") ([#783](https://github.com/Oracle-of-the-Void/ootv-play/pull/783)); a stop's `by` may name a scene; IFS `ally: false` (now `joined: false`)
+  ([#793](https://github.com/Oracle-of-the-Void/ootv-play/pull/793)); a Reaction still asking holds the event it answers, and an effect's `quiet: true` is heard by no trigger
+  ([#794](https://github.com/Oracle-of-the-Void/ootv-play/pull/794)).
+- Players: who destroyed a card is kept on it (`card.left` `who`, `by: action`, `effect`), with the who word
+  `to: responsible` and the match `destroyed {who, effect}` ([#798](https://github.com/Oracle-of-the-Void/ootv-play/pull/798), Lesser Oni, A Time of Legends, rulings 46, 96);
+  a player's gained trigger `gain {when}` may go `to: each` ([#800](https://github.com/Oracle-of-the-Void/ootv-play/pull/800), A Time of Legends).
+
+**Join words** ([#803](https://github.com/Oracle-of-the-Void/ootv-play/pull/803); the user: "ally" is an L5R word). Joining a side stays in the table, named by the config's own
+`join`. "Ally" is left only as L5R's display text. Old words are not converted:
+
+| Was | Now |
+|---|---|
+| condition `if {ally: true/false}` | `if {joined: true/false}` |
+| target `allied: true`, whose `allied` | `joined: true`, whose `joined` |
+| `scenes.attack.sides.<side>.allies: true` | `sides.<side>.join.named: true` |
+| the attack's kept list `allied` | `joinawarded` |
+| the award `allyaward` | `joinaward` |
+| `scenes.attack.assign.words.ally` | `joined` |
+| `scenes.attack.says` `allyonly`, `allykeeps`, `unally` | `joinedonly`, `joinedkeeps`, `unjoin`; new `joinaward` "{who} gains {n} {counter} as an ally" |
+
+Five cards were rewritten in the new words (operation 2026-11-25T030616-play-actions): Hyobe, Essence of Water, False
+Alliance, Intersecting Highways, When Darkness Draws Near.
+
+**Cards written** (ootv-backups operations 2026-11-23 to 2026-11-25, each tested clause by clause): 34 Imperial play
+codes and 3 Kiho from the general pass; Agasha's Illusion, The Wrath of Osano-Wo, A Glimpse of the Soul's Shadow, The
+Soul Goes Forth, Kolat Bodyguard, Ruby of Iuchiban, Fury of the Earth, One with the Elements, Gift of the Wind, Secrets on
+the Wind, Oni no Ianwa (its printed text filled from the scan), Lieutenant Daini, Kaze-do, Acolyte Kaede, Mempo of the
+Void, Suru's Mempo, Soshi Ujemi, Doom of Fu Leng, Calling the Elements, Hyobe, Master of the Rolling River, The Hidden
+Heart of Iuchiban, Tsunami, Suzume Mukashino, Imperial Quest, Through the Waterways, Kuroshin's Prayer, Hiruma's Last
+Breath, Qakar, A Terrible Oath, The Fires that Cleanse, Kasuga Kyoji, Drum of Water, Lesser Oni, Bayushi Dozan, A Time of
+Legends, Hammer of Earth, Goblin Berserkers.
