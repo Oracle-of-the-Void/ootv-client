@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-25 (the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
+Last updated: 2026-11-25 (a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
 
 Before that: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
 
@@ -2411,3 +2411,15 @@ ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#
 **Cards written** (operations 2026-11-25T163403, 164236, 164551, 164643): Summon Nightstalker, Shiryo no Asako, Jade
 Strike, Whispering Winds, Pitch and Fire, Kyojin, One Man's Honor, Shiryo no Agasha, The Face of My Enemy, Tao of
 Shinsei, Kuni Yori, Antidote, Tapestry of Air.
+
+## A held rule at a battle binds every player (2026-11-25, l5r/play version 242, l5r/fields 183)
+
+ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), no config change. A lasting `prevents`, or a
+`negate` of an action L5R counts as a negate (`move`), with `where: battle` and no `who`, now binds every player while
+a battle is open: `{action: play, match}` refuses playing a card that fits from the hand, before anything is paid;
+`{action: move, by: action}` refuses moving a unit into or out of the battle with an action. Each entry's `unless` is
+the attempting player's own condition, so a player it holds for may ignore the rule.
+
+**Card written** (operation 2026-11-25T171024): Winter Warfare ("terrain cards cannot be played during battles and
+units cannot be moved into or out of battles with actions. Players with Yuki no Onna in play may ignore these
+restrictions"), until your Events Phase two turns from now.
