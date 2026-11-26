@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-26 (the Y rows of Play Engine Asks, ootv-play [#826](https://github.com/Oracle-of-the-Void/ootv-play/pull/826) to [#831](https://github.com/Oracle-of-the-Void/ootv-play/pull/831), l5r/play version 244, `l5r/fields` 185 (the `play` description says all of it; section at the end); before that 2026-11-25, the X rows of Play Engine Asks, ootv-play [#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815) to [#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825), l5r/play version 243, `l5r/fields` 184 (the `play` description says all of it; section at the end); before that a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
+Last updated: 2026-11-26 (the Z, AA and AB rows of Play Engine Asks, ootv-play [#832](https://github.com/Oracle-of-the-Void/ootv-play/pull/832), l5r/play version 245, `l5r/fields` 186 (the `play` description says all of it; section at the end); before that the Y rows of Play Engine Asks, ootv-play [#826](https://github.com/Oracle-of-the-Void/ootv-play/pull/826) to [#831](https://github.com/Oracle-of-the-Void/ootv-play/pull/831), l5r/play version 244, `l5r/fields` 185 (the `play` description says all of it; section at the end); before that 2026-11-25, the X rows of Play Engine Asks, ootv-play [#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815) to [#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825), l5r/play version 243, `l5r/fields` 184 (the `play` description says all of it; section at the end); before that a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
 
 Before that: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
 
@@ -15,7 +15,7 @@ Before that: 2026-11-23 (the decisions-page changes, ootv-play [#745](https://gi
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 242. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 245. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -2522,3 +2522,38 @@ join a side is refused) ([#831](https://github.com/Oracle-of-the-Void/ootv-play/
 - Rules on players and alliances ([#831](https://github.com/Oracle-of-the-Void/ootv-play/pull/831)): a card's stops binding players (no Honor loss, no joining a side, no swearing
   fealty, no actions that cost another player Honor), a lasting alliance broken by facing each other. Cards written: The
   Shadowlands Horde, Forced Alliance.
+
+## The Z, AA and AB rows of Play Engine Asks (2026-11-26, l5r/play version 245, l5r/fields 186)
+
+ootv-play [#832](https://github.com/Oracle-of-the-Void/ootv-play/pull/832) (one bundle, eight commits; on preview, waiting to be merged to main). The engine words are in
+the ootv-play README and the `l5r/fields` `play` description.
+
+**Config** (l5r/play 245): `sources` adds `{action: {alters: [honor]}, as: {keywords: [Political]}}`: an action altering an
+Honor loss or gain is Political, as is lobbying for the Favor (Imperial Herald Vol. 2 No. 1 p. 14), game-wide (Legendary
+Victory, Refuse Advantage and others now count as Political; Disfavored reads it); `scenes.lobby.endwhen {opener: left}`:
+a lobby opened by a card is called off once that card leaves play (Ancestral Armor of Crane Clan).
+
+**What the table now does**, by group:
+
+- Areas spared and scenes opened by a card (Z9, Z10, Z12): an area's `instead` may spare every area of its kind
+  (`of: all`) and keep doing so against that source card's later destroys (`lasting: source`: Defenders of the Realm,
+  ruling 104); a scene opened by hand from a card has that card as its opener. Cards written: Defenders of the Realm,
+  Ancestral Armor of Crane Clan, Emperor's Protection.
+- Tokens, looks and effects made again (Z1, Z2, Z4): a negate of a stat change reaches tokens of that sign (kept on the
+  card, not counted: The Purity of Kitsu); one look count across face-down cards on the table, deck tops and hands, each
+  card of your own deck put back or discarded (Wisdom the Wind Brings); an effect kind made again at a new target, one
+  less strong (Kyudo). Cards written: The Purity of Kitsu, Wisdom the Wind Brings, Kyudo, Lieutenant Sukune, The First
+  Shout, Togashi Mikoto.
+- Granted actions and assigning (Z5–Z7, Z11): one card grants several actions (Flatlands); "this Province", a unit here
+  or next door; a unit that has been in this battle, or could not be assigned to it (Carrier Pigeon); assigning another
+  player's unit to your own side (Monk Advisors). Cards written: Flatlands, Carrier Pigeon.
+- Players and Political actions (Z13–Z18, Z31–Z34): actions targeting players, stops against them, actions players hold
+  until used, allies' bonuses, each player's part of a battle total and who was ahead, an award taken instead; a stop on
+  Honor loss also stops Honor costs and unpreventable losses; an alliance with a player who may not join is refused.
+  Cards written: Political Dissent, Salute of the Samurai; The Shadowlands Horde and Forced Alliance retested.
+- Costs and owners (AA1–AA4): "free" frees only the Gold Cost, every other cost still paid (ruling 130); an action only
+  the card's owner uses while another player controls it; giving up the Imperial Favor as a cost makes the action
+  Political; Kyudo's again counts the Personality's attached cards but not its Followers' own attacks (ruling 129). Cards
+  written: Yoritomo's Armor, Monk Advisors, Kyudo.
+- A scene's area from a sent-out unit (AB2): a card whose unit is out at a Province reads that Province's totals while
+  units are still being sent out. Card written: Hammer of Earth.
