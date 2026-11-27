@@ -83,12 +83,14 @@ jobs:
         run: .github/stamp-version.sh "${GITHUB_SHA::12}"
 
       # preview is a copy of the live site: keep it out of search results (its canonical link already names
-      # oracleofthevoid.com). A meta tag, not a robots.txt Disallow, so crawlers can read it and drop the pages.
+      # oracleofthevoid.com). The noindex meta tag dropped what Google had; since 2026-11-27 robots.txt also
+      # disallows everything, so preview URLs stop crowding Search Console's reports (the user's call).
       - name: Noindex preview
         if: steps.newest.outputs.current == 'true' && github.ref_name == 'dev'
         run: |
           sed -i 's#<meta charset="utf-8">#&\n  <meta name="robots" content="noindex">#' index.html
           grep -q 'name="robots" content="noindex"' index.html
+          printf 'User-agent: *\nDisallow: /\n' > robots.txt
 
       # Caching (see .github/stamp-version.sh):
       #   *.js, *.css               versioned (?v=<commit>) -> cached a year, immutable
