@@ -1,6 +1,6 @@
 # Bookshelf (rulebooks, newsletters)
 
-Last updated: 2026-11-27 (Three Dynasties Comprehensive Rules 0.5: the datasheet's sections of 30 October to 15 November); 2026-11-17 (shelf Sort: A–Z, Recently updated); 2026-11-13 (Three Dynasties Comprehensive Rules 0.3: retired Onyx keywords removed); 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2)
+Last updated: 2026-11-27 (Three Dynasties Comprehensive Rules 0.5 and 0.6: the datasheet's sections of 30 October to 15 November); 2026-11-17 (shelf Sort: A–Z, Recently updated); 2026-11-13 (Three Dynasties Comprehensive Rules 0.3: retired Onyx keywords removed); 2026-11-04 (Mythos shelf); 2026-11-02 (20F Comprehensive Rules without The New Order as an update; glossary Control link; Onyx/ShE and Three Dynasties 0.2)
 
 The **Bookshelf** button in the menubar (the open book; the Rules section until 2026-10-23) opens the
 game's shelves of books, a tab each when there's more than one: **Rulebooks** (every game) and, for
@@ -490,7 +490,7 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   (Onyx Edition) and Shattered Empire (a list, since 2026-10-27; it went up with Shattered Empire only, when a book's
   arc could be only one). Since 2026-10-28 it is the arcs' "Last complete rules in arc" book (moved from the datasheet,
   the user) and a trait-link source (its glossary, pp. 62–92; the Discord /rule bot answers Onyx/ShE questions from it). Build and notes: ootv-import `rulebooks/COMPREHENSIVE-RULES.md`, "Onyx Edition & Shattered Empire".
-- **Comprehensive Rules for Three Dynasties** (2026-11-27, Version 0.5 draft): the Onyx/ShE book above plus Onyx Lives' Three
+- **Comprehensive Rules for Three Dynasties** (2026-11-27, Version 0.6 draft): the Onyx/ShE book above plus Onyx Lives' Three
   Dynasties Rules Datasheet, with the knock-ons each change needs (some in AEG's own Emperor Edition words: Reactions, constraints
   and effects blocks), every change marked by a bar and a ◆ linking to a front chapter "Changes from Onyx Edition & Shattered
   Empire". Every wording was the user's decision, one by one (record: ootv-games
@@ -508,7 +508,8 @@ From kempy's rulebook collection (ootv-games `game-l5r/kempy-l5rrules/Rulebooks`
   trigger of "Gain/Lose X Honor" traits and the "Equip:" trigger (Special triggered traits); the datasheet's own Constraints
   Block text; Ranged Attacks against Provinces (glossary Ranged Attack); a glossary entry Recon (an action keyword, so not in
   Appendix B); and a Bamboo Harvesters note under a new "Three Dynasties" heading in Notes on Specific Cards. The front
-  chapter has 22 items. Still 97 pages.
+  chapter has 22 items. Version 0.6 (the same day) strikes the setup sentence about the Stronghold's "Sun" and "Moon" sides
+  (JUDGEMENT.md K1b); the starting player is still the one with the highest Family Honor. Still 97 pages.
   On the shelf since 2026-10-27 as `three-dynasties-comprehensive-rules` (type Complete, tags Fan Made and **Last complete rules
   in arc**, moved there from the Three Dynasties datasheet), after the datasheet. The tag makes it the Discord /rule bot's Three
   Dynasties book; trait links still go to the datasheet (they list books by id). Build and notes: ootv-import
