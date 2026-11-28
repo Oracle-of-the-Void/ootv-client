@@ -1,6 +1,6 @@
 # Play table
 
-Last updated: 2026-11-26 (the Z, AA and AB rows of Play Engine Asks, ootv-play [#832](https://github.com/Oracle-of-the-Void/ootv-play/pull/832), l5r/play version 245, `l5r/fields` 186 (the `play` description says all of it; section at the end); before that the Y rows of Play Engine Asks, ootv-play [#826](https://github.com/Oracle-of-the-Void/ootv-play/pull/826) to [#831](https://github.com/Oracle-of-the-Void/ootv-play/pull/831), l5r/play version 244, `l5r/fields` 185 (the `play` description says all of it; section at the end); before that 2026-11-25, the X rows of Play Engine Asks, ootv-play [#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815) to [#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825), l5r/play version 243, `l5r/fields` 184 (the `play` description says all of it; section at the end); before that a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
+Last updated: 2026-11-28 (the AC, AD, AG and AH rows of Play Engine Asks, ootv-play [#833](https://github.com/Oracle-of-the-Void/ootv-play/pull/833), l5r/play version 246, `l5r/fields` 187 (the `play` description says all of it; section at the end); before that 2026-11-26, the Z, AA and AB rows of Play Engine Asks, ootv-play [#832](https://github.com/Oracle-of-the-Void/ootv-play/pull/832), l5r/play version 245, `l5r/fields` 186; before that the Y rows of Play Engine Asks, ootv-play [#826](https://github.com/Oracle-of-the-Void/ootv-play/pull/826) to [#831](https://github.com/Oracle-of-the-Void/ootv-play/pull/831), l5r/play version 244, `l5r/fields` 185 (the `play` description says all of it; section at the end); before that 2026-11-25, the X rows of Play Engine Asks, ootv-play [#815](https://github.com/Oracle-of-the-Void/ootv-play/pull/815) to [#825](https://github.com/Oracle-of-the-Void/ootv-play/pull/825), l5r/play version 243, `l5r/fields` 184 (the `play` description says all of it; section at the end); before that a held rule at a battle binds every player, ootv-play [#814](https://github.com/Oracle-of-the-Void/ootv-play/pull/814), l5r/play version 242 unchanged, `l5r/fields` 183; before that the Play Engine Asks words, subtitles as keywords, ootv-play [#808](https://github.com/Oracle-of-the-Void/ootv-play/pull/808) to [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813), l5r/play version 242, `l5r/fields` 182 (the `play` description says all of it). Config: version 242, `matching.askeywords: [subtitle]` (a card's subtitle counts as one of its keywords in every match: Isawa Tadaka, Seven Thunder fits `keywords: [Seven Thunder]`; [#809](https://github.com/Oracle-of-the-Void/ootv-play/pull/809)) and `matching.askeywordsdrop: [the]` (a leading "the" is dropped too: "the Necromancer" fits `Necromancer`; [#813](https://github.com/Oracle-of-the-Void/ootv-play/pull/813)); the moment `challenged` and the challenge's Answer step `moment {id: challenged, side: challenged}`: heard by the challenged card as the challenge is issued (Kyojin; [#811](https://github.com/Oracle-of-the-Void/ootv-play/pull/811)).
 
 Before that: 2026-11-25 (player triggers, printed values, step points, one waive word, ootv-play [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804) to [#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807), l5r/play version 241, `l5r/fields` 181 (the `play` description says all of it). Config: version 241, the moment `drawshort {drawshort: draw}` (a player should draw a Fate card and can't: Doom of the Dark Lord, [#804](https://github.com/Oracle-of-the-Void/ootv-play/pull/804)), `modifiers.waive.text` for the one general waive word, and `joins[requirement].ignore` empty: a waive is no longer one of the Honor Requirement's own ways past it ([#807](https://github.com/Oracle-of-the-Void/ootv-play/pull/807)).
 
@@ -15,7 +15,7 @@ Before that: 2026-11-23 (the decisions-page changes, ootv-play [#745](https://gi
 The play table (`/play/`, repo `ootv-play`; on preview only so far) plays a game from its table config: the
 zones, the layout rows, setup, card states, counters, the turn's phases and the attack, and the rules that
 change by arc. The live site reads it from the settings (`oracle-all-structure`), item **`<game>/play`**; L5R's
-is `l5r/play`, created 2026-11-03 at version 1, now version 245. There's no Admin editor for it yet.
+is `l5r/play`, created 2026-11-03 at version 1, now version 246. There's no Admin editor for it yet.
 
 ## Where it comes from
 
@@ -79,7 +79,8 @@ is `l5r/play`, created 2026-11-03 at version 1, now version 245. There's no Admi
 | `targeting`, `zonetargets` | target rules: your own bowed card can't be your target unless the card says so, a target with no `from` is a card in play, whose discard pile a target is taken from, the area kinds a target may be (L5R Provinces) |
 | `effectkinds` | effects with a strength that cards name as a kind (L5R Ranged and Fear: how strong, against what, combined how) |
 | `areacards` | area cards (L5R Terrains): which hand cards they are, where and when they're played, how many, what they do and when they go |
-| `attachlimits` | what a card may hold: how many of a kind (L5R one Weapon and one Armor on a Personality), checked as a card is attached |
+| `attachlimits` | what a card may hold: how many of a kind (L5R one Weapon and one Armor on a Personality), checked as a card is attached; since version 246 the rulebook's Spell rule (only a Shugenja holds Spells, up to their Chi; others none unless a card raises it), one Region to a Province (raised by a card on the area) and Fortifications on a Province any number but one of each title (`distinct: title`) |
+| `conditions` | the put-into-play conditions some card types are played under, by title (since version 246, ootv-play [#833](https://github.com/Oracle-of-the-Void/ootv-play/pull/833)): `{<type>: {<title>: [gates]}}`, read as card code. L5R: the five Rings' conditions, from their Imperial-arc play codes; a Reaction to a player fulfilling one and not using it (A Vision of Truth) reads them |
 | `statdestroy` | cards a stat destroys (L5R a Personality whose Chi is 0 or less, below its printed Chi) |
 | `inplay`, `enterface` | what counts as in play (L5R face up only) and the face a card lands with where its zone says none (`up`) |
 | `stacks` | states that stack into one value (L5R bowed and dishonored, read as a rotation) |
@@ -2557,3 +2558,50 @@ a lobby opened by a card is called off once that card leaves play (Ancestral Arm
   written: Yoritomo's Armor, Monk Advisors, Kyudo.
 - A scene's area from a sent-out unit (AB2): a card whose unit is out at a Province reads that Province's totals while
   units are still being sent out. Card written: Hammer of Earth.
+
+## The AC, AD, AG and AH rows of Play Engine Asks (2026-11-28, l5r/play version 246, l5r/fields 187)
+
+ootv-play [#833](https://github.com/Oracle-of-the-Void/ootv-play/pull/833) (one bundle of the local batch;
+merged to main da8d6eda). The engine words are in the ootv-play README and the `l5r/fields` `play` description.
+
+**Config** (l5r/play 246, 54 paths):
+
+- `conditions` (new key, above): the five Rings' put-into-play conditions (AH-G32).
+- `purchase.attach [{match: {keywords: [Fortification]}, to: from}]`: a Fortification bought is attached to the Province
+  it came from (SCC p. 47); in the Samurai, Emperor, Ivory and Three Dynasties rule sets it comes in bowed (the trigger
+  `fortsbowed`); `resources.gold.produce.zones` reads cards on Provinces too.
+- `attachlimits`: the Spell rule, the Region raise, Fortifications one of each title (above).
+- `joins`: the own-player Honor Requirement (`ownrequirement`) no longer covers Followers and Ancestors; theirs is checked
+  against the Personal Honor of the Personality they attach to (`attaching.joins` id `hostrequirement`, SCC p. 24), also
+  on a move from another Personality.
+- Scenes: the attack's `assigned` point (moment `assignend`) and `sides.defend.join {own: true, one: true}` (an attack
+  against two players: Delicate Calculations; the defenders may ally with each other, a third player with one of them);
+  the lobby's `points.open` (moment `lobbyautomatic`) and its `opens.says.contest`.
+- Moments: `rehonored`, `assignend`, `lobbyautomatic`, `areamoved`, `battleassigned`, `revealed`, `used`, `ownaction`,
+  `ninjaattached`, `politicalfailed`, `refused`, `eventresolved`, `acted`, `battlebows`; `destroyed` and `leftplay` heard
+  from the active area too (`zones: [{area: active}]`: Ninja Kidnapper).
+- Modifiers (their texts): `joinpick`, `costcount`, `areatakes`, `as`, `once`, `joinreq`, `holds`, `rekey`, `moves`,
+  `laid`, `counts`, `scene`, `blank`, `allow`, `placeface`, `producecount`, `fear`; wider texts for `presence`, `waive`
+  and `ranged`.
+- Flag `rearguard` ("in Rear Guard"); terms `aimed` also inside a negate, `in` no longer only inside a per.
+
+**What the table now does**, by group (rulings 134 to 144 in ootv-claude `pages/imperial-arc-review/DATA-NOTES.md`):
+
+- AC rows (all 141 recommended answers accepted, 151 rows written): timing and counts for a player, held stops bound to a
+  picked area, phases in another order, cost floors and named sets across a cost's parts, tokens held on an area, made
+  cards on each card reached, picks by a total, another player's turn scene, assignment end, two cards made one, groups
+  assigned face down, failed, refused and resolved moments, scene, attach and production words.
+- AD rows (rules questions and word rows answered 2026-11-27): joining a named pick (Mantis Shugenja), kept traits, every
+  in-play move onto a new host checks the attach rules, doubled runs, a blank of the facing side only (Hirariko), a waive
+  for its own host (Shiryo no Isawa), a duel's resolution as a point, Honor Requirements by host.
+- The missed-card pass (156 Imperial-arc cards with no code: 49 written, 98 blocked then built in AG) and AG (87 rows
+  under the standing yes of 2026-11-28 and 13 answered asks, about 99 cards written): area moves and waives, production
+  for some players, priced refusals, take stops, held Reactions, lower attach limits, effects cancelled for what they
+  give, Fortifications bought onto their Province. Gate fixes: a scene gate on scenes without side cards is now enforced
+  and an unknown name refuses (Tides of Battle and Battlefield of Shallow Graves rewritten).
+- AH (7 cards): a scene's resolution at an area is a destroying point that keeps its first verdict (The Final Breath);
+  Followers detached and loose at a battle, in no unit (Street to Street); Ring conditions met and not used (A Vision of
+  Truth); leaving play heard from the active area (Ninja Kidnapper); an attack against two players (Delicate
+  Calculations).
+- Bundle fixes (no rule change): the how-long menu orders scenes by nesting; a duel's terms leave out the cards its own
+  step turned face up.
